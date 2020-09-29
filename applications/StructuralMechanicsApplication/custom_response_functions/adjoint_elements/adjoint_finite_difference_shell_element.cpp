@@ -25,7 +25,7 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
-int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

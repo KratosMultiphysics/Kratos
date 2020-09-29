@@ -130,7 +130,7 @@ UpdatedLagrangianSegregatedVPElement::~UpdatedLagrangianSegregatedVPElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedVPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void UpdatedLagrangianSegregatedVPElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                                         std::vector<double>& rValues,
                                                                         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -149,7 +149,7 @@ void UpdatedLagrangianSegregatedVPElement::SetValueOnIntegrationPoints( const Va
 
   }
   else{
-    LargeDisplacementSegregatedVPElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementSegregatedVPElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
   }
 
 

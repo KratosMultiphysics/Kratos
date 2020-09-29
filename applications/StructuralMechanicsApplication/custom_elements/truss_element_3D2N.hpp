@@ -96,19 +96,19 @@ namespace Kratos
 
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
-        void Initialize() override;
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function calculates the total stiffness matrix for the element
          */
         virtual BoundedMatrix<double,msLocalSize,msLocalSize>
-         CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+         CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
 
         void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -117,14 +117,14 @@ namespace Kratos
             std::vector<double>& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void GetValueOnIntegrationPoints(
-            const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
+        void CalculateOnIntegrationPoints(
             const Variable<array_1d<double, 3 > >& rVariable,
             std::vector< array_1d<double, 3 > >& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
@@ -139,42 +139,28 @@ namespace Kratos
          */
         void CreateTransformationMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void CalculateOnIntegrationPoints(
-            const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector< array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -189,7 +175,7 @@ namespace Kratos
     void AddExplicitContribution(
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<double >& rDestinationVariable,
+        const Variable<double >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -204,25 +190,25 @@ namespace Kratos
      */
     void AddExplicitContribution(const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const Variable<array_1d<double, 3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
 
         void GetValuesVector(
             Vector& rValues,
-            int Step = 0) override;
+            int Step = 0) const override;
 
         void GetSecondDerivativesVector(
             Vector& rValues,
-            int Step = 0) override;
+            int Step = 0) const override;
 
         void GetFirstDerivativesVector(
             Vector& rValues,
-            int Step = 0) override;
+            int Step = 0) const override;
 
         int  Check(
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         /**
          * @brief This function calculates the current Green-Lagrange strain
@@ -240,7 +226,7 @@ namespace Kratos
          * @param rCurrentProcessInfo The current process information
          */
         void CalculateGeometricStiffnessMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function assembles the elastic stiffness part of the total stiffness matrix
@@ -248,7 +234,7 @@ namespace Kratos
          * @param rCurrentProcessInfo The current process information
          */
         void CalculateElasticStiffnessMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function calculates the current nodal postion for the transformation matrix
@@ -257,26 +243,14 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
-        double ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo);
+        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
 
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function checks if self weight is present
          */
         bool HasSelfWeight() const;
-
-        /**
-         * @brief This function calls the constitutive law to get stresses
-         * @param rCurrentProcessInfo Current process info
-         * @param rSaveInternalVariables Boolean to save internal constit. law variables
-         */
-        virtual BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo);
 
 private:
     /**

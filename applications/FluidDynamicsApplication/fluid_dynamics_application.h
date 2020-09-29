@@ -40,6 +40,7 @@
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/d_vms.h"
 #include "custom_elements/fic.h"
+#include "custom_elements/symbolic_stokes.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/embedded_fluid_element_discontinuous.h"
@@ -56,6 +57,7 @@
 #include "custom_conditions/wall_condition_discontinuous.h"
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/stokes_wall_condition.h"
+#include "custom_conditions/two_fluid_navier_stokes_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
@@ -69,6 +71,7 @@
 #include "custom_elements/embedded_navier_stokes.h"
 #include "custom_elements/embedded_ausas_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes.h"
+#include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/vms_adjoint_element.h"
 
@@ -76,6 +79,7 @@
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
+#include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 
@@ -268,6 +272,11 @@ private:
     const FIC< FICData<3,8> > mFIC3D8N;
     const FIC< TimeIntegratedFICData<2,3> > mTimeIntegratedFIC2D3N;
     const FIC< TimeIntegratedFICData<3,4> > mTimeIntegratedFIC3D4N;
+    const SymbolicStokes< SymbolicStokesData<2,3> > mSymbolicStokes2D3N;
+    const SymbolicStokes< SymbolicStokesData<2,4> > mSymbolicStokes2D4N;
+    const SymbolicStokes< SymbolicStokesData<3,4> > mSymbolicStokes3D4N;
+    const SymbolicStokes< SymbolicStokesData<3,6> > mSymbolicStokes3D6N;
+    const SymbolicStokes< SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
@@ -322,6 +331,7 @@ private:
     const MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
     /// stokes condition(monolithic version)
     const StokesWallCondition<3,3> mStokesWallCondition3D;
+    const StokesWallCondition<3,4> mStokesWallCondition3D4N;
 
     /// Periodic Condition
     const FSPeriodicCondition<2> mFSPeriodicCondition2D;
@@ -376,10 +386,14 @@ private:
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
     const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
+    const CompressibleNavierStokesExplicit<2> mCompressibleNavierStokesExplicit2D;
+    const CompressibleNavierStokesExplicit<3> mCompressibleNavierStokesExplicit3D;
 
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
+    const TwoFluidNavierStokesWallCondition<2, 2> mTwoFluidNavierStokesWallCondition2D;
+    const TwoFluidNavierStokesWallCondition<3, 3> mTwoFluidNavierStokesWallCondition3D;
 
     const VMSAdjointElement<2> mVMSAdjointElement2D;
     const VMSAdjointElement<3> mVMSAdjointElement3D;

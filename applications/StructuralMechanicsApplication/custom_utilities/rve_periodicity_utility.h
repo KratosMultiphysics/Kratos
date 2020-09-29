@@ -61,7 +61,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
     typedef Node<3> NodeType;
 
     /// Definition of the component of variable type
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
+    typedef Variable<double> DoubleVariableType;
 
     ///@}
     ///@name Life Cycle
@@ -182,7 +182,7 @@ private:
      */
     MasterSlaveConstraint::Pointer  GenerateConstraint(
         IndexType& rConstraintId,
-        const VariableComponentType& rVar,
+        const DoubleVariableType& rVar,
         NodeType::Pointer pSlaveNode,
         const std::vector<IndexType>& rMasterIds,
         const Matrix& rRelationMatrix,

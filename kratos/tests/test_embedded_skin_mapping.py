@@ -25,7 +25,7 @@ class TestEmbeddedSkinMapping(KratosUnittest.TestCase):
         parameters = KratosMultiphysics.Parameters("{}")
         parameters.AddEmptyValue("number_of_divisions").SetInt(100)
         parameters.AddEmptyValue("element_name").SetString("Element2D3N")
-        parameters.AddEmptyValue("condition_name").SetString("Condition2D2N")
+        parameters.AddEmptyValue("condition_name").SetString("LineCondition2D2N")
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
 
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, model_part, parameters).Execute()

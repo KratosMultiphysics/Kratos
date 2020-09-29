@@ -179,7 +179,7 @@ class STMonolithicSolver:
 
             if(domain_size == 2):
                 self.Mesher =  TriGenDropletModeler()
-                self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+                self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
                 #this is needed if we want to also store the conditions a node belongs to
                 self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
 
@@ -208,7 +208,10 @@ class STMonolithicSolver:
                         node.SetValue(IS_STRUCTURE, 1.0)
 
         # creating the solution strategy
-        self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol, self.rel_pres_tol, self.abs_pres_tol)
+        self.conv_criteria = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.VELOCITY, self.rel_vel_tol, self.abs_vel_tol),
+            (KratosMultiphysics.PRESSURE, self.rel_pres_tol, self.abs_pres_tol)])
+
         #self.conv_criteria = ResidualCriteria(0.0001, 0.0000001)
 
         #(self.conv_criteria).SetEchoLevel(self.echo_level)
@@ -254,7 +257,7 @@ class STMonolithicSolver:
             if self.use_spalart_allmaras:
                 self.neighbour_search.Execute()
 
-        NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
                 node.SetSolutionStepValue(NORMAL_X,0,0.0)
@@ -300,7 +303,7 @@ class STMonolithicSolver:
         h_factor=0.25;
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","LineCondition2D2N", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
 
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
@@ -318,7 +321,7 @@ class STMonolithicSolver:
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
 ######################################################################################################
         #FOR PFEM
-        NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
         if (self.domain_size == 2):
             for node in self.model_part.Nodes:
                 node.SetSolutionStepValue(FLAG_VARIABLE,0,0.0)

@@ -52,7 +52,8 @@ namespace Kratos
         for(auto& elem : primal_agglomeration_part.Elements())
         {
             Vector element_stress;
-            StressCalculation::CalculateStressOnGP(elem, mTracedStressType, element_stress, rPrimalModelPart.GetProcessInfo());
+            const ProcessInfo &r_process_info = rPrimalModelPart.GetProcessInfo();
+            StressCalculation::CalculateStressOnGP(elem, mTracedStressType, element_stress, r_process_info);
 
             const SizeType stress_vec_size = element_stress.size();
             double mean_stress = 0.0;
@@ -127,9 +128,8 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElementInAdjointPart->Id())
         {
-            ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
-                                                                    rSensitivityGradient, process_info);
+                                                                    rSensitivityGradient, rProcessInfo);
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -165,9 +165,8 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElementInAdjointPart->Id())
         {
-            ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
-                                                                    rSensitivityGradient, process_info);
+                                                                    rSensitivityGradient, rProcessInfo);
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -194,7 +193,7 @@ namespace Kratos
                                       const std::string& rVariableName,
                                       const Matrix& rSensitivityMatrix,
                                       Vector& rSensitivityGradient,
-                                      ProcessInfo& rProcessInfo)
+                                      const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 

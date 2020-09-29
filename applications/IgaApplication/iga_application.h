@@ -1,12 +1,8 @@
-/*
 //  KRATOS  _____________
 //         /  _/ ____/   |
 //         / // / __/ /| |
 //       _/ // /_/ / ___ |
 //      /___/\____/_/  |_| Application
-//
-//  Main authors:   Thomas Oberbichler
-*/
 
 #if !defined(KRATOS_IGA_APPLICATION_H_INCLUDED)
 #define  KRATOS_IGA_APPLICATION_H_INCLUDED
@@ -21,39 +17,25 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-#include "custom_elements/iga_truss_element.h"
-#include "custom_elements/shell_kl_discrete_element.h"
+//elements
+#include "custom_elements/shell_3p_element.h"
 
 //conditions
 #include "custom_conditions/load_condition.h"
+#include "custom_conditions/penalty_coupling_condition.h"
 
+//modelers
+#include "custom_modelers/iga_modeler.h"
 
 namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name Enum's
-///@{
-
-///@}
-///@name Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosIgaApplication
-    : public KratosApplication {
+class KRATOS_API(IGA_APPLICATION) KratosIgaApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{
@@ -72,34 +54,22 @@ public:
     ~KratosIgaApplication() override {}
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
     void Register() override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /// Turn back information
     std::string Info() const override
     {
         return "KratosIgaApplication";
     }
 
-    /// Print information about this object.
+    /// Print Information
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
@@ -123,73 +93,23 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
-    ///@}
     ///@name Member Variables
     ///@{
 
-    const IgaTrussElement mIgaTrussElement;
-    const ShellKLDiscreteElement mShellKLDiscreteElement;
+    const Shell3pElement mShell3pElement;
 
     //Conditions
     const LoadCondition mLoadCondition;
+    const PenaltyCouplingCondition mPenaltyCouplingCondition;
+
+    // Modelers
+    const IgaModeler mIgaModeler;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Unaccessible methods
+    ///@name Private methods
     ///@{
 
     /// Assignment operator.
@@ -201,15 +121,6 @@ private:
     ///@}
 
 }; // class KratosIgaApplication
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 

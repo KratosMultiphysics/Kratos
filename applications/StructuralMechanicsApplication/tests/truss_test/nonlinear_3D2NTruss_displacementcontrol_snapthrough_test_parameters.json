@@ -60,8 +60,8 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.PrescribedDisplacement_top",
                 "direction"       : "y",
-                "POINT_LOAD_value": -1.0,
-                "PRESCRIBED_DISPLACEMENT_value" : "-0.065*t",
+                "point_load_value": -1.0,
+                "prescribed_displacement_value" : "-0.065*t",
                 "interval"        : [0.0,"End"]
             }
         }],

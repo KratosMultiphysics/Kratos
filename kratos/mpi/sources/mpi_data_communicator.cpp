@@ -10,7 +10,10 @@
 //  Main author:     Jordi Cotela
 //
 
+#include "includes/parallel_environment.h"
+
 #include "mpi/includes/mpi_data_communicator.h"
+#include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
@@ -225,14 +228,27 @@ namespace Kratos {
 MPIDataCommunicator::MPIDataCommunicator(MPI_Comm MPIComm):
     DataCommunicator(),
     mComm(MPIComm)
-{}
+{
+    if (!ParallelEnvironment::MPIIsInitialized())
+    {
+        ParallelEnvironment::SetUpMPIEnvironment(MPIManager::Create());
+    }
+}
 
 MPIDataCommunicator::~MPIDataCommunicator()
-{}
-
-DataCommunicator::UniquePointer MPIDataCommunicator::Clone() const
 {
-    return Kratos::make_unique<MPIDataCommunicator>(mComm);
+    // If the MPI_Comm object is not one of the standard ones, it is our responsibility to manage its lifetime.
+    if(mComm != MPI_COMM_WORLD && mComm != MPI_COMM_SELF && mComm != MPI_COMM_NULL)
+    {
+        MPI_Comm_free(&mComm);
+    }
+}
+
+// New communicator creation
+
+MPIDataCommunicator::UniquePointer MPIDataCommunicator::Create(MPI_Comm Comm)
+{
+    return Kratos::make_unique<MPIDataCommunicator>(Comm);
 }
 
 // Barrier wrapper
@@ -271,6 +287,11 @@ array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValu
     return global_value;
 }
 
+bool MPIDataCommunicator::AndReduce(const bool Value, const int Root) const
+{
+    return ReduceDetail(Value, MPI_LAND, Root);
+}
+
 Kratos::Flags MPIDataCommunicator::AndReduce(const Kratos::Flags Values, const Kratos::Flags Mask, const int Root) const
 {
     Flags::BlockType local_active_flags = Values.GetDefined() & Mask.GetDefined();
@@ -285,6 +306,11 @@ Kratos::Flags MPIDataCommunicator::AndReduce(const Kratos::Flags Values, const K
     out.SetDefined(active_flags | Values.GetDefined());
     out.SetFlags( (reduced_flags & active_flags) | (Values.GetFlags() & ~active_flags) );
     return out;
+}
+
+bool MPIDataCommunicator::OrReduce(const bool Value, const int Root) const
+{
+    return ReduceDetail(Value, MPI_LOR, Root);
 }
 
 Kratos::Flags MPIDataCommunicator::OrReduce(const Kratos::Flags Values, const Kratos::Flags Mask, const int Root) const
@@ -326,6 +352,11 @@ array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalV
     return global_value;
 }
 
+bool MPIDataCommunicator::AndReduceAll(const bool Value) const
+{
+    return AllReduceDetail(Value, MPI_LAND);
+}
+
 Kratos::Flags MPIDataCommunicator::AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
 {
     Flags::BlockType local_active_flags = Values.GetDefined() & Mask.GetDefined();
@@ -340,6 +371,11 @@ Kratos::Flags MPIDataCommunicator::AndReduceAll(const Kratos::Flags Values, cons
     out.SetDefined(active_flags | Values.GetDefined());
     out.SetFlags( (reduced_flags & active_flags) | (Values.GetFlags() & ~active_flags) );
     return out;
+}
+
+bool MPIDataCommunicator::OrReduceAll(const bool Value) const
+{
+    return AllReduceDetail(Value, MPI_LOR);
 }
 
 Kratos::Flags MPIDataCommunicator::OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
@@ -394,6 +430,16 @@ int MPIDataCommunicator::Size() const
 bool MPIDataCommunicator::IsDistributed() const
 {
     return true;
+}
+
+bool MPIDataCommunicator::IsDefinedOnThisRank() const
+{
+    return !this->IsNullOnThisRank();
+}
+
+bool MPIDataCommunicator::IsNullOnThisRank() const
+{
+    return mComm == MPI_COMM_NULL;
 }
 
 // IO
@@ -869,6 +915,10 @@ bool MPIDataCommunicator::BroadcastErrorIfFalse(bool Condition, const int Source
 
 bool MPIDataCommunicator::ErrorIfTrueOnAnyRank(bool Condition) const
 {
+    // Note: this function cannot use the helper function AllReduceDetail
+    // even if it implements the same funtionality. AllReduceDetail calls
+    // ErrorIfTrueOnAnyRank in debug mode for consistency checking
+    // and that would result on a circular call.
     bool or_condition;
     int ierr = MPI_Allreduce(&Condition, &or_condition, 1, MPI_C_BOOL, MPI_LOR, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");

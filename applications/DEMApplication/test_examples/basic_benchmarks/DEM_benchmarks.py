@@ -160,8 +160,8 @@ class Solution(main_script.Solution):
 
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
-    def FinalizeTimeStep(self, time):
-        super(Solution, self).FinalizeTimeStep(time)
+    def FinalizeSolutionStep(self):
+        super(Solution, self).FinalizeSolutionStep()
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi

@@ -33,6 +33,8 @@
 #include "custom_utilities/analytic_tools/particles_history_watcher.h"
 #include "custom_utilities/move_mesh_utility.h"
 #include "custom_utilities/stationarity_checker.h"
+#include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
+
 
 namespace Kratos {
 
@@ -290,6 +292,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateCartesianSpecimenMdpa", &PreUtilities::CreateCartesianSpecimenMdpa)
         .def("BreakBondUtility", &PreUtilities::BreakBondUtility)
         .def("FillAnalyticSubModelPartUtility", &PreUtilities::FillAnalyticSubModelPartUtility)
+        .def("MarkToEraseParticlesOutsideRadius", &PreUtilities::MarkToEraseParticlesOutsideRadius)
+        .def("ApplyConcentricForceOnParticles", &PreUtilities::ApplyConcentricForceOnParticles)
+        .def("ResetSkinParticles", &PreUtilities::ResetSkinParticles)
+        .def("SetSkinParticlesInnerCircularBoundary", &PreUtilities::SetSkinParticlesInnerCircularBoundary)
+        .def("SetSkinParticlesOuterCircularBoundary", &PreUtilities::SetSkinParticlesOuterCircularBoundary)
+        .def("SetSkinParticlesOuterSquaredBoundary", &PreUtilities::SetSkinParticlesOuterSquaredBoundary)
+        .def("PrintNumberOfNeighboursHistogram", &PreUtilities::PrintNumberOfNeighboursHistogram)
         ;
 
     py::class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities")
@@ -324,6 +333,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
         .def(py::init<>())
+        .def("ComputeAverageZStressFor2D", &AuxiliaryUtilities::ComputeAverageZStressFor2D)
         ;
 
     py::class_<PropertiesProxiesManager, PropertiesProxiesManager::Pointer>(m, "PropertiesProxiesManager")
@@ -355,6 +365,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<>())
         .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
         ;
+
+    py::class_<MultiaxialControlModuleGeneralized2DUtilities, MultiaxialControlModuleGeneralized2DUtilities::Pointer>(m, "MultiaxialControlModuleGeneralized2DUtilities")
+        .def(py::init<ModelPart&,ModelPart&,Parameters&>())
+        .def("ExecuteInitialize", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize)
+        .def("ExecuteInitializeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionStep)
+        .def("ExecuteFinalizeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep)
+        ;
+
     }
 
 

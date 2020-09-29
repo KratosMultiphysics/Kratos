@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -96,6 +95,8 @@ class MmgProcess(KratosMultiphysics.Process):
                 "metric_variable"                  : ["DISTANCE"],
                 "non_historical_metric_variable"   : [false],
                 "normalization_factor"             : [1.0],
+                "normalization_alpha"              : [0.0],
+                "normalization_method"             : ["constant"],
                 "estimate_interpolation_error"     : false,
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.28125
@@ -154,6 +155,10 @@ class MmgProcess(KratosMultiphysics.Process):
             "save_external_files"              : false,
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
+            "remesh_at_finalize"               : false,
+            "output_final_mesh"                : false,
+            "sub_model_part_names_to_remove"   : [],
+            "output_mesh_file_name"            : "final_refined_mesh",
             "max_number_of_searchs"            : 1000,
             "preserve_flags"                   : true,
             "interpolate_non_historical"       : true,
@@ -282,6 +287,10 @@ class MmgProcess(KratosMultiphysics.Process):
             self.non_historical_metric_variable = self.__list_extender(self.non_historical_metric_variable, variable_types)
             self.normalization_factor = self.__generate_double_list_from_input(self.settings["hessian_strategy_parameters"]["normalization_factor"])
             self.normalization_factor = self.__list_extender(self.normalization_factor, variable_types)
+            self.normalization_alpha = self.__generate_double_list_from_input(self.settings["hessian_strategy_parameters"]["normalization_alpha"])
+            self.normalization_alpha = self.__list_extender(self.normalization_alpha, variable_types)
+            self.normalization_method = self.__generate_string_list_from_input(self.settings["hessian_strategy_parameters"]["normalization_method"])
+            self.normalization_method = self.__list_extender(self.normalization_method, variable_types)
             len_metric_variables = len(self.metric_variables)
             len_non_historical_metric_variable = len(self.non_historical_metric_variable)
             if len_metric_variables > len_non_historical_metric_variable:
@@ -291,6 +300,14 @@ class MmgProcess(KratosMultiphysics.Process):
             if len_metric_variables > len_normalization_factor:
                 for i in range(len_normalization_factor, len_metric_variables):
                     self.normalization_factor.append(1.0)
+            len_normalization_alpha = len(self.normalization_alpha)
+            if len_metric_variables > len_normalization_alpha:
+                for i in range(len_normalization_alpha, len_metric_variables):
+                    self.normalization_alpha.append(0.0)
+            len_normalization_method = len(self.normalization_method)
+            if len_metric_variables > len_normalization_method:
+                for i in range(len_normalization_method, len_metric_variables):
+                    self.normalization_method.append("constant")
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if mesh_dependent_constant == 0.0:
                 self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.domain_size/(self.domain_size + 1))**2.0)
@@ -404,6 +421,24 @@ class MmgProcess(KratosMultiphysics.Process):
                                 self.step = 0  # Reset
                                 self.time = 0.0  # Reset
 
+    def ExecuteFinalize(self):
+        """ This method is executed in order to finalize the simulation and save the refined mesh in a new .mdpa file
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        remesh_at_finalize = self.settings["remesh_at_finalize"].GetBool()
+        output_final_mesh = self.settings["output_final_mesh"].GetBool()
+        output_mesh_file_name = self.settings["output_mesh_file_name"].GetString()
+        sub_model_part_names_to_remove = self.settings["sub_model_part_names_to_remove"].GetStringArray()
+        if remesh_at_finalize:
+            for sub_model_part_name in sub_model_part_names_to_remove:
+                if self.main_model_part.HasSubModelPart(sub_model_part_name):
+                    self.main_model_part.RemoveSubModelPart(sub_model_part_name)
+            self._ExecuteRefinement()
+        if output_final_mesh:
+            KratosMultiphysics.ModelPartIO(output_mesh_file_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
+
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
 
@@ -475,13 +510,19 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("non_historical_metric_variable")
             hessian_parameters["hessian_strategy_parameters"].RemoveValue("normalization_factor")
             hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_factor")
+            hessian_parameters["hessian_strategy_parameters"].RemoveValue("normalization_alpha")
+            hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_alpha")
+            hessian_parameters["hessian_strategy_parameters"].RemoveValue("normalization_method")
+            hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_method")
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             hessian_parameters.AddValue("enforce_anisotropy_relative_variable",self.settings["enforce_anisotropy_relative_variable"])
             hessian_parameters.AddValue("enforced_anisotropy_parameters",self.settings["anisotropy_parameters"])
             hessian_parameters["enforced_anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
-            for current_metric_variable, non_historical_metric_variable, normalization_factor in zip(self.metric_variables, self.non_historical_metric_variable, self.normalization_factor):
+            for current_metric_variable, non_historical_metric_variable, normalization_factor, normalization_alpha, normalization_method in zip(self.metric_variables, self.non_historical_metric_variable, self.normalization_factor, self.normalization_alpha, self.normalization_method):
                 hessian_parameters["hessian_strategy_parameters"]["non_historical_metric_variable"].SetBool(non_historical_metric_variable)
                 hessian_parameters["hessian_strategy_parameters"]["normalization_factor"].SetDouble(normalization_factor)
+                hessian_parameters["hessian_strategy_parameters"]["normalization_alpha"].SetDouble(normalization_alpha)
+                hessian_parameters["hessian_strategy_parameters"]["normalization_method"].SetString(normalization_method)
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
         elif self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
             # Generate SPR process
@@ -705,6 +746,20 @@ class MmgProcess(KratosMultiphysics.Process):
           double_list.append(param[i].GetDouble())
 
       return double_list
+
+    def __generate_string_list_from_input(self,param):
+      '''Parse a list of strings from input.'''
+      # At least verify that the input is an array
+      if not param.IsArray():
+          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+      # Retrieve the boolean from the arrays
+      string_list = []
+
+      for i in range( 0,param.size()):
+          string_list.append(param[i].GetString())
+
+      return string_list
 
     def __generate_submodelparts_list_from_input(self,param):
         '''Parse a list of variables from input.'''

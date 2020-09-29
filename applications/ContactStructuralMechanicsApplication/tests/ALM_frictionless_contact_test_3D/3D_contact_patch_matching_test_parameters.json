@@ -163,6 +163,7 @@
                 "check_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
                 "input_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results_LM.json",
                 "model_part_name"     : "Structure.Contact_Part",
+                "check_for_flag"      : "SLAVE",
                 "historical_value"    : false,
                 "time_frequency"      : 1.0
             }
@@ -176,7 +177,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

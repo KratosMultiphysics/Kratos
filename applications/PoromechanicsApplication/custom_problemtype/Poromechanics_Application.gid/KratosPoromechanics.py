@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 # import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication
 
 from KratosMultiphysics.PoromechanicsApplication.poromechanics_analysis import PoromechanicsAnalysis

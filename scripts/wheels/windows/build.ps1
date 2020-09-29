@@ -1,4 +1,6 @@
-$pythons = "37","36","35"
+param([System.String]$cotire="OFF")
+
+$pythons = "38","37","36","35"
 $env:kratos_version = "7.0.3"
 
 $kratosRoot = "c:\kratos\kratos"
@@ -6,12 +8,26 @@ $env:kratos_root = $kratosRoot
 $wheelRoot = "c:\wheel"
 $wheelOutDir = "c:\out"
 
+function exec_build($python, $pythonPath) {
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) OFF"
+    cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
+}
+
+function exec_build_cotire($python, $pythonPath) {
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) ON"
+    cmake --build "$($kratosRoot)/build/Release" --target all_unity -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
+}
+
 function build ($python, $pythonPath) {
     cd $kratosRoot
-    cd cmake_build
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
-    cmd.exe /c "call configure.bat $($pythonPath)"
-    MSBuild.exe /m INSTALL.vcxproj /p:Configuration=Custom /p:Platform="x64"
+
+    if($cotire -eq "ON"){
+        exec_build_cotire $python $pythonPath
+    }else {
+        exec_build $python $pythonPath
+    }
 }
 
 function  setup_wheel_dir {
@@ -25,8 +41,10 @@ function  setup_wheel_dir {
 function create_core_wheel ($pythonPath) {
     setup_wheel_dir
     cd $kratosRoot
-    cp KratosMultiphysics\* "$($wheelRoot)\KratosMultiphysics"
+    cp bin\release\KratosMultiphysics\* "$($wheelRoot)\KratosMultiphysics"
     cp scripts\wheels\windows\KratosMultiphysics.json "$($wheelRoot)\wheel.json"
+
+
     cp scripts\wheels\__init__.py "$($wheelRoot)\KratosMultiphysics\__init__.py"
     cd $wheelRoot
     & $pythonPath setup.py bdist_wheel
@@ -46,19 +64,17 @@ function create_application_wheel ($pythonPath, $app) {
 }
 
 foreach ($python in $pythons){
-    echo "Begining build for python $($python)"
+    Write-Host "Begining build for python $($python)"
     $env:python = $python
 
-    #mkdir c:\wheel
     cd $kratosRoot
     git clean -ffxd
-    $env:hash=$(git show -s --format=%h) #used in version number
     $pythonPath = "$($env:pythonRoot)\$($python)\python.exe"
 
     build $python $pythonPath
 
-    echo "Finished build"
-    echo "Begining wheel construction for python $($python)"
+    Write-Host "Finished build"
+    Write-Host "Begining wheel construction for python $($python)"
 
     create_core_wheel $pythonPath
 
@@ -68,5 +84,5 @@ foreach ($python in $pythons){
         create_application_wheel $pythonPath $app
     }
 
-    echo "Finished wheel construction for python $($python)"
+    Write-Host "Finished wheel construction for python $($python)"
 }

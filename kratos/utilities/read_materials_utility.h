@@ -102,6 +102,9 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
 
+    /// Destructor.
+    virtual ~ReadMaterialsUtility() {}
+
     ///@}
     ///@name Operators
     ///@{
@@ -165,6 +168,67 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns the material parameters to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignMaterialToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+    
+    /**
+     * @brief This method assigns the constitutive law to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignConstitutiveLawToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+    
+    /**
+     * @brief This method assigns the variables to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignVariablesToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+    
+    /**
+     * @brief This method assigns the tables to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignTablesToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+    
+    /**
+     * @brief This method creates an auxiliar Parameters when reading properties in order to avoid error, so these non-registered properties can be processed later
+     * @param VariablesParameters The original variable parameters
+     * @param PropertyId The current property Id (for a warning)
+     * @return The variables filtered if required
+     */
+    virtual Parameters FilterVariables(
+        const Parameters VariablesParameters,
+        const IndexType PropertyId = 0
+        );
+        
+    /**
+     * @brief Trims out a component name, separating by '."
+     * @details Trims out a component name, removing unnecessary module information.
+     * For backward compatibility.
+     * Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
+     * Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
+     * @param rLine Component name in materials json file
+     */
+    void TrimComponentName(std::string& rLine);
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -199,16 +263,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
 
     /**
-     * @brief This method assigns the material parameters to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    void AssingMaterialToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
-
-    /**
      * @brief This method creates a list of subproperties and it assigns to the father property from configuration parameters
      * @param rModelPart The currently computed model part
      * @param SubPropertiesData The parameters containing all the configurations of the materials
@@ -231,17 +285,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param Materials The parameters containing the properties of the materials
      */
     void GetPropertyBlock(Parameters Materials);
-
-    /**
-     * @brief Trims out a component name, separating by '."
-     * @details Trims out a component name, removing unnecessary module information.
-     * For backward compatibility.
-     * Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
-     * Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
-     * @param rLine Component name in materials json file
-     */
-    void TrimComponentName(std::string& rLine);
-
 
     /**
      * @brief Checks if the materials are assigned uniquely to the modelparts

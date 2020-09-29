@@ -55,7 +55,7 @@ namespace Kratos
 {
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions() const
 {
     return NumberOfLines;
 }
@@ -64,7 +64,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions() const
 {
     return NumberOfTriangles;
 }
@@ -73,7 +73,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions() const
 {
     return NumberOfLines;
 }
@@ -82,7 +82,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions() const
 {
     return 0;
 }
@@ -91,7 +91,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions() cons
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions() const
 {
     return NumberOfQuadrilaterals;
 }
@@ -100,7 +100,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions() cons
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions() const
 {
     return 0;
 }
@@ -109,7 +109,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements() const
 {
     return NumberOfTriangles;
 }
@@ -118,7 +118,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements() const
 {
     return NumberOfTetrahedra;
 }
@@ -127,7 +127,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
 {
     return NumberOfTriangles;
 }
@@ -136,7 +136,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
 {
     return 0;
 }
@@ -145,7 +145,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements() const
 {
     return NumberOfPrism;
 }
@@ -154,7 +154,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeElements() const
 {
     return 0;
 }
@@ -234,6 +234,8 @@ bool MmgUtilities<TMMGLibrary>::GetRemoveRegions()
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo)
 {
+    KRATOS_TRY;
+
     rMMGMeshInfo.NumberOfNodes = mMmgMesh->np;
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         rMMGMeshInfo.NumberOfLines = mMmgMesh->na;
@@ -266,6 +268,8 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
         "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTriangles << std::endl;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -274,6 +278,8 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
 template<MMGLibrary TMMGLibrary>
 IndexVectorType MmgUtilities<TMMGLibrary>::FindDuplicateNodeIds(const ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
     DoubleVectorMapType node_map;
 
     IndexVectorType nodes_to_remove_ids;
@@ -301,6 +307,8 @@ IndexVectorType MmgUtilities<TMMGLibrary>::FindDuplicateNodeIds(const ModelPart&
     }
 
     return nodes_to_remove_ids;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -309,6 +317,8 @@ IndexVectorType MmgUtilities<TMMGLibrary>::FindDuplicateNodeIds(const ModelPart&
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeConditions()
 {
+    KRATOS_TRY;
+
     IndexVectorMapType edge_map;
 
     IndexVectorType ids(2);
@@ -335,6 +345,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeConditions()
     }
 
     return conditions_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -343,6 +355,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeConditions()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeConditions()
 {
+    KRATOS_TRY;
+
     IndexVectorMapType triangle_map;
 
     IndexVectorType ids_triangles(3);
@@ -369,6 +383,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeConditions()
     }
 
     return conditions_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -377,6 +393,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeConditions()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeConditions()
 {
+    KRATOS_TRY;
+
     IndexVectorMapType edge_map;
 
     IndexVectorType ids(2);
@@ -403,6 +421,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeConditions()
     }
 
     return conditions_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -411,9 +431,13 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeConditions()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeConditions()
 {
+    KRATOS_TRY;
+
     IndexVectorType conditions_to_remove(0);
 
     return conditions_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -422,6 +446,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeConditions()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeConditions()
 {
+    KRATOS_TRY;
+
     IndexVectorMapType quadrilateral_map;
 
     IndexVectorType ids_quadrialteral(4);
@@ -449,6 +475,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeConditions()
     }
 
     return conditions_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -457,9 +485,13 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeConditions()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeConditions()
 {
+    KRATOS_TRY;
+
     IndexVectorType conditions_to_remove(0);
 
     return conditions_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -468,6 +500,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeConditions()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeElements()
 {
+    KRATOS_TRY;
+
     IndexVectorMapType triangle_map;
 
     IndexVectorType ids_triangles(3);
@@ -495,6 +529,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeElements()
     }
 
     return elements_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -503,6 +539,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeElements()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeElements()
 {
+    KRATOS_TRY;
+
     IndexVectorMapType triangle_map;
 
     IndexVectorType ids_tetrahedron(4);
@@ -530,6 +568,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeElements()
     }
 
     return elements_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -538,6 +578,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeElements()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeElements()
 {
+    KRATOS_TRY;
+
     IndexVectorMapType triangle_map;
 
     IndexVectorType ids_triangles(3);
@@ -565,6 +607,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeElements()
     }
 
     return elements_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -573,8 +617,12 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeElements()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements()
 {
+    KRATOS_TRY;
+
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -583,6 +631,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeElements()
 {
+    KRATOS_TRY;
+
     IndexVectorMapType prism_map;
 
     IndexVectorType ids_prisms(6);
@@ -612,6 +662,8 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeElements()
     }
 
     return elements_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -620,8 +672,12 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeElements()
 template<>
 IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeElements()
 {
+    KRATOS_TRY;
+
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -630,7 +686,11 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeElements()
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::BlockNode(const IndexType iNode)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMG2D_Set_requiredVertex(mMmgMesh, iNode) != 1 ) << "Unable to block vertex" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -640,7 +700,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::BlockNode(const IndexType iNode)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::BlockNode(const IndexType iNode)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMG3D_Set_requiredVertex(mMmgMesh, iNode) != 1 ) << "Unable to block vertex" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -649,7 +713,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::BlockNode(const IndexType iNode)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::BlockNode(const IndexType iNode)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMGS_Set_requiredVertex(mMmgMesh, iNode) != 1 ) << "Unable to block vertex" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -658,7 +726,11 @@ void MmgUtilities<MMGLibrary::MMGS>::BlockNode(const IndexType iNode)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::BlockCondition(const IndexType iCondition)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMG2D_Set_requiredEdge(mMmgMesh, iCondition) != 1 ) << "Unable to block edge" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -667,7 +739,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::BlockCondition(const IndexType iCondition)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::BlockCondition(const IndexType iCondition)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMG3D_Set_requiredTriangle(mMmgMesh, iCondition) != 1 ) << "Unable to block edge" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -676,7 +752,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::BlockCondition(const IndexType iCondition)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::BlockCondition(const IndexType iCondition)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMGS_Set_requiredEdge(mMmgMesh, iCondition) != 1 ) << "Unable to block edge" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -685,7 +765,11 @@ void MmgUtilities<MMGLibrary::MMGS>::BlockCondition(const IndexType iCondition)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::BlockElement(const IndexType iElement)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMG2D_Set_requiredTriangle(mMmgMesh, iElement) != 1 ) << "Unable to block triangle" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -695,7 +779,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::BlockElement(const IndexType iElement)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::BlockElement(const IndexType iElement)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMG3D_Set_requiredTetrahedron(mMmgMesh, iElement) != 1 ) << "Unable to block tetrahedron" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -704,7 +792,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::BlockElement(const IndexType iElement)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::BlockElement(const IndexType iElement)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF(MMGS_Set_requiredTriangle(mMmgMesh, iElement) != 1 ) << "Unable to block triangle" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -718,6 +810,8 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     int& IsRequired
     )
 {
+    KRATOS_TRY;
+
     double coord_0, coord_1;
     int is_corner;
 
@@ -726,6 +820,8 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     NodeType::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, 0.0);
 
     return p_node;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -739,6 +835,8 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     int& IsRequired
     )
 {
+    KRATOS_TRY;
+
     double coord_0, coord_1, coord_2;
     int is_corner;
 
@@ -747,6 +845,8 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     NodeType::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, coord_2);
 
     return p_node;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -760,6 +860,8 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     int& IsRequired
     )
 {
+    KRATOS_TRY;
+
     double coord_0, coord_1, coord_2;
     int is_corner;
 
@@ -768,6 +870,8 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     NodeType::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, coord_2);
 
     return p_node;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -783,6 +887,8 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     bool SkipCreation
     )
 {
+    KRATOS_TRY;
+
     // We create the default one
     Condition::Pointer p_condition = nullptr;
 
@@ -795,7 +901,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     Condition::Pointer p_base_condition = nullptr;
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+            if(mEchoLevel > 1) {
+                KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+            }
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
@@ -824,6 +932,8 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
 
     if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Length() < ZeroTolerance) << "Creating a almost zero or negative length condition" << std::endl;
     return p_condition;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -839,6 +949,8 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
     bool SkipCreation
     )
 {
+    KRATOS_TRY;
+
     // We create the default one
     Condition::Pointer p_condition = nullptr;
 
@@ -852,7 +964,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
 
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+            if(mEchoLevel > 1) {
+                KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+            }
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
@@ -883,6 +997,8 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
 
     if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area condition" << std::endl;
     return p_condition;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -898,6 +1014,8 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
     bool SkipCreation
     )
 {
+    KRATOS_TRY;
+
     // We create the default one
     Condition::Pointer p_condition = nullptr;
 
@@ -907,7 +1025,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+        if(mEchoLevel > 1) {
+            KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+        }
         return p_condition;
     }
 
@@ -926,6 +1046,8 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
 
     if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Length() < ZeroTolerance) << "Creating a almost zero or negative length condition" << std::endl;
     return p_condition;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -957,6 +1079,8 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
     bool SkipCreation
     )
 {
+    KRATOS_TRY;
+
     Condition::Pointer p_condition = nullptr;
 
     int vertex_0, vertex_1, vertex_2, vertex_3;
@@ -965,7 +1089,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+        if(mEchoLevel > 1) {
+            KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+        }
         return p_condition;
     }
 
@@ -988,6 +1114,8 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
 
     if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area condition" << std::endl;
     return p_condition;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1019,6 +1147,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
     bool SkipCreation
     )
 {
+    KRATOS_TRY;
+
     Element::Pointer p_element = nullptr;
 
     int vertex_0, vertex_1, vertex_2;
@@ -1083,6 +1213,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area element" << std::endl;
     return p_element;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1098,6 +1230,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
     bool SkipCreation
     )
 {
+    KRATOS_TRY;
+
     Element::Pointer p_element = nullptr;
 
     int vertex_0, vertex_1, vertex_2, vertex_3;
@@ -1165,6 +1299,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
     return p_element;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1180,6 +1316,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
     bool SkipCreation
     )
 {
+    KRATOS_TRY;
+
     Element::Pointer p_element = nullptr;
 
     int vertex_0, vertex_1, vertex_2;
@@ -1209,6 +1347,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area element" << std::endl;
     return p_element;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1240,6 +1380,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
     bool SkipCreation
     )
 {
+    KRATOS_TRY;
+
     Element::Pointer p_element = nullptr;
 
     int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5;
@@ -1275,6 +1417,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
     return p_element;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1299,6 +1443,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeElement(
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
 {
+    KRATOS_TRY;
+
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
     mMmgDisp = nullptr;
@@ -1315,6 +1461,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
     }
 
     InitVerbosity();
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1323,6 +1471,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
 {
+    KRATOS_TRY;
+
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
     mMmgDisp = nullptr;
@@ -1339,6 +1489,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
     }
 
     InitVerbosity();
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1347,6 +1499,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
 {
+    KRATOS_TRY;
+
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
     mMmgDisp = nullptr;
@@ -1363,6 +1517,8 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
     }
 
     InitVerbosity();
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1371,6 +1527,8 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::InitVerbosity()
 {
+    KRATOS_TRY;
+
     /* We set the MMG verbosity */
     int verbosity_mmg;
     if (mEchoLevel == 0)
@@ -1385,6 +1543,8 @@ void MmgUtilities<TMMGLibrary>::InitVerbosity()
         verbosity_mmg = 10;
 
     InitVerbosityParameter(verbosity_mmg);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1393,7 +1553,11 @@ void MmgUtilities<TMMGLibrary>::InitVerbosity()
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh,mMmgSol,MMG2D_IPARAM_verbose, VerbosityMMG) ) << "Unable to set verbosity" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1402,7 +1566,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitVerbosityParameter(const IndexType Ver
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh,mMmgSol,MMG3D_IPARAM_verbose, VerbosityMMG) ) << "Unable to set verbosity" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1411,7 +1579,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitVerbosityParameter(const IndexType Ver
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh,mMmgSol,MMGS_IPARAM_verbose, VerbosityMMG) ) << "Unable to set verbosity" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1420,8 +1592,12 @@ void MmgUtilities<MMGLibrary::MMGS>::InitVerbosityParameter(const IndexType Verb
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG2D>& rMMGMeshInfo)
 {
+    KRATOS_TRY;
+
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D)
     KRATOS_ERROR_IF( MMG2D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfLines) != 1 ) << "Unable to set mesh size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1430,8 +1606,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG2D>
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG3D>& rMMGMeshInfo)
 {
+    KRATOS_TRY;
+
     //Give the size of the mesh: NumNodes Vertex, num_elements tetra and prism, NumArrayConditions triangles and quadrilaterals, 0 edges (3D)
     KRATOS_ERROR_IF( MMG3D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTetrahedra, rMMGMeshInfo.NumberOfPrism, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfQuadrilaterals, 0) != 1 ) << "Unable to set mesh size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1440,8 +1620,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG3D>
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMGS>& rMMGMeshInfo)
 {
+    KRATOS_TRY;
+
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (3D)
     KRATOS_ERROR_IF( MMGS_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfLines) != 1 ) << "Unable to set mesh size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1450,7 +1634,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMGS>& 
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1459,7 +1647,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1468,7 +1660,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeScalar(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1477,7 +1673,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeScalar(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeVector(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1486,7 +1686,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeVector(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeVector(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1495,7 +1699,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeVector(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeVector(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1504,7 +1712,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeVector(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeTensor(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1513,7 +1725,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeTensor(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeTensor(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1522,7 +1738,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeTensor(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeTensor(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 ) << "Unable to set metric size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1531,9 +1751,13 @@ void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeTensor(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetDispSizeVector(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     // TODO: Reactivate when dependency problem is solved
 //     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,mMmgDisp,MMG2D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
     KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1542,9 +1766,13 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetDispSizeVector(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetDispSizeVector(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     // TODO: Reactivate when dependency problem is solved
 //     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,mMmgDisp,MMG3D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
     KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1553,9 +1781,13 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetDispSizeVector(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetDispSizeVector(const SizeType NumNodes)
 {
+    KRATOS_TRY;
+
     // TODO: Reactivate when dependency problem is solved
 //     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,mMmgDisp,MMGS_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
     KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1564,12 +1796,16 @@ void MmgUtilities<MMGLibrary::MMGS>::SetDispSizeVector(const SizeType NumNodes)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::CheckMeshData()
 {
+    KRATOS_TRY;
+
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1578,12 +1814,16 @@ void MmgUtilities<MMGLibrary::MMG2D>::CheckMeshData()
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::CheckMeshData()
 {
+    KRATOS_TRY;
+
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1592,12 +1832,16 @@ void MmgUtilities<MMGLibrary::MMG3D>::CheckMeshData()
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::CheckMeshData()
 {
+    KRATOS_TRY;
+
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1606,6 +1850,8 @@ void MmgUtilities<MMGLibrary::MMGS>::CheckMeshData()
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::InputMesh(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
@@ -1614,6 +1860,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputMesh(const std::string& rOutputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG2D_loadMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO LOAD MESH" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1622,6 +1870,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputMesh(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::InputMesh(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
@@ -1630,6 +1880,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputMesh(const std::string& rOutputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG3D_loadMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO LOAD MESH" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1638,6 +1890,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputMesh(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::InputMesh(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
@@ -1646,6 +1900,8 @@ void MmgUtilities<MMGLibrary::MMGS>::InputMesh(const std::string& rOutputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_loadMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO LOAD MESH" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1654,6 +1910,8 @@ void MmgUtilities<MMGLibrary::MMGS>::InputMesh(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1662,6 +1920,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG2D_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1670,6 +1930,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1678,6 +1940,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG3D_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1686,6 +1950,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1694,6 +1960,8 @@ void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1702,6 +1970,8 @@ void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
@@ -1710,6 +1980,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(const std::string& rOutputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG2D_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1718,6 +1990,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
@@ -1726,6 +2000,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(const std::string& rOutputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG3D_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1734,6 +2010,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
@@ -1742,6 +2020,8 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(const std::string& rOutputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1750,6 +2030,8 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1758,6 +2040,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
 
     // b) Function calling
     KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO SAVE SOL" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1766,6 +2050,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1774,6 +2060,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
 
     // b) Function calling
     KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh,mMmgSol, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1782,6 +2070,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1790,6 +2080,8 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
 
     // b) Function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh,mMmgSol, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1798,6 +2090,8 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::OutputDisplacement(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rOutputName + ".disp.sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1806,6 +2100,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputDisplacement(const std::string& rOut
 
     // b) Function calling
     KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgDisp, sol_file) != 1) << "UNABLE TO SAVE DISPLACEMENT" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1814,6 +2110,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputDisplacement(const std::string& rOut
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::OutputDisplacement(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rOutputName + ".disp.sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1822,6 +2120,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputDisplacement(const std::string& rOut
 
     // b) Function calling
     KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh,mMmgDisp, sol_file) != 1)<< "UNABLE TO SAVE DISPLACEMENT" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1830,6 +2130,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputDisplacement(const std::string& rOut
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::OutputDisplacement(const std::string& rOutputName)
 {
+    KRATOS_TRY;
+
     const std::string sol_name = rOutputName + ".disp.sol";
     const char* sol_file = sol_name.c_str();
 
@@ -1838,6 +2140,8 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputDisplacement(const std::string& rOutp
 
     // b) Function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh,mMmgDisp, sol_file) != 1)<< "UNABLE TO SAVE DISPLACEMENT" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1850,6 +2154,8 @@ void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
     const std::unordered_map<IndexType,Element::Pointer>& rRefElement
     )
 {
+    KRATOS_TRY;
+
     /* ELEMENTS */
     std::string element_name;
     Parameters elem_reference_json;
@@ -1885,6 +2191,8 @@ void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
     std::ostream cond_os(&cond_buffer);
     cond_os << r_cond_json_text;
     cond_buffer.close();
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1893,11 +2201,15 @@ void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::FreeAll()
 {
+    KRATOS_TRY;
+
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
         MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1906,11 +2218,15 @@ void MmgUtilities<MMGLibrary::MMG2D>::FreeAll()
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::FreeAll()
 {
+    KRATOS_TRY;
+
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
         MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1919,11 +2235,15 @@ void MmgUtilities<MMGLibrary::MMG3D>::FreeAll()
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::FreeAll()
 {
+    KRATOS_TRY;
+
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
         MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2274,7 +2594,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetNodes(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Set_vertex(mMmgMesh, X, Y, Color, Index) != 1 ) << "Unable to set vertex" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2289,7 +2613,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetNodes(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Set_vertex(mMmgMesh, X, Y, Z, Color, Index) != 1 ) << "Unable to set vertex" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2304,7 +2632,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetNodes(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Set_vertex(mMmgMesh, X, Y, Z, Color, Index) != 1 ) << "Unable to set vertex" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2317,6 +2649,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetConditions(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point2D) // Point
         KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
     else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) { // Line
@@ -2338,6 +2672,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetConditions(
         const IndexType size_geometry = rGeometry.size();
         KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2350,6 +2686,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetConditions(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point3D) // Point
         KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
     else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Line
@@ -2398,6 +2736,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetConditions(
         const SizeType size_geometry = rGeometry.size();
         KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2410,6 +2750,8 @@ void MmgUtilities<MMGLibrary::MMGS>::SetConditions(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point3D) // Point
         KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
     else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Line
@@ -2431,6 +2773,8 @@ void MmgUtilities<MMGLibrary::MMGS>::SetConditions(
         const IndexType size_geometry = rGeometry.size();
         KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2443,11 +2787,15 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetElements(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     const IndexType id_1 = rGeometry[0].Id(); // First node Id
     const IndexType id_2 = rGeometry[1].Id(); // Second node Id
     const IndexType id_3 = rGeometry[2].Id(); // Third node Id
 
     KRATOS_ERROR_IF( MMG2D_Set_triangle(mMmgMesh, id_1, id_2, id_3, Color, Index) != 1 ) << "Unable to set triangle" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2460,6 +2808,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetElements(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     const IndexType id_1 = rGeometry[0].Id(); // First node Id
     const IndexType id_2 = rGeometry[1].Id(); // Second node Id
     const IndexType id_3 = rGeometry[2].Id(); // Third node Id
@@ -2484,6 +2834,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetElements(
         const SizeType size_geometry = rGeometry.size();
         KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << std::endl;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2496,11 +2848,15 @@ void MmgUtilities<MMGLibrary::MMGS>::SetElements(
     const IndexType Index
     )
 {
+    KRATOS_TRY;
+
     const IndexType id_1 = rGeometry[0].Id(); // First node Id
     const IndexType id_2 = rGeometry[1].Id(); // Second node Id
     const IndexType id_3 = rGeometry[2].Id(); // Third node Id
 
     KRATOS_ERROR_IF( MMGS_Set_triangle(mMmgMesh, id_1, id_2, id_3, Color, Index) != 1 ) << "Unable to set triangle" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2508,12 +2864,15 @@ void MmgUtilities<MMGLibrary::MMGS>::SetElements(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetMetricScalar(
-
     const double Metric,
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2525,7 +2884,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricScalar(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2537,7 +2900,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricScalar(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2549,7 +2916,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMetricVector(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2561,7 +2932,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricVector(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2573,7 +2948,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricVector(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2585,8 +2964,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMetricTensor(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     // The order is XX, XY, YY
     KRATOS_ERROR_IF( MMG2D_Set_tensorSol(mMmgSol, rMetric[0], rMetric[2], rMetric[1], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2598,8 +2981,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricTensor(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     // The order is XX, XY, XZ, YY, YZ, ZZ
     KRATOS_ERROR_IF( MMG3D_Set_tensorSol(mMmgSol, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2611,8 +2998,12 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricTensor(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     // The order is XX, XY, XZ, YY, YZ, ZZ
     KRATOS_ERROR_IF( MMGS_Set_tensorSol(mMmgSol, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2624,7 +3015,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetDisplacementVector(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Set_vectorSol(mMmgDisp, rDisplacement[0], rDisplacement[1], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2636,7 +3031,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetDisplacementVector(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Set_vectorSol(mMmgDisp, rDisplacement[0], rDisplacement[1], rDisplacement[2], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2648,7 +3047,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetDisplacementVector(
     const IndexType NodeId
     )
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Set_vectorSol(mMmgDisp, rDisplacement[0], rDisplacement[1], rDisplacement[2], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2657,7 +3060,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetDisplacementVector(
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::GetMetricScalar(double& rMetric)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2666,7 +3073,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::GetMetricScalar(double& rMetric)
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::GetMetricScalar(double& rMetric)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2675,7 +3086,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::GetMetricScalar(double& rMetric)
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::GetMetricScalar(double& rMetric)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2684,7 +3099,11 @@ void MmgUtilities<MMGLibrary::MMGS>::GetMetricScalar(double& rMetric)
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::GetMetricVector(array_1d<double, 2>& rMetric)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG2D_Get_vectorSol(mMmgSol, &rMetric[0], &rMetric[1]) != 1 ) << "Unable to get vector metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2693,7 +3112,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::GetMetricVector(array_1d<double, 2>& rMetr
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::GetMetricVector(array_1d<double, 3>& rMetric)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Get_vectorSol(mMmgSol, &rMetric[0], &rMetric[1], &rMetric[2]) != 1 ) << "Unable to get vector metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2702,7 +3125,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::GetMetricVector(array_1d<double, 3>& rMetr
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::GetMetricVector(array_1d<double, 3>& rMetric)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Get_vectorSol(mMmgSol, &rMetric[0], &rMetric[1], &rMetric[2]) != 1 ) << "Unable to get vector metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2711,8 +3138,12 @@ void MmgUtilities<MMGLibrary::MMGS>::GetMetricVector(array_1d<double, 3>& rMetri
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::GetMetricTensor(array_1d<double, 3>& rMetric)
 {
+    KRATOS_TRY;
+
     // The order is XX, XY, YY
     KRATOS_ERROR_IF( MMG2D_Get_tensorSol(mMmgSol, &rMetric[0], &rMetric[2], &rMetric[1]) != 1 ) << "Unable to get tensor metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2721,8 +3152,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::GetMetricTensor(array_1d<double, 3>& rMetr
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::GetMetricTensor(array_1d<double, 6>& rMetric)
 {
+    KRATOS_TRY;
+
     // The order is XX, XY, XZ, YY, YZ, ZZ
     KRATOS_ERROR_IF( MMG3D_Get_tensorSol(mMmgSol, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2731,8 +3166,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::GetMetricTensor(array_1d<double, 6>& rMetr
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::GetMetricTensor(array_1d<double, 6>& rMetric)
 {
+    KRATOS_TRY;
+
     // The order is XX, XY, XZ, YY, YZ, ZZ
     KRATOS_ERROR_IF( MMGS_Get_tensorSol(mMmgSol, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2741,8 +3180,12 @@ void MmgUtilities<MMGLibrary::MMGS>::GetMetricTensor(array_1d<double, 6>& rMetri
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::GetDisplacementVector(array_1d<double, 3>& rDisplacement)
 {
+    KRATOS_TRY;
+
     rDisplacement[2] = 0.0;
     KRATOS_ERROR_IF( MMG2D_Get_vectorSol(mMmgDisp, &rDisplacement[0], &rDisplacement[1]) != 1 ) << "Unable to get vector displacement" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2751,7 +3194,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::GetDisplacementVector(array_1d<double, 3>&
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::GetDisplacementVector(array_1d<double, 3>& rDisplacement)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMG3D_Get_vectorSol(mMmgDisp, &rDisplacement[0], &rDisplacement[1], &rDisplacement[2]) != 1 ) << "Unable to get vector displacement" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2760,7 +3207,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::GetDisplacementVector(array_1d<double, 3>&
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::GetDisplacementVector(array_1d<double, 3>& rDisplacement)
 {
+    KRATOS_TRY;
+
     KRATOS_ERROR_IF( MMGS_Get_vectorSol(mMmgDisp, &rDisplacement[0], &rDisplacement[1], &rDisplacement[2]) != 1 ) << "Unable to get vector displacement" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2769,6 +3220,8 @@ void MmgUtilities<MMGLibrary::MMGS>::GetDisplacementVector(array_1d<double, 3>& 
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
     // Iterate over nodes
     auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
@@ -2786,6 +3239,8 @@ void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
     const auto it_elem_begin = r_elements_array.begin();
     for(IndexType i = 0; i < r_elements_array.size(); ++i)
         (it_elem_begin + i)->SetId(i + 1);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -2801,6 +3256,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     const bool CollapsePrismElements
     )
 {
+    KRATOS_TRY;
+
     // Before computing colors we do some check and throw a warning to get the user informed
     const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
@@ -3244,7 +3701,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         const IndexType color = r_color.first;
         if (color != 0 && r_color.second.size() == 1) { // Not including main model part, and adding only simple model parts
             for (auto& r_sub_model_part_name : r_color.second) {
-                ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.Name() + "." + r_sub_model_part_name);
+                ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.FullName() + "." + r_sub_model_part_name);
                 if ((rColorMapCondition.find(color) == rColorMapCondition.end())) {
                     if (r_sub_model_part.NumberOfConditions() > 0) {
                         const IndexType cond_id = r_sub_model_part.Conditions().begin()->Id();
@@ -3260,6 +3717,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -3274,6 +3733,8 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     std::unordered_map<IndexType,Element::Pointer>& rRefElement
     )
 {
+    KRATOS_TRY;
+
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
 
     auto& r_conditions_array = rModelPart.Conditions();
@@ -3282,9 +3743,9 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     const auto it_elem_begin = r_elements_array.begin();
 
     if (r_conditions_array.size() > 0) {
-        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
+        const std::string type_name = (Dimension == 2) ? "LineCondition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "LineCondition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, it_cond_begin->GetGeometry(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
         rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
@@ -3293,11 +3754,19 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     // Now we add the reference elements and conditions
     for (auto& ref_cond : rColorMapCondition) {
         Condition::Pointer p_cond = rModelPart.pGetCondition(ref_cond.second);
-        rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+        if (p_cond->GetGeometry().size() > 0) {
+            rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+        } else {
+            rRefCondition[ref_cond.first] = p_cond->Create(0, rRefCondition[0]->GetGeometry(), p_cond->pGetProperties());
+        }
     }
     for (auto& ref_elem : rColorMapElement) {
         Element::Pointer p_elem = rModelPart.pGetElement(ref_elem.second);
-        rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+        if (p_elem->GetGeometry().size() > 0) {
+            rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+        } else {
+            rRefElement[ref_elem.first] = p_elem->Create(0, rRefElement[0]->GetGeometry(), p_elem->pGetProperties());
+        }
     }
 
     // The ISOSURFACE has some reserved Ids. We reassign
@@ -3310,6 +3779,8 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
         rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
         rRefElement[3] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -3318,6 +3789,8 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
     // Iterate in the nodes
     auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
@@ -3365,6 +3838,8 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -3373,6 +3848,8 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
     // Iterate in the nodes
     auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
@@ -3393,6 +3870,8 @@ void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart&
             SetDisplacementVector(r_displacement, it_node->Id());
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -3408,6 +3887,8 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement
     )
 {
+    KRATOS_TRY;
+
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
     std::unordered_map<IndexType, IndexVectorType> color_nodes, first_color_cond, second_color_cond, first_color_elem, second_color_elem;
 
@@ -3431,7 +3912,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
 
     /* CONDITIONS */ // TODO: ADD OMP
     if (rMapPointersRefCondition.size() > 0) {
-        IndexType cond_id = 1;
+        IndexType cond_id = rModelPart.NumberOfConditions() + 1;
 
         IndexType counter_first_cond = 0;
         const IndexVectorType first_condition_to_remove = CheckFirstTypeConditions();
@@ -3477,7 +3958,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
 
     /* ELEMENTS */ // TODO: ADD OMP
     if (rMapPointersRefElement.size() > 0) {
-        IndexType elem_id = 1;
+        IndexType elem_id = rModelPart.NumberOfElements() + 1;
 
         IndexType counter_first_elem = 0;
         const IndexVectorType first_elements_to_remove = CheckFirstTypeElements();
@@ -3595,6 +4076,8 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
         std::copy(node_ids.begin(), node_ids.end(), std::back_inserter(vector_ids));
         r_sub_model_part.AddNodes(vector_ids);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -3603,6 +4086,8 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
     // Iterate in the nodes
     auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
@@ -3614,7 +4099,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         // Auxilia metric
         TensorArrayType metric = ZeroVector(3 * (Dimension - 1));
 
-        #pragma omp parallel for firstprivate(metric)
+        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -3627,7 +4112,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         // Auxilia metric
         double metric = 0.0;
 
-        #pragma omp parallel for firstprivate(metric)
+        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -3637,6 +4122,8 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
             it_node->SetValue(METRIC_SCALAR, metric);
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -3650,15 +4137,15 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     std::unordered_map<IndexType,Element::Pointer>& rRefElement
     )
 {
+    KRATOS_TRY;
+
     // Getting auxiliar properties
     auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
 
     /* Elements */
     std::ifstream elem_infile(rFilename + ".elem.ref.json");
     KRATOS_ERROR_IF_NOT(elem_infile.good()) << "References elements file: " << rFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream elem_buffer;
-    elem_buffer << elem_infile.rdbuf();
-    Parameters elem_ref_json(elem_buffer.str());
+    Parameters elem_ref_json(elem_infile);
     for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
@@ -3668,14 +4155,14 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     /* Conditions */
     std::ifstream cond_infile(rFilename + ".cond.ref.json");
     KRATOS_ERROR_IF_NOT(cond_infile.good()) << "References conditions file: " << rFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream cond_buffer;
-    cond_buffer << cond_infile.rdbuf();
-    Parameters cond_ref_json(cond_buffer.str());
+    Parameters cond_ref_json(cond_infile);
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
         rRefCondition[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -3684,6 +4171,8 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
     ModelPart& r_auxiliar_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
     const auto& r_flags = KratosComponents<Flags>::GetComponents();
@@ -3702,6 +4191,8 @@ void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rM
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -3710,6 +4201,8 @@ void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rM
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
     const auto& r_flags = KratosComponents<Flags>::GetComponents();
 
     ModelPart& r_auxiliar_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
@@ -3724,6 +4217,8 @@ void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(Model
     }
 
     rModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/

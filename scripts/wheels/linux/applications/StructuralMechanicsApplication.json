@@ -2,7 +2,7 @@
 {
 	"wheel_name": "KratosStructuralMechanicsApplication",
 	"included_modules": ["StructuralMechanicsApplication"],
-	"included_binaries": ["KratosStructuralMechanicsApplication.cpython-${PYTHON}m-x86_64-linux-gnu.so"],
+	"included_binaries": ["KratosStructuralMechanicsApplication.cpython-${PYTHON}-x86_64-linux-gnu.so"],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",

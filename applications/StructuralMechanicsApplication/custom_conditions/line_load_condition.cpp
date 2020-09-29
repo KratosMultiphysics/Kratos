@@ -100,23 +100,6 @@ LineLoadCondition<TDim>::~LineLoadCondition()
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void LineLoadCondition<TDim>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector< array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    this->CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo );
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<std::size_t TDim>
 void LineLoadCondition<TDim>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector< array_1d<double, 3>>& rOutput,

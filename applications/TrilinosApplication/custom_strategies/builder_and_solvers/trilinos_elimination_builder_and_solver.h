@@ -19,15 +19,7 @@
 #include <set>
 
 /* External includes */
-#include "boost/timer.hpp"
-
-
-/* Project includes */
-#include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "Epetra_MpiComm.h"
-
-//trilinos includes
+//Trilinos includes
 #include "Epetra_Map.h"
 #include "Epetra_Vector.h"
 #include "Epetra_FECrsGraph.h"
@@ -35,6 +27,23 @@
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
+#include "Epetra_MpiComm.h"
+
+/* Project includes */
+#include "includes/define.h"
+#include "utilities/timer.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+
+#if !defined(START_TIMER)
+#define START_TIMER(label, rank) \
+    if (mrComm.MyPID() == rank)  \
+        Timer::Start(label);
+#endif
+#if !defined(STOP_TIMER)
+#define STOP_TIMER(label, rank) \
+    if (mrComm.MyPID() == rank) \
+        Timer::Stop(label);
+#endif
 
 namespace Kratos
 {
@@ -208,12 +217,12 @@ public:
 
         //			int rank = A.Comm().MyPID(); //getting the processor Id
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateSystemContributions(**it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
             /*KRATOS_WATCH((*it)->Id());
             for(unsigned int i = 0; i<EquationId.size(); i++)
                std::cout << EquationId[i] << " ";
@@ -225,7 +234,7 @@ public:
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*it);
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0,0,false);
@@ -235,11 +244,13 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateSystemContributions(**it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
+
+            // TODO CleanMemory is missing
         }
 
         //finalizing the assembly
@@ -280,19 +291,19 @@ public:
         //terms
         Element::EquationIdVectorType EquationId;
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*it);
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0,0,false);
@@ -301,10 +312,12 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
+
+            // TODO CleanMemory is missing
         }
 
         //finalizing the assembly
@@ -363,57 +376,41 @@ public:
     //**************************************************************************
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
-        boost::timer building_time;
+        if (BaseType::GetEchoLevel() > 0)
+            START_TIMER("Build", 0)
 
-        int rank = r_model_part.GetCommunicator().MyPID();
+        Build(pScheme,rModelPart,rA,rb);
 
-
-        Build(pScheme,r_model_part,A,b);
-
-        if (BaseType::GetEchoLevel()>0)
-        {
-            if (rank == 0) std::cout << "Building Time : " << building_time.elapsed() << std::endl;
-        }
+        if (BaseType::GetEchoLevel() > 0)
+            STOP_TIMER("Build", 0)
 
         //does nothing...dirichlet conditions are naturally dealt with in defining the residual
-        ApplyDirichletConditions(pScheme,r_model_part,A,Dx,b);
+        ApplyDirichletConditions(pScheme,rModelPart,rA,rDx,rb);
 
-        if (BaseType::GetEchoLevel()== 3)
-        {
-            if (rank == 0)
-            {
-                std::cout << "before the solution of the system" << std::endl;
-                std::cout << "System Matrix = " << A << std::endl;
-                std::cout << "unknowns vector = " << Dx << std::endl;
-                std::cout << "RHS vector = " << b << std::endl;
-            }
-        }
+        KRATOS_INFO_IF("TrilinosResidualBasedEliminationBuilderAndSolver", BaseType::GetEchoLevel() == 3)
+            << "\nBefore the solution of the system"
+            << "\nSystem Matrix = " << rA << "\nunknowns vector = " << rDx
+            << "\nRHS vector = " << rb << std::endl;
 
-        boost::timer solve_time;
+        if (BaseType::GetEchoLevel() > 0)
+            START_TIMER("System solve time ", 0)
 
-        SystemSolveWithPhysics(A,Dx,b, r_model_part);
+        SystemSolveWithPhysics(rA,rDx,rb, rModelPart);
 
-        if (BaseType::GetEchoLevel()>0)
-        {
-            if (rank == 0) std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
-        }
-        if (BaseType::GetEchoLevel()== 3)
-        {
-            if (rank == 0)
-            {
-                std::cout << "after the solution of the system" << std::endl;
-                std::cout << "System Matrix = " << A << std::endl;
-                std::cout << "unknowns vector = " << Dx << std::endl;
-                std::cout << "RHS vector = " << b << std::endl;
-            }
-        }
+        if (BaseType::GetEchoLevel() > 0)
+            STOP_TIMER("System solve time ", 0)
+
+        KRATOS_INFO_IF("TrilinosResidualBasedEliminationBuilderAndSolver", BaseType::GetEchoLevel() == 3)
+            << "\nAfter the solution of the system"
+            << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
+            << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -450,7 +447,7 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         //resetting to zero the vector of reactions
         // 			TSparseSpace::SetToZero(BaseType::mReactionsVector);
@@ -466,7 +463,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             //calculate elemental Right Hand Side Contribution
-            pScheme->Calculate_RHS_Contribution(*it,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateRHSContribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
@@ -478,7 +475,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_RHS_Contribution(*it,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateRHSContribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
@@ -505,7 +502,7 @@ public:
 
         Element::DofsVectorType ElementalDofList;
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
@@ -516,7 +513,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             // gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*it,ElementalDofList,CurrentProcessInfo);
+            pScheme->GetDofList(**it,ElementalDofList,CurrentProcessInfo);
 
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
@@ -529,7 +526,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=pConditions.ptr_begin(); it!=pConditions.ptr_end(); ++it)
         {
             // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*it,ElementalDofList,CurrentProcessInfo);
+            pScheme->GetDofList(**it,ElementalDofList,CurrentProcessInfo);
 
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
@@ -1109,12 +1106,12 @@ public:
             Epetra_FECrsGraph Agraph(Copy, my_map, mguess_row_size);
 
             Element::EquationIdVectorType EquationId;
-            ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+            const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {
-                pScheme->EquationId( *it, EquationId, CurrentProcessInfo );
+                pScheme->EquationId( **it, EquationId, CurrentProcessInfo );
 
                 //filling the list of active global indices (non fixed)
                 unsigned int num_active_indices = 0;
@@ -1137,7 +1134,7 @@ public:
           // assemble all conditions
           for (typename ConditionsArrayType::ptr_iterator it=rConditions.ptr_begin(); it!=rConditions.ptr_end(); ++it)
           {
-              pScheme->Condition_EquationId( *it, EquationId, CurrentProcessInfo );
+              pScheme->EquationId( **it, EquationId, CurrentProcessInfo );
 
               //filling the list of active global indices (non fixed)
               unsigned int num_active_indices = 0;

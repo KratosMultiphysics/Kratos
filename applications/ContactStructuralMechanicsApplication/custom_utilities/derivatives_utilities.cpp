@@ -15,8 +15,6 @@
 
 // Project includes
 #include "custom_utilities/derivatives_utilities.h"
-
-/* Utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
@@ -281,7 +279,9 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                 for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
                     aux_delta_normal[i_dim] = r_delta_normal[i_dim];
                 }
-                row(aux_delta_normal_geometry, i_geometry) += delta_disp[i_dof] * aux_delta_normal;
+                for (IndexType j_dof = 0; j_dof < TDim; ++j_dof) {
+                    aux_delta_normal_geometry(i_geometry, j_dof) += delta_disp[i_dof] * aux_delta_normal[j_dof];
+                }
             }
         }
     }
@@ -355,7 +355,9 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                 for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
                     aux_delta_normal[i_dim] = delta_normal[i_dim];
                 }
-                row(aux_delta_normal_geometry, i_geometry) += delta_disp[i_dof] * aux_delta_normal;
+                for (IndexType j_dof = 0; j_dof < TDim; ++j_dof) {
+                    aux_delta_normal_geometry(i_geometry, j_dof) += delta_disp[i_dof] * aux_delta_normal[j_dof];
+                }
             }
         }
     }

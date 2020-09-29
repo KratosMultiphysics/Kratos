@@ -138,6 +138,7 @@ public:
      *                       - The size of the bucket
      *                       - The proportion increased of the Radius/Bounding-box volume for the search
      *                       - TypeSearch: 0 means search in radius, 1 means search in box
+     * @param pPairedProperties Properties of the pair
      * @todo Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @note Use an InterfacePreprocess object to create such a model part from a regular one:
      *          -# InterfaceMapper = InterfacePreprocess()
@@ -145,7 +146,8 @@ public:
      */
     BaseContactSearchProcess(
         ModelPart& rMainModelPart,
-        Parameters ThisParameters =  Parameters(R"({})")
+        Parameters ThisParameters =  Parameters(R"({})"),
+        Properties::Pointer pPairedProperties = nullptr
         );
 
     /// Destructor.
@@ -229,6 +231,11 @@ public:
      */
      virtual void ResetContactOperators();
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -272,14 +279,14 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrMainModelPart;        /// The main model part
-    Parameters mThisParameters;        /// The configuration parameters
-    CheckGap mCheckGap;                /// If the gap is checked during the search
-    TypeSolution mTypeSolution;        /// The solution type
-    std::string mConditionName;        /// The name of the condition to be created
-    PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
+    ModelPart& mrMainModelPart;                       /// The main model part
+    Parameters mThisParameters;                       /// The configuration parameters
+    CheckGap mCheckGap;                               /// If the gap is checked during the search
+    TypeSolution mTypeSolution;                       /// The solution type
+    std::string mConditionName;                       /// The name of the condition to be created
+    PointVector mPointListDestination;                /// A list that contents the all the points (from nodes) from the modelpart
 
-    Flags mOptions;                    /// Local flags
+    Properties::Pointer mpPairedProperties = nullptr; /// This is the paired properties (unique for the given potential pair)
 
     ///@}
     ///@name Protected Operators
@@ -357,11 +364,6 @@ protected:
      * @return CheckGap: The equivalent enum
      */
     CheckGap ConvertCheckGap(const std::string& str);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Protected  Access
@@ -562,21 +564,6 @@ private:
         ModelPart& rModelPart,
         const std::string& rName
         );
-
-    /**
-     * @brief The whole model part name
-     * @param rModelPart The model part of interest
-     * @param rName The name of interest
-     */
-    static inline void GetWholeModelPartName(
-        const ModelPart& rModelPart,
-        std::string& rName
-        )
-    {
-        rName = rModelPart.Name() + "." + rName;
-        if (rModelPart.IsSubModelPart())
-            GetWholeModelPartName(*rModelPart.GetParentModelPart(), rName);
-    }
 
     /**
      * @brief Calculates the minimal distance between one node and its center

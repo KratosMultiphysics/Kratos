@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/serializer.h"
+#include "includes/checks.h"
 
 // Application includes
 #include "utilities/math_utils.h"

@@ -25,6 +25,7 @@
 #include "modeler/edge_swapping_2d_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
 
+#include "modeler/modeler_factory.h"
 
 namespace Kratos
 {
@@ -33,14 +34,6 @@ namespace Python
 {
 
 namespace py = pybind11;
-
-void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
-{
-    GM.GenerateModelPart(origin_model_part, destination_model_part,
-                         KratosComponents<Element>::Get(rElementName),
-                         KratosComponents<Condition>::Get(rConditionName));
-
-}
 
 void GenerateMesh(Modeler& GM, ModelPart& model_part, const std::string& rElementName, const std::string& rConditionName)
 {
@@ -67,9 +60,21 @@ void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin
 
 void  AddModelerToPython(pybind11::module& m)
 {
+    m.def("CreateModeler", &ModelerFactory::Create);
+    m.def("HasModeler", &ModelerFactory::Has);
+
     py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
     .def(py::init<>())
-    .def("GenerateModelPart",&GenerateModelPart)
+    .def(py::init<Model&, Parameters>())
+    // Modeler Stages Initialize
+    .def("SetupGeometryModel", &Modeler::SetupGeometryModel)
+    .def("PrepareGeometryModel", &Modeler::PrepareGeometryModel)
+    .def("SetupModelPart", &Modeler::SetupModelPart)
+    // Additional Old Functions
+    .def("GenerateModelPart",
+        [] (Modeler& rModeler, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
+        {rModeler.GenerateModelPart(origin_model_part, destination_model_part,
+            KratosComponents<Element>::Get(rElementName), KratosComponents<Condition>::Get(rConditionName));})
     .def("GenerateMesh",&GenerateMesh)
     .def("GenerateNodes",&Modeler::GenerateNodes)
     .def("__str__", PrintObject<Modeler>)
@@ -77,7 +82,10 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")
     .def(py::init< >())
-    .def("GenerateModelPart",&GenerateModelPart)
+    .def("GenerateModelPart",
+        [] (Modeler& rModeler, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
+        {rModeler.GenerateModelPart(origin_model_part, destination_model_part,
+            KratosComponents<Element>::Get(rElementName), KratosComponents<Condition>::Get(rConditionName));})
     .def("GenerateModelPart",&GeneratePartialModelPart)
     ;
 

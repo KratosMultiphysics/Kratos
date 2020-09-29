@@ -51,7 +51,7 @@ namespace Kratos
             Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
             ThisModelPart.CreateNewElement("ShellThinElement3D3N", 2, triangle_1, p_prop);
 
-            ThisModelPart.CreateNewCondition("Condition3D", 1, triangle_0, p_prop);
+            ThisModelPart.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
             ThisModelPart.CreateNewCondition("SurfaceLoadCondition3D3N", 2, triangle_1, p_prop);
         }
 
@@ -70,7 +70,7 @@ namespace Kratos
                     "ShellThinElement3D3N": "ShellThinElement3D3N"
                 },
                 "condition_name_table"    : {
-                    "Condition3D" : "SurfaceLoadCondition3D3N",
+                    "SurfaceCondition3D3N" : "SurfaceLoadCondition3D3N",
                     "SurfaceLoadCondition3D3N": "SurfaceLoadCondition3D3N"
                 }
             })" );
@@ -131,7 +131,7 @@ namespace Kratos
                     "Element3D3N" : "ShellThinElement3D3N"
                 },
                 "condition_name_table"    : {
-                    "Condition3D" : "SurfaceLoadCondition3D3N"
+                    "SurfaceCondition3D3N" : "SurfaceLoadCondition3D3N"
                 },
                 "ignore_undefined_types" : true
             })" );
@@ -169,7 +169,7 @@ namespace Kratos
                     "Element3D3N" : "ShellThinElement3D3N"
                 },
                 "condition_name_table"    : {
-                    "Condition3D" : "SurfaceLoadCondition3D3N"
+                    "SurfaceCondition3D3N" : "SurfaceLoadCondition3D3N"
                 },
                 "ignore_elements" : [
                     "ShellThinElement3D3N"

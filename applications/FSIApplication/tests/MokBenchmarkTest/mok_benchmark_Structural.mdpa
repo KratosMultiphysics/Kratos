@@ -923,7 +923,7 @@ Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Structure
       9003          1       2086       2123       2137       2102 
 End Elements
 
-Begin Conditions Condition2D2N// GUI group identifier: Structure_interface
+Begin Conditions LineCondition2D2N// GUI group identifier: Structure_interface
 1 0 4001 3981
 2 0 3981 3967
 3 0 3967 3945

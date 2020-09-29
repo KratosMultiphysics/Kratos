@@ -44,7 +44,6 @@ bool HasHelperFunction(TContainerType& rProperties, const TVariableType& rVar)
     return rProperties.Has(rVar);
 }
 
-
 template< class TContainerType, class TVariableType >
 void SetValueHelperFunction1(
     TContainerType& rProperties,
@@ -132,10 +131,12 @@ typename Properties::TableType& GetTableHelperFunction1( TContainerType& rContai
     return rContainer.GetTable(XVar, YVar);
 }
 
+
 void  AddPropertiesToPython(pybind11::module& m)
 {
     py::class_<Properties, Properties::Pointer, Properties::BaseType >(m,"Properties")
     .def(py::init<Kratos::Properties::IndexType>())
+    .def(py::init<const Properties&>())
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("Has", HasHelperFunction< Properties, Variable< array_1d<double, 6> > >)
@@ -192,14 +193,9 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
 
-  	.def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, py::return_value_policy::reference_internal)
-    .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >, py::return_value_policy::reference_internal)
-    .def("GetTable", GetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, py::return_value_policy::reference_internal)
-    .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, py::return_value_policy::reference_internal)
+    .def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, py::return_value_policy::reference_internal)
     .def("SetTable", SetTableHelperFunction1< Properties, Variable< double > , Variable<double> >)
-    .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >)
-    .def("SetTable", SetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-    .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
