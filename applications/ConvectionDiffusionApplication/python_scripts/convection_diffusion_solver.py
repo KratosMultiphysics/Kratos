@@ -41,6 +41,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     model -- the model containing the modelpart used to construct the solver.
     settings -- Kratos parameters containing solver settings.
     """
+
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass = True
         super(ConvectionDiffusionBaseSolver, self).__init__(model, custom_settings)

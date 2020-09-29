@@ -6,25 +6,26 @@ from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusi
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-"""Auxiliary class to configure the test
-
-This auxiliary class customizes the material propertiesand
-boundary conditions for each test variant.
-
-Public member variables:
-xmin -- Minimum x-coordinate
-xmax -- Maximum x-coordinate
-ymin -- Minimum y-coordinate
-ymax -- Maximum y-coordinate
-T_xmin -- Temperature at minimum x-coordinate
-T_xmax -- Temperature at maximum x-coordinate
-rho -- Density
-c -- Specific heat
-k -- Thermal conductivity
-ux -- Convective velocity
-source -- Source term value
-"""
 class TestCaseConfiguration(object):
+    """Auxiliary class to configure the test
+
+    This auxiliary class customizes the material propertiesand
+    boundary conditions for each test variant.
+
+    Public member variables:
+    xmin -- Minimum x-coordinate
+    xmax -- Maximum x-coordinate
+    ymin -- Minimum y-coordinate
+    ymax -- Maximum y-coordinate
+    T_xmin -- Temperature at minimum x-coordinate
+    T_xmax -- Temperature at maximum x-coordinate
+    rho -- Density
+    c -- Specific heat
+    k -- Thermal conductivity
+    ux -- Convective velocity
+    source -- Source term value
+    """
+
     def __init__(self):
         self.xmin = 0.0
         self.xmax = 10.0
@@ -38,8 +39,9 @@ class TestCaseConfiguration(object):
         self.ux = 0.0
         self.source = 0.0
 
-"""Derived convection-diffusion analysis stage to set the test material properties and boundary conditions."""
 class SourceTermTestConvectionDiffusionAnalysis(convection_diffusion_analysis.ConvectionDiffusionAnalysis):
+    """Derived convection-diffusion analysis stage to set the test material properties and boundary conditions."""
+
     def __init__(self, model, project_parameters, test_config):
         super().__init__(model, project_parameters)
         self.config = test_config
