@@ -285,13 +285,6 @@ public:
         double &TauOne,
         double &TauTwo);
 
-    void EvaluateTimeDerivativeInPoint(
-        double& rResult,
-        const Variable< double >& rVariable,
-        const array_1d< double,  NumNodes >& rN,
-        const double& DeltaTime,
-        const std::vector<double>& rSchemeWeigths);
-
     void GetModifiedConvectionOperator(
         array_1d< double,  NumNodes >& rResult,
         array_1d< double, 3 > & rVelocity,
