@@ -96,7 +96,7 @@ namespace Kratos
             Triangle3D3 <NodeType> triangle_3( PointerVector<NodeType>{condition_nodes_3} );
             
             // We calculate the integral of the mass matrix (assuming constant density)
-            GeometryNodeType::IntegrationPointsArrayType integration_points = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_points = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::IntegrationPoints();
             
             BoundedMatrix<double, 3, 3> mass_matrix_0 = ZeroMatrix(3, 3);
             
@@ -205,8 +205,8 @@ namespace Kratos
             Triangle3D3 <NodeType> triangle_2( PointerVector<NodeType>{condition_nodes_2} );
             
             // We calculate the integral of the mass matrix (assuming constant density)
-            GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            GeometryNodeType::IntegrationPointsArrayType integration_pointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::IntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_pointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::IntegrationPoints();
             
             BoundedMatrix<double, 4, 4> mass_matrix_0 = ZeroMatrix(4, 4);
             
@@ -330,8 +330,8 @@ namespace Kratos
             Triangle3D3 <NodeType> triangle_4( PointerVector<NodeType>{condition_nodes_4} );
             
             // We calculate the integral of the mass matrix (assuming constant density)
-            GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            GeometryNodeType::IntegrationPointsArrayType integration_pointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::IntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_pointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::IntegrationPoints();
             
             BoundedMatrix<double, 4, 4> mass_matrix_0 = ZeroMatrix(4, 4);
             
