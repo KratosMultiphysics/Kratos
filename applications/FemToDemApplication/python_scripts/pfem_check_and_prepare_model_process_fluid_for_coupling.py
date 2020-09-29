@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.PfemFluidDynamicsApplication.pfem_check_and_prepare_model_process_fluid as pfem_check_and_prepare_model_process_fluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import time as timer
 
 def Wait():
