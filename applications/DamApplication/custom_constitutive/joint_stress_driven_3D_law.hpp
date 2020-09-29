@@ -11,8 +11,8 @@
 //                   Joaquin Irazabal Gonzalez
 //
 
-#if !defined (KRATOS_SIMPLIFIED_BILINEAR_3D_LAW_H_INCLUDED)
-#define  KRATOS_SIMPLIFIED_BILINEAR_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_JOINT_STRESS_DRIVEN_3D_LAW_H_INCLUDED)
+#define  KRATOS_JOINT_STRESS_DRIVEN_3D_LAW_H_INCLUDED
 
 // System includes
 
@@ -21,12 +21,12 @@
 
 // Application includes
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
-#include "poromechanics_application_variables.h"
+#include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) SimplifiedBilinear3DLaw : public BilinearCohesive3DLaw
+class KRATOS_API(DAM_APPLICATION) JointStressDriven3DLaw : public BilinearCohesive3DLaw
 {
 
 public:
@@ -34,27 +34,27 @@ public:
     /// Definition of the base class
     typedef BilinearCohesive3DLaw BaseType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(SimplifiedBilinear3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(JointStressDriven3DLaw);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default Constructor
-    SimplifiedBilinear3DLaw()
+    JointStressDriven3DLaw()
     {
     }
 
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<SimplifiedBilinear3DLaw>(SimplifiedBilinear3DLaw(*this));
+        return Kratos::make_shared<JointStressDriven3DLaw>(JointStressDriven3DLaw(*this));
     }
 
     // Copy Constructor
-    SimplifiedBilinear3DLaw (const SimplifiedBilinear3DLaw& rOther) : BilinearCohesive3DLaw(rOther)
+    JointStressDriven3DLaw (const JointStressDriven3DLaw& rOther) : BilinearCohesive3DLaw(rOther)
     {
     }
 
     // Destructor
-    ~SimplifiedBilinear3DLaw() override
+    ~JointStressDriven3DLaw() override
     {
     }
 
@@ -107,6 +107,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class SimplifiedBilinear3DLaw
+}; // Class JointStressDriven3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_SIMPLIFIED_BILINEAR_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_JOINT_STRESS_DRIVEN_3D_LAW_H_INCLUDED  defined
