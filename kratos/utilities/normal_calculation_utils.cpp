@@ -489,9 +489,12 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
     auto& r_entities_array = GetContainer<TContainerType>(rModelPart);
     const auto it_entity_begin = r_entities_array.begin();
 
-    std::function<array_1d<double, 3>(const GeometryType&, const GeometryType::CoordinatesArrayType&, const double)> retrieve_normal = ConsiderUnitNormal ?
-    [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return rGeometry.UnitNormal(rLocalCoordinates);} :
+    const std::function<array_1d<double, 3>(const GeometryType&, const GeometryType::CoordinatesArrayType&, const double)> retrieve_normal_unit_normal =
+    [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return rGeometry.UnitNormal(rLocalCoordinates);};
+    const std::function<array_1d<double, 3>(const GeometryType&, const GeometryType::CoordinatesArrayType&, const double)> retrieve_normal_area_normal =
     [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return Coefficient * rGeometry.Normal(rLocalCoordinates);};
+
+    const auto* p_retrieve_normal = ConsiderUnitNormal ? &retrieve_normal_unit_normal : &retrieve_normal_area_normal;
 
     // TODO: Use TLS in ParallelUtilities
     #pragma omp parallel for firstprivate(aux_coords)
@@ -509,7 +512,7 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
         for (auto& r_node : r_geometry) {
             r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
             r_node.SetLock();
-            noalias(r_node.FastGetSolutionStepValue(NORMAL)) += retrieve_normal(r_geometry, aux_coords, coefficient);
+            noalias(r_node.FastGetSolutionStepValue(NORMAL)) += (*p_retrieve_normal)(r_geometry, aux_coords, coefficient);
             r_node.UnSetLock();
         }
     }
