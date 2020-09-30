@@ -26,7 +26,7 @@ class MainCoupledFemDem_Solution:
         self.model = Model
         # Initialize solutions
         self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path)
-        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model)
+        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, path)
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
