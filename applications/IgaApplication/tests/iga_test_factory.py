@@ -39,6 +39,11 @@ class IgaTestFactory(KratosUnittest.TestCase):
 class SinglePatchTest(IgaTestFactory):
     file_name = "single_patch_test/single_patch"
 
+# 3p Kirchhoff-Love Shell
+class ScordelisRoofShell3pTest(IgaTestFactory):
+    file_name = "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p"
+
+# Hierarchic 5p Shell
 class Shell5pHierarchicLinearThickBeamTest(IgaTestFactory):
     file_name = "linear_beam_thick_p4_nCP5/shell_5p"
 

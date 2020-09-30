@@ -8,6 +8,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+# 3p Shell KL
+from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
+# 5p Shell Hierarchic
 from iga_test_factory import Shell5pHierarchicLinearThickBeamTest as TShell5pHierarchicLinearThickBeamTest
 from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHierarchicLinearScordelisTest
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
@@ -30,6 +33,9 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
+        # 3p Shell KL
+        ScordelisRoofShell3pTest,
+        # 5p Shell Hierarchic
         TShell5pHierarchicLinearThickBeamTest,
         TShell5pHierarchicLinearScordelisTest,
         TShell5pHierarchicNonLinearThickBeamTest,
