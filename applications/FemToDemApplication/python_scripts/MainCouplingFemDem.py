@@ -52,6 +52,7 @@ class MainCoupledFemDem_Solution:
         else: # 3D
             self.number_of_nodes_element = 4
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
+            
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
 

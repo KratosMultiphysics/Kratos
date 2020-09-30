@@ -238,6 +238,7 @@ class FemDemMechanicalSolver(object):
         self.Check()
         print("::[Mechanical_Solver]:: -END-")
 
+
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
@@ -335,16 +336,30 @@ class FemDemMechanicalSolver(object):
 
     def _import_constitutive_laws(self):
 
-        if os.path.isfile("materials.py"):
-            # Constitutive law import
-            import KratosMultiphysics.SolidMechanicsApplication.constitutive_law_python_utility as constitutive_law_utils
-            constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
-                                                                             self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
-            constitutive_law.Initialize();
-
-            return True
+        if self.settings["model_import_settings"].Has("path_to_mdpa"):
+            path_to_mdpa = self.settings["model_import_settings"]["path_to_mdpa"].GetString()
         else:
-            return False
+            path_to_mdpa = ""
+            
+
+        if path_to_mdpa == "":
+            if os.path.isfile("materials.py"):
+                # Constitutive law import
+                import KratosMultiphysics.SolidMechanicsApplication.constitutive_law_python_utility as constitutive_law_utils
+                constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
+                                                                                self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
+                constitutive_law.Initialize();
+
+                return True
+            else:
+                return False
+        else: # test cases
+            materials_path = path_to_mdpa
+            import sys  
+            # sys.path.append(materials_path) 
+            import small_tests.small_strain.materials as materials
+            materials.AssignMaterial(self.main_model_part.Properties)
+            return True
 
     def _validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
         """Transfer matching settings from origin to destination.

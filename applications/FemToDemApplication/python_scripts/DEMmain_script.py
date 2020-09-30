@@ -360,7 +360,7 @@ class Solution():
         self.solver.Initialize() # Possible modifications of number of elements and number of nodes
 
     def GetProblemNameWithPath(self):
-        return self.DEM_parameters["problem_name"].GetString()
+        return self.path_for_tests + self.DEM_parameters["problem_name"].GetString()
 
     def GetMpFilename(self):
         return self.GetProblemNameWithPath() + "DEM"

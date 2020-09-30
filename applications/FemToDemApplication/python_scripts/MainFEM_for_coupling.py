@@ -85,15 +85,14 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         else:
             self.using_arc_length = False
 
-
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
+        
         #self.solver.InitializeStrategy()
         self.solver.SetEchoLevel(self.echo_level)
-
+        
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.SetGraphicalOutput()
-
         self.GraphicalOutputExecuteInitialize()
 
         print(" ")
@@ -102,7 +101,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         print("=================================================")
 
         self.model_processes.ExecuteBeforeSolutionLoop()
-
+        
         self.GraphicalOutputExecuteBeforeSolutionLoop()
 
         # Set time settings
@@ -111,6 +110,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
         self.delta_time = self.ComputeDeltaTime()
+
 
 
 #============================================================================================================================
