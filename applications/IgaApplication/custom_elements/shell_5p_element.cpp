@@ -561,8 +561,8 @@ namespace Kratos
 			rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos    ).EquationId();
 			rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
 			rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
-			rResult[index + 3] = GetGeometry()[i].GetDof(DIRECTORINC_X, pos + 3).EquationId();
-			rResult[index + 4] = GetGeometry()[i].GetDof(DIRECTORINC_Y, pos + 4).EquationId();
+			rResult[index + 3] = GetGeometry()[i].GetDof(DIRECTORINC_X).EquationId();
+			rResult[index + 4] = GetGeometry()[i].GetDof(DIRECTORINC_Y).EquationId();
 		}
 
 		KRATOS_CATCH("")
