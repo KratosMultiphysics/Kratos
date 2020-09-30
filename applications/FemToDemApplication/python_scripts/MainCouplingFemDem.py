@@ -22,10 +22,10 @@ def Wait():
 #============================================================================================================================
 class MainCoupledFemDem_Solution:
 #============================================================================================================================
-    def __init__(self, Model):
+    def __init__(self, Model, path = ""):
         self.model = Model
         # Initialize solutions
-        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model)
+        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path)
         self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model)
 
         # Initialize Remeshing files
