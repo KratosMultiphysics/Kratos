@@ -93,6 +93,16 @@ class TAUWrapper(CoSimulationSolverWrapper):
         print('TAUWrapper Initialize')
         super(TAUWrapper, self).Initialize()
 
+        if not self.coupling_interface_imported:
+            for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
+                interface_config = {
+                    "comm_name" : comm_name.GetString(),
+                    "model_part_name" : model_part_name
+                }
+
+                self.ImportCouplingInterface(interface_config)
+                self.coupling_interface_imported = True
+
         print('TAUWrapper Initialize')
 
     def AdvanceInTime(self, current_time):
@@ -129,15 +139,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.SolveSolutionStep)
 
-        if not self.coupling_interface_imported:
-            for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
-                interface_config = {
-                    "comm_name" : comm_name.GetString(),
-                    "model_part_name" : model_part_name
-                }
-
-                self.ImportCouplingInterface(interface_config)
-                self.coupling_interface_imported = True
+ 
         print('TAUWrapper SolveSolutionStep End')
 
     def FinalizeSolutionStep(self):
@@ -184,8 +186,8 @@ class TAUWrapper(CoSimulationSolverWrapper):
             if data_config["type"] == "coupling_interface_data":
                 # CoSim exports, the external solver imports
                 self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ImportData, data_config["interface_data"].name)
-            elif data_config["type"] == "convergence_signal":
-                return # we control the ext solver, no need for sending a convergence signal
+            #elif data_config["type"] == "convergence_signal":
+            #    return # we control the ext solver, no need for sending a convergence signal
         super(TAUWrapper, self).ExportData(data_config)
         print('TAUWrapper ExportData End')
 

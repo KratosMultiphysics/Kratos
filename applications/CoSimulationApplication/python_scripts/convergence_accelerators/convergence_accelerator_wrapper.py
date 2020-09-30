@@ -53,6 +53,8 @@ class ConvergenceAcceleratorWrapper(object):
 
     def ComputeAndApplyUpdate(self):
         current_data = self.interface_data.GetData()
+        print('current_data =', len(current_data))
+        print('input_data =', len(self.input_data))
         residual = current_data - self.input_data
         input_data_for_acc = self.input_data
 

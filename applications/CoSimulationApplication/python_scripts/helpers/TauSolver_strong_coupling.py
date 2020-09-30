@@ -2,6 +2,7 @@
 import shutil, sys, os, time, json
 import numpy as np
 import CoSimIO
+from mpi4py import MPI
 
 def print_on_rank_zero(*args):
     if tau_mpi_rank() == 0:
@@ -15,10 +16,12 @@ with open(working_path + 'input/tau_settings.json') as json_file:
 start_step = tau_settings["start_step"]
 tau_path = tau_settings["tau_path"]
 rotate = tau_settings["rotate"]
-ouput_file_pattern = tau_settings["ouput_file_pattern"]
+ouput_file_pattern = tau_settings["output_file_pattern"]
+is_strong_coupling = tau_settings["strong_coupling"]
 sys.path.append(tau_settings["kratos_path"])
 sys.path.append(tau_path + "py_turb1eq/")
-
+comm = MPI.COMM_WORLD
+step_mesh = 0
 
 #sys.path.append("/work/piquee/Softwares/TAU/TAU_2016.2/2016.2.0/bin/py_turb1eq/")
 import PyPara, PyPrep, PySolv, PyDeform, PyCopyCluster, PyMotionExternalDelegate, PySurfDeflect
@@ -28,7 +31,7 @@ rank = tau_mpi_rank()
 from tau_python import *
 
 # tau_functions can only be imported after appending kratos' path
-import tau_functions_Steady as TauFunctions
+import tau_functions as TauFunctions
 import MotionStringGenerator as MSG
 
 if tau_mpi_rank() == 0:
@@ -49,9 +52,7 @@ shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
-test_time = Para.get_para_value('Maximal time step number')
-print(str(test_time))
-tau_time_step = float(Para.get_para_value('Maximal time step number'))
+tau_time_step = float(Para.get_para_value('Unsteady physical time step size'))
 tau_parallel_sync()
 
 if rotate:
@@ -79,13 +80,6 @@ if rotate:
     Prep = PyPrep.Preprocessing(para_path_mod)
     Solver = PySolv.Solver(para_path_mod, delegate=MyTauMotionDelegate)
 
-  #  # --- Init motion stack ---
-  #  motionString = MyMotionStringGenerator(0)
-  #  #MyTauMotionDelegate.UpdateMotion(nodeNames, motionString)
-  #  MyTauMotionDelegate.PushMotion()
-  #  TauFunctions.PrintBlockHeader("Inital Motionstring: %s" %(motionString))
-
-
 else:
     Prep = PyPrep.Preprocessing(para_path_mod)
     Solver = PySolv.Solver(para_path_mod)
@@ -96,49 +90,71 @@ tau_parallel_sync()
 step = start_step
 tau_parallel_sync()
 
+
 def AdvanceInTime(current_time):
     # Preprocessing needs to be done before getting the time and time step
     TauFunctions.PrintBlockHeader("Start Preprocessing at time %s" %(str(time)))
+    advanceTime = True
+    global step
+    step += 1
+    global sub_step
+    sub_step = 0
+    
     Prep.run(write_dualgrid=1,free_primgrid=False)
     tau_parallel_sync()
     TauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
     TauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
-    Solver.init(verbose = 1, reset_steps = True, n_time_steps = 1)
-    tau_parallel_sync()
-
-    if rotate:
-        motionString = MyMotionStringGenerator(step - start_step)
-        MyTauMotionDelegate.UpdateMotion("WING", motionString)
-        MyTauMotionDelegate.InitExchange()
+    Solver.init(advance_time = advanceTime, verbose = 1, reset_steps = False, n_time_steps = 1)
 
     # Get current time and time step from tau
     tau_current_time = float(tau_solver_unsteady_get_physical_time())
     tau_parallel_sync()
 
     if tau_settings["echo_level"] > 0:
-        print "TAU SOLVER AdvanceInTime"
-        print 'tau_current_time = ', tau_current_time
-        print 'tau_time_step = ', tau_time_step
+        if tau_mpi_rank() == 0:
+            print("#################################")
+            print "TAU SOLVER AdvanceInTime"
+            print ('tau_current_time = ' + str(tau_current_time))
+            print("#################################")
+        tau_parallel_sync
     return tau_current_time + tau_time_step
 
 def InitializeSolutionStep():
     if tau_settings["echo_level"] > 0:
         print_on_rank_zero("TAU SOLVER InitializeSolutionStep")
 
-def SolveSolutionStep():
+def SolveSolutionStep(advanceTime, sub_step):
     if tau_settings["echo_level"] > 0:
         print_on_rank_zero("TAU SOLVER SolveSolutionStep")
+
+    if sub_step > 0 and advanceTime == False:
+        Prep.run(write_dualgrid=1,free_primgrid=False)
+        tau_parallel_sync()
+        TauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
+        TauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
+        Solver.init(advance_time = advanceTime, verbose = 1, reset_steps = False, n_time_steps = 1)
+        tau_parallel_sync()
+
+    if rotate:
+        motionString = MyMotionStringGenerator(step - start_step)
+        MyTauMotionDelegate.UpdateMotion("WING", motionString)
+        MyTauMotionDelegate.InitExchange()
+
     Solver.outer_loop()
     tau_parallel_sync()
-    Solver.output()
+ #   Solver.output() 
+    tau_solver_output_field()
     tau_parallel_sync()
-    tau_plt_init_tecplot_params(para_path_mod)
+    tau_solver_output_surface()
     tau_parallel_sync()
+    #tau_plt_init_tecplot_params(para_path_mod)
+    #tau_parallel_sync()
     tau_solver_write_output_conditional()
     tau_parallel_sync()
+    Solver.stop()
     # Convert tau output to dat file using tau2plt
     if tau_mpi_rank() == 0:
-        TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern)
+        TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh)
     tau_parallel_sync()
 
 def FinalizeSolutionStep():
@@ -150,11 +166,7 @@ def FinalizeSolutionStep():
     tau_free_dualgrid()
     tau_free_prims()
     Para.free_parameters()
-    if tau_mpi_rank() == 0:
-        global step
-        step += 10
-    print step
-    tau_parallel_sync()
+
 
 def ImportData(conn_name, identifier):
     tau_parallel_sync()
@@ -247,7 +259,7 @@ def ExportMesh(conn_name, identifier):
 connection_name = "TAU"
 
 settings = {
-    "echo_level" : "0",
+    "echo_level" : "2",
     "print_timing" : "1",
     "communication_format" : "file"
 }
@@ -256,22 +268,24 @@ settings = {
 if rank == 0:
     CoSimIO.Connect(connection_name, settings)
 
-n_steps = 2#int(Para.get_para_value('Unsteady physical time steps'))
+n_steps = int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
-def InnerLoop():
-    SolveSolutionStep()
+
+def InnerLoop(coupling_interface_imported, advanceTime):
+    SolveSolutionStep(advanceTime, sub_step)
 
     if not coupling_interface_imported:
+        advanceTime = False
         if tau_mpi_rank() == 0:
-            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern)
         tau_parallel_sync()
         ExportMesh(connection_name, "UpperInterface")
         ExportMesh(connection_name, "LowerInterface")
         coupling_interface_imported = True
 
     if tau_mpi_rank() == 0:
-        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern)
     tau_parallel_sync()
     ExportData(connection_name, "Upper_Interface_force")
     ExportData(connection_name, "Lower_Interface_force")
@@ -280,21 +294,45 @@ def InnerLoop():
     ImportData(connection_name, "Upper_Interface_disp")
     ImportData(connection_name, "Lower_Interface_disp")
 
+    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
 
-is_strong_coupling = True
+    global step_mesh
+    step_mesh += 1
+
+    return coupling_interface_imported
+
 
 for i in range(n_steps):
+
     AdvanceInTime(0.0)
+
     InitializeSolutionStep()
 
     if is_strong_coupling:
         is_converged = False
         while not is_converged:
-            InnerLoop()
-            is_converged = CoSimIO.IsConverged(connection_name)
+            advanceTime = False
+            if tau_mpi_rank() == 0:
+                print("#################################")
+                print("###   ATENTION NOT Converged ### ")
+                print("###   Advance in Time = " + str(advanceTime) + "   ###   ")
+                print("###   step = " + str(step) + "   ###   ")
+                print("###   sub_step = " + str(sub_step + 1) + "   ###   ")
+                print("#################################")
+            tau_parallel_sync
+            coupling_interface_imported = InnerLoop(coupling_interface_imported, advanceTime)
+            print("coupling_interface_imported ", coupling_interface_imported)
+            global sub_step
+            sub_step += 1
 
-    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
+	    if tau_mpi_rank() == 0:
+           	is_converged = CoSimIO.IsConverged(connection_name)
+                print("RECEIVING worked", is_converged)
+            is_converged = comm.bcast(is_converged, 0)
 
+
+    sub_step = 0
+    tau_parallel_sync()
     FinalizeSolutionStep()
 
 if rank == 0:
@@ -320,3 +358,18 @@ if tau_mpi_rank() == 0:
     CoSimIO.Disconnect(connection_name)
 '''
 tau("exit")
+
+#print(comm)
+#import tau_python
+#print(dir(tau_python))
+#for i in dir(tau_python):
+#    print(i)
+
+    #tau_current_time = float(tau_solver_unsteady_get_physical_time())    
+    #print 'tau_current_time = ', tau_current_time
+    #print 'tau_time_step = ', tau_time_step    
+    #advanced = tau_solver_unsteady_advance_time()
+    #tau_solver_unsteady_advance_motion()
+    #tau_current_time = float(tau_solver_unsteady_get_physical_time())
+    #print 'tau_current_time = ', tau_current_time
+    #print 'advanced = ', advanced

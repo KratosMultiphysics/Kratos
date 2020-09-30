@@ -15,7 +15,7 @@ with open(working_path + 'input/tau_settings.json') as json_file:
 start_step = tau_settings["start_step"]
 tau_path = tau_settings["tau_path"]
 rotate = tau_settings["rotate"]
-ouput_file_pattern = tau_settings["ouput_file_pattern"]
+ouput_file_pattern = tau_settings["output_file_pattern"]
 sys.path.append(tau_settings["kratos_path"])
 sys.path.append(tau_path + "py_turb1eq/")
 
@@ -49,7 +49,7 @@ shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
-tau_time_step = 1#float(Para.get_para_value('Unsteady physical time step size'))
+tau_time_step = float(Para.get_para_value('Unsteady physical time step size'))
 tau_parallel_sync()
 
 if rotate:
@@ -150,7 +150,7 @@ def FinalizeSolutionStep():
     Para.free_parameters()
     if tau_mpi_rank() == 0:
         global step
-        step += 100
+        step += 1
     print step
     tau_parallel_sync()
 

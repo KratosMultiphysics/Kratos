@@ -67,6 +67,8 @@ class KratosCoSimIO(CoSimulationIO):
 
         elif data_type == "convergence_signal":
             if data_config["is_converged"]:
+                print("++++++++++++++  True +++++++++++")
+                print(str(data_config["is_converged"]))
                 control_signal_key = KratosCoSim.CoSimIO.ControlSignal.ConvergenceAchieved
             else:
                 print('kratos_co_sim_io ExportData Dummy')

@@ -52,6 +52,8 @@ class ConvergenceCriteriaWrapper(object):
 
     def IsConverged(self):
         current_data = self.interface_data.GetData()
+        print('current_data =', len(current_data))
+        print('input_data =', len(self.input_data))
         residual = current_data - self.input_data
 
         if self.interface_data.IsDistributed():
