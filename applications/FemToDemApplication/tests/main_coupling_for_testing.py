@@ -47,10 +47,9 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         self.CheckControlValuesForTesting()
 
 #============================================================================================================================
-    def CheckControlValuesForTesting(self):
+    def CheckControlValuesForTesting(self): # KratosPrintInfo(str(dy))
 
         for elem in self.FEM_Solution.main_model_part.Elements:
-            # print(elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)) # se ven numeros
             damage = elem.CalculateOnIntegrationPoints(KratosFemDem.DAMAGE_ELEMENT, self.FEM_Solution.main_model_part.ProcessInfo)[0]
             if self.FEM_Solution.step == 26:
                 if damage != 0.11526580049026725:
@@ -66,7 +65,26 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
 
             if self.FEM_Solution.step == 61:
                 if damage != 0.5600214207342531:
-                    raise ValueError('The computed damage at step = 61 is not correct')        
+                    raise ValueError('The computed damage at step = 61 is not correct')
+
+
+        node = self.FEM_Solution.main_model_part.GetNode(1)
+        dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+        if self.FEM_Solution.step == 26:
+            if dy != 1.971665114439254e-05:
+                raise ValueError('The computed displacement at step = 26 is not correct')
+
+        if self.FEM_Solution.step == 36:
+            if dy != 2.7299978508712653e-05:
+                raise ValueError('The computed displacement at step = 36 is not correct')
+
+        if self.FEM_Solution.step == 46:
+            if dy != 2.578331303724928e-05:
+                raise ValueError('The computed displacement at step = 46 is not correct')
+
+        if self.FEM_Solution.step == 61:
+            if dy != 1.4408321991404051e-05:
+                raise ValueError('The computed displacement at step = 61 is not correct')
 
 #============================================================================================================================
     def Finalize(self):
