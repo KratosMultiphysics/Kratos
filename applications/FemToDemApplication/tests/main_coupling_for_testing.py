@@ -49,6 +49,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
 #============================================================================================================================
     def CheckControlValuesForTesting(self): # KratosPrintInfo(str(dy))
 
+        # Here we check the damage obtained at each FE
         for elem in self.FEM_Solution.main_model_part.Elements:
             damage = elem.CalculateOnIntegrationPoints(KratosFemDem.DAMAGE_ELEMENT, self.FEM_Solution.main_model_part.ProcessInfo)[0]
             if self.FEM_Solution.step == 26:
@@ -68,6 +69,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
                     raise ValueError('The computed damage at step = 61 is not correct')
 
 
+        # Here we check the vertical displacement of a node
         node = self.FEM_Solution.main_model_part.GetNode(1)
         dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
         if self.FEM_Solution.step == 26:
@@ -85,6 +87,12 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         if self.FEM_Solution.step == 61:
             if dy != 1.4408321991404051e-05:
                 raise ValueError('The computed displacement at step = 61 is not correct')
+
+        # Here we check the stresses and strains at one FE
+
+
+
+        
 
 #============================================================================================================================
     def Finalize(self):
