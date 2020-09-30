@@ -82,7 +82,7 @@ namespace Kratos
         double myPoisson = GetPoisson();
 
         // (*mStressTensor)(2,2) += E*z_displacement - poisson*(sigma_xx + sigma_yy);
-        (*mStressTensor)(2, 2) = myYoung*z_strain_value - myPoisson*((*mStressTensor)(0, 0) + (*mStressTensor)(1, 1));
+        (*mStressTensor)(2, 2) = myYoung*z_strain_value + myPoisson*((*mStressTensor)(0, 0) + (*mStressTensor)(1, 1));
 
         KRATOS_CATCH("")
     }

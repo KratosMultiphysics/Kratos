@@ -36,7 +36,7 @@ BFECCConvectionUtility<TDim>::BFECCConvectionUtility(ModelPart& rThisModelPart, 
 
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
     mMaxResults = ThisParameters["maximum_results"].GetDouble();
-    
+
     mSearchStructure.UpdateSearchDatabase();
 }
 
@@ -211,7 +211,6 @@ template void BFECCConvectionUtility<2>::Convect<Variable<array_1d<double,3>>, a
 template void BFECCConvectionUtility<3>::Convect<Variable<array_1d<double,3>>, array_1d<double,3>>(const Variable<array_1d<double,3>>&, const Variable<array_1d<double,3>>&);
 
 template void BFECCConvectionUtility<2>::ResetBoundaryConditions(const Variable<double>&);
-template void BFECCConvectionUtility<2>::ResetBoundaryConditions(const VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>&);
 
 template void BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep(const Variable<double>&);
 template void BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep(const Variable<array_1d<double,3>>&);

@@ -92,7 +92,7 @@ void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
+void BaseShellElement::GetValuesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -118,7 +118,7 @@ void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
     }
 }
 
-void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -144,7 +144,7 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
     }
 }
 
-void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 

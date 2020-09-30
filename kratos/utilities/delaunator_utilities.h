@@ -39,9 +39,10 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-// forward declaring ModelPart to be avoid including heavy header here
+// forward declaring ModelPart and Point to be avoid including heavy header here
 class ModelPart;
-    
+class Point;
+
 /**
  * @namespace DelaunatorUtilities
  * @ingroup KratosCore
@@ -62,6 +63,13 @@ namespace DelaunatorUtilities
      * @return The connectivity vector
      */
     std::vector<std::size_t> KRATOS_API(KRATOS_CORE) ComputeTrianglesConnectivity(const std::vector<double>& rCoordinates);
+
+    /**
+     * @brief This method returns the triangles connectivity from a list of coordinates (using triangle library)
+     * @param rPoints The list of points
+     * @return The connectivity vector
+     */
+    std::vector<std::size_t> KRATOS_API(KRATOS_CORE) ComputeTrianglesConnectivity(const std::vector<Point>& rPoints);
 
 }; // namespace DelaunatorUtilities
 }  // namespace Kratos

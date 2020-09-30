@@ -12,6 +12,9 @@
         "domain_size"                     : 2,
         "echo_level"                      : 0,
         "analysis_type"                   : "non_linear",
+        "linear_solver_settings"          : {
+            "solver_type"   : "LinearSolversApplication.sparse_qr"
+        },
         "model_import_settings"           : {
             "input_type"     : "mdpa",
             "input_filename" : "mpm_fem_beam/structure"
