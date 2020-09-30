@@ -89,9 +89,33 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
                 raise ValueError('The computed displacement at step = 61 is not correct')
 
         # Here we check the stresses and strains at one FE
+        element = self.FEM_Solution.main_model_part.GetElement(1)
+        Sx = elem.CalculateOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED,           self.FEM_Solution.main_model_part.ProcessInfo)[0][0]
+        Ex = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, self.FEM_Solution.main_model_part.ProcessInfo)[0][0]
 
+        if self.FEM_Solution.step == 26:
+            if Sx != 1441812.5386046136:
+                raise ValueError('The computed stress at step = 26 is not correct')
+            if Ex != 4.6561604584527234e-05:
+                raise ValueError('The computed strain at step = 26 is not correct')
 
+        if self.FEM_Solution.step == 36:
+            if Sx != 1190806.4343404802:
+                raise ValueError('The computed stress at step = 36 is not correct')
+            if Ex != 6.446991404011464e-05:
+                raise ValueError('The computed strain at step = 36 is not correct')
 
+        if self.FEM_Solution.step == 46:
+            if Sx != 937633.4336071612:
+                raise ValueError('The computed stress at step = 46 is not correct')
+            if Ex != 6.0888252148997134e-05:
+                raise ValueError('The computed strain at step = 46 is not correct')
+
+        if self.FEM_Solution.step == 61:
+            if Sx != 523971.6246628269:
+                raise ValueError('The computed stress at step = 61 is not correct')
+            if Ex != 3.4025787965616143e-05:
+                raise ValueError('The computed strain at step = 61 is not correct')
         
 
 #============================================================================================================================
