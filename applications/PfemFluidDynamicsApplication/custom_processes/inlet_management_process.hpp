@@ -247,7 +247,7 @@ private:
     {
 
       Node<3>::Pointer pnode = clonedNodes[i];
-      double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelpart.GetParentModelPart());
+      double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
       double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
       unsigned int id = NodeIdParent + 1; //total model part node size
 

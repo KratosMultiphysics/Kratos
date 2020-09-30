@@ -587,16 +587,15 @@ namespace MPMSearchElementUtility
 
     inline bool IntersectionCheckWithBoundingBox(const GeometryType& rGeom, const array_1d<double, 3>& rCoord, const double SideHalfLength)
     {
-        const Point point_low(rCoord[0] - SideHalfLength, rCoord[1] - SideHalfLength,
-            rCoord[2] - (rGeom.WorkingSpaceDimension() == 3) ? SideHalfLength : 0.0);
-        const Point point_high(rCoord[0] + SideHalfLength, rCoord[1] + SideHalfLength,
-            rCoord[2] + (rGeom.WorkingSpaceDimension() == 3) ? 1.0 : 0.0 * SideHalfLength);
+        const double z_coord = (rGeom.WorkingSpaceDimension() == 3) ? SideHalfLength : 0.0;
+        const Point point_low(rCoord[0] - SideHalfLength, rCoord[1] - SideHalfLength, rCoord[2] - z_coord);
+        const Point point_high(rCoord[0] + SideHalfLength, rCoord[1] + SideHalfLength, rCoord[2] + z_coord);
         NodeType ele_point_low, ele_point_high;
 
-
+        const double dimension_45_degree_factor = (rGeom.WorkingSpaceDimension() == 3) ? 1.7321 : 1.414214;
         double center_to_center = norm_2(rGeom.Center() - rCoord);
         rGeom.BoundingBox(ele_point_low, ele_point_high);
-        double maximum_contact_range = ((rGeom.WorkingSpaceDimension() == 3) ? 1.7321 : 1.414214 )* SideHalfLength +
+        double maximum_contact_range = dimension_45_degree_factor * SideHalfLength +
             norm_2(ele_point_high - ele_point_low);
         if (center_to_center <= maximum_contact_range) return true;
         return false;
