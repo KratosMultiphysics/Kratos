@@ -48,21 +48,25 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
 
 #============================================================================================================================
     def CheckControlValuesForTesting(self):
-        KratosPrintInfo("geeeeeeeeeeee")
 
         for elem in self.FEM_Solution.main_model_part.Elements:
             # print(elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)) # se ven numeros
             damage = elem.CalculateOnIntegrationPoints(KratosFemDem.DAMAGE_ELEMENT, self.FEM_Solution.main_model_part.ProcessInfo)[0]
-            KratosPrintInfo(str(damage))
-        # Wait()
+            if self.FEM_Solution.step == 26:
+                if damage != 0.11526580049026725:
+                    raise ValueError('The computed damage at step = 26 is not correct')
 
+            if self.FEM_Solution.step == 36:
+                if damage != 0.4722648310044538:
+                    raise ValueError('The computed damage at step = 36 is not correct')
 
-        
+            if self.FEM_Solution.step == 46:
+                if damage != 0.5600214207342531:
+                    raise ValueError('The computed damage at step = 46 is not correct')
 
-
-
-
-
+            if self.FEM_Solution.step == 61:
+                if damage != 0.5600214207342531:
+                    raise ValueError('The computed damage at step = 61 is not correct')        
 
 #============================================================================================================================
     def Finalize(self):
