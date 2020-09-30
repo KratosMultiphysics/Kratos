@@ -169,9 +169,14 @@ typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> Solvi
 
 AdjointResponseFunction::Pointer ResponseFunctionFactory(ModelPart* pModelPart, unsigned ResponseNodeId)
 {
-    Parameters params{R"({"traced_dof": "DISPLACEMENT_Y", "gradient_mode": "semi_analytic", "step_size": 1e-2})"};
-    params.AddEmptyValue("traced_node_id");
-    params["traced_node_id"].SetInt(ResponseNodeId);
+    Parameters params{R"({"traced_dof": "DISPLACEMENT", "direction": [0.0,1.0,0.0], "gradient_mode": "semi_analytic", "step_size": 1e-2})"};
+    std::string response_mp_label = "response_mp";
+    if (!pModelPart->HasSubModelPart(response_mp_label)) {
+        ModelPart& r_sub = pModelPart->CreateSubModelPart(response_mp_label);
+        r_sub.AddNode(pModelPart->pGetNode(ResponseNodeId));
+    }
+    params.AddEmptyValue("response_part_name");
+    params["response_part_name"].SetString(response_mp_label);
     return Kratos::make_shared<AdjointNodalDisplacementResponseFunction>(*pModelPart, params);
 }
 

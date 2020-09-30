@@ -2,10 +2,7 @@ import importlib
 import math
 import warnings
 
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from xmc.distributedEnvironmentFramework import *
 
 def dynamicImport(fullName):
     """
@@ -155,7 +152,7 @@ def unpackedList(obj):
     warnings.warn(('unpackedList is deprecated. '
                    'Use COLLECTION type in task parameters with COMPSs version ≥ 2.6. '
                    'Retro-compatibility is ensured only until 2020-08.'),
-                   DeprecationWarning)    
+                   DeprecationWarning)
     if not any(isinstance(l,list) for l in obj):
         return obj
     new_vector = []

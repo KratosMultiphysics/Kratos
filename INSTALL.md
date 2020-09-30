@@ -67,11 +67,11 @@ Additionaly, Visual Studio is required to compile in Windows.
 
     - Visual Studio
 
-        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is Visual Studio 2017, but we recommend to use Visual Studio 2019 or higher. 
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is Visual Studio 2017, but we recommend to use Visual Studio 2019 or higher.
 
         * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
 
-        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects. 
+        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects.
 
         When compiling Kratos in Windows, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
 
@@ -81,7 +81,7 @@ Additionaly, Visual Studio is required to compile in Windows.
         Once installing, please **do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''**
 
         Minimum required version: CMake 3.14
-        
+
     - Python
 
         You will need at least *Python* 3.5 (recommended 3.7/3.8) in your computer in order to compile *Kratos*. You can download python from its official webpage:
@@ -153,7 +153,7 @@ Windows
 ./path_to_kratos/scripts/configure.bat
 ```
 
-The example scripts for every system are shown next. 
+The example scripts for every system are shown next.
 
 ### Linux
 
@@ -179,7 +179,7 @@ export PYTHON_EXECUTABLE="/usr/bin/python3"
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -216,7 +216,7 @@ set PYTHON_EXECUTABLE=C:\Python37\python.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
-CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 
@@ -286,7 +286,7 @@ export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.7/bin/
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -315,14 +315,14 @@ Its now also possible to compile applications outside kratos source dir:
 
 Linux:
 ```shell
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicApplication
 add_app /home/username/development/ExternalApplication  # Example of external Application
 ```
 
 Windows:
 ```shell
-CALL :add_app %KRATOS_APP_DIR%/EigenSolversApplication
+CALL :add_app %KRATOS_APP_DIR%/LinearSolversApplication
 CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
 CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
 ```
@@ -362,9 +362,9 @@ from KratosMultiphysics import *
 The result should be:
 
 ```
-   |  /           |             
+   |  /           |
    ' /   __| _` | __|  _ \   __|
-   . \  |   (   | |   (   |\__ \ 
+   . \  |   (   | |   (   |\__ \
   _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 8.0
 ```
@@ -391,6 +391,8 @@ Path where your applications are located. This variable is not necessary but it 
 `KRATOS_INSTALL_PYTHON_USING_LINKS=ON/OFF`
 
 Controls wether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially usefull if you are developing python files and don't want to reinstall every time you touch a script.
+
+Using this option in windows requires elevated privileges (you must run the script as admin)
 
 
 ### Common Flags
