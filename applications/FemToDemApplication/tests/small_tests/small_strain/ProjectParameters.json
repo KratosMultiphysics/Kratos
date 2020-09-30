@@ -27,6 +27,7 @@
             "model_import_settings":              {
                  "input_type":         "mdpa",
                  "input_filename":     "small_test_damage",
+				 "path_to_mdpa"  :     "small_tests/small_strain/",
                  "input_file_label":    0
             },
             "reform_dofs_at_each_step":              true,
