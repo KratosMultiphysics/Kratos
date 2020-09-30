@@ -5,11 +5,23 @@ from KratosMultiphysics import Logger
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import os
+import shutil
+
+def Wait():
+    input("Press Something")
+
+def KratosPrintInfo(message):
+    KratosMultiphysics.Logger.Print(message, label="")
+    KratosMultiphysics.Logger.Flush()
 
 #============================================================================================================================
 class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_Solution):
 #============================================================================================================================
-
+        
+"""
+Main file for small strain case test
+"""
 
 #============================================================================================================================
     def FinalizeSolutionStep(self):
@@ -20,17 +32,9 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         # to print DEM with the FEM coordinates
         self.UpdateDEMVariables()
 
-        # DEM GiD print output
-        # self.PrintDEMResults()
-
         # Transfer the contact forces of the DEM to the FEM nodes
         if self.TransferDEMContactForcesToFEM:
             self.TransferNodalForcesToFEM()
-
-        # self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
-
-        # Print required info
-        # self.PrintPlotsFiles()
         
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
@@ -41,21 +45,42 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         # processes to be executed before witting the output
         self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
 
-        # write output results GiD: (frequency writing is controlled internally)
-        # self.FEM_Solution.GraphicalOutputPrintOutput()
-
         # processes to be executed after writting the output
         self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
 
-        # if self.DoRemeshing:
-        #      self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
+        self.CheckControlValuesForTesting()
+
+#============================================================================================================================
+    def CheckControlValuesForTesting(self):
+        KratosPrintInfo("geeeeeeeeeeee")
+
+        for elem in self.FEM_Solution.main_model_part.Elements:
+            # print(elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)) # se ven numeros
+            damage = elem.CalculateOnIntegrationPoints(KratosFemDem.DAMAGE_ELEMENT, self.FEM_Solution.main_model_part.ProcessInfo)[0]
+            KratosPrintInfo(str(damage))
+        # Wait()
+
+
         
-        # if not self.is_slave:
-        #     self.PrintResults()
 
-        # Check variables
-        print("Checkeando jejejejje")
 
+
+
+
+
+#============================================================================================================================
+    def Finalize(self):
+        super(MainCouplingFemDemForTestingSolution, self).Finalize()
+
+        shutil.rmtree(self.FEM_Solution.problem_name + "_Graphs")
+        shutil.rmtree(self.FEM_Solution.problem_name + "_MPI_results")
+        shutil.rmtree(self.FEM_Solution.problem_name + "_Post_Files")
+        shutil.rmtree(self.FEM_Solution.problem_name + "_Results_and_Data")
+        shutil.rmtree("__pycache__")
+        os.remove("PlotFile.txt")
+        os.remove(self.FEM_Solution.problem_name + "_0.post.bin")
+        os.remove(self.FEM_Solution.problem_name + ".post.lst")
+        os.remove("tests.post.lst")
 
 class TestAnalytics(KratosUnittest.TestCase):
     
