@@ -22,6 +22,7 @@
 #include "utilities/communication_coloring_utilities.h"
 #include "containers/sparse_graph.h"
 #include "containers/sparse_contiguous_row_graph.h"
+#include "utilities/parallel_utilities.h"
 
 // External includes
 #include <unordered_map>
@@ -280,9 +281,9 @@ public:
 
     void Finalize()
     {
-        std::vector<int> send_list;
+        std::vector<MpiIndexType> send_list;
 
-        for(unsigned int id = 0; id<mNonLocalGraphs.size(); ++id)
+        for(MpiIndexType id = 0; id<mNonLocalGraphs.size(); ++id)
             if( !mNonLocalGraphs[id].IsEmpty())
                 send_list.push_back(id);
 

@@ -58,6 +58,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
+    typedef int MpiIndexType;
     typedef std::unordered_map<std::pair<IndexType, IndexType>,
                           double,
                           PairHasher<IndexType, IndexType>,

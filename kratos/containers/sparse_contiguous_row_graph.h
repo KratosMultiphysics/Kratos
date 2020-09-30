@@ -19,6 +19,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/lock_object.h"
+#include "utilities/parallel_utilities.h"
 
 // External includes
 #include <unordered_map>
@@ -88,7 +89,7 @@ public:
         mLocks.resize(GraphSize,false);
 
         //doing first touching
-        IndexPartition<IndexType>(rGraphSize).for_each([&](IndexType i){
+        IndexPartition<IndexType>(GraphSize).for_each([&](IndexType i){
             mLocks[i] = LockObject();
             mGraph[i] = std::unordered_set<IndexType>();
         });
@@ -249,7 +250,7 @@ public:
         });
 
         //reorder columns
-        IndexPartition<IndexType>(rRowIndices.size())-1).for_each([&](IndexType i){
+        IndexPartition<IndexType>(rRowIndices.size()-1).for_each([&](IndexType i){
             std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
         });
 
