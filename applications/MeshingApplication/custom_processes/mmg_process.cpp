@@ -370,6 +370,7 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
 
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     auto& r_nodes_array = mrThisModelPart.Nodes();
+    KRATOS_DEBUG_ERROR_IF(r_nodes_array.size() == 0) << "The model part considered has not nodes\n" << mrThisModelPart << std::endl;
     const auto& r_old_dofs = r_nodes_array.begin()->GetDofs();
     for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof)
         mDofs.push_back(Kratos::make_unique<NodeType::DofType>(**it_dof));
@@ -568,6 +569,9 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     }
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+
+    /* Before create new mesh we reorder nodes, conditions and elements: */
+    mMmgUtilities.ReorderAllIds(mrThisModelPart);
 
     // Writing the new mesh data on the model part
     mMmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);

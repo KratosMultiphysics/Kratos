@@ -4,8 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 import math
 
-structural_mechanics_is_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
-if structural_mechanics_is_available:
+if KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def inner_prod(a,b):
@@ -267,7 +266,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_MPC_Constraints(self):
         dim = 2
         current_model = KratosMultiphysics.Model()
@@ -378,7 +377,7 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         strategy.SolveSolutionStep()
         strategy.FinalizeSolutionStep()
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_constraints(self):
         dim = 2
 

@@ -28,7 +28,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosCoSimulationApplication : public KratosApplication {
+class KRATOS_API(CO_SIMULATION_APPLICATION) KratosCoSimulationApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{

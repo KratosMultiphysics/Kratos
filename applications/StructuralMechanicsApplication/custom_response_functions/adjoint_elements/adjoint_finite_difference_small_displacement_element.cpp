@@ -140,7 +140,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

@@ -42,6 +42,9 @@
 #include "factories/standard_linear_solver_factory.h"
 #include "eigen_solvers_application.h"
 
+/* Utilities */
+#include "custom_utilities/feast_condition_number_utility.h"
+
 namespace Kratos {
 namespace Python {
 
@@ -172,6 +175,8 @@ void register_base_dense_solver(pybind11::module& m)
 
 void AddCustomSolversToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
     using complex = std::complex<double>;
 
     // --- direct solvers
@@ -212,6 +217,14 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_feast_eigensystem_solver<FEASTEigensystemSolver<true, complex, complex>>(m, "ComplexFEASTSymmetricEigensystemSolver");
     register_feast_eigensystem_solver<FEASTEigensystemSolver<false, complex, complex>>(m, "ComplexFEASTGeneralEigensystemSolver");
 #endif
+
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+    typedef FEASTConditionNumberUtility<SparseSpaceType, LocalSpaceType> FEASTConditionNumberUtilityType;
+    py::class_<FEASTConditionNumberUtilityType,FEASTConditionNumberUtilityType::Pointer>(m,"FEASTConditionNumberUtility")
+        .def("GetConditionNumber", &FEASTConditionNumberUtilityType::GetConditionNumber)
+        ;
 }
 
 } // namespace Python

@@ -68,7 +68,7 @@ If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~p
 **Example:**
 ```json
 {
-    "solver_type": "eigen_feast",
+    "solver_type": "feast",
     "symmetric": true,
     "number_of_eigenvalues": 3,
     "search_lowest_eigenvalues": true,

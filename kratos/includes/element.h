@@ -984,49 +984,55 @@ public:
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
-     * these methods are: OPTIONAL
      */
 
     virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
                           std::vector<bool>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                           std::vector<int>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                           std::vector<double>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                           std::vector< array_1d<double, 3 > >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                           std::vector< array_1d<double, 6 > >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
                           std::vector< Vector >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
                           std::vector< Matrix >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     /**
@@ -1090,48 +1096,56 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
                          std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
                          std::vector<int>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                          std::vector<array_1d<double, 3 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                          std::vector<array_1d<double, 6 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                          std::vector<Vector>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                          std::vector<Matrix>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                          std::vector<ConstitutiveLaw::Pointer>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
@@ -1151,7 +1165,6 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
-        const_cast<Element*>(this)->Check(rCurrentProcessInfo); // TODO remove this after the transition period
 
         KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
 
@@ -1167,14 +1180,9 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
-
-        const double domain_size = this->GetGeometry().DomainSize();
-        KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
-
-        return 0;
-
+        // calling the const version for backward compatibility
+        const Element& r_const_this = *this;
+        return r_const_this.Check(rCurrentProcessInfo);
         KRATOS_CATCH("")
     }
 

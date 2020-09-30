@@ -51,7 +51,7 @@ CrBeamElement2D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 CrBeamElement2D2N::~CrBeamElement2D2N() {}
 
 void CrBeamElement2D2N::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     if (rResult.size() != msElementSize) {
         rResult.resize(msElementSize);
@@ -68,7 +68,7 @@ void CrBeamElement2D2N::EquationIdVector(EquationIdVectorType& rResult,
 }
 
 void CrBeamElement2D2N::GetDofList(DofsVectorType& rElementalDofList,
-                                   ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msElementSize) {
@@ -925,7 +925,7 @@ void CrBeamElement2D2N::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();

@@ -278,7 +278,7 @@ private:
         TDataType local_ReferenceDispNorm = TDataType();
         TDataType value;
 
-        const double rank = rModelPart.GetCommunicator().MyPID(); // double because I want to compare with PARTITION_INDEX
+        const int rank = rModelPart.GetCommunicator().MyPID();
 
         for(auto it_dof = rDofSet.begin() ; it_dof != rDofSet.end() ; ++it_dof)
         {

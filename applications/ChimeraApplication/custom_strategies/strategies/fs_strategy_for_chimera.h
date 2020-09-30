@@ -168,23 +168,6 @@ protected:
     ///@{
 
 
-   void SetActiveStateOnConstraint(const Flags& TheFlagToSet ,const bool ValToSet)
-    {
-        ModelPart& rModelPart = BaseType::GetModelPart();
-#pragma omp parallel
-        {
-            ModelPart::MasterSlaveConstraintIteratorType constraints_begin;
-            ModelPart::MasterSlaveConstraintIteratorType constraints_end;
-            OpenMPUtils::PartitionedIterators(rModelPart.MasterSlaveConstraints(),constraints_begin,constraints_end);
-
-            for ( ModelPart::MasterSlaveConstraintIteratorType itConstraint = constraints_begin; itConstraint != constraints_end; ++itConstraint )
-            {
-                if (itConstraint->Is(TheFlagToSet))
-                    itConstraint->Set(ACTIVE, ValToSet);
-            }
-        }
-    }
-
     double SolveStep() override
     {
 
@@ -195,9 +178,6 @@ protected:
         r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
         bool converged = false;
-        // Activate Constraints for VELOCITY and deactivate PRESSURE
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, false);
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
@@ -216,10 +196,6 @@ protected:
                 break;
             }
         }
-
-        // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, false);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
 
         KRATOS_INFO_IF("FSStrategyForChimera ", (BaseType::GetEchoLevel() > 0) && !converged)<<
             "Fractional velocity iterations did not converge "<< std::endl;
@@ -264,10 +240,6 @@ protected:
         KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<"Updating Velocity." << std::endl;
         r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
         CalculateEndOfStepVelocity();
-
-        // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
 
        // Additional steps
         for (std::vector<Process::Pointer>::iterator iExtraSteps = BaseType::mExtraIterationSteps.begin();

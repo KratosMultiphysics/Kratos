@@ -107,9 +107,25 @@ class SearchBaseProcess(KM.Process):
 
         # First we generate or identify the different model parts
         if self.main_model_part.HasSubModelPart("Contact"):
-            self.preprocess = False
-            # We get the submodelpart
-            self.search_model_part = self.main_model_part.GetSubModelPart("Contact")
+            # If remeshed we remove and redo everything from scratch
+            if self.main_model_part.GetRootModelPart().Is(KM.MODIFIED):
+                self.preprocess = True
+
+                # Clean up contact pairs
+                CSMA.ContactUtilities.CleanContactModelParts(self.main_model_part)
+
+                # We remove the submodelpart
+                self.main_model_part.RemoveSubModelPart("Contact")
+
+                KM.AuxiliarModelPartUtilities(self.main_model_part).EnsureModelPartOwnsProperties(True)
+                KM.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).EnsureModelPartOwnsProperties(True)
+
+                # We create the submodelpart
+                self.search_model_part = self.main_model_part.CreateSubModelPart("Contact")
+            else:
+                self.preprocess = False
+                # We get the submodelpart
+                self.search_model_part = self.main_model_part.GetSubModelPart("Contact")
         else:
             self.preprocess = True
             # We create the submodelpart

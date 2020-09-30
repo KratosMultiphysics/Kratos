@@ -105,7 +105,7 @@ SpringDamperElement3D2N::~SpringDamperElement3D2N()
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
 
@@ -127,7 +127,7 @@ void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, Pro
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     if ( rResult.size() != msElementSize )
@@ -403,7 +403,7 @@ void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix
 //************************************************************************************
 //************************************************************************************
 
-int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo )
+int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -430,7 +430,7 @@ int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo )
     // Verify that the dofs exist
     for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ ) {
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        NodeType& rnode = this->GetGeometry()[i];
+        const NodeType& rnode = this->GetGeometry()[i];
 
         // The displacement terms
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)

@@ -23,7 +23,7 @@
             "materials_filename": "eigen_test/Eigen_TL_3D8N_Cube_test_materials.json"
         },
         "eigensolver_settings":{
-            "solver_type": "eigen_feast",
+            "solver_type": "feast",
             "symmetric": true,
             "e_min": 0.0,
             "e_max": 2.5e3,

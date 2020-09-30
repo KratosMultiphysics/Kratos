@@ -68,47 +68,25 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmKAdjointData<TNumNodes>> BaseType;
+    using BaseType =
+        StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmKAdjointData<TNumNodes>>;
 
     /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    using NodeType = Node<3>;
 
     /**
      * Properties are used to store any parameters
      * related to the constitutive law
      */
-    typedef Properties PropertiesType;
+    using PropertiesType = Properties;
 
     /// Geometry type (using with given NodeType)
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
-    /// Vector type for local contributions to the linear system
-    typedef Vector VectorType;
-
-    /// Matrix type for local contributions to the linear system
-    typedef Matrix MatrixType;
-
-    typedef std::size_t IndexType;
-
-    typedef std::size_t SizeType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    /// Type for shape function values container
-    typedef MatrixRow<Matrix> ShapeFunctionsType;
-
-    /// Type for a matrix containing the shape function gradients
-    typedef Kratos::Matrix ShapeFunctionDerivativesType;
-
-    /// Type for an array of shape function gradient matrices
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Pointer Definitions

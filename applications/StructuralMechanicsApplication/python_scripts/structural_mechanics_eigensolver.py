@@ -78,7 +78,7 @@ class EigenSolver(MechanicalSolver):
         if solver_type == "eigen_eigensystem":
             mass_matrix_diagonal_value = 0.0
             stiffness_matrix_diagonal_value = 1.0
-        elif solver_type == "feast" or solver_type == "eigen_feast":
+        elif solver_type == "feast":
             mass_matrix_diagonal_value = 1.0
             stiffness_matrix_diagonal_value = -1.0
         else:

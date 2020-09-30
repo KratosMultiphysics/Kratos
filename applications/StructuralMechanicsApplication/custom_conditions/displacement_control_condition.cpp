@@ -162,8 +162,8 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
 
 void DisplacementControlCondition::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -189,8 +189,8 @@ void DisplacementControlCondition::EquationIdVector(
 
 void DisplacementControlCondition::GetDofList(
     DofsVectorType& rConditionlDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -337,7 +337,7 @@ void DisplacementControlCondition::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);

@@ -85,7 +85,7 @@ PointMomentCondition3D::~PointMomentCondition3D()
 
 void PointMomentCondition3D::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -101,8 +101,8 @@ void PointMomentCondition3D::EquationIdVector(
 //***********************************************************************
 void PointMomentCondition3D::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -234,7 +234,7 @@ double PointMomentCondition3D::GetPointMomentIntegrationWeight() const
 //***********************************************************************
 //***********************************************************************
 
-int PointMomentCondition3D::Check( const ProcessInfo& rCurrentProcessInfo )
+int PointMomentCondition3D::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
 

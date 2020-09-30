@@ -71,8 +71,7 @@ Element::Pointer MembraneElement::Create(
 
 void MembraneElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
-
+    const ProcessInfo& rCurrentProcessInfo) const
 {
   KRATOS_TRY;
 
@@ -102,8 +101,7 @@ void MembraneElement::EquationIdVector(
 
 void MembraneElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
-
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     SizeType num_nodes, local_size;
     num_nodes = GetGeometry().size();
@@ -1185,7 +1183,7 @@ void MembraneElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rN
 
 //***********************************************************************************
 //***********************************************************************************
-int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     const double numerical_limit = std::numeric_limits<double>::epsilon();

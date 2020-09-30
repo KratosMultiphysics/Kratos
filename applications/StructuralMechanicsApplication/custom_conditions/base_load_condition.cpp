@@ -88,8 +88,8 @@ Condition::Pointer BaseLoadCondition::Clone (
 
 void BaseLoadCondition::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -125,8 +125,8 @@ void BaseLoadCondition::EquationIdVector(
 /***********************************************************************************/
 void BaseLoadCondition::GetDofList(
     DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -301,7 +301,7 @@ void BaseLoadCondition::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);

@@ -68,8 +68,7 @@ namespace Kratos
         if( rAdjointElement.Id() == mpNeighboringElement->Id() )
         {
             DofsVectorType dofs_of_element;
-            ProcessInfo process_info = rProcessInfo;
-            mpNeighboringElement->GetDofList(dofs_of_element, process_info);
+            mpNeighboringElement->GetDofList(dofs_of_element, rProcessInfo);
 
             const VariableComponentType& r_traced_adjoint_dof =
                 KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDofLabel);

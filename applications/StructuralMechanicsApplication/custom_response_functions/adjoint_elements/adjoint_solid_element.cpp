@@ -240,7 +240,7 @@ void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int S
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
-                                                           ProcessInfo& rCurrentProcessInfo)
+                                                           const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     auto& r_geom = mPrimalElement.GetGeometry();
@@ -279,7 +279,7 @@ void AdjointSolidElement<TPrimalElement>::EquationIdVector(EquationIdVectorType&
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     auto& r_geom = mPrimalElement.GetGeometry();
@@ -309,7 +309,7 @@ void AdjointSolidElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalD
 }
 
 template <class TPrimalElement>
-int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);

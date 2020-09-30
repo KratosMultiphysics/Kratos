@@ -31,7 +31,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
     def _solve_eigen(self,mp,echo=0):
         eigensolver_settings = KratosMultiphysics.Parameters("""{
-            "solver_type": "eigen_feast",
+            "solver_type": "feast",
             "symmetric": true,
             "e_min": 1.0e-2,
             "e_max": 25.0,

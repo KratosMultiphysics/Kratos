@@ -130,8 +130,8 @@ NodalConcentratedElement::~NodalConcentratedElement()
 
 void NodalConcentratedElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -149,8 +149,8 @@ void NodalConcentratedElement::GetDofList(
 
 void NodalConcentratedElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -453,7 +453,7 @@ void NodalConcentratedElement::AddExplicitContribution(
 //************************************************************************************
 //************************************************************************************
 
-int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -468,7 +468,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
-        Node<3>& rnode = this->GetGeometry()[i];
+        const Node<3>& rnode = this->GetGeometry()[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rnode)
