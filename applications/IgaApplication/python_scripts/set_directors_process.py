@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.IgaApplication as IGA
 
 import math
 
@@ -52,8 +53,8 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
      dirTang[1,1] = 0
      dirTang[2,1] = 0
      for node in self.model_part.Nodes:
-         node.SetValue(DIRECTOR, director)
-         node.SetValue(DIRECTORTANGENTSPACE, dirTang)
+         node.SetValue(IGA.DIRECTOR, director)
+         node.SetValue(IGA.DIRECTORTANGENTSPACE, dirTang)
 
 #       for node in self.model_part.Nodes:
 #          
@@ -71,15 +72,16 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         for node in self.model_part.Nodes:
-            director = node.GetValue(DIRECTOR)
-            inc2d = node.GetValue(DIRECTORINC)
+            director = node.GetValue(IGA.DIRECTOR)
+            inc2d = node.GetSolutionStepValue(IGA.DIRECTORINC)
+            print(inc2d)
+            BLA = node.GetValue(IGA.DIRECTORTANGENTSPACE)
+            print(BLA)
 
-            BLA = node.GetValue(DIRECTORTANGENTSPACE)
-
-            inc3d = BLA * inc2d
+            inc3d = BLA.transpose() * inc2d
 
             director = director + inc3d
-            director = director / sqrt(director * director)
+            director = director / math.sqrt(director[0] * director[0] + director[1] * director[1] + director[2] * director[2])
 
-            node.SetValue(DIRECTOR, director)
+            node.SetValue(IGA.DIRECTOR, director)
             # node.SetValue(DIRECTORTANGENTSPACE, director)
