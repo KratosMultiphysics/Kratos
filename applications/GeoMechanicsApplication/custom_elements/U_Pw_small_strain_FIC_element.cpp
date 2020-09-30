@@ -63,7 +63,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCu
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainFICElement<TDim,TNumNodes>::
     InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
@@ -131,7 +131,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainFICElement<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
@@ -204,7 +204,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 }
 
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainFICElement<TDim,TNumNodes>::
     InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
@@ -359,7 +359,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainFICElement<TDim,TNumNodes>::
     SaveGPConstitutiveTensor( array_1d<Matrix,TDim>& rConstitutiveTensorContainer,
@@ -1512,7 +1512,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     GeoElementUtilities::AssemblePBlockVector< TDim, TNumNodes >(rRightHandSideVector,rVariables.PVector);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template class UPwSmallStrainFICElement<2,3>;
 template class UPwSmallStrainFICElement<2,4>;

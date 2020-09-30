@@ -82,7 +82,7 @@ int UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" );
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
     CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
@@ -98,7 +98,7 @@ void UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
     CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
@@ -116,7 +116,7 @@ void UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template class UndrainedUPwSmallStrainElement<2,3>;
 template class UndrainedUPwSmallStrainElement<2,4>;

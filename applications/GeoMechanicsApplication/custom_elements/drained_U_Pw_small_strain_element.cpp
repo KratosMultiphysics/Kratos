@@ -36,7 +36,7 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim,TNumNodes>::
     return Element::Pointer( new DrainedUPwSmallStrainElement( NewId, pGeom, pProperties ) );
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
     InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
@@ -88,7 +88,7 @@ int DrainedUPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" );
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
     CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
@@ -100,7 +100,7 @@ void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
     CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
@@ -114,7 +114,7 @@ void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template class DrainedUPwSmallStrainElement<2,3>;
 template class DrainedUPwSmallStrainElement<2,4>;

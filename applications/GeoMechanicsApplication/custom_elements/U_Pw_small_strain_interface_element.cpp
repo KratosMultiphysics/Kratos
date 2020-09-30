@@ -147,7 +147,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Initialize(const ProcessInf
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
@@ -288,7 +288,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     UpdateElementalVariableStressVector(InterfaceElementVariables& rVariables, unsigned int PointNumber)
@@ -303,7 +303,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
  UpdateElementalVariableStressVector(Vector &StressVector, unsigned int PointNumber)
@@ -318,7 +318,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     UpdateStressVector(const InterfaceElementVariables &rVariables, unsigned int PointNumber)
@@ -334,7 +334,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     UpdateStressVector(const Vector &StressVector, unsigned int PointNumber)
@@ -488,7 +488,7 @@ void UPwSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector
 
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
@@ -978,7 +978,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template< >
 void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
@@ -1093,7 +1093,7 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType
 
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
@@ -1974,7 +1974,7 @@ GeometryData::IntegrationMethod
         return GeometryData::GI_GAUSS_1;
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< >
 void UPwSmallStrainInterfaceElement<2,4>::
     InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
@@ -2157,7 +2157,7 @@ void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputValues( std::vector<T
 
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< BoundedMatrix<double,4,2> >
                                                     ( BoundedMatrix<double,4,2>& rGradNpT, SFGradAuxVariables& rAuxVariables,
@@ -2184,7 +2184,7 @@ template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradie
                                                     const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template class UPwSmallStrainInterfaceElement<2,4>;
 template class UPwSmallStrainInterfaceElement<3,6>;

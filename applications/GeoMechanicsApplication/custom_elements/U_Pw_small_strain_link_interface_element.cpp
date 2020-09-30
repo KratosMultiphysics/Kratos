@@ -23,7 +23,7 @@ Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::Create( Ind
     return Element::Pointer( new UPwSmallStrainLinkInterfaceElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
@@ -343,7 +343,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
@@ -425,7 +425,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template class UPwSmallStrainLinkInterfaceElement<2,4>;
 template class UPwSmallStrainLinkInterfaceElement<3,6>;
