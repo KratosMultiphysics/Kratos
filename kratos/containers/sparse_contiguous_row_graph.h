@@ -88,12 +88,10 @@ public:
         mLocks.resize(GraphSize,false);
 
         //doing first touching
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(GraphSize); ++i)
-        {
+        IndexPartition<IndexType>(rGraphSize).for_each([&](IndexType i){
             mLocks[i] = LockObject();
             mGraph[i] = std::unordered_set<IndexType>();
-        }
+        });
     }
 
     /// Destructor.
@@ -216,32 +214,31 @@ public:
             rRowIndices.resize(nrows+1, false);
         }
         //set it to zero in parallel to allow first touching
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(nrows+1); ++i)
+        IndexPartition<IndexType>(nrows+1).for_each([&](IndexType i){
             rRowIndices[i] = 0;
+        });
 
         //count the entries TODO: do the loop in parallel if possible
-        for(int i=0; i<static_cast<int>(nrows); ++i)
+        for(IndexType i=0; i<static_cast<IndexType>(nrows); ++i)
             rRowIndices[i+1] = mGraph[i].size();
 
         //sum entries
-        for(int i = 1; i<static_cast<int>(rRowIndices.size()); ++i){
+        for(IndexType i = 1; i<static_cast<IndexType>(rRowIndices.size()); ++i){
             rRowIndices[i] += rRowIndices[i-1];
         }
-
 
         IndexType nnz = rRowIndices[nrows];
         if(rColIndices.size() != nnz){
             rColIndices.resize(nnz, false);
         }
         //set it to zero in parallel to allow first touching
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rColIndices.size());++i)
+        IndexPartition<IndexType>(rColIndices.size()).for_each([&](IndexType i){
             rColIndices[i] = 0;
+        });
 
         //count the entries TODO: do the loop in parallel if possible
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(nrows); ++i){
+        IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
+
             IndexType start = rRowIndices[i];
 
             IndexType counter = 0;
@@ -249,13 +246,13 @@ public:
                 rColIndices[start+counter] = index;
                 counter++;
             }
-        }
+        });
 
         //reorder columns
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rRowIndices.size()-1);++i){
+        IndexPartition<IndexType>(rRowIndices.size())-1).for_each([&](IndexType i){
             std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
-        }
+        });
+
         return nrows;
     }
 
@@ -395,7 +392,7 @@ private:
         {
 //            rSerializer.save("I",I);
 
-            unsigned int Nr = mGraph[I].size();
+            IndexType Nr = mGraph[I].size();
             rSerializer.save("Nr",Nr);
             for(auto J : mGraph[I]){
                 rSerializer.save("J",J);
@@ -413,9 +410,9 @@ private:
 //            IndexType I;
 //            rSerializer.load("I",I);
 
-            unsigned int Nr;
+            IndexType Nr;
             rSerializer.load("Nr",Nr);
-            for(unsigned int k=0; k<Nr; ++k){
+            for(IndexType k=0; k<Nr; ++k){
                 IndexType J;
                 rSerializer.load("J",J);
                 AddEntry(I,J);

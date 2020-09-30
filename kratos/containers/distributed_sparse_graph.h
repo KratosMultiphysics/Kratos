@@ -69,6 +69,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef std::size_t IndexType; //note that this could be different from the one in the basetype
+    typedef int MpiIndexType; 
     typedef SparseContiguousRowGraph<IndexType> LocalGraphType; //using a map since we need it ordered
     typedef SparseGraph<IndexType> NonLocalGraphType; //using a map since we need it ordered
 
@@ -106,7 +107,7 @@ public:
                 );
 
         //do consistency check
-        for(unsigned int i=0; i<tmp.size()-1; ++i)
+        for(MpiIndexType i=0; i<tmp.size()-1; ++i)
         {
             //check that no gaps are present
             if(tmp[i][1]!=tmp[i+1][0])
@@ -119,7 +120,7 @@ public:
                 KRATOS_ERROR << "cpu bounds are not ordered correctly" << std::endl;
         }
         mCpuBounds.push_back(tmp[0][0]);
-        for(unsigned int i=0; i<tmp.size(); ++i)
+        for(MpiIndexType i=0; i<tmp.size(); ++i)
         {
             //save to the final list
             mCpuBounds.push_back(tmp[i][1]);

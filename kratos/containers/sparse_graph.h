@@ -201,9 +201,9 @@ public:
             rRowIndices.resize(nrows+1, false);
         }
         //set it to zero in parallel to allow first touching
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(nrows+1); ++i)
-            rRowIndices[i] = 0;
+        IndexPartition<IndexType>(rRowIndices.size()).for_each([&](IndexType i){
+                    rRowIndices[i] = 0;
+                });            
 
         //count the entries TODO: do the loop in parallel if possible
         for(const auto& item : this->GetGraph())
@@ -221,9 +221,9 @@ public:
             rColIndices.resize(nnz, false);
         }
         //set it to zero in parallel to allow first touching
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rColIndices.size());++i)
-            rColIndices[i] = 0;
+        IndexPartition<IndexType>(rColIndices.size()).for_each([&](IndexType i){
+                    rColIndices[i] = 0;
+                });            
 
         //count the entries TODO: do the loop in parallel if possible
         for(const auto& item : this->GetGraph()){
@@ -237,15 +237,17 @@ public:
         }
 
         //reorder columns
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rRowIndices.size()-1);++i){
+        IndexPartition<IndexType>(rRowIndices.size()-1).for_each([&](IndexType i){
             std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
-        }
+        });
         return nrows;
     }
 
     ///@}
     ///@name Operations
+
+
+
     ///@{
 
 
