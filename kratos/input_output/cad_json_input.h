@@ -502,11 +502,11 @@ private:
                     local_coordinates[1] = coordinates_vector[1];
                     local_coordinates[2] = coordinates_vector[2];
 
-                    typename Geometry::Pointer p_brep_point = (p_geometry->LocalSpaceDimension() == 2)
+                    GeometryPointerType p_brep_point = (p_geometry->LocalSpaceDimension() == 2)
                         ? Kratos::make_shared<BrepPointOnSurfaceType>(local_coordinates, p_geometry)
                         : Kratos::make_shared<BrepPointOnCurveType>(local_coordinates, p_geometry);
 
-                    SetIdOrName<CouplingGeometryType>(rParameters, p_brep_point);
+                    SetIdOrName<GeometryType>(rParameters, p_brep_point);
                     rModelPart.AddGeometry(p_brep_point);
                 }
                 else {

@@ -68,13 +68,13 @@ public:
         const CoordinatesArrayType LocalCoordinates,
         typename GeometryType::Pointer pBackgroundGeometry)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mLocalCoordinates(LocalCoordinates),
+        , mLocalCoordinates(LocalCoordinates)
         , mpBackgroundGeometry(pBackgroundGeometry)
     {
         KRATOS_ERROR_IF(pBackgroundGeometry->LocalSpaceDimension() != this->LocalSpaceDimension())
             << "Local space dimension of background geometry (" << pBackgroundGeometry->LocalSpaceDimension()
-            << ") does not coincide with LocalSpaceDimension of this geometry (" << this->LocalSpaceDimension() << ")." <<
-            << pBackgroundGeometry->Print() << std::endl;
+            << ") does not coincide with LocalSpaceDimension of this geometry (" << this->LocalSpaceDimension() << ")."
+            << std::endl;
     }
 
     explicit BrepPoint(const PointsArrayType& ThisPoints)
@@ -83,7 +83,7 @@ public:
     }
 
     /// Copy constructor.
-    BrepPoint( BrepSurface const& rOther )
+    BrepPoint(BrepPoint const& rOther )
         : BaseType( rOther )
         , mLocalCoordinates(rOther.mLocalCoordinates)
         , mpBackgroundGeometry(rOther.mpBackgroundGeometry)
