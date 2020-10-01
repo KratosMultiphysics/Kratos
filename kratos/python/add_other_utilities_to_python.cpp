@@ -48,6 +48,7 @@
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/properties_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
+#include "utilities/assemble_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -513,6 +514,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RecoverVelocities", &CoordinateTransformationUtilsType::RecoverVelocities)
         .def("CalculateRotationOperatorPure", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPure))
         .def("CalculateRotationOperatorPureShapeSensitivities", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const std::size_t, const std::size_t, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPureShapeSensitivities))
+        ;
+
+    // assemble utilities
+    py::class_<AssembleUtilities, AssembleUtilities::Pointer>
+        (m,"AssembleUtilities")
+        .def(py::init<>())
+        .def("AssembleCurrentDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<int>& rVariable, const std::unordered_map<int, int>&)const)(&AssembleUtilities::AssembleCurrentDataWithValuesMap))
+        .def("AssembleCurrentDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<double>& rVariable, const std::unordered_map<int, double>&)const)(&AssembleUtilities::AssembleCurrentDataWithValuesMap))
+        .def("AssembleCurrentDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<array_1d<double, 3>>& rVariable, const std::unordered_map<int, array_1d<double, 3>>&)const)(&AssembleUtilities::AssembleCurrentDataWithValuesMap))
+        .def("AssembleNonHistoricalDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<int>& rVariable, const std::unordered_map<int, int>&)const)(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap))
+        .def("AssembleNonHistoricalDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<double>& rVariable, const std::unordered_map<int, double>&)const)(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap))
+        .def("AssembleNonHistoricalDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<array_1d<double, 3>>& rVariable, const std::unordered_map<int, array_1d<double, 3>>&)const)(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap))
         ;
 }
 
