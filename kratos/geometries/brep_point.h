@@ -159,19 +159,6 @@ public:
     }
 
     ///@}
-    ///@name Information
-    ///@{
-
-    /*
-    * @brief checks if the BrepSurface has any boundary trim information.
-    * @return true if has no trimming.
-    */
-    bool IsTrimmed() const
-    {
-        return mIsTrimmed;
-    }
-
-    ///@}
     ///@name Geometrical Operations
     ///@{
 
