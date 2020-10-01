@@ -1,5 +1,6 @@
 # import Kratos
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
 
