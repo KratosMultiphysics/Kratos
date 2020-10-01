@@ -23,7 +23,6 @@ with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     from test_processes import TestProcesses
     import test_normal_utils
     import test_sensitivity_builder
-    import test_assemble_utilities
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -59,7 +58,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsQuadSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_builder.TestSensitivityBuilderTwoDimSymmetricalSquare]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_assemble_utilities.TestAssembleUtilities]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']
