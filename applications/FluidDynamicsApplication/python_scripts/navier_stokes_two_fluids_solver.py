@@ -209,7 +209,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     layers,
                     max_distance,
                     self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+
+            if (self._reinitialization_type != "none"):
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
             # filtering noises is necessary for curvature calculation
             if (self._distance_smoothing):
@@ -362,11 +364,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self._bfecc_convection:
             if have_conv_diff:
                 if domain_size == 2:
-                    locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part).UpdateSearchDatabase()
-                    level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator)
+                    self.locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part)#.UpdateSearchDatabase()
+                    locator.UpdateSearchDatabase()
+                    level_set_convection_process = KratosConvDiff.BFECCConvection2D(self.locator)
                 else:
-                    locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part).UpdateSearchDatabase()
-                    level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator)
+                    self.locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part)#.UpdateSearchDatabase()
+                    locator.UpdateSearchDatabase()
+                    level_set_convection_process = KratosConvDiff.BFECCConvection3D(self.locator)
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:
