@@ -379,6 +379,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.FillHistoryForcePrecalculatedVectors()
 
+        import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer	
+
+        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(	
+            self.project_parameters,	
+            self.fluid_model_part,	
+            self.custom_functions_tool)
+
         self.PerformZeroStepInitializations()
 
         if self.do_print_results:
