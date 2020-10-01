@@ -33,7 +33,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_MPI_CORE) MPIAssembleUtilities : public AssembleUtilities
+class MPIAssembleUtilities : public AssembleUtilities
 {
 public:
     ///@name Type Definitions

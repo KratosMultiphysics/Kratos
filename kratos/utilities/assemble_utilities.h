@@ -31,7 +31,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_CORE) AssembleUtilities
+class AssembleUtilities
 {
 public:
     ///@name Type Definitions
