@@ -90,8 +90,8 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
 
         # Here we check the stresses and strains at one FE
         element = self.FEM_Solution.main_model_part.GetElement(1)
-        Sx = elem.CalculateOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED,           self.FEM_Solution.main_model_part.ProcessInfo)[0][0]
-        Ex = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, self.FEM_Solution.main_model_part.ProcessInfo)[0][0]
+        Sx = element.CalculateOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED,           self.FEM_Solution.main_model_part.ProcessInfo)[0][0]
+        Ex = element.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, self.FEM_Solution.main_model_part.ProcessInfo)[0][0]
 
         if self.FEM_Solution.step == 26:
             if Sx != 1441812.5386046136:
@@ -126,7 +126,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         shutil.rmtree(self.FEM_Solution.problem_name + "_MPI_results")
         shutil.rmtree(self.FEM_Solution.problem_name + "_Post_Files")
         shutil.rmtree(self.FEM_Solution.problem_name + "_Results_and_Data")
-        shutil.rmtree("__pycache__")
+        # shutil.rmtree("__pycache__")
         os.remove("PlotFile.txt")
         os.remove(self.FEM_Solution.problem_name + "_0.post.bin")
         os.remove(self.FEM_Solution.problem_name + ".post.lst")
