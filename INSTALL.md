@@ -130,7 +130,7 @@ Ubuntu users need to be extra careful with this as default versions tends to be 
 
 `BOOST_ROOT`
 
-Path to boost root directory.
+Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded bust without using apt-get.
 
 ## Configuration scripts examples
 
