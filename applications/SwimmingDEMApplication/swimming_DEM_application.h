@@ -34,6 +34,7 @@
 #include "custom_elements/calculate_velocity_laplacian_component.h"
 #include "custom_elements/calculate_velocity_laplacian.h"
 #include "custom_elements/shell_rigid.h"
+#include "custom_elements/calculate_error_L2_projection_element.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
 #include "custom_elements/swimming_particle.h"
@@ -125,6 +126,9 @@ private:
 
     const ComputeComponentGradientSimplex<2> mComputeComponentGradientSimplex2D;
     const ComputeComponentGradientSimplex<3> mComputeComponentGradientSimplex3D;
+
+    const CalculateErrorL2Projection<2> mCalculateErrorL2Projection2D;
+    const CalculateErrorL2Projection<3> mCalculateErrorL2Projection3D;
 
     const ComputeGradientPouliot2012Edge<2> mComputeGradientPouliot20122DEdge;
     const ComputeGradientPouliot2012Edge<3> mComputeGradientPouliot20123DEdge;

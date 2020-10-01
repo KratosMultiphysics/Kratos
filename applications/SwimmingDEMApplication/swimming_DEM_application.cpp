@@ -78,6 +78,8 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mComputeVelocityLaplacianComponentSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mComputeVelocityLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
   mComputeVelocityLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+  mCalculateErrorL2Projection2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+  mCalculateErrorL2Projection3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mMonolithicDEMCoupledWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2)))),
   mMonolithicDEMCoupledWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType(3)))),
   mComputeLaplacianSimplexCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2)))),
@@ -138,6 +140,8 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianComponentSimplex3D", mComputeVelocityLaplacianComponentSimplex3D)
   KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex2D", mComputeVelocityLaplacianSimplex2D)
   KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex3D", mComputeVelocityLaplacianSimplex3D)
+  KRATOS_REGISTER_ELEMENT("CalculateErrorL2Projection2D", mCalculateErrorL2Projection2D)
+  KRATOS_REGISTER_ELEMENT("CalculateErrorL2Projection3D", mCalculateErrorL2Projection3D)
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition2D", mMonolithicDEMCoupledWallCondition2D)
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition3D",mMonolithicDEMCoupledWallCondition3D)
   KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition2D",  mComputeLaplacianSimplexCondition2D)
