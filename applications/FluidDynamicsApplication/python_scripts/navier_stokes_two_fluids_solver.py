@@ -371,15 +371,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             print(time.time())
 
-            # Smoothing the surface to filter oscillatory surface
-            (self.distance_gradient_process).Execute() # Always check if calculated above
-            print("Smoothing")
-            print(time.time())
-            (self.surface_smoothing_process).Execute()
-            print(time.time())
-            for node in self.main_model_part.Nodes:
-                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            ####################################
+            ##
+            ## Original position of smoothing process
+            ##
+            ####################################
 
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()
@@ -431,6 +427,16 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             (self.level_set_convection_process).Execute()
 
+        # Smoothing the surface to filter oscillatory surface
+        (self.distance_gradient_process).Execute() # Always check if calculated above
+        print("Smoothing")
+        print(time.time())
+        (self.surface_smoothing_process).Execute()
+        print(time.time())
+        for node in self.main_model_part.Nodes:
+            smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+
     def FinalizeSolutionStep(self):
         TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
@@ -471,7 +477,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             ###############################
 
             if self.model.HasModelPart("FluidModelPart.Slip3D"):
-                x_center = 1.5e-3
+                x_center = 1.5e-3#4.0e-3#
                 y_center = x_center
                 z_center = 0.0
                 mean_radius = 0.0
@@ -538,8 +544,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Zero Disance - Structured #
             #############################
 
-            X_c = 1.5e-3
-            Z_max = 1.0e-3
+            X_c = 1.5e-3#4.0e-3#
+            Z_max = 2.0e-3#3.0e-3#
             X_min = 0.0
             X_max = 2*X_c
             Y_c = X_c
