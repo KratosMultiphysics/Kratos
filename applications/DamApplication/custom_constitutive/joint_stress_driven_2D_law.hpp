@@ -7,48 +7,49 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ignasi de Pouplana
+//  Main authors:    Javier San Mauro Saiz
+//                   Joaquin Irazabal Gonzalez
 //
 
-#if !defined (KRATOS_SIMPLIFIED_BILINEAR_2D_LAW_H_INCLUDED)
-#define  KRATOS_SIMPLIFIED_BILINEAR_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_JOINT_STRESS_DRIVEN_2D_LAW_H_INCLUDED)
+#define  KRATOS_JOINT_STRESS_DRIVEN_2D_LAW_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/simplified_bilinear_3D_law.hpp"
-#include "poromechanics_application_variables.h"
+#include "custom_constitutive/joint_stress_driven_3D_law.hpp"
+#include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) SimplifiedBilinear2DLaw : public SimplifiedBilinear3DLaw
+class KRATOS_API(DAM_APPLICATION) JointStressDriven2DLaw : public JointStressDriven3DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(SimplifiedBilinear2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(JointStressDriven2DLaw);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default Constructor
-    SimplifiedBilinear2DLaw()
+    JointStressDriven2DLaw()
     {
     }
 
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<SimplifiedBilinear2DLaw>(SimplifiedBilinear2DLaw(*this));
+        return Kratos::make_shared<JointStressDriven2DLaw>(JointStressDriven2DLaw(*this));
     }
 
     // Copy Constructor
-    SimplifiedBilinear2DLaw (const SimplifiedBilinear2DLaw& rOther) : SimplifiedBilinear3DLaw(rOther)
+    JointStressDriven2DLaw (const JointStressDriven2DLaw& rOther) : JointStressDriven3DLaw(rOther)
     {
     }
 
     // Destructor
-    ~SimplifiedBilinear2DLaw() override
+    ~JointStressDriven2DLaw() override
     {
     }
 
@@ -88,6 +89,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class SimplifiedBilinear2DLaw
+}; // Class JointStressDriven2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_SIMPLIFIED_BILINEAR_2D_LAW_H_INCLUDED  defined
+#endif // KRATOS_JOINT_STRESS_DRIVEN_2D_LAW_H_INCLUDED  defined

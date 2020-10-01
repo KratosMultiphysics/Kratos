@@ -145,6 +145,54 @@ protected:
             // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
             accumulated_plastic_deviatoric_strain = 1.0;
         }
+
+    private:
+
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
+
+        void save( Serializer& rSerializer ) const
+        {
+            rSerializer.save("xg",xg);
+            rSerializer.save("mass",mass);
+            rSerializer.save("density",density);
+            rSerializer.save("volume",volume);
+            rSerializer.save("displacement",displacement);
+            rSerializer.save("velocity",velocity);
+            rSerializer.save("acceleration",acceleration);
+            rSerializer.save("volume_acceleration",volume_acceleration);
+            rSerializer.save("cauchy_stress_vector",cauchy_stress_vector);
+            rSerializer.save("almansi_strain_vector",almansi_strain_vector);
+            rSerializer.save("delta_plastic_strain",delta_plastic_strain);
+            rSerializer.save("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
+            rSerializer.save("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
+            rSerializer.save("equivalent_plastic_strain",equivalent_plastic_strain);
+            rSerializer.save("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
+            rSerializer.save("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+        }
+
+        void load( Serializer& rSerializer )
+        {
+            rSerializer.load("xg",xg);
+            rSerializer.load("mass",mass);
+            rSerializer.load("density",density);
+            rSerializer.load("volume",volume);
+            rSerializer.load("displacement",displacement);
+            rSerializer.load("velocity",velocity);
+            rSerializer.load("acceleration",acceleration);
+            rSerializer.load("volume_acceleration",volume_acceleration);
+            rSerializer.load("cauchy_stress_vector",cauchy_stress_vector);
+            rSerializer.load("almansi_strain_vector",almansi_strain_vector);
+            rSerializer.load("delta_plastic_strain",delta_plastic_strain);
+            rSerializer.load("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
+            rSerializer.load("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
+            rSerializer.load("equivalent_plastic_strain",equivalent_plastic_strain);
+            rSerializer.load("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
+            rSerializer.load("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+        }
+        ///@}
     };
 
     /**

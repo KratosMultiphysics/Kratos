@@ -410,8 +410,8 @@ void UpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentProc
 
 void UpdatedLagrangianUP::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
-    GeneralVariables& rVariables, 
-    Vector& rVolumeForce, 
+    GeneralVariables& rVariables,
+    Vector& rVolumeForce,
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1255,20 +1255,14 @@ int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
 
 void UpdatedLagrangianUP::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
-    rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
-    rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-    rSerializer.save("DeterminantF0",mDeterminantF0);
-
-
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangian )
+    rSerializer.save("Pressure",m_mp_pressure);
 }
 
 void UpdatedLagrangianUP::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
-    rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
-    rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-    rSerializer.load("DeterminantF0",mDeterminantF0);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangian )
+    rSerializer.load("Pressure",m_mp_pressure);
 }
 
 } // Namespace Kratos

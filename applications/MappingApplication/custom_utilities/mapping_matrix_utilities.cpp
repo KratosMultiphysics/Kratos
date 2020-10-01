@@ -42,20 +42,6 @@ typedef std::size_t SizeType;
 /***********************************************************************************/
 /* Functions for internal use in this file */
 /***********************************************************************************/
-void InitializeSystemVector(Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
-                            const SizeType VectorSize)
-{
-    // The vectors dont have graphs, that why we don't always have to reinitialize them
-    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
-        Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename SparseSpaceType::VectorType>(VectorSize);
-        rpVector.swap(p_new_vector);
-
-        // TODO do I also have to set to zero the contents?
-    }
-    else {
-        SparseSpaceType::SetToZero(*rpVector);
-    }
-}
 
 void ConstructMatrixStructure(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo,
                               std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
@@ -175,6 +161,23 @@ void CheckRowSum(const SparseSpaceType::MatrixType& rM, const std::string& rBase
 }
 
 template<>
+void InitializeSystemVector<SparseSpaceType, DenseSpaceType>(
+    Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
+    const std::size_t VectorSize)
+{
+    // The vectors dont have graphs, that why we don't always have to reinitialize them
+    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
+        Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename SparseSpaceType::VectorType>(VectorSize);
+        rpVector.swap(p_new_vector);
+
+        // TODO do I also have to set to zero the contents?
+    }
+    else {
+        SparseSpaceType::SetToZero(*rpVector);
+    }
+}
+
+template<>
 void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
     Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMappingMatrix,
     Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
@@ -204,8 +207,8 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
         CheckRowSum(*rpMappingMatrix, base_file_name);
     }
 
-    InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
-    InitializeSystemVector(rpInterfaceVectorDestination, num_nodes_destination);
+    InitializeSystemVector<SparseSpaceType, DenseSpaceType>(rpInterfaceVectorOrigin, num_nodes_origin);
+    InitializeSystemVector<SparseSpaceType, DenseSpaceType>(rpInterfaceVectorDestination, num_nodes_destination);
 
     KRATOS_CATCH("")
 }
