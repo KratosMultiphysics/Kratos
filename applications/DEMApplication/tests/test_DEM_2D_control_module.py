@@ -15,7 +15,7 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class DEM2D_ControlModuleTestSolution(DEMAnalysisStage):
+class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase):
 
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
@@ -58,22 +58,13 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage):
             if node.Id == 5:
                 node_force_x = node.GetSolutionStepValue(DEM.CONTACT_FORCES_X)
                 expected_value = 316.79
-                self.CheckForceX(node_force_x, expected_value, tolerance)
+                self.assertAlmostEqual(node_force_x, expected_value, delta=tolerance)
             elif node.Id == 6:
                 node_force_y = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
                 expected_value = 150.1
-                self.CheckForceY(node_force_y, expected_value, tolerance)
+                self.assertAlmostEqual(node_force_y, expected_value, delta=tolerance)
 
         super(DEM2D_ControlModuleTestSolution, self).Finalize()
-
-    def CheckForceX(self, force, expected_value, tolerance):
-        if abs(expected_value) > abs(force*tolerance) or abs(expected_value) < abs(force/tolerance):
-            raise ValueError('Incorrect value for CONTACT_FORCES_X: expected value was '+ str(expected_value) + ' but received ' + str(force))
-
-    def CheckForceY(self, force, expected_value, tolerance):
-        if abs(expected_value) > abs(force*tolerance) or abs(expected_value) < abs(force/tolerance):
-            raise ValueError('Incorrect value for CONTACT_FORCES_Y: expected value was '+ str(expected_value) + ' but received ' + str(force))
-
 
 class TestDEM2DControlModule(KratosUnittest.TestCase):
 
