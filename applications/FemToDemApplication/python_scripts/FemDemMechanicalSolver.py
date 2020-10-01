@@ -5,6 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
+from importlib import import_module
 
 def CreateSolver(main_model_part, custom_settings):
     return FemDemMechanicalSolver(main_model_part, custom_settings)
@@ -353,11 +354,10 @@ class FemDemMechanicalSolver(object):
                 return True
             else:
                 return False
-        else: # test cases
+        else:  # test cases
             materials_path = path_to_mdpa
-            import sys  
-            # sys.path.append(materials_path) 
-            import small_tests.small_strain.materials as materials
+            folders = materials_path.split("/")
+            materials = import_module(str(folders[0]) + "." + str(folders[1]) + ".materials")
             materials.AssignMaterial(self.main_model_part.Properties)
             return True
 
