@@ -363,7 +363,7 @@ END CONDITION
 CONDITION: Pressure_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: surfaces faces
+GROUPALLOW: surfaces faces nodes
 QUESTION: PRESSURE_LOAD#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,Pressure_Load_Distribution,Uniform,HIDE,Pressure_Load_Value,0.0,HIDE,Imposed_Pressure_Load,Constant)(true,RESTORE,Pressure_Load_Distribution,#CURRENT#,RESTORE,Pressure_Load_Value,#CURRENT#,RESTORE,Imposed_Pressure_Load,#CURRENT#)

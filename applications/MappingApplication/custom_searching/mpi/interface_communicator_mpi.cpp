@@ -17,6 +17,7 @@
 
 // External includes
 #include "mpi.h"
+#include "includes/parallel_environment.h"
 
 // Project includes
 #include "interface_communicator_mpi.h"
@@ -128,6 +129,8 @@ void InterfaceCommunicatorMPI::FinalizeSearchIteration(const MapperInterfaceInfo
                                                                rpRefInterfaceInfo,
                                                                mCommRank,
                                                                mMapperInterfaceInfosContainer);
+
+    mMeshesAreConforming = ParallelEnvironment::GetDefaultDataCommunicator().MinAll(mMeshesAreConforming);
 
     AssignInterfaceInfos();
 

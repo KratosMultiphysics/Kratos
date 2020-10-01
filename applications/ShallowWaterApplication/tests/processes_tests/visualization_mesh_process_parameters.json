@@ -1,0 +1,90 @@
+{
+    "problem_data"         : {
+        "problem_name"         : "swe",
+        "echo_level"           : 0,
+        "start_time"           : 0.0,
+        "end_time"             : 1.9,
+        "parallel_type"        : "OpenMP"
+    },
+    "solver_settings"      : {
+        "solver_type"              : "empty_solver_for_testing",
+        "model_part_name"          : "main_model_part",
+        "echo_level"               : 0,
+        "domain_size"              : 2,
+        "gravity"                  : 9.81,
+        "model_import_settings"    : {
+            "input_type"               : "mdpa",
+            "input_filename"           : "model_part"
+        },
+        "time_stepping"            : {
+            "automatic_time_step"      : false,
+            "time_step"                : 1.0
+        }
+    },
+    "processes" : {
+        "initial_conditions_process_list"   : [],
+        "boundary_conditions_process_list"  : [],
+        "topography_process_list"     : [{
+            "python_module"   : "set_topography_process",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part",
+                "value"           : "z"
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "python_module"   : "visualization_mesh_process",
+            "Parameters"      : {
+                "model_part_name"                : "main_model_part",
+                "topographic_model_part_name"    : "topographic_model_part",
+                "create_topographic_model_part"  : true,
+                "use_properties_as_dry_wet_flag" : false,
+                "mesh_deformation_mode"          : "use_nodal_displacement",
+                "topography_variable"            : "TOPOGRAPHY",
+                "free_surface_variable"          : "FREE_SURFACE_ELEVATION",
+                "nodal_variables_to_transfer"    : ["TOPOGRAPHY"]
+            }
+        }],
+        "json_output_and_check_process" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name"  : "topographic_model_part",
+                "check_variables"  : ["DISPLACEMENT_Z"],
+                "historical_value" : false,
+                "input_file_name"  : "visualization_mesh_process_reference.json",
+                "time_frequency"   : 1.9
+            }
+        }]
+    },
+    "output_processes" : {
+        "enforce_print_output_with_something" : [{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "python_module"   : "empty_output_process",
+            "Parameters"      : {}
+        }]
+    },
+    "WARNING: json_output_process can't generate the reference file because it don't implement IsOutputStep neither PrintOutput" : {
+        "json_output_and_check_process" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "json_output_process",
+            "Parameters"      : {
+                "model_part_name"  : "topographic_model_part",
+                "output_variables" : ["DISPLACEMENT_Z"],
+                "historical_value" : false,
+                "output_file_name" : "visualization_mesh_process_reference.json",
+                "time_frequency"   : 1.9
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name"  : "topographic_model_part",
+                "check_variables"  : ["DISPLACEMENT_Z"],
+                "historical_value" : false,
+                "input_file_name"  : "visualization_mesh_process_reference.json",
+                "time_frequency"   : 1.9
+            }
+        }]
+    }
+}

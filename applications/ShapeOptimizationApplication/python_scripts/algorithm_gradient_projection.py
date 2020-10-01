@@ -15,7 +15,7 @@ from __future__ import print_function, absolute_import, division
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
-from KratosMultiphysics.EigenSolversApplication import dense_linear_solver_factory
+from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
 
 # Additional imports
 from .algorithm_base import OptimizationAlgorithm
@@ -240,7 +240,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         N = KM.Matrix()
         gp_utilities.AssembleMatrix(N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
 
-        settings = KM.Parameters('{ "solver_type" : "EigenSolversApplication.dense_col_piv_householder_qr" }')
+        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
 
         KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
