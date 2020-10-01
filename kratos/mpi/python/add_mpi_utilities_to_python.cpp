@@ -22,7 +22,6 @@
 #include "mpi/utilities/data_communicator_factory.h"
 #include "mpi/utilities/gather_modelpart_utility.h"
 #include "mpi/utilities/mpi_normal_calculation_utilities.h"
-#include "mpi/utilities/mpi_assemble_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -78,10 +77,6 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     .def("Check",&MPINormalCalculationUtils::Check)
     .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
     .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
-    ;
-
-    py::class_<MPIAssembleUtilities, MPIAssembleUtilities::Pointer, AssembleUtilities>(m,"MPIAssembleUtilities")
-    .def(py::init<>())
     ;
 
 }
