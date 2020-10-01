@@ -55,16 +55,13 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
             if self.FEM_Solution.step == 26:
                 if damage != 0.11526580049026725:
                     raise ValueError('The computed damage at step = 26 is not correct')
-
-            if self.FEM_Solution.step == 36:
+            elif self.FEM_Solution.step == 36:
                 if damage != 0.4722648310044538:
                     raise ValueError('The computed damage at step = 36 is not correct')
-
-            if self.FEM_Solution.step == 46:
+            elif self.FEM_Solution.step == 46:
                 if damage != 0.5600214207342531:
                     raise ValueError('The computed damage at step = 46 is not correct')
-
-            if self.FEM_Solution.step == 61:
+            elif self.FEM_Solution.step == 61:
                 if damage != 0.5600214207342531:
                     raise ValueError('The computed damage at step = 61 is not correct')
 
@@ -75,16 +72,13 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         if self.FEM_Solution.step == 26:
             if dy != 1.971665114439254e-05:
                 raise ValueError('The computed displacement at step = 26 is not correct')
-
-        if self.FEM_Solution.step == 36:
+        elif self.FEM_Solution.step == 36:
             if dy != 2.7299978508712653e-05:
                 raise ValueError('The computed displacement at step = 36 is not correct')
-
-        if self.FEM_Solution.step == 46:
+        elif self.FEM_Solution.step == 46:
             if dy != 2.578331303724928e-05:
                 raise ValueError('The computed displacement at step = 46 is not correct')
-
-        if self.FEM_Solution.step == 61:
+        elif self.FEM_Solution.step == 61:
             if dy != 1.4408321991404051e-05:
                 raise ValueError('The computed displacement at step = 61 is not correct')
 
@@ -98,20 +92,17 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
                 raise ValueError('The computed stress at step = 26 is not correct')
             if Ex != 4.6561604584527234e-05:
                 raise ValueError('The computed strain at step = 26 is not correct')
-
-        if self.FEM_Solution.step == 36:
+        elif self.FEM_Solution.step == 36:
             if Sx != 1190806.4343404802:
                 raise ValueError('The computed stress at step = 36 is not correct')
             if Ex != 6.446991404011464e-05:
                 raise ValueError('The computed strain at step = 36 is not correct')
-
-        if self.FEM_Solution.step == 46:
+        elif self.FEM_Solution.step == 46:
             if Sx != 937633.4336071612:
                 raise ValueError('The computed stress at step = 46 is not correct')
             if Ex != 6.0888252148997134e-05:
                 raise ValueError('The computed strain at step = 46 is not correct')
-
-        if self.FEM_Solution.step == 61:
+        elif self.FEM_Solution.step == 61:
             if Sx != 523971.6246628269:
                 raise ValueError('The computed stress at step = 61 is not correct')
             if Ex != 3.4025787965616143e-05:

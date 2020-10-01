@@ -6,6 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Small femdem cases
 import main_coupling_for_testing
 import main_coupling_total_lagrangian_for_testing
+import main_coupling_for_testing_tables
 
 
 def AssembleTestSuites():
@@ -17,6 +18,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(main_coupling_for_testing.TestAnalytics("small_strain")) #defined inside main_coupling_for_testing
     smallSuite.addTest(main_coupling_total_lagrangian_for_testing.TestAnalytics("total_lagrangian")) #defined inside main_coupling_total_lagrangian_for_testing
+    smallSuite.addTest(main_coupling_for_testing_tables.TestAnalytics("tables")) #defined inside main_coupling_for_testing_tables
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
