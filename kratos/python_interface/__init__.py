@@ -1,7 +1,9 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import sys
 from . import kratos_globals
+
+if sys.version_info < (3, 5):
+    raise Exception("Kratos only supports Python version 3.5 and above")
 
 class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))

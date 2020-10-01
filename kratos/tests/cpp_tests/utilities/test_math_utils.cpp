@@ -446,6 +446,32 @@ namespace Kratos
                     }
                 }
             }
+            
+            BoundedMatrix<double,5,5> b_mat = ZeroMatrix(5, 5);
+            BoundedMatrix<double,5,5> b_inv;
+            b_mat(0,0) =   1.0;
+            b_mat(1,1) =   1.0;
+            b_mat(2,2) =   1.0;
+            b_mat(3,3) =   1.0;
+            b_mat(2,3) = - 1.0;
+            b_mat(3,2) =   1.0;
+            b_mat(4,4) =   2.0;
+
+            MathUtils<double>::InvertMatrix(b_mat,b_inv, det);
+
+            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+
+            BoundedMatrix<double,5,5> b_I = prod(b_inv, b_mat);
+
+            for (unsigned int i = 0; i < i_dim; i++) {
+                for (unsigned int j = 0; j < i_dim; j++) {
+                    if (i == j) {
+                        KRATOS_CHECK_NEAR(b_I(i,j), 1.0, tolerance);
+                    } else {
+                        KRATOS_CHECK_NEAR(b_I(i,j), 0.0, tolerance);
+                    }
+                }
+            }
         }
 
         /** Checks if it can solve a dense system of equations

@@ -107,14 +107,14 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFast
         auto pnode = mp.CreateNewNode(node_id, current_rank, current_rank, current_rank); //the node is equal to the current rank;
         pnode->SetValue(TEMPERATURE, current_rank );
         
-        int partition = (i == 2) ? current_rank : std::max(current_rank+1,world_size-1);
+        int partition = (i != 2) ? current_rank : std::min(current_rank+1,world_size-1);
         pnode->FastGetSolutionStepValue(PARTITION_INDEX) = partition;
     }
 
     // Build the list
     std::vector<int> indices;
     for(int i = 0; i < 3; i++) {
-        indices.push_back(i);
+        indices.push_back(i + (current_rank * 2));
     }
 
     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm );
@@ -123,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFast
 
     auto double_proxy = pointer_comm.Apply(
         [](GlobalPointer< Node<3> >& gp)->double {
-            return gp->GetValue(PARTITION_INDEX);
+            return gp->GetSolutionStepValue(PARTITION_INDEX);
         }
     );
 

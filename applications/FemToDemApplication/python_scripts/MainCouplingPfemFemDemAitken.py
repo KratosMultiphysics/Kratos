@@ -50,7 +50,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             max_relaxation = 0.9
             min_relaxation = 0.1
             initial_relaxation = 0.825
-            self.aitken_max_iterations = 30
+            self.aitken_max_iterations = 10
             self.aitken_residual_dof_tolerance = 1e-5
 
         self.FSI_aitken_utility = FEMDEM.AitkenRelaxationFEMDEMUtility(initial_relaxation, max_relaxation, min_relaxation)
@@ -123,7 +123,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
             aitken_iteration += 1
 
-            if (not is_converged): # We reset the kinematics of fluid
+            if (not is_converged and aitken_iteration != self.aitken_max_iterations): # We reset the kinematics of fluid
                 self.FSI_aitken_utility.ResetPFEMkinematicValues(self.PFEM_Solution.main_model_part)
 
         if (aitken_iteration == self.aitken_max_iterations):

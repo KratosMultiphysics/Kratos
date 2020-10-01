@@ -179,23 +179,31 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             group_limits = [
                 min_value + (max_value - min_value) * i / 10 for i in range(11)
             ]
-            group_limits[-1] += 1.0
+            group_limits[-1] += 1e-16
             group_limits.append(1e+100)
 
             data_distribution = [0 for i in range(len(group_limits))]
+            mean_distribution = [0.0 for i in range(len(group_limits))]
+            variance_distribution = [0.0 for i in range(len(group_limits))]
             for value in item_values:
                 for i, v in enumerate(group_limits):
                     if (value < v):
                         data_distribution[i] += 1
+                        mean_distribution[i] += value
+                        variance_distribution[i] += value**2.0
                         break
             percentage_data_distribution = []
             for i, _ in enumerate(group_limits):
                 percentage_data_distribution.append(data_distribution[i] /
                                                     len(item_values))
+                if (data_distribution[i] > 0):
+                    mean_distribution[i] /= data_distribution[i]
+                    variance_distribution[i] /= data_distribution[i]
+                    variance_distribution[i] -= mean_distribution[i]**2.0
 
-            group_limits[-2] -= 1.0
+            group_limits[-2] -= 1e-16
             group_limits[-1] = max_value
-            return min_value, max_value, group_limits, data_distribution, percentage_data_distribution
+            return min_value, max_value, group_limits, data_distribution, percentage_data_distribution, mean_distribution, variance_distribution
 
         self.__TestMethod("distribution", analytical_method,
                           default_parameters)

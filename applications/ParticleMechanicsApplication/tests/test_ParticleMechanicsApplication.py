@@ -29,6 +29,23 @@ from particle_mechanics_test_factory import PenaltyImpositionBeamCantileverStati
 
 from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
+from particle_mechanics_test_factory import ExplicitOscillatingPointUSLTest as TExplicitOscillatingPointUSLTest
+from particle_mechanics_test_factory import ExplicitOscillatingPointUSFTest as TExplicitOscillatingPointUSFTest
+from particle_mechanics_test_factory import ExplicitOscillatingPointMUSLTest as TExplicitOscillatingPointMUSLTest
+from particle_mechanics_test_factory import ExplicitOscillatingPointCentralDifferenceTest as TExplicitOscillatingPointCentralDifferenceTest
+from particle_mechanics_test_factory import ExplicitOscillatingPointYCompressibleTest as TExplicitOscillatingPointYCompressibleTest
+from particle_mechanics_test_factory import ExplicitOscillatingPointGravityTest as TExplicitOscillatingPointGravityTest
+from particle_mechanics_test_factory import ExplicitOscillatingPointTriTest as TExplicitOscillatingPointTriTest
+from particle_mechanics_test_factory import ExplicitAxisymDiskTriCompressibleTest as TExplicitAxisymDiskTriCompressibleTest
+from particle_mechanics_test_factory import ExplicitAxisymDiskQuadCompressibleTest as TExplicitAxisymDiskQuadCompressibleTest
+from particle_mechanics_test_factory import Explicit3dHexCompressibleOscillatingPointTest as TExplicit3dHexCompressibleOscillatingPointTest
+from particle_mechanics_test_factory import Explicit3dTetCompressibleOscillatingPointTest as TExplicit3dTetCompressibleOscillatingPointTest
+
+from particle_mechanics_test_factory import PQMPMExplicitQuadTest as TPQMPMExplicitQuadTest
+from particle_mechanics_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
+from particle_mechanics_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
+
+
 
 # Import from Test Factories (with different analysis flows)
 from test_generate_mpm_particle             import TestGenerateMPMParticle            as TTestGenerateMPMParticle
@@ -81,23 +98,34 @@ def AssembleTestSuites():
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-
     nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
-
     nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticLineLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
-
     nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
-
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
-
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicConsistentMassTest('test_execution'))
+    
+    nightSuite.addTest(TExplicitOscillatingPointUSLTest('test_execution'))
+    nightSuite.addTest(TExplicitOscillatingPointUSFTest('test_execution'))
+    nightSuite.addTest(TExplicitOscillatingPointMUSLTest('test_execution'))
+    nightSuite.addTest(TExplicitOscillatingPointCentralDifferenceTest('test_execution'))
+    nightSuite.addTest(TExplicitOscillatingPointYCompressibleTest('test_execution'))
+    nightSuite.addTest(TExplicitOscillatingPointGravityTest('test_execution'))
+    nightSuite.addTest(TExplicitOscillatingPointTriTest('test_execution'))
+    nightSuite.addTest(TExplicitAxisymDiskTriCompressibleTest('test_execution'))
+    nightSuite.addTest(TExplicitAxisymDiskQuadCompressibleTest('test_execution'))
+    nightSuite.addTest(TExplicit3dHexCompressibleOscillatingPointTest('test_execution'))
+    nightSuite.addTest(TExplicit3dTetCompressibleOscillatingPointTest('test_execution'))
+
+    nightSuite.addTest(TPQMPMExplicitQuadTest('test_execution'))
+    nightSuite.addTest(TPQMPMExplicitTriTest('test_execution'))
+    nightSuite.addTest(TPQMPMExplicitHexTest('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

@@ -53,7 +53,7 @@ Element::Pointer IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::
 
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -61,7 +61,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLoc
 
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const IncompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -74,7 +74,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     const IncompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -87,7 +87,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
 
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVector(
-    EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+    EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     const IncompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -115,7 +115,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVe
 
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                   ProcessInfo& CurrentProcessInfo)
+                                                                   const ProcessInfo& CurrentProcessInfo) const
 {
     const IncompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -142,7 +142,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(D
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     bool active = true;
     if ((this)->IsDefined(ACTIVE))
@@ -188,7 +188,7 @@ int IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const P
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -224,7 +224,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIn
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -244,7 +244,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIn
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)

@@ -14,7 +14,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "volume_model_part_name" : "",
             "skin_parts" : [],
-            "assign_neighbour_elements_to_conditions" : false
+            "assign_neighbour_elements_to_conditions" : true
         }''')
         Parameters.ValidateAndAssignDefaults(default_parameters)
         if Parameters["volume_model_part_name"].GetString() == "":

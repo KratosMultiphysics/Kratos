@@ -1035,6 +1035,13 @@ public:
         this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
+    virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                         std::vector<ConstitutiveLaw::Pointer>& rOutput,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
     /**
      * Access for variables on Integration points.
      * This gives access to variables stored in the constitutive law on each integration point.
