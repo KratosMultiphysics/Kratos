@@ -19,7 +19,7 @@
 #include "containers/csr_matrix.h"
 #include "containers/distributed_sparse_graph.h"
 #include "includes/key_hash.h"
-
+#include "utilities/atomic_utilities.h"
 
 
 // Project includes
@@ -408,8 +408,7 @@ public:
                 {
                     const IndexType global_j = EquationId[j];
                     TDataType& value = GetLocalDataByGlobalId(global_i,global_j);
-                    #pragma omp atomic 
-                    value += rMatrixInput(i,j);
+                    AtomicAdd(value, rMatrixInput(i,j));
                 }
             }
             else
@@ -418,8 +417,7 @@ public:
                 {
                     const IndexType global_j = EquationId[j];
                     TDataType& value = GetNonLocalDataByGlobalId(global_i,global_j);
-                    #pragma omp atomic 
-                    value += rMatrixInput(i,j);
+                    AtomicAdd(value, rMatrixInput(i,j));
                 }                
 
             }

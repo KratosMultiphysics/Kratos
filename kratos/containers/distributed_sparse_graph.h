@@ -108,7 +108,7 @@ public:
                 );
 
         //do consistency check
-        for(MpiIndexType i=0; i<tmp.size()-1; ++i)
+        for(unsigned int i=0; i<tmp.size()-1; ++i)
         {
             //check that no gaps are present
             if(tmp[i][1]!=tmp[i+1][0])
@@ -121,7 +121,7 @@ public:
                 KRATOS_ERROR << "cpu bounds are not ordered correctly" << std::endl;
         }
         mCpuBounds.push_back(tmp[0][0]);
-        for(MpiIndexType i=0; i<tmp.size(); ++i)
+        for(unsigned int i=0; i<tmp.size(); ++i)
         {
             //save to the final list
             mCpuBounds.push_back(tmp[i][1]);
@@ -283,7 +283,7 @@ public:
     {
         std::vector<MpiIndexType> send_list;
 
-        for(MpiIndexType id = 0; id<mNonLocalGraphs.size(); ++id)
+        for(unsigned int id = 0; id<mNonLocalGraphs.size(); ++id)
             if( !mNonLocalGraphs[id].IsEmpty())
                 send_list.push_back(id);
 
