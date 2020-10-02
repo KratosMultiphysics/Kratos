@@ -10,19 +10,12 @@
 //
 
 // Project includes
-#include "swimming_DEM_application.h"
 #include "qsvms_dem_coupled.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
-#include "../FluidDynamicsApplication/custom_elements/fluid_element.h"
-#include "../FluidDynamicsApplication/custom_elements/qs_vms.h"
-#include "../FluidDynamicsApplication/fluid_dynamics_application.h"
-#include "../FluidDynamicsApplication/custom_elements/fluid_element.cpp"
-#include "../FluidDynamicsApplication/custom_elements/qs_vms.cpp"
-#include "../FluidDynamicsApplication/custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
+#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
 {
@@ -186,23 +179,8 @@ void QSVMSDEMCoupled<TElementData>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
-    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
-        QSVMS<TElementData>::EquationIdVector(rResult, rCurrentProcessInfo);
-        }
-    else {
-        unsigned int LocalIndex = 0;
-        unsigned int lappos = this->GetGeometry()[0].GetDofPosition(VELOCITY_LAPLACIAN_X);
 
-        if (rResult.size() != LocalSize)
-            rResult.resize(LocalSize, false);
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-            {
-                rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X,lappos).EquationId();
-                rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Y,lappos+1).EquationId();
-                if(Dim == 3) rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z,lappos+2).EquationId();
-            }
-        }
+    QSVMS<TElementData>::EquationIdVector(rResult, rCurrentProcessInfo);
 }
 
 /**
@@ -213,24 +191,7 @@ void QSVMSDEMCoupled<TElementData>::GetDofList(
     DofsVectorType& rElementalDofList,
     ProcessInfo& rCurrentProcessInfo)
 {
-        if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
-            QSVMS<TElementData>::GetDofList(rElementalDofList, rCurrentProcessInfo);
-
-        }
-        else {
-
-            if (rElementalDofList.size() != LocalSize)
-                rElementalDofList.resize(LocalSize);
-
-            unsigned int LocalIndex = 0;
-
-            for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-            {
-                rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
-                rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Y);
-                if (Dim == 3) rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
-            }
-        }
+    QSVMS<TElementData>::GetDofList(rElementalDofList, rCurrentProcessInfo);
 }
 
 template< class TElementData >
