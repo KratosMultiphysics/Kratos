@@ -133,7 +133,7 @@ def CreateVariablesListFromInput(param):
     '''Parse a list of variables from input.'''
     scalar_variables = []
     vector_variables = []
-    addmissible_scalar_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
+    admissible_scalar_types = ["Bool", "Integer", "Unsigned Integer", "Double"]
     addmissible_vector_types = ["Array", "Vector"]
 
     # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
