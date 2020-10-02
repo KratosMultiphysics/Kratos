@@ -1387,7 +1387,6 @@ public:
         "required_dofs"              : ["DISPLACEMENT_X", "DISPLACEMENT_Y"], // NOTE: Fill with the required dofs
         "flags_used"                 : ["BOUNDARY", "ACTIVE"],               // NOTE: Fill with the flags used
         "compatible_geometries"      : ["Triangle2D3"],                      // NOTE: Compatible geometries. Options are "Point2D", "Point3D", "Sphere3D1", "Line2D2", "Line2D3", "Line3D2", "Line3D3", "Triangle2D3", "Triangle2D6", "Triangle3D3", "Triangle3D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9", "Tetrahedra3D4" , "Tetrahedra3D10" , "Prism3D6" , "Prism3D15" , "Hexahedra3D8" , "Hexahedra3D20" , "Hexahedra3D27"
-        "is_implicit"                : true,                                 // NOTE: Options are true/false
         "element_integrates_in_time" : true,                                 // NOTE: Options are true/false
         "compatible_constitutive_laws": {
             "type"         : ["PlaneStress","PlaneStrain"],                  // NOTE: List of CL compatible types. Options are "PlaneStress", "PlaneStrain", "3D"
@@ -1415,7 +1414,6 @@ public:
             "required_dofs"              : [],
             "flags_used"                 : [],
             "compatible_geometries"      : [],
-            "is_implicit"                : true,
             "element_integrates_in_time" : true,
             "compatible_constitutive_laws": {
                 "type"        : [],
