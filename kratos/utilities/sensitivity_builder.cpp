@@ -141,26 +141,6 @@ struct LocalSensitivityBuilder
 };
 
 /**
- * @brief Call a function on each container element in a parallel loop
- *
- * Any data associated with the function (e.g., functors or capture by value)
- * is copied to each thread.
- */
-template <typename TContainer, typename TCallable>
-void ParallelForEach(TContainer& rContainer, TCallable&& Fun)
-{
-#pragma omp parallel
-    {
-        auto local_fun(Fun);
-#pragma omp for
-        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
-        {
-            std::forward<TCallable>(local_fun)(*(rContainer.begin() + i));
-        }
-    }
-}
-
-/**
  * @brief Contains the sensitivity design and output variables
  *
  * The design variable is passed to CalculateSensitivityMatrix()
@@ -211,21 +191,21 @@ void AssembleNodalSolutionStepContainerContributions(const SensitivityVariables<
                                                      double ScalingFactor)
 {
     KRATOS_TRY;
-    LocalSensitivityBuilder builder;
-    ParallelForEach(rContainer, [&, builder](typename TContainer::data_type& rElement) mutable {
-        auto& r_geom = rElement.GetGeometry();
-        if (RequiresUpdateSensitivities(r_geom) == false)
-            return;
-        builder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
-                                          rResponseFunction, rProcessInfo);
-        // if rElement does not contribute to local sensitivity, skip assembly
-        if (builder.LocalSensitivity.size() != 0)
-        {
-            builder.LocalSensitivity *= ScalingFactor;
-            AssembleNodalSolutionStepValues(*rVariables.pOutputVariable,
-                                        builder.LocalSensitivity, r_geom);
-        }
-    });
+    block_for_each(
+        rContainer, LocalSensitivityBuilder(),
+        [&](typename TContainer::data_type& rElement, LocalSensitivityBuilder& rBuilder) {
+            auto& r_geom = rElement.GetGeometry();
+            if (RequiresUpdateSensitivities(r_geom) == false)
+                return;
+            rBuilder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
+                                               rResponseFunction, rProcessInfo);
+            // if rElement does not contribute to local sensitivity, skip assembly
+            if (rBuilder.LocalSensitivity.size() != 0) {
+                rBuilder.LocalSensitivity *= ScalingFactor;
+                AssembleNodalSolutionStepValues(*rVariables.pOutputVariable,
+                                                rBuilder.LocalSensitivity, r_geom);
+            }
+        });
     KRATOS_CATCH("");
 }
 
@@ -241,7 +221,7 @@ void CalculateNodalSolutionStepSensitivities(const SensitivityVariables<TDataTyp
     if (r_comm.TotalProcesses() > 1)
     {
         // Make sure we only add the old sensitivity once when we assemble.
-        ParallelForEach(rModelPart.Nodes(), [&r_output_variable, &r_comm](Node<3>& rNode) {
+        block_for_each(rModelPart.Nodes(), [&r_output_variable, &r_comm](Node<3>& rNode) {
             if (rNode.FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
                 rNode.FastGetSolutionStepValue(r_output_variable) =
                     r_output_variable.Zero();
@@ -290,20 +270,20 @@ void CalculateNonHistoricalSensitivities(const SensitivityVariables<TDataType>& 
                                          double ScalingFactor)
 {
     KRATOS_TRY;
-    LocalSensitivityBuilder builder;
-    ParallelForEach(rContainer, [&, builder](typename TContainer::data_type& rElement) mutable {
-        if (rElement.GetValue(UPDATE_SENSITIVITIES) == false)
-            return;
-        builder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
-                                          rResponseFunction, rProcessInfo);
-        // if rElement does not contribute to local sensitivity, skip assembly
-        if (builder.LocalSensitivity.size() != 0)
-        {
-            builder.LocalSensitivity *= ScalingFactor;
-            AssembleOnDataValueContainer(*rVariables.pOutputVariable,
-                                     builder.LocalSensitivity, rElement.Data());
-        }
-    });
+    block_for_each(
+        rContainer, LocalSensitivityBuilder(),
+        [&](typename TContainer::data_type& rElement, LocalSensitivityBuilder& rBuilder) {
+            if (rElement.GetValue(UPDATE_SENSITIVITIES) == false)
+                return;
+            rBuilder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
+                                               rResponseFunction, rProcessInfo);
+            // if rElement does not contribute to local sensitivity, skip assembly
+            if (rBuilder.LocalSensitivity.size() != 0) {
+                rBuilder.LocalSensitivity *= ScalingFactor;
+                AssembleOnDataValueContainer(*rVariables.pOutputVariable,
+                                             rBuilder.LocalSensitivity, rElement.Data());
+            }
+        });
     KRATOS_CATCH("");
 }
 
