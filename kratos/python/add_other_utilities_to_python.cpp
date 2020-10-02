@@ -505,11 +505,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_spec_utils.def("DetermineSymmetricLHS", &SpecificationsUtilities::DetermineSymmetricLHS );
     mod_spec_utils.def("DeterminePositiveDefiniteLHS", &SpecificationsUtilities::DeterminePositiveDefiniteLHS );
     mod_spec_utils.def("DetermineIfCompatibleGeometries", &SpecificationsUtilities::DetermineIfCompatibleGeometries );
-    mod_spec_utils.def("DetermineIfImplicitSimulation", &SpecificationsUtilities::DetermineIfImplicitSimulation );
     mod_spec_utils.def("DetermineIfRequiresTimeIntegration", &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
     mod_spec_utils.def("CheckCompatibleConstitutiveLaws", &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
     mod_spec_utils.def("GetDocumention", &SpecificationsUtilities::GetDocumention );
-  
+
     // PropertiesUtilities
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
     mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
