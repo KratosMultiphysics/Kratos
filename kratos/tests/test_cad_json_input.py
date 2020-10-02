@@ -19,7 +19,7 @@ class TestCadJsonInput(KratosUnittest.TestCase):
         self.assertEqual(cad_model_part.NumberOfGeometries(), 6)
         self.assertTrue(cad_model_part.HasGeometry(1))
         self.assertFalse(cad_model_part.HasGeometry(10))
-        self.assertFalse(cad_model_part.HasGeometry(39))
+        self.assertTrue(cad_model_part.HasGeometry(39))
 
 if __name__ == '__main__':
     KratosUnittest.main()

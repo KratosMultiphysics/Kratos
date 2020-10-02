@@ -486,17 +486,17 @@ private:
         KRATOS_INFO_IF("ReadBrepPoints", EchoLevel > 2)
             << "Reading " << rParameters.size() << " BrepPoints..." << std::endl;
 
-        for (IndexType brep_surface_i = 0; brep_surface_i < rParameters.size(); ++brep_surface_i)
+        for (IndexType brep_point_i = 0; brep_point_i < rParameters.size(); ++brep_point_i)
         {
             KRATOS_INFO_IF("ReadBrepPoints", (EchoLevel > 3))
-                << "Reading BrepPoint \"" << GetIdOrName(rParameters) << "\"" << std::endl;
+                << "Reading BrepPoint \"" << GetIdOrName(rParameters[brep_point_i]) << "\"" << std::endl;
 
-            if (rParameters["topology"].size() == 1) {
-                auto p_geometry = GetGeometry(rParameters["topology"][0], rModelPart);
+            if (rParameters[brep_point_i]["topology"].size() == 1) {
+                auto p_geometry = GetGeometry(rParameters[brep_point_i]["topology"][0], rModelPart);
 
-                if (rParameters["topology"][0].Has("local_coordinates"))
+                if (rParameters[brep_point_i]["topology"][0].Has("local_coordinates"))
                 {
-                    auto coordinates_vector = rParameters["topology"][0]["local_coordinates"].GetVector();
+                    auto coordinates_vector = rParameters[brep_point_i]["topology"][0]["local_coordinates"].GetVector();
                     array_1d<double, 3> local_coordinates;
                     local_coordinates[0] = coordinates_vector[0];
                     local_coordinates[1] = coordinates_vector[1];
@@ -506,13 +506,13 @@ private:
                         ? Kratos::make_shared<BrepPointOnSurfaceType>(local_coordinates, p_geometry)
                         : Kratos::make_shared<BrepPointOnCurveType>(local_coordinates, p_geometry);
 
-                    SetIdOrName<GeometryType>(rParameters, p_brep_point);
+                    SetIdOrName<GeometryType>(rParameters[brep_point_i], p_brep_point);
                     rModelPart.AddGeometry(p_brep_point);
                 }
                 else {
-                    KRATOS_ERROR << "Topology of brep point: " << GetIdOrName(rParameters)
+                    KRATOS_ERROR << "Topology of brep point: " << GetIdOrName(rParameters[brep_point_i])
                         << " does not provide local coordinates. No other import option provided. Topology as following: "
-                        << rParameters["topology"] << std::endl;
+                        << rParameters[brep_point_i]["topology"] << std::endl;
                 }
 
             }
