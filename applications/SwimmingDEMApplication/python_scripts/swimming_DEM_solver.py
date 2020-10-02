@@ -119,7 +119,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         }""")
 
-        default_settings.AddMissingParameters(super(SwimmingDEMSolver, cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def _ValidateSettings(self, project_parameters):
