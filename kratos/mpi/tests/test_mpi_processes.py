@@ -1,9 +1,6 @@
 ﻿import os
-import sys
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-import KratosMultiphysics.MetisApplication as KratosMetis
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.testing.utilities import ReadModelPart
 import json
 
