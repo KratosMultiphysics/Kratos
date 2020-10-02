@@ -24,7 +24,7 @@ try:
      import FluidDEMTestFactory as FDEMTF
      fluid_DEM_coupling_imports_available = True
 except ImportError:
-     fluid_DEM_coupling_imports_available = False     
+     fluid_DEM_coupling_imports_available = False
 # List of tests that are available
 available_tests = []
 

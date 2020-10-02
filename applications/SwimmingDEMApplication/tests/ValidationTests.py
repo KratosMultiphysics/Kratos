@@ -6,7 +6,6 @@ import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
 
 # Import TestFactory
-import FluidDEMTestFactory as FDEMTF
 import SPFEMTestFactory as SPFEMTF
 
 # Import KratosUnittest
