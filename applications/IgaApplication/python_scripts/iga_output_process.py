@@ -137,15 +137,15 @@ def CreateVariablesListFromInput(param):
     admissible_scalar_types = ["Bool", "Integer", "Unsigned Integer", "Double"]
     admissible_vector_types = ["Array", "Vector"]
 
-    variable_list = GenerateVariableListFromInput(param)
+    variable_list = KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(param)
 
     # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
     for variable in variable_list:
-        if variable.GetVariableType() in admissible_scalar_types:
+        if KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name()) in admissible_scalar_types:
             scalar_variables.append(variable)
-        elif variable.GetVariableType() in admissible_vector_types:
+        elif KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name()) in admissible_vector_types:
             vector_variables.append(variable)
         else:
-            raise Exception("unsupported variables type: " + var_type)
+            raise Exception("unsupported variables type: " + str(type(variable)))
 
     return scalar_variables, vector_variables
