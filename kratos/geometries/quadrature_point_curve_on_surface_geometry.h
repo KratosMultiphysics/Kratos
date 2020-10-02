@@ -129,6 +129,23 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    virtual void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput)
+    {
+        if (rVariable == LOCAL_TANGENT)
+        {
+            rOutput[0] = mLocalTangentsU;
+            rOutput[1] = mLocalTangentsV;
+            rOutput[2] = 0.0;
+        }
+    }
+
+    ///@}
     ///@name Normal
     ///@{
 
