@@ -26,7 +26,9 @@
 #include "includes/model_part.h"
 #include "utilities/assemble_utilities.h"
 #include "utilities/communication_coloring_utilities.h"
+#include "utilities/global_pointer_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/pointer_communicator.h"
 
 namespace Kratos
 {
@@ -174,100 +176,52 @@ private:
                 return keys;
             };
 
-            const auto& update_local_nodes = [&](const std::vector<int>& rNodeIds,
-                                                 const TMap<TDataType>& rValuesMap) {
-                IndexPartition<int>(rNodeIds.size()).for_each([&](const int Index) {
-                    const int node_id = rNodeIds[Index];
+            const auto& update_local_nodes = [&](const TMap<TDataType>& rValuesMap) {
+                const auto& keys = get_keys(rValuesMap);
+                IndexPartition<int>(keys.size()).for_each([&](const int Index) {
+                    const int node_id = keys[Index];
                     auto& r_node = rModelPart.GetNode(node_id);
                     rUpdateFunction(r_node, rVariable, rValuesMap.find(node_id)->second);
                 });
             };
 
-            // gather all node ids required
-            const std::vector<int>& node_ids = get_keys(rNodalValuesMap);
-
             auto& r_communicator = rModelPart.GetCommunicator();
             const auto& r_data_communicator = r_communicator.GetDataCommunicator();
-
             const int my_rank = r_data_communicator.Rank();
 
-            const auto& all_rank_node_ids = r_data_communicator.Gatherv(node_ids, 0);
-            std::vector<int> all_node_ids;
-            if (my_rank == 0) {
-                for (const auto& rank : all_rank_node_ids) {
-                    for (const auto node_id : rank) {
-                        all_node_ids.push_back(node_id);
-                    }
-                }
-                std::sort(all_node_ids.begin(), all_node_ids.end());
-                auto last = std::unique(all_node_ids.begin(), all_node_ids.end());
-                all_node_ids.erase(last, all_node_ids.end());
-            }
+            // gather all node ids required
+            const std::vector<int>& node_ids = get_keys(rNodalValuesMap);
+            auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(
+                rModelPart.Nodes(), node_ids, r_data_communicator);
 
-            int number_of_communication_nodes = all_node_ids.size();
-            // now we get all nodes which requires updating in all_node_ids in all ranks
-            r_data_communicator.Broadcast(number_of_communication_nodes, 0);
-            if (my_rank != 0) {
-                all_node_ids.resize(number_of_communication_nodes);
-            }
-            r_data_communicator.Broadcast(all_node_ids, 0);
+            GlobalPointerCommunicator<NodeType> pointer_comm(
+                r_data_communicator, gp_list.ptr_begin(), gp_list.ptr_end());
 
-            // identify ranks which these nodes belongs to
-            auto& local_mesh = r_communicator.LocalMesh();
-            std::vector<int> local_node_id_ranks(number_of_communication_nodes);
+            KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX)) << "PARTITION_INDEX variable is not found in nodal solution step variables list of "
+                                                                                       << rModelPart
+                                                                                              .Name()
+                                                                                       << ".\n";
 
-            IndexPartition<int>(number_of_communication_nodes).for_each([&](const int Index) {
-                local_node_id_ranks[Index] =
-                    local_mesh.HasNode(all_node_ids[Index]) ? my_rank : -1;
-            });
-
-            const auto& all_rank_nodal_id_ranks =
-                r_data_communicator.Gatherv(local_node_id_ranks, 0);
-            std::vector<int> all_node_id_ranks(number_of_communication_nodes, -1);
-            if (my_rank == 0) {
-                IndexPartition<int>(number_of_communication_nodes).for_each([&](const int Index) {
-                    for (unsigned int i_rank = 0;
-                         i_rank < all_rank_nodal_id_ranks.size(); ++i_rank) {
-                        const int node_rank = all_rank_nodal_id_ranks[i_rank][Index];
-                        if (node_rank > -1) {
-                            if (all_node_id_ranks[Index] == -1) {
-                                all_node_id_ranks[Index] = node_rank;
-                            } else if (all_node_id_ranks[Index] != node_rank) {
-                                KRATOS_ERROR
-                                    << "Node id " << all_node_ids[Index]
-                                    << " does belong to more than one rank, "
-                                    << "which is not allowed.\n";
-                            }
-                            break;
-                        }
-                    }
-
-                    KRATOS_ERROR_IF(all_node_id_ranks[Index] == -1)
-                        << "Node id " << all_node_ids[Index]
-                        << " not found in any of the ranks.\n";
+            auto partition_index_proxy =
+                pointer_comm.Apply([](GlobalPointer<NodeType>& gp) -> int {
+                    return gp->FastGetSolutionStepValue(PARTITION_INDEX);
                 });
-            }
-
-            // now broadcast all the ranks properly to all ranks
-            r_data_communicator.Broadcast(all_node_id_ranks, 0);
 
             // compute send and receive ranks ids
             std::vector<int> send_receive_list;
             TMap<TMap<TDataType>> send_nodal_values_map;
             TMap<TDataType> local_nodal_values_map;
 
-            for (int i_node = 0; i_node < number_of_communication_nodes; ++i_node) {
-                const int node_id = all_node_ids[i_node];
-                const auto p_itr = rNodalValuesMap.find(node_id);
-                if (p_itr != rNodalValuesMap.cend()) {
-                    const int node_rank = all_node_id_ranks[i_node];
-                    if (node_rank != my_rank) {
-                        send_receive_list.push_back(node_rank);
-                        auto& nodal_values_map = send_nodal_values_map[node_rank];
-                        nodal_values_map[node_id] = p_itr->second;
-                    } else {
-                        local_nodal_values_map[node_id] = p_itr->second;
-                    }
+            for (unsigned int i = 0; i < node_ids.size(); ++i) {
+                auto& gp = gp_list(i);
+                const int partition_index = partition_index_proxy.Get(gp);
+                const int node_id = node_ids[i];
+                if (partition_index != my_rank) {
+                    send_receive_list.push_back(partition_index);
+                    auto& nodal_values_map = send_nodal_values_map[partition_index];
+                    nodal_values_map[node_id] = rNodalValuesMap.find(node_id)->second;
+                } else {
+                    local_nodal_values_map[node_id] = rNodalValuesMap.find(node_id)->second;
                 }
             }
 
@@ -277,8 +231,7 @@ private:
                 send_receive_list, r_data_communicator);
 
             // update local values
-            const auto& local_nodal_ids = get_keys(local_nodal_values_map);
-            update_local_nodes(local_nodal_ids, local_nodal_values_map);
+            update_local_nodes(local_nodal_values_map);
 
             // update values received from remote processes
             for (const int color : colors) {
@@ -286,8 +239,7 @@ private:
                     const auto& tmp = r_data_communicator.SendRecv(
                         send_nodal_values_map[color], color, color);
 
-                    const auto& local_nodal_ids = get_keys(tmp);
-                    update_local_nodes(local_nodal_ids, tmp);
+                    update_local_nodes(tmp);
                 }
             }
         }
