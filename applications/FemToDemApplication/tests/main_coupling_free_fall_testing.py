@@ -25,26 +25,36 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
         
 
         # Here we check the vertical displacement of a node
-        node = self.FEM_Solution.main_model_part.GetNode(1)
+        node = self.FEM_Solution.main_model_part.GetNode(39)
         dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
-        if self.FEM_Solution.step == 26:
-            KratosPrintInfo(str(dy))
-            # if dy != 1.972140108200514e-05:
-            #     raise ValueError('The computed displacement at step = 26 is not correct')
-        elif self.FEM_Solution.step == 36:
-            KratosPrintInfo(str(dy))
-            # if dy != 2.7306779366995683e-05:
-            #     raise ValueError('The computed displacement at step = 36 is not correct')
-        elif self.FEM_Solution.step == 46:
-            KratosPrintInfo(str(dy))
-            # if dy != 2.5780167460400344e-05:
-            #     raise ValueError('The computed displacement at step = 46 is not correct')
-        elif self.FEM_Solution.step == 61:
-            KratosPrintInfo(str(dy))
-            # if dy != 1.4423580956402616e-05:
-            #     raise ValueError('The computed displacement at step = 61 is not correct')
+        if self.FEM_Solution.step == 20:
+            if dy != -0.046660044881251264:
+                raise ValueError('The computed displacement at step = 20 is not correct')
+        elif self.FEM_Solution.step == 50:
+            if dy != -0.3004937948812545:
+                raise ValueError('The computed displacement at step = 50 is not correct')
+        elif self.FEM_Solution.step == 90:
+            if dy != -0.9778132951993863:
+                raise ValueError('The computed displacement at step = 90 is not correct')
+        elif self.FEM_Solution.step == 140:
+            ref = 0.3262364577734523
+            if (dy - ref) / ref > 1e-5:
+                raise ValueError('The computed displacement at step = 140 is not correct')
         
-
+        vy = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+        if self.FEM_Solution.step == 20:
+            if vy != -0.9564750000003245:
+                raise ValueError('The computed velocity at step = 20 is not correct')
+        elif self.FEM_Solution.step == 50:
+            if vy != -2.4279749999996674:
+                raise ValueError('The computed velocity at step = 50 is not correct')
+        elif self.FEM_Solution.step == 90:
+            if vy != -3.3520719444389666:
+                raise ValueError('The computed velocity at step = 90 is not correct')
+        elif self.FEM_Solution.step == 140:
+            ref = 4.7178528813310345
+            if (vy - ref) / ref > 1e-5:
+                raise ValueError('The computed displacement at step = 140 is not correct')
 
 class TestAnalytics(KratosUnittest.TestCase):
     
