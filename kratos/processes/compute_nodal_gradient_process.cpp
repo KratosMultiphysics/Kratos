@@ -119,6 +119,10 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         }
     }
 
+    if (mrModelPart.GetCommunicator().IsDistributed()) {
+        SynchronizeGradientAndVolume();
+    }
+
     PonderateGradient();
 
     delete p_variable_retriever;
@@ -359,6 +363,26 @@ void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonH
             rNode.GetValue(*mpGradientVariable) /=
                 rNode.GetValue(*mpAreaVariable);
         });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::SynchronizeGradientAndVolume()
+{
+    mrModelPart.GetCommunicator().AssembleCurrentData(*mpGradientVariable);
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpAreaVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::SynchronizeGradientAndVolume()
+{
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpGradientVariable);
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpAreaVariable);
 }
 
 /***********************************************************************************/
