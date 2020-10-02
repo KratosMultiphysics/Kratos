@@ -47,7 +47,7 @@ class IgaOutputProcess(KratosMultiphysics.Process):
         elif output_file_label == "step":
             self.output_label_is_time = False
         else:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
+            msg = '{} Error: Unknown value "{}" read for parameter "file_label"'.format(self.__class__.__name__,output_file_label)
             raise Exception(msg)
 
         output_control_type = self.params["output_control_type"].GetString()
