@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
 
-SET(ListFolders conditions constraints containers elements factories geometries includes input_output integration linear_solvers modeler modified_shape_functions processes response_functions solving_strategies sources spaces spatial_containers testing utilities)
+SET(ListFolders conditions constraints containers elements factories geometries includes integration linear_solvers modeler modified_shape_functions processes response_functions solving_strategies sources spaces spatial_containers testing utilities)
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
