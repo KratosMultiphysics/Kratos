@@ -119,9 +119,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         }
     }
 
-    if (mrModelPart.GetCommunicator().IsDistributed()) {
-        SynchronizeGradientAndVolume();
-    }
+    SynchronizeGradientAndVolume();
 
     PonderateGradient();
 
