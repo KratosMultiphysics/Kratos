@@ -344,7 +344,7 @@ GeometryData BrepPoint<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceD
 
 template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension>
 const GeometryDimension BrepPoint<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>::msGeometryDimension(
-    TLocalSpaceDimension, TWorkingSpaceDimension, 0);
+    0, TWorkingSpaceDimension, TLocalSpaceDimension);
 
 ///@}
 }// namespace Kratos.
