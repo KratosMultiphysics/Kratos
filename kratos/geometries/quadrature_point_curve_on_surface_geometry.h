@@ -133,9 +133,9 @@ public:
     ///@{
 
     /// Calculate with array_1d<double, 3>
-    virtual void Calculate(
+    void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput)
+        array_1d<double, 3>& rOutput) override
     {
         if (rVariable == LOCAL_TANGENT)
         {
