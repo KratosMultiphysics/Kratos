@@ -184,7 +184,6 @@ const Parameters MeshElement::GetSpecifications() const
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Line2D2", "Triangle2D3", "Triangle2D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9", "Line3D2", "Triangle3D3", "Tetrahedra3D4", "Prism3D6", "Prism3D15", "Hexahedra3D8", "Hexahedra3D20", "Hexahedra3D27", "Tetrahedra3D10"],
-        "is_implicit"                : true,
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
             "type"        : [],
