@@ -15,6 +15,7 @@ FOREACH(subFolder ${ListFolders})
     FILE(GLOB_RECURSE ${subFolder}Sources "${subFolder}/*.cpp" "${subFolder}/*.c") #all .cpp and .c
 
     # Auxiliar list
+    SET(AUXILIAR_CORE_SOURCES "")
     FOREACH(file ${${subFolder}Sources})
         SET(EXCEPTION_CHECK 0)
         FOREACH(exception ${LIST_OF_SOURCE_EXCEPTIONS})
