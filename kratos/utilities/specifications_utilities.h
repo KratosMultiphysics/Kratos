@@ -191,13 +191,6 @@ namespace SpecificationsUtilities
     bool KRATOS_API(KRATOS_CORE) DetermineIfCompatibleGeometries(ModelPart& rModelPart);
 
     /**
-     * @brief This method detects if all elements/conditions are implicit. It throws a warning if incompatible
-     * @param rModelPart Reference to the ModelPart containing the problem
-     * @return True if all the elements/conditions are implicit, false otherwise
-     */
-    bool KRATOS_API(KRATOS_CORE) DetermineIfImplicitSimulation(ModelPart& rModelPart);
-
-    /**
      * @brief This method detects if all elements/conditions require time integration. It throws a warning if incompatible
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return True if all the elements/conditions require time integration, false otherwise
