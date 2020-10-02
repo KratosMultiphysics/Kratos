@@ -12,7 +12,7 @@ SET(LIST_OF_SOURCE_EXCEPTIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp # This wasn't in the original list for some reason
 )
 FOREACH(subFolder ${ListFolders})
-    FILE(GLOB_RECURSE ${subFolder}Sources "${subFolder}/*.cpp") #all .cpp
+    FILE(GLOB_RECURSE ${subFolder}Sources "${subFolder}/*.cpp" "${subFolder}/*.c") #all .cpp and .c
 
     # Auxiliar list
     FOREACH(file ${${subFolder}Sources})
