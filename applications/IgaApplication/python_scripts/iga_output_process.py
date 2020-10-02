@@ -2,6 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication
 
+import KratosMultiphysics.kratos_utilities
 
 def Factory(settings, model):
     if not (isinstance(settings, KratosMultiphysics.Parameters)):
@@ -136,14 +137,13 @@ def CreateVariablesListFromInput(param):
     admissible_scalar_types = ["Bool", "Integer", "Unsigned Integer", "Double"]
     admissible_vector_types = ["Array", "Vector"]
 
+    variable_list = GenerateVariableListFromInput(param)
+
     # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-    for i in range(param.size()):
-        var_name = param[i].GetString()
-        variable = KratosMultiphysics.KratosGlobals.GetVariable(var_name)
-        var_type = KratosMultiphysics.KratosGlobals.GetVariableType(var_name)
-        if var_type in addmissible_scalar_types:
+    for variable in variable_list:
+        if variable.GetVariableType() in admissible_scalar_types:
             scalar_variables.append(variable)
-        elif var_type in addmissible_vector_types:
+        elif variable.GetVariableType() in admissible_vector_types:
             vector_variables.append(variable)
         else:
             raise Exception("unsupported variables type: " + var_type)
