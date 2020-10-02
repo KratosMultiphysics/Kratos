@@ -302,7 +302,7 @@ private:
     void PonderateGradient();
 
     /**
-     * @brief This synchronizes the nodal conributions in parallel runs. Only needed in MPI.
+     * @brief This synchronizes the nodal contributions in parallel runs. Only needed in MPI.
      */
     void SynchronizeGradientAndVolume();
 
