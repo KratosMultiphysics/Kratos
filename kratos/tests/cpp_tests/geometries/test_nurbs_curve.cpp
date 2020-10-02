@@ -14,7 +14,6 @@
 #include <limits>
 
 // External includes
-#include <iomanip>
 
 // Project includes
 #include "testing/testing.h"

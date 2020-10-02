@@ -7,7 +7,7 @@ import shutil
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-class VtkOutput(object):
+class VtkOutput():
     def __init__(self, main_path, problem_name, spheres_model_part, rigid_face_model_part):
         self.problem_name = problem_name
 

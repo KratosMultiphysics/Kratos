@@ -61,6 +61,8 @@ class FormfindingMembraneSinglePatchFourPointSail(IgaTestFactory):
 
 class FormfindingMembraneMultiPatchFourPointSail(IgaTestFactory):
     file_name = "formfinding_test/Formfinding_membrane_multi_patch_four_point_sail"
+class ScordelisRoofShell3pTest(IgaTestFactory):
+    file_name = "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p"
 
 if __name__ == '__main__':
     KratosUnittest.main()

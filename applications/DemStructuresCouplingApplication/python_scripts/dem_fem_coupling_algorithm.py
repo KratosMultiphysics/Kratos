@@ -15,7 +15,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 from KratosMultiphysics.DemStructuresCouplingApplication import dem_structures_coupling_gid_output
 
-class Algorithm(object):
+class Algorithm():
 
     def __init__(self):
         self.model = Kratos.Model()
