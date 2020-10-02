@@ -38,7 +38,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
                 raise ValueError('The computed displacement at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
             ref = 0.3262364577734523
-            if (dy - ref) / ref > 1e-5:
+            if (dy - ref) / ref > 1e-4:
                 raise ValueError('The computed displacement at step = 140 is not correct')
         
         vy = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
@@ -53,7 +53,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
                 raise ValueError('The computed velocity at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
             ref = 4.7178528813310345
-            if (vy - ref) / ref > 1e-5:
+            if (vy - ref) / ref > 1e-4:
                 raise ValueError('The computed displacement at step = 140 is not correct')
 
 class TestAnalytics(KratosUnittest.TestCase):
