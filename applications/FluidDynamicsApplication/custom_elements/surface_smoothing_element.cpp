@@ -421,11 +421,11 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double slip_velocity = inner_prod(slip_vector,
                                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                            const double zeta = 0.7;//5.0e-3;//
-                            const double gamma = 0.0311;//0.072;//
+                            const double zeta = 1.0e-2;//0.7;//
+                            const double gamma = 0.072;//0.0311;//
                             const double micro_length_scale = 1.0e-9;
 
-                            const double cos_theta_s = 0.779337965;//-0.4539905;//
+                            const double cos_theta_s = -0.4539905;//0.779337965;//
                             const double theta_s = std::acos(cos_theta_s);
 
                             const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
