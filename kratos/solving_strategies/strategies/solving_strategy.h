@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -82,6 +83,8 @@ public:
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> TBuilderAndSolverType;
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              ClassType;
+
     typedef typename ModelPart::DofType                                             TDofType;
 
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
@@ -110,15 +113,21 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit SolvingStrategy() { }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
     explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : mrModelPart(rModelPart)
+        : mpModelPart(&rModelPart)
     {
-        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
-        SetMoveMeshFlag(move_mesh_flag);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -129,7 +138,7 @@ public:
     explicit SolvingStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
-        ) : mrModelPart(rModelPart)
+        ) : mpModelPart(&rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
@@ -145,6 +154,19 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -339,11 +361,12 @@ public:
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return mrModelPart: The model part member variable
+     * @return mpModelPart: The model part member variable
      */
     inline ModelPart& GetModelPart()
     {
-        return mrModelPart;
+        KRATOS_ERROR_IF_NOT(mpModelPart) << "ModelPart in the SolvingStrategy is not initialized" << std::endl;
+        return *mpModelPart;
     };
 
     /**
@@ -379,6 +402,70 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name"                         : "solving_strategy",
+            "move_mesh_flag"               : false,
+            "echo_level"                   : 1,
+            "build_level"                  : 2
+        })");
+        return default_parameters;
+    }
+  
+    /**
+     * @brief This method returns the LHS matrix
+     * @return The LHS matrix
+     */
+    virtual TSystemMatrixType& GetSystemMatrix()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSystemMatrix not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
+     */
+    virtual TSystemVectorType& GetSystemVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSystemVector not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    virtual TSystemVectorType& GetSolutionVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSolutionVector not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "solving_strategy";
     }
 
     ///@}
@@ -429,6 +516,36 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        // By default mesh is not moved
+        mMoveMeshFlag = ThisParameters["move_mesh_flag"].GetBool();
+
+        // Be default the minimal information is shown
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
+
+        // By default the matrices are rebuilt at each iteration
+        mRebuildLevel = ThisParameters["build_level"].GetInt();
+    }
 
     ///@}
     ///@name Protected  Access
@@ -455,7 +572,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart = nullptr;
 
     bool mMoveMeshFlag;
 

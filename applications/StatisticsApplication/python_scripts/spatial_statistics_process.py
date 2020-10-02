@@ -24,6 +24,16 @@ def Factory(settings, model):
 
 
 class SpatialStatisticsProcess(Kratos.Process):
+    """A process to calculate spatial statistics on Kratos containers
+
+    This process calculates spatial statistics for given variables in a given container.
+
+    This process is compatible with OpenMP and MPI with restart
+
+    Args:
+        model (Kratos.Model): Model used in problem
+        settings (Kratos.Parameters): Kratos parameter settings for process
+    """
     def __init__(self, model, settings):
         Kratos.Process.__init__(self)
 

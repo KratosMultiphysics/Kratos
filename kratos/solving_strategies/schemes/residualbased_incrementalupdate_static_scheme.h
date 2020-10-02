@@ -63,29 +63,32 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticScheme);
 
     /// Base class definition
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
+    typedef Scheme<TSparseSpace,TDenseSpace>                                       BaseType;
+
+    // The current class definition
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
     /// DoF array type definition
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
+    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
 
     /// Data type definition
-    typedef typename BaseType::TDataType                         TDataType;
+    typedef typename BaseType::TDataType                                          TDataType;
     /// Matrix type definition
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
     /// Vector type definition
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType                          TSystemVectorType;
     /// Local system matrix type definition
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType                  LocalSystemVectorType;
     /// Local system vector type definition
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::LocalSystemMatrixType                  LocalSystemMatrixType;
 
     /// Elements containers definition
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
+    typedef ModelPart::ElementsContainerType                              ElementsArrayType;
     /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+    typedef ModelPart::ConditionsContainerType                          ConditionsArrayType;
 
     /// The definition of the vector containing the equation ids
-    typedef Element::EquationIdVectorType             EquationIdVectorType;
+    typedef Element::EquationIdVectorType                              EquationIdVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -98,12 +101,9 @@ public:
     explicit ResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters)
         : BaseType()
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /** Default onstructor.
@@ -130,6 +130,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Performing the update of the solution.
@@ -374,6 +383,32 @@ public:
     void Clear() override
     {
         this->mpDofUpdater->Clear();
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "static_scheme"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "static_scheme";
     }
 
     ///@}

@@ -1,5 +1,5 @@
-//   
-//   Project Name:        ThermalD       
+//
+//   Project Name:        ThermalD
 //   Last Modified by:    $Author: Szymon Nosewicz and Miguel Angel Celigueta (maceli@cimne.upc.edu) $
 //   Date:                $Date: 2015-02-01  $
 //   Revision:            $Revision: 1.0.0.0 $
@@ -10,7 +10,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // Project includes
 #include "includes/define.h"
@@ -18,7 +18,6 @@
 #include "spheric_continuum_particle.h"
 #include "thermal_spheric_particle.h"
 #include "Particle_Contact_Element.h"
-#include "containers/vector_component_adaptor.h"
 #include "discrete_element.h"
 
 namespace Kratos {
@@ -39,7 +38,7 @@ namespace Kratos {
         typedef Geometry<Node < 3 > > GeometryType;
         typedef Properties PropertiesType;
 
-        /// Default constructor. 
+        /// Default constructor.
 
         SinteringSphericContinuumParticle() {
         };
@@ -78,6 +77,6 @@ namespace Kratos {
     };
 } // namespace Kratos.
 
-#endif // KRATOS_THERMAL_SPHERIC_PARTICLE_H_INCLUDED  defined 
+#endif // KRATOS_THERMAL_SPHERIC_PARTICLE_H_INCLUDED  defined
 
 

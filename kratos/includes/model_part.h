@@ -107,8 +107,7 @@ public:
 
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofsVectorType;
-    typedef Kratos::Variable<double> DoubleVariableType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef Variable<double> DoubleVariableType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
@@ -386,7 +385,7 @@ public:
 
             current_part->Nodes().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
@@ -459,8 +458,11 @@ public:
      */
     void RemoveNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
-    /** this function gives back the "root" model part, that is the model_part that has no father */
+    /** this function gives back the "root" model part, that is the model_part that has no father (non-const version)*/
     ModelPart& GetRootModelPart();
+
+    /** this function gives back the "root" model part, that is the model_part that has no father (const version)*/
+    const ModelPart& GetRootModelPart() const;
 
     NodeIterator NodesBegin(IndexType ThisIndex = 0)
     {
@@ -711,7 +713,7 @@ public:
 
             current_part->MasterSlaveConstraints().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
@@ -737,16 +739,6 @@ public:
                                                                                     const DoubleVariableType& rSlaveVariable,
                                                                                     const double Weight,
                                                                                     const double Constant,
-                                                                                    IndexType ThisIndex = 0);
-
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
-                                                                                    NodeType& rMasterNode,
-                                                                                    const VariableComponentType& rMasterVariable,
-                                                                                    NodeType& rSlaveNode,
-                                                                                    const VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant,
                                                                                     IndexType ThisIndex = 0);
 
     /**
@@ -1056,19 +1048,26 @@ public:
 
             current_part->Elements().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
     }
 
-    /** Inserts an element in the current mesh.
-     */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, std::vector<IndexType> ElementNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+    /// Creates new element with a node ids list.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, std::vector<IndexType> ElementNodeIds,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /** Inserts an element in the current mesh.
-     */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+    /// Creates new element with a nodes list.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /// Creates new element with pointer to geometry.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, typename GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
@@ -1229,22 +1228,25 @@ public:
 
             current_part->Conditions().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
     }
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condition with a node ids list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, std::vector<IndexType> ConditionNodeIds,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condition with a nodes list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+            PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /// Creates new condtion with pointer to geometry.
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName,
+            IndexType Id, typename GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
@@ -1476,24 +1478,12 @@ public:
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart& GetSubModelPart(std::string const& SubModelPartName)
-    {
-        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
-
-        return *i;
-    }
+    ModelPart& GetSubModelPart(std::string const& SubModelPartName);
 
     /** Returns a shared pointer to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
-    {
-        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
-
-        return (i.base()->second).get();
-    }
+    ModelPart* pGetSubModelPart(std::string const& SubModelPartName);
 
     /** Remove a sub modelpart with given name.
     */
@@ -1533,20 +1523,19 @@ public:
         return mSubModelParts;
     }
 
+    /** Returns a reference to the Parent ModelPart
+     * Returns a reference to itself if it is not a SubModelPart
+    */
+    ModelPart& GetParentModelPart();
 
-    ModelPart* GetParentModelPart() const
-    {
-        if (IsSubModelPart()) {
-            return mpParentModelPart;
-        } else {
-            return const_cast<ModelPart*>(this);
-        }
-    }
+    /** Returns a reference to the Parent ModelPart (const version)
+     * Returns a reference to itself if it is not a SubModelPart
+    */
+    const ModelPart& GetParentModelPart() const;
 
-    bool HasSubModelPart(std::string const& ThisSubModelPartName) const
-    {
-        return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
-    }
+    /** Returns whether this ModelPart has a SubModelPart with a given name
+    */
+    bool HasSubModelPart(std::string const& ThisSubModelPartName) const;
 
     ///@}
     ///@name Access
@@ -1660,7 +1649,7 @@ public:
     {
         std::string full_name = this->Name();
         if (this->IsSubModelPart()) {
-            full_name = this->GetParentModelPart()->FullName() + "." + full_name;
+            full_name = this->GetParentModelPart().FullName() + "." + full_name;
         }
         return full_name;
     }

@@ -211,7 +211,12 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     {
         KRATOS_INFO("UpdatedLagrangian")<<" Element: "<<this->Id()<<std::endl;
         KRATOS_INFO("UpdatedLagrangian")<<" Element position: "<< mMP.xg <<std::endl;
+        KRATOS_INFO("UpdatedLagrangian")<<" Element velocity: "<< mMP.velocity <<std::endl;
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        KRATOS_INFO("UpdatedLagrangian") << " Shape functions: " << r_geometry.ShapeFunctionsValues() << std::endl;
+        KRATOS_INFO("UpdatedLagrangian") << " Quadrature points: " << r_geometry.IntegrationPointsNumber() << std::endl;
+        KRATOS_INFO("UpdatedLagrangian") << " Parent geometry ID: " << r_geometry.GetGeometryParent(0).Id() << std::endl;
+        KRATOS_INFO("UpdatedLagrangian") << " Parent geometry number of points: " << r_geometry.GetGeometryParent(0).PointsNumber() << std::endl;
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -469,27 +474,8 @@ void UpdatedLagrangian::CalculateAndAddRHS(
         : false;
     if (is_explicit)
     {
-        Matrix Jacobian;
-        GetGeometry().Jacobian(Jacobian, 0);
-        Matrix InvJ;
-        double detJ;
-        MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-        rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
-
-        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-            : false;
-
-        if (is_axisymmetric) {
-            const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
-                GetGeometry().ShapeFunctionsValues(), GetGeometry());
-            MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
-                rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
-                mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
-        }
-        else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
-            rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
+        MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(rCurrentProcessInfo ,
+            *this, mMP.cauchy_stress_vector, mMP.volume,
             mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
     }
     else
@@ -549,10 +535,6 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
 {
     KRATOS_TRY
 
-    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-        : false;
-
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
@@ -577,17 +559,9 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
     rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
 
-    if (is_axisymmetric)
-    {
-        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
-        MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
-            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
-    }
-    else
-    {
-        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
-            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
-    }
+    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this,
+        mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
+
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;
 
@@ -1803,6 +1777,7 @@ void UpdatedLagrangian::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
+    rSerializer.save("MP",mMP);
 }
 
 void UpdatedLagrangian::load( Serializer& rSerializer )
@@ -1811,6 +1786,7 @@ void UpdatedLagrangian::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
+    rSerializer.load("MP",mMP);
 }
 
 
