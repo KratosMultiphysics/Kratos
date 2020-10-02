@@ -4,40 +4,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.mpi import distributed_import_model_part_utility
+from KratosMultiphysics.testing.utilities import ReadModelPart
 import json
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
 class TestMPIProcesses(KratosUnittest.TestCase):
-
-    def _ReadSerialModelPart(self,model_part, mdpa_file_name):
-        import_flags = KratosMultiphysics.ModelPartIO.READ | KratosMultiphysics.ModelPartIO.SKIP_TIMER
-        KratosMultiphysics.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
-
-    def _ReadDistributedModelPart(self,model_part, mdpa_file_name):
-
-        importer_settings = KratosMultiphysics.Parameters("""{
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": \"""" + mdpa_file_name + """\",
-                "partition_in_memory" : true
-            },
-            "echo_level" : 0
-        }""")
-
-        model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, importer_settings)
-        model_part_import_util.ImportModelPart()
-        model_part_import_util.CreateCommunicators()
-
-    def _ReadModelPart(self, input_filename, mp):
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-
-        if kratos_comm.IsDistributed():
-            self._ReadDistributedModelPart(mp, input_filename)
-        else:
-            self._ReadSerialModelPart(mp, input_filename)
 
     def testComputeNodalGradientProcess(self):
 
@@ -54,7 +27,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
 
         ## Serial partition of the original .mdpa file
         input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_serializer")
-        self._ReadModelPart(input_filename, main_model_part)
+        ReadModelPart(input_filename, main_model_part)
 
         ParallelFillCommunicator = KratosMultiphysics.mpi.ParallelFillCommunicator(main_model_part)
         ParallelFillCommunicator.Execute()
@@ -72,7 +45,8 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         ## Read reference
         file_name = "auxiliar_files_for_python_unittest/reference_files/test_compute_nodal_gradient_process_results.json"
         reference_file_name = GetFilePath(file_name)
-        reference_values = json.load(open(reference_file_name, 'r'))
+        with open(reference_file_name, 'r') as f:
+            reference_values = json.load(f)
 
         for node in main_model_part.Nodes:
             distance_gradient = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
@@ -93,7 +67,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
 
         ## Serial partition of the original .mdpa file
         input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_serializer")
-        self._ReadModelPart(input_filename, main_model_part)
+        ReadModelPart(input_filename, main_model_part)
 
         ParallelFillCommunicator = KratosMultiphysics.mpi.ParallelFillCommunicator(main_model_part)
         ParallelFillCommunicator.Execute()
@@ -113,7 +87,8 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         ## Read reference
         file_name = "auxiliar_files_for_python_unittest/reference_files/test_compute_nodal_gradient_process_results.json"
         reference_file_name = GetFilePath(file_name)
-        reference_values = json.load(open(reference_file_name, 'r'))
+        with open(reference_file_name, 'r') as f:
+            reference_values = json.load(f)
 
         for node in main_model_part.Nodes:
             distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
