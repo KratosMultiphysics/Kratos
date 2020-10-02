@@ -32,6 +32,23 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
     // Set to zero
     ClearGradient();
 
+    if (mrModelPart.NumberOfElements() != 0) {
+        ComputeElementalContributionsAndVolume();
+    }
+
+    SynchronizeGradientAndVolume();
+
+    PonderateGradient();
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool THistorical>
+void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndVolume() {
+
     // Auxiliar containers
     Matrix DN_DX, J0, InvJ0;
     Vector N, values;
@@ -119,13 +136,8 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         }
     }
 
-    SynchronizeGradientAndVolume();
-
-    PonderateGradient();
-
     delete p_variable_retriever;
 
-    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
