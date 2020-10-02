@@ -20,6 +20,11 @@ try:
 except ImportError:
      interpolation_imports_available = False
 
+try:
+     import FluidDEMTestFactory as FDEMTF
+     fluid_DEM_coupling_imports_available = True
+except ImportError:
+     fluid_DEM_coupling_imports_available = False
 # List of tests that are available
 available_tests = []
 
@@ -63,6 +68,12 @@ if interpolation_imports_available:
 
      available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 
+if fluid_DEM_coupling_imports_available:
+     class fluid_dem_coupling_one_way_test(FDEMTF.TestFactory):
+          file_name = "fluid_dem_tests/settling_cube"
+          file_parameters = "fluid_dem_tests/ProjectParameters.json"
+
+     available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 
 def SetTestSuite(suites):
     night_suite = suites['nightly']
@@ -79,5 +90,5 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DETAIL)
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
