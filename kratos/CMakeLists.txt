@@ -7,6 +7,7 @@ SET(ListFolders conditions constraints containers elements factories geometries 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_smoothing_process.cpp # This wasn't in the original list for some reason
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp # This wasn't in the original list for some reason
 )
