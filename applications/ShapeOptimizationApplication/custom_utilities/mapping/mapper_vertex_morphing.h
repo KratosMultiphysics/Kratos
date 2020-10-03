@@ -378,6 +378,7 @@ protected:
     FilterFunction::Pointer mpFilterFunction;
     bool mIsMappingInitialized = false;
     SparseMatrixType mMappingMatrix;
+    KDTree::Pointer mpSearchTree;
 
     ///@}
     ///@name Protected Operators
@@ -440,6 +441,19 @@ protected:
         }
     }
 
+    // --------------------------------------------------------------------------
+    virtual void InitializeMappingVariables()
+    {
+        const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
+        const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
+
+        mMappingMatrix.resize(destination_node_number,origin_node_number,false);
+        mMappingMatrix.clear();
+
+        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
+        mValuesDestination.resize(3,ZeroVector(destination_node_number));
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -469,7 +483,6 @@ private:
     // Variables for spatial search
     unsigned int mBucketSize = 100;
     NodeVector mListOfNodesInOriginModelPart;
-    KDTree::Pointer mpSearchTree;
 
     // Variables for mapping
     std::vector<Vector> mValuesOrigin;
@@ -503,19 +516,6 @@ private:
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
         mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
-    }
-
-    // --------------------------------------------------------------------------
-    void InitializeMappingVariables()
-    {
-        const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
-        const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
-
-        mMappingMatrix.resize(destination_node_number,origin_node_number,false);
-        mMappingMatrix.clear();
-
-        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
-        mValuesDestination.resize(3,ZeroVector(destination_node_number));
     }
 
     // --------------------------------------------------------------------------

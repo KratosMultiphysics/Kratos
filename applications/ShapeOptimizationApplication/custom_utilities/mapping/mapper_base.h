@@ -98,10 +98,22 @@ public:
   virtual void Map(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) = 0;
 
   // --------------------------------------------------------------------------
+  virtual void Map( const Variable<double> &rOriginVariable, const Variable<array_3d> &rDestinationVariable)
+  {
+      KRATOS_ERROR << "Not implemented!" << std::endl;
+  };
+
+  // --------------------------------------------------------------------------
   virtual void InverseMap(const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable) = 0;
 
   // --------------------------------------------------------------------------
   virtual void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) = 0;
+
+  // --------------------------------------------------------------------------
+  virtual void InverseMap(const Variable<array_3d> &rDestinationVariable, const Variable<double> &rOriginVariable)
+  {
+      KRATOS_ERROR << "Not implemented!" << std::endl;
+  };
 
   // --------------------------------------------------------------------------
 

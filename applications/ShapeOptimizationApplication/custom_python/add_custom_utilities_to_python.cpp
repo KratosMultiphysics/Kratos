@@ -29,6 +29,7 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_mesh_independent.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_normal.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -49,7 +50,6 @@ inline void MapVector(TMapper& mapper,
 {
     mapper.Map(origin_variable, destination_variable);
 }
-
 template<typename TMapper>
 inline void MapScalar(TMapper& mapper,
                 const Variable< double >& origin_variable,
@@ -57,20 +57,35 @@ inline void MapScalar(TMapper& mapper,
 {
     mapper.Map(origin_variable, destination_variable);
 }
+template<typename TMapper>
+inline void MapMixed(TMapper& mapper,
+                const Variable< double >& origin_variable,
+                const Variable< array_1d<double, 3> >& destination_variable)
+{
+    mapper.Map(origin_variable, destination_variable);
+}
+
 
 template<typename TMapper>
 inline void InverseMapVector(TMapper& mapper,
-                       const Variable< array_1d<double, 3> >& origin_variable,
-                       const Variable< array_1d<double, 3> >& destination_variable)
+                       const Variable< array_1d<double, 3> >& destination_variable,
+                       const Variable< array_1d<double, 3> >& origin_variable)
 {
-    mapper.InverseMap(origin_variable, destination_variable);
+    mapper.InverseMap(destination_variable, origin_variable);
 }
 template<typename TMapper>
 inline void InverseMapScalar(TMapper& mapper,
-                       const Variable< double >& origin_variable,
-                       const Variable< double >& destination_variable)
+                       const Variable< double >& destination_variable,
+                       const Variable< double >& origin_variable)
 {
-    mapper.InverseMap(origin_variable, destination_variable);
+    mapper.InverseMap(destination_variable, origin_variable);
+}
+template<typename TMapper>
+inline void InverseMapMixed(TMapper& mapper,
+                       const Variable< array_1d<double, 3> >& destination_variable,
+                       const Variable< double >& origin_variable)
+{
+    mapper.InverseMap(destination_variable, origin_variable);
 }
 
 inline void ComputeSearchDirectionSteepestDescentScalar(OptimizationUtilities& utils, const Variable<double>& rSearchDirection, const Variable<double>& rObjectiveGradient)
@@ -199,16 +214,6 @@ inline void AssignVectorToVectorVariable(OptimizationUtilities& util, const Vect
     util.AssignVectorToVariable(rVector, rVariable);
 }
 
-inline void AssembleScalarsToMatrix(OptimizationUtilities& util, Matrix& rMatrix, const std::vector<Variable<double>*>& rVariables)
-{
-    util.AssembleMatrix(rMatrix, rVariables);
-}
-inline void AssembleVectorsToMatrix(OptimizationUtilities& util, Matrix& rMatrix, const std::vector<Variable<array_1d<double, 3>>*>& rVariables)
-{
-    util.AssembleMatrix(rMatrix, rVariables);
-}
-
-
 // ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -253,6 +258,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphingMeshIndependent>)
         .def("InverseMap", InverseMapVector<MapperVertexMorphingMeshIndependent>)
         ;
+    py::class_<MapperVertexMorphingNormal >(m, "MapperVertexMorphingNormal")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingNormal::Initialize)
+        .def("Update", &MapperVertexMorphingNormal::Update)
+        .def("Map", MapMixed<MapperVertexMorphingNormal>)
+        .def("InverseMap", InverseMapMixed<MapperVertexMorphingNormal>)
+        ;
 
     // ================================================================
     // For a possible damping of nodal variables
@@ -293,10 +305,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
         .def("AssembleVector", &AssembleVectorToVector)
         .def("AssignVectorToVariable", &AssignVectorToVectorVariable)
-        .def("AssembleMatrix", &AssembleMatrixForVectorVariableList)
+        .def("AssembleMatrixForVector", &AssembleMatrixForVectorVariableList)
         .def("AssembleVector", &AssembleScalarToVector)
         .def("AssignVectorToVariable", &AssignVectorToScalarVariable)
-        .def("AssembleMatrix", &AssembleMatrixForScalarVariableList)
+        .def("AssembleMatrixForScalar", &AssembleMatrixForScalarVariableList)
         .def("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
 
