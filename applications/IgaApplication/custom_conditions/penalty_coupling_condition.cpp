@@ -130,67 +130,163 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        // // definition of problem size
-        // const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
-        // const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
+        // definition of problem size
+        const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
+        const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
-        // // Size definitions
-        // const SizeType number_of_nodes_master = r_geometry_master.size();
-        // const SizeType number_of_nodes_slave = r_geometry_slave.size();
+        // Size definitions
+        const SizeType number_of_nodes_master = r_geometry_master.size();
+        const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        // const SizeType mat_size = 3 * (number_of_nodes_master + number_of_nodes_slave);
+        const SizeType mat_size = 3 * (number_of_nodes_master + number_of_nodes_slave);
 
-        // // KRATOS_WATCH(rDampingMatrix.size1())
+        if (rDampingMatrix.size1() != mat_size)
+            rDampingMatrix.resize(mat_size, mat_size, false);
 
-        // if (rDampingMatrix.size1() != mat_size)
-        //     rDampingMatrix.resize(mat_size, mat_size, false);
+        noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
 
-        // noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
+        // 1.-Get Damping Coeffitients (RAYLEIGH_BETA)
 
-        // KRATOS_WATCH(mat_size)
-        // KRATOS_WATCH(rDampingMatrix)
+        double beta = 0.0;
+        if (GetProperties().Has(RAYLEIGH_BETA))
+            beta = GetProperties()[RAYLEIGH_BETA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 
-        // // 1.-Get Damping Coeffitients (RAYLEIGH_BETA)
+        //Rayleigh Damping Matrix: alpha*M + beta*K
 
-        // double beta = 0.0;
-        // if (GetProperties().Has(RAYLEIGH_BETA))
-        //     beta = GetProperties()[RAYLEIGH_BETA];
-        // else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
-        //     beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+        //2.-Calculate StiffnessMatrix:
+        if (beta > 0.0)
+        {
+            //MatrixType StiffnessMatrix = Matrix();
+            Condition::MatrixType StiffnessMatrix;
 
-        // Rayleigh Damping Matrix: alpha*M + beta*K
+            if (StiffnessMatrix.size1() != mat_size)
+                StiffnessMatrix.resize(mat_size, mat_size);
+            noalias(StiffnessMatrix) = ZeroMatrix(mat_size, mat_size);
 
-        // 2.-Calculate StiffnessMatrix:
-        // if (beta > 0.0)
-        // {
-        //     //MatrixType StiffnessMatrix = Matrix();
-        //     Condition::MatrixType StiffnessMatrix;
+            //VectorType ResidualVector = Vector();
+            Condition::VectorType ResidualVector;
 
-        //     if (StiffnessMatrix.size1() != mat_size)
-        //         StiffnessMatrix.resize(mat_size, mat_size);
-        //     noalias(StiffnessMatrix) = ZeroMatrix(mat_size, mat_size);
+            if (ResidualVector.size() != mat_size)
+                ResidualVector.resize(mat_size);
+            noalias(ResidualVector) = ZeroVector(mat_size);
 
-        //     // //VectorType ResidualVector = Vector();
-        //     Condition::VectorType ResidualVector;
+            this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
 
-        //     if (ResidualVector.size() != mat_size)
-        //         ResidualVector.resize(mat_size);
-        //     noalias(ResidualVector) = ZeroVector(mat_size);
-
-        //     std::cout<<"start"<<std::endl;
-
-        //     this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
-        //     //this->CalculateInitialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
-
-        //     std::cout<<"membrane"<<std::endl;
-        //     //KRATOS_WATCH(StiffnessMatrix)
-
-        //     noalias(rDampingMatrix) += beta * StiffnessMatrix;
-
-        //     KRATOS_WATCH(beta)
-        // }
+            noalias(rDampingMatrix) += beta * StiffnessMatrix;
+        }
 
         KRATOS_CATCH("")
+    }
+
+    ///@}
+    ///@name Dynamic Functions
+    ///@{
+
+    void PenaltyCouplingCondition::GetValuesVector(
+        Vector& rValues,
+        int Step) const
+    {
+        const auto r_geometry_master = GetGeometry().GetGeometryPart(0);
+        const auto r_geometry_slave = GetGeometry().GetGeometryPart(1);
+
+        const SizeType number_of_control_points_master = r_geometry_master.size();
+        const SizeType number_of_control_points_slave = r_geometry_slave.size();
+        const SizeType mat_size = (number_of_control_points_master + number_of_control_points_slave) * 3;
+
+        if (rValues.size() != mat_size)
+            rValues.resize(mat_size, false);
+
+        for (IndexType i = 0; i < number_of_control_points_master; ++i)
+        {
+            const array_1d<double, 3 >& displacement = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+            IndexType index = i * 3;
+
+            rValues[index] = displacement[0];
+            rValues[index + 1] = displacement[1];
+            rValues[index + 2] = displacement[2];
+        }
+
+        for (IndexType i = 0; i < number_of_control_points_slave; ++i)
+        {
+            const array_1d<double, 3 >& displacement = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+            IndexType index = 3 * (i + number_of_control_points_master);
+
+            rValues[index] = displacement[0];
+            rValues[index + 1] = displacement[1];
+            rValues[index + 2] = displacement[2];
+        }
+    }
+
+    void PenaltyCouplingCondition::GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step) const
+    {
+        const auto r_geometry_master = GetGeometry().GetGeometryPart(0);
+        const auto r_geometry_slave = GetGeometry().GetGeometryPart(1);
+
+        const SizeType number_of_control_points_master = r_geometry_master.size();
+        const SizeType number_of_control_points_slave = r_geometry_slave.size();
+        const SizeType mat_size = (number_of_control_points_master + number_of_control_points_slave) * 3;
+
+        if (rValues.size() != mat_size)
+            rValues.resize(mat_size, false);
+
+        for (IndexType i = 0; i < number_of_control_points_master; ++i)
+        {
+            const array_1d<double, 3 >& velocity = r_geometry_master[i].FastGetSolutionStepValue(VELOCITY, Step);
+            IndexType index = i * 3;
+
+            rValues[index] = velocity[0];
+            rValues[index + 1] = velocity[1];
+            rValues[index + 2] = velocity[2];
+        }
+
+        for (IndexType i = 0; i < number_of_control_points_slave; ++i)
+        {
+            const array_1d<double, 3 >& velocity = r_geometry_slave[i].FastGetSolutionStepValue(VELOCITY, Step);
+            IndexType index = 3 * (i + number_of_control_points_master);
+
+            rValues[index] = velocity[0];
+            rValues[index + 1] = velocity[1];
+            rValues[index + 2] = velocity[2];
+        }
+    }
+
+    void PenaltyCouplingCondition::GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step) const
+    {
+        const auto r_geometry_master = GetGeometry().GetGeometryPart(0);
+        const auto r_geometry_slave = GetGeometry().GetGeometryPart(1);
+
+        const SizeType number_of_control_points_master = r_geometry_master.size();
+        const SizeType number_of_control_points_slave = r_geometry_slave.size();
+        const SizeType mat_size = (number_of_control_points_master + number_of_control_points_slave) * 3;
+
+        if (rValues.size() != mat_size)
+            rValues.resize(mat_size, false);
+
+        for (IndexType i = 0; i < number_of_control_points_master; ++i)
+        {
+            const array_1d<double, 3 >& acceleration = r_geometry_master[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            IndexType index = i * 3;
+
+            rValues[index] = acceleration[0];
+            rValues[index + 1] = acceleration[1];
+            rValues[index + 2] = acceleration[2];
+        }
+
+        for (IndexType i = 0; i < number_of_control_points_slave; ++i)
+        {
+            const array_1d<double, 3 >& acceleration = r_geometry_slave[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            IndexType index = 3 * (i + number_of_control_points_master);
+
+            rValues[index] = acceleration[0];
+            rValues[index + 1] = acceleration[1];
+            rValues[index + 2] = acceleration[2];
+        }
     }
 
     void PenaltyCouplingCondition::EquationIdVector(

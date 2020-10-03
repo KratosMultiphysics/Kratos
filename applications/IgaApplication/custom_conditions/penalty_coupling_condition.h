@@ -210,6 +210,22 @@ public:
     ) override;
 
     ///@}
+    ///@name Base Class Operations
+    ///@{
+
+    void GetValuesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    ///@}
     ///@name Input and output
     ///@{
 
