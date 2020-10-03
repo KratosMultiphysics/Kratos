@@ -287,6 +287,16 @@ public:
         ProcessInfo& rCurrentProcessInfo
     );
 
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     ///@}
     ///@name Base Class Operations
     ///@{
@@ -294,6 +304,14 @@ public:
     void Initialize() override;
 
     void GetValuesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+    
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0) const override;
 
