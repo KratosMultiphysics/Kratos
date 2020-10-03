@@ -295,6 +295,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             if self.__isConstraintActive(constraint):
                 identifier = constraint["identifier"].GetString()
                 constraint_value = self.communicator.getStandardizedValue(identifier)
+                if self.__isGradientNormZero(constraint):
+                    KM.Logger.PrintWarning("ShapeOpt", f"Constraint '{identifier}' is active (value={constraint_value}), but gradient norm is zero. Will not be considered!")
+                    continue
                 active_constraint_values.append(constraint_value)
                 active_constraint_variables.append(
                     self.constraint_gradient_variables[identifier]["mapped_gradient"])
@@ -313,13 +316,11 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             return False
 
     # --------------------------------------------------------------------------
-    def __logCurrentOptimizationStep(self):
-        additional_values_to_log = {}
-        additional_values_to_log["step_size"] = self.step_size
-        additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self._SEARCH_DIRECTION)
-        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self._CORRECTION)
-        self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
-        self.data_logger.LogCurrentDesign(self.optimization_iteration)
+    def __isGradientNormZero(self, constraint):
+        identifier = constraint["identifier"].GetString()
+        gradient = self.communicator.getStandardizedGradient(identifier)
+        max_abs_gradient_value = max(map(lambda x: max(x, key=abs), gradient.values()), key=abs)
+        return max_abs_gradient_value == 0.0
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
