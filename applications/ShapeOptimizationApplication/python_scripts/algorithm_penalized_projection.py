@@ -167,11 +167,11 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
         constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
         if self.__isConstraintActive(constraint_value):
-            self.optimization_utilities.ComputeProjectedSearchDirection()
-            self.optimization_utilities.CorrectProjectedSearchDirection(constraint_value)
+            self.optimization_utilities.ComputeProjectedSearchDirection(KSO.SEARCH_DIRECTION, KSO.DF1DX_MAPPED, KSO.DC1DX_MAPPED)
+            self.optimization_utilities.CorrectProjectedSearchDirection(constraint_value, KSO.SEARCH_DIRECTION, KSO.DC1DX_MAPPED)
         else:
-            self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
-        self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
+            self.optimization_utilities.ComputeSearchDirectionSteepestDescent(KSO.SEARCH_DIRECTION, KSO.DF1DX_MAPPED)
+        self.optimization_utilities.ComputeControlPointUpdate(self.step_size, KSO.SEARCH_DIRECTION, KSO.CONTROL_POINT_UPDATE)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)

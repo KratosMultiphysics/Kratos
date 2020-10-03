@@ -202,8 +202,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
-        self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
-        self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
+        self.optimization_utilities.ComputeSearchDirectionSteepestDescent(KSO.SEARCH_DIRECTION, KSO.DF1DX_MAPPED)
+        self.optimization_utilities.ComputeControlPointUpdate(self.step_size, KSO.SEARCH_DIRECTION, KSO.CONTROL_POINT_UPDATE)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)

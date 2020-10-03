@@ -73,6 +73,56 @@ inline void InverseMapScalar(TMapper& mapper,
     mapper.InverseMap(origin_variable, destination_variable);
 }
 
+inline void ComputeSearchDirectionSteepestDescentScalar(OptimizationUtilities& utils, const Variable<double>& rSearchDirection, const Variable<double>& rObjectiveGradient)
+{
+    return utils.ComputeSearchDirectionSteepestDescent(rSearchDirection, rObjectiveGradient);
+}
+
+inline void ComputeSearchDirectionSteepestDescentVector(OptimizationUtilities& utils, const Variable<array_1d<double, 3>>& rSearchDirection, const Variable<array_1d<double, 3>>& rObjectiveGradient)
+{
+    return utils.ComputeSearchDirectionSteepestDescent(rSearchDirection, rObjectiveGradient);
+}
+
+inline void ComputeProjectedSearchDirectionScalar(OptimizationUtilities& utils, const Variable<double>& rSearchDirection, const Variable<double>& rObjectiveGradient, const Variable<double>& rConstraintGradient)
+{
+    return utils.ComputeProjectedSearchDirection(rSearchDirection, rObjectiveGradient, rConstraintGradient);
+}
+
+inline void ComputeProjectedSearchDirectionVector(OptimizationUtilities& utils, const Variable<array_1d<double, 3>>& rSearchDirection, const Variable<array_1d<double, 3>>& rObjectiveGradient, const Variable<array_1d<double, 3>>& rConstraintGradient)
+{
+    return utils.ComputeProjectedSearchDirection(rSearchDirection, rObjectiveGradient, rConstraintGradient);
+}
+
+inline void CorrectProjectedSearchDirectionScalar(OptimizationUtilities& utils, double ConstraintValue, const Variable<double>& rSearchDirection, const Variable<double>& rConstraintGradient)
+{
+    return utils.CorrectProjectedSearchDirection(ConstraintValue, rSearchDirection, rConstraintGradient);
+}
+
+inline void CorrectProjectedSearchDirectionVector(OptimizationUtilities& utils, double ConstraintValue, const Variable<array_1d<double, 3>>& rSearchDirection, const Variable<array_1d<double, 3>>& rConstraintGradient)
+{
+    return utils.CorrectProjectedSearchDirection(ConstraintValue, rSearchDirection, rConstraintGradient);
+}
+
+inline void ComputeControlPointUpdateScalar(OptimizationUtilities& utils, const double StepSize, const Variable<double>& rSearchDirection, const Variable<double>& rControlUpdate)
+{
+    return utils.ComputeControlPointUpdate(StepSize, rSearchDirection, rControlUpdate);
+}
+
+inline void ComputeControlPointUpdateVector(OptimizationUtilities& utils, const double StepSize, const Variable<array_1d<double, 3>>& rSearchDirection, const Variable<array_1d<double, 3>>& rControlUpdate)
+{
+    return utils.ComputeControlPointUpdate(StepSize, rSearchDirection, rControlUpdate);
+}
+
+inline void AddFirstVariableToSecondVariableScalar(OptimizationUtilities& utils, const Variable<double>& rVariable1, const Variable<double>& rVariable2)
+{
+    return utils.AddFirstVariableToSecondVariable(rVariable1, rVariable2);
+}
+
+inline void AddFirstVariableToSecondVariableVector(OptimizationUtilities& utils, const Variable<array_1d<double, 3>>& rVariable1, const Variable<array_1d<double, 3>>& rVariable2)
+{
+    return utils.AddFirstVariableToSecondVariable(rVariable1, rVariable2);
+}
+
 inline double ComputeL2NormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
 {
     return utils.ComputeL2NormOfNodalVariable(variable);
@@ -93,7 +143,21 @@ inline double ComputeMaxNormVector(OptimizationUtilities& utils, const Variable<
     return utils.ComputeMaxNormOfNodalVariable(variable);
 }
 
-inline void AssembleMatrixForVariableList(
+inline void AssembleMatrixForScalarVariableList(
+    OptimizationUtilities& utils,
+    Matrix& rMatrix,
+    pybind11::list& rVariables)
+{
+    std::size_t list_length = pybind11::len(rVariables);
+    std::vector<Variable<double>*> variables_vector(list_length);
+    for (std::size_t i = 0; i < list_length; i++)
+    {
+        variables_vector[i] = (rVariables[i]).cast<Variable<double>*>();
+    }
+    return utils.AssembleMatrix(rMatrix, variables_vector);
+}
+
+inline void AssembleMatrixForVectorVariableList(
     OptimizationUtilities& utils,
     Matrix& rMatrix,
     pybind11::list& rVariables)
@@ -116,6 +180,34 @@ inline void IntegrateVectorVariable(LumpedIntegrationUtility& util, const Variab
 {
     util.Integrate(variable);
 }
+
+inline void AssembleScalarToVector(OptimizationUtilities& util, Vector& rVector, const Variable<double> &rVariable)
+{
+    util.AssembleVector(rVector, rVariable);
+}
+inline void AssembleVectorToVector(OptimizationUtilities& util, Vector& rVector, const Variable<array_1d<double, 3>> &rVariable)
+{
+    util.AssembleVector(rVector, rVariable);
+}
+
+inline void AssignVectorToScalarVariable(OptimizationUtilities& util, const Vector& rVector, const Variable<double> &rVariable)
+{
+    util.AssignVectorToVariable(rVector, rVariable);
+}
+inline void AssignVectorToVectorVariable(OptimizationUtilities& util, const Vector& rVector, const Variable<array_1d<double, 3>> &rVariable)
+{
+    util.AssignVectorToVariable(rVector, rVariable);
+}
+
+inline void AssembleScalarsToMatrix(OptimizationUtilities& util, Matrix& rMatrix, const std::vector<Variable<double>*>& rVariables)
+{
+    util.AssembleMatrix(rMatrix, rVariables);
+}
+inline void AssembleVectorsToMatrix(OptimizationUtilities& util, Matrix& rMatrix, const std::vector<Variable<array_1d<double, 3>>*>& rVariables)
+{
+    util.AssembleMatrix(rMatrix, rVariables);
+}
+
 
 // ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
@@ -178,25 +270,33 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
-        .def("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
+        .def("ComputeSearchDirectionSteepestDescent", &ComputeSearchDirectionSteepestDescentScalar)
+        .def("ComputeSearchDirectionSteepestDescent", &ComputeSearchDirectionSteepestDescentVector)
         // ----------------------------------------------------------------
         // For running penalized projection method
         // ----------------------------------------------------------------
-        .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
-        .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
+        .def("ComputeProjectedSearchDirection", &ComputeProjectedSearchDirectionScalar)
+        .def("ComputeProjectedSearchDirection", &ComputeProjectedSearchDirectionVector)
+        .def("CorrectProjectedSearchDirection", &CorrectProjectedSearchDirectionScalar)
+        .def("CorrectProjectedSearchDirection", &CorrectProjectedSearchDirectionVector)
         .def("GetCorrectionScaling", &OptimizationUtilities::GetCorrectionScaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
-        .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
-        .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
+        .def("ComputeControlPointUpdate", &ComputeControlPointUpdateScalar)
+        .def("ComputeControlPointUpdate", &ComputeControlPointUpdateVector)
+        .def("AddFirstVariableToSecondVariable", &AddFirstVariableToSecondVariableScalar)
+        .def("AddFirstVariableToSecondVariable", &AddFirstVariableToSecondVariableVector)
         .def("ComputeL2NormOfNodalVariable", ComputeL2NormScalar)
         .def("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
         .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
         .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
-        .def("AssembleVector", &OptimizationUtilities::AssembleVector)
-        .def("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
-        .def("AssembleMatrix", &AssembleMatrixForVariableList)
+        .def("AssembleVector", &AssembleVectorToVector)
+        .def("AssignVectorToVariable", &AssignVectorToVectorVariable)
+        .def("AssembleMatrix", &AssembleMatrixForVectorVariableList)
+        .def("AssembleVector", &AssembleScalarToVector)
+        .def("AssignVectorToVariable", &AssignVectorToScalarVariable)
+        .def("AssembleMatrix", &AssembleMatrixForScalarVariableList)
         .def("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
 
