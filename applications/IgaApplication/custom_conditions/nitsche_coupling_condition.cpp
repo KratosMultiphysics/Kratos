@@ -141,10 +141,8 @@ namespace Kratos
         }
 
         rKinematicVariables.t = local_tangents[0]*g1 + local_tangents[1]*g2;
-        rKinematicVariables.t = rKinematicVariables.t/norm_2(rKinematicVariables.t);
 
-
-        MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t, rKinematicVariables.a3);
+        MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t/norm_2(rKinematicVariables.t), rKinematicVariables.a3);
 
         // transform the normal into the contavariant basis
         rKinematicVariables.n_contravariant[0] = rKinematicVariables.a1[0]*rKinematicVariables.n[0] + rKinematicVariables.a1[1]*rKinematicVariables.n[1] + rKinematicVariables.a1[2]*rKinematicVariables.n[2];
@@ -633,7 +631,7 @@ namespace Kratos
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
             //const double determinat_jacobian = r_geometry_master.DeterminantOfJacobian(point_number);
-            const double determinat_jacobian = norm_2(kinematic_variables_reference_master.a2);
+            const double determinat_jacobian = norm_2(kinematic_variables_reference_master.t);
 
             const double gammaTilde = 0.5;
 
