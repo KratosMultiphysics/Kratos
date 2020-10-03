@@ -394,8 +394,6 @@ public:
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
         }
-
-        std::cout<<"here we go again"<<std::endl;
         
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 5;
         TSparseSpace::SetToZero(rQMatrix);
