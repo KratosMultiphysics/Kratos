@@ -154,7 +154,6 @@ int UPwBaseElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 //void UPwBaseElement<TDim,TNumNodes>::Initialize()
 void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
@@ -183,6 +182,7 @@ void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProce
        for (unsigned int i=0; i < mStressVector.size(); ++i)
        {
            mStressVector[i].resize(VoigtSize);
+           std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
        }
     }
 
@@ -237,6 +237,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwBaseElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
+    //return GetGeometry().GetDefaultIntegrationMethod();
 }
 
 //----------------------------------------------------------------------------------------
@@ -571,7 +572,7 @@ void UPwBaseElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
     SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
@@ -590,7 +591,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
     SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
@@ -610,7 +611,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 }
 
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
     SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
@@ -746,7 +747,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
@@ -809,7 +810,7 @@ Matrix& UPwBaseElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwBaseElement<2,3>;
 template class UPwBaseElement<2,4>;

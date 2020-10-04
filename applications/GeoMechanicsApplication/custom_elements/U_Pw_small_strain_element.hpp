@@ -83,6 +83,7 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;

@@ -130,7 +130,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" );
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     UpdateElementalVariableStressVector(ElementVariables& rVariables, unsigned int PointNumber)
@@ -148,7 +148,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     UpdateElementalVariableStressVector(Vector &StressVector, unsigned int PointNumber)
@@ -165,7 +165,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     UpdateStressVector(const ElementVariables &rVariables, unsigned int PointNumber)
@@ -183,7 +183,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     UpdateStressVector(const Vector &StressVector, unsigned int PointNumber)
@@ -201,10 +201,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainElement::InitializeSolutionStep()") << std::endl;
@@ -263,7 +263,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeSolutionStep(const Process
 }
 
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
@@ -326,7 +326,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
@@ -341,7 +341,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
@@ -786,7 +786,7 @@ void UPwSmallStrainElement<3,8>::
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateOnIntegrationPoints( const Variable<double>& rVariable,
@@ -1136,7 +1136,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
@@ -1766,7 +1766,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
 template class UPwSmallStrainElement<2,3>;
 template class UPwSmallStrainElement<2,4>;
