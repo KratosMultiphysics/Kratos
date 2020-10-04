@@ -28,10 +28,31 @@
 
 namespace Kratos
 {
+template<>
+ModelPart::NodesContainerType& AssembleUtilities::GetContainer<ModelPart::NodesContainerType>(
+    ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
+}
+
+template<>
+ModelPart::ElementsContainerType& AssembleUtilities::GetContainer<ModelPart::ElementsContainerType>(
+    ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template<>
+ModelPart::ConditionsContainerType& AssembleUtilities::GetContainer<ModelPart::ConditionsContainerType>(
+    ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
 void AssembleUtilities::AssembleCurrentDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
-    const TMap<int>& rNodalValuesMap) const
+    const TGPMap<NodeType, int>& rNodalValuesMap) const
 {
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
@@ -42,7 +63,7 @@ void AssembleUtilities::AssembleCurrentDataWithValuesMap(
 void AssembleUtilities::AssembleCurrentDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const TMap<double>& rNodalValuesMap) const
+    const TGPMap<NodeType, double>& rNodalValuesMap) const
 {
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
@@ -53,7 +74,7 @@ void AssembleUtilities::AssembleCurrentDataWithValuesMap(
 void AssembleUtilities::AssembleCurrentDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rVariable,
-    const TMap<array_1d<double, 3>>& rNodalValuesMap) const
+    const TGPMap<NodeType, array_1d<double, 3>>& rNodalValuesMap) const
 {
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
@@ -64,91 +85,91 @@ void AssembleUtilities::AssembleCurrentDataWithValuesMap(
 void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
-    const TMap<int>& rNodalValuesMap) const
+    const TGPMap<NodeType, int>& rNodalValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Nodes(), rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<int, NodeType>);
+        AssembleUtilities::UpdateNonHistoricalValue<NodeType, int>);
 }
 
 void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const TMap<double>& rNodalValuesMap) const
+    const TGPMap<NodeType, double>& rNodalValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Nodes(), rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<double, NodeType>);
+        AssembleUtilities::UpdateNonHistoricalValue<NodeType, double>);
 }
 
 void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rVariable,
-    const TMap<array_1d<double, 3>>& rNodalValuesMap) const
+    const TGPMap<NodeType, array_1d<double, 3>>& rNodalValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Nodes(), rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, NodeType>);
+        AssembleUtilities::UpdateNonHistoricalValue<NodeType, array_1d<double, 3>>);
 }
 
 void AssembleUtilities::AssembleElementDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
-    const TMap<int>& rElementValuesMap) const
+    const TGPMap<ElementType, int>& rElementValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Elements(), rVariable, rElementValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<int, ElementType>);
+        AssembleUtilities::UpdateNonHistoricalValue<ElementType, int>);
 }
 
 void AssembleUtilities::AssembleElementDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const TMap<double>& rElementValuesMap) const
+    const TGPMap<ElementType, double>& rElementValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Elements(), rVariable, rElementValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<double, ElementType>);
+        AssembleUtilities::UpdateNonHistoricalValue<ElementType, double>);
 }
 
 void AssembleUtilities::AssembleElementDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rVariable,
-    const TMap<array_1d<double, 3>>& rElementValuesMap) const
+    const TGPMap<ElementType, array_1d<double, 3>>& rElementValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Elements(), rVariable, rElementValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, ElementType>);
+        AssembleUtilities::UpdateNonHistoricalValue<ElementType, array_1d<double, 3>>);
 }
 
 void AssembleUtilities::AssembleConditionDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
-    const TMap<int>& rConditionValuesMap) const
+    const TGPMap<ConditionType, int>& rConditionValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Conditions(), rVariable, rConditionValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<int, ConditionType>);
+        AssembleUtilities::UpdateNonHistoricalValue<ConditionType, int>);
 }
 
 void AssembleUtilities::AssembleConditionDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const TMap<double>& rConditionValuesMap) const
+    const TGPMap<ConditionType, double>& rConditionValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Conditions(), rVariable, rConditionValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<double, ConditionType>);
+        AssembleUtilities::UpdateNonHistoricalValue<ConditionType, double>);
 }
 
 void AssembleUtilities::AssembleConditionDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rVariable,
-    const TMap<array_1d<double, 3>>& rConditionValuesMap) const
+    const TGPMap<ConditionType, array_1d<double, 3>>& rConditionValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
         rModelPart.Conditions(), rVariable, rConditionValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, ConditionType>);
+        AssembleUtilities::UpdateNonHistoricalValue<ConditionType, array_1d<double, 3>>);
 }
 
 } // namespace Kratos

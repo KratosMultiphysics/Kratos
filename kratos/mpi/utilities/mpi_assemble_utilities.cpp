@@ -25,7 +25,7 @@ namespace Kratos
 void MPIAssembleUtilities::AssembleCurrentDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
-    const TMap<int>& rNodalValuesMap) const
+    const TGPMap<NodeType, int>& rNodalValuesMap) const
 {
     BaseType::CheckHistoricalVariable(rModelPart, rVariable);
 
@@ -40,7 +40,7 @@ void MPIAssembleUtilities::AssembleCurrentDataWithValuesMap(
 void MPIAssembleUtilities::AssembleCurrentDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const TMap<double>& rNodalValuesMap) const
+    const TGPMap<NodeType, double>& rNodalValuesMap) const
 {
     BaseType::CheckHistoricalVariable(rModelPart, rVariable);
 
@@ -55,7 +55,7 @@ void MPIAssembleUtilities::AssembleCurrentDataWithValuesMap(
 void MPIAssembleUtilities::AssembleCurrentDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rVariable,
-    const TMap<array_1d<double, 3>>& rNodalValuesMap) const
+    const TGPMap<NodeType, array_1d<double, 3>>& rNodalValuesMap) const
 {
     BaseType::CheckHistoricalVariable(rModelPart, rVariable);
 
@@ -70,110 +70,110 @@ void MPIAssembleUtilities::AssembleCurrentDataWithValuesMap(
 void MPIAssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
-    const TMap<int>& rNodalValuesMap) const
+    const TGPMap<NodeType, int>& rNodalValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Nodes();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rNodalValuesMap,
-        BaseType::UpdateNonHistoricalValue<int, NodeType>);
+        BaseType::UpdateNonHistoricalValue<NodeType, int>);
     r_communicator.SynchronizeNonHistoricalVariable(rVariable);
 }
 
 void MPIAssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const TMap<double>& rNodalValuesMap) const
+    const TGPMap<NodeType, double>& rNodalValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Nodes();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rNodalValuesMap,
-        BaseType::UpdateNonHistoricalValue<double, NodeType>);
+        BaseType::UpdateNonHistoricalValue<NodeType, double>);
     r_communicator.SynchronizeNonHistoricalVariable(rVariable);
 }
 
 void MPIAssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rVariable,
-    const TMap<array_1d<double, 3>>& rNodalValuesMap) const
+    const TGPMap<NodeType, array_1d<double, 3>>& rNodalValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Nodes();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rNodalValuesMap,
-        BaseType::UpdateNonHistoricalValue<array_1d<double, 3>, NodeType>);
+        BaseType::UpdateNonHistoricalValue<NodeType, array_1d<double, 3>>);
     r_communicator.SynchronizeNonHistoricalVariable(rVariable);
 }
 
 void MPIAssembleUtilities::AssembleElementDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
-    const TMap<int>& rElementValuesMap) const
+    const TGPMap<ElementType, int>& rElementValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Elements();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rElementValuesMap,
-        BaseType::UpdateNonHistoricalValue<int, ElementType>);
+        BaseType::UpdateNonHistoricalValue<ElementType, int>);
 }
 
 void MPIAssembleUtilities::AssembleElementDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const TMap<double>& rElementValuesMap) const
+    const TGPMap<ElementType, double>& rElementValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Elements();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rElementValuesMap,
-        BaseType::UpdateNonHistoricalValue<double, ElementType>);
+        BaseType::UpdateNonHistoricalValue<ElementType, double>);
 }
 
 void MPIAssembleUtilities::AssembleElementDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rVariable,
-    const TMap<array_1d<double, 3>>& rElementValuesMap) const
+    const TGPMap<ElementType, array_1d<double, 3>>& rElementValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Elements();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rElementValuesMap,
-        BaseType::UpdateNonHistoricalValue<array_1d<double, 3>, ElementType>);
+        BaseType::UpdateNonHistoricalValue<ElementType, array_1d<double, 3>>);
 }
 
 void MPIAssembleUtilities::AssembleConditionDataWithValuesMap(ModelPart& rModelPart,
                                                            const Variable<int>& rVariable,
-                                                           const TMap<int>& rConditionValuesMap) const
+                                                           const TGPMap<ConditionType, int>& rConditionValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Conditions();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rConditionValuesMap,
-        BaseType::UpdateNonHistoricalValue<int, ConditionType>);
+        BaseType::UpdateNonHistoricalValue<ConditionType, int>);
 }
 
 void MPIAssembleUtilities::AssembleConditionDataWithValuesMap(ModelPart& rModelPart,
                                                            const Variable<double>& rVariable,
-                                                           const TMap<double>& rConditionValuesMap) const
+                                                           const TGPMap<ConditionType, double>& rConditionValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Conditions();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rConditionValuesMap,
-        BaseType::UpdateNonHistoricalValue<double, ConditionType>);
+        BaseType::UpdateNonHistoricalValue<ConditionType, double>);
 }
 
 void MPIAssembleUtilities::AssembleConditionDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rVariable,
-    const TMap<array_1d<double, 3>>& rConditionValuesMap) const
+    const TGPMap<ConditionType, array_1d<double, 3>>& rConditionValuesMap) const
 {
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_container = r_communicator.LocalMesh().Conditions();
     MPIAssembleUtilities::MPIAssembleDataWithEntityValuesMap(
         r_container, r_communicator.GetDataCommunicator(), rVariable, rConditionValuesMap,
-        BaseType::UpdateNonHistoricalValue<array_1d<double, 3>, ConditionType>);
+        BaseType::UpdateNonHistoricalValue<ConditionType, array_1d<double, 3>>);
 }
 
 } // namespace Kratos

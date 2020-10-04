@@ -45,8 +45,8 @@ public:
 
     using BaseType = AssembleUtilities;
 
-    template <class TDataType>
-    using TMap = BaseType::TMap<TDataType>;
+    template <class TEntityType, class TDataType>
+    using TGPMap = BaseType::TGPMap<TEntityType, TDataType>;
 
     using NodeType = BaseType::NodeType;
 
@@ -67,62 +67,62 @@ public:
     void AssembleCurrentDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<int>& rVariable,
-        const TMap<int>& rNodalValuesMap) const override;
+        const TGPMap<NodeType, int>& rNodalValuesMap) const override;
 
     void AssembleCurrentDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
-        const TMap<double>& rNodalValuesMap) const override;
+        const TGPMap<NodeType, double>& rNodalValuesMap) const override;
 
     void AssembleCurrentDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<array_1d<double, 3>>& rVariable,
-        const TMap<array_1d<double, 3>>& rNodalValuesMap) const override;
+        const TGPMap<NodeType, array_1d<double, 3>>& rNodalValuesMap) const override;
 
     void AssembleNonHistoricalNodalDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<int>& rVariable,
-        const TMap<int>& rNodalValuesMap) const override;
+        const TGPMap<NodeType, int>& rNodalValuesMap) const override;
 
     void AssembleNonHistoricalNodalDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
-        const TMap<double>& rNodalValuesMap) const override;
+        const TGPMap<NodeType, double>& rNodalValuesMap) const override;
 
     void AssembleNonHistoricalNodalDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<array_1d<double, 3>>& rVariable,
-        const TMap<array_1d<double, 3>>& rNodalValuesMap) const override;
+        const TGPMap<NodeType, array_1d<double, 3>>& rNodalValuesMap) const override;
 
     void AssembleElementDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<int>& rVariable,
-        const TMap<int>& rNodalValuesMap) const override;
+        const TGPMap<ElementType, int>& rNodalValuesMap) const override;
 
     void AssembleElementDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
-        const TMap<double>& rNodalValuesMap) const override;
+        const TGPMap<ElementType, double>& rNodalValuesMap) const override;
 
     void AssembleElementDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<array_1d<double, 3>>& rVariable,
-        const TMap<array_1d<double, 3>>& rNodalValuesMap) const override;
+        const TGPMap<ElementType, array_1d<double, 3>>& rNodalValuesMap) const override;
 
     void AssembleConditionDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<int>& rVariable,
-        const TMap<int>& rNodalValuesMap) const override;
+        const TGPMap<ConditionType, int>& rNodalValuesMap) const override;
 
     void AssembleConditionDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
-        const TMap<double>& rNodalValuesMap) const override;
+        const TGPMap<ConditionType, double>& rNodalValuesMap) const override;
 
     void AssembleConditionDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<array_1d<double, 3>>& rVariable,
-        const TMap<array_1d<double, 3>>& rNodalValuesMap) const override;
+        const TGPMap<ConditionType, array_1d<double, 3>>& rNodalValuesMap) const override;
 
     ///@}
 
@@ -158,49 +158,42 @@ private:
         TContainerType& rLocalContainer,
         const DataCommunicator& rDataCommunicator,
         const Variable<TDataType>& rVariable,
-        const TMap<TDataType>& rEntityValuesMap,
+        const TGPMap<typename TContainerType::value_type, TDataType>& rEntityValuesMap,
         const TUpdateFunction&& rUpdateFunction)
     {
         KRATOS_TRY
 
+        using gp_map_type = TGPMap<typename TContainerType::value_type, TDataType>;
+
         if (!rEntityValuesMap.empty()) {
-            const auto& update_local_entities = [&](const TMap<TDataType>& rValuesMap) {
-                const auto& keys = GetKeys(rValuesMap);
-                IndexPartition<int>(keys.size()).for_each([&](const int Index) {
-                    const int entity_id = keys[Index];
-                    auto p_entity = rLocalContainer.find(entity_id);
-
-                    KRATOS_ERROR_IF(p_entity == rLocalContainer.end())
-                        << "Entity id " << entity_id << " not found in local entities.\n";
-
-                    rUpdateFunction(*p_entity, rVariable,
-                                    rValuesMap.find(entity_id)->second);
+            const auto& update_local_entities = [&](const gp_map_type& rValuesMap) {
+                const auto& entity_gps = BaseType::GetKeys(rValuesMap);
+                IndexPartition<int>(entity_gps.size()).for_each([&](const int Index) {
+                    auto entity_gp = entity_gps[Index];
+                    rUpdateFunction(*entity_gp, rVariable,
+                                    rValuesMap.find(entity_gp)->second);
                 });
             };
 
-            // gather all entity ids, ranks required for communication
-            std::vector<int> entity_ids, entity_ranks;
-            GetEntityIdsAndRanks(entity_ids, entity_ranks, rLocalContainer,
-                                 rDataCommunicator, rEntityValuesMap);
+            const auto& entity_gps = BaseType::GetKeys(rEntityValuesMap);
 
             // compute send and receive ranks ids
             std::vector<int> send_receive_list;
-            TMap<TMap<TDataType>> send_entity_values_map;
-            TMap<TDataType> local_entity_values_map;
+            TMap<gp_map_type> send_entity_values_map;
+            gp_map_type local_entity_values_map;
 
             const int my_rank = rDataCommunicator.Rank();
 
-            for (unsigned int i = 0; i < entity_ids.size(); ++i) {
-                const int entity_rank = entity_ranks[i];
-                const int entity_id = entity_ids[i];
+            for (const auto& entity_gp : entity_gps) {
+                const int entity_rank = entity_gp.GetRank();
                 if (entity_rank != my_rank) {
                     send_receive_list.push_back(entity_rank);
                     auto& entity_values_map = send_entity_values_map[entity_rank];
-                    entity_values_map[entity_id] =
-                        rEntityValuesMap.find(entity_id)->second;
+                    entity_values_map[entity_gp] =
+                        rEntityValuesMap.find(entity_gp)->second;
                 } else {
-                    local_entity_values_map[entity_id] =
-                        rEntityValuesMap.find(entity_id)->second;
+                    local_entity_values_map[entity_gp] =
+                        rEntityValuesMap.find(entity_gp)->second;
                 }
             }
 
@@ -224,109 +217,6 @@ private:
         }
 
         KRATOS_CATCH("");
-    }
-
-    /** Retrieves entity ids and their ranks from all processes in mpi
-     *
-     * Retrieves all entity ids and their ranks from all processes which needs
-     * communicattion for assembly (entity ids are given in the rEntityValuesMap)
-     *
-     * @tparam TContainerType
-     * @tparam TDataType
-     * @param rAllEntityIds         Output all entity ids vector
-     * @param rAllEntityRanks       Output all entity ids' ranks vector
-     * @param rLocalContainer       Local entity container
-     * @param rDataCommunicator     Data communicator
-     * @param rEntityValuesMap      Entity values map with entity_id and values
-     */
-    template <class TContainerType, class TDataType>
-    static void GetEntityIdsAndRanks(
-        std::vector<int>& rAllEntityIds,
-        std::vector<int>& rAllEntityRanks,
-        const TContainerType& rLocalContainer,
-        const DataCommunicator& rDataCommunicator,
-        const TMap<TDataType>& rEntityValuesMap)
-    {
-        KRATOS_TRY
-
-        const int my_rank = rDataCommunicator.Rank();
-        const auto& local_ids = GetKeys(rEntityValuesMap);
-        const auto& all_rank_ids = rDataCommunicator.Gatherv(local_ids, 0);
-
-        rAllEntityIds.clear();
-        if (my_rank == 0) {
-            for (const auto& rank : all_rank_ids) {
-                for (const auto id : rank) {
-                    rAllEntityIds.push_back(id);
-                }
-            }
-            std::sort(rAllEntityIds.begin(), rAllEntityIds.end());
-            auto last = std::unique(rAllEntityIds.begin(), rAllEntityIds.end());
-            rAllEntityIds.erase(last, rAllEntityIds.end());
-        }
-
-        int number_of_communication_ids = rAllEntityIds.size();
-        // now we get all nodes which requires updating in rAllEntityIds in all ranks
-        rDataCommunicator.Broadcast(number_of_communication_ids, 0);
-        if (my_rank != 0) {
-            rAllEntityIds.resize(number_of_communication_ids);
-        }
-        rDataCommunicator.Broadcast(rAllEntityIds, 0);
-
-        // identify ranks which these nodes belongs to
-        std::vector<int> local_entity_ranks(number_of_communication_ids);
-        IndexPartition<int>(number_of_communication_ids).for_each([&](const int Index) {
-            local_entity_ranks[Index] =
-                (rLocalContainer.find(rAllEntityIds[Index]) != rLocalContainer.end())
-                    ? my_rank
-                    : -1;
-        });
-
-        const auto& all_rank_entity_ids =
-            rDataCommunicator.Gatherv(local_entity_ranks, 0);
-        rAllEntityRanks.resize(number_of_communication_ids);
-        block_for_each(rAllEntityRanks, [](int& rRank) { rRank = -1; });
-
-        if (my_rank == 0) {
-            IndexPartition<int>(number_of_communication_ids).for_each([&](const int Index) {
-                for (unsigned int i_rank = 0; i_rank < all_rank_entity_ids.size(); ++i_rank) {
-                    const int entity_rank = all_rank_entity_ids[i_rank][Index];
-                    if (entity_rank > -1) {
-                        if (rAllEntityRanks[Index] == -1) {
-                            rAllEntityRanks[Index] = entity_rank;
-                        } else if (rAllEntityRanks[Index] != entity_rank) {
-                            KRATOS_ERROR
-                                << "Entity id " << rAllEntityIds[Index]
-                                << " does belong to more than one rank, "
-                                << "which is not allowed.\n";
-                        }
-                        break;
-                    }
-                }
-
-                KRATOS_ERROR_IF(rAllEntityRanks[Index] == -1)
-                    << "Entity id " << rAllEntityIds[Index]
-                    << " not found in any of the ranks.\n";
-            });
-        }
-
-        // now broadcast all the entity ranks properly to all ranks
-        rDataCommunicator.Broadcast(rAllEntityRanks, 0);
-
-        KRATOS_CATCH("");
-    }
-
-    template <class TDataType>
-    std::vector<int> static GetKeys(
-        const TMap<TDataType>& rMap)
-    {
-        std::vector<int> keys;
-        keys.reserve(rMap.size());
-        for (const auto& r_item : rMap) {
-            keys.push_back(r_item.first);
-        }
-
-        return keys;
     }
 
     ///@}
