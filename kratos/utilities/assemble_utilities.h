@@ -31,7 +31,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class AssembleUtilities
+class KRATOS_API(KRATOS_CORE) AssembleUtilities
 {
 public:
     ///@name Type Definitions
@@ -56,65 +56,62 @@ public:
     virtual void AssembleCurrentDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<int>& rVariable,
-        const TMap<int>& rNodalValuesMap) const
-    {
-        AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
-        AssembleUtilities::AssembleCurrentDataWithNodalValuesMap(
-            rModelPart, rVariable, rNodalValuesMap,
-            AssembleUtilities::UpdateHistoricalNodalValue<int>);
-    }
+        const TMap<int>& rNodalValuesMap) const;
 
     virtual void AssembleCurrentDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
-        const TMap<double>& rNodalValuesMap) const
-    {
-        AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
-        AssembleUtilities::AssembleCurrentDataWithNodalValuesMap(
-            rModelPart, rVariable, rNodalValuesMap,
-            AssembleUtilities::UpdateHistoricalNodalValue<double>);
-    }
+        const TMap<double>& rNodalValuesMap) const;
 
     virtual void AssembleCurrentDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<array_1d<double, 3>>& rVariable,
-        const TMap<array_1d<double, 3>>& rNodalValuesMap) const
-    {
-        AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
-        AssembleUtilities::AssembleCurrentDataWithNodalValuesMap(
-            rModelPart, rVariable, rNodalValuesMap,
-            AssembleUtilities::UpdateHistoricalNodalValue<array_1d<double, 3>>);
-    }
+        const TMap<array_1d<double, 3>>& rNodalValuesMap) const;
 
-    virtual void AssembleNonHistoricalDataWithValuesMap(
+    virtual void AssembleNonHistoricalNodalDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<int>& rVariable,
-        const TMap<int>& rNodalValuesMap) const
-    {
-        AssembleUtilities::AssembleCurrentDataWithNodalValuesMap(
-            rModelPart, rVariable, rNodalValuesMap,
-            AssembleUtilities::UpdateNonHistoricalNodalValue<int>);
-    }
+        const TMap<int>& rNodalValuesMap) const;
 
-    virtual void AssembleNonHistoricalDataWithValuesMap(
+    virtual void AssembleNonHistoricalNodalDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
-        const TMap<double>& rNodalValuesMap) const
-    {
-        AssembleUtilities::AssembleCurrentDataWithNodalValuesMap(
-            rModelPart, rVariable, rNodalValuesMap,
-            AssembleUtilities::UpdateNonHistoricalNodalValue<double>);
-    }
+        const TMap<double>& rNodalValuesMap) const;
 
-    virtual void AssembleNonHistoricalDataWithValuesMap(
+    virtual void AssembleNonHistoricalNodalDataWithValuesMap(
         ModelPart& rModelPart,
         const Variable<array_1d<double, 3>>& rVariable,
-        const TMap<array_1d<double, 3>>& rNodalValuesMap) const
-    {
-        AssembleUtilities::AssembleCurrentDataWithNodalValuesMap(
-            rModelPart, rVariable, rNodalValuesMap,
-            AssembleUtilities::UpdateNonHistoricalNodalValue<array_1d<double, 3>>);
-    }
+        const TMap<array_1d<double, 3>>& rNodalValuesMap) const;
+
+    virtual void AssembleElementDataWithValuesMap(
+        ModelPart& rModelPart,
+        const Variable<int>& rVariable,
+        const TMap<int>& rNodalValuesMap) const;
+
+    virtual void AssembleElementDataWithValuesMap(
+        ModelPart& rModelPart,
+        const Variable<double>& rVariable,
+        const TMap<double>& rNodalValuesMap) const;
+
+    virtual void AssembleElementDataWithValuesMap(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const TMap<array_1d<double, 3>>& rNodalValuesMap) const;
+
+    virtual void AssembleConditionDataWithValuesMap(
+        ModelPart& rModelPart,
+        const Variable<int>& rVariable,
+        const TMap<int>& rNodalValuesMap) const;
+
+    virtual void AssembleConditionDataWithValuesMap(
+        ModelPart& rModelPart,
+        const Variable<double>& rVariable,
+        const TMap<double>& rNodalValuesMap) const;
+
+    virtual void AssembleConditionDataWithValuesMap(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const TMap<array_1d<double, 3>>& rNodalValuesMap) const;
 
     ///@}
 
@@ -145,13 +142,13 @@ protected:
         rNode.FastGetSolutionStepValue(rVariable) += rValue;
     }
 
-    template<class TDataType>
-    void static UpdateNonHistoricalNodalValue(
-        NodeType& rNode,
+    template<class TDataType, class TEntityType>
+    void static UpdateNonHistoricalValue(
+        TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue)
     {
-        rNode.GetValue(rVariable) += rValue;
+        rEntity.GetValue(rVariable) += rValue;
     }
 
     ///@}
@@ -160,39 +157,46 @@ private:
     ///@name Private Operations
     ///@{
 
+    template<class TContainerType>
+    static TContainerType& GetContainer(ModelPart& rModelPart);
+
     /**
-     * @brief Assembles nodal values given in the map
+     * @brief Assembles entity values given in the map
      *
-     * This method can assemble nodal values according to given nodal map.
-     * No clearing of nodal values are done, therefore, assemble will add
-     * values to existing nodal values.
+     * This method can assemble entity(nodal/elemental/condition) values according to given values map.
+     * No clearing of entity values are done, therefore, assemble will add
+     * values to existing values.
      *
      * @tparam TDataType
      * @tparam TUpdateFunction
      * @param rModelPart            Model part where nodes need to update
      * @param rVariable             Variable to store assembled values
-     * @param rNodalValuesMap       Nodal values map with node_id and value
+     * @param rValuesMap            Values map with entity_id and value
      * @param rUpdateFunction       Update function
      */
-    template<class TDataType, class TUpdateFunction>
-    void static AssembleCurrentDataWithNodalValuesMap(
-        ModelPart& rModelPart,
+    template<class TDataType, class TContainerType, class TUpdateFunction>
+    void static AssembleDataWithEntityValuesMap(
+        TContainerType& rContainer,
         const Variable<TDataType>& rVariable,
-        const TMap<TDataType>& rNodalValuesMap,
+        const TMap<TDataType>& rValuesMap,
         const TUpdateFunction&& rUpdateFunction)
     {
         KRATOS_TRY
 
-        std::vector<int> node_ids;
-        node_ids.reserve(rNodalValuesMap.size());
-        for (const auto& r_item : rNodalValuesMap) {
-            node_ids.push_back(r_item.first);
+        std::vector<int> entity_ids;
+        entity_ids.reserve(rValuesMap.size());
+        for (const auto& r_item : rValuesMap) {
+            entity_ids.push_back(r_item.first);
         }
 
-        IndexPartition<int>(node_ids.size()).for_each([&](const int Index) {
-            const int node_id = node_ids[Index];
-            auto& r_node = rModelPart.GetNode(node_id);
-            rUpdateFunction(r_node, rVariable, rNodalValuesMap.find(node_id)->second);
+        IndexPartition<int>(entity_ids.size()).for_each([&](const int Index) {
+            const int entity_id = entity_ids[Index];
+            auto p_entity = rContainer.find(entity_id);
+
+            KRATOS_ERROR_IF(p_entity == rContainer.end())
+                << "Entity with id " << entity_id << " not found.\n";
+
+            rUpdateFunction(*p_entity, rVariable, rValuesMap.find(entity_id)->second);
         });
 
         KRATOS_CATCH("");
