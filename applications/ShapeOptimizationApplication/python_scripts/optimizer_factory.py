@@ -123,7 +123,8 @@ class VertexMorphingMethod:
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
 
-        if self.optimization_settings["design_variables"]["filter"]["normal"].GetBool():
+        filter_settings = self.optimization_settings["design_variables"]["filter"]
+        if filter_settings.Has("normal") and filter_settings["normal"].GetBool():
             _CONTROL_POINT_UPDATE = KSO.CONTROL_POINT_UPDATE_N
             _CONTROL_POINT_CHANGE = KSO.CONTROL_POINT_CHANGE_N
             mapped_variable_suffix = "_N"

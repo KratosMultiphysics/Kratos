@@ -55,8 +55,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.mapper = None
         self.data_logger = None
         self.optimization_utilities = None
-
-        if self.mapper_settings["normal"].GetBool():
+        if self.mapper_settings.Has("normal") and self.mapper_settings["normal"].GetBool():
             self._DF1DX_MAPPED = KSO.DF1DX_MAPPED_N
             self._SEARCH_DIRECTION = KSO.SEARCH_DIRECTION_N
             self._CORRECTION = KSO.CORRECTION_N
