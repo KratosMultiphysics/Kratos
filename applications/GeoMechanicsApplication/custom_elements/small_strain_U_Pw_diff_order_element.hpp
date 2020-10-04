@@ -166,7 +166,7 @@ protected:
         Vector Nu; //Contains the displacement shape functions at every node
         Vector Np; //Contains the pressure shape functions at every node
         Matrix DNu_DX; //Contains the global derivatives of the displacement shape functions
-        Matrix GradNpT; //Contains the global derivatives of the pressure shape functions
+        Matrix DNp_DX; //Contains the global derivatives of the pressure shape functions
         Matrix B;
         double IntegrationCoefficient;
         Vector StrainVector;
@@ -197,7 +197,8 @@ protected:
     // Member Variables
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    Geometry< Node<3> >::Pointer mpPressureGeometry;
+    //Geometry< Node<3> >::Pointer mpPressureGeometry;
+    GeometryType::Pointer  mpPressureGeometry;
     std::vector<Vector> mStressVector;
     std::vector<Vector> mStateVariablesFinalized;
 
@@ -209,7 +210,7 @@ protected:
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag);
 
-    void InitializeElementalVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     void InitializeNodalVariables(ElementVariables& rVariables);
 
@@ -253,6 +254,9 @@ protected:
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
+
+    void CalculateBMatrix( Matrix& rB,
+                           const Matrix& DNu_DX );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
