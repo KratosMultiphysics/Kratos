@@ -318,15 +318,14 @@ public:
         const TInputVector& rInputVector
     )
     {
-        #pragma omp parallel for
-        for(int i=0; i<rA.index1_data().size()-1; ++i)
+        IndexPartition<IndexType>(rA.index1_data().size()-1).for_each([&](IndexType i)
         {
             for(int k=rA.index1_data()[i]; k<rA.index1_data()[i+1]; ++k)
             {
                 auto j = rA.index2_data()[k];
                 rOutputVector[i] += rA.value_data()[k]*rInputVector[j];
             }
-        }
+        });
     }
 
 
