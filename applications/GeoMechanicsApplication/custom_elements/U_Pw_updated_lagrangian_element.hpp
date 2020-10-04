@@ -51,7 +51,7 @@ namespace Kratos
 /**
  * @class UPwUpdatedLagrangianElement
  * @brief Updated Lagrangian element for 2D and 3D geometries.
- * @details Implements an Updated Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @details Implements an Updated Lagrangian definition for U-P elements. This works for arbitrary geometries in 2D and 3D
  * @author Vicente Mataix Ferrandiz (StructuralMechanics)
  * @author Vahid Galavi (Geomechanics)
  */

@@ -99,12 +99,9 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
-    const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
-        GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    //ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
 
