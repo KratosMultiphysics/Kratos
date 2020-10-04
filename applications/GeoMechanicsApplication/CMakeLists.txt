@@ -48,6 +48,7 @@ set( KRATOS_GEO_MECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/drained_U_Pw_small_strain_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/undrained_U_Pw_small_strain_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_updated_lagrangian_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_Pw_diff_order_element.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_structural_base_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_cable_element_3D2N.cpp
