@@ -17,6 +17,7 @@
 // System includes
 #include <iostream>
 #include "containers/sparse_contiguous_row_graph.h"
+#include "containers/system_vector.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
@@ -112,12 +113,12 @@ public:
         });
     }
 
-    IndexType size1()
+    IndexType size1() const
     {
         return mRowIndices.size()-1;
     }
 
-    IndexType size2()
+    IndexType size2() const
     {
         return mNcols;
     }
@@ -159,6 +160,24 @@ public:
         const IndexType row_end = index1_data()[I+1];
         IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
         return k >= 0;
+    }
+
+    // y += A*x  -- where A is *this
+    void SpMV(SystemVector<TDataType,TIndexType>& y,
+              const SystemVector<TDataType,TIndexType>& x) const
+    {
+        KRATOS_ERROR_IF(y.Size() != size1()) << "size mismatch in SpMV" ;
+        KRATOS_ERROR_IF(x.Size() != size1()) << "size mismatch in SpMV" ;
+
+        IndexPartition<IndexType>(x.Size()).for_each( [&](IndexType i){
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType col = index2_data()[k];
+                y(i) += value_data()[k] * x(col);
+            }  
+        });
+
     }
 
     ///@}
