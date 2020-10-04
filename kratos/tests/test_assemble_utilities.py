@@ -27,7 +27,7 @@ class TestAssembleUtilities(KratosUnittest.TestCase):
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/three_dim_symmetrical_cube")
+        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
     @classmethod
@@ -42,7 +42,7 @@ class TestAssembleUtilities(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, KratosMultiphysics.Array3([node_id, node_id * 2, node_id * 3]))
 
         # prepare the assemble maps
-        assemble_double_map, assemble_array3_map = self.__generate_maps()
+        assemble_double_map, assemble_array3_map = TestAssembleUtilities.__generate_maps(self.model_part.GetCommunicator().GlobalNumberOfNodes())
 
         # assemble based on given nodal maps
         assemble_utilities().AssembleCurrentDataWithValuesMap(self.model_part, KratosMultiphysics.DENSITY, assemble_double_map)
@@ -54,7 +54,7 @@ class TestAssembleUtilities(KratosUnittest.TestCase):
         for node in self.model_part.Nodes:
             node_id = node.Id
 
-            if (node_id % 10 == 0):
+            if (node_id % 3 == 0):
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KratosMultiphysics.DENSITY),
                     node_id + coefficient * assemble_double_map[node_id], 12)
@@ -69,50 +69,89 @@ class TestAssembleUtilities(KratosUnittest.TestCase):
                     node.GetSolutionStepValue(KratosMultiphysics.VELOCITY),
                     KratosMultiphysics.Array3([node_id, node_id * 2, node_id * 3]), 12)
 
-    def test_AssembleNonHistoricalDataWithValuesMap(self):
-        ## initialize nodal data
-        for node in self.model_part.Nodes:
-            node_id = node.Id
-            node.SetValue(KratosMultiphysics.PRESSURE, node_id * 2)
-            node.SetValue(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.Array3([node_id * 2, node_id * 3, node_id * 4]))
+    def test_AssembleNonHistoricalNodalDataWithValuesMap(self):
+        entities = self.model_part.Nodes
+        ## initialize entity data
+        TestAssembleUtilities.__fill_entities(entities)
 
         # prepare the assemble maps
-        assemble_double_map, assemble_array3_map = self.__generate_maps()
+        assemble_double_map, assemble_array3_map = TestAssembleUtilities.__generate_maps(self.model_part.GetCommunicator().GlobalNumberOfNodes())
 
-        # assemble based on given nodal maps
-        assemble_utilities().AssembleNonHistoricalDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
-        assemble_utilities().AssembleNonHistoricalDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
-
-        coefficient = self.model_part.GetCommunicator().TotalProcesses()
+        # assemble based on given maps
+        assemble_utilities().AssembleNonHistoricalNodalDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
+        assemble_utilities().AssembleNonHistoricalNodalDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
 
         # check for values
-        for node in self.model_part.Nodes:
-            node_id = node.Id
+        self.__check_entity_data(entities, assemble_double_map, assemble_array3_map)
 
-            if (node_id % 10 == 0):
+    def test_AssembleElementDataWithValuesMap(self):
+        entities = self.model_part.Elements
+        ## initialize entity data
+        TestAssembleUtilities.__fill_entities(entities)
+
+        # prepare the assemble maps
+        assemble_double_map, assemble_array3_map = TestAssembleUtilities.__generate_maps(self.model_part.GetCommunicator().GlobalNumberOfElements())
+
+        # assemble based on given maps
+        assemble_utilities().AssembleElementDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
+        assemble_utilities().AssembleElementDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
+
+        # check for values
+        self.__check_entity_data(entities, assemble_double_map, assemble_array3_map)
+
+    def test_AssembleConditionDataWithValuesMap(self):
+        entities = self.model_part.Conditions
+        ## initialize entity data
+        TestAssembleUtilities.__fill_entities(entities)
+
+        # prepare the assemble maps
+        assemble_double_map, assemble_array3_map = TestAssembleUtilities.__generate_maps(self.model_part.GetCommunicator().GlobalNumberOfConditions())
+
+        # assemble based on given maps
+        assemble_utilities().AssembleConditionDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
+        assemble_utilities().AssembleConditionDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
+
+        # check for values
+        self.__check_entity_data(entities, assemble_double_map, assemble_array3_map)
+
+    def __check_entity_data(self, entities, assemble_double_map, assemble_array3_map):
+        coefficient = self.model_part.GetCommunicator().TotalProcesses()
+
+        for entity in entities:
+            entity_id = entity.Id
+
+            if (entity_id % 3 == 0):
                 self.assertAlmostEqual(
-                    node.GetValue(KratosMultiphysics.PRESSURE),
-                    node_id * 2 + coefficient * assemble_double_map[node_id], 12)
+                    entity.GetValue(KratosMultiphysics.PRESSURE),
+                    entity_id * 2 + coefficient * assemble_double_map[entity_id], 12)
                 self.assertVectorAlmostEqual(
-                    node.GetValue(KratosMultiphysics.DISPLACEMENT),
-                    KratosMultiphysics.Array3([node_id * 2, node_id * 3, node_id * 4]) + coefficient * assemble_array3_map[node_id], 12)
+                    entity.GetValue(KratosMultiphysics.DISPLACEMENT),
+                    KratosMultiphysics.Array3([entity_id * 2, entity_id * 3, entity_id * 4]) + coefficient * assemble_array3_map[entity_id], 12)
             else:
                 self.assertAlmostEqual(
-                    node.GetValue(KratosMultiphysics.PRESSURE),
-                    node_id * 2, 12)
+                    entity.GetValue(KratosMultiphysics.PRESSURE),
+                    entity_id * 2, 12)
                 self.assertVectorAlmostEqual(
-                    node.GetValue(KratosMultiphysics.DISPLACEMENT),
-                    KratosMultiphysics.Array3([node_id * 2, node_id * 3, node_id * 4]), 12)
+                    entity.GetValue(KratosMultiphysics.DISPLACEMENT),
+                    KratosMultiphysics.Array3([entity_id * 2, entity_id * 3, entity_id * 4]), 12)
 
-    def __generate_maps(self):
-        number_of_nodes = self.model_part.GetCommunicator().GlobalNumberOfNodes()
+    @staticmethod
+    def __generate_maps(number_of_entities):
         assemble_double_map = {}
         assemble_array3_map = {}
-        for node_id in range(1, number_of_nodes):
-            if (node_id % 10 == 0):
-                assemble_double_map[node_id] = node_id * 2
-                assemble_array3_map[node_id] = KratosMultiphysics.Array3([node_id * 2, node_id * 3, 0.0])
+        for entity_id in range(1, number_of_entities + 1):
+            if (entity_id % 3 == 0):
+                assemble_double_map[entity_id] = entity_id * 2
+                assemble_array3_map[entity_id] = KratosMultiphysics.Array3([entity_id * 2, entity_id * 3, 0.0])
         return assemble_double_map, assemble_array3_map
+
+    @staticmethod
+    def __fill_entities(entities):
+        for entity in entities:
+            entity_id = entity.Id
+            entity.SetValue(KratosMultiphysics.PRESSURE, entity_id * 2)
+            entity.SetValue(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.Array3([entity_id * 2, entity_id * 3, entity_id * 4]))
+
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
