@@ -22,6 +22,7 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "mapper_vertex_morphing.h"
+#include "custom_utilities/geometry_utilities.h"
 
 // ==============================================================================
 
@@ -250,12 +251,12 @@ protected:
     // --------------------------------------------------------------------------
     virtual void ComputeMappingMatrix()
     {
+        GeometryUtilities(mrOriginModelPart).ComputeUnitSurfaceNormals();
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
-            // KRATOS_WATCH(node_i.GetValue(MAPPING_ID))
             NodeVector neighbor_nodes( max_number_of_neighbors );
             std::vector<double> resulting_squared_distances( max_number_of_neighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
