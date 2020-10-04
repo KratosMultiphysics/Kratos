@@ -323,6 +323,15 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         return max_abs_gradient_value == 0.0
 
     # --------------------------------------------------------------------------
+    def __logCurrentOptimizationStep(self):
+        additional_values_to_log = {}
+        additional_values_to_log["step_size"] = self.step_size
+        additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self._SEARCH_DIRECTION)
+        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self._CORRECTION)
+        self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
+        self.data_logger.LogCurrentDesign(self.optimization_iteration)
+
+    # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
 
         if self.optimization_iteration > 1 :
