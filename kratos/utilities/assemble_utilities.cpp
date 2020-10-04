@@ -23,21 +23,21 @@
 namespace Kratos
 {
 template<>
-ModelPart::NodesContainerType& AssembleUtilities::GetContainer<ModelPart::NodesContainerType>(
+KRATOS_API(KRATOS_CORE) ModelPart::NodesContainerType& AssembleUtilities::GetContainer<ModelPart::NodesContainerType>(
     ModelPart& rModelPart)
 {
     return rModelPart.Nodes();
 }
 
 template<>
-ModelPart::ElementsContainerType& AssembleUtilities::GetContainer<ModelPart::ElementsContainerType>(
+KRATOS_API(KRATOS_CORE) ModelPart::ElementsContainerType& AssembleUtilities::GetContainer<ModelPart::ElementsContainerType>(
     ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template<>
-ModelPart::ConditionsContainerType& AssembleUtilities::GetContainer<ModelPart::ConditionsContainerType>(
+KRATOS_API(KRATOS_CORE) ModelPart::ConditionsContainerType& AssembleUtilities::GetContainer<ModelPart::ConditionsContainerType>(
     ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
