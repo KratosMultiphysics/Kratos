@@ -264,8 +264,8 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected Operations
+private:
+    ///@name Private Operations
     ///@{
 
     template<class TContainerType>
@@ -335,12 +335,6 @@ protected:
 
         return key_list;
     }
-
-    ///@}
-
-private:
-    ///@name Private Operations
-    ///@{
 
     template <class TContainerType, class TDataType, class TUpdateFunction>
     static void AssembleDataWithEntityValuesMap(
