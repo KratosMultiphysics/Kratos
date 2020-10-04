@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.testing.utilities import ReadModelPart
-from KratosMultiphysics import AssembleUtilities as assemble_utilities
+from KratosMultiphysics import AssembleUtilities
 
 
 def GetFilePath(fileName):
@@ -39,8 +39,8 @@ class TestAssembleUtilities(KratosUnittest.TestCase):
         assemble_double_map, assemble_array3_map = TestAssembleUtilities.__generate_maps(self.model_part.GetCommunicator().GlobalNumberOfNodes())
 
         # assemble based on given nodal maps
-        assemble_utilities().AssembleCurrentDataWithValuesMap(self.model_part, KratosMultiphysics.DENSITY, assemble_double_map)
-        assemble_utilities().AssembleCurrentDataWithValuesMap(self.model_part, KratosMultiphysics.VELOCITY, assemble_array3_map)
+        AssembleUtilities.AssembleCurrentDataWithValuesMap(self.model_part, KratosMultiphysics.DENSITY, assemble_double_map)
+        AssembleUtilities.AssembleCurrentDataWithValuesMap(self.model_part, KratosMultiphysics.VELOCITY, assemble_array3_map)
 
         coefficient = self.model_part.GetCommunicator().TotalProcesses()
 
@@ -72,8 +72,8 @@ class TestAssembleUtilities(KratosUnittest.TestCase):
         assemble_double_map, assemble_array3_map = TestAssembleUtilities.__generate_maps(self.model_part.GetCommunicator().GlobalNumberOfNodes())
 
         # assemble based on given maps
-        assemble_utilities().AssembleNonHistoricalNodalDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
-        assemble_utilities().AssembleNonHistoricalNodalDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
+        AssembleUtilities.AssembleNonHistoricalNodalDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
+        AssembleUtilities.AssembleNonHistoricalNodalDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
 
         # check for values
         self.__check_entity_data(entities, assemble_double_map, assemble_array3_map)
@@ -87,8 +87,8 @@ class TestAssembleUtilities(KratosUnittest.TestCase):
         assemble_double_map, assemble_array3_map = TestAssembleUtilities.__generate_maps(self.model_part.GetCommunicator().GlobalNumberOfElements())
 
         # assemble based on given maps
-        assemble_utilities().AssembleElementDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
-        assemble_utilities().AssembleElementDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
+        AssembleUtilities.AssembleElementDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
+        AssembleUtilities.AssembleElementDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
 
         # check for values
         self.__check_entity_data(entities, assemble_double_map, assemble_array3_map)
@@ -102,8 +102,8 @@ class TestAssembleUtilities(KratosUnittest.TestCase):
         assemble_double_map, assemble_array3_map = TestAssembleUtilities.__generate_maps(self.model_part.GetCommunicator().GlobalNumberOfConditions())
 
         # assemble based on given maps
-        assemble_utilities().AssembleConditionDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
-        assemble_utilities().AssembleConditionDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
+        AssembleUtilities.AssembleConditionDataWithValuesMap(self.model_part, KratosMultiphysics.PRESSURE, assemble_double_map)
+        AssembleUtilities.AssembleConditionDataWithValuesMap(self.model_part, KratosMultiphysics.DISPLACEMENT, assemble_array3_map)
 
         # check for values
         self.__check_entity_data(entities, assemble_double_map, assemble_array3_map)

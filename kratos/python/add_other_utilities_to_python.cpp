@@ -517,21 +517,20 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     // assemble utilities
-    py::class_<AssembleUtilities, AssembleUtilities::Pointer>
+    py::class_<AssembleUtilities>
         (m,"AssembleUtilities")
-        .def(py::init<>())
-        .def("AssembleCurrentDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<int>& rVariable, const std::unordered_map<int, int>&)const)(&AssembleUtilities::AssembleCurrentDataWithValuesMap))
-        .def("AssembleCurrentDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<double>& rVariable, const std::unordered_map<int, double>&)const)(&AssembleUtilities::AssembleCurrentDataWithValuesMap))
-        .def("AssembleCurrentDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<array_1d<double, 3>>& rVariable, const std::unordered_map<int, array_1d<double, 3>>&)const)(&AssembleUtilities::AssembleCurrentDataWithValuesMap))
-        .def("AssembleNonHistoricalNodalDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<int>& rVariable, const std::unordered_map<int, int>&)const)(&AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap))
-        .def("AssembleNonHistoricalNodalDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<double>& rVariable, const std::unordered_map<int, double>&)const)(&AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap))
-        .def("AssembleNonHistoricalNodalDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<array_1d<double, 3>>& rVariable, const std::unordered_map<int, array_1d<double, 3>>&)const)(&AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap))
-        .def("AssembleElementDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<int>& rVariable, const std::unordered_map<int, int>&)const)(&AssembleUtilities::AssembleElementDataWithValuesMap))
-        .def("AssembleElementDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<double>& rVariable, const std::unordered_map<int, double>&)const)(&AssembleUtilities::AssembleElementDataWithValuesMap))
-        .def("AssembleElementDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<array_1d<double, 3>>& rVariable, const std::unordered_map<int, array_1d<double, 3>>&)const)(&AssembleUtilities::AssembleElementDataWithValuesMap))
-        .def("AssembleConditionDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<int>& rVariable, const std::unordered_map<int, int>&)const)(&AssembleUtilities::AssembleConditionDataWithValuesMap))
-        .def("AssembleConditionDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<double>& rVariable, const std::unordered_map<int, double>&)const)(&AssembleUtilities::AssembleConditionDataWithValuesMap))
-        .def("AssembleConditionDataWithValuesMap", (void(AssembleUtilities::*)(ModelPart&, const Variable<array_1d<double, 3>>& rVariable, const std::unordered_map<int, array_1d<double, 3>>&)const)(&AssembleUtilities::AssembleConditionDataWithValuesMap))
+        .def_static("AssembleCurrentDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<int>&, const std::unordered_map<int, int>&)>(&AssembleUtilities::AssembleCurrentDataWithValuesMap<int>))
+        .def_static("AssembleCurrentDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<double>&, const std::unordered_map<int, double>&)>(&AssembleUtilities::AssembleCurrentDataWithValuesMap<double>))
+        .def_static("AssembleCurrentDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<array_1d<double, 3>>&, const std::unordered_map<int, array_1d<double, 3>>&)>(&AssembleUtilities::AssembleCurrentDataWithValuesMap<array_1d<double, 3>>))
+        .def_static("AssembleNonHistoricalNodalDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<int>&, const std::unordered_map<int, int>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::NodesContainerType, int>))
+        .def_static("AssembleNonHistoricalNodalDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<double>&, const std::unordered_map<int, double>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::NodesContainerType, double>))
+        .def_static("AssembleNonHistoricalNodalDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<array_1d<double, 3>>&, const std::unordered_map<int, array_1d<double, 3>>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::NodesContainerType, array_1d<double, 3>>))
+        .def_static("AssembleConditionDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<int>&, const std::unordered_map<int, int>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ConditionsContainerType, int>))
+        .def_static("AssembleConditionDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<double>&, const std::unordered_map<int, double>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ConditionsContainerType, double>))
+        .def_static("AssembleConditionDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<array_1d<double, 3>>&, const std::unordered_map<int, array_1d<double, 3>>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ConditionsContainerType, array_1d<double, 3>>))
+        .def_static("AssembleElementDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<int>&, const std::unordered_map<int, int>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ElementsContainerType, int>))
+        .def_static("AssembleElementDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<double>&, const std::unordered_map<int, double>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ElementsContainerType, double>))
+        .def_static("AssembleElementDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<array_1d<double, 3>>&, const std::unordered_map<int, array_1d<double, 3>>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ElementsContainerType, array_1d<double, 3>>))
         ;
 }
 
