@@ -17,6 +17,7 @@
 #include "containers/sparse_graph.h"
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/csr_matrix.h"
+#include "containers/system_vector.h"
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
 
@@ -431,5 +432,84 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
 
     std::cout << "SparseGraphContiguousRow generation time = " << end_graph-start_graph << std::endl;
 }
+
+KRATOS_TEST_CASE_IN_SUITE(SystemVectorAssembly, KratosCoreFastSuite)
+{
+    const auto connectivities = ElementConnectivities();
+    const auto reference_A_map = GetReferenceMatrixAsMap();
+
+
+    SparseContiguousRowGraph<> Agraph(40);
+    #pragma omp parallel for
+    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+        Agraph.AddEntries(connectivities[i]);
+    Agraph.Finalize();
+
+
+    SystemVector<> b(Agraph);
+
+    b.SetValue(0.0);
+    b.BeginAssemble();
+    for(const auto& c : connectivities)
+    {   
+        Vector vdata(c.size(),1.0);
+        b.Assemble(vdata,c);
+    }    
+    b.FinalizeAssemble();
+
+    double reference_sum = 0.0;
+    for(const auto& c : connectivities){
+        reference_sum += c.size();
+    }  
+
+    double sum = 0.0; //for this test the final value is 124
+    for(IndexType i=0; i!=b.Size(); ++i){
+        sum += b(i);
+    }
+    KRATOS_CHECK_EQUAL(sum, reference_sum);
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
+{
+    const auto connectivities = ElementConnectivities();
+    auto reference_A_map = GetReferenceMatrixAsMap();
+
+    SparseContiguousRowGraph<> Agraph(40);
+    for(const auto& c : connectivities)
+        Agraph.AddEntries(c);
+    Agraph.Finalize();
+
+    CsrMatrix<double> A(Agraph);
+
+    A.BeginAssemble();   
+    for(const auto& c : connectivities){   
+        Matrix data(c.size(),c.size(),1.0);
+        A.Assemble(data,c);
+    }
+    A.FinalizeAssemble();
+
+    SystemVector<> x(Agraph);
+    x.SetValue(0.0);
+
+    SystemVector<> y(Agraph);
+    y.SetValue(1.0);
+
+    A.SpMV(x,y); //x += A*y
+
+    double sum = 0.0; //for this test the final value is 124
+    for(IndexType i=0; i!=x.Size(); ++i){
+        sum += x(i);
+    }
+
+    double reference_sum = 0.0;
+    for(auto& item : reference_A_map)
+        reference_sum += item.second;
+
+    KRATOS_CHECK_EQUAL(sum, reference_sum);
+
+}
+
+
 } // namespace Testing
 } // namespace Kratos
