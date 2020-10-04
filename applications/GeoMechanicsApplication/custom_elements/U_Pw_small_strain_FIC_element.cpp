@@ -650,7 +650,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
         // calculate Bulk modulus from stiffness matrix
         const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, Prop, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, BulkModulus);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,

@@ -609,6 +609,20 @@ void SmallStrainUPwDiffOrderElement::
     }
 
     //Assign pressure values to the intermediate nodes for post-processing
+    AssignPressureToIntermediateNodes();
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
+
+    KRATOS_CATCH( "" )
+
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
+{
+    //Assign pressure values to the intermediate nodes for post-processing
+    KRATOS_TRY
+
     GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
 
@@ -729,8 +743,6 @@ void SmallStrainUPwDiffOrderElement::
         default:
             KRATOS_THROW_ERROR(std::logic_error,"Unexpected geometry type for different order interpolation element","");
     }
-
-    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 
     KRATOS_CATCH( "" )
 

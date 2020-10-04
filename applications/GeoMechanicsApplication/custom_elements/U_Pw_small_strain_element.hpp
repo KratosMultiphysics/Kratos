@@ -195,7 +195,6 @@ protected:
                                      const ProcessInfo& CurrentProcessInfo );
 
     void InitializeBiotCoefficients( ElementVariables& rVariables,
-                                     const PropertiesType& Prop,
                                      const double &BulkModulus );
 
     void CalculateBMatrix( Matrix& rB,

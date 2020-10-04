@@ -177,6 +177,11 @@ protected:
         double detF;
         Matrix F;
 
+        // needed for updated Lagrangian:
+        double detJ0;
+        Matrix J0;
+        Matrix InvJ0;
+
         //Nodal variables
         Vector BodyAcceleration;
         Vector DisplacementVector;
@@ -204,11 +209,11 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix,
-                       VectorType& rRightHandSideVector,
-                       const ProcessInfo& rCurrentProcessInfo,
-                       bool CalculateStiffnessMatrixFlag,
-                       bool CalculateResidualVectorFlag);
+    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo,
+                              bool CalculateStiffnessMatrixFlag,
+                              bool CalculateResidualVectorFlag);
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
@@ -257,6 +262,8 @@ protected:
 
     void CalculateBMatrix( Matrix& rB,
                            const Matrix& DNu_DX );
+
+    void AssignPressureToIntermediateNodes();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

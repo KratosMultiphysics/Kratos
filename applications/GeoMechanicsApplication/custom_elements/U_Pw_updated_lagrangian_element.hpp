@@ -74,7 +74,6 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim,TNumNodes>::signFactor;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
 
@@ -292,9 +291,8 @@ protected:
      * @param PointNumber The integration point considered
      * @param rIntegrationMethod The integration method considered
      */
-    void UpdateElementVariables(ElementVariables& rThisKinematicVariables,
-                                const IndexType PointNumber,
-                                const GeometryType::IntegrationMethod& rIntegrationMethod);
+    void CalculateKinematics(ElementVariables& rThisKinematicVariables,
+                             const IndexType PointNumber);
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -308,7 +306,7 @@ protected:
     double CalculateDerivativesOnReferenceConfiguration(Matrix& J0,
                                                         Matrix& InvJ0,
                                                         Matrix& DN_DX,
-                                                        const IndexType PointNumber,
+                                                        const IndexType &PointNumber,
                                                         IntegrationMethod ThisIntegrationMethod) const;
 
     /**
@@ -323,7 +321,7 @@ protected:
     double CalculateDerivativesOnCurrentConfiguration(Matrix& rJ,
                                                       Matrix& rInvJ,
                                                       Matrix& rDN_DX,
-                                                      const IndexType PointNumber,
+                                                      const IndexType &PointNumber,
                                                       IntegrationMethod ThisIntegrationMethod) const;
 
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,

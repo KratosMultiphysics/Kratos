@@ -116,18 +116,15 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     // Reading integration points
     for ( IndexType GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
         // Compute element kinematics B, F, GradNpT ...
-        this->UpdateElementVariables(Variables, GPoint, this->GetIntegrationMethod());
+        this->CalculateKinematics(Variables, GPoint);
 
         // Call the constitutive law to update material variables
         //Compute constitutive tensor and stresses
         UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
-        UpdateStressVector(Variables, GPoint);
-
-        mConstitutiveLawVector[GPoint]->FinalizeSolutionStep(GetProperties(),
-                                                             GetGeometry(),
-                                                             row( GetGeometry().ShapeFunctionsValues(  ), GPoint ),
-                                                             rCurrentProcessInfo);
+        mStateVariablesFinalized[GPoint] = 
+            mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
+                                                      mStateVariablesFinalized[GPoint] );
 
         // Update the element internal variables
         this->UpdateHistoricalDatabase(Variables, GPoint);
@@ -192,7 +189,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
 
         // Compute element kinematics B, F, GradNpT ...
-        this->UpdateElementVariables(Variables, GPoint, this->GetIntegrationMethod());
+        this->CalculateKinematics(Variables, GPoint);
 
         // Cauchy strain: This needs to be investigated which strain measure should be used
         // In some references, e.g. Bathe, suggested to use Almansi strain measure
@@ -205,7 +202,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
         // calculate Bulk modulus from stiffness matrix
         const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, GetProperties(), BulkModulus);
+        this->InitializeBiotCoefficients(Variables, BulkModulus);
 
         // Calculating weights for integration on the reference configuration
         this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
@@ -258,16 +255,15 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
-    UpdateElementVariables(ElementVariables& rVariables,
-                           const SizeType GPoint,
-                           const GeometryType::IntegrationMethod& rIntegrationMethod)
+    CalculateKinematics(ElementVariables& rVariables,
+                        const SizeType GPoint)
 {
     rVariables.detJ0 =
         this->CalculateDerivativesOnReferenceConfiguration(rVariables.J0,
                                                            rVariables.InvJ0,
                                                            rVariables.GradNpT,
                                                            GPoint,
-                                                           rIntegrationMethod);
+                                                           this->GetIntegrationMethod());
 
     // Calculating jacobian
     Matrix J, inv_J;
@@ -276,7 +272,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                                                          inv_J,
                                                          rVariables.GradNpT,
                                                          GPoint,
-                                                         rIntegrationMethod);
+                                                         this->GetIntegrationMethod());
 
     KRATOS_ERROR_IF(rVariables.detJ0 < 0.0)
      << "ERROR:: ELEMENT ID: "
@@ -302,7 +298,7 @@ double UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     CalculateDerivativesOnReferenceConfiguration(Matrix& J0,
                                                  Matrix& InvJ0,
                                                  Matrix& GradNpT,
-                                                 const IndexType GPoint,
+                                                 const IndexType &GPoint,
                                                  IntegrationMethod ThisIntegrationMethod) const
 {
     J0.clear();
@@ -329,7 +325,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
         CalculateDerivativesOnCurrentConfiguration( Matrix& rJ,
                                                     Matrix& rInvJ,
                                                     Matrix& rDN_DX,
-                                                    const IndexType PointNumber,
+                                                    const IndexType &PointNumber,
                                                     IntegrationMethod ThisIntegrationMethod ) const
 {
     double detJ;

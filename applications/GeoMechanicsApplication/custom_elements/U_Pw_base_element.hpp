@@ -54,8 +54,8 @@ public:
 
     /// Constructor using Properties
     UPwBaseElement(IndexType NewId,
-               GeometryType::Pointer pGeometry,
-               PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties ) {}
+                   GeometryType::Pointer pGeometry,
+                   PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
     virtual ~UPwBaseElement() {}
