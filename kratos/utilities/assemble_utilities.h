@@ -25,6 +25,7 @@
 #include "containers/variable.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/communication_coloring_utilities.h"
 #include "utilities/global_pointer_utilities.h"
 #include "utilities/parallel_utilities.h"
 
@@ -341,12 +342,33 @@ private:
     ///@name Private Operations
     ///@{
 
+    template <class TContainerType, class TDataType, class TUpdateFunction>
+    static void AssembleDataWithEntityValuesMap(
+        TContainerType& rContainer,
+        const DataCommunicator& rDataCommunicator,
+        const Variable<TDataType>& rVariable,
+        const TGPMap<typename TContainerType::value_type, TDataType>& rValuesMap,
+        const TUpdateFunction&& rUpdateFunction)
+    {
+        KRATOS_TRY
+
+        if (rDataCommunicator.IsDistributed()) {
+            MPIAssembleDataWithEntityValuesMap<TContainerType, TDataType, TUpdateFunction>(
+                rContainer, rDataCommunicator, rVariable, rValuesMap, rUpdateFunction);
+        } else {
+            LocalAssembleDataWithEntityValuesMap(rContainer, rVariable,
+                                                 rValuesMap, rUpdateFunction);
+        }
+
+        KRATOS_CATCH("");
+    }
+
     /**
      * @brief Assembles entity values given in the map
      *
      * This method can assemble entity(nodal/elemental/condition) values according to given values map.
      * No clearing of entity values are done, therefore, assemble will add
-     * values to existing values.
+     * values to existing values. (OpenMP version)
      *
      * @tparam TContainerType
      * @tparam TDataType
@@ -357,7 +379,7 @@ private:
      * @param rUpdateFunction       Update function
      */
     template<class TContainerType, class TDataType, class TUpdateFunction>
-    static void AssembleDataWithEntityValuesMap(
+    static void LocalAssembleDataWithEntityValuesMap(
         TContainerType& rContainer,
         const Variable<TDataType>& rVariable,
         const TGPMap<typename TContainerType::value_type, TDataType>& rValuesMap,
@@ -371,6 +393,88 @@ private:
             auto entity_gp = entity_gps[Index];
             rUpdateFunction(*entity_gp, rVariable, rValuesMap.find(entity_gp)->second);
         });
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Assembles entity values given in the map
+     *
+     * This method can assemble entity (nodal/elemental/condition) values according to given id map.
+     * No clearing of entity values are done, therefore, assemble will add
+     * values to existing values.
+     *
+     * This is the MPI version. Each process can give their own rEntityValuesMap based on their computations.
+     * This method finds where given entity id (from each rank) belong (the owner) to and updates accordingly.
+     * The rEntityValuesMap can have entity ids corresponding to LocalMesh/GhostMesh as well as entities outside
+     * LocalMesh/GhostMesh.
+     *
+     * This only updates the local mesh in each rank, therefore synchronization should be done afterwards.
+     *
+     * @tparam TContainerType
+     * @tparam TDataType
+     * @tparam TUpdateFunction
+     * @param rLocalContainer       Local entities container
+     * @param rDataCommunicator     Data communicator
+     * @param rVariable             Variable to store assembled values
+     * @param rEntityValuesMap      Entity values map with entity global pointer and value
+     * @param rUpdateFunction       Update function
+     */
+    template <class TContainerType, class TDataType, class TUpdateFunction>
+    static void MPIAssembleDataWithEntityValuesMap(
+        TContainerType& rLocalContainer,
+        const DataCommunicator& rDataCommunicator,
+        const Variable<TDataType>& rVariable,
+        const TGPMap<typename TContainerType::value_type, TDataType>& rEntityValuesMap,
+        const TUpdateFunction&& rUpdateFunction)
+    {
+        KRATOS_TRY
+
+        using gp_map_type = TGPMap<typename TContainerType::value_type, TDataType>;
+
+        if (!rEntityValuesMap.empty()) {
+            const auto& entity_gps = GetKeys(rEntityValuesMap);
+
+            // compute send and receive ranks ids
+            std::vector<int> send_receive_list;
+            TMap<gp_map_type> send_entity_values_map;
+            gp_map_type local_entity_values_map;
+
+            const int my_rank = rDataCommunicator.Rank();
+
+            for (const auto& entity_gp : entity_gps) {
+                const int entity_rank = entity_gp.GetRank();
+                if (entity_rank != my_rank) {
+                    send_receive_list.push_back(entity_rank);
+                    auto& entity_values_map = send_entity_values_map[entity_rank];
+                    entity_values_map[entity_gp] =
+                        rEntityValuesMap.find(entity_gp)->second;
+                } else {
+                    local_entity_values_map[entity_gp] =
+                        rEntityValuesMap.find(entity_gp)->second;
+                }
+            }
+
+            // compute the communication plan
+            std::sort(send_receive_list.begin(), send_receive_list.end());
+            const auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(
+                send_receive_list, rDataCommunicator);
+
+            // update local values
+            LocalAssembleDataWithEntityValuesMap(
+                rLocalContainer, rVariable, local_entity_values_map, rUpdateFunction);
+
+            // update values received from remote processes
+            for (const int color : colors) {
+                if (color >= 0) {
+                    const auto& tmp = rDataCommunicator.SendRecv(
+                        send_entity_values_map[color], color, color);
+
+                    LocalAssembleDataWithEntityValuesMap(
+                        rLocalContainer, rVariable, tmp, rUpdateFunction);
+                }
+            }
+        }
 
         KRATOS_CATCH("");
     }

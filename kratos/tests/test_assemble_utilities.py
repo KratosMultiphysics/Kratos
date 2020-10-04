@@ -4,13 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.testing.utilities import ReadModelPart
-
-from KratosMultiphysics import IsDistributedRun
-
-if (IsDistributedRun()):
-    from KratosMultiphysics.mpi import MPIAssembleUtilities as assemble_utilities
-else:
-    from KratosMultiphysics import AssembleUtilities as assemble_utilities
+from KratosMultiphysics import AssembleUtilities as assemble_utilities
 
 
 def GetFilePath(fileName):

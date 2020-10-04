@@ -56,8 +56,9 @@ void AssembleUtilities::AssembleCurrentDataWithValuesMap(
 {
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Nodes(), rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateHistoricalNodalValue<int>);
+        rModelPart.Nodes(), rModelPart.GetCommunicator().GetDataCommunicator(), rVariable,
+        rNodalValuesMap, AssembleUtilities::UpdateHistoricalNodalValue<int>);
+    rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
 }
 
 void AssembleUtilities::AssembleCurrentDataWithValuesMap(
@@ -67,8 +68,9 @@ void AssembleUtilities::AssembleCurrentDataWithValuesMap(
 {
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Nodes(), rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateHistoricalNodalValue<double>);
+        rModelPart.Nodes(), rModelPart.GetCommunicator().GetDataCommunicator(), rVariable,
+        rNodalValuesMap, AssembleUtilities::UpdateHistoricalNodalValue<double>);
+    rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
 }
 
 void AssembleUtilities::AssembleCurrentDataWithValuesMap(
@@ -78,8 +80,10 @@ void AssembleUtilities::AssembleCurrentDataWithValuesMap(
 {
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Nodes(), rVariable, rNodalValuesMap,
+        rModelPart.Nodes(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rNodalValuesMap,
         AssembleUtilities::UpdateHistoricalNodalValue<array_1d<double, 3>>);
+    rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
 }
 
 void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
@@ -88,8 +92,9 @@ void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     const TGPMap<NodeType, int>& rNodalValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Nodes(), rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<NodeType, int>);
+        rModelPart.Nodes(), rModelPart.GetCommunicator().GetDataCommunicator(), rVariable,
+        rNodalValuesMap, AssembleUtilities::UpdateNonHistoricalValue<NodeType, int>);
+    rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
 }
 
 void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
@@ -98,8 +103,10 @@ void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     const TGPMap<NodeType, double>& rNodalValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Nodes(), rVariable, rNodalValuesMap,
+        rModelPart.Nodes(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rNodalValuesMap,
         AssembleUtilities::UpdateNonHistoricalValue<NodeType, double>);
+    rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
 }
 
 void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
@@ -108,8 +115,10 @@ void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     const TGPMap<NodeType, array_1d<double, 3>>& rNodalValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Nodes(), rVariable, rNodalValuesMap,
+        rModelPart.Nodes(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rNodalValuesMap,
         AssembleUtilities::UpdateNonHistoricalValue<NodeType, array_1d<double, 3>>);
+    rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
 }
 
 void AssembleUtilities::AssembleElementDataWithValuesMap(
@@ -118,7 +127,8 @@ void AssembleUtilities::AssembleElementDataWithValuesMap(
     const TGPMap<ElementType, int>& rElementValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Elements(), rVariable, rElementValuesMap,
+        rModelPart.Elements(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rElementValuesMap,
         AssembleUtilities::UpdateNonHistoricalValue<ElementType, int>);
 }
 
@@ -128,7 +138,8 @@ void AssembleUtilities::AssembleElementDataWithValuesMap(
     const TGPMap<ElementType, double>& rElementValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Elements(), rVariable, rElementValuesMap,
+        rModelPart.Elements(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rElementValuesMap,
         AssembleUtilities::UpdateNonHistoricalValue<ElementType, double>);
 }
 
@@ -138,7 +149,8 @@ void AssembleUtilities::AssembleElementDataWithValuesMap(
     const TGPMap<ElementType, array_1d<double, 3>>& rElementValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Elements(), rVariable, rElementValuesMap,
+        rModelPart.Elements(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rElementValuesMap,
         AssembleUtilities::UpdateNonHistoricalValue<ElementType, array_1d<double, 3>>);
 }
 
@@ -148,7 +160,8 @@ void AssembleUtilities::AssembleConditionDataWithValuesMap(
     const TGPMap<ConditionType, int>& rConditionValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Conditions(), rVariable, rConditionValuesMap,
+        rModelPart.Conditions(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rConditionValuesMap,
         AssembleUtilities::UpdateNonHistoricalValue<ConditionType, int>);
 }
 
@@ -158,7 +171,8 @@ void AssembleUtilities::AssembleConditionDataWithValuesMap(
     const TGPMap<ConditionType, double>& rConditionValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Conditions(), rVariable, rConditionValuesMap,
+        rModelPart.Conditions(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rConditionValuesMap,
         AssembleUtilities::UpdateNonHistoricalValue<ConditionType, double>);
 }
 
@@ -168,7 +182,8 @@ void AssembleUtilities::AssembleConditionDataWithValuesMap(
     const TGPMap<ConditionType, array_1d<double, 3>>& rConditionValuesMap) const
 {
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        rModelPart.Conditions(), rVariable, rConditionValuesMap,
+        rModelPart.Conditions(), rModelPart.GetCommunicator().GetDataCommunicator(),
+        rVariable, rConditionValuesMap,
         AssembleUtilities::UpdateNonHistoricalValue<ConditionType, array_1d<double, 3>>);
 }
 
