@@ -17,6 +17,8 @@
 // System includes
 #include <iostream>
 #include "containers/sparse_contiguous_row_graph.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 // Project includes
 #include "includes/define.h"
@@ -105,9 +107,9 @@ public:
 
     void SetValue(const TDataType value)
     {
-        #pragma omp parallel for
-        for(IndexType i=0; i<mValuesVector.size(); ++i)
+        IndexPartition<IndexType>(mValuesVector.size()).for_each([&](IndexType i){
             mValuesVector[i] = value;
+        });
     }
 
     IndexType size1()
@@ -176,15 +178,14 @@ public:
         const TInputVector& rInputVector
     )
     {
-        #pragma omp parallel for
-        for(int i=0; i<rA.index1_data().size()-1; ++i)
+        IndexPartition<IndexType>(rA.index1_data().size()-1).for_each([&](IndexType i)
         {
             for(IndexType k=rA.index1_data()[i]; k<rA.index1_data()[i+1]; ++k)
             {
                 auto j = rA.index2_data()[k];
                 rOutputVector[i] += rA.value_data()[k]*rInputVector[j];
             }
-        }
+        });
     }
 
     void reserve(IndexType nrows, IndexType nnz){
@@ -227,8 +228,7 @@ public:
             IndexType k = BinarySearch(index2_data(), row_begin, row_end, EquationId[0]);
             IndexType lastJ = J;
 
-            #pragma omp atomic
-            value_data()[k] += rMatrixInput(i_local,0);
+            AtomicAdd(value_data()[k], rMatrixInput(i_local,0));
 
             //now find other entries. note that we assume that it is probably that next entries immediately follow in the ordering
             for(unsigned int j_local=1; j_local<local_size; ++j_local){
@@ -245,8 +245,7 @@ public:
                 }
                 //the last missing case is J == lastJ, which should never happen in FEM. If that happens we can reuse k
 
-                #pragma omp atomic
-                value_data()[k] += rMatrixInput(i_local,j_local);
+                AtomicAdd(value_data()[k] , rMatrixInput(i_local,j_local));
 
                 lastJ = J;
             }
