@@ -27,12 +27,7 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim,TNumNodes>::
            NodesArrayType const& ThisNodes,
            PropertiesType::Pointer pProperties) const
 {
-    // KRATOS_INFO("00-UPwUpdatedLagrangianElement::Create()") << std::endl;
-
     return Element::Pointer( new UPwUpdatedLagrangianElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
-
-    // KRATOS_INFO("01-UPwUpdatedLagrangianElement::Create()") << std::endl;
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -42,11 +37,7 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim,TNumNodes>::
            GeometryType::Pointer pGeom,
            PropertiesType::Pointer pProperties) const
 {
-    // KRATOS_INFO("01-UPwUpdatedLagrangianElement::Create()") << std::endl;
-
     return Element::Pointer( new UPwUpdatedLagrangianElement( NewId, pGeom, pProperties ) );
-
-    // KRATOS_INFO("11-UPwUpdatedLagrangianElement::Create()") << std::endl;
 }
 
 
@@ -56,14 +47,10 @@ int UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwUpdatedLagrangianElement::Check()") << std::endl;
 
     // Base class checks for positive area and Id > 0
     // Verify generic variables
     int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-    if (ierr != 0) return ierr;
-
-    // KRATOS_INFO("1-UPwUpdatedLagrangianElement::Check()") << std::endl;
 
     return ierr;
 
@@ -194,11 +181,9 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                                                                        rCurrentProcessInfo );
 
 
-    // Some declarations
-    double IntegrationCoefficient;
-
     // Computing in all integrations points
-    for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint ) {
+    for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint )
+    {
         //Compute Np, Nu and BodyAcceleration
         noalias(Variables.Np) = row(NContainer,GPoint);
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, NContainer, GPoint);
@@ -212,6 +197,10 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         // Compute element kinematics B, F, GradNpT ...
         this->UpdateElementVariables(Variables, GPoint, this->GetIntegrationMethod());
 
+        // Cauchy strain: This needs to be investigated which strain measure should be used
+        // In some references, e.g. Bathe, suggested to use Almansi strain measure
+        noalias(Variables.StrainVector) = prod(Variables.B, Variables.DisplacementVector);
+
         //Compute constitutive tensor and stresses
         UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -222,13 +211,12 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         this->InitializeBiotCoefficients(Variables, GetProperties(), BulkModulus);
 
         // Calculating weights for integration on the reference configuration
-        this->CalculateIntegrationCoefficient( IntegrationCoefficient,
+        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
                                                Variables.detJ0,
                                                IntegrationPoints[GPoint].Weight() );
 
-
         if ( CalculateStiffnessMatrixFlag == true )
-        { // Calculation of the matrix is required
+        {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -237,8 +225,11 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
             this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables );
         }
 
-        //Contributions to the right hand side
-        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        if (CalculateResidualVectorFlag)
+        {
+            //Contributions to the right hand side
+            this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        }
     }
 
     KRATOS_CATCH( "" )
@@ -477,9 +468,9 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianElement<TDim,TNumNodes>::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPwSmallStrainElement );
-    rSerializer.save("mF0Computed", mF0Computed);
-    rSerializer.save("mDetF0", mDetF0);
-    rSerializer.save("mF0", mF0);
+    rSerializer.save("F0Computed", mF0Computed);
+    rSerializer.save("DetF0", mDetF0);
+    rSerializer.save("F0", mF0);
 }
 
 //----------------------------------------------------------------------------------------
@@ -487,12 +478,12 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianElement<TDim,TNumNodes>::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPwSmallStrainElement );
-    rSerializer.load("mF0Computed", mF0Computed);
-    rSerializer.load("mDetF0", mDetF0);
-    rSerializer.load("mF0", mF0);
+    rSerializer.load("F0Computed", mF0Computed);
+    rSerializer.load("DetF0", mDetF0);
+    rSerializer.load("F0", mF0);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwUpdatedLagrangianElement<2,3>;
 template class UPwUpdatedLagrangianElement<2,4>;
