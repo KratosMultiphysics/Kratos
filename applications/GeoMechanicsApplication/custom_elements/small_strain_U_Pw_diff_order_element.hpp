@@ -67,17 +67,11 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    //void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    //void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    //void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
