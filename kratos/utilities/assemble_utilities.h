@@ -41,7 +41,12 @@ public:
 
     template<class TDataType>
     using TMap = std::unordered_map<int, TDataType>;
+
     using NodeType = ModelPart::NodeType;
+
+    using ElementType = ModelPart::ElementType;
+
+    using ConditionType = ModelPart::ConditionType;
 
     ///@}
     ///@name Life Cycle
@@ -157,9 +162,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    template<class TContainerType>
-    static TContainerType& GetContainer(ModelPart& rModelPart);
-
     /**
      * @brief Assembles entity values given in the map
      *
@@ -167,14 +169,15 @@ private:
      * No clearing of entity values are done, therefore, assemble will add
      * values to existing values.
      *
+     * @tparam TContainerType
      * @tparam TDataType
      * @tparam TUpdateFunction
-     * @param rModelPart            Model part where nodes need to update
+     * @param rContainer            Entity container
      * @param rVariable             Variable to store assembled values
      * @param rValuesMap            Values map with entity_id and value
      * @param rUpdateFunction       Update function
      */
-    template<class TDataType, class TContainerType, class TUpdateFunction>
+    template<class TContainerType, class TDataType, class TUpdateFunction>
     void static AssembleDataWithEntityValuesMap(
         TContainerType& rContainer,
         const Variable<TDataType>& rVariable,

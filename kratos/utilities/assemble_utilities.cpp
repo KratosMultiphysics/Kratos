@@ -28,37 +28,14 @@
 
 namespace Kratos
 {
-template <>
-ModelPart::NodesContainerType& AssembleUtilities::GetContainer<ModelPart::NodesContainerType>(
-    ModelPart& rModelPart)
-{
-    return rModelPart.Nodes();
-}
-
-template <>
-ModelPart::ElementsContainerType& AssembleUtilities::GetContainer<ModelPart::ElementsContainerType>(
-    ModelPart& rModelPart)
-{
-    return rModelPart.Elements();
-}
-
-template <>
-ModelPart::ConditionsContainerType& AssembleUtilities::GetContainer<ModelPart::ConditionsContainerType>(
-    ModelPart& rModelPart)
-{
-    return rModelPart.Conditions();
-}
-
 void AssembleUtilities::AssembleCurrentDataWithValuesMap(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
     const TMap<int>& rNodalValuesMap) const
 {
-    using entity_container_type = ModelPart::NodesContainerType;
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rNodalValuesMap,
+        rModelPart.Nodes(), rVariable, rNodalValuesMap,
         AssembleUtilities::UpdateHistoricalNodalValue<int>);
 }
 
@@ -67,11 +44,9 @@ void AssembleUtilities::AssembleCurrentDataWithValuesMap(
     const Variable<double>& rVariable,
     const TMap<double>& rNodalValuesMap) const
 {
-    using entity_container_type = ModelPart::NodesContainerType;
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rNodalValuesMap,
+        rModelPart.Nodes(), rVariable, rNodalValuesMap,
         AssembleUtilities::UpdateHistoricalNodalValue<double>);
 }
 
@@ -80,11 +55,9 @@ void AssembleUtilities::AssembleCurrentDataWithValuesMap(
     const Variable<array_1d<double, 3>>& rVariable,
     const TMap<array_1d<double, 3>>& rNodalValuesMap) const
 {
-    using entity_container_type = ModelPart::NodesContainerType;
     AssembleUtilities::CheckHistoricalVariable(rModelPart, rVariable);
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rNodalValuesMap,
+        rModelPart.Nodes(), rVariable, rNodalValuesMap,
         AssembleUtilities::UpdateHistoricalNodalValue<array_1d<double, 3>>);
 }
 
@@ -93,11 +66,9 @@ void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     const Variable<int>& rVariable,
     const TMap<int>& rNodalValuesMap) const
 {
-    using entity_container_type = ModelPart::NodesContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<int, entity_container_type::value_type>);
+        rModelPart.Nodes(), rVariable, rNodalValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<int, NodeType>);
 }
 
 void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
@@ -105,11 +76,9 @@ void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     const Variable<double>& rVariable,
     const TMap<double>& rNodalValuesMap) const
 {
-    using entity_container_type = ModelPart::NodesContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<double, entity_container_type::value_type>);
+        rModelPart.Nodes(), rVariable, rNodalValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<double, NodeType>);
 }
 
 void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
@@ -117,11 +86,9 @@ void AssembleUtilities::AssembleNonHistoricalNodalDataWithValuesMap(
     const Variable<array_1d<double, 3>>& rVariable,
     const TMap<array_1d<double, 3>>& rNodalValuesMap) const
 {
-    using entity_container_type = ModelPart::NodesContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rNodalValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, entity_container_type::value_type>);
+        rModelPart.Nodes(), rVariable, rNodalValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, NodeType>);
 }
 
 void AssembleUtilities::AssembleElementDataWithValuesMap(
@@ -129,11 +96,9 @@ void AssembleUtilities::AssembleElementDataWithValuesMap(
     const Variable<int>& rVariable,
     const TMap<int>& rElementValuesMap) const
 {
-    using entity_container_type = ModelPart::ElementsContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rElementValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<int, entity_container_type::value_type>);
+        rModelPart.Elements(), rVariable, rElementValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<int, ElementType>);
 }
 
 void AssembleUtilities::AssembleElementDataWithValuesMap(
@@ -141,11 +106,9 @@ void AssembleUtilities::AssembleElementDataWithValuesMap(
     const Variable<double>& rVariable,
     const TMap<double>& rElementValuesMap) const
 {
-    using entity_container_type = ModelPart::ElementsContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rElementValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<double, entity_container_type::value_type>);
+        rModelPart.Elements(), rVariable, rElementValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<double, ElementType>);
 }
 
 void AssembleUtilities::AssembleElementDataWithValuesMap(
@@ -153,33 +116,29 @@ void AssembleUtilities::AssembleElementDataWithValuesMap(
     const Variable<array_1d<double, 3>>& rVariable,
     const TMap<array_1d<double, 3>>& rElementValuesMap) const
 {
-    using entity_container_type = ModelPart::ElementsContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rElementValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, entity_container_type::value_type>);
+        rModelPart.Elements(), rVariable, rElementValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, ElementType>);
 }
 
-void AssembleUtilities::AssembleConditionDataWithValuesMap(ModelPart& rModelPart,
-                                                           const Variable<int>& rVariable,
-                                                           const TMap<int>& rConditionValuesMap) const
+void AssembleUtilities::AssembleConditionDataWithValuesMap(
+    ModelPart& rModelPart,
+    const Variable<int>& rVariable,
+    const TMap<int>& rConditionValuesMap) const
 {
-    using entity_container_type = ModelPart::ConditionsContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rConditionValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<int, entity_container_type::value_type>);
+        rModelPart.Conditions(), rVariable, rConditionValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<int, ConditionType>);
 }
 
-void AssembleUtilities::AssembleConditionDataWithValuesMap(ModelPart& rModelPart,
-                                                           const Variable<double>& rVariable,
-                                                           const TMap<double>& rConditionValuesMap) const
+void AssembleUtilities::AssembleConditionDataWithValuesMap(
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const TMap<double>& rConditionValuesMap) const
 {
-    using entity_container_type = ModelPart::ConditionsContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rConditionValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<double, entity_container_type::value_type>);
+        rModelPart.Conditions(), rVariable, rConditionValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<double, ConditionType>);
 }
 
 void AssembleUtilities::AssembleConditionDataWithValuesMap(
@@ -187,11 +146,9 @@ void AssembleUtilities::AssembleConditionDataWithValuesMap(
     const Variable<array_1d<double, 3>>& rVariable,
     const TMap<array_1d<double, 3>>& rConditionValuesMap) const
 {
-    using entity_container_type = ModelPart::ConditionsContainerType;
-    auto& container = AssembleUtilities::GetContainer<entity_container_type>(rModelPart);
     AssembleUtilities::AssembleDataWithEntityValuesMap(
-        container, rVariable, rConditionValuesMap,
-        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, entity_container_type::value_type>);
+        rModelPart.Conditions(), rVariable, rConditionValuesMap,
+        AssembleUtilities::UpdateNonHistoricalValue<array_1d<double, 3>, ConditionType>);
 }
 
 } // namespace Kratos
