@@ -270,7 +270,6 @@ namespace Kratos
 
 			std::stringstream secondary_stream;
 			std::streambuf* original_buffer = nullptr;
-
 			if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS && ParallelEnvironment::GetDefaultRank() != 0) {
 				original_buffer = std::cout.rdbuf(secondary_stream.rdbuf());
 			}
@@ -302,8 +301,7 @@ namespace Kratos
 			if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS && ParallelEnvironment::GetDefaultRank() != 0) {
 				std::cout.rdbuf(original_buffer);
 			}
-
-      return tmp;
+			return tmp;
 		}
 
 
