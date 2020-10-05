@@ -202,7 +202,9 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
                   const double radius = p_particle->GetSearchRadius();
+
                   NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
               }
