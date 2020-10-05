@@ -11,7 +11,6 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_parameters.h"
-//#include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "includes/process_info.h"
 
 namespace Kratos
