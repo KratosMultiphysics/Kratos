@@ -19,12 +19,12 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
 
-    smallSuite.addTest(main_coupling_for_testing.TestAnalytics("small_strain")) #defined inside main_coupling_for_testing
-    smallSuite.addTest(main_coupling_total_lagrangian_for_testing.TestAnalytics("total_lagrangian")) #defined inside main_coupling_total_lagrangian_for_testing
-    smallSuite.addTest(main_coupling_for_testing_tables.TestAnalytics("tables")) #defined inside main_coupling_for_testing_tables
-    smallSuite.addTest(main_coupling_fracture_3_point_for_testing.TestAnalytics("fracture_3_point")) #defined inside main_coupling_fracture_3_point_for_testing
-    smallSuite.addTest(main_coupling_free_fall_testing.TestAnalytics("free_fall")) #defined inside main_coupling_fracture_3_point_for_testing
-    smallSuite.addTest(main_fsi_aitken_for_testing.TestAnalytics("2d_fsi")) #defined inside main_fsi_aitken_for_testing
+    # smallSuite.addTest(main_coupling_for_testing.TestAnalytics("small_strain")) #defined inside main_coupling_for_testing
+    # smallSuite.addTest(main_coupling_total_lagrangian_for_testing.TestAnalytics("total_lagrangian")) #defined inside main_coupling_total_lagrangian_for_testing
+    # smallSuite.addTest(main_coupling_for_testing_tables.TestAnalytics("tables")) #defined inside main_coupling_for_testing_tables
+    # smallSuite.addTest(main_coupling_fracture_3_point_for_testing.TestAnalytics("fracture_3_point")) #defined inside main_coupling_fracture_3_point_for_testing
+    # smallSuite.addTest(main_coupling_free_fall_testing.TestAnalytics("free_fall")) #defined inside main_coupling_fracture_3_point_for_testing
+    smallSuite.addTest(main_fsi_aitken_for_testing.TestAnalytics("two_dimensional_fsi")) #defined inside main_fsi_aitken_for_testing
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

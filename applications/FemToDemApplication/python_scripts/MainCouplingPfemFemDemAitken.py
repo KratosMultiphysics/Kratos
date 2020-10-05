@@ -22,7 +22,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 #============================================================================================================================
 
     def __init__(self, Model, PFEMparameters, path=""):
-        super(MainCouplingPfemFemDemAitken_Solution, self).__init__(Model, PFEMparameters)
+        super(MainCouplingPfemFemDemAitken_Solution, self).__init__(Model, PFEMparameters, path)
 
         project_parameters = self.FEMDEM_Solution.FEM_Solution.ProjectParameters
         if (project_parameters.Has("Aitken_parameters")):

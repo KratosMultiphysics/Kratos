@@ -58,9 +58,12 @@ class TestAnalytics(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def 2d_fsi(self):
+    def two_dimensional_fsi(self):
+        with open("fsi_tests/wall_2d/PFEMProjectParameters.json",'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
         model = KratosMultiphysics.Model()
-        MainCouplingPfemFemDemAitkenForTestingSolution(model, "fsi_tests/wall_2d/", ).Run()
+        MainCouplingPfemFemDemAitkenForTestingSolution(model, parameter_file, "fsi_tests/wall_2d/").Run()
 
 
 
