@@ -33,6 +33,8 @@ double GetFromProperty(const Properties& rThisProperties, Variable<double>& rVar
 
 double TotalStructuralMassProcess::CalculateElementMass(Element& rElement, const std::size_t DomainSize)
 {
+    KRATOS_TRY
+
     // We get the element geometry
     auto& r_this_geometry = rElement.GetGeometry();
     const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
@@ -81,11 +83,15 @@ double TotalStructuralMassProcess::CalculateElementMass(Element& rElement, const
     }
 
     return element_mass;
+
+    KRATOS_CATCH("Element Id: "+std::to_string(rElement.Id()))
 }
 
 void TotalStructuralMassProcess::Execute()
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mrThisModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "No \"DOMAIN_SIZE\" was specified for ModelPart \"" << mrThisModelPart.FullName() << "\"!" << std::endl;
 
     const std::size_t domain_size = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
     double total_mass = 0.0;
