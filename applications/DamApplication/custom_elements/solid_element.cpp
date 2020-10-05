@@ -488,7 +488,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw:
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::Initialize()
+void SolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

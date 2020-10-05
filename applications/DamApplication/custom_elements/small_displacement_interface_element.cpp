@@ -27,7 +27,7 @@ Element::Pointer SmallDisplacementInterfaceElement<TDim,TNumNodes>::Create( Inde
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::Initialize()
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
