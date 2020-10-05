@@ -62,15 +62,45 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Visit(Variable<bool> const& TheVariable) = 0;
-    virtual void Visit(Variable<int> const& TheVariable) = 0;
-    virtual void Visit(Variable<unsigned int> const& TheVariable) = 0;
-    virtual void Visit(Variable<double> const& TheVariable) = 0;
-    virtual void Visit(Variable<array_1d<double,3>> const& TheVariable) = 0;
-    virtual void Visit(Variable<Vector> const& TheVariable) = 0;
-    virtual void Visit(Variable<Matrix> const& TheVariable) = 0;
-    
-    virtual void Visit(VariableData const& TheVariable) = 0; // Fallback method
+    /// The visit class is called for each variable in the given variables list.
+    virtual void Visit(Variable<bool> const& TheVariable){
+        ThrowError("bool");
+   }
+
+    /// The visit class is called for each variable in the given variables list.
+    virtual void Visit(Variable<int> const& TheVariable){
+        ThrowError("integer");
+    }
+
+    /// The visit class is called for each variable in the given variables list.
+    virtual void Visit(Variable<unsigned int> const& TheVariable){
+        ThrowError("unsigned integer");
+    }
+
+    /// The visit class is called for each variable in the given variables list.
+    virtual void Visit(Variable<double> const& TheVariable){
+        ThrowError("double");
+    }
+
+    /// The visit class is called for each variable in the given variables list.
+    virtual void Visit(Variable<array_1d<double,3>> const& TheVariable){
+        ThrowError("array_1d3");
+    }
+
+    /// The visit class is called for each variable in the given variables list.
+    virtual void Visit(Variable<Vector> const& TheVariable){
+        ThrowError("Vector");
+    }
+
+    /// The visit class is called for each variable in the given variables list.
+    virtual void Visit(Variable<Matrix> const& TheVariable){
+        ThrowError("Matrix");
+    }
+
+    virtual void Visit(VariableData const& TheVariable){ // Fallback method
+        KRATOS_ERROR << "Unsupported variable type. The supported varibles types to visits are" 
+        << "boo, int, unsinged int, array_1d<double,3>, Vector, and Matrix." << std::endl;
+    }
 
     template<typename TVariablesContainerType> 
     void VisitVariables(TVariablesContainerType const& Variables){
@@ -105,6 +135,12 @@ public:
     ///@}
 
 private:
+
+    void ThrowError(std::string VariableType){
+         KRATOS_ERROR << "Calling the base class visit method for the " << VariableType << 
+         " variable. The main cause of this error is that the visitor class does not support " << VariableType  << std::endl;
+    }
+
      ///@name Un accessible methods
     ///@{
 
