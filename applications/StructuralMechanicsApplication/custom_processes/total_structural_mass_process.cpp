@@ -94,6 +94,8 @@ void TotalStructuralMassProcess::Execute()
     KRATOS_ERROR_IF_NOT(mrThisModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "No \"DOMAIN_SIZE\" was specified for ModelPart \"" << mrThisModelPart.FullName() << "\"!" << std::endl;
 
     const std::size_t domain_size = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    KRATOS_ERROR_IF((domain_size!=2)&&(domain_size!=3)) << "\"DOMAIN_SIZE\" for ModelPart \"" << mrThisModelPart.FullName() << "\" is " << domain_size << " but can only be 2 or 3!" << std::endl;
+
     double total_mass = 0.0;
 
     // Now we iterate over the elements to calculate the total mass
@@ -118,5 +120,6 @@ void TotalStructuralMassProcess::Execute()
     mrThisModelPart.GetProcessInfo()[NODAL_MASS] = total_mass;
 
     KRATOS_CATCH("")
+
 } // class TotalStructuralMassProcess
 } // namespace Kratos
