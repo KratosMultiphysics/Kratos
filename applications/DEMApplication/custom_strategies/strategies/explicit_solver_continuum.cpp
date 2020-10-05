@@ -3,6 +3,8 @@
 //
 
 #include "explicit_solver_continuum.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos {
 
@@ -188,26 +190,21 @@ namespace Kratos {
 
         if (r_process_info[SEARCH_CONTROL] == 0) {
 
-            ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+            ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
             bool some_bond_is_broken = false;
 
-            #pragma omp parallel for
-            for (int i= 0; i < (int)pElements.size(); i++) {
+            block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
 
-                ElementsArrayType::iterator it = pElements.ptr_begin() + i;
-                Element* p_element = &(*it);
-                SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
+                SphericContinuumParticle& r_sphere = dynamic_cast<SphericContinuumParticle&>(rElement);
 
-                for (int j=0; j<(int) p_sphere->mContinuumInitialNeighborsSize; j++) {
-
-                    if (p_sphere->mIniNeighbourFailureId[j] != 0) {
-                        #pragma omp atomic write
-                        some_bond_is_broken = true;
-
+                for (int j=0; j<(int) r_sphere.mContinuumInitialNeighborsSize; j++) {
+                    if (r_sphere.mIniNeighbourFailureId[j] != 0) {
+                        AtomicAssign(some_bond_is_broken, true);
                         break;
                     }
                 }
-            }
+
+            });
 
             if (some_bond_is_broken) {
                 r_process_info[SEARCH_CONTROL] = 1;
