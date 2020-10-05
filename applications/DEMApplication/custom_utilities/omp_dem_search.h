@@ -201,15 +201,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
 
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
-                  //KRATOS_INFO("DEM")<<i;
                   const double radius = p_particle->GetSearchRadius();
-                  //KRATOS_INFO("DEM")<<"1";
                   NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
-                  //KRATOS_INFO("DEM")<<"2";
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-                  //KRATOS_INFO("DEM")<<"3";
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
-                  //KRATOS_INFO("DEM")<<"4";
               }
           }
           //MAJOR TODO: creating and destroying (when leaving the function) this BINS is not parallel and takes a significant time if we search at every time step. Can we re-use a bins and avoid allocation and deallocation?? MA
