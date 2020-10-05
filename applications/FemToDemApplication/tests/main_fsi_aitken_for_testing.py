@@ -31,10 +31,40 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
         self.CheckControlValuesForTesting()
 
 #============================================================================================================================
-    def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(dy))
-        
+    def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(dx))
+        tol = 1e-5
         for node in self.FEMDEM_Solution.FEM_Solution.main_model_part.GetSubModelPart("testing_nodes").Nodes:
-            KratosPrintInfo("hey")
+            # KratosPrintInfo("hey")
+            if self.FEMDEM_Solution.FEM_Solution.step == 3:
+                dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+                ref_dx = 7.539979970827383e-06
+                ref_vx = 0.01089025506774863
+                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                    raise ValueError('The computed displ or velocity at step = 3 is not correct')
+            if self.FEMDEM_Solution.FEM_Solution.step == 5:
+                dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+                ref_dx = 7.605594669875214e-05
+                ref_vx = 0.05646212212293625
+                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                    raise ValueError('The computed displ or velocity at step = 5 is not correct')
+            if self.FEMDEM_Solution.FEM_Solution.step == 8:
+                dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+                ref_dx = 0.0001966109980103405
+                ref_vx = 0.030178525378407893
+                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                    raise ValueError('The computed displ or velocity at step = 8 is not correct')
+            if self.FEMDEM_Solution.FEM_Solution.step == 11:
+                dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+                ref_dx = 0.0002784147973531396
+                ref_vx = 0.047863965496993656
+                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                    message = "The obtained dx and vx is: " + str(dx) + " m  and " + str(vx) + " m/s."
+                    KratosPrintInfo(message)
+                    raise ValueError('The computed displ or velocity at step = 11 is not correct')
 
 
 #============================================================================================================================
