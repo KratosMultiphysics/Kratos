@@ -25,13 +25,16 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
         self.PFEM_Solution.FinalizeSolutionStep()
         self.PFEM_Solution.OutputSolutionStep()
         self.FEMDEM_Solution.FinalizeSolutionStep()
-        KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.PFEM_Solution.post_process_model_part, self.PFEM_Solution.main_model_part)
+        KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(
+                                                                                    self.PFEM_Solution.post_process_model_part,
+                                                                                    self.PFEM_Solution.main_model_part)
         # self.PrintResults()
 
         self.CheckControlValuesForTesting()
 
 #============================================================================================================================
-    def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(dx))
+    def CheckControlValuesForTesting(self):  # message = "The obtained dx and vx is: " + str(dx) + " m  and " + str(vx) + " m/s." KratosPrintInfo(message)
+                    
         tol = 1e-5
         for node in self.FEMDEM_Solution.FEM_Solution.main_model_part.GetSubModelPart("testing_nodes").Nodes:
             # KratosPrintInfo("hey")
@@ -62,8 +65,6 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
                 ref_dx = 0.0002784147973531396
                 ref_vx = 0.047863965496993656
                 if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
-                    message = "The obtained dx and vx is: " + str(dx) + " m  and " + str(vx) + " m/s."
-                    KratosPrintInfo(message)
                     raise ValueError('The computed displ or velocity at step = 11 is not correct')
 
 

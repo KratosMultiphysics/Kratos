@@ -11,9 +11,7 @@ import main_coupling_fracture_3_point_for_testing
 import main_coupling_free_fall_testing
 import main_fsi_aitken_for_testing
 
-
 def AssembleTestSuites():
-
 
     suites = KratosUnittest.KratosSuites
 
