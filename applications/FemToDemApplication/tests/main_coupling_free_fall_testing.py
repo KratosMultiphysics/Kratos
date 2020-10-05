@@ -28,31 +28,31 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
         node = self.FEM_Solution.main_model_part.GetNode(39)
         dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
         if self.FEM_Solution.step == 20:
-            if dy != -0.046660044881251264:
+            if dy != -0.0466600448812516:
                 raise ValueError('The computed displacement at step = 20 is not correct')
         elif self.FEM_Solution.step == 50:
-            if dy != -0.3004937948812545:
+            if dy != -0.3004937948812539:
                 raise ValueError('The computed displacement at step = 50 is not correct')
         elif self.FEM_Solution.step == 90:
-            if dy != -0.9778132951993863:
+            if dy != -0.977376625965171:
                 raise ValueError('The computed displacement at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
-            ref = 0.3262364577734523
+            ref = 0.5507018756981786
             if (dy - ref) / ref > 1e-4:
                 raise ValueError('The computed displacement at step = 140 is not correct')
         
         vy = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
         if self.FEM_Solution.step == 20:
-            if vy != -0.9564750000003245:
+            if vy != -0.9564750000005906:
                 raise ValueError('The computed velocity at step = 20 is not correct')
         elif self.FEM_Solution.step == 50:
-            if vy != -2.4279749999996674:
+            if vy != -2.4279750000009126:
                 raise ValueError('The computed velocity at step = 50 is not correct')
         elif self.FEM_Solution.step == 90:
-            if vy != -3.3520719444389666:
+            if vy != -3.2313066452534627:
                 raise ValueError('The computed velocity at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
-            ref = 4.7178528813310345
+            ref = 5.457634130207384
             if (vy - ref) / ref > 1e-4:
                 raise ValueError('The computed displacement at step = 140 is not correct')
 
