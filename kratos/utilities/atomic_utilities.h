@@ -50,8 +50,8 @@ inline void AtomicAdd(TVectorType1& target, const TVectorType2& value ) {
 
     KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicAdd- Sizes are: "
         << target.size() << " for target and " << value.size() << " for value " <<std::endl;
-    for(unsigned int i=0: i<target.size(); ++i){
-       AtomicAdd(target[i], value[i];)
+    for(unsigned int i=0; i<target.size(); ++i){
+       AtomicAdd(target[i], value[i]);
     }
 }
 
@@ -73,8 +73,8 @@ template<class TVectorType1, class TVectorType2>
 inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
     KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSub- Sizes are: "
         << target.size() << " for target and " << value.size() << " for value " <<std::endl;
-    for(unsigned int i=0: i<target.size(); ++i){
-       AtomicSub(target[i], value[i];)
+    for(unsigned int i=0; i<target.size(); ++i){
+       AtomicSub(target[i], value[i]);
     }
 }
 

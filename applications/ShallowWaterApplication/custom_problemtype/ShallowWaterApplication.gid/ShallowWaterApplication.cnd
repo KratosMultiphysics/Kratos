@@ -44,11 +44,11 @@ END CONDITION
 
 BOOK: Boundary_conditions
 
-CONDITION: Slip_condition
-CONDTYPE: over groups
-CONDMESHTYPE: over face elements
-GROUPALLOW: lines faces nodes
-END CONDITION
+#CONDITION: Slip_condition
+#CONDTYPE: over groups
+#CONDMESHTYPE: over face elements
+#GROUPALLOW: lines faces nodes
+#END CONDITION
 
 CONDITION: Water_height
 CONDTYPE: over groups
@@ -86,17 +86,17 @@ VALUE: false
 END CONDITION
 
 
-BOOK: Source_terms
+#BOOK: Source_terms
 
-CONDITION: Rain_load
-CONDTYPE: over groups
-CONDMESHTYPE: over body elements
-GROUPALLOW: lines surfaces faces elements nodes
-QUESTION: Rain_profile#CB#(Constant,Table_Interpolation)
-VALUE: Constant
-DEPENDENCIES: (Constant,RESTORE,Value,#CURRENT#)(Constant,HIDE,Table,#CURRENT#)(Table_Interpolation,HIDE,Value,#CURRENT#)(Table_Interpolation,RESTORE,Table,#CURRENT#)
-QUESTION: Value
-VALUE: 0.0
-QUESTION: Table(Time,Value)
-VALUE: #N# 2 0.0 0.0
-END CONDITION
+#CONDITION: Rain_load
+#CONDTYPE: over groups
+#CONDMESHTYPE: over body elements
+#GROUPALLOW: lines surfaces faces elements nodes
+#QUESTION: Rain_profile#CB#(Constant,Table_Interpolation)
+#VALUE: Constant
+#DEPENDENCIES: (Constant,RESTORE,Value,#CURRENT#)(Constant,HIDE,Table,#CURRENT#)(Table_Interpolation,HIDE,Value,#CURRENT#)(Table_Interpolation,RESTORE,Table,#CURRENT#)
+#QUESTION: Value
+#VALUE: 0.0
+#QUESTION: Table(Time,Value)
+#VALUE: #N# 2 0.0 0.0
+#END CONDITION
