@@ -454,6 +454,27 @@ protected:
         mValuesDestination.resize(3,ZeroVector(destination_node_number));
     }
 
+    // --------------------------------------------------------------------------
+    virtual void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
+                                        NodeVector& neighbor_nodes,
+                                        unsigned int number_of_neighbors,
+                                        std::vector<double>& list_of_weights,
+                                        double& sum_of_weights )
+    {
+
+
+        unsigned int row_id = origin_node.GetValue(MAPPING_ID);
+        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        {
+            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+
+
+            double weight = list_of_weights[neighbor_itr] / sum_of_weights;
+            mMappingMatrix.insert_element(row_id,collumn_id,weight);
+        }
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -534,27 +555,6 @@ private:
     void CreateSearchTreeWithAllNodesInOriginModelPart()
     {
         mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginModelPart.begin(), mListOfNodesInOriginModelPart.end(), mBucketSize));
-    }
-
-    // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
-    {
-
-
-        unsigned int row_id = origin_node.GetValue(MAPPING_ID);
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            int collumn_id = neighbor_node.GetValue(MAPPING_ID);
-
-
-            double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            mMappingMatrix.insert_element(row_id,collumn_id,weight);
-        }
     }
 
     // --------------------------------------------------------------------------

@@ -252,56 +252,27 @@ protected:
     virtual void ComputeMappingMatrix()
     {
         GeometryUtilities(mrOriginModelPart).ComputeUnitSurfaceNormals();
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
-        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
-
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            NodeVector neighbor_nodes( max_number_of_neighbors );
-            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             filter_radius,
-                                                                             neighbor_nodes.begin(),
-                                                                             resulting_squared_distances.begin(),
-                                                                             max_number_of_neighbors );
-
-
-
-            std::vector<array_3d> list_of_weights( number_of_neighbors, array_3d(0.0) );
-            double sum_of_weights = 0.0;
-
-            if(number_of_neighbors >= max_number_of_neighbors)
-                KRATOS_WARNING("ShapeOpt::MapperVertexMorphingNormal") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
-
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-        }
+        MapperVertexMorphing::ComputeMappingMatrix();
     }
 
     // --------------------------------------------------------------------------
-    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
+    void FillMappingMatrixWithWeights(  ModelPart::NodeType& destination_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
                                         double& sum_of_weights )
     {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<array_3d>& list_of_weights,
-                                        double& sum_of_weights )
-    {
+        unsigned int row_id = destination_node.GetValue(MAPPING_ID);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
+            int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+            const array_3d& normal = neighbor_node.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
 
-            list_of_weights[neighbor_itr] = weight * neighbor_node.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            sum_of_weights += weight;
+            array_3d weight = normal * list_of_weights[neighbor_itr] / sum_of_weights;
+            mMappingMatrix.insert_element(row_id*3+0,collumn_id,weight[0]);
+            mMappingMatrix.insert_element(row_id*3+1,collumn_id,weight[1]);
+            mMappingMatrix.insert_element(row_id*3+2,collumn_id,weight[2]);
         }
     }
 
@@ -355,26 +326,6 @@ private:
 
         mOriginVector = ZeroVector(origin_node_number);
         mDestinationVector = ZeroVector(destination_node_number*3);
-    }
-
-    // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<array_3d>& list_of_weights,
-                                        double& sum_of_weights )
-    {
-        unsigned int row_id = origin_node.GetValue(MAPPING_ID);
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            int collumn_id = neighbor_node.GetValue(MAPPING_ID);
-
-            array_3d weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            mMappingMatrix.insert_element(row_id*3+0,collumn_id,weight[0]);
-            mMappingMatrix.insert_element(row_id*3+1,collumn_id,weight[1]);
-            mMappingMatrix.insert_element(row_id*3+2,collumn_id,weight[2]);
-        }
     }
 
     // --------------------------------------------------------------------------
