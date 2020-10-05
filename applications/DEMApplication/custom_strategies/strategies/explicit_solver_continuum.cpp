@@ -27,8 +27,8 @@ namespace Kratos {
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
-        r_process_info[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
-        for (int i = 0; i < mNumberOfThreads; i++) r_process_info[SEARCH_CONTROL_VECTOR][i] = 0;
+        mSearchControlVector.resize(mNumberOfThreads);
+        for (int i = 0; i < mNumberOfThreads; i++) mSearchControlVector[i] = 0;
 
         PropertiesProxiesManager().CreatePropertiesProxies(r_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
@@ -187,15 +187,33 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
         if (r_process_info[SEARCH_CONTROL] == 0) {
-            for (int i = 0; i < mNumberOfThreads; i++) {
-                if (r_process_info[SEARCH_CONTROL_VECTOR][i] == 1) {
-                    r_process_info[SEARCH_CONTROL] = 1;
-                    if(r_model_part.GetCommunicator().MyPID() == 0) {
-                        KRATOS_WARNING("DEM") << "From now on, the search is activated because some failure occurred " << std::endl;
+
+            ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+            bool some_bond_is_broken = false;
+
+            #pragma omp parallel for
+            for (int i= 0; i < (int)pElements.size(); i++) {
+
+                ElementsArrayType::iterator it = pElements.ptr_begin() + i;
+                Element* p_element = &(*it);
+                SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
+
+                for (int j=0; j<(int) p_sphere->mContinuumInitialNeighborsSize; j++) {
+
+                    if (p_sphere->mIniNeighbourFailureId[j] != 0) {
+                        #pragma omp atomic write
+                        some_bond_is_broken = true;
+
+                        break;
                     }
-                    break;
                 }
             }
+
+            if (some_bond_is_broken) {
+                r_process_info[SEARCH_CONTROL] = 1;
+                KRATOS_WARNING("DEM") << "From now on, the search is activated because some failure occurred " << std::endl;
+            }
+
         }
 
         const int time_step = r_process_info[TIME_STEPS];
