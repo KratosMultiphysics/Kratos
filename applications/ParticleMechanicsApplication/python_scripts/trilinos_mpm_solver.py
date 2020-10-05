@@ -63,7 +63,19 @@ class TrilinosMPMSolver(MPMSolver):
         self.distributed_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMPMSolver]::", "ModelPart prepared for Solver.")
         # Copy mpi-communicator to material_point_model_part
-        KratosParticle.CopyMPICommunicator(self.grid_model_part, self.material_point_model_part)
+        KratosParticle.MPM_MPI_Utilities.SetMPICommunicator(self.grid_model_part, self.material_point_model_part)
+
+    def _SearchElement(self):
+        searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()
+        max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
+        searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
+        if (searching_alg_type == "bin_based"):
+            KratosParticle.SearchElementMPI(self.grid_model_part, self.material_point_model_part, max_number_of_search_results, searching_tolerance)
+        else:
+            err_msg  = "The requested searching algorithm \"" + searching_alg_type
+            err_msg += "\" is not available for ParticleMechanicsApplication!\n"
+            err_msg += "Available options are: \"bin_based\""
+            raise Exception(err_msg)
 
     def Finalize(self):
         super(TrilinosMPMSolver, self).Finalize()
@@ -82,7 +94,10 @@ class TrilinosMPMSolver(MPMSolver):
         #TODO: All missing criteria
         R_RT = self.settings["residual_relative_tolerance"].GetDouble()
         R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-        convergence_criterion = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
+        #convergence_criterion = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
+        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
+        D_AT = self.settings["displacement_relative_tolerance"].GetDouble()
+        convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
         convergence_criterion.SetEchoLevel(1)
         #convergence_criterion = convergence_criteria_factory.convergence_criterion(self._GetConvergenceCriterionSettings())
         return convergence_criterion
