@@ -83,7 +83,28 @@ namespace Kratos
         }
 
     }
-
+    void VariablesList::AddVariable(const std::string& rVarName)
+    {
+        //ugly but needed: here we need to get the component type by checking the Kratos components
+        if(KratosComponents<Variable<bool>>::Has(rVarName))
+            Add(KratosComponents<Variable<bool>>::Get(rVarName));
+        else if(KratosComponents<Variable<int>>::Has(rVarName))
+            Add(KratosComponents<Variable<int>>::Get(rVarName));
+        else if(KratosComponents<Variable<unsigned int>>::Has(rVarName))
+            Add(KratosComponents<Variable<unsigned int>>::Get(rVarName));
+        else if(KratosComponents<Variable<double>>::Has(rVarName))
+            Add(KratosComponents<Variable<double>>::Get(rVarName));
+        else if(KratosComponents<Variable<array_1d<double,3>>>::Has(rVarName))
+            Add(KratosComponents<Variable<array_1d<double,3>>>::Get(rVarName));
+        else if(KratosComponents<Variable<Vector>>::Has(rVarName))
+            Add(KratosComponents<Variable<Vector>>::Get(rVarName));
+        else if(KratosComponents<Variable<Matrix>>::Has(rVarName))
+            Add(KratosComponents<Variable<Matrix>>::Get(rVarName));
+        else
+        {
+            KRATOS_ERROR << "variable " << rVarName << " not found as recognized variable type" << std::endl;
+        }
+    }
     
 }  // namespace Kratos.
 

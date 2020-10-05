@@ -284,6 +284,13 @@ namespace Kratos
 			mDataSize += static_cast<SizeType>(((block_size - 1) + ThisVariable.Size()) / block_size);
 		}
 
+		/// Adding variable by its name. 
+		/** Please note that this one is not very fast as it should search in the components. 
+		 *  So please use it when other methods cannot be used.
+		**/
+		void AddVariable(const std::string& rVarName);
+
+
 		int AddDof(VariableData const* pThisDofVariable){
 			
 			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){
