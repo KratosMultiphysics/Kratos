@@ -83,9 +83,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListGetDofInfo, KratosCoreFastSuite) {
                 }                     
             }
 
-            void operator()(Variable<Vector> const& TheVaraible) const {} // Skip it for Vector
+            void operator()(Variable<Vector> const& TheVariable) const {} // Skip it for Vector
 
-            void operator()(Variable<Matrix> const& TheVaraible) const {} // Skip it for Matrix
+            void operator()(Variable<Matrix> const& TheVariable) const {} // Skip it for Matrix
     };  
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesListApplyVisitor, KratosCoreFastSuite)
