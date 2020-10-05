@@ -11,8 +11,6 @@ class TestMPIProcesses(KratosUnittest.TestCase):
 
     def testComputeNodalGradientProcess(self):
 
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-
         current_model = KratosMultiphysics.Model()
         main_model_part = current_model.CreateModelPart("main_model_part")
         main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
@@ -52,8 +50,6 @@ class TestMPIProcesses(KratosUnittest.TestCase):
                 self.assertAlmostEqual(gradient_i, gradient_i_ref)
 
     def testComputeNonHistoricalNodalGradientProcess(self):
-
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
 
         current_model = KratosMultiphysics.Model()
         main_model_part = current_model.CreateModelPart("main_model_part")
