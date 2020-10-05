@@ -506,7 +506,7 @@ void SmallDisplacementInterfaceElement<3,8>::EquationIdVector(EquationIdVectorTy
 
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * TDim;

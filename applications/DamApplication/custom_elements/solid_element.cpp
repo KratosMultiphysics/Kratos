@@ -203,7 +203,7 @@ void SolidElement::EquationIdVector(EquationIdVectorType& rResult, const Process
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void SolidElement::GetValuesVector( Vector& rValues, int Step )
+void SolidElement::GetValuesVector(Vector& rValues, int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();

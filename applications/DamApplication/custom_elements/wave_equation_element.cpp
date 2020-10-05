@@ -179,7 +179,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void WaveEquationElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
+void WaveEquationElement<TDim,TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes;
