@@ -161,7 +161,7 @@ void SolidElement::IncreaseIntegrationMethod(IntegrationMethod& rThisIntegration
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void SolidElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     rElementalDofList.resize( 0 );
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
@@ -179,7 +179,7 @@ void SolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& r
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void SolidElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -599,7 +599,7 @@ void SolidElement::TransformElementData(ElementDataType& rVariables, const doubl
 //************************************************************************************
 //************************************************************************************
 
-SolidElement::SizeType SolidElement::GetDofsSize()
+SolidElement::SizeType SolidElement::GetDofsSize() const
 {
   KRATOS_TRY
 
@@ -680,16 +680,16 @@ void SolidElement::CalculateMaterialResponse(ElementDataType& rVariables,
 //************************************************************************************
 
 void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-                                             ProcessInfo& rCurrentProcessInfo)
+                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     //create and initialize element variables:
     ElementDataType Variables;
-    this->InitializeElementData(Variables,rCurrentProcessInfo);
+    this->InitializeElementData(Variables, rCurrentProcessInfo);
 
     //create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -753,8 +753,8 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-					   ProcessInfo& rCurrentProcessInfo)
+void SolidElement::CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
+					                                const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -902,7 +902,7 @@ void SolidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, Eleme
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
 
@@ -949,7 +949,7 @@ void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
 
@@ -1032,7 +1032,7 @@ double& SolidElement::CalculateIntegrationWeight(double& rIntegrationWeight)
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1062,7 +1062,7 @@ void SolidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, Pro
 //************************************************************************************
 
 
-void SolidElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1091,7 +1091,7 @@ void SolidElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Proce
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1138,7 +1138,7 @@ void SolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, Vector
 //************************************************************************************
 
 
-void SolidElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculatePerturbedLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1206,7 +1206,7 @@ void SolidElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatr
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1221,7 +1221,7 @@ void SolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
 //************************************************************************************
 //************************************************************************************
-void SolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SolidElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeExplicitContributions();
 }
@@ -1229,7 +1229,7 @@ void SolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInf
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SolidElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
 
 }
@@ -1237,16 +1237,16 @@ void SolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo 
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     //create and initialize element variables:
     ElementDataType Variables;
-    this->InitializeElementData(Variables,rCurrentProcessInfo);
+    this->InitializeElementData(Variables, rCurrentProcessInfo);
 
     //create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -1610,7 +1610,7 @@ Vector& SolidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementDataTyp
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void SolidElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1639,7 +1639,7 @@ void SolidElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandS
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1721,7 +1721,7 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void SolidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1771,7 +1771,7 @@ void SolidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1842,7 +1842,7 @@ void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVecto
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1885,7 +1885,7 @@ void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
       noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
 
       double TotalMass = 0;
-      TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
+      TotalMass = this->CalculateTotalMass(TotalMass, rCurrentProcessInfo);
 
       Vector LumpFact(number_of_nodes);
       noalias(LumpFact) = ZeroVector(number_of_nodes);
@@ -1912,7 +1912,7 @@ void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1973,7 +1973,7 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -1988,10 +1988,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -2017,10 +2017,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -2048,10 +2048,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -2080,10 +2080,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -2119,10 +2119,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -2185,10 +2185,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -2232,7 +2232,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -2284,10 +2284,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -2318,7 +2318,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -2350,7 +2350,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
 //************************************************************************************
 //************************************************************************************
 
-int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  SolidElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -2393,7 +2393,7 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	KRATOS_ERROR <<  "wrong constitutive law used. This is a 3D element. Expected strain size is 6 :: element id " << this->Id() << std::endl;
 
       // Check constitutive law
-      this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
+      this->GetProperties().GetValue(CONSTITUTIVE_LAW)->Check(this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo);
 
     }
 

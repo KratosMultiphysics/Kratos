@@ -28,15 +28,15 @@ namespace Kratos
 class SmallDisplacementThermoMechanicElement : public SmallDisplacementElement
 {
 
-  
-  
+
+
 public:
-  
+
     ///Type for element variables
     typedef SmallDisplacementElement::ElementDataType ElementDataType;
 
 
-  
+
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementThermoMechanicElement );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -59,11 +59,11 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);
 

@@ -48,14 +48,14 @@ Element::Pointer SmallDisplacementThermoMechanicElement::Create( IndexType NewId
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     //create and initialize element variables:
     ElementDataType Variables;
-    this->InitializeElementData(Variables,rCurrentProcessInfo);
+    this->InitializeElementData(Variables, rCurrentProcessInfo);
 
     //create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -79,21 +79,21 @@ void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(Proces
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementThermoMechanicElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     this->InitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     //create and initialize element variables:
     ElementDataType Variables;
-    this->InitializeElementData(Variables,rCurrentProcessInfo);
+    this->InitializeElementData(Variables, rCurrentProcessInfo);
 
     //create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -151,7 +151,7 @@ void SmallDisplacementThermoMechanicElement::SaveGPStress(Matrix& rStressContain
 
 void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& Dim, const unsigned int& VoigtSize)
 {
-    GeometryType& rGeom = this->GetGeometry();
+    auto& rGeom = this->GetGeometry();
     //const unsigned int& Dim  = rGeom.WorkingSpaceDimension();
     const unsigned int& NumNodes = rGeom.size();
     const double& Area = rGeom.Area(); // In 3D this is Volume
@@ -292,10 +292,10 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -335,10 +335,10 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(), rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -368,7 +368,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )

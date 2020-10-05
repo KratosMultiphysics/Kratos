@@ -326,7 +326,7 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Ve
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -338,7 +338,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -352,7 +352,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -379,7 +379,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -391,7 +391,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
 //************************************************************************************
 //************************************************************************************
 
-int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int SmallDisplacementElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

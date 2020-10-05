@@ -326,12 +326,12 @@ public:
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -381,7 +381,7 @@ public:
     /**
     * Set a Constitutive Law Value
     */
-    void SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                       std::vector<ConstitutiveLaw::Pointer>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo ) override;
 
@@ -405,9 +405,9 @@ public:
     /**
      * Get a Constitutive Law Value
      */
-    void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo ) override;
+    void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                     std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo ) override;
 
 
 
@@ -422,22 +422,22 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* COMPUTING  METHODS
@@ -453,8 +453,8 @@ public:
      */
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			      VectorType& rRightHandSideVector,
-			      ProcessInfo& rCurrentProcessInfo) override;
+			                        VectorType& rRightHandSideVector,
+			                        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -464,7 +464,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo) override;
+				                        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -474,7 +474,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
-				ProcessInfo& rCurrentProcessInfo) override;
+				                        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -484,8 +484,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-						VectorType& rRightHandSideVector,
-						ProcessInfo& rCurrentProcessInfo) override;
+						                                    VectorType& rRightHandSideVector,
+						                                    const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -495,8 +495,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-						VectorType& rRightHandSideVector,
-						ProcessInfo& rCurrentProcessInfo) override;
+						                                     VectorType& rRightHandSideVector,
+						                                     const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -505,7 +505,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo) override;
+				                               const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -515,7 +515,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-				       ProcessInfo& rCurrentProcessInfo) override;
+				                               const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -524,7 +524,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-		    ProcessInfo& rCurrentProcessInfo) override;
+		                         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -533,7 +533,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-		    ProcessInfo& rCurrentProcessInfo) override;
+		                            const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -546,9 +546,9 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHSVector,
-					 const Variable<VectorType>& rRHSVariable,
-					 Variable<array_1d<double,3> >& rDestinationVariable,
-					 const ProcessInfo& rCurrentProcessInfo) override;
+					 					 					   const Variable<VectorType>& rRHSVariable,
+									 					 		 Variable<array_1d<double,3> >& rDestinationVariable,
+										 					   const ProcessInfo& rCurrentProcessInfo) override;
 
     //on integration points:
     /**
@@ -650,13 +650,13 @@ protected:
      * Calculates the elemental contributions
      */
     virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-                                          ProcessInfo& rCurrentProcessInfo);
+                                          const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculates the elemental dynamic contributions
      */
     virtual void CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
-					ProcessInfo& rCurrentProcessInfo);
+					                              const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Prints element information for each gauss point (debugging purposes)
@@ -668,7 +668,7 @@ protected:
      * Calculation of the tangent via perturbation of the dofs variables : testing purposes
      */
     void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix,
-					 ProcessInfo& rCurrentProcessInfo);
+					                               const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the matrices of the LHS
@@ -695,7 +695,7 @@ protected:
 
     virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementDataType& rVariables,
-					   ProcessInfo& rCurrentProcessInfo,
+					   const ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight);
 
     /**
@@ -704,7 +704,7 @@ protected:
 
     virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
 					   ElementDataType& rVariables,
-					   ProcessInfo& rCurrentProcessInfo,
+					   const ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight);
 
 
@@ -758,7 +758,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    virtual SizeType GetDofsSize();
+    virtual SizeType GetDofsSize() const;
 
 
     /**
@@ -815,7 +815,7 @@ protected:
      * Initialize Element General Variables
      */
     virtual void InitializeElementData(ElementDataType & rVariables,
-					    const ProcessInfo& rCurrentProcessInfo);
+					                             const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Transform Element General Variables

@@ -202,7 +202,7 @@ protected:
      * Initialize Element General Variables
      */
     void InitializeElementData(ElementDataType & rVariables,
-                                    const ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**

@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosDamApplication   $
 //   Last Modified by:    $Author:Ignasi de Pouplana $
 //   Date:                $Date:    February 2017$
@@ -38,12 +38,12 @@ public:
     ///Constructor
     TrilinosIncrementalUpdateStaticDampedScheme(double rAlpham = 0.0)
         : TrilinosResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(rAlpham) {}
-    
+
     //------------------------------------------------------------------------------------
-    
+
     ///Destructor
     virtual ~TrilinosIncrementalUpdateStaticDampedScheme() {}
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateSystemContributions(
@@ -51,21 +51,21 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY;
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
+        (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
 
         this->AddDampingToLHS (LHS_Contribution, mMatrix.D[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], CurrentProcessInfo);
-        
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+
+        (rCurrentElement) -> EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -76,20 +76,20 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
 
         KRATOS_TRY;
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
+        (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], CurrentProcessInfo);
-        
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+
+        (rCurrentElement) -> EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -101,13 +101,13 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -118,13 +118,13 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -132,15 +132,15 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    
+
     /// Member Variables
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AddDampingToLHS(
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
@@ -155,7 +155,7 @@ protected:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         int thread = OpenMPUtils::ThisThread();
 
@@ -171,9 +171,9 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     /// Member Variables
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 }; // Class TrilinosIncrementalUpdateStaticDampedScheme
