@@ -140,7 +140,7 @@ namespace Kratos
 
         Vector mAccumulatedDisplacement;
 
-        const Variable< array_1d<double, 3> >& mrEquilibriumVariable = DISPLACEMENT; //TODO put in parameters file.
+        const Variable< array_1d<double, 3> >& mrEquilibriumVariable = VELOCITY; //TODO put in parameters file.
 
 
         LinearSolverSharedPointerType mpSolver = nullptr;

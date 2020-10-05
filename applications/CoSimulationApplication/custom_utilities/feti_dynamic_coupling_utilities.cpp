@@ -16,8 +16,6 @@
 
 // Project includes
 #include "feti_dynamic_coupling_utilities.h"
-
-//#include "linear_solvers/umfpack_lu_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 
 
@@ -37,6 +35,8 @@ namespace Kratos
 
         mIsImplicitOrigin = (OriginNewmarkBeta > numerical_limit) ? true : false;
         mIsImplicitDestination = (DestinationNewmarkBeta > numerical_limit) ? true : false;
+
+        mSubTimestepIndex = 1;
     };
 
 
@@ -63,6 +63,9 @@ namespace Kratos
             << "FetiDynamicCouplingUtilities::EquilibrateDomains | Origin and destination working space dimensions do not match\n";
 
         const SizeType destination_interface_dofs = dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes();
+
+        PrintInterfaceKinematics(DISPLACEMENT, true);
+        PrintInterfaceKinematics(DISPLACEMENT, false);
 
         // 1 - calculate unbalanced interface free velocity
         Vector unbalanced_interface_free_velocity(destination_interface_dofs);
@@ -93,6 +96,7 @@ namespace Kratos
 
             // 6 - Apply correction quantities
             if (mSubTimestepIndex == mTimestepRatio) {
+                SetOriginInitialVelocities(); // the final free velocity of A is the initial free velocity of A for the next timestep
                 ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
             }
             ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
@@ -101,10 +105,10 @@ namespace Kratos
             if (mIsCheckEquilibrium && !mIsDisableLagrange && mSubTimestepIndex == mTimestepRatio)
             {
                 unbalanced_interface_free_velocity.clear();
-                PrintInterfaceKinematics(DISPLACEMENT, true);
-                PrintInterfaceKinematics(DISPLACEMENT, false);
-                PrintInterfaceKinematics(VELOCITY, true);
-                PrintInterfaceKinematics(VELOCITY, false);
+                //PrintInterfaceKinematics(DISPLACEMENT, true);
+                //PrintInterfaceKinematics(DISPLACEMENT, false);
+                //PrintInterfaceKinematics(VELOCITY, true);
+                //PrintInterfaceKinematics(VELOCITY, false);
                 CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity, true);
                 const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
                 KRATOS_WATCH(equilibrium_norm);
@@ -120,7 +124,13 @@ namespace Kratos
         } // end if correction needs to be applied
 
         // 9 - Advance subtimestep counter
-        mSubTimestepIndex += 1;
+        KRATOS_WATCH(mSubTimestepIndex);
+        if (mSubTimestepIndex == mTimestepRatio) mSubTimestepIndex = 1;
+        else  mSubTimestepIndex += 1;
+        KRATOS_WATCH(mSubTimestepIndex);
+
+        PrintInterfaceKinematics(DISPLACEMENT, true);
+        PrintInterfaceKinematics(DISPLACEMENT, false);
 
         KRATOS_CATCH("")
 	}
@@ -652,9 +662,6 @@ namespace Kratos
         mInitialOriginInterfaceVelocities.clear();
 
         GetInterfaceQuantity(mrOriginInterfaceModelPart, mrEquilibriumVariable, mInitialOriginInterfaceVelocities, dim_origin);
-
-        // Set the subTimestep index to 1
-        mSubTimestepIndex = 1;
 
         KRATOS_CATCH("")
     }

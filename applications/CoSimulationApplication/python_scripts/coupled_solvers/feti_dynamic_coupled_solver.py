@@ -50,14 +50,20 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         return self.time
 
 
+
     def InitializeSolutionStep(self):
+        print("---- calling InitializeSolutionStep")
         super().InitializeSolutionStep()
 
         if self.is_initialized == False:
             self.__InitializeFetiMethod()
 
-        # Set origin initial velocities
-        self.feti_coupling.SetOriginInitialVelocities()
+
+
+
+    def Predict(self):
+        print("---- calling predict")
+        super().Predict()
 
 
     def SolveSolutionStep(self):
@@ -153,6 +159,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         if mapper_type == "coupling_geometry":
             p_mapping_matrix = self.mapper.pGetDenseMappingMatrix()
             self.feti_coupling.SetMappingMatrix(p_mapping_matrix)
+
+        # Set origin initial velocities
+        print('\n\n--------- SetOriginInitialVelocities -------------\n\n')
+        self.feti_coupling.SetOriginInitialVelocities()
 
         self.is_initialized = True
 
