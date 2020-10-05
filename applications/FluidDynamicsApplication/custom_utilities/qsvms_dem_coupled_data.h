@@ -13,9 +13,9 @@
 #if !defined(KRATOS_QSVMSDEMCOUPLED_DATA_H)
 #define KRATOS_QSVMSDEMCOUPLED_DATA_H
 
-#include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
-#include "../FluidDynamicsApplication/custom_utilities/fluid_element_data.h"
-#include "../FluidDynamicsApplication/custom_utilities/qsvms_data.h"
+#include "fluid_dynamics_application_variables.h"
+#include "custom_utilities/fluid_element_data.h"
+#include "custom_utilities/qsvms_data.h"
 #include "utilities/element_size_calculator.h"
 #include "includes/checks.h"
 
@@ -55,7 +55,9 @@ double ElementSize;
 ///@name Public Operations
 ///@{
 
-void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
+void Initialize(
+    const Element& rElement,
+    const ProcessInfo& rProcessInfo) override
 {
     // Base class Initialize manages constitutive law parameters
     QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(rElement,rProcessInfo);

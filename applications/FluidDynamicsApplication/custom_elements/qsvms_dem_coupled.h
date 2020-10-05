@@ -18,17 +18,14 @@
 #include <iostream>
 
 #include "includes/checks.h"
-#include "containers/array_1d.h"
-#include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
-#include "utilities/geometry_utilities.h"
 
 #include "includes/cfd_variables.h"
-#include "../applications/FluidDynamicsApplication/custom_elements/fluid_element.h"
-#include "../applications/FluidDynamicsApplication/custom_elements/qs_vms.h"
-#include "../applications/FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+#include "custom_elements/fluid_element.h"
+#include "custom_elements/qs_vms.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -56,7 +53,7 @@ namespace Kratos
 ///@{
 
 template< class TElementData >
-class KRATOS_API(SWIMMING_DEM_APPLICATION) QSVMSDEMCoupled : public QSVMS<TElementData>
+class QSVMSDEMCoupled : public QSVMS<TElementData>
 {
 public:
     ///@name Type Definitions
@@ -172,26 +169,9 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-     Element::Pointer Create(IndexType NewId,
-                             GeometryType::Pointer pGeom,
-                             Properties::Pointer pProperties) const override;
-
-
-    /**
-     * clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                            Properties::Pointer pProperties) const override;
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -213,97 +193,22 @@ public:
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-
     void EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddMassStabilization(
-        TElementData& rData,
-        MatrixType &rMassMatrix);
+    ///@}
+    ///@name Access
+    ///@{
 
-    void CalculateLaplacianMassMatrix(
-        MatrixType& rMassMatrix, 
-        ProcessInfo& rCurrentProcessInfo);
-
-    void GetAdvectiveVelDivergence(
-        double & rAdvVelDiv, 
-        const BoundedMatrix<double, NumNodes, Dim >& rDN_DX);
-
-    void AddLaplacianLumpedMassMatrix(
-        MatrixType& rLHSMatrix, 
-        const double Mass);
-
-    void AddRHSLaplacian(
-        VectorType& F,
-        const BoundedMatrix<double, NumNodes, Dim>& rDN_DX,
-        const double Weight);
-
-    void AddMassRHS(
-        VectorType& F,
-        const double Density,
-        const array_1d<double, NumNodes>& rShapeFunc,
-        const double Weight,
-        const std::vector<double>& TimeSchemeWeights,
-        const double& DeltaTime,
-        TElementData& rData);
-
-    void AddMomentumRHS(
-        VectorType& F, 
-        const double Weight, 
-        TElementData& rData);
-
-    void AddProjectionToRHS(
-        VectorType& RHS,
-        const array_1d<double, 3 > & rAdvVel,
-        TElementData& rData,
-        const double TauOne,
-        const double TauTwo,
-        const double Weight,
-        const double DeltaTime = 1.0);
-
-    void CalculateTau(
-        TElementData& rData,
-        const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo);
-
-    void GetModifiedConvectionOperator(
-        array_1d< double,  NumNodes >& rResult,
-        array_1d< double, 3 > & rVelocity,
-        const double & rVelocityDiv,
-        const typename TElementData::ShapeFunctionsType& rN,
-        const typename TElementData::ShapeDerivativesType& rDN_DX);
-
-    void GetAdvectiveVel(
-        array_1d< double, 3 > & rAdvVel,
-        const typename TElementData::ShapeFunctionsType& rN);
-
-    void MassProjTerm(
-        const TElementData& rData, 
-        double &rMassRHS) const override;
-
-    void EvaluateGradientOfScalarInPoint(
-        array_1d< double, 3 >& rResult,
-        const typename TElementData::NodalScalarData& variable,
-        const typename TElementData::ShapeDerivativesType& rDN_DX) const;
+    ///@}
+    ///@name Inquiry
+    ///@{
 
     int Check(
         const ProcessInfo &rCurrentProcessInfo) override;
@@ -346,28 +251,25 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    void AddVelocitySystem(
-        TElementData& rData, 
-        MatrixType &rLocalLHS, 
-        VectorType &rLocalRHS) override;
 
-    double FilterWidth();
-
-    double FilterWidth(
-        const BoundedMatrix<double, 
-        NumNodes, Dim >& DN_DX);
     // Protected interface of FluidElement ////////////////////////////////////
 
-    /**
-     * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
-     * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
-     * @param rData TElementData instance with information about nodal values
-     * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
-     * @return Kinematic viscosity at the integration point.
-     */
-    void GetEffectiveViscosity(
-        TElementData& rData, 
-        double& rViscosity);
+    void AddMassStabilization(
+        TElementData& rData,
+        MatrixType &rMassMatrix);
+
+    void AddVelocitySystem(
+        TElementData& rData,
+        MatrixType &rLocalLHS,
+        VectorType &rLocalRHS) override;
+
+    void AddMassRHS(
+        VectorType& rRightHandSideVector,
+        TElementData& rData);
+
+    void MassProjTerm(
+        const TElementData& rData,
+        double &rMassRHS) const override;
 
     ///@}
     ///@name Protected  Access
