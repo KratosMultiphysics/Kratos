@@ -68,7 +68,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
-    typedef DenseVector<std::unordered_set<IndexType> > GraphType; //using a map since we need it ordered
+    typedef DenseVector<std::unordered_set<IndexType> > GraphType; //using a map since we need it ordered @RiccardoRossithis is outdated!!!
     typedef typename GraphType::const_iterator const_row_iterator;
 
     /// Pointer definition of SparseContiguousRowGraph
@@ -86,11 +86,12 @@ public:
     SparseContiguousRowGraph(IndexType GraphSize)
     {
         mGraph.resize(GraphSize,false);
-        mLocks.resize(GraphSize,false);
+        mLocks.resize(GraphSize);
 
+        // @RiccardoRossi why is this needed? isn't this done with resizing?
         //doing first touching
         IndexPartition<IndexType>(GraphSize).for_each([&](IndexType i){
-            mLocks[i] = LockObject();
+            // mLocks[i] = LockObject();
             mGraph[i] = std::unordered_set<IndexType>();
         });
     }
@@ -378,7 +379,7 @@ private:
     ///@name Member Variables
     ///@{
     GraphType mGraph;
-    vector<LockObject> mLocks;
+    std::vector<LockObject> mLocks;
 
     ///@}
     ///@name Private Operators
