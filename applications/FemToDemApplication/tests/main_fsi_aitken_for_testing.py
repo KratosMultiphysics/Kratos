@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics
+import KratosMultiphysics as KM
 from KratosMultiphysics import Logger
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.MainCouplingPfemFemDemAitken as MainCouplingPfemFemDemAitken
@@ -61,9 +61,12 @@ class TestAnalytics(KratosUnittest.TestCase):
     def two_dimensional_fsi(self):
         with open("fsi_tests/wall_2d/PFEMProjectParameters.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        
+        # KratosPrintInfo(parameters["problem_data"]["problem_name"].GetString())
+        # Wait()
 
         model = KratosMultiphysics.Model()
-        MainCouplingPfemFemDemAitkenForTestingSolution(model, parameter_file, "fsi_tests/wall_2d/").Run()
+        MainCouplingPfemFemDemAitkenForTestingSolution(model, parameters, "fsi_tests/wall_2d/").Run()
 
 
 

@@ -1,6 +1,6 @@
 {
     "problem_data"         : {
-        "problem_name"   : "fsi",
+        "problem_name"   : "fsi_tests/wall_2d/PFEMfsi",
         "start_time"     : 0.0,
         "end_time"       : 1.0,
         "echo_level"     : 0,
@@ -19,7 +19,7 @@
         },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "fsi"
+            "input_filename" : "fsi_tests/wall_2d/PFEMfsi"
         },
         "maximum_pressure_iterations"        : 7,
         "velocity_tolerance"                 : 1e-5,
@@ -55,7 +55,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2","FEMDEM_boundary"],
         "processes_sub_model_part_list"      : ["VELOCITY_Velocity_Auto1"],
         "material_import_settings"           : {
-            "materials_filename" : "PFEMFluidMaterials.json"
+            "materials_filename" : "fsi_tests/wall_2d/PFEMFluidMaterials.json"
         }
     },
     "problem_process_list" : [{

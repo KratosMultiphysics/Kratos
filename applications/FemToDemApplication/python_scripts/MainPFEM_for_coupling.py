@@ -9,6 +9,10 @@ from importlib import import_module
 def Wait():
     input("Alejandro -> Press Something")
 
+def KratosPrintInfo(message):
+    KratosMultiphysics.Logger.Print(message, label="")
+    KratosMultiphysics.Logger.Flush()
+
 #============================================================================================================================
 class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamicsAnalysis):
     """
@@ -29,6 +33,12 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         problem_name = parameters["problem_data"]["problem_name"].GetString()
         parameters["problem_data"]["problem_name"].SetString("PFEM" + problem_name)
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("PFEM" + problem_name)
+
+        folders = problem_name.split("/")
+        if len(folders) > 1:
+            KratosPrintInfo(problem_name)
+            Wait()
+            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(problem_name)
 
         self.FEM_model_part = FEM_model_part
 

@@ -764,7 +764,7 @@ Begin SubModelPart testing_nodes
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
-  519
+  159
   End SubModelPartNodes
   Begin SubModelPartElements
   End SubModelPartElements

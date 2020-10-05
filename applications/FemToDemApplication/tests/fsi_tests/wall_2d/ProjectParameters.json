@@ -35,6 +35,7 @@
             "model_import_settings":              {
                  "input_type":         "mdpa",
                  "input_filename":     "fsi",
+				 "path_to_mdpa"  :     "fsi_tests/wall_2d/",
                  "input_file_label":    0
             },
             "reform_dofs_at_each_step":              true,
