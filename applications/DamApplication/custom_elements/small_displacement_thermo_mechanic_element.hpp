@@ -69,22 +69,20 @@ public:
 
     void ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& Dim, const unsigned int& VoigtSize);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * Calculate a Matrix Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * Calculate a Vector Variable on the Element Constitutive Law
      */
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Calculate a Matrix Variable on the Element Constitutive Law
+     */
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                                      std::vector< Matrix >& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

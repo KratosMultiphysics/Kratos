@@ -359,7 +359,6 @@ public:
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
      * SetValuesOnIntegrationPoints: set the values for given Variable.
-     * CalculateOnIntegrationPoints: get the values for given Variable.
      */
 
     //SET
@@ -428,8 +427,8 @@ public:
      */
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			                        VectorType& rRightHandSideVector,
-			                        const ProcessInfo& rCurrentProcessInfo) override;
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -439,7 +438,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				                        const ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -449,7 +448,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
-				                        const ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -459,8 +458,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-						                                    VectorType& rRightHandSideVector,
-						                                    const ProcessInfo& rCurrentProcessInfo) override;
+                                                VectorType& rRightHandSideVector,
+                                                const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -470,8 +469,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-						                                     VectorType& rRightHandSideVector,
-						                                     const ProcessInfo& rCurrentProcessInfo) override;
+                                                 VectorType& rRightHandSideVector,
+                                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -480,7 +479,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-				                               const ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -490,7 +489,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-				                               const ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -499,7 +498,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-		                         const ProcessInfo& rCurrentProcessInfo) override;
+                             const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -508,7 +507,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-		                            const ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -521,9 +520,9 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHSVector,
-					 					 					   const Variable<VectorType>& rRHSVariable,
-									 					 		 Variable<array_1d<double,3> >& rDestinationVariable,
-										 					   const ProcessInfo& rCurrentProcessInfo) override;
+                                 const Variable<VectorType>& rRHSVariable,
+                                 Variable<array_1d<double,3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     //on integration points:
     /**
@@ -546,13 +545,6 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
                                       std::vector< Matrix >& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Calculate a Constitutive Law Value on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     //************************************************************************************
@@ -644,7 +636,7 @@ protected:
      * Calculates the elemental dynamic contributions
      */
     virtual void CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
-					                              const ProcessInfo& rCurrentProcessInfo);
+                                        const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Prints element information for each gauss point (debugging purposes)
@@ -656,7 +648,7 @@ protected:
      * Calculation of the tangent via perturbation of the dofs variables : testing purposes
      */
     void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix,
-					                               const ProcessInfo& rCurrentProcessInfo);
+                                         const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the matrices of the LHS
@@ -803,7 +795,7 @@ protected:
      * Initialize Element General Variables
      */
     virtual void InitializeElementData(ElementDataType & rVariables,
-					                             const ProcessInfo& rCurrentProcessInfo);
+                                       const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Transform Element General Variables

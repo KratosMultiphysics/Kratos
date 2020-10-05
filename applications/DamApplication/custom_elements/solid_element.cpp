@@ -539,8 +539,8 @@ void SolidElement::CalculateMaterialResponse(ElementDataType& rVariables,
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-                                             const ProcessInfo& rCurrentProcessInfo)
+void SolidElement::CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
+                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -614,7 +614,7 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
 //************************************************************************************
 
 void SolidElement::CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
-					                                const ProcessInfo& rCurrentProcessInfo)
+                                          const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -2210,30 +2210,6 @@ void SolidElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariab
 
     KRATOS_CATCH("")
 }
-
-//************************************************************************************
-//************************************************************************************
-
-void SolidElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-						                                    std::vector<ConstitutiveLaw::Pointer>& rValues,
-						                                    const ProcessInfo& rCurrentProcessInfo)
-{
-
-    if(rVariable == CONSTITUTIVE_LAW)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-        {
-            rValues.resize(mConstitutiveLawVector.size());
-        }
-
-        for(SizeType i=0; i<rValues.size(); i++)
-        {
-            rValues[i] = mConstitutiveLawVector[i];
-        }
-    }
-
-}
-
 
 //************************************************************************************
 //************************************************************************************

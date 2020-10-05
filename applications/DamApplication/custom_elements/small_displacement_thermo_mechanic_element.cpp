@@ -253,34 +253,6 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                                          std::vector<Matrix>& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
-{
-    const unsigned int& integration_points_number = mConstitutiveLawVector.size();
-
-    if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number );
-
-    if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == THERMAL_STRESS_TENSOR || rVariable == MECHANICAL_STRESS_TENSOR )
-    {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == THERMAL_STRAIN_TENSOR )
-    {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-        for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
-        {
-            rValues[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
-        }
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                           std::vector<Vector>& rOutput,
                                                                           const ProcessInfo& rCurrentProcessInfo)
@@ -296,10 +268,10 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables, rCurrentProcessInfo);
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -339,10 +311,10 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables, rCurrentProcessInfo);
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
@@ -372,7 +344,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
     {
         //create and initialize element variables:
         ElementDataType Variables;
-        this->InitializeElementData(Variables, rCurrentProcessInfo);
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -384,6 +356,69 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
                 rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
 
             rOutput[PointNumber] = Variables.StrainVector;
+        }
+    }
+    else
+    {
+        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+        {
+            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                                                                          std::vector< Matrix >& rOutput,
+                                                                          const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    if ( rOutput.size() != integration_points_number )
+        rOutput.resize( integration_points_number );
+
+    if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == THERMAL_STRESS_TENSOR || rVariable == MECHANICAL_STRESS_TENSOR  )
+    {
+        std::vector<Vector> StressVector;
+
+        if( rVariable == CAUCHY_STRESS_TENSOR )
+            this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+        else if ( rVariable == THERMAL_STRESS_TENSOR )
+            this->CalculateOnIntegrationPoints( THERMAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+        else
+            this->CalculateOnIntegrationPoints( MECHANICAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            if ( rOutput[PointNumber].size2() != dimension )
+                rOutput[PointNumber].resize( dimension, dimension, false );
+
+            rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
+	    }
+    }
+    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == THERMAL_STRAIN_TENSOR)
+    {
+        std::vector<Vector> StrainVector;
+
+        if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
+            CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+        else
+            CalculateOnIntegrationPoints( THERMAL_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            if ( rOutput[PointNumber].size2() != dimension )
+                rOutput[PointNumber].resize( dimension, dimension, false );
+
+            rOutput[PointNumber] = MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
         }
     }
     else
