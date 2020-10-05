@@ -100,7 +100,6 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         }""")
         strategy = StructuralMechanicsApplication.FormfindingStrategy(mp,
                                                         scheme,
-                                                        linear_solver,
                                                         convergence_criterion,
                                                         builder_and_solver,
                                                         mp,

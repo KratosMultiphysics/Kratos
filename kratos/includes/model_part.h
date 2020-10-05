@@ -39,8 +39,6 @@
 #include "includes/kratos_flags.h"
 #include "includes/master_slave_constraint.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "containers/variable_data.h"
 
 namespace Kratos
