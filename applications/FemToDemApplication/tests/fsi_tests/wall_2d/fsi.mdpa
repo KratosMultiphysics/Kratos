@@ -760,3 +760,14 @@ Begin SubModelPart Body_Acceleration-auto-1
   End SubModelPartConditions
 End SubModelPart
 
+Begin SubModelPart testing_nodes
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+  519
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart

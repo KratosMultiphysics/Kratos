@@ -21,7 +21,7 @@ def KratosPrintInfo(message):
 class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingPfemFemDem_Solution):
 #============================================================================================================================
 
-    def __init__(self, Model, PFEMparameters):
+    def __init__(self, Model, path="", PFEMparameters):
         super(MainCouplingPfemFemDemAitken_Solution, self).__init__(Model, PFEMparameters)
 
         project_parameters = self.FEMDEM_Solution.FEM_Solution.ProjectParameters
