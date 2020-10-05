@@ -454,16 +454,6 @@ public:
         return GetValue(rThisVariable);
     }
 
-    template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return GetValue(rThisVariable);
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return GetValue(rThisVariable);
-    }
-
     double& operator[](IndexType ThisIndex)
     {
         return BaseType::operator[](ThisIndex);
@@ -548,10 +538,6 @@ public:
     {
         return SolutionStepData().Has(rThisVariable);
     }
-    template<class TAdaptorType> bool SolutionStepsDataHas(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return SolutionStepData().Has(rThisVariable);
-    }
 
     //*******************************************************************************************
     //By Riccardo
@@ -620,10 +606,6 @@ public:
     }
 
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
-    template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
     }
@@ -765,7 +747,7 @@ public:
 
         return it_dof - mDofs.begin();
     }
-    
+
     /**
      * @brief Get dof with a given position. If not found it is search
      * @param rDofVariable Name of the variable
@@ -852,7 +834,7 @@ public:
      */
     template<class TVariableType>
     inline const typename DofType::Pointer pGetDof(
-        TVariableType const& rDofVariable, 
+        TVariableType const& rDofVariable,
         int Position
         ) const
     {
@@ -876,7 +858,7 @@ public:
         KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
-    
+
     /** adds a Dof to the node and return new added dof or existed one. */
     template<class TVariableType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
