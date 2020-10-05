@@ -30,6 +30,7 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_mesh_independent.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_normal.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_mesh_independent_normal.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -264,6 +265,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Update", &MapperVertexMorphingNormal::Update)
         .def("Map", MapMixed<MapperVertexMorphingNormal>)
         .def("InverseMap", InverseMapMixed<MapperVertexMorphingNormal>)
+        ;
+    py::class_<MapperVertexMorphingMeshIndependentNormal >(m, "MapperVertexMorphingMeshIndependentNormal")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingMeshIndependentNormal::Initialize)
+        .def("Update", &MapperVertexMorphingMeshIndependentNormal::Update)
+        .def("Map", MapMixed<MapperVertexMorphingMeshIndependentNormal>)
+        .def("InverseMap", InverseMapMixed<MapperVertexMorphingMeshIndependentNormal>)
         ;
 
     // ================================================================

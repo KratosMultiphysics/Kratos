@@ -52,8 +52,10 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
     else:
         if mapper_settings["improved_integration"].GetBool():
             return KSO.MapperVertexMorphingImprovedIntegration(origin_model_part, destination_model_part, mapper_settings)
-        if mapper_settings["mesh_independent"].GetBool():
+        if mapper_settings["mesh_independent"].GetBool() and not mapper_settings["normal"].GetBool():
             return KSO.MapperVertexMorphingMeshIndependent(origin_model_part, destination_model_part, mapper_settings)
+        if mapper_settings["mesh_independent"].GetBool() and mapper_settings["normal"].GetBool():
+            return KSO.MapperVertexMorphingMeshIndependentNormal(origin_model_part, destination_model_part, mapper_settings)
         if mapper_settings["normal"].GetBool():
             return KSO.MapperVertexMorphingNormal(origin_model_part, destination_model_part, mapper_settings)
         else:
