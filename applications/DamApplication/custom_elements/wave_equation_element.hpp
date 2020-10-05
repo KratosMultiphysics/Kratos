@@ -56,7 +56,7 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -72,9 +72,9 @@ public:
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

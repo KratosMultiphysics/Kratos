@@ -29,7 +29,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int WaveEquationElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int WaveEquationElement<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -198,7 +198,7 @@ void WaveEquationElement<TDim,TNumNodes>::GetValuesVector(Vector& rValues, int S
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void WaveEquationElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step )
+void WaveEquationElement<TDim,TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes;
@@ -217,7 +217,7 @@ void WaveEquationElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rVa
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void WaveEquationElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step )
+void WaveEquationElement<TDim,TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes;

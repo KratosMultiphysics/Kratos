@@ -58,7 +58,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::Initialize()
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -528,7 +528,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValuesVector(Vector& 
 
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step )
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     const GeometryType& Geom = this->GetGeometry();
@@ -551,7 +551,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetFirstDerivativesVecto
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     const GeometryType& Geom = GetGeometry();
     const unsigned int element_size = TNumNodes * TDim;

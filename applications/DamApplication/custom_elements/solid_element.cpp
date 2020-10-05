@@ -229,7 +229,7 @@ void SolidElement::GetValuesVector(Vector& rValues, int Step) const
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void SolidElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -253,7 +253,7 @@ void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SolidElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -2350,7 +2350,7 @@ void SolidElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariab
 //************************************************************************************
 //************************************************************************************
 
-int  SolidElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int  SolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
