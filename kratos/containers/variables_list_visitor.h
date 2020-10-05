@@ -115,9 +115,9 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-std::stringstream buffer;
-    buffer << "VariablesListVisitor" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "VariablesListVisitor" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
@@ -244,5 +244,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIABLES_LIST_VISITOR_H_INCLUDED  defined
-
 

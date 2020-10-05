@@ -66,19 +66,19 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListGetDofInfo, KratosCoreFastSuite) {
             SetModelPartVariableToOne(ModelPart& TheModelPart) : mrModelPart(TheModelPart){}
 
             template<typename TVariableType> 
-            void operator()(TVariableType const& TheVariable) const {
-                for (auto &node : mrModelPart.Nodes())
-                {
-                    auto& r_value = node.FastGetSolutionStepValue(TheVariable);
+            void operator()(TVariableType const& TheVariable) const
+            {
+                for (auto& r_node : mrModelPart.Nodes()) {
+                    auto& r_value = r_node.FastGetSolutionStepValue(TheVariable);
                     r_value = 1.0;    
                 }                     
             }
 
             template<typename TDataType> 
-            void operator()(Variable<array_1d<TDataType,3>> const& TheVariable) const {
-                for (auto &node : mrModelPart.Nodes())
-                {
-                    auto& r_value = node.FastGetSolutionStepValue(TheVariable);
+            void operator()(Variable<array_1d<TDataType,3>> const& TheVariable) const 
+            {
+                for (auto& r_node : mrModelPart.Nodes()) {
+                    auto& r_value = r_node.FastGetSolutionStepValue(TheVariable);
                     r_value = ScalarVector(3,-1.0);    
                 }                     
             }
