@@ -290,7 +290,8 @@ private:
     }
 
     void ComputeNodalAreas(ModelPart& rModelPart, Vector& rNodalAreas){
-        rNodalAreas.resize(rModelPart.Nodes().size(), 0.0);
+        rNodalAreas.resize(rModelPart.Nodes().size(), false);
+        noalias(rNodalAreas) = ZeroVector(rNodalAreas.size());
         for(auto& node_i : rModelPart.Nodes())
         {
             const int& i = node_i.GetValue(MAPPING_ID);
