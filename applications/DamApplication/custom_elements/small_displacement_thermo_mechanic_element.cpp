@@ -253,7 +253,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 

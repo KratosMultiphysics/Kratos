@@ -159,9 +159,9 @@ protected:
             return *pProcessInfo;
         };
 
-        void Initialize( const unsigned int& voigt_size,
-			 const unsigned int& dimension,
-			 const unsigned int& number_of_nodes )
+        void Initialize(const unsigned int& voigt_size,
+			                  const unsigned int& dimension,
+			                  const unsigned int& number_of_nodes)
         {
 	  StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 
@@ -359,7 +359,7 @@ public:
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
      * SetValuesOnIntegrationPoints: set the values for given Variable.
-     * GetValueOnIntegrationPoints: get the values for given Variable.
+     * CalculateOnIntegrationPoints: get the values for given Variable.
      */
 
     //SET
@@ -390,22 +390,22 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Get on rVariable a Vector Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Get on rVariable a Matrix Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Get a Constitutive Law Value
      */
-    void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo ) override;
 

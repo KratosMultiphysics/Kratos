@@ -349,7 +349,7 @@ void SolidElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw:
 //************************************************************************************
 
 
-void SolidElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
 						std::vector<double>& rValues,
 						const ProcessInfo& rCurrentProcessInfo )
 {
@@ -377,7 +377,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<double>& rVariabl
 //************************************************************************************
 
 
-void SolidElement::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
 						std::vector<Vector>& rValues,
 						const ProcessInfo& rCurrentProcessInfo )
 {
@@ -420,7 +420,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<Vector>& rVariabl
 //***********************************GET MATRIX VALUE*********************************
 //************************************************************************************
 
-void SolidElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable,
 						std::vector<Matrix>& rValues,
 						const ProcessInfo& rCurrentProcessInfo )
 {
@@ -464,7 +464,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
 //********************************GET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-void SolidElement::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void SolidElement::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
 						std::vector<ConstitutiveLaw::Pointer>& rValues,
 						const ProcessInfo& rCurrentProcessInfo )
 {

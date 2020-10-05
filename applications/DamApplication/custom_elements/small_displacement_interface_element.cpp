@@ -584,7 +584,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::SetValuesOnIntegrationPo
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                                                                     std::vector<double>& rValues,
                                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -633,7 +633,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoi
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                                                                     std::vector<array_1d<double,3>>& rValues,
                                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -657,7 +657,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoi
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                                                                     std::vector<ConstitutiveLaw::Pointer>& rValues,
                                                                                     const ProcessInfo& rCurrentProcessInfo )
 {

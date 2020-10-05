@@ -74,7 +74,7 @@ public:
     /**
      * Get on rVariable a Matrix Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
