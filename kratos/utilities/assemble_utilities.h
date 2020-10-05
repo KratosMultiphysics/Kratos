@@ -295,47 +295,44 @@ private:
 
         using gp_map_type = TGPContainerMap<TContainerType, TDataType>;
 
-        if (!rEntityValuesMap.empty()) {
-            const auto& entity_gps = GetKeys(rEntityValuesMap);
+        const auto& entity_gps = GetKeys(rEntityValuesMap);
 
-            // compute send and receive ranks ids
-            std::vector<int> send_receive_list;
-            TMap<gp_map_type> send_entity_values_map;
-            gp_map_type local_entity_values_map;
+        // compute send and receive ranks ids
+        std::vector<int> send_receive_list;
+        TMap<gp_map_type> send_entity_values_map;
+        gp_map_type local_entity_values_map;
 
-            const int my_rank = rDataCommunicator.Rank();
+        const int my_rank = rDataCommunicator.Rank();
 
-            for (const auto& entity_gp : entity_gps) {
-                const int entity_rank = entity_gp.GetRank();
-                if (entity_rank != my_rank) {
-                    send_receive_list.push_back(entity_rank);
-                    auto& entity_values_map = send_entity_values_map[entity_rank];
-                    entity_values_map[entity_gp] =
-                        rEntityValuesMap.find(entity_gp)->second;
-                } else {
-                    local_entity_values_map[entity_gp] =
-                        rEntityValuesMap.find(entity_gp)->second;
-                }
+        for (const auto& entity_gp : entity_gps) {
+            const int entity_rank = entity_gp.GetRank();
+            if (entity_rank != my_rank) {
+                send_receive_list.push_back(entity_rank);
+                auto& entity_values_map = send_entity_values_map[entity_rank];
+                entity_values_map[entity_gp] = rEntityValuesMap.find(entity_gp)->second;
+            } else {
+                local_entity_values_map[entity_gp] =
+                    rEntityValuesMap.find(entity_gp)->second;
             }
+        }
 
-            // compute the communication plan
-            std::sort(send_receive_list.begin(), send_receive_list.end());
-            const auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(
-                send_receive_list, rDataCommunicator);
+        // compute the communication plan
+        std::sort(send_receive_list.begin(), send_receive_list.end());
+        const auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(
+            send_receive_list, rDataCommunicator);
 
-            // update local values
-            LocalAssembleDataWithEntityValuesMap(
-                rLocalContainer, rVariable, local_entity_values_map, rUpdateFunction);
+        // update local values
+        LocalAssembleDataWithEntityValuesMap(
+            rLocalContainer, rVariable, local_entity_values_map, rUpdateFunction);
 
-            // update values received from remote processes
-            for (const int color : colors) {
-                if (color >= 0) {
-                    const auto& tmp = rDataCommunicator.SendRecv(
-                        send_entity_values_map[color], color, color);
+        // update values received from remote processes
+        for (const int color : colors) {
+            if (color >= 0) {
+                const auto& tmp = rDataCommunicator.SendRecv(
+                    send_entity_values_map[color], color, color);
 
-                    LocalAssembleDataWithEntityValuesMap(
-                        rLocalContainer, rVariable, tmp, rUpdateFunction);
-                }
+                LocalAssembleDataWithEntityValuesMap(rLocalContainer, rVariable,
+                                                     tmp, rUpdateFunction);
             }
         }
 
