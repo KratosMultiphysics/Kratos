@@ -61,7 +61,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         self.LoadParametersFile()
         # with open("ProjectParametersDEM.json",'r') as parameter_file:
         #     project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        super(CustomizedSolutionForTimeStepTesting, self).__init__(model, self.project_parameters)
+        super().__init__(model, self.project_parameters)
 
     def LoadParametersFile(self):
         self.project_parameters = KratosMultiphysics.Parameters(
@@ -264,7 +264,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
 
     def FinalizeSolutionStep(self):
-        super(CustomizedSolutionForTimeStepTesting, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
         current_test_energy = self.ComputeEnergy()
         #if not self.step%200:

@@ -26,7 +26,7 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(AnalyticsTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
@@ -57,7 +57,7 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
             raise ValueError('Incorrect value for FACE_NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(face_normal_impact_vel))
 
     def Finalize(self):
-        super(AnalyticsTestSolution, self).Finalize()
+        super().Finalize()
 
 
 class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
@@ -91,7 +91,7 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
                 raise ValueError('The total value of crossing particles was not the expected!')
 
     def Finalize(self):
-        super(GhostsTestSolution, self).Finalize()
+        super().Finalize()
 
 
 
@@ -128,7 +128,7 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
                 raise ValueError('The total value of crossing particles was not the expected!')
 
     def Finalize(self):
-        super(MultiGhostsTestSolution, self).Finalize()
+        super().Finalize()
 
 
 class TestAnalytics(KratosUnittest.TestCase):
