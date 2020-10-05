@@ -142,9 +142,28 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : BaseType(rModelPart)
     {
-        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Getting builder and solver
+        auto p_builder_and_solver = this->GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            // Tells to the builder and solver if the reactions have to be Calculated or not
+            p_builder_and_solver->SetCalculateReactionsFlag(this->GetCalculateReactionsFlag());
+
+            // Tells to the Builder And Solver if the system matrix and vectors need to
+            // be reshaped at each step or not
+            p_builder_and_solver->SetReshapeMatrixFlag(this->GetReformDofSetAtEachStepFlag());
+        } else {
+            KRATOS_WARNING("AdaptiveResidualBasedNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
+        }
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
     }
 
     /** Constructor.
@@ -780,6 +799,34 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "adaptative_newton_raphson_strategy",
+            "min_iteration"                       : 4,
+            "reduction_factor"                    : 0.5,
+            "increase_factor"                     : 1.3,
+            "number_of_cycles"                    : 5,
+            "max_iteration"                       : 10,
+            "reform_dofs_at_each_step"            : false,
+            "compute_reactions"                   : false,
+            "builder_and_solver_settings"         : {},
+            "convergence_criteria_settings"       : {},
+            "linear_solver_settings"              : {},
+            "scheme_settings"                     : {}
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -802,7 +849,7 @@ public:
     /**@name Access */
     /*@{ */
 
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType& GetSystemMatrix() override
     {
         TSystemMatrixType& mA = *mpA;
 
@@ -1038,6 +1085,38 @@ protected:
         }
 
     }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mMinIterationNumber = ThisParameters["min_iteration"].GetInt();
+        mReductionFactor = ThisParameters["reduction_factor"].GetDouble();
+        mIncreaseFactor = ThisParameters["increase_factor"].GetDouble();
+        mNumberOfCycles = ThisParameters["number_of_cycles"].GetInt();
+        mMaxIterationNumber = ThisParameters["max_iteration"].GetInt();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        // Saving the convergence criteria to be used
+        if (ThisParameters["convergence_criteria_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+    }
+
     /*@} */
     /**@name Private Operations*/
     /*@{ */
