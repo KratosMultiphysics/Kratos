@@ -162,11 +162,13 @@ private:
 
     Vector m_glass_transition_temperature;
 
+    Vector m_heat_of_reaction;
+
     double ComputeDegreeOfCure(double rDegreeOfCure, double Temperature);
 
     double ComputeGlassTransitionTemperature(double DegreeOfCure);
 
-    double ComputeHeatFlux(
+    double ComputeHeatOfReaction(
         double degree_of_cure_previous,
         double degree_of_cure_current,
         double delta_time);

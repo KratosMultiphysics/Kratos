@@ -72,6 +72,7 @@ namespace Kratos
     {
         m_degree_of_cure_vector = ZeroVector(GetGeometry().IntegrationPointsNumber());
         m_glass_transition_temperature = ZeroVector(GetGeometry().IntegrationPointsNumber());
+        m_heat_of_reaction = ZeroVector(GetGeometry().IntegrationPointsNumber());
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -85,12 +86,15 @@ namespace Kratos
         // Resize of the Left and Right Hand side
         if (rLeftHandSideMatrix.size1() != TNumNodes)
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false); //false says not to preserve existing storage!!
+        rLeftHandSideMatrix = ZeroMatrix(TNumNodes, TNumNodes);
 
         if (rRightHandSideVector.size() != TNumNodes)
             rRightHandSideVector.resize(TNumNodes, false); //false says not to preserve existing storage!!
+        rRightHandSideVector = ZeroVector(TNumNodes);
+
 
         /// SHANELLE
-        Vector heat_flux_vector = ZeroVector(TNumNodes);
+        //Vector heat_flux_vector = ZeroVector(TNumNodes);
 
         //Element variables
         ElementVariables Variables;
@@ -154,6 +158,7 @@ namespace Kratos
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
 
 
+            /*
             /// SHANELLE: computation of current degree of cure
             double temperature = 0;
             for (IndexType j = 0; j < TNumNodes; j++)
@@ -165,15 +170,17 @@ namespace Kratos
 
             double degree_of_cure = this->ComputeDegreeOfCure(m_degree_of_cure_vector[igauss], temperature);
 
-            double heat_flux = this->ComputeHeatFlux(
+            double heat_flux = this->ComputeHeatOfReaction(
                 m_degree_of_cure_vector[igauss],
                 degree_of_cure,
                 rCurrentProcessInfo[DELTA_TIME]);
 
+            KRATOS_WATCH(heat_flux)
+
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                heat_flux_vector[i] += N[i] * heat_flux * integration_points[igauss].Weight() * Volume;
-            }
+                heat_flux_vector[i] += N[i] * heat_flux * integration_points[igauss].Weight()* Volume;
+            }*/
         }
 
         //adding the second and third term in the formulation
@@ -196,10 +203,6 @@ namespace Kratos
 
         rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
         rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
-
-       // rRightHandSideVector += heat_flux_vector;
-
-        KRATOS_WATCH(heat_flux_vector)
 
         KRATOS_CATCH("Error in Eulerian ConvDiff Element")
     }
@@ -373,7 +376,7 @@ namespace Kratos
     void EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::FinalizeSolutionStep(
         const ProcessInfo& rCurrentProcessInfo)
     {
-        const auto& r_geometry = GetGeometry();
+        auto& r_geometry = GetGeometry();
         auto integration_points = r_geometry.IntegrationPoints();
 
         IndexType number_of_integration_points = integration_points.size();
@@ -382,20 +385,45 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_integration_points; ++i)
         {
-            Vector N = row(Ncontainer, i);
-
             double temperature = 0;
             for (IndexType j = 0; j < TNumNodes; j++)
             {
                 const double& temp = r_geometry[j].GetSolutionStepValue(TEMPERATURE, 0);
 
-                temperature += N[i] * temp;
+                temperature += Ncontainer(i, j) * temp;
             }
 
+            //KRATOS_WATCH(temperature)
+
             double degree_of_cure = this->ComputeDegreeOfCure(m_degree_of_cure_vector[i], temperature);
+            m_heat_of_reaction[i] = ComputeHeatOfReaction(m_degree_of_cure_vector[i], degree_of_cure, rCurrentProcessInfo[DELTA_TIME]);
             m_degree_of_cure_vector[i] = degree_of_cure;
         }
 
+        for (IndexType j = 0; j < TNumNodes; j++)
+        {
+            //KRATOS_WATCH(j)
+            //KRATOS_WATCH(r_geometry[j].GetSolutionStepValue(TEMPERATURE, 0));
+            for (IndexType i = 0; i < number_of_integration_points; ++i)
+            {
+                //KRATOS_WATCH(integration_points[i].Weight());
+            }
+        }
+       // KRATOS_WATCH(m_heat_of_reaction)
+            //KRATOS_WATCH(GetGeometry().DomainSize())
+
+        for (IndexType i = 0; i < number_of_integration_points; ++i)
+        {
+            for (IndexType j = 0; j < TNumNodes; j++)
+            {
+                r_geometry[j].GetSolutionStepValue(TEMPERATURE, 0) += m_heat_of_reaction[i] * (integration_points[i].Weight()/ number_of_integration_points);
+            }
+        }
+        for (IndexType j = 0; j < TNumNodes; j++)
+        {
+            //KRATOS_WATCH(j)
+                //KRATOS_WATCH(r_geometry[j].GetSolutionStepValue(TEMPERATURE, 0));
+        }
         for (IndexType i = 0; i < number_of_integration_points; ++i)
         {
             double glass_transition_temperature = this->ComputeGlassTransitionTemperature(
@@ -441,6 +469,13 @@ namespace Kratos
                 rOutput[i] = m_glass_transition_temperature[i];
             }
         }
+        else if (rVariable == HEAT_OF_REACTION)
+        {
+            for (IndexType i = 0; i < number_of_integration_points; ++i)
+            {
+                rOutput[i] = m_heat_of_reaction[i];
+            }
+        }
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -448,7 +483,7 @@ namespace Kratos
     {
 
         double A_1 = 1184;
-        double A_2 = 6.838 * exp(4);
+        double A_2 = 68380;
         double E_1 = 60700;
         double E_2 = 48250;
         double m_factor = 0.314;
@@ -456,8 +491,6 @@ namespace Kratos
 
         double rate_of_conversion = ((A_1 * exp(-E_1 / (8.3145 * Temperature)))
             + ((A_2 * exp(-E_2 / (8.3145 * Temperature))) * pow(DegreeOfCure, m_factor))) * pow((1 - DegreeOfCure), n_factor);
-
-
 
         return DegreeOfCure + rate_of_conversion;
     }
@@ -476,14 +509,19 @@ namespace Kratos
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeHeatFlux(
+    double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeHeatOfReaction(
         double degree_of_cure_previous,
         double degree_of_cure_current,
         double delta_time)
     {
-        double total_heat_of_reaction = 117.0;
+        double total_heat_of_reaction = 117;
 
-        double heat_flux = ((degree_of_cure_current - degree_of_cure_previous)/delta_time) * total_heat_of_reaction;
+        const double density = 1.0;// GetProperties()[DENSITY];
+        const double volume = GetGeometry().DomainSize();
+        const double specific_heat = GetProperties()[SPECIFIC_HEAT];
+
+        double heat_flux = ((degree_of_cure_current - degree_of_cure_previous)/delta_time)
+            * total_heat_of_reaction * density * volume;
 
         return heat_flux;
     }
