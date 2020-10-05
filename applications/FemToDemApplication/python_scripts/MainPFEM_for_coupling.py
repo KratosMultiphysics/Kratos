@@ -36,8 +36,6 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
 
         folders = problem_name.split("/")
         if len(folders) > 1:
-            KratosPrintInfo(problem_name)
-            Wait()
             parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(problem_name)
 
         self.FEM_model_part = FEM_model_part
