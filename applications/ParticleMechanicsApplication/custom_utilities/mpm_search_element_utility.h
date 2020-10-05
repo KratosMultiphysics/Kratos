@@ -8,8 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Bodhinanda Chandra
-// Temporary changes:
-// TODO: Create entire new file to avoid all preprocessor directives
+//
 
 
 #ifndef KRATOS_MPM_SEARCH_ELEMENT_UTILITY
@@ -18,10 +17,6 @@
 // System includes
 
 // External includes
-#ifdef KRATOS_USING_MPI
-#include "mpi/element_communicator_mpi.h"
-#include "mpi/mpm_mpi_search.h"
-#endif
 
 // Project includes
 #include "includes/define.h"
@@ -38,6 +33,7 @@
 #include "boost/geometry/geometry.hpp"
 #include "boost/geometry/geometries/register/point.hpp"
 #include "boost/geometry/geometries/register/ring.hpp"
+
 
 namespace Kratos
 {
@@ -1064,14 +1060,6 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
 
-#ifdef KRATOS_USING_MPI
-        // Temporary copy of missing elements and conditions
-        std::vector<Element::Pointer> missing_elements;
-        missing_elements.reserve(rMissingElements.size());
-        std::vector<Condition::Pointer> missing_conditions;
-        missing_conditions.reserve(rMissingConditions.size());
-#endif
-
         #pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
@@ -1132,17 +1120,12 @@ namespace MPMSearchElementUtility
                         r_geometry[j].Set(ACTIVE);
                 }
                 else {
-#ifdef KRATOS_USING_MPI
-                    //TODO: Add that it still clears conditions if only one mpi node is available
-                    #pragma omp critical
-                    missing_elements.push_back(&*element_itr);
-#else
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
                         << " is failed. Geometry is cleared." << std::endl;
+
                     element_itr->GetGeometry().clear();
                     element_itr->Reset(ACTIVE);
                     element_itr->Set(TO_ERASE);
-#endif
                 }
             }
 
@@ -1169,35 +1152,16 @@ namespace MPMSearchElementUtility
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
                             r_geometry[j].Set(ACTIVE);
                     } else {
-
-#ifdef KRATOS_USING_MPI
-                        //TODO: Add that it still clears conditions if only one mpi node is available
-                        #pragma omp critical
-                        missing_conditions.push_back(&*condition_itr);
-#else
                         KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
                             << " is failed. Geometry is cleared." << std::endl;
+
                         condition_itr->GetGeometry().clear();
                         condition_itr->Reset(ACTIVE);
                         condition_itr->Set(TO_ERASE);
-#endif
-
-
                     }
                 }
             }
         }
-#ifdef KRATOS_USING_MPI
-        // Copy still missing elements and conditions back to the corresponding vectors
-        rMissingElements.clear();
-        for( auto& el : missing_elements){
-            rMissingElements.push_back(el);
-        }
-        rMissingConditions.clear();
-        for( auto& cond : missing_conditions){
-            rMissingConditions.push_back(cond);
-        }
-#endif
     }
 
     inline void ResetElementsAndNodes(ModelPart& rBackgroundGridModelPart)
@@ -1241,14 +1205,6 @@ namespace MPMSearchElementUtility
             BinBasedSearchElementsAndConditions<TDimension>(rMPMModelPart,
                 rBackgroundGridModelPart, missing_elements, missing_conditions,
                 MaxNumberOfResults, Tolerance);
-
-#ifdef KRATOS_USING_MPI
-        ElementCommunicatorMPI::MPI_Search(rMPMModelPart, rBackgroundGridModelPart, missing_elements,
-                missing_conditions, MaxNumberOfResults, Tolerance);
-
-        MPM_MPI_SEARCH::SearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements,
-                missing_conditions, MaxNumberOfResults, Tolerance);
-#endif
     }
 } // end namespace MPMSearchElementUtility
 
