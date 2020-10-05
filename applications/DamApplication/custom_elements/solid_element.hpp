@@ -386,31 +386,6 @@ public:
                                       const ProcessInfo& rCurrentProcessInfo ) override;
 
 
-    //GET:
-    /**
-     * Get on rVariable a double Value from the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Get on rVariable a Vector Value from the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Get on rVariable a Matrix Value from the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Get a Constitutive Law Value
-     */
-    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                     std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo ) override;
-
-
-
     //************* STARTING - ENDING  METHODS
 
     /**
@@ -554,17 +529,30 @@ public:
     /**
      * Calculate a double Variable on the Element Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Vector Variable on the Element Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Matrix Variable on the Element Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                                      std::vector< Matrix >& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Calculate a Constitutive Law Value on the Element Constitutive Law
+     */
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     //************************************************************************************

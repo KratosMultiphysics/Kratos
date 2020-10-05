@@ -634,8 +634,8 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                                                                    std::vector<array_1d<double,3>>& rValues,
-                                                                                    const ProcessInfo& rCurrentProcessInfo)
+                                                                                     std::vector<array_1d<double,3>>& rValues,
+                                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     if(rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR )
     {
@@ -659,7 +659,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
 template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                                                                     std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                                                                    const ProcessInfo& rCurrentProcessInfo )
+                                                                                    const ProcessInfo& rCurrentProcessInfo)
 {
     if(rVariable == CONSTITUTIVE_LAW)
     {
@@ -669,100 +669,6 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
         for(unsigned int i=0; i < mConstitutiveLawVector.size(); i++)
             rValues[i] = mConstitutiveLawVector[i];
     }
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                                                                     std::vector<array_1d<double,3>>& rOutput,
-                                                                                     const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    if(rVariable == LOCAL_STRESS_VECTOR)
-    {
-        //Defining necessary variables
-        const PropertiesType& Prop = this->GetProperties();
-        const GeometryType& Geom = this->GetGeometry();
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-        array_1d<double,TNumNodes*TDim> DisplacementVector;
-        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
-        BoundedMatrix<double,TDim, TDim> RotationMatrix;
-        this->CalculateRotationMatrix(RotationMatrix,Geom);
-        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
-        array_1d<double,TDim> RelDispVector;
-        const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-        double JointWidth;
-        array_1d<double,TDim> LocalStressVector;
-
-        //Create constitutive law parameters:
-        Vector StrainVector(TDim);
-        Vector StressVectorDynamic(TDim);
-        Matrix ConstitutiveMatrix(TDim,TDim);
-        Vector Np(TNumNodes);
-        Matrix GradNpT(TNumNodes,TDim);
-        Matrix F = identity_matrix<double>(TDim);
-        double detF = 1.0;
-        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        ConstitutiveParameters.SetStressVector(StressVectorDynamic);
-        ConstitutiveParameters.SetStrainVector(StrainVector);
-        ConstitutiveParameters.SetShapeFunctionsValues(Np);
-        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-        ConstitutiveParameters.SetDeterminantF(detF);
-        ConstitutiveParameters.SetDeformationGradientF(F);
-
-        //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
-        {
-            InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
-
-            noalias(RelDispVector) = prod(Nu,DisplacementVector);
-
-            noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
-
-            this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
-
-            noalias(Np) = row(NContainer,GPoint);
-
-            //compute constitutive tensor and/or stresses
-            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-
-            noalias(LocalStressVector) = StressVectorDynamic;
-
-            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
-        }
-    }
-    else if(rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
-    {
-        //Defining necessary variables
-        const GeometryType& Geom = this->GetGeometry();
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-        array_1d<double,TNumNodes*TDim> DisplacementVector;
-        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
-        BoundedMatrix<double,TDim, TDim> RotationMatrix;
-        this->CalculateRotationMatrix(RotationMatrix,Geom);
-        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
-        array_1d<double,TDim> LocalRelDispVector;
-        array_1d<double,TDim> RelDispVector;
-
-        //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
-        {
-            InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
-
-            noalias(RelDispVector) = prod(Nu,DisplacementVector);
-
-            noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
-
-            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalRelDispVector);
-        }
-    }
-
-    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

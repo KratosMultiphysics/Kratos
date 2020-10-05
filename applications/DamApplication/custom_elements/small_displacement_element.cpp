@@ -326,7 +326,9 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Ve
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                                            std::vector<double>& rOutput,
+                                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -338,7 +340,9 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<doubl
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                            std::vector<Vector>& rOutput,
+                                                            const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -379,7 +383,9 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<Vecto
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                                                            std::vector< Matrix >& rOutput,
+                                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

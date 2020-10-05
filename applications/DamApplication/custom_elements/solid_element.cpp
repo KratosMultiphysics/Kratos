@@ -345,146 +345,6 @@ void SolidElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw:
 
 }
 
-//*********************************GET DOUBLE VALUE***********************************
-//************************************************************************************
-
-
-void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
-						std::vector<double>& rValues,
-						const ProcessInfo& rCurrentProcessInfo )
-{
-    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS || rVariable == PRESSURE || DAMAGE_VARIABLE)
-    {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-      const SizeType& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-
-      if ( rValues.size() != integration_points_number )
-      {
-        rValues.resize( integration_points_number );
-      }
-
-      for ( SizeType ii = 0; ii < integration_points_number; ii++ )
-      {
-        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-      }
-    }
-}
-
-//**********************************GET VECTOR VALUE**********************************
-//************************************************************************************
-
-
-void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
-						std::vector<Vector>& rValues,
-						const ProcessInfo& rCurrentProcessInfo )
-{
-    const SizeType& integration_points_number = mConstitutiveLawVector.size();
-
-    if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number );
-
-
-    if ( rVariable == PK2_STRESS_TENSOR ||  rVariable == CAUCHY_STRESS_TENSOR )
-    {
-
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-    }
-    else if ( rVariable == PK2_STRESS_VECTOR ||  rVariable == CAUCHY_STRESS_VECTOR )
-    {
-
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-    }
-    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_TENSOR )
-    {
-
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-    }
-    else
-    {
-
-        for ( SizeType PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
-        {
-            rValues[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
-        }
-
-    }
-
-}
-
-//***********************************GET MATRIX VALUE*********************************
-//************************************************************************************
-
-void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable,
-						std::vector<Matrix>& rValues,
-						const ProcessInfo& rCurrentProcessInfo )
-{
-
-    const SizeType& integration_points_number = mConstitutiveLawVector.size();
-
-    if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number );
-
-    if ( rVariable == PK2_STRESS_TENSOR ||  rVariable == CAUCHY_STRESS_TENSOR )
-    {
-
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-    }
-    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_TENSOR )
-    {
-
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-    }
-    else if ( rVariable == DEFORMATION_GRADIENT )
-    {
-
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-    }
-    else
-    {
-
-        for ( SizeType PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
-        {
-            rValues[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
-        }
-
-    }
-
-
-}
-
-//********************************GET CONSTITUTIVE VALUE******************************
-//************************************************************************************
-
-void SolidElement::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-						std::vector<ConstitutiveLaw::Pointer>& rValues,
-						const ProcessInfo& rCurrentProcessInfo )
-{
-
-    if(rVariable == CONSTITUTIVE_LAW)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-        {
-            rValues.resize(mConstitutiveLawVector.size());
-        }
-
-        for(SizeType i=0; i<rValues.size(); i++)
-        {
-            rValues[i] = mConstitutiveLawVector[i];
-        }
-    }
-
-}
-
-
 //************************************************************************************
 //************************************************************************************
 
@@ -1973,7 +1833,9 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const Pro
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void SolidElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                                std::vector<double>& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -2171,7 +2033,9 @@ void SolidElement::CalculateOnIntegrationPoints(const Variable<double>& rVariabl
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SolidElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                std::vector<Vector>& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -2232,7 +2096,9 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void SolidElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                                                std::vector< Matrix >& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -2345,6 +2211,28 @@ void SolidElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariab
     KRATOS_CATCH("")
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void SolidElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+						                                    std::vector<ConstitutiveLaw::Pointer>& rValues,
+						                                    const ProcessInfo& rCurrentProcessInfo)
+{
+
+    if(rVariable == CONSTITUTIVE_LAW)
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+        {
+            rValues.resize(mConstitutiveLawVector.size());
+        }
+
+        for(SizeType i=0; i<rValues.size(); i++)
+        {
+            rValues[i] = mConstitutiveLawVector[i];
+        }
+    }
+
+}
 
 
 //************************************************************************************
