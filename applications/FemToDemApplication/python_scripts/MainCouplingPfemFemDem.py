@@ -20,7 +20,7 @@ def KratosPrintInfo(message):
 class MainCouplingPfemFemDem_Solution:
 #============================================================================================================================
 
-    def __init__(self, Model, path = "", PFEMparameters):
+    def __init__(self, Model, PFEMparameters, path = ""):
         # Initialize solutions of the FEMDEM and PFEM
         self.model = Model
         self.FEMDEM_Solution = MainCouplingFemDem_for_PFEM_coupling.MainCoupledFemDem_for_PFEM_coupling_Solution(Model, path)
