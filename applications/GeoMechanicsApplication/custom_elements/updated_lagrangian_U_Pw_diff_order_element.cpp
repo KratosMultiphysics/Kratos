@@ -44,9 +44,13 @@ int UpdatedLagrangianUPwDiffOrderElement::
 {
     KRATOS_TRY
 
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::Check()") << std::endl;
+
     // Base class checks for positive area and Id > 0
     // Verify generic variables
     int ierr = SmallStrainUPwDiffOrderElement::Check(rCurrentProcessInfo);
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::Check()") << ierr << std::endl;
 
     return ierr;
 
@@ -57,6 +61,10 @@ int UpdatedLagrangianUPwDiffOrderElement::
 void UpdatedLagrangianUPwDiffOrderElement::
     Initialize(const ProcessInfo &rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::Initialize()") << std::endl;
+
     SmallStrainUPwDiffOrderElement::Initialize(rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
@@ -79,13 +87,21 @@ void UpdatedLagrangianUPwDiffOrderElement::
     }
 
     mF0Computed = false;
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::Initialize()") << std::endl;
+
+    KRATOS_CATCH( "" );
 }
 
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::
     InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
 {
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::InitializeSolutionStep()") << std::endl;
+
     SmallStrainUPwDiffOrderElement::InitializeSolutionStep(rCurrentProcessInfo);
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::InitializeSolutionStep()") << std::endl;
 
     mF0Computed = false;
 }
@@ -94,6 +110,9 @@ void UpdatedLagrangianUPwDiffOrderElement::
 void UpdatedLagrangianUPwDiffOrderElement::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 
     //Definition of variables
     ElementVariables Variables;
@@ -128,6 +147,11 @@ void UpdatedLagrangianUPwDiffOrderElement::
     AssignPressureToIntermediateNodes();
 
     mF0Computed = true;
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
+
+    KRATOS_CATCH( "" );
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -135,8 +159,13 @@ void UpdatedLagrangianUPwDiffOrderElement::
     UpdateHistoricalDatabase(ElementVariables& rVariables,
                              const SizeType GPoint)
 {
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::UpdateHistoricalDatabase()") << std::endl;
+
     mDetF0[GPoint] = rVariables.detF;
     noalias(mF0[GPoint]) = rVariables.F;
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::UpdateHistoricalDatabase()") << std::endl;
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -148,6 +177,8 @@ void UpdatedLagrangianUPwDiffOrderElement::
                   const bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY;
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
 
@@ -210,6 +241,8 @@ void UpdatedLagrangianUPwDiffOrderElement::
         }
     }
 
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << std::endl;
+
     KRATOS_CATCH( "" )
 }
 
@@ -219,6 +252,8 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                              ElementVariables& rVariables )
 {
     KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -236,6 +271,8 @@ void UpdatedLagrangianUPwDiffOrderElement::
     //Distribute stiffness block matrix into the elemental matrix
     GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, UMatrix, NumUNodes, Dim);
 
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix()") << std::endl;
+
     KRATOS_CATCH( "" )
 }
 
@@ -244,6 +281,10 @@ void UpdatedLagrangianUPwDiffOrderElement::
     CalculateKinematics(ElementVariables& rVariables,
                         const SizeType GPoint)
 {
+    KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateKinematics()") << std::endl;
+
     //Setting the vector of shape functions and the matrix of the shape functions global gradients
     noalias(rVariables.Nu) = row(rVariables.NuContainer, GPoint);
     noalias(rVariables.Np) = row(rVariables.NpContainer, GPoint);
@@ -291,6 +332,10 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                                                     GPoint,
                                                                     this->GetIntegrationMethod());
 
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateKinematics()") << std::endl;
+
+    KRATOS_CATCH( "" )
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -302,6 +347,10 @@ double UpdatedLagrangianUPwDiffOrderElement::
                                                  const IndexType& GPoint,
                                                  IntegrationMethod ThisIntegrationMethod) const
 {
+    KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
+
     J0.clear();
 
     double detJ0;
@@ -318,6 +367,11 @@ double UpdatedLagrangianUPwDiffOrderElement::
     noalias( DNu_DX ) = prod( DN_De, InvJ0);
 
     return detJ0;
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
+
+    KRATOS_CATCH( "" )
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -329,12 +383,22 @@ double UpdatedLagrangianUPwDiffOrderElement::
                                                 const IndexType& PointNumber,
                                                 IntegrationMethod ThisIntegrationMethod ) const
 {
+    KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnCurrentConfiguration()") << std::endl;
+
     double detJ;
     rJ = Geometry.Jacobian( rJ, PointNumber, ThisIntegrationMethod );
     const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnCurrentConfiguration()") << std::endl;
+
     return detJ;
+
+    KRATOS_CATCH( "" )
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -342,6 +406,9 @@ Matrix& UpdatedLagrangianUPwDiffOrderElement::
     CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const
 {
     KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateDeltaDisplacement()") << std::endl;
+
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -355,6 +422,8 @@ Matrix& UpdatedLagrangianUPwDiffOrderElement::
         for ( IndexType iDim = 0; iDim < Dim; ++iDim )
             DeltaDisplacement(iNode, iDim) = currentDisplacement[iDim] - previousDisplacement[iDim];
     }
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateDeltaDisplacement()") << std::endl;
 
     return DeltaDisplacement;
 

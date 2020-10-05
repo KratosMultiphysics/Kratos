@@ -117,6 +117,14 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwUpdatedLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mUPwUpdatedLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
 
+    // Updated-Lagrangian different order elements
+    mUpdatedLagrangianUPwDiffOrderElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mUpdatedLagrangianUPwDiffOrderElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mUpdatedLagrangianUPwDiffOrderElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUpdatedLagrangianUPwDiffOrderElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mUpdatedLagrangianUPwDiffOrderElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
+    mUpdatedLagrangianUPwDiffOrderElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
+
     // geo structural elements
     mGeoTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -239,6 +247,14 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement3D20N", mUPwUpdatedLagrangianElement3D20N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement3D27N", mUPwUpdatedLagrangianElement3D27N )
 
+    // Updated-Lagrangian different order elements
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D6N", mUpdatedLagrangianUPwDiffOrderElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D8N", mUpdatedLagrangianUPwDiffOrderElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D9N", mUpdatedLagrangianUPwDiffOrderElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement3D10N", mUpdatedLagrangianUPwDiffOrderElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement3D20N", mUpdatedLagrangianUPwDiffOrderElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement3D27N", mUpdatedLagrangianUPwDiffOrderElement3D27N )
+
 
     // Register geo structural elements
     KRATOS_REGISTER_ELEMENT("GeoTrussElement3D2N", mGeoTrussElement3D2N)
@@ -306,7 +322,6 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT3DInterfaceLaw",   mSmallStrainUMAT3DInterfaceLaw);
 
     //
-
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )

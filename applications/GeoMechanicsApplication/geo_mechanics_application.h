@@ -55,6 +55,7 @@
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -314,7 +315,7 @@ private:
     const UPwSmallStrainLinkInterfaceElement<3,6> mUPwSmallStrainLinkInterfaceElement3D6N;
     const UPwSmallStrainLinkInterfaceElement<3,8> mUPwSmallStrainLinkInterfaceElement3D8N;
 
-    // Updated Lagrangian elements:
+    // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2,3> mUPwUpdatedLagrangianElement2D3N;
     const UPwUpdatedLagrangianElement<2,4> mUPwUpdatedLagrangianElement2D4N;
     const UPwUpdatedLagrangianElement<3,4> mUPwUpdatedLagrangianElement3D4N;
@@ -327,6 +328,13 @@ private:
     const UPwUpdatedLagrangianElement<3,20> mUPwUpdatedLagrangianElement3D20N;
     const UPwUpdatedLagrangianElement<3,27> mUPwUpdatedLagrangianElement3D27N;
 
+    // Updated-Lagrangian different order elements
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D6N;
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D8N;
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D9N;
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D10N;
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D20N;
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D27N;
 
     // geo structural element
     const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N;
