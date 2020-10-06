@@ -40,7 +40,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         self._create_conditions(background_sub_mp)
 
         # Generate MP Elements and Conditions
-        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
         KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, material_point_model_part)
 
     def _create_nodes(self, initial_mp):
@@ -62,6 +62,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, initial_mp.Conditions)
         for condition in initial_mp.Conditions:
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, 0)
+            condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, 1)
 
     def _search_element(self, current_model):
         # Default

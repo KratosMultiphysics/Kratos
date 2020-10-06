@@ -18,8 +18,6 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/cfd_variables.h"
-#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "swe.h"
@@ -42,7 +40,7 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(MANNING)
     KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
+    KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
     KRATOS_CHECK_VARIABLE_KEY(WATER_HEIGHT_UNIT_CONVERTER)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
@@ -195,7 +193,7 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.epsilon = rCurrentProcessInfo[DRY_HEIGHT];
     rVariables.dt_inv = 1.0 / delta_t;
     rVariables.lumping_factor = 1.0 / static_cast<double>(TNumNodes);
-    rVariables.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+    rVariables.stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rVariables.manning2 = 0.0;
     rVariables.porosity = 0.0;
@@ -309,7 +307,7 @@ void SWE<TNumNodes, TFramework>::ComputeStabilizationParameters(
 {
     // Get element values
     const double elem_size = this->GetGeometry().Length();
-    const double CTau = rVariables.dyn_tau;  // 0.005 ~ 0.002
+    const double CTau = rVariables.stab_factor;  // 0.005 ~ 0.002
 
     // Wave mixed form stabilization
     rTauU = CTau * elem_size * std::sqrt(rVariables.wave_vel_2);
@@ -330,7 +328,7 @@ void SWE<TNumNodes, TFramework>::ComputeConvectionStabilizationParameters(
 {
     // Get element values
     const double elem_size = this->GetGeometry().Length();
-    const double CTau = rVariables.dyn_tau;  // 0.005 ~ 0.002
+    const double CTau = rVariables.stab_factor;  // 0.005 ~ 0.002
 
     // Convective stabilization
     if (TFramework == Eulerian)

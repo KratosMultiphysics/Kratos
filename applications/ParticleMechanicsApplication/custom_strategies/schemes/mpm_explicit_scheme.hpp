@@ -285,7 +285,7 @@ namespace Kratos {
 
             /// Apply Dirichlet BCs to nodal velocity field
             void calculateGridVelocityAndApplyDirichletBC(
-                ProcessInfo rCurrentProcessInfo,
+                const ProcessInfo rCurrentProcessInfo,
                 bool calculateVelocityFromMomenta = false)
             {
                 KRATOS_TRY
@@ -440,12 +440,12 @@ namespace Kratos {
             /** Function that returns the list of Degrees of freedom to be
             assembled in the system for a Given Element
              */
-            void GetElementalDofList(
-                Element::Pointer rCurrentElement,
+            void GetDofList(
+                const Element& rCurrentElement,
                 Element::DofsVectorType& ElementalDofList,
-                ProcessInfo& CurrentProcessInfo) override
+                const ProcessInfo& CurrentProcessInfo) override
             {
-                rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
+                rCurrentElement.GetDofList(ElementalDofList, CurrentProcessInfo);
             }
 
             //***************************************************************************
@@ -508,15 +508,16 @@ namespace Kratos {
                 return 0;
             }
 
-            void Calculate_RHS_Contribution(
-                Element::Pointer pCurrentElement,
+            void CalculateRHSContribution(
+                Element& rCurrentElement,
                 LocalSystemVectorType& RHS_Contribution,
                 Element::EquationIdVectorType& EquationId,
-                ProcessInfo& rCurrentProcessInfo
+                const ProcessInfo& rCurrentProcessInfo
                 ) override
             {
                 KRATOS_TRY
-                    this->TCalculate_RHS_Contribution(pCurrentElement, RHS_Contribution, rCurrentProcessInfo);
+                    rCurrentElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+                    rCurrentElement.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
                 KRATOS_CATCH("")
             }
 
@@ -527,28 +528,16 @@ namespace Kratos {
              * @param EquationId The ID's of the condition degrees of freedom
              * @param rCurrentProcessInfo The current process info instance
              */
-            void Condition_Calculate_RHS_Contribution(
-                Condition::Pointer pCurrentCondition,
+            void CalculateRHSContribution(
+                Condition& rCurrentCondition,
                 LocalSystemVectorType& RHS_Contribution,
                 Element::EquationIdVectorType& EquationId,
-                ProcessInfo& rCurrentProcessInfo
+                const ProcessInfo& rCurrentProcessInfo
                 ) override
             {
                 KRATOS_TRY
-                    this->TCalculate_RHS_Contribution(pCurrentCondition, RHS_Contribution, rCurrentProcessInfo);
-                KRATOS_CATCH("")
-            }
-
-            template <typename TObjectType>
-            void TCalculate_RHS_Contribution(
-                TObjectType pCurrentEntity,
-                LocalSystemVectorType& RHS_Contribution,
-                ProcessInfo& rCurrentProcessInfo
-                )
-            {
-                KRATOS_TRY
-                pCurrentEntity->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-                pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+                rCurrentCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+                rCurrentCondition.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
                 KRATOS_CATCH("")
             }
 

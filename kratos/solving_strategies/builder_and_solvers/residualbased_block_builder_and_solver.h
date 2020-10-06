@@ -91,6 +91,9 @@ public:
     /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// The definition of the current class
+    typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     // The size_t types
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
@@ -125,6 +128,13 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedBlockBuilderAndSolver() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedBlockBuilderAndSolver(
@@ -132,40 +142,9 @@ public:
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                               : "ResidualBasedBlockBuilderAndSolver",
-            "block_builder"                      : true,
-            "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
-            "silent_warnings"                    : false
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        // Setting flags
-        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
-
-        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
-
-        if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
-            std::stringstream msg;
-            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
-            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
-            KRATOS_ERROR << msg.str() << std::endl;
-        }
-
-        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
-        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
-            mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
-        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
-            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;
-        } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
-            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL;
-        } else { // Otherwise we will assume we impose a numerical value
-            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
-        }
-        mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -181,6 +160,19 @@ public:
      */
     ~ResidualBasedBlockBuilderAndSolver() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     ///@}
@@ -301,12 +293,85 @@ public:
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A) override
+        TSystemMatrixType& rA
+        ) override
     {
         KRATOS_TRY
 
-        TSystemVectorType tmp(A.size1(), 0.0);
-        this->Build(pScheme, rModelPart, A, tmp);
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto it_elem_begin = rModelPart.ElementsBegin();
+        const auto it_cond_begin = rModelPart.ConditionsBegin();
+
+        // Contributions to the system
+        LocalSystemMatrixType lhs_contribution(0, 0);
+
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType equation_id;
+
+        // Assemble all elements
+        double start_build = OpenMPUtils::GetCurrentTime();
+
+        #pragma omp parallel firstprivate(nelements, nconditions, lhs_contribution, equation_id )
+        {
+            # pragma omp for  schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; ++k) {
+                auto it_elem = it_elem_begin + k;
+
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
+
+                if (element_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateLHSContribution(*it_elem, lhs_contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHS(rA, lhs_contribution, equation_id);
+
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*it_elem);
+                }
+
+            }
+
+            #pragma omp for  schedule(guided, 512)
+            for (int k = 0; k < nconditions; ++k) {
+                auto it_cond = it_cond_begin + k;
+
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
+
+                if (condition_is_active)
+                {
+                    // Calculate elemental contribution
+                    pScheme->CalculateLHSContribution(*it_cond, lhs_contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHS(rA, lhs_contribution, equation_id);
+
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*it_cond);
+                }
+            }
+        }
+
+        const double stop_build = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << stop_build - start_build << std::endl;
+
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building LHS" << std::endl;
+
 
         KRATOS_CATCH("")
     }
@@ -597,11 +662,7 @@ public:
     {
         KRATOS_TRY
 
-        Timer::Start("BuildRHS");
-
         BuildRHS(pScheme, rModelPart, rb);
-
-        Timer::Stop("BuildRHS");
 
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             Timer::Start("ApplyRHSConstraints");
@@ -616,7 +677,7 @@ public:
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
-        SystemSolve(rA, rDx, rb);
+        SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
@@ -640,6 +701,8 @@ public:
     {
         KRATOS_TRY
 
+        Timer::Start("BuildRHS");
+
         BuildRHSNoDirichlet(pScheme,rModelPart,b);
 
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
@@ -654,6 +717,8 @@ public:
             if (dof_iterator->IsFixed())
                 b[i] = 0.0;
         }
+
+        Timer::Stop("BuildRHS");
 
         KRATOS_CATCH("")
     }
@@ -854,8 +919,11 @@ public:
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
             Dx.resize(BaseType::mEquationSystemSize, false);
-        if (b.size() != BaseType::mEquationSystemSize)
+        TSparseSpace::SetToZero(Dx);
+        if (b.size() != BaseType::mEquationSystemSize) {
             b.resize(BaseType::mEquationSystemSize, false);
+        }
+        TSparseSpace::SetToZero(b);
 
         ConstructMasterSlaveConstraintsStructure(rModelPart);
 
@@ -1148,6 +1216,35 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                 : "block_builder_and_solver",
+            "block_builder"                        : true,
+            "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal",
+            "silent_warnings"                      : false
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "block_builder_and_solver";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -1290,6 +1387,7 @@ protected:
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
+            Timer::Start("ConstraintsRelationMatrixStructure");
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // Vector containing the localization in the system of the different terms
@@ -1587,6 +1685,21 @@ protected:
         }
     }
 
+    //**************************************************************************
+
+    void AssembleLHS(
+        TSystemMatrixType& rA,
+        const LocalSystemMatrixType& rLHSContribution,
+        Element::EquationIdVectorType& rEquationId
+        )
+    {
+        const SizeType local_size = rLHSContribution.size1();
+
+        for (IndexType i_local = 0; i_local < local_size; i_local++) {
+            const IndexType i_global = rEquationId[i_local];
+            AssembleRowContribution(rA, rLHSContribution, i_global, i_local, rEquationId);
+        }
+    }
 
     //**************************************************************************
 
@@ -1768,6 +1881,39 @@ protected:
             min_diag = std::min(min_diag, min_vector[i]);
         }
         return min_diag;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Setting flags<
+        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
+
+        if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
+        }
+
+        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
+        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
+            mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL;
+        } else { // Otherwise we will assume we impose a numerical value
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
+        }
+        mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
     }
 
     ///@}

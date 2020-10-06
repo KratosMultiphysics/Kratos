@@ -1,23 +1,23 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![Release][release-image]][releases] [![License][license-image]][license] [![Master][kratos-master-status]][travis-branches] [![appveyor-image]][appveyor-master] [![GitHub CI](https://github.com/KratosMultiphysics/Kratos/workflows/CI/badge.svg)](https://github.com/KratosMultiphysics/Kratos/actions?query=branch%3Amaster)
+[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][CI-image]][CI-link] [![DOI][DOI-image]][DOI]
 
-
-_KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
-
-**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
-
-[release-image]: https://img.shields.io/badge/release-7.0-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-8.0-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
 [license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
 
-[kratos-master-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=master
-[travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
+[CI-image]: https://github.com/KratosMultiphysics/Kratos/workflows/CI/badge.svg
+[CI-link]: https://github.com/KratosMultiphysics/Kratos/actions?query=workflow%3ACI
 
-[appveyor-image]: https://ci.appveyor.com/api/projects/status/f9p57hci9ufkqkf5/branch/master?svg=true
-[appveyor-master]: https://ci.appveyor.com/project/KratosMultiphysics/kratos
+[DOI-image]: https://zenodo.org/badge/DOI/10.5281/zenodo.3234644.svg
+
+[DOI]: https://doi.org/10.5281/zenodo.3234644
+
+_KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
+
+**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
 
 # Main Features
@@ -94,3 +94,9 @@ In Kratos Core:
 In applications
 - [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in trilinos application
 - [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in metis application
+
+# How to cite Kratos?
+Please, use the following references when citing Kratos in your work.
+- Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2
+- Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.
+- Mataix Ferrándiz, V., Bucher, P., Rossi, R., Cotela, J., Carbonell, J. M., Zorrilla, R., … Tosi, R. (2020, May 29). KratosMultiphysics (Version 8.0). Zenodo. https://doi.org/10.5281/zenodo.3234644

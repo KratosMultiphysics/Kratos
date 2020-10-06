@@ -28,11 +28,9 @@
 // Defining the OS
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
     #define KRATOS_COMPILED_IN_LINUX
-
 #elif defined(__APPLE__) && defined(__MACH__)
-    #define KRATOS_COMPILED_IN_OSX
-
-#elif defined(_WIN32)
+    #define KRATOS_COMPILED_IN_OS
+#elif defined(_WIN32) || defined(_WIN64)
     #define KRATOS_COMPILED_IN_WINDOWS
 #endif
 
@@ -717,6 +715,12 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<MasterSlaveConstraint >::Add(name, reference); \
     Serializer::Register(name, reference);
 
+#ifdef KRATOS_REGISTER_MODELER
+#undef KRATOS_REGISTER_MODELER
+#endif
+#define KRATOS_REGISTER_MODELER(name, reference) \
+    KratosComponents<Modeler>::Add(name, reference); \
+    Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #undef KRATOS_REGISTER_CONSTITUTIVE_LAW

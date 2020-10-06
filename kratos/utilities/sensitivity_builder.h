@@ -18,6 +18,7 @@
 // System includes
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 // External includes
 
@@ -72,6 +73,44 @@ public:
                                                     AdjointResponseFunction& rResponseFunction,
                                                     const ProcessInfo& rProcessInfo,
                                                     double ScalingFactor);
+
+    /**
+     * @brief Assigns entity derivatives to nodes based on a given constant weighting
+     *
+     * This method assigns derivatives of a value calculated on given entity to nodes. The derivatives given by entity
+     * should have the following order in the matrix
+     *
+     * \[
+     *      M\left(a, i\right) = \frac{\partial y^i}{\partial x^c_k}
+     * \]
+     *
+     * Where $a = c * DerivativeDimension + k$, and $i$ is the value dimension, $c$ is derivative node and $k$ is derivative node's direction
+     * When these derivatives are stored on nodes, following order is assumed.
+     *      Firstly, derivatives w.r.t. itself
+     *      Then in the order of rNeighbourNodeIdsMap[current_node.Id] vector
+     *
+     * rNeighbourNodeIdsMap can be generated using FindGlobalNodalNeighboursProcess
+     *
+     * @see FindGlobalNodalNeighboursProcess
+     *
+     * @tparam TContainerType           Container type
+     * @param rModelPart                Model part to use entities and nodes
+     * @param DerivativeDimension       Dimensionality of derivative variable
+     * @param rDerivativeVariable       Matrix type derivative variable which holds derivatives in an entity.
+     * @param rNeighbourNodeIdsMap      Neighbour node ids map for all the nodes in rModelPart
+     * @param Weight                    Constant weighting
+     * @param rFlag                     Flag to check in entities whether entity derivatives should be distributed to nodes or not
+     * @param CheckValue                Flag check value
+     */
+    template <class TContainerType>
+    static void AssignEntityDerivativesToNodes(
+        ModelPart& rModelPart,
+        const int DerivativeDimension,
+        const Variable<Matrix>& rDerivativeVariable,
+        const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
+        const double Weight,
+        const Flags& rFlag,
+        const bool CheckValue = true);
 
     void Initialize();
 
