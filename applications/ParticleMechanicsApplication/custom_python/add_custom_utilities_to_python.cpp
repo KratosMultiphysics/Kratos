@@ -25,11 +25,6 @@
 #include "custom_utilities/mpm_search_element_utility.h"
 #include "custom_utilities/mpm_particle_generator_utility.h"
 
-#ifdef KRATOS_USING_MPI
-#include "custom_utilities/mpi/mpm_mpi_utility.h"
-#include "custom_utilities/mpi/element_communicator_mpi.h"
-#endif
-
 
 namespace Kratos{
 namespace Python{
@@ -63,9 +58,6 @@ namespace Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        m.def("CopyMPICommunicator",&MPM_MPI_Utility::CopyMPICommunicator);
-#endif
     }
 
 }  // namespace Python.

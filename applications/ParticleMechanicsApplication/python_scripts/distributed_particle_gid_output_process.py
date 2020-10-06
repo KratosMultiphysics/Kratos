@@ -22,6 +22,8 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
     def __init__(self, model_part, file_name, param=None):
         super(DistributedParticleGiDOutputProcess, self).__init__(model_part, file_name, param)
         self.serial_file_name = file_name
+        self.ID = []
+        self.COORD = []
         self.base_file_name += "_" + str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank()) # overwriting the one from the baseclass
 
     def ExecuteBeforeSolutionLoop(self):
@@ -36,7 +38,9 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
             coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
             # TODO: find better way than this:
             Id = str(mpm.Id) + str(rank) + str(rank) + str(rank)
+            self.ID.append(Id)
             self.mesh_file.write("{} {} {} {}\n".format( Id, coord[0], coord[1], coord[2]))
+            self.COORD.append(coord)
         self.mesh_file.write("End Coordinates\n")
         self.mesh_file.write("Elements\n")
         for mpm in self.model_part.Elements:
@@ -49,9 +53,35 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
         self.result_file = open(self.base_file_name + ".post.res",'w')
         self.result_file.write("GiD Post Results File 1.0\n")
 
+    def AdjustMeshFile(self):
+        rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
+        for mpm in self.model_part.Elements:
+            Id = str(mpm.Id) + str(rank) + str(rank) + str(rank)
+            if Id not in self.ID:
+                self.ID.append(Id)
+                coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
+                disp = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_DISPLACEMENT,self.model_part.ProcessInfo)[0]
+                self.COORD.append(coord-disp)
+        self.mesh_file = open(self.base_file_name + ".post.msh",'w')
+        self.mesh_file.write("MESH \"")
+        self.mesh_file.write("outmesh")
+        self.mesh_file.write("\" dimension 3 ElemType Point Nnode 1\n")
+        self.mesh_file.write("Coordinates\n")
+        rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
+        for id_, coord in zip(self.ID,self.COORD):
+            self.mesh_file.write("{} {} {} {}\n".format( id_, coord[0], coord[1], coord[2]))
+        self.mesh_file.write("End Coordinates\n")
+        self.mesh_file.write("Elements\n")
+        for id_ in self.ID:
+            self.mesh_file.write("{} {}\n".format(id_, id_))
+        self.mesh_file.write("End Elements\n")
+        self.mesh_file.flush()
+
+
     def _write_mp_results(self, step_label=None):
         clock_time = self._start_time_measure()
         rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
+        self.AdjustMeshFile()
         for i in range(self.variable_name_list.size()):
             var_name = self.variable_name_list[i].GetString()
             variable = self.variable_list[i]
