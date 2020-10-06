@@ -177,6 +177,48 @@ namespace Kratos {
         KRATOS_CHECK(r_model_part.NumberOfConditions() == 4);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartAddElementsWithNodes, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_sub_model_part = r_model_part.CreateSubModelPart("SubMain");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+
+        // Call method
+        auto aux_util = AuxiliarModelPartUtilities(r_sub_model_part);
+        std::vector<std::size_t> list_elements {{1, 2}};
+        aux_util.AddElementsWithNodes(list_elements);
+
+        // Check results
+        KRATOS_CHECK(r_sub_model_part.NumberOfNodes() == 4);
+        KRATOS_CHECK(r_sub_model_part.NumberOfElements() == 2);
+        KRATOS_CHECK(r_sub_model_part.NumberOfConditions() == 0);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartAddConditionsWithNodes, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_sub_model_part = r_model_part.CreateSubModelPart("SubMain");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+
+        // Call method
+        auto aux_util = AuxiliarModelPartUtilities(r_sub_model_part);
+        std::vector<std::size_t> list_conditions {{1, 2}};
+        aux_util.AddConditionsWithNodes(list_conditions);
+
+        // Check results
+        KRATOS_CHECK(r_sub_model_part.NumberOfNodes() == 3);
+        KRATOS_CHECK(r_sub_model_part.NumberOfElements() == 0);
+        KRATOS_CHECK(r_sub_model_part.NumberOfConditions() == 2);
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElementsAndBelongings, KratosCoreFastSuite)
     {
         Model current_model;
