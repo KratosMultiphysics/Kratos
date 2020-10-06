@@ -90,6 +90,16 @@ namespace MPMParticleGeneratorUtility
         const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
         unsigned int last_element_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements + 1);
 
+
+        const unsigned int size = rBackgroundGridModelPart.GetCommunicator().TotalProcesses();
+        const unsigned int rank = rBackgroundGridModelPart.GetCommunicator().MyPID();
+        // Synchronize element id's in mpi run, to ensure unique element id's across processes
+        if( rBackgroundGridModelPart.GetCommunicator().IsDistributed() ){
+            last_element_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().MaxAll(last_element_id) + rank;
+        }
+
+
+        unsigned int new_element_id = last_element_id;
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
@@ -165,7 +175,6 @@ namespace MPMParticleGeneratorUtility
                     const Element& new_element = KratosComponents<Element>::Get(element_type_name);
 
                     // Loop over the material points that fall in each grid element
-                    unsigned int new_element_id = 0;
                     for (unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++)
                     {
                         mp_volume[0] = int_volumes[PointNumber];
@@ -204,7 +213,7 @@ namespace MPMParticleGeneratorUtility
                             mp_volume[0]);
 
                         // Create new material point element
-                        new_element_id = last_element_id + PointNumber;
+                        new_element_id += size;
                         Element::Pointer p_element = new_element.Create(
                             new_element_id, p_new_geometry, properties);
 
@@ -234,7 +243,7 @@ namespace MPMParticleGeneratorUtility
                         }
                     }
 
-                    last_element_id += integration_point_per_elements;
+                    last_element_id += size*integration_point_per_elements;
 
                 }
             }

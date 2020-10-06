@@ -58,16 +58,28 @@ namespace MPMParticleGeneratorUtility
         else
             last_condition_id = number_conditions + 1;
 
+        const unsigned int size = rBackgroundGridModelPart.GetCommunicator().TotalProcesses();
+        const unsigned int rank = rBackgroundGridModelPart.GetCommunicator().MyPID();
+        // Synchronize condition id's in mpi run, to ensure unique condition id's across processes
+        if( rBackgroundGridModelPart.GetCommunicator().IsDistributed() ){
+            last_condition_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().MaxAll(last_condition_id) + rank;
+        }
+        unsigned int new_condition_id = last_condition_id;
+
         // Loop over the submodelpart of rBackgroundGridModelPart
         for (ModelPart::SubModelPartIterator submodelpart_it = rBackgroundGridModelPart.SubModelPartsBegin();
                 submodelpart_it != rBackgroundGridModelPart.SubModelPartsEnd(); submodelpart_it++)
         {
             ModelPart& submodelpart = *submodelpart_it;
+            std::string submodelpart_name = submodelpart.Name();
+
+            if( !rMPMModelPart.HasSubModelPart("submodelpart_name")){
+                rMPMModelPart.CreateSubModelPart(submodelpart_name);
+            }
 
             // For submodelpart without condition, exit
             if (submodelpart.NumberOfConditions() != 0){
 
-                std::string submodelpart_name = submodelpart.Name();
 
                 // For regular conditions: straight copy all conditions
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
@@ -77,7 +89,6 @@ namespace MPMParticleGeneratorUtility
                         // Check 'apply_mpm_slip_boundary_process.py'
                     }
                     else {
-                        rMPMModelPart.CreateSubModelPart(submodelpart_name);
                         rMPMModelPart.SetConditions(submodelpart.pConditions());
                     }
                 }
@@ -85,7 +96,6 @@ namespace MPMParticleGeneratorUtility
                 else{
                     // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the rMPMModelPart
-                    rMPMModelPart.CreateSubModelPart(submodelpart_name);
                     for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
                             i != submodelpart.ConditionsEnd(); i++)
                     {
@@ -333,11 +343,10 @@ namespace MPMParticleGeneratorUtility
                         if (flip_normal_direction) mpc_normal *= -1.0;
 
                         // 1. Loop over the conditions to create inner particle condition
-                        unsigned int new_condition_id = 0;
                         for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
                         {
                             // Create new material point condition
-                            new_condition_id = last_condition_id + point_number;
+                            new_condition_id += size;
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
@@ -406,7 +415,7 @@ namespace MPMParticleGeneratorUtility
 
 
                             // Create new material point condition
-                            new_condition_id = last_condition_id + j;
+                            new_condition_id += size;
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
@@ -456,7 +465,6 @@ namespace MPMParticleGeneratorUtility
                             rMPMModelPart.GetSubModelPart(submodelpart_name).GetCommunicator().LocalMesh().AddCondition(p_condition);
                         }
 
-                        last_condition_id += r_geometry.size();
                     }
                 }
             }
