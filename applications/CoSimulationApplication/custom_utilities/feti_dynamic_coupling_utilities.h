@@ -111,8 +111,6 @@ namespace Kratos
         void SetLinearSolver(LinearSolverSharedPointerType pSolver)
         {
             mpSolver = pSolver;
-            KRATOS_WATCH(mpSolver->Info());
-            KRATOS_WATCH("111");
         }
 
         void SetOriginInitialVelocities();
@@ -136,15 +134,13 @@ namespace Kratos
         Vector mInitialOriginInterfaceVelocities;
         Vector mFinalOriginInterfaceVelocities;
         CompressedMatrix mProjectorOrigin;
-        CompressedMatrix mUnitResponseOrigin;  //TODO CompressedMatrix
+        CompressedMatrix mUnitResponseOrigin;
 
         Vector mAccumulatedDisplacement;
 
         const Variable< array_1d<double, 3> >& mrEquilibriumVariable = VELOCITY; //TODO put in parameters file.
 
-
         LinearSolverSharedPointerType mpSolver = nullptr;
-
 
         const double mOriginGamma;
         const double mDestinationGamma;
@@ -179,14 +175,14 @@ namespace Kratos
             const CompressedMatrix& rProjector, SystemMatrixType* pK, const bool IsOrigin);
 
         void CalculateCondensationMatrix(CompressedMatrix& rCondensationMatrix,
-            const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
+            const CompressedMatrix& rOriginUnitResponse, const CompressedMatrix& rDestinationUnitResponse,
             const CompressedMatrix& rOriginProjector, const CompressedMatrix& rDestinationProjector);
 
         void DetermineLagrangianMultipliers(Vector& rLagrangeVec,
             CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedVelocities);
 
         void ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-            const Matrix& rUnitResponse, const bool IsOrigin);
+            const CompressedMatrix& rUnitResponse, const bool IsOrigin);
 
         void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,

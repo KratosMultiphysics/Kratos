@@ -216,7 +216,7 @@ namespace Kratos
 
     void FetiDynamicCouplingUtilities::CalculateCondensationMatrix(
         CompressedMatrix& rCondensationMatrix,
-        const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
+        const CompressedMatrix& rOriginUnitResponse, const CompressedMatrix& rDestinationUnitResponse,
         const CompressedMatrix& rOriginProjector, const CompressedMatrix& rDestinationProjector)
     {
         KRATOS_TRY
@@ -244,8 +244,6 @@ namespace Kratos
             origin_kinematic_coefficient = mOriginGamma * mOriginGamma * origin_dt * origin_dt;
             dest_kinematic_coefficient = mDestinationGamma * mDestinationGamma * dest_dt * dest_dt;
         }
-
-
 
         rCondensationMatrix = prod(rOriginProjector, rOriginUnitResponse);
         rCondensationMatrix *= origin_kinematic_coefficient;
@@ -276,7 +274,7 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-        const Matrix& rUnitResponse, const bool IsOrigin)
+        const CompressedMatrix& rUnitResponse, const bool IsOrigin)
     {
         KRATOS_TRY
 
