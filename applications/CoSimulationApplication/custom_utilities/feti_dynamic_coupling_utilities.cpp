@@ -68,53 +68,49 @@ namespace Kratos
         Vector unbalanced_interface_free_velocity(destination_interface_dofs);
         CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
 
-        // Apply corrections if interface velocities are unbalanced
-        if (norm_2(unbalanced_interface_free_velocity) > numerical_limit)
+        // 2 - Construct projection matrices
+        if(mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
+        const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
+        CompressedMatrix projector_destination(destination_interface_dofs, destination_dofs, 0.0);
+        ComposeProjector(projector_destination, false);
+
+        // 3 - Determine domain response to unit loads
+        if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, true);
+        Matrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
+        DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination, false);
+
+        // 4 - Calculate condensation matrix
+        CompressedMatrix condensation_matrix(destination_interface_dofs, destination_interface_dofs);
+        CalculateCondensationMatrix(condensation_matrix, mUnitResponseOrigin,
+            unit_response_destination, mProjectorOrigin, projector_destination);
+
+        // 5 - Calculate lagrange mults
+        Vector lagrange_vector(destination_interface_dofs);
+        DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_velocity);
+        if (mIsDisableLagrange) lagrange_vector.clear();
+        if (mIsDisableLagrange) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
+
+        // 6 - Apply correction quantities
+        if (mSubTimestepIndex == mTimestepRatio) {
+            SetOriginInitialVelocities(); // the final free velocity of A is the initial free velocity of A for the next timestep
+            ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
+        }
+        ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
+
+        // 7 - Optional check of equilibrium
+        if (mIsCheckEquilibrium && !mIsDisableLagrange && mSubTimestepIndex == mTimestepRatio)
         {
-            // 2 - Construct projection matrices
-            if(mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
-            const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
-            CompressedMatrix projector_destination(destination_interface_dofs, destination_dofs, 0.0);
-            ComposeProjector(projector_destination, false);
+            unbalanced_interface_free_velocity.clear();
+            CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity, true);
+            const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
+            KRATOS_ERROR_IF(equilibrium_norm > numerical_limit)
+                << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
+                << "Equilibrium norm = " << equilibrium_norm << "\nUnbalanced interface vel = \n"
+                << unbalanced_interface_free_velocity << "\n";
+        }
 
-            // 3 - Determine domain response to unit loads
-            if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, true);
-            Matrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
-            DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination, false);
-
-            // 4 - Calculate condensation matrix
-            CompressedMatrix condensation_matrix(destination_interface_dofs, destination_interface_dofs);
-            CalculateCondensationMatrix(condensation_matrix, mUnitResponseOrigin,
-                unit_response_destination, mProjectorOrigin, projector_destination);
-
-            // 5 - Calculate lagrange mults
-            Vector lagrange_vector(destination_interface_dofs);
-            DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_velocity);
-            if (mIsDisableLagrange) lagrange_vector.clear();
-            if (mIsDisableLagrange) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
-
-            // 6 - Apply correction quantities
-            if (mSubTimestepIndex == mTimestepRatio) {
-                SetOriginInitialVelocities(); // the final free velocity of A is the initial free velocity of A for the next timestep
-                ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
-            }
-            ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
-
-            // 7 - Optional check of equilibrium
-            if (mIsCheckEquilibrium && !mIsDisableLagrange && mSubTimestepIndex == mTimestepRatio)
-            {
-                unbalanced_interface_free_velocity.clear();
-                CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity, true);
-                const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
-                KRATOS_ERROR_IF(equilibrium_norm > numerical_limit)
-                    << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
-                    << "Equilibrium norm = " << equilibrium_norm << "\nUnbalanced interface vel = \n"
-                    << unbalanced_interface_free_velocity << "\n";
-            }
-
-            // 8 - Write nodal lagrange multipliers to interface
-            WriteLagrangeMultiplierResults(lagrange_vector);
-        } // end if correction needs to be applied
+        // 8 - Write nodal lagrange multipliers to interface
+        WriteLagrangeMultiplierResults(lagrange_vector);
 
         // 9 - Advance subtimestep counter
         if (mSubTimestepIndex == mTimestepRatio) mSubTimestepIndex = 1;
@@ -305,8 +301,8 @@ namespace Kratos
             // deltaAccel = accel_correction
             // deltaVelocity = 0.5 * dt * accel_correction
             // deltaDisplacement = dt * dt * gamma * gamma * accel_correction
+
             accel_corrections *= (gamma * dt);
-            //if (!IsOrigin) accel_corrections *= double(mTimestepRatio);
             AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
         }
         else
@@ -321,8 +317,10 @@ namespace Kratos
                 // deltaVelocity = 0.5 * dt * accel_correction
                 // deltaVelocityMiddle = dt * accel_correction
                 // deltaDisplacement = dt * dt * accel_correction
+
                 accel_corrections *= 2.0;
                 AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
+
                 // Apply displacement correction
                 accel_corrections *= dt;
                 AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
