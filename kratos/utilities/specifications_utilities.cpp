@@ -256,38 +256,6 @@ void AddMissingDofsFromSpecifications(
                 if (!has_dof) {
                     VariableUtils().AddDof(r_variable, rModelPart);
                 }
-            } else if (KratosComponents<Component3VarType>::Has(r_variable_name)) {
-                const Component3VarType& r_variable = KratosComponents<Component3VarType>().Get(r_variable_name);
-                has_dof = it_node_begin->HasDofFor(r_variable);
-
-                // If variable is missign is added to the model part
-                if (!has_dof) {
-                    VariableUtils().AddDof(r_variable, rModelPart);
-                }
-            } else if (KratosComponents<Component4VarType>::Has(r_variable_name)) {
-                const Component4VarType& r_variable = KratosComponents<Component4VarType>().Get(r_variable_name);
-                has_dof = it_node_begin->HasDofFor(r_variable);
-
-                // If variable is missign is added to the model part
-                if (!has_dof) {
-                    VariableUtils().AddDof(r_variable, rModelPart);
-                }
-            } else if (KratosComponents<Component6VarType>::Has(r_variable_name)) {
-                const Component6VarType& r_variable = KratosComponents<Component6VarType>().Get(r_variable_name);
-                has_dof = it_node_begin->HasDofFor(r_variable);
-
-                // If variable is missign is added to the model part
-                if (!has_dof) {
-                    VariableUtils().AddDof(r_variable, rModelPart);
-                }
-            } else if (KratosComponents<Component9VarType>::Has(r_variable_name)) {
-                const Component9VarType& r_variable = KratosComponents<Component9VarType>().Get(r_variable_name);
-                has_dof = it_node_begin->HasDofFor(r_variable);
-
-                // If variable is missign is added to the model part
-                if (!has_dof) {
-                    VariableUtils().AddDof(r_variable, rModelPart);
-                }
             } else {
                 KRATOS_ERROR << "Value type for \"" << r_variable_name << "\" not defined" << std::endl;
             }
