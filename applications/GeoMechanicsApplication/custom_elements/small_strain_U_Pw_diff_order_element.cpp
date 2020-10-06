@@ -1489,7 +1489,6 @@ void SmallStrainUPwDiffOrderElement::
 
     }
 
-
     KRATOS_CATCH( "" )
 }
 
