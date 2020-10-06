@@ -60,8 +60,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
 
     def SolveSolutionStep(self):
-        for coupling_op in self.coupling_operations_dict.values():
-            coupling_op.InitializeCouplingIteration()
+        #for coupling_op in self.coupling_operations_dict.values():
+        #    coupling_op.InitializeCouplingIteration()
 
         # solve domain A
         self.solver_wrappers_vector[0].SolveSolutionStep()
@@ -74,6 +74,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             if sub_timestep > 1:
                 self.solverB_time = solverB.AdvanceInTime(self.solverB_time)
                 solverB.InitializeSolutionStep()
+                self.vtk_output_wrappers_vector[1].InitializeSolutionStep()
                 solverB.Predict()
 
             solverB.SolveSolutionStep()
@@ -84,9 +85,12 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
             if sub_timestep != self.timestep_ratio:
                 solverB.FinalizeSolutionStep()
+                self.vtk_output_wrappers_vector[1].FinalizeSolutionStep()
+                solverB.OutputSolutionStep()
 
-        for coupling_op in self.coupling_operations_dict.values():
-            coupling_op.FinalizeCouplingIteration()
+        #self.vtk_output_wrappers_vector[0].FinalizeCouplingIteration()
+        #for coupling_op in self.coupling_operations_dict.values():
+        #        coupling_op.FinalizeCouplingIteration()
 
         return True
 
@@ -149,6 +153,11 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # Set origin initial velocities
         self.feti_coupling.SetOriginInitialVelocities()
 
+        # Store the vtk output wrappers
+        self.vtk_output_wrappers_vector = []
+        for coupling_op in self.coupling_operations_dict.values():
+            self.vtk_output_wrappers_vector.append(coupling_op)
+
         self.is_initialized = True
 
 
@@ -177,6 +186,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "destination_newmark_beta" : -1.0,
             "destination_newmark_gamma" : -1.0,
             "timestep_ratio" : 1.0,
+            "vtk_fine_timestep_output" : true,
             "linear_solver_settings" : {}
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultSettings())
