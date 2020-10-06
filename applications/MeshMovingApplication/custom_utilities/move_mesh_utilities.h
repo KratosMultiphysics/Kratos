@@ -31,7 +31,7 @@ typedef Element::VectorType VectorType;
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                             VectorType &rDetJ0, const GeometryType &rGeometry);
 
-void MoveMesh(const ModelPart::NodesContainerType &rNodes);
+void MoveMesh(ModelPart::NodesContainerType &rNodes);
 
 ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);

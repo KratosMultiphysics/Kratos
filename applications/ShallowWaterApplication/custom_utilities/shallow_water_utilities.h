@@ -106,14 +106,10 @@ public:
         }
     }
 
-    void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
-
-    void ComputeVisualizationWaterSurface(ModelPart& rModelPart);
-
     void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
 
     template<class TVarType>
-    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, TVarType& rVariable)
+    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
@@ -125,33 +121,15 @@ public:
 
     void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
 
-    /**
-     * @brief Computes the root mean square of a double or component type of non historical variable
-     * @param rVariable reference to the variable to compute
-     * @param rWeightVariable reference to the weighting variable
-     * @param rContainer Reference to the objective container
+    /*
+     * @brief This method sets the z-coordinate of the mesh to zero
      */
-    template<class TVarType, class TContainerType>
-    double RootMeanSquareNonHistorical(
-        const TVarType& rVariable,
-        const Variable<double>& rWeightVariable,
-        TContainerType& rContainer)
-    {
-        double rms_sum = 0.0;
-        double weight_sum = 0.0;
+    void SetMeshZCoordinateToZero(ModelPart& rModelPart);
 
-        const auto it_begin = rContainer.begin();
-
-        #pragma omp parallel for reduction(+:rms_sum, weight_sum)
-        for (int k = 0; k < static_cast<int>(rContainer.size()); ++k)
-        {
-            const auto it = it_begin + k;
-            rms_sum += it->GetValue(rWeightVariable) * std::pow(it->GetValue(rVariable), 2);
-            weight_sum += it->GetValue(rWeightVariable);
-        }
-
-        return std::sqrt(rms_sum / weight_sum);
-    }
+    /*
+     * @brief This method moves the z-coordinate of the mesh according to a variable
+     */
+    void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     ///@}
     ///@name Access

@@ -105,6 +105,11 @@ namespace Kratos {
 
             KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 3);
 
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(0), true);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(1), true);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(2), true);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(3), false);
+
             // Check the nodes are preserved
             auto& r_geometry_master = *p_triangle_master;
             auto& r_geometry_0 = p_coupling_geometry->GetGeometryPart(0);
@@ -118,8 +123,11 @@ namespace Kratos {
                 KRATOS_CHECK_EQUAL(r_geometry_1[i].Id(), r_geometry_slave[i].Id());
                 KRATOS_CHECK_LESS(norm_2(r_geometry_1[i].Coordinates() - r_geometry_slave[i].Coordinates()), 1.0e-6);
             }
+
+            p_coupling_geometry->RemoveGeometryPart(p_triangle_second_slave);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
         }
-      
+
         /**
          * Test for checking using with elements
          * Test 2

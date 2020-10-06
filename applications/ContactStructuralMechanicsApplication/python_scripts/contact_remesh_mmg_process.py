@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -64,6 +62,8 @@ class ContactRemeshMmgProcess(MmgProcess):
                 "metric_variable"                  : ["VON_MISES_STRESS","AUGMENTED_NORMAL_CONTACT_PRESSURE","STRAIN_ENERGY"],
                 "non_historical_metric_variable"   : [true, true, true],
                 "normalization_factor"             : [1.0, 1.0, 1.0],
+                "normalization_alpha"              : [0.0, 0.0, 0.0],
+                "normalization_method"             : ["constant", "constant", "constant"],
                 "estimate_interpolation_error"     : false,
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.28125
@@ -164,12 +164,20 @@ class ContactRemeshMmgProcess(MmgProcess):
         number_of_metric_variable = settings["hessian_strategy_parameters"]["metric_variable"].size()
         number_of_non_historical_metric_variable = settings["hessian_strategy_parameters"]["non_historical_metric_variable"].size()
         number_of_normalization_factor = settings["hessian_strategy_parameters"]["normalization_factor"].size()
+        number_of_normalization_alpha = settings["hessian_strategy_parameters"]["normalization_alpha"].size()
+        number_of_normalization_method = settings["hessian_strategy_parameters"]["normalization_method"].size()
         if number_of_non_historical_metric_variable < number_of_metric_variable:
             for i in range(number_of_non_historical_metric_variable, number_of_metric_variable):
                 settings["hessian_strategy_parameters"]["non_historical_metric_variable"].Append(True)
         if number_of_normalization_factor < number_of_metric_variable:
             for i in range(number_of_normalization_factor, number_of_metric_variable):
                 settings["hessian_strategy_parameters"]["normalization_factor"].Append(1.0)
+        if number_of_normalization_alpha < number_of_metric_variable:
+            for i in range(number_of_normalization_alpha, number_of_metric_variable):
+                settings["hessian_strategy_parameters"]["normalization_alpha"].Append(0.0)
+        if number_of_normalization_method < number_of_metric_variable:
+            for i in range(number_of_normalization_method, number_of_metric_variable):
+                settings["hessian_strategy_parameters"]["normalization_method"].Append("constant")
 
         # Remove unused
         if not self.consider_strain_energy:
@@ -180,22 +188,28 @@ class ContactRemeshMmgProcess(MmgProcess):
                     index_to_remove = i
 
             # Copying
-            auxiliar_parameters = KratosMultiphysics.Parameters("""{"metric_variable" : [], "non_historical_metric_variable" : [], "normalization_factor" : []}""")
+            auxiliar_parameters = KratosMultiphysics.Parameters("""{"metric_variable" : [], "non_historical_metric_variable" : [], "normalization_factor" : [], "normalization_alpha" : [], "normalization_method" : []}""")
             for i in range(number_of_metric_variable):
                 if not i == index_to_remove:
                     auxiliar_parameters["metric_variable"].Append(settings["hessian_strategy_parameters"]["metric_variable"][i])
                     auxiliar_parameters["non_historical_metric_variable"].Append(settings["hessian_strategy_parameters"]["non_historical_metric_variable"][i])
                     auxiliar_parameters["normalization_factor"].Append(settings["hessian_strategy_parameters"]["normalization_factor"][i])
+                    auxiliar_parameters["normalization_alpha"].Append(settings["hessian_strategy_parameters"]["normalization_alpha"][i])
+                    auxiliar_parameters["normalization_method"].Append(settings["hessian_strategy_parameters"]["normalization_method"][i])
 
             # Removing old
             settings["hessian_strategy_parameters"].RemoveValue("metric_variable")
             settings["hessian_strategy_parameters"].RemoveValue("non_historical_metric_variable")
             settings["hessian_strategy_parameters"].RemoveValue("normalization_factor")
+            settings["hessian_strategy_parameters"].RemoveValue("normalization_alpha")
+            settings["hessian_strategy_parameters"].RemoveValue("normalization_method")
 
             # Adding new
             settings["hessian_strategy_parameters"].AddValue("metric_variable", auxiliar_parameters["metric_variable"])
             settings["hessian_strategy_parameters"].AddValue("non_historical_metric_variable", auxiliar_parameters["non_historical_metric_variable"])
             settings["hessian_strategy_parameters"].AddValue("normalization_factor", auxiliar_parameters["normalization_factor"])
+            settings["hessian_strategy_parameters"].AddValue("normalization_alpha", auxiliar_parameters["normalization_alpha"])
+            settings["hessian_strategy_parameters"].AddValue("normalization_method", auxiliar_parameters["normalization_method"])
 
         # Auxiliar dictionary with the variables and index
         self.variables_dict = {}
@@ -208,7 +222,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         settings.RemoveValue("consider_strain_energy")
 
         # Construct the base process.
-        super(ContactRemeshMmgProcess, self).__init__(Model, settings)
+        super().__init__(Model, settings)
 
         # Create model parts
         model_part_name = settings["model_part_name"].GetString()
@@ -282,7 +296,7 @@ class ContactRemeshMmgProcess(MmgProcess):
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(ContactStructuralMechanicsApplication.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes)
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteInitialize()
+        super().ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -296,7 +310,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteBeforeSolutionLoop()
+        super().ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -310,7 +324,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteInitializeSolutionStep()
+        super().ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -320,7 +334,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         """
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -330,7 +344,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         """
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteBeforeOutputStep()
+        super().ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -340,7 +354,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         """
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteAfterOutputStep()
+        super().ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -353,7 +367,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         #self.integration_values_extrapolation_to_nodes_process.ExecuteFinalize()
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteFinalize()
+        super().ExecuteFinalize()
 
     def _AuxiliarCallsBeforeRemesh(self):
         """ This method is executed right before execute the remesh

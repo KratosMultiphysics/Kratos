@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -15,13 +13,7 @@ class CouplingInterfaceData(object):
     """
     def __init__(self, custom_settings, model, name="default", solver_name="default_solver"):
 
-        default_config = KM.Parameters("""{
-            "model_part_name" : "",
-            "variable_name"   : "",
-            "location"        : "node_historical",
-            "dimension"       : -1
-        }""")
-        custom_settings.ValidateAndAssignDefaults(default_config)
+        custom_settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.settings = custom_settings
         self.model = model
@@ -47,7 +39,7 @@ class CouplingInterfaceData(object):
 
         self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
-        admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
+        admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double"]
         admissible_vector_variable_types = ["Array"]
 
         if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
@@ -91,15 +83,19 @@ class CouplingInterfaceData(object):
                     if domain_size != self.dimension:
                         cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.model_part_name, self.dimension))
 
-        if self.location == "node_historical":
-            if self.variable_type == "Component":
-                var_to_check = self.variable.GetSourceVariable()
-            else:
-                var_to_check = self.variable
-            if not self.model_part.HasNodalSolutionStepVariable(var_to_check):
-                self.__RaiseException('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(var_to_check.Name(), self.model_part_name))
+        if self.location == "node_historical" and not self.model_part.HasNodalSolutionStepVariable(self.variable):
+            self.__RaiseException('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.model_part_name))
 
         self.is_initialized = True
+
+    @staticmethod
+    def GetDefaultParameters():
+        return KM.Parameters("""{
+            "model_part_name" : "",
+            "variable_name"   : "",
+            "location"        : "node_historical",
+            "dimension"       : -1
+        }""")
 
     def _RequiresInitialization(fct_ptr):
         # to be used as a decorator for functions that require the

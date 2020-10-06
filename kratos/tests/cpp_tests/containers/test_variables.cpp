@@ -69,8 +69,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyOrder, KratosCoreFastSuite) {
            }
         }
     }
+  }
 
-}
+
 
 
 }

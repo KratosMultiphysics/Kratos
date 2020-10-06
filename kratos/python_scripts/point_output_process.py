@@ -27,9 +27,10 @@ class PointOutputProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters('''{
-            "help"            : "This process writes results from a geometrical position (point) in the model to a file. It first searches the entity containing the requested output location and then interpolates the requested variable(s). The output can be requested for elements, conditions and nodes. For nodes no geometrical interpolation is performed, the exact coordinates have to be specified. This process works in MPI as well as with restarts. It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess). Furthermore it can be used for testing in MPI where the node numbers can change",
+            "help"              : "This process writes results from a geometrical position (point) in the model to a file. It first searches the entity containing the requested output location and then interpolates the requested variable(s). The output can be requested for elements, conditions and nodes. For nodes no geometrical interpolation is performed, the exact coordinates have to be specified. This process works in MPI as well as with restarts. It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess). Furthermore it can be used for testing in MPI where the node numbers can change",
             "model_part_name"   : "",
             "entity_type"       : "element",
+            "interval"          : [0.0, 1e30],
             "position"          : [],
             "output_variables"  : [],
             "historical_value"  : true,
@@ -39,11 +40,15 @@ class PointOutputProcess(KratosMultiphysics.Process):
         }''')
 
         self.model = model
-
+        self.interval = KratosMultiphysics.IntervalUtility(params)
         self.params = params
         self.params.ValidateAndAssignDefaults(default_settings)
 
-        # These quantites are lists such that they can be looped
+        # variables for search of given position in model part
+        self.search_done = False
+        self.point = KratosMultiphysics.Point(0,0,0)
+
+        # these quantites are lists such that they can be looped
         # => needed for mpi in case the point is in a different partition
         self.output_file = []
         self.entity = []
@@ -65,7 +70,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         point_position = self.params["position"].GetVector()
         if point_position.Size() != 3:
             raise Exception('The position has to be provided with 3 coordinates!')
-        point = KratosMultiphysics.Point(point_position[0],
+        self.point = KratosMultiphysics.Point(point_position[0],
                                          point_position[1],
                                          point_position[2])
 
@@ -84,30 +89,78 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 continue
             elif type(var) == KratosMultiphysics.Array1DVariable3:
                 continue
-            elif type(var) == KratosMultiphysics.Array1DComponentVariable:
-                continue
             else:
                 err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
                 err_msg += 'It can only be double, component or array3d!'
                 raise Exception(err_msg)
 
+        # search needs to happen before first time increment in case process was restarted
+        # otherwise TimeBasedAsciiFileWriterUtility would not get required time step
+        if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.search_done = True
+            self.__SearchPoint()
+
+    def ExecuteBeforeSolutionLoop(self):
+        pass
+
+    def ExecuteInitializeSolutionStep(self):
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        # search for point, moved here, so search happens at start time of the time interval
+        if self.interval.IsInInterval(time) and not self.search_done:
+            self.search_done = True
+            self.__SearchPoint()
+
+    def ExecuteFinalizeSolutionStep(self):
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        if self.interval.IsInInterval(time):
+            # zip works with the shortes list, which is what we want here
+            # i.e. if no entity was found then also no output_file will be
+            # initialized which means that the loop body will never be executed
+            for var_list,ent,coord,f in zip(self.output_variables, self.entity, self.area_coordinates, self.output_file):
+                # not formatting time in order to not lead to problems with time recognition
+                # in the file writer when restarting
+                out = str(time)
+                for var in var_list:
+                    value = Interpolate(var, ent, coord, self.historical_value)
+
+                    if IsArrayVariable(var):
+                        out += " " + " ".join( format(v,self.format) for v in value )
+                    else:
+                        out += " " + format(value,self.format)
+
+                out += "\n"
+                f.write(out)
+
+    def ExecuteBeforeOutputStep(self):
+        pass
+
+    def ExecuteAfterOutputStep(self):
+        pass
+
+    def ExecuteFinalize(self):
+        for f in self.output_file:
+            f.close()
+
+    def __SearchPoint(self):
         # retrieving the entity type
         entity_type = self.params["entity_type"].GetString()
 
         if entity_type == "node":
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(point, self.search_tolerance)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(self.point, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Nodes[found_id]) # note that this is a find!
                 self.area_coordinates.append("dummy") # needed for looping later
         elif entity_type == "element":
             self.sf_values = KratosMultiphysics.Vector()
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindElement(point, self.sf_values, self.search_tolerance)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindElement(self.point, self.sf_values, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Elements[found_id]) # note that this is a find!
                 self.area_coordinates.append(self.sf_values)
         elif entity_type == "condition":
             self.sf_values = KratosMultiphysics.Vector()
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindCondition(point, self.sf_values, self.search_tolerance)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindCondition(self.point, self.sf_values, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Conditions[found_id]) # note that this is a find!
                 self.area_coordinates.append(self.sf_values)
@@ -121,7 +174,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # do nothing. This is BY DESIGN, as we are supposed to work on MPI too, and the point
         # in question might lie on a different partition.
         # Here we also check if the point has been found in more than one partition
-        # In sich a case only one rank (the one with the larger PID) writes the output!
+        # In such a case only one rank (the one with the larger PID) writes the output!
         my_rank = -1 # dummy to indicate that the point is not in my partition
         comm = self.model_part.GetCommunicator().GetDataCommunicator()
         if found_id > -1: # the point lies in my partition
@@ -131,50 +184,15 @@ class PointOutputProcess(KratosMultiphysics.Process):
         if my_rank == writing_rank:
 
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
-            file_header = GetFileHeader(entity_type, found_id, point, self.output_variables[0])
+            file_header = GetFileHeader(entity_type, found_id, self.point, self.output_variables[0])
+
             self.output_file.append(TimeBasedAsciiFileWriterUtility(
                 self.model_part, file_handler_params, file_header).file)
 
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-
-        # zip works with the shortes list, which is what we want here
-        # i.e. if no entity was found then also no output_file will be
-        # initialized which means that the loop body will never be executed
-        for var_list,ent,coord,f in zip(self.output_variables, self.entity, self.area_coordinates, self.output_file):
-            # not formatting time in order to not lead to problems with time recognition
-            # in the file writer when restarting
-            out = str(time)
-            for var in var_list:
-                value = Interpolate(var, ent, coord, self.historical_value)
-
-                if IsArrayVariable(var):
-                    out += " " + " ".join( format(v,self.format) for v in value )
-                else:
-                    out += " " + format(value,self.format)
-
-            out += "\n"
-            f.write(out)
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
-    def ExecuteFinalize(self):
-        for f in self.output_file:
-            f.close()
 
     def __CheckVariableIsSolutionStepVariable(self, var):
         # if the requested Variable is a component we check the source Variable
-        if type(var) == KratosMultiphysics.Array1DComponentVariable:
+        if type(var) == KratosMultiphysics.DoubleVariable: # TODO check this, might no longer work!
             var = var.GetSourceVariable()
 
         if not self.model_part.HasNodalSolutionStepVariable(var):

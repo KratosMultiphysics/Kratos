@@ -107,7 +107,7 @@ public:
     typedef GeometryType::IntegrationPointsArrayType                         IntegrationPointsType;
 
     // Type definition of the components of an array_1d
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > Array1DComponentsType;
+    typedef Variable<double> Array1DComponentsType;
 
     typedef typename std::vector<array_1d<PointType,TDim>>                  ConditionArrayListType;
 
@@ -295,33 +295,6 @@ public:
         DofsVectorType& rConditionalDofList,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
-
-    /**
-     * Get on rVariable a double Value
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Get on rVariable a array_1d Value
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Get on rVariable a Vector Value
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
 
     /**
      * Calculate a double Variable

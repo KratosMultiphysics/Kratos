@@ -41,7 +41,7 @@ namespace Kratos
 
 namespace SpatialMethods
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
+template <class TContainerType, class TContainerItemType, template <class T> class TDataRetrievalFunctor>
 class ContainerSpatialMethods
 {
 public:
@@ -63,9 +63,8 @@ public:
         return sum;
     }
 
-    template <typename TDataType>
-    TDataType static CalculateSum(const ModelPart& rModelPart,
-                                  const Variable<TDataType>& rVariable)
+    template <class TDataType>
+    TDataType static CalculateSum(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
     {
         KRATOS_TRY
 
@@ -109,11 +108,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    double static CalculateNormSum(const ModelPart& rModelPart,
-                                   const Variable<TDataType>& rVariable,
-                                   const std::string& rNormType,
-                                   Parameters Params)
+    template <class TDataType>
+    double static CalculateNormSum(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -135,7 +135,7 @@ public:
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
                 sum += norm_method(current_value);
             }
-#pragma omp atomic update
+#pragma omp atomic
             global_sum += sum;
         }
 
@@ -145,9 +145,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    TDataType static CalculateRootMeanSquare(const ModelPart& rModelPart,
-                                             const Variable<TDataType>& rVariable)
+    template <class TDataType>
+    TDataType static CalculateRootMeanSquare(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
     {
         KRATOS_TRY
 
@@ -185,22 +184,23 @@ public:
         }
 
         global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
         global_sum = MethodUtilities::RaiseToPower<TDataType>(
-            global_sum * (1.0 / std::max(static_cast<double>(number_of_items), 1.0)), 0.5);
+            global_sum * (1.0 / std::max(number_of_items, 1.0)), 0.5);
 
         return global_sum;
 
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    double static CalculateNormRootMeanSquare(const ModelPart& rModelPart,
-                                              const Variable<TDataType>& rVariable,
-                                              const std::string& rNormType,
-                                              Parameters Params)
+    template <class TDataType>
+    double static CalculateNormRootMeanSquare(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -222,60 +222,60 @@ public:
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
                 sum += std::pow(norm_method(current_value), 2);
             }
-#pragma omp atomic update
+#pragma omp atomic
             global_sum += sum;
         }
 
         global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
-        return std::sqrt(global_sum / std::max(static_cast<double>(number_of_items), 1.0));
+                static_cast<double>(r_container.size()));
+        return std::sqrt(global_sum / std::max(number_of_items, 1.0));
 
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    TDataType static CalculateMean(const ModelPart& rModelPart,
-                                   const Variable<TDataType>& rVariable)
+    template <class TDataType>
+    TDataType static CalculateMean(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
     {
         const TDataType& sum = CalculateSum<TDataType>(rModelPart, rVariable);
         const TContainerType& r_container =
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
 
-        return sum * (1.0 / std::max(static_cast<double>(number_of_items), 1.0));
+        return sum * (1.0 / std::max(number_of_items, 1.0));
     }
 
-    template <typename TDataType>
-    double static CalculateNormMean(const ModelPart& rModelPart,
-                                    const Variable<TDataType>& rVariable,
-                                    const std::string& rNormType,
-                                    Parameters Params)
+    template <class TDataType>
+    double static CalculateNormMean(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         const double sum =
             CalculateNormSum<TDataType>(rModelPart, rVariable, rNormType, Params);
         const TContainerType& r_container =
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
 
         if (number_of_items > 0)
         {
-            return sum * (1.0 / static_cast<double>(number_of_items));
+            return sum * (1.0 / number_of_items);
         }
 
         return 0.0;
     }
 
-    template <typename TDataType>
-    std::tuple<TDataType, TDataType> static CalculateVariance(const ModelPart& rModelPart,
-                                                              const Variable<TDataType>& rVariable)
+    template <class TDataType>
+    std::tuple<TDataType, TDataType> static CalculateVariance(
+        const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
     {
         TDataType mean = CalculateMean<TDataType>(rModelPart, rVariable);
         TDataType global_variance = rVariable.Zero();
@@ -314,13 +314,13 @@ public:
 
         global_variance =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
 
         if (number_of_items > 0)
         {
-            global_variance *= (1.0 / static_cast<double>(number_of_items));
+            global_variance *= (1.0 / number_of_items);
             global_variance -= MethodUtilities::RaiseToPower(mean, 2);
         }
 
@@ -328,11 +328,12 @@ public:
             std::forward<TDataType>(mean), std::forward<TDataType>(global_variance));
     }
 
-    template <typename TDataType>
-    std::tuple<double, double> static CalculateNormVariance(const ModelPart& rModelPart,
-                                                            const Variable<TDataType>& rVariable,
-                                                            const std::string& rNormType,
-                                                            Parameters Params)
+    template <class TDataType>
+    std::tuple<double, double> static CalculateNormVariance(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         double mean = CalculateNormMean<TDataType>(rModelPart, rVariable, rNormType, Params);
 
@@ -356,18 +357,18 @@ public:
 
                 variance += std::pow(norm_method(current_value), 2);
             }
-#pragma omp atomic update
+#pragma omp atomic
             global_variance += variance;
         }
         global_variance =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
 
         if (number_of_items > 0)
         {
-            global_variance *= (1.0 / static_cast<double>(number_of_items));
+            global_variance *= (1.0 / number_of_items);
             global_variance -= MethodUtilities::RaiseToPower(mean, 2);
         }
 
@@ -375,11 +376,12 @@ public:
             std::forward<double>(mean), std::forward<double>(global_variance));
     }
 
-    template <typename TDataType>
-    std::tuple<double, std::size_t> static GetNormMax(const ModelPart& rModelPart,
-                                                      const Variable<TDataType>& rVariable,
-                                                      const std::string& rNormType,
-                                                      Parameters Params)
+    template <class TDataType>
+    std::tuple<double, std::size_t> static GetNormMax(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -387,14 +389,14 @@ public:
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_max = std::numeric_limits<double>::lowest();
-        std::size_t global_id = 0;
+        unsigned int global_id = 0;
         const auto& norm_method =
             MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
             double current_max = std::numeric_limits<double>::lowest();
-            std::size_t current_id = 0;
+            unsigned int current_id = 0;
 #pragma omp for
             for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
             {
@@ -420,10 +422,10 @@ public:
 
         const DataCommunicator& r_data_communicator =
             rModelPart.GetCommunicator().GetDataCommunicator();
-        const std::vector<double> global_max_value_array =
-            r_data_communicator.AllGather(std::vector<double>{{global_max}});
-        const std::vector<std::size_t> global_max_id_array =
-            r_data_communicator.AllGather(std::vector<std::size_t>{{global_id}});
+        const auto& global_max_value_array =
+            r_data_communicator.AllGather(std::vector<double>{global_max});
+        const auto& global_max_id_array =
+            r_data_communicator.AllGather(std::vector<unsigned int>{global_id});
 
         for (std::size_t i = 0; i < global_max_value_array.size(); ++i)
         {
@@ -434,17 +436,18 @@ public:
             }
         }
 
-        return std::make_tuple<double, std::size_t>(
-            std::forward<double>(global_max), std::forward<std::size_t>(global_id));
+        return std::make_tuple<double, unsigned int>(
+            std::forward<double>(global_max), std::forward<unsigned int>(global_id));
 
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    std::tuple<double, std::size_t> static GetNormMin(const ModelPart& rModelPart,
-                                                      const Variable<TDataType>& rVariable,
-                                                      const std::string& rNormType,
-                                                      Parameters Params)
+    template <class TDataType>
+    std::tuple<double, std::size_t> static GetNormMin(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -452,14 +455,14 @@ public:
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_min = std::numeric_limits<double>::max();
-        std::size_t global_id = 0;
+        unsigned int global_id = 0;
         const auto& norm_method =
             MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
             double current_min = std::numeric_limits<double>::max();
-            std::size_t current_id = 0;
+            unsigned int current_id = 0;
 #pragma omp for
             for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
             {
@@ -485,10 +488,10 @@ public:
 
         const DataCommunicator& r_data_communicator =
             rModelPart.GetCommunicator().GetDataCommunicator();
-        const std::vector<double> global_min_value_array =
-            r_data_communicator.AllGather(std::vector<double>{{global_min}});
-        const std::vector<std::size_t> global_min_id_array =
-            r_data_communicator.AllGather(std::vector<std::size_t>{{global_id}});
+        const auto& global_min_value_array =
+            r_data_communicator.AllGather(std::vector<double>{global_min});
+        const auto& global_min_id_array =
+            r_data_communicator.AllGather(std::vector<unsigned int>{global_id});
 
         for (std::size_t i = 0; i < global_min_value_array.size(); ++i)
         {
@@ -499,17 +502,18 @@ public:
             }
         }
 
-        return std::make_tuple<double, std::size_t>(
-            std::forward<double>(global_min), std::forward<std::size_t>(global_id));
+        return std::make_tuple<double, unsigned int>(
+            std::forward<double>(global_min), std::forward<unsigned int>(global_id));
 
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    double static GetNormMedian(const ModelPart& rModelPart,
-                                const Variable<TDataType>& rVariable,
-                                const std::string& rNormType,
-                                Parameters Params)
+    template <class TDataType>
+    double static GetNormMedian(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -567,8 +571,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    std::tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>> static GetNormDistribution(
+    template <class TDataType>
+    std::tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>, std::vector<double>, std::vector<double>> static GetNormDistribution(
 
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
@@ -599,8 +603,9 @@ public:
         {
             min_value = Params["min_value"].GetDouble();
         }
-        else if (Params["min_value"].IsString() &&
-                 Params["min_value"].GetString() == "min")
+        else if (
+            Params["min_value"].IsString() &&
+            Params["min_value"].GetString() == "min")
         {
             const auto& min_data =
                 GetNormMin<TDataType>(rModelPart, rVariable, rNormType, Params);
@@ -618,8 +623,9 @@ public:
         {
             max_value = Params["max_value"].GetDouble();
         }
-        else if (Params["max_value"].IsString() &&
-                 Params["max_value"].GetString() == "max")
+        else if (
+            Params["max_value"].IsString() &&
+            Params["max_value"].GetString() == "max")
         {
             const auto& max_data =
                 GetNormMax<TDataType>(rModelPart, rVariable, rNormType, Params);
@@ -647,27 +653,41 @@ public:
                 min_value + (max_value - min_value) * static_cast<double>(i) /
                                 static_cast<double>(number_of_groups));
         }
-        group_limits[group_limits.size() - 1] += 1.0;
+
+        // final group limit is extended by a small amount. epsilon in numeric
+        // limits cannot be used since testing also need to have the same
+        // extending value in python. Therefore hard coded value is used
+        group_limits[group_limits.size() - 1] += 1e-16;
         group_limits.push_back(std::numeric_limits<double>::max());
 
         group_limits.shrink_to_fit();
         const int number_of_limits = group_limits.size();
 
         std::vector<int> distribution;
+        std::vector<double> group_means, group_variances;
         for (int i = 0; i < number_of_limits; ++i)
         {
             distribution.push_back(0);
+            group_means.push_back(0.0);
+            group_variances.push_back(0.0);
         }
         distribution.shrink_to_fit();
+        group_means.shrink_to_fit();
+        group_variances.shrink_to_fit();
 
 #pragma omp parallel
         {
             std::vector<int> local_distribution;
+            std::vector<double> local_means, local_variances;
             for (int i = 0; i < number_of_limits; ++i)
             {
                 local_distribution.push_back(0);
+                local_means.push_back(0.0);
+                local_variances.push_back(0.0);
             }
             local_distribution.shrink_to_fit();
+            local_means.shrink_to_fit();
+            local_variances.shrink_to_fit();
 
 #pragma omp for
             for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
@@ -681,6 +701,8 @@ public:
                     if (value_norm < group_limits[i])
                     {
                         ++local_distribution[i];
+                        local_means[i] += value_norm;
+                        local_variances[i] += std::pow(value_norm, 2);
                         break;
                     }
                 }
@@ -690,30 +712,49 @@ public:
                 for (int i = 0; i < number_of_limits; ++i)
                 {
                     distribution[i] += local_distribution[i];
+                    group_means[i] += local_means[i];
+                    group_variances[i] += local_variances[i];
                 }
             }
         }
 
         std::vector<int> global_distribution =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(distribution);
+        std::vector<double> global_mean_distribution =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(group_means);
+        std::vector<double> global_variance_distribution =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(group_variances);
 
-        const int number_of_items = std::max(
-            std::accumulate(global_distribution.begin(), global_distribution.end(), 0), 1);
+        const double number_of_items = static_cast<double>(std::max(
+            std::accumulate(global_distribution.begin(), global_distribution.end(), 0), 1));
         std::vector<double> global_percentage_distributions;
         for (int i = 0; i < number_of_limits; ++i)
         {
-            global_percentage_distributions.push_back(
-                static_cast<double>(global_distribution[i]) /
-                static_cast<double>(number_of_items));
+            const double number_of_values_in_group =
+                static_cast<double>(global_distribution[i]);
+            global_percentage_distributions.push_back(number_of_values_in_group / number_of_items);
+            if (number_of_values_in_group > 0.0)
+            {
+                global_mean_distribution[i] /= number_of_values_in_group;
+                global_variance_distribution[i] /= number_of_values_in_group;
+                global_variance_distribution[i] -=
+                    std::pow(global_mean_distribution[i], 2);
+            }
         }
-        group_limits[group_limits.size() - 2] -= 1.0;
+
+        // reversing group limit is extention
+        group_limits[group_limits.size() - 2] -= 1e-16;
         group_limits[group_limits.size() - 1] = max_value;
 
-        return std::make_tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>>(
+        return std::make_tuple<
+            double, double, std::vector<double>, std::vector<int>,
+            std::vector<double>, std::vector<double>, std::vector<double>>(
             std::forward<double>(min_value), std::forward<double>(max_value),
             std::forward<std::vector<double>>(group_limits),
             std::forward<std::vector<int>>(global_distribution),
-            std::forward<std::vector<double>>(global_percentage_distributions));
+            std::forward<std::vector<double>>(global_percentage_distributions),
+            std::forward<std::vector<double>>(global_mean_distribution),
+            std::forward<std::vector<double>>(global_variance_distribution));
 
         KRATOS_CATCH("");
     }

@@ -1,23 +1,107 @@
 # Contents
-- [Contents](#contents)
-  - [Basic Configuration](#basic-configuration)
-  - [Adding Applications](#adding-applications)
-  - [Adding Kratos to Path](#adding-kratos-to-path)
-  - [Examples](#examples)
-    - [Linux](#linux)
-    - [Windows](#windows)
-    - [MacOS](#macos)
-  - [Advanced Configuration](#advanced-configuration)
-    - [Building Environment](#building-environment)
-    - [Common Flags](#common-flags)
-    - [Compilation Performance](#compilation-performance)
-    - [Parallelism](#parallelism)
-    - [Logging](#logging)
-    - [External libraries](#external-libraries)
-      - [Metis](#metis)
-      - [Trilinos](#trilinos)
-  - [Applications](#applications)
+* [Cloning Kratos](#cloning-kratos)
+* [Kratos Dependencies](#kratos-dependencies)
+  * [Kratos Core Dependencies](#kratos-core-dependencies)
+    * [Linux Installation](#linux-installation)
+    * [Windows Installation](#windows-installation)
+  * [Specific Application Dependencies](#specific-application-dependencies)
+* [Basic Configuration](#basic-configuration)
+* [Examples](#examples)
+  * [Linux](#linux)
+  * [Windows](#windows)
+  * [MacOS](#macos)
+* [Adding Applications](#adding-applications)
+* [Post Compilation](#post-compilation)
+* [Advanced Configuration](#advanced-configuration)
+  * [Building Environment](#building-environments)
+  * [Common Flags](#common-flags)
+  * [Compilation Performance](#compilation-performance)
+  * [MPI-Parallelism](#parallelism)
+  * [External Libraries](#external-libraries)
+    * [Metis](#metis)
+    * [Trilinos](#trilinos)
 
+## Cloning Kratos
+
+In order to obtain the source code of Kratos, you will need to clone the repository using git.
+
+You can install git through the following command in Linux:
+```Shell
+sudo apt-get install git
+```
+In Windows, you can download it in:
+
+* [Download Git](https://git-scm.com/downloads)
+
+
+
+Once git is installed you can fetch the code by using this command in a terminal:
+
+```Shell
+git clone https://github.com/KratosMultiphysics/Kratos Kratos
+```
+
+## Kratos Dependencies
+
+### Kratos Core Dependencies
+  These are the basic dependecies needed to compile the Kratos Core and most of the Kratos applications.
+  * Python3-dev
+  * C++11 compiler
+  * CMake
+  * Boost (dependencies are header-only, no compilation of boost libraries required)
+
+Additionaly, Visual Studio is required to compile in Windows.
+
+- #### Linux installation
+
+    The command below will install all the packages needed.
+
+    ```Shell
+    sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev
+    ```
+    Newer versions of boost can be downloaded in:
+
+    http://www.boost.org/users/download/.
+
+- #### Windows installation
+
+    - Visual Studio
+
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is Visual Studio 2017, but we recommend to use Visual Studio 2019 or higher.
+
+        * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
+
+        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects.
+
+        When compiling Kratos in Windows, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
+
+    - CMake
+        * [Download CMake](http://cmake.org/download/)
+
+        Once installing, please **do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''**
+
+        Minimum required version: CMake 3.14
+
+    - Python
+
+        You will need at least *Python* 3.5 (recommended 3.7/3.8) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+
+        * [Download Python](http://www.python.org/downloads/)
+
+        Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
+
+    - Boost
+
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward.
+
+        * [Download Boost](http://www.boost.org/users/download/)
+
+        Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
+
+
+### Specific Application Dependencies
+
+Some applications have additional dependencies. Please check the `README` files of the applications that are compiled
 
 ## Basic Configuration
 
@@ -46,47 +130,30 @@ Ubuntu users need to be extra careful with this as default versions tends to be 
 
 `BOOST_ROOT`
 
-Path to boost root directory.
+Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded but without using apt-get.
 
-## Adding Applications
+## Configuration scripts examples
 
-In order to add an application you can use the provided macro (`add_app [PATH]` for Linux, `CALL :add_app [PATH]` for Win) along with the route folder of the application that you want to compile. Several examples are provided in the configuration files.
+These examples are also located [in the /scripts folder](https://github.com/KratosMultiphysics/Kratos/tree/master/scripts). You can simply create your own copy:
 
-Its now also possible to compile applications outside kratos source dir:
+```Shell
+cp /path_to_kratos/scripts/standard_configure.sh /path_to_kratos/scripts/configure.sh
+```
+Then, these scripts can be launched through the system terminal.
 
-Linux:
-```shell
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
-add_app ${KRATOS_APP_DIR}/FluidDynamicApplication
-add_app /home/username/development/ExternalApplication  # Example of external Application
+Linux
+
+```Shell
+sh /path_to_kratos/scripts/configure.sh
 ```
 
-Windows:
-```shell
-CALL :add_app %KRATOS_APP_DIR%/EigenSolversApplication
-CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
-CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
+Windows
+
+```Shell
+./path_to_kratos/scripts/configure.bat
 ```
 
-## Adding Kratos to Path
-
-As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
-
-```bash
-export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
-```
-
-If you are in windows instead do:
-
-```cmd
-set PYTHONPATH=%PYTHONPATH%;C:/Kratos/bin/Release
-set PATH=%PATH%;C:/Kratos/bin/Release/libs
-```
-
-## Examples
-
-This examples are also located in
+The example scripts for every system are shown next.
 
 ### Linux
 
@@ -112,7 +179,7 @@ export PYTHON_EXECUTABLE="/usr/bin/python3"
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -149,7 +216,7 @@ set PYTHON_EXECUTABLE=C:\Python37\python.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
-CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 
@@ -173,6 +240,26 @@ set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
 goto:eof
 
 ```
+#### Windows Visual Studio compilation configuration
+
+Some of the parameters detailed in the example script above may vary from system to system, or the Visual Studio version.
+
+If you are using Visual Studio 2017, the configure command should be:
+```
+cmake -G"Visual Studio 15 2017" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+-DUSE_EIGEN_MKL=OFF
+```
+You can check the specific Visual Studio version that you have installed in your system, by checking the Visual Studio Tab 'Help' > 'About Microsoft Visual Studio'.
+
+If you have a 64-bit system, you might need to also specify it in the configure command for some Visual Studio versions with the flag ```-A x64```.
+
+```
+cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+-DUSE_EIGEN_MKL=OFF
+```
+
+
+
 
 ### MacOS
 
@@ -199,7 +286,7 @@ export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.7/bin/
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -219,6 +306,69 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 /Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j3
 
 ```
+
+## Adding Applications
+
+In order to add an application you can use the provided macro (`add_app [PATH]` for Linux, `CALL :add_app [PATH]` for Win) along with the route folder of the application that you want to compile. Several examples are provided in the configuration files.
+
+Its now also possible to compile applications outside kratos source dir:
+
+Linux:
+```shell
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicApplication
+add_app /home/username/development/ExternalApplication  # Example of external Application
+```
+
+Windows:
+```shell
+CALL :add_app %KRATOS_APP_DIR%/LinearSolversApplication
+CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
+CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
+```
+
+## Post Compilation
+
+As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
+
+### Linux
+```bash
+export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
+```
+Or set them permanently by adding these lines in your *~/.bashrc*.
+
+### Windows
+In a *Command Prompt:*
+
+```cmd
+set PYTHONPATH=%PYTHONPATH%;C:/Kratos/bin/Release
+set PATH=%PATH%;C:/Kratos/bin/Release/libs
+```
+In *Windows Powershell*:
+```cmd
+$Env:PYTHONPATH+=";C:/Kratos/bin/Release"
+$Env:PATH+=";C:/Kratos/bin/Release/libs"
+```
+
+Or set them permanently using the  **Edit the system environment variables** option in the Control panel.
+
+You can then test your compilation by executing an example script or trying to import the python module
+
+```python
+from KratosMultiphysics import *
+```
+
+The result should be:
+
+```
+   |  /           |
+   ' /   __| _` | __|  _ \   __|
+   . \  |   (   | |   (   |\__ \
+  _|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 8.0
+```
+
 
 ## Advanced Configuration
 
@@ -241,6 +391,8 @@ Path where your applications are located. This variable is not necessary but it 
 `KRATOS_INSTALL_PYTHON_USING_LINKS=ON/OFF`
 
 Controls wether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially usefull if you are developing python files and don't want to reinstall every time you touch a script.
+
+Using this option in windows requires elevated privileges (you must run the script as admin)
 
 
 ### Common Flags
@@ -320,13 +472,18 @@ Enables colored output of the Logger. If switched on, e.g. warning level message
 
 `-DUSE_METIS_5=ON/OFF`
 
-Specifies if the metis version is 5 or greater (OFF by default).
+Specifies if the metis version is 5 or greater (ON by default). Note that using metis 4 is deprecated and will be removed in the future.
 
 `-DMETIS_ROOT_DIR=String`
 
 Root directory for Metis library
 
 #### Trilinos
+From Ubuntu 18.04 onwards, the following command installs the necessary files:
+
+```Shell
+sudo apt-get install trilinos-all-dev
+```
 
 `-DTRILINOS_ROOT=String`
 
@@ -346,13 +503,9 @@ Indicates the prefix of the trilinos libraries in case they have:
 libepetra.so          -> No prefix
 libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
 ```
-
-## Applications
-
-Specific compilation information about applications can be found in their own directories:
-
-- [EigenSolvers Application](applications/EigenSolversApplication/README.md#build-instructions)
-- [HDF5 Application](applications/HDF5Application/README.md#build-instructions)
-- [MultilevelMontecarlo Application](applications/MultilevelMonteCarloApplication/README.md#external-libraries)
-- [Poromechanics Application](applications/PoromechanicsApplication/README.md#how-to-use-mpi-in-poromechanics-application)
-- [Trilinos Application (Aditional notes)](applications/TrilinosApplication/README.md#notes-for-compilation)
+If trilinos was installed using the package manager usually the following lines have to be used:
+```
+-DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
+-DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
+-DTRILINOS_LIBRARY_PREFIX="trilinos_" \
+```
