@@ -112,7 +112,7 @@ namespace Testing {
       auto p_geom = GeneratePointsRightTriangle2D3();
 
       const auto& r_edges = p_geom->GenerateEdges();
-      
+
       KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
       KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
       KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
@@ -592,7 +592,7 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
       auto geom = GenerateNodesRightTriangle2D3();
-      array_1d<double, 3> coord(3);
+      array_1d<double, 3> coord;
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 8.0;
       coord[2] = 0.0;

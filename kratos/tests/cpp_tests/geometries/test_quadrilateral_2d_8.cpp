@@ -123,7 +123,7 @@ namespace {
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D8ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceQuadrilateral2D8();
-        array_1d<double, 3> coord(3);
+        array_1d<double, 3> coord;
         coord[0] = 1.0 / 2.0;
         coord[1] = 1.0 / 8.0;
         coord[2] = 0.0;

@@ -329,7 +329,7 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(Line2D2ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsDiagonalLine2D2();
-        array_1d<double, 3> coord(3);
+        array_1d<double, 3> coord;
         coord[0] = 2.0/3.0;
         coord[1] = 2.0/3.0;
         coord[2] = 0.0;

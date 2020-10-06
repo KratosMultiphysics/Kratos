@@ -255,7 +255,7 @@ namespace Kratos {
 
   KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
       auto geom = GenerateOriginCenterLen2Hexahedra3D8();
-      array_1d<double, 3> coord(3);
+      array_1d<double, 3> coord;
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 4.0;
       coord[2] = 1.0 / 16.0;

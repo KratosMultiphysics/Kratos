@@ -207,7 +207,7 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
       auto geom = GenerateFlatQuadrilateral3D4<Node<3>>();
-      array_1d<double, 3> coord(3);
+      array_1d<double, 3> coord;
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 4.0;
       coord[2] = 0.0;

@@ -184,9 +184,9 @@ typedef Node<3> NodeType;
         // Check length of 2D curve
         KRATOS_CHECK_NEAR(curve.Length(), 11.180339887498949, TOLERANCE);
 
-        array_1d<double, 3> parameter(0.0);
+        array_1d<double, 3> parameter;
         parameter[0] = 1.0;
-        array_1d<double, 3> result(0.0);
+        array_1d<double, 3> result;
 
         curve.GlobalCoordinates(result, parameter);
 
@@ -229,10 +229,10 @@ typedef Node<3> NodeType;
 
         // check point at t = 0
         {
-            array_1d<double, 3> parameter(0.0);
+            array_1d<double, 3> parameter;
             parameter[0] = 0.0;
 
-            array_1d<double, 3> result(0.0);
+            array_1d<double, 3> result;
             curve.GlobalCoordinates(result, parameter);
 
             KRATOS_CHECK_NEAR(result[0], 0, TOLERANCE);
@@ -242,7 +242,7 @@ typedef Node<3> NodeType;
 
         // check derivatives at t = 0
         {
-            array_1d<double, 3> parameter(0.0);
+            array_1d<double, 3> parameter;
             parameter[0] = 0.0;
 
             std::vector<array_1d<double, 3>> derivatives;
@@ -267,10 +267,10 @@ typedef Node<3> NodeType;
 
         // check point at t = 65.9462851997
         {
-            array_1d<double, 3> parameter(0.0);
+            array_1d<double, 3> parameter;
             parameter[0] = 65.9462851997;
 
-            array_1d<double, 3> result(0.0);
+            array_1d<double, 3> result;
             curve.GlobalCoordinates(result, parameter);
 
             KRATOS_CHECK_NEAR(result[0], 17.372881, TOLERANCE);
@@ -280,7 +280,7 @@ typedef Node<3> NodeType;
 
         // check derivatives at t = 65.9462851997
         {
-            array_1d<double, 3> parameter(0.0);
+            array_1d<double, 3> parameter;
             parameter[0] = 65.9462851997;
 
             std::vector<array_1d<double, 3>> derivatives;
@@ -305,10 +305,10 @@ typedef Node<3> NodeType;
 
         // check point at t = 125
         {
-            array_1d<double, 3> parameter(0.0);
+            array_1d<double, 3> parameter;
             parameter[0] = 125;
 
-            array_1d<double, 3> result(0.0);
+            array_1d<double, 3> result;
             curve.GlobalCoordinates(result, parameter);
 
             KRATOS_CHECK_NEAR(result[0], -15.801248, TOLERANCE);
@@ -318,7 +318,7 @@ typedef Node<3> NodeType;
 
         // check derivatives at t = 125
         {
-            array_1d<double, 3> parameter(0.0);
+            array_1d<double, 3> parameter;
             parameter[0] = 125;
 
             std::vector<array_1d<double, 3>> derivatives;
@@ -343,10 +343,10 @@ typedef Node<3> NodeType;
 
         // check point at t = 131.892570399495
         {
-            array_1d<double, 3> parameter(0.0);
+            array_1d<double, 3> parameter;
             parameter[0] = 131.892570399495;
 
-            array_1d<double, 3> result(0.0);
+            array_1d<double, 3> result;
             curve.GlobalCoordinates(result, parameter);
 
             KRATOS_CHECK_NEAR(result[0], -25, TOLERANCE);
@@ -356,7 +356,7 @@ typedef Node<3> NodeType;
 
         // check derivatives at t = 131.892570399495
         {
-            array_1d<double, 3> parameter(0.0);
+            array_1d<double, 3> parameter;
             parameter[0] = 131.892570399495;
 
             std::vector<array_1d<double, 3>> derivatives;

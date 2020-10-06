@@ -104,7 +104,7 @@ namespace Testing {
         weights[35] = 1.0;
 
         // Parameter on the surface where to compute the basis functions and their derivatives
-        array_1d<double, 3> parameter(0.0);
+        array_1d<double, 3> parameter;
         parameter[0] = .582;
         parameter[1] = .8972;
 

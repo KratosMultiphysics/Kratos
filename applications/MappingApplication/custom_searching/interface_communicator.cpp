@@ -255,7 +255,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
         InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
         std::vector<double> neighbor_distances(num_interface_obj_bin);
-        auto interface_obj(Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0)));
+        auto interface_obj(Kratos::make_shared<InterfaceObject>(array_1d<double, 3>()));
 
         int sum_num_results = 0;
         int sum_num_searched_objects = 0;

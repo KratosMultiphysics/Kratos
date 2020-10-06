@@ -425,7 +425,7 @@ namespace Kratos {
 
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.955316618, TOLERANCE);
     }
-    
+
      /** Checks if the max dihedral angle quality metric is correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
@@ -457,7 +457,7 @@ namespace Kratos {
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       Vector dihedral_angles(6);
-      geomTriRect->ComputeDihedralAngles(dihedral_angles); 
+      geomTriRect->ComputeDihedralAngles(dihedral_angles);
 
       KRATOS_CHECK_NEAR(dihedral_angles[0],  Globals::Pi *0.5, TOLERANCE);
       KRATOS_CHECK_NEAR(dihedral_angles[1],  Globals::Pi *0.5, TOLERANCE);
@@ -476,7 +476,7 @@ namespace Kratos {
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       Vector solid_angles(6);
-      geomTriRect->ComputeSolidAngles(solid_angles); 
+      geomTriRect->ComputeSolidAngles(solid_angles);
 
       KRATOS_CHECK_NEAR(solid_angles[0],  Globals::Pi *0.5, TOLERANCE);
       KRATOS_CHECK_NEAR(solid_angles[1],  0.339836909, TOLERANCE);
@@ -603,7 +603,7 @@ namespace Kratos {
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
       auto geom = GenerateTriRectangularTetrahedra3D4();
-      array_1d<double, 3> coord(3);
+      array_1d<double, 3> coord;
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 4.0;
       coord[2] = 1.0 / 16.0;

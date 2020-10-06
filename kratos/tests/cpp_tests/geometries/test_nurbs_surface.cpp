@@ -140,7 +140,7 @@ namespace Testing {
         knot_u[1] = 0.0;
         knot_u[2] = 10.0;
         knot_u[3] = 10.0;
-        Vector knot_v = ZeroVector(2); 
+        Vector knot_v = ZeroVector(2);
         knot_v[0] = 0.0;
         knot_v[1] = 5.0;
 
@@ -287,10 +287,10 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(surface.NumberOfControlPointsV(), 3);
         KRATOS_CHECK_EQUAL(surface.PointsNumber(), 12);
 
-        array_1d<double, 3> parameter(0.0);
+        array_1d<double, 3> parameter;
         parameter[0] = 0.0;
         parameter[1] = 0.0;
-        array_1d<double, 3> result(0.0);
+        array_1d<double, 3> result;
 
         surface.GlobalCoordinates(result, parameter);
     }
@@ -313,10 +313,10 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(surface.NumberOfControlPointsV(), 2);
         KRATOS_CHECK_EQUAL(surface.PointsNumber(), 10);
 
-        array_1d<double, 3> parameter(0.0);
+        array_1d<double, 3> parameter;
         parameter[0] = 10.0;
         parameter[1] = 3.5;
-        array_1d<double, 3> result(0.0);
+        array_1d<double, 3> result;
 
         surface.GlobalCoordinates(result, parameter);
         double length = sqrt(result[0] * result[0] + result[1] * result[1]);
@@ -325,8 +325,8 @@ namespace Testing {
 
         std::vector<array_1d<double, 3>> derivatives;
         surface.GlobalSpaceDerivatives(derivatives, parameter, 3);
-        array_1d<double, 3> cross(0.0);
-        array_1d<double, 3> colinear_vector(0.0);
+        array_1d<double, 3> cross;
+        array_1d<double, 3> colinear_vector;
         derivatives[0][2] = 0.0;
         MathUtils<double>::CrossProduct(cross, derivatives[1], derivatives[2]);
         MathUtils<double>::CrossProduct(colinear_vector, cross, derivatives[0]);
@@ -382,10 +382,10 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(surface.NumberOfControlPointsV(), 2);
         KRATOS_CHECK_EQUAL(surface.PointsNumber(), 6);
 
-        array_1d<double, 3> parameter(0.0);
+        array_1d<double, 3> parameter;
         parameter[0] = 10.0;
         parameter[1] = 3.5;
-        array_1d<double, 3> result(0.0);
+        array_1d<double, 3> result;
 
         surface.GlobalCoordinates(result, parameter);
         KRATOS_CHECK_NEAR(result[0], 10.0, TOLERANCE);
@@ -497,10 +497,10 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(surface.NumberOfControlPointsV(), 6);
         KRATOS_CHECK_EQUAL(surface.PointsNumber(), 36);
 
-        array_1d<double, 3> parameter(0.0);
+        array_1d<double, 3> parameter;
         parameter[0] = .25;
         parameter[1] = .75;
-        array_1d<double, 3> result(0.0);
+        array_1d<double, 3> result;
 
         surface.GlobalCoordinates(result, parameter);
         KRATOS_CHECK_NEAR(result[0], 0.027607103217140, TOLERANCE);

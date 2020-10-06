@@ -106,15 +106,6 @@ public:
         //sin esto no funciona en windows!!
         //std::fill (data().begin(), data().end(), value_type	());
     }
-    explicit BOOST_UBLAS_INLINE
-    array_1d (size_type array_size):
-        vector_expression<self_type> ()
-    {
-        //sin esto no funciona en windows!!
-        //std::fill (data().begin(), data().end(), value_type	());
-
-        /* 				std::fill (data().begin(), data().end(), value_type	()); */
-    }
 
     explicit BOOST_UBLAS_INLINE
     array_1d (size_type array_size, value_type v):

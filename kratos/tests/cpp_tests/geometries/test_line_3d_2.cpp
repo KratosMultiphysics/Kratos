@@ -313,7 +313,7 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionValue, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
-        array_1d<double, 3> coord(3);
+        array_1d<double, 3> coord;
         coord[0] = 2.0/3.0;
         coord[1] = 2.0/3.0;
         coord[2] = 2.0/3.0;
@@ -329,7 +329,7 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
-        array_1d<double, 3> coord(3);
+        array_1d<double, 3> coord;
         coord[0] = 2.0/3.0;
         coord[1] = 2.0/3.0;
         coord[2] = 2.0/3.0;
