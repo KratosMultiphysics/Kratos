@@ -33,10 +33,10 @@ conditions)
 Make sure that the following lines are properly set in the configure.sh (.bat) file:
 
 ~~~
-- CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
-- CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
-- CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
-- CALL :add_app %KRATOS_APP_DIR%\GeoMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\GeoMechanicsApplication;
 ~~~
 
 *Note*: For the moment, MPI does not work.
