@@ -3,6 +3,11 @@
 The Geo-Mechanics Application contains features needed for common geotechnical/geomechanical applications within Kratos Multiphysics.
 
 ### Features:
+- K_0 procedure, Quasi-static, dynamic
+
+- Staged analysis
+
+- Automatic time stepping
 
 - UPw small displacement element for saturated porous media (with
 equal order interpolation, unstable under incompressible-undrained
