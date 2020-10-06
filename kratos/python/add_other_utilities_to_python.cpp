@@ -461,6 +461,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     //sensitivity builder
     py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
+        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer, SensitivityBuilderScheme::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
         .def("AssignConditionDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)

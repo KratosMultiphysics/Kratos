@@ -49,6 +49,10 @@
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
+// sensitivity builder schemes
+#include "solving_strategies/schemes/sensitivity_builder_scheme.h"
+#include "solving_strategies/schemes/residual_based_sensitivity_builder_scheme.h"
+
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
@@ -671,6 +675,25 @@ namespace Kratos
                         return std::shared_ptr<LineSearchStrategyType>(new LineSearchStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag));
                     }))
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
+                ;
+
+            using BaseSensitivityBuilderScheme = SensitivityBuilderScheme;
+            py::class_<BaseSensitivityBuilderScheme, typename BaseSensitivityBuilderScheme::Pointer >
+            (m,"SensitivityBuilderScheme")
+                .def(py::init< >())
+                .def("Initialize", &BaseSensitivityBuilderScheme::Initialize)
+                .def("InitializeSolutionStep", &BaseSensitivityBuilderScheme::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &BaseSensitivityBuilderScheme::FinalizeSolutionStep)
+                .def("Finalize", &BaseSensitivityBuilderScheme::Finalize)
+                .def("Update", &BaseSensitivityBuilderScheme::Update)
+                .def("Clear", &BaseSensitivityBuilderScheme::Clear)
+                .def("Check", &BaseSensitivityBuilderScheme::Check)
+                .def("Info", &BaseSensitivityBuilderScheme::Info)
+                ;
+
+            py::class_<ResidualBasedSensitivityBuilderScheme, typename ResidualBasedSensitivityBuilderScheme::Pointer,  BaseSensitivityBuilderScheme>
+            (m,"ResidualBasedSensitivityBuilderScheme")
+                .def(py::init< >())
                 ;
         }
 
