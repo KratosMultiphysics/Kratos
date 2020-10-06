@@ -15,9 +15,7 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
     raise Exception("The MPI tests currently support only being run with 2 processors!")
 
 # Import the tests or test_classes to create the suits
-
-# Shell tests
-from adjoint_mpi_vms_sensitivity_2d import AdjointMPIVMSSensitivity
+from test_mpi_metrics import TestMPIMetrics
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -32,10 +30,10 @@ def AssembleTestSuites():
 
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
+    smallMPISuite.addTest(TestMPIMetrics('test_remesh_hessian'))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
-    nightlyMPISuite.addTest(AdjointMPIVMSSensitivity('testCylinder'))
     nightlyMPISuite.addTests(smallMPISuite)
 
     ### Full MPI set ###########################################################
