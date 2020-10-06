@@ -1301,10 +1301,12 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::InitializeBiotCoefficients()") << std::endl;
 
+    const PropertiesType& Prop = this->GetProperties();
+
     //Properties variables
-    rVariables.BiotCoefficient = 1.0 - BulkModulus / GetProperties()[BULK_MODULUS_SOLID];
-    rVariables.BiotModulusInverse =  (rVariables.BiotCoefficient - GetProperties()[POROSITY])/GetProperties()[BULK_MODULUS_SOLID]
-                                   + GetProperties()[POROSITY]/GetProperties()[BULK_MODULUS_FLUID];
+    rVariables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+    rVariables.BiotModulusInverse =  (rVariables.BiotCoefficient - Prop[POROSITY])/Prop[BULK_MODULUS_SOLID]
+                                   + Prop[POROSITY]/Prop[BULK_MODULUS_FLUID];
 
     // KRATOS_INFO("1-UPwSmallStrainElement::InitializeBiotCoefficients()") << std::endl;
     KRATOS_CATCH( "" )

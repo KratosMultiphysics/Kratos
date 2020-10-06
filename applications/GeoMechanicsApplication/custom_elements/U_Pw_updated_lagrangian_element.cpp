@@ -62,10 +62,10 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     Initialize(const ProcessInfo &rCurrentProcessInfo)
 {
-    UPwSmallStrainElement::Initialize(rCurrentProcessInfo);
+    UPwSmallStrainElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
-        GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+        this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     const SizeType NumGPoints = IntegrationPoints.size();
 
@@ -100,7 +100,9 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(),
+                                                       this->GetProperties(),
+                                                       rCurrentProcessInfo);
     //ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
@@ -108,8 +110,8 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     ElementVariables Variables;
     UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables( Variables,
                                                                        ConstitutiveParameters,
-                                                                       GetGeometry(),
-                                                                       GetProperties(),
+                                                                       this->GetGeometry(),
+                                                                       this->GetProperties(),
                                                                        rCurrentProcessInfo );
 
 
@@ -155,13 +157,15 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     KRATOS_TRY;
 
     const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
-        GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+        this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     //Containers of variables at all integration points
-    const Matrix& NContainer = GetGeometry().ShapeFunctionsValues( this->GetIntegrationMethod() );
+    const Matrix& NContainer = this->GetGeometry().ShapeFunctionsValues( this->GetIntegrationMethod() );
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(),
+                                                       this->GetProperties(),
+                                                       rCurrentProcessInfo);
     if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -170,8 +174,8 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     ElementVariables Variables;
     UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables( Variables,
                                                                        ConstitutiveParameters,
-                                                                       GetGeometry(),
-                                                                       GetProperties(),
+                                                                       this->GetGeometry(),
+                                                                       this->GetProperties(),
                                                                        rCurrentProcessInfo );
 
 
@@ -329,8 +333,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
                                                     IntegrationMethod ThisIntegrationMethod ) const
 {
     double detJ;
-    rJ = GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
-    const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    rJ = this->GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
+    const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     return detJ;
@@ -346,8 +350,8 @@ Matrix& UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     DeltaDisplacement.resize(TNumNodes , TDim, false);
 
     for ( IndexType iNode = 0; iNode < TNumNodes; iNode++ ) {
-        const array_1d<double, 3>& currentDisplacement  = GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3>& previousDisplacement = GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);
+        const array_1d<double, 3>& currentDisplacement  = this->GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3>& previousDisplacement = this->GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);
 
         for ( IndexType iDim = 0; iDim < TDim; ++iDim )
             DeltaDisplacement(iNode, iDim) = currentDisplacement[iDim] - previousDisplacement[iDim];
@@ -394,7 +398,9 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         for ( IndexType GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
             rValues[GPoint] = mDetF0[GPoint];
     } else {
-        UPwSmallStrainElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,
+                                                                            rValues,
+                                                                            rCurrentProcessInfo);
     }
 }
 
@@ -412,7 +418,9 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         for ( IndexType GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
             rValues[GPoint] = mF0[GPoint];
     } else {
-        UPwSmallStrainElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,
+                                                                            rValues,
+                                                                            rCurrentProcessInfo);
     }
 }
 
@@ -432,7 +440,9 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
             mDetF0[GPoint] = rValues[GPoint];
         }
     } else {
-        UPwSmallStrainElement::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        UPwSmallStrainElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints(rVariable,
+                                                                            rValues,
+                                                                            rCurrentProcessInfo);
     }
 }
 
@@ -451,32 +461,14 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         for ( IndexType GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
             mF0[GPoint] = rValues[GPoint];
     } else {
-        UPwSmallStrainElement::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        UPwSmallStrainElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints(rVariable,
+                                                                            rValues,
+                                                                            rCurrentProcessInfo);
     }
 }
 
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwUpdatedLagrangianElement<TDim,TNumNodes>::save( Serializer& rSerializer ) const
-{
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UPwSmallStrainElement );
-    rSerializer.save("F0Computed", mF0Computed);
-    rSerializer.save("DetF0", mDetF0);
-    rSerializer.save("F0", mF0);
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwUpdatedLagrangianElement<TDim,TNumNodes>::load( Serializer& rSerializer )
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UPwSmallStrainElement );
-    rSerializer.load("F0Computed", mF0Computed);
-    rSerializer.load("DetF0", mDetF0);
-    rSerializer.load("F0", mF0);
-}
-
-//-------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwUpdatedLagrangianElement<2,3>;
 template class UPwUpdatedLagrangianElement<2,4>;

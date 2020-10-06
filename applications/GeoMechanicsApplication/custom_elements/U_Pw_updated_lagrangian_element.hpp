@@ -69,6 +69,10 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
+
+    /// Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
     /// The definition of the sizetype
     typedef std::size_t SizeType;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
@@ -76,6 +80,9 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
+    using UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector;
+    using UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector;
+    using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
 
     /// Counted pointer of UPwUpdatedLagrangianElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianElement);
@@ -203,20 +210,20 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Updated Lagrangian U-Pw different order Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian U-Pw Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Updated Lagrangian U-Pw different order Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        pGetGeometry()->PrintData(rOStream);
+        this->pGetGeometry()->PrintData(rOStream);
     }
 
     ///@}
@@ -392,9 +399,24 @@ private:
 
     // A private default constructor necessary for serialization
 
-    void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override
+    {
+        typedef UPwSmallStrainElement<TDim,TNumNodes> BaseClass;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseClass );
+        rSerializer.save("F0Computed", mF0Computed);
+        rSerializer.save("DetF0", mDetF0);
+        rSerializer.save("F0", mF0);
+    }
 
-    void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override
+    {
+        typedef UPwSmallStrainElement<TDim,TNumNodes> BaseClass;
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseClass );
+        rSerializer.load("F0Computed", mF0Computed);
+        rSerializer.load("DetF0", mDetF0);
+        rSerializer.load("F0", mF0);
+    }
+
 
     ///@name Private Inquiry
     ///@{

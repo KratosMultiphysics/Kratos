@@ -119,7 +119,9 @@ void UpdatedLagrangianUPwDiffOrderElement::
     SmallStrainUPwDiffOrderElement::InitializeElementVariables( Variables, rCurrentProcessInfo );
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(),
+                                                       this->GetProperties(),
+                                                       rCurrentProcessInfo);
     //ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
@@ -180,21 +182,24 @@ void UpdatedLagrangianUPwDiffOrderElement::
 
     //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << std::endl;
 
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
 
     //Definition of variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
     //Create constitutive law parameters:
-    ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters( rGeom,
+                                                        this->GetProperties(),
+                                                        rCurrentProcessInfo );
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     //Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
+    const GeometryType::IntegrationPointsArrayType
+        &IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
 
     // Computing in all integrations points
     for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint )
@@ -290,7 +295,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
     noalias(rVariables.Np) = row(rVariables.NpContainer, GPoint);
 
     rVariables.detJ0 =
-        this->CalculateDerivativesOnReferenceConfiguration(GetGeometry(),
+        this->CalculateDerivativesOnReferenceConfiguration(this->GetGeometry(),
                                                            rVariables.J0,
                                                            rVariables.InvJ0,
                                                            rVariables.DNu_DX,
@@ -300,7 +305,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
     // Calculating jacobian and DNu_DX
     Matrix J, inv_J;
     rVariables.detJ0 =
-        this->CalculateDerivativesOnCurrentConfiguration(GetGeometry(),
+        this->CalculateDerivativesOnCurrentConfiguration(this->GetGeometry(),
                                                          J,
                                                          inv_J,
                                                          rVariables.DNu_DX,

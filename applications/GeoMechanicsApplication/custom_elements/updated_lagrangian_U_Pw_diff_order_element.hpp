@@ -65,6 +65,10 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
+
+    /// Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
     /// The definition of the sizetype
     typedef std::size_t SizeType;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
@@ -199,20 +203,20 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Updated Lagrangian U-Pw different order Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian U-Pw Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Updated Lagrangian U-Pw different order Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        pGetGeometry()->PrintData(rOStream);
+        this->pGetGeometry()->PrintData(rOStream);
     }
 
     ///@}
