@@ -5,8 +5,6 @@ from KratosMultiphysics import Logger
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import main_coupling_for_testing
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import os
-import shutil
 
 def Wait():
     input("Press Something")
@@ -65,7 +63,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
 
 
 class TestAnalytics(KratosUnittest.TestCase):
-    
+
     def setUp(self):
         pass
 

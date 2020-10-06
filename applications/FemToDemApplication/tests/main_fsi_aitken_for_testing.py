@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 from KratosMultiphysics import Logger
-import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.MainCouplingPfemFemDemAitken as MainCouplingPfemFemDemAitken
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
@@ -34,7 +33,7 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
 
 #============================================================================================================================
     def CheckControlValuesForTesting(self):  # message = "The obtained dx and vx is: " + str(dx) + " m  and " + str(vx) + " m/s." KratosPrintInfo(message)
-                    
+
         tol = 1e-5
         for node in self.FEMDEM_Solution.FEM_Solution.main_model_part.GetSubModelPart("testing_nodes").Nodes:
             # KratosPrintInfo("hey")
@@ -71,7 +70,7 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
 #============================================================================================================================
     def Finalize(self):
         super(MainCouplingPfemFemDemAitkenForTestingSolution, self).Finalize()
-        self.FEMDEM_Solution.FEM_Solution
+
         shutil.rmtree(self.FEMDEM_Solution.FEM_Solution.problem_name + "_Graphs")
         shutil.rmtree(self.FEMDEM_Solution.FEM_Solution.problem_name + "_MPI_results")
         shutil.rmtree(self.FEMDEM_Solution.FEM_Solution.problem_name + "_Post_Files")

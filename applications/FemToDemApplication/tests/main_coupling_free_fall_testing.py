@@ -6,8 +6,6 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 # import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
 import main_coupling_for_testing
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import os
-import shutil
 
 def Wait():
     input("Press Something")
@@ -22,7 +20,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
 
 #============================================================================================================================
     def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(dy))
-        
+
 
         # Here we check the vertical displacement of a node
         node = self.FEM_Solution.main_model_part.GetNode(39)
