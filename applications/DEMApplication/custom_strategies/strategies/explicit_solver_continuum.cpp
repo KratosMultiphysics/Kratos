@@ -191,7 +191,7 @@ namespace Kratos {
         if (r_process_info[SEARCH_CONTROL] == 0) {
 
             ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-            bool some_bond_is_broken = false;
+            int some_bond_is_broken = 0;
 
             block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
 
@@ -199,14 +199,14 @@ namespace Kratos {
 
                 for (int j=0; j<(int) r_sphere.mContinuumInitialNeighborsSize; j++) {
                     if (r_sphere.mIniNeighbourFailureId[j] != 0) {
-                        AtomicAssign(some_bond_is_broken, true);
+                        AtomicAdd(some_bond_is_broken, 1);
                         break;
                     }
                 }
 
             });
 
-            if (some_bond_is_broken) {
+            if (some_bond_is_broken > 0) {
                 r_process_info[SEARCH_CONTROL] = 1;
                 KRATOS_WARNING("DEM") << "From now on, the search is activated because some failure occurred " << std::endl;
             }
