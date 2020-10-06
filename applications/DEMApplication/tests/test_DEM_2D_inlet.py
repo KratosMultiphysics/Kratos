@@ -25,7 +25,7 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(DEM2D_InletTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1.001
         for node in self.spheres_model_part.Nodes:
             node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
