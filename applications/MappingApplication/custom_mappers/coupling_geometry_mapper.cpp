@@ -190,6 +190,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         // => this is done in Empire
         // lets discuss in the next meeting
         // CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
+        // add optional solve
 
         MappingMatrixUtilities::InitializeSystemVector<TSparseSpace, TDenseSpace>(mpTempVector, mpInterfaceVectorContainerDestination->GetModelPart().NumberOfNodes());
     }
