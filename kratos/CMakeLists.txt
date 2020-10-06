@@ -6,7 +6,7 @@ SET(ListFolders sources conditions constraints containers elements factories geo
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp # This is because its dependency on python.h
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp # kratos_version is excluded because I separated it to another CU so you didn't have to recompile the whole core every time the version changed, just relink it. In order to not pollute with more .dll / .so a separate .o is created and then using during the linking of KratosCore.dll
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_smoothing_process.cpp # This wasn't in the original list for some reason
 )
