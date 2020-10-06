@@ -19,6 +19,10 @@
 
 // kratos includes
 #include "includes/model_part.h"
+#include "includes/data_communicator.h"
+
+
+
 
 namespace Kratos {
 
@@ -27,6 +31,8 @@ namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
+
+
 
 /**
  * @class MPM_MPI_Utilities
@@ -44,6 +50,7 @@ public:
 
     typedef ModelPart::ElementsContainerType ElementsContainerType;
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+    typedef ModelPart::NodesContainerType NodesContainerType;
 
     ///@}
     ///@name Static Operations
@@ -51,19 +58,34 @@ public:
 
     /**
      * @brief Interface to exchange elements.
-     * @details Interface to exchange elements betweem mpi-processes and remove/add elements from/to respective ModelPart.
+     * @details Interface to exchange elements betweem mpi-processes and removes elements from sending ModelPart.
      * @param rSendElements list of objects to be send.      SendObjects[i] -> Objects to   process i
+     * @param rRecvElements list of objects to be recieved.  RecvObjects[i] -> Objects from process i
      **/
     static void TransferElements(ModelPart& rModelPart,
-                          std::vector<ElementsContainerType>& rSendElements);
+                          std::vector<ElementsContainerType>& rSendElements,
+                          std::vector<ElementsContainerType>& rRecvElements);
 
     /**
      * @brief Interface to exchange conditions.
-     * @details Interface to exchange conditions betweem mpi-processes and remove/add conditions from/to respective ModelPart.
+     * @details Interface to exchange conditions betweem mpi-processes and removes conditions from sending ModelPart.
      * @param rSendCondition list of conditions to be send.      SendObjects[i] -> Objects to   process i
+     * @param rRecvCondition list of objects to be recieved.     RecvObjects[i] -> Objects from process i
      **/
     static void TransferConditions(ModelPart& rModelPart,
-                            std::vector<ConditionsContainerType>& rSendCondition);
+                            std::vector<ConditionsContainerType>& rSendCondition,
+                            std::vector<ConditionsContainerType>& rRecvCondition);
+
+    /**
+     * @brief Synchronize nodal displacement at interface mesh;
+     **/
+    static void SynchronizeNodalDisplacementAtInterface(ModelPart& rModelPart);
+
+    /**
+     * @brief Set DestModelPart communicator to SourceModelPart communicator.
+     **/
+    static void SetMPICommunicator( ModelPart& SourceModelPart, ModelPart& DestModelPart);
+
     ///@}
 
 }; // end class MPM_MPI_Utilities
