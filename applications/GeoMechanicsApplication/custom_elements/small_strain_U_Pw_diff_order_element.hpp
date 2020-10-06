@@ -92,6 +92,9 @@ public:
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
+    void CalculateDampingMatrix( MatrixType& rDampingMatrix,
+                                 const ProcessInfo& rCurrentProcessInfo ) override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
@@ -208,6 +211,8 @@ protected:
     std::vector<Vector> mStateVariablesFinalized;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    virtual void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
+                                                   const ProcessInfo& CurrentProcessInfo );
 
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,

@@ -416,7 +416,6 @@ void UPwBaseElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
     CalculateDampingMatrix(MatrixType& rDampingMatrix,
@@ -748,7 +747,6 @@ void UPwBaseElement<TDim,TNumNodes>::
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
     CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,

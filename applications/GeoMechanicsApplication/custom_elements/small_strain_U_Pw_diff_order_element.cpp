@@ -504,6 +504,52 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_CATCH( "" )
 }
 
+
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                           const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
+
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    // Compute Mass Matrix
+    MatrixType MassMatrix(ElementSize, ElementSize);
+
+    this->CalculateMassMatrix(MassMatrix,rCurrentProcessInfo);
+
+    // Compute Stiffness matrix
+    MatrixType StiffnessMatrix(ElementSize, ElementSize);
+
+    this->CalculateMaterialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
+
+    // Compute Damping Matrix
+    if ( rDampingMatrix.size1() != ElementSize )
+        rDampingMatrix.resize( ElementSize, ElementSize, false );
+    noalias( rDampingMatrix ) = ZeroMatrix( ElementSize, ElementSize );
+
+    const PropertiesType& Prop = this->GetProperties();
+
+    if (Prop.Has( RAYLEIGH_ALPHA ))
+        noalias(rDampingMatrix) += Prop[RAYLEIGH_ALPHA] * MassMatrix;
+    else
+        noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
+
+    if (Prop.Has( RAYLEIGH_BETA ))
+        noalias(rDampingMatrix) += Prop[RAYLEIGH_BETA] * StiffnessMatrix;
+    else
+        noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
+
+    KRATOS_CATCH( "" )
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     EquationIdVector(EquationIdVectorType& rResult,
@@ -1390,6 +1436,59 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
     }
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAll") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
+                                      const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const GeometryType& rGeom = GetGeometry();
+
+    //Definition of variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+
+    //Create constitutive law parameters:
+    ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
+    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    //Loop over integration points
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
+
+    for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
+    {
+        //compute element kinematics (Np, gradNpT, |J|, B, strains)
+        this->CalculateKinematics(Variables,PointNumber);
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetElementalVariables(Variables,ConstitutiveParameters);
+
+        //compute constitutive tensor and/or stresses
+        UpdateElementalVariableStressVector(Variables, PointNumber);
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+        UpdateStressVector(Variables, PointNumber);
+
+        // calculate Bulk modulus from stiffness matrix
+        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
+        this->InitializeBiotCoefficients(Variables, BulkModulus);
+
+        //calculating weighting coefficient for integration
+        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
+                                               Variables.detJuContainer[PointNumber],
+                                               IntegrationPoints[PointNumber].Weight() );
+
+        //Contributions of material stiffness to the left hand side
+        this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
+
+    }
+
 
     KRATOS_CATCH( "" )
 }
