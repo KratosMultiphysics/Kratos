@@ -23,43 +23,43 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
     def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(damage))
 
         # Here we check the damage obtained at each FE
-        element = self.FEM_Solution.main_model_part.GetElement(340)
+        element = self.FEM_Solution.main_model_part.GetElement(301)
         damage = element.CalculateOnIntegrationPoints(KratosFemDem.DAMAGE_ELEMENT, self.FEM_Solution.main_model_part.ProcessInfo)[0]
         tol = 1e-8
         if self.FEM_Solution.step == 15:
-            ref_value = 0.29652855646574583
+            ref_value = 0.8342902589556865
             if (damage - ref_value) / ref_value > tol:
                 raise ValueError('The computed damage at step = 15 is not correct')
         elif self.FEM_Solution.step == 20:
-            ref_value = 0.3821234442021535
+            ref_value = 0.8342902589556865
             if (damage - ref_value) / ref_value > tol:
                 raise ValueError('The computed damage at step = 20 is not correct')
         elif self.FEM_Solution.step == 25:
-            ref_value = 0.3821234442021535
+            ref_value = 0.8342902589556865
             if (damage - ref_value) / ref_value > tol:
                 raise ValueError('The computed damage at step = 25 is not correct')
         elif self.FEM_Solution.step == 28:
-            ref_value = 0.3821234442021535
+            ref_value = 0.8342902589556865
             if (damage - ref_value) / ref_value > tol:
                 raise ValueError('The computed damage at step = 28 is not correct')
 
         # Here we check the vertical displacement of a node
-        node = self.FEM_Solution.main_model_part.GetNode(1047)
+        node = self.FEM_Solution.main_model_part.GetNode(125)
         Ry = node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
         if self.FEM_Solution.step == 15:
-            ref = -12752.516679358958
+            ref = -14404.407899045087
             if (Ry - ref) / ref > tol:
                 raise ValueError('The computed displacement at step = 15 is not correct')
         elif self.FEM_Solution.step == 20:
-            ref = -14800.3175672172
+            ref = -7449.905801561186
             if (Ry - ref) / ref > tol:
                 raise ValueError('The computed displacement at step = 36 is not correct')
         elif self.FEM_Solution.step == 25:
-            ref = -2592.634899185204
+            ref = -5271.126026352192
             if (Ry - ref) / ref > tol:
                 raise ValueError('The computed displacement at step = 46 is not correct')
         elif self.FEM_Solution.step == 28:
-            ref = -1764.6650444466068
+            ref = -4207.087723385579
             if (Ry - ref) / ref > tol:
                 raise ValueError('The computed displacement at step = 61 is not correct')
 
