@@ -72,8 +72,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(DRY_DISCHARGE_PENALTY)
 
         // Post-process variables
-        KRATOS_REGISTER_VARIABLE(WATER_HEIGHT)
-        KRATOS_REGISTER_VARIABLE(WATER_SURFACE)
         KRATOS_REGISTER_VARIABLE(TOPOGRAPHY_GRADIENT)
 
         // Specific variables for PFEM2
