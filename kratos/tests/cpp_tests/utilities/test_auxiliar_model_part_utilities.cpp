@@ -371,168 +371,168 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_ProcessInfo,
 }
 
 //13. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on NodeHistorical Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Node_historical, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_historical, KratosCoreFastSuite)
 {  
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetScalarData()
+    AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 1);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //14. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Node_NonHistorical Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Node_Nonhistorical, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_Nonhistorical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetScalarData()
+    AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeNonHistorical, this_model_part, 1);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //15. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Element Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Element, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Element, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(this_model_part.NumberOfElements(), 1); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(this_model_part.NumberOfElements(), 1); //To create an input Data "rData" to feed to SetScalarData()
+    AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::Element, this_model_part, 1);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //16. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Condition Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Condition, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Condition, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(this_model_part.NumberOfConditions(), 1); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(this_model_part.NumberOfConditions(), 1); //To create an input Data "rData" to feed to SetScalarData()
+    AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::Condition, this_model_part, 1);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //17. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on ModelPart Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_ModelPart, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_ModelPart, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(1, 1); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(1, 1); //To create an input Data "rData" to feed to SetScalarData()
+    AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::ModelPart, this_model_part, 1);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //18. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on ProcessInfo Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_ProcessInfo, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_ProcessInfo, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(1, 1); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(1, 1); //To create an input Data "rData" to feed to SetScalarData()
+    AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::ProcessInfo, this_model_part, 1);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //19. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on NodeHistorical Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Node_historical, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_historical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVectorData()
+    AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //20. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Node_NonHistorical Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Node_Nonhistorical, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_Nonhistorical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVectorData()
+    AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeNonHistorical, this_model_part, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //21. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Element Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Element, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Element, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(this_model_part.NumberOfElements(), 3); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(this_model_part.NumberOfElements(), 3); //To create an input Data "rData" to feed to SetVectorData()
+    AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::Element, this_model_part, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //22. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Condition Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Condition, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Condition, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(this_model_part.NumberOfConditions(), 3); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(this_model_part.NumberOfConditions(), 3); //To create an input Data "rData" to feed to SetVectorData()
+    AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::Condition, this_model_part, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //23. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ModelPart Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_ModelPart, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_ModelPart, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(1, 3); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(1, 3); //To create an input Data "rData" to feed to SetVectorData()
+    AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::ModelPart, this_model_part, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //24. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ProcessInfo Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_ProcessInfo, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_ProcessInfo, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
-    auto rData = PreComputeSetData(1, 3); //To create an input Data "rData" to feed to SetVariableData()
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto rData = PreComputeSetData(1, 3); //To create an input Data "rData" to feed to SetVectorData()
+    AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::ProcessInfo, this_model_part, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
