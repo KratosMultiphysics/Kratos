@@ -17,7 +17,7 @@ def GetFilePath(fileName):
 class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     def Initialize(self):
-        super(DEM2D_RestitutionTestSolution, self).Initialize()
+        super().Initialize()
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
 
@@ -40,7 +40,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             Logger.PrintInfo("upper bound:", restitution_coefficient*tolerance)
             Logger.PrintInfo("lower bound:", restitution_coefficient/tolerance)
             self.assertAlmostEqual(self.coeff, restitution_coefficient, delta=tolerance)
-        super(DEM2D_RestitutionTestSolution, self).Finalize()
+        super().Finalize()
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
         properties = KratosMultiphysics.Properties(0)
@@ -63,6 +63,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         coordinates = KratosMultiphysics.Array3()
         coordinates[0] = 0.0
         coordinates[1] = 0.00255
+        coordinates[2] = 0.0
         radius = 0.0025
         self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
 
