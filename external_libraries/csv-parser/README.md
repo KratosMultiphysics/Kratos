@@ -23,14 +23,16 @@
 ## Motivation
 There's plenty of other CSV parsers in the wild, but I had a hard time finding what I wanted. Inspired by Python's `csv` module, I wanted a library with **simple, intuitive syntax**. Furthermore, I wanted support for special use cases such as calculating statistics on very large files. Thus, this library was created with these following goals in mind.
 
-### Performance
-This CSV parser uses multiple threads to simulatenously pull and parse data from disks, memory mapped IO, and 
-efficient data structures. Furthermore, it is capable of incremental streaming (parsing larger than RAM files), and quickly parsing data types.
+### Performance and Memory Requirements
+With the deluge of large datasets available, a performant CSV parser is a necessity. By using overlapped threads, memory mapped IO, and 
+efficient data structures, this parser can quickly tackle large CSV files. Furthermore, this parser has a minimal memory footprint and
+can handle larger-than-RAM files.
 
 #### Show me the numbers
 On my computer (Intel Core i7-8550U @ 1.80GHz/Toshiba XG5 SSD), this parser can read
  * the [69.9 MB 2015_StateDepartment.csv](https://github.com/vincentlaucsb/csv-data/tree/master/real_data) in 0.26 seconds (269 MBps)
- * a [1.4 GB Craigslist Used Vehicles Dataset](https://www.kaggle.com/austinreese/craigslist-carstrucks-data/version/7) in 4 seconds (350 MBps)
+ * a [1.4 GB Craigslist Used Vehicles Dataset](https://www.kaggle.com/austinreese/craigslist-carstrucks-data/version/7) in 2.1 seconds (667 MBps)
+ * a [1.24GB Car Accidents Dataset](https://www.kaggle.com/sobhanmoosavi/us-accidents) in 5 seconds (248 MBps)
 
 ### Robust Yet Flexible
 #### RFC 4180 and Beyond
@@ -53,11 +55,11 @@ do not hesitate to report it.
 
 ## Documentation
 
-In addition to the [Features & Examples](#features--examples) below, a [fully-fledged online documentation](http://vincela.com/csv/) contains more examples, details, interesting features, and instructions for less common use cases.
+In addition to the [Features & Examples](#features--examples) below, a [fully-fledged online documentation](https://vincentlaucsb.github.io/csv-parser/html/) contains more examples, details, interesting features, and instructions for less common use cases.
 
 ## Integration
 
-This library was developed with Microsoft Visual Studio and is compatible with g++ and clang.
+This library was developed with Microsoft Visual Studio and is compatible with >g++ 6.0 and clang.
 All of the code required to build this library, aside from the C++ standard library, is contained under `include/`.
 
 ### C++ Version
@@ -215,8 +217,9 @@ using namespace csv;
 CSVFormat format;
 format.delimiter('\t')
       .quote('~')
-      .header_row(2);  // Header is on 3rd row (zero-indexed)
-      // .quote(false)  Turn off quoting 
+      .header_row(2);   // Header is on 3rd row (zero-indexed)
+      // .no_header();  // Parse CSVs without a header row
+      // .quote(false); // Turn off quoting 
 
 // Alternatively, we can use format.delimiter({ '\t', ',', ... })
 // to tell the CSV guesser which delimiters to try out
@@ -310,12 +313,13 @@ using namespace std;
 
 ...
 
-stringstream ss; // Can also use ifstream, etc.
+stringstream ss; // Can also use ofstream, etc.
 auto writer = make_csv_writer(ss);
 writer << vector<string>({ "A", "B", "C" })
     << deque<string>({ "I'm", "too", "tired" })
-    << list<string>({ "to", "write", "documentation" });
-    
+    << list<string>({ "to", "write", "documentation." });
+
+writer << array<string, 2>({ "The quick brown "fox", "jumps over the lazy dog" });
 ...
 
 ```
