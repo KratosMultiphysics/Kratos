@@ -107,12 +107,6 @@ namespace SpecificationsUtilities
         {"3D",3}
     };
 
-    /// A definition of the component variable
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > Component3VarType;
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 4> > > Component4VarType;
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 6> > > Component6VarType;
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 9> > > Component9VarType;
-
     /**
      * @brief This method adds to the model part the missing variables
      * @param rModelPart Reference to the ModelPart containing the problem
