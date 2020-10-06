@@ -86,11 +86,23 @@ class TestMPIProcesses(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distance)
             node.SetValue(KratosMultiphysics.DISTANCE,distance)
 
+        ## Read reference
+        file_name = "auxiliar_files_for_python_unittest/reference_files/test_compute_nodal_gradient_process_results.json"
+        reference_file_name = GetFilePath(file_name)
+        with open(reference_file_name, 'r') as f:
+            reference_values = json.load(f)
+
         gradient_process_hist_non_hist = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
         KratosMultiphysics.DISTANCE,
         KratosMultiphysics.DISTANCE_GRADIENT,
         KratosMultiphysics.NODAL_AREA)
         gradient_process_hist_non_hist.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            ref_gradient = reference_values[str(node.Id)]
+            for gradient_i, gradient_i_ref in zip(distance_gradient, ref_gradient):
+                self.assertAlmostEqual(gradient_i, gradient_i_ref)
 
         non_historical_origin_variable = True
         gradient_process_non_hist_non_hist = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
@@ -99,12 +111,6 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         KratosMultiphysics.NODAL_AREA,
         non_historical_origin_variable)
         gradient_process_non_hist_non_hist.Execute()
-
-        ## Read reference
-        file_name = "auxiliar_files_for_python_unittest/reference_files/test_compute_nodal_gradient_process_results.json"
-        reference_file_name = GetFilePath(file_name)
-        with open(reference_file_name, 'r') as f:
-            reference_values = json.load(f)
 
         for node in main_model_part.Nodes:
             distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
