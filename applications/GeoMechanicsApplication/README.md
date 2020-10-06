@@ -3,7 +3,7 @@
 The Geo-Mechanics Application contains features needed for common geotechnical/geomechanical applications within Kratos Multiphysics.
 
 ### Features:
-- K_0 procedure, Quasi-static, dynamic
+- K <sub>0 procedure, Quasi-static, dynamic
 
 - Staged analysis
 
