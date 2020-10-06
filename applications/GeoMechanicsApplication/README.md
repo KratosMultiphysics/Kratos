@@ -37,7 +37,7 @@ conditions)
 
 Make sure that the following lines are properly set in the configuration file:
 
-### Windows:
+#### Windows:
 ~~~
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
@@ -45,7 +45,7 @@ CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\GeoMechanicsApplication;
 ~~~
 
-### Linux:
+#### Linux:
 ~~~
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
