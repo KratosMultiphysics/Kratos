@@ -84,7 +84,7 @@ inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
  */
 template<class TDataType>
 inline void AtomicAssign(TDataType& target, const TDataType& value) {
-    #pragma omp atomic write
+    #pragma omp atomic
     target = value;
 }
 
