@@ -169,17 +169,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                                 : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
-            "check_constraint_relation"            : true,
-            "reset_relation_matrix_each_iteration" : true
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
-        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -378,6 +370,25 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             it->FinalizeSolutionStep(r_process_info);
         }
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to finalize solution step.")
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                 : "elimination_builder_and_solver_with_constraints",
+            "check_constraint_relation"            : true,
+            "reset_relation_matrix_each_iteration" : true
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
     }
 
     /**
@@ -1512,6 +1523,17 @@ protected:
         mCleared = true;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
+        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
     }
 
     ///@}

@@ -129,16 +129,6 @@ public:
         return GetValue<TDataType>(rThisVariable);
     }
 
-    template<class TAdaptorType> typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
     template<class TDataType> TDataType& operator[](const VariableData& rThisVariable)
     {
         return GetValue<TDataType>(rThisVariable);
@@ -159,26 +149,16 @@ public:
         return GetValue<TDataType>(rThisVariable);
     }
 
-    template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
     iterator begin()
     {
         return mData.begin();
     }
-    
+
     const_iterator begin() const
     {
         return mData.begin();
     }
-    
+
     iterator end()
     {
         return mData.end();
@@ -213,12 +193,12 @@ public:
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
             return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
-        
+
 #ifdef KRATOS_DEBUG
         if(OpenMPUtils::IsInParallel() != 0)
             KRATOS_ERROR << "attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
-#endif 
-        
+#endif
+
         auto p_source_variable = &rThisVariable.GetSourceVariable();
         mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
 
@@ -231,23 +211,13 @@ public:
 #ifdef KRATOS_DEBUG
         KRATOS_ERROR_IF(rThisVariable.Key() == 0) << "attempting to do a GetValue for: " << rThisVariable << " the variable has key zero" << std::endl;
 #endif
-        
+
         typename ContainerType::const_iterator i;
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
             return *(static_cast<const TDataType*>(i->second) + rThisVariable.GetComponentIndex());
 
         return rThisVariable.Zero();
-    }
-
-    template<class TAdaptorType> typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
     }
 
     SizeType Size()
@@ -267,13 +237,8 @@ public:
         } else {
             auto p_source_variable = &rThisVariable.GetSourceVariable();
             mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
-            *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex()) = rValue; 
+            *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex()) = rValue;
         }
-    }
-
-    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
-    {
-        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable())) = rValue;
     }
 
     template<class TDataType> void Erase(const Variable<TDataType>& rThisVariable)
@@ -309,11 +274,6 @@ public:
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())) != mData.end());
-    }
-
-    template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.GetSourceVariable().SourceKey())) != mData.end());
     }
 
     bool IsEmpty() const
@@ -485,6 +445,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DATA_VALUE_CONTAINER_H_INCLUDED  defined 
+#endif // KRATOS_DATA_VALUE_CONTAINER_H_INCLUDED  defined
 
 

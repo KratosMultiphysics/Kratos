@@ -22,8 +22,6 @@
 #include "includes/kratos_flags.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/process_info.h"
 #include "utilities/indexed_object.h"
 
@@ -108,9 +106,6 @@ public:
 
     /// The variable type definition (double)
     typedef Kratos::Variable<double> VariableType;
-
-    /// The component variable type definition
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
 
     /// Pointer definition of MasterSlaveConstraint
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
@@ -201,34 +196,6 @@ public:
         const VariableType& rMasterVariable,
         NodeType& rSlaveNode,
         const VariableType& rSlaveVariable,
-        const double Weight,
-        const double Constant
-        ) const
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "Create not implemented in MasterSlaveConstraintBaseClass" << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Creates a new constraint pointer
-     * @param Id the ID of the new constraint
-     * @param rMasterNode Node which is the master of for this constraint.
-     * @param rMasterVariable the component of vector variable which is on the master node. (DOF)
-     * @param rSlaveNode Node which is the slave of for this constraint.
-     * @param rSlaveVariable the component of vector variable which is on the slave node. (DOF)
-     * @param Weight The weight with which the master and slave are related s = w*m + c
-     * @param Constant The constant in the master slave relation
-     * @return A Pointer to the new constraint
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please remove it") virtual MasterSlaveConstraint::Pointer Create(
-        IndexType Id,
-        NodeType& rMasterNode,
-        const VariableComponentType& rMasterVariable,
-        NodeType& rSlaveNode,
-        const VariableComponentType& rSlaveVariable,
         const double Weight,
         const double Constant
         ) const
