@@ -17,16 +17,25 @@ conditions)
 - UPw Quasi-zero-thickness interface elements for defining cracks and
 joints
 
+- UPw Updated-Lagrangian element for saturated porous media (with
+equal order interpolation, unstable under incompressible-undrained
+conditions)
 
-### How to use MPI in Geo-Mechanics Application
+- Stable UPw Updated-Lagrangian element for saturated porous media
+(with higher order interpolation for displacements)
 
-Make sure that the following lines are properly set in the configure.sh file:
+- Reading and using dll/so of User Defined Soil Models (UDSM) based on PLAXIS forrmat
 
--DEXTERNAL_SOLVERS_APPLICATION=ON        \
--DSTRUCTURAL_MECHANICS_APPLICATION=ON    \
--DGEO_MECHANICS_APPLICATION=ON           \
--DINSTALL_EMBEDDED_PYTHON=ON             \
+- Reading and using dll/so of UMAT based on ABAQUS forrmat
 
+### How to compile Geo-Mechanics Application
+
+Make sure that the following lines are properly set in the configure.sh (.bat) file:
+
+CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\GeoMechanicsApplication;
 
 
 *Note*: For the moment, MPI does not work.
