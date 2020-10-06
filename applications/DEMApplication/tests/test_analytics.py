@@ -26,7 +26,7 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(AnalyticsTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
@@ -71,7 +71,6 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
         if self.time > 0.145:
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('1/n_accum')
-
             self.assertEqual(n_accum_h5[-1], -4)
 
 class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
@@ -101,7 +100,6 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         if self.time > 1.9:
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('2/n_accum')
-
             self.assertEqual(n_accum_h5[-1], -4)
 
 class TestAnalytics(KratosUnittest.TestCase):
