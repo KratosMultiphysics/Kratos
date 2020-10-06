@@ -15,6 +15,7 @@
 #define KRATOS_AUXILIAR_MODEL_PART_UTILITIES
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -90,6 +91,174 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method adds the given element and the belonging nodes
+     * @param pNewElement The new element added
+     * @param ThisIndex The mesh index
+     */
+    void AddElementWithNodes(
+        Element::Pointer pNewElement,
+        IndexType ThisIndex = 0
+        );
+
+    /**
+     * @brief Inserts a list of elements and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+     * @param rElementIds The ids of the elements
+     * @param ThisIndex The mesh index
+     */
+    void AddElementsWithNodes(
+        std::vector<IndexType> const& rElementIds,
+        IndexType ThisIndex = 0
+        );
+
+    /**
+     * @brief Inserts a list of pointers to elements and the belonging nodes
+     * @param ThisIndex The mesh index
+     */
+    template<class TIteratorType >
+    void AddElementsWit_elemhNodes(
+        TIteratorType ItElementsBegin,
+        TIteratorType ItElementsEnd,
+        IndexType ThisIndex = 0
+        )
+    {
+        KRATOS_TRY
+        ModelPart::ElementsContainerType aux;
+        ModelPart::ElementsContainerType aux_root;
+        ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
+        std::unordered_set<IndexType> set_of_nodes;
+
+        for(TIteratorType it_elem = ItElementsBegin; it_elem!=ItElementsEnd; ++it_elem) {
+            auto it_elem_found = p_root_model_part->Elements().find(it_elem->Id());
+            if(it_elem_found == p_root_model_part->ElementsEnd()) { // Element does not exist in the top model part
+                aux_root.push_back( *(it_elem.base()) );
+                aux.push_back( *(it_elem.base()) );
+                const auto& r_geom = it_elem->GetGeometry();
+                for (IndexType i = 0; i < r_geom.size(); ++i) {
+                    set_of_nodes.insert(r_geom[i].Id());
+                }
+            } else { // If it_elem does exist verify it_elem is the same element
+                if(&(*it_elem_found) != &(*it_elem)) { //check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new element wit_elemh Id :" << it_elem_found->Id() << ", unfortunately a (different) element wit_elemh the same Id already exists" << std::endl;
+                } else {
+                    aux.push_back( *(it_elem.base()) );
+                    const auto& r_geom = it_elem->GetGeometry();
+                    for (IndexType i = 0; i < r_geom.size(); ++i) {
+                        set_of_nodes.insert(r_geom[i].Id());
+                    }
+                }
+            }
+        }
+
+        // Adding nodes
+        std::vector<IndexType> list_of_nodes;
+        list_of_nodes.insert(list_of_nodes.end(), set_of_nodes.begin(), set_of_nodes.end());
+        mrModelPart.AddNodes(list_of_nodes);
+
+        for(auto it_elem = aux_root.begin(); it_elem!=aux_root.end(); ++it_elem) {
+            p_root_model_part->Elements().push_back( *(it_elem.base()) );
+        }
+        p_root_model_part->Elements().Unique();
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = &mrModelPart;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto it_elem = aux.begin(); it_elem!=aux.end(); ++it_elem) {
+                p_current_part->Elements().push_back( *(it_elem.base()) );
+            }
+            p_current_part->AddNodes(list_of_nodes);
+
+            p_current_part->Elements().Unique();
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method adds the given condition and the belonging nodes
+     * @param pNewCondition The new condition added
+     * @param ThisIndex The mesh index
+     */
+    void AddConditionWithNodes(
+        Condition::Pointer pNewCondition,
+        IndexType ThisIndex = 0
+        );
+
+    /**
+     * @brief Inserts a list of conditions and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+     * @param rConditionIds The ids of the conditions
+     * @param ThisIndex The mesh index
+     */
+    void AddConditionsWithNodes(
+        std::vector<IndexType> const& rConditionIds,
+        IndexType ThisIndex = 0
+        );
+
+    /**
+     * @brief Inserts a list of pointers to conditions and the belonging nodes
+     * @param ThisIndex The mesh index
+     */
+    template<class TIteratorType >
+    void AddConditionsWithNodes(
+        TIteratorType ItConditionsBegin,
+        TIteratorType ItConditionsEnd,
+        IndexType ThisIndex = 0
+        )
+    {
+        KRATOS_TRY
+        ModelPart::ConditionsContainerType aux;
+        ModelPart::ConditionsContainerType aux_root;
+        ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
+        std::unordered_set<IndexType> set_of_nodes;
+
+        for(TIteratorType it_cond = ItConditionsBegin; it_cond!=ItConditionsEnd; ++it_cond) {
+            auto it_cond_found = p_root_model_part->Conditions().find(it_cond->Id());
+            if(it_cond_found == p_root_model_part->ConditionsEnd()) { // Condition does not exist in the top model part
+                aux_root.push_back( *(it_cond.base()) );
+                aux.push_back( *(it_cond.base()) );
+                const auto& r_geom = it_cond->GetGeometry();
+                for (IndexType i = 0; i < r_geom.size(); ++i) {
+                    set_of_nodes.insert(r_geom[i].Id());
+                }
+            } else { // If it_cond does exist verify it_cond is the same condition
+                if(&(*it_cond_found) != &(*it_cond)) { //check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new condition wit_condh Id :" << it_cond_found->Id() << ", unfortunately a (different) condition wit_condh the same Id already exists" << std::endl;
+                } else {
+                    aux.push_back( *(it_cond.base()) );
+                    const auto& r_geom = it_cond->GetGeometry();
+                    for (IndexType i = 0; i < r_geom.size(); ++i) {
+                        set_of_nodes.insert(r_geom[i].Id());
+                    }
+                }
+            }
+        }
+
+        // Adding nodes
+        std::vector<IndexType> list_of_nodes;
+        list_of_nodes.insert(list_of_nodes.end(), set_of_nodes.begin(), set_of_nodes.end());
+        mrModelPart.AddNodes(list_of_nodes);
+
+        for(auto it_cond = aux_root.begin(); it_cond!=aux_root.end(); ++it_cond) {
+            p_root_model_part->Conditions().push_back( *(it_cond.base()) );
+        }
+        p_root_model_part->Conditions().Unique();
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = &mrModelPart;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto it_cond = aux.begin(); it_cond!=aux.end(); ++it_cond) {
+                p_current_part->Conditions().push_back( *(it_cond.base()) );
+            }
+            p_current_part->AddNodes(list_of_nodes);
+
+            p_current_part->Conditions().Unique();
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief This method ensured that the properties of elements and conditions are on the model part (it does recursively in all model parts)
