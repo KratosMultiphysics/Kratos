@@ -8,7 +8,6 @@ SET(ListFolders sources conditions constraints containers elements factories geo
 SET(LIST_OF_SOURCE_EXCEPTIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp # This is because its dependency on python.h
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp # kratos_version is excluded because I separated it to another CU so you didn't have to recompile the whole core every time the version changed, just relink it. In order to not pollute with more .dll / .so a separate .o is created and then using during the linking of KratosCore.dll
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_smoothing_process.cpp # This wasn't in the original list for some reason
 )
 FOREACH(subFolder ${ListFolders})
     FILE(GLOB_RECURSE ${subFolder}Sources "${subFolder}/*.cpp" "${subFolder}/*.c") #all .cpp and .c
@@ -94,7 +93,6 @@ target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
