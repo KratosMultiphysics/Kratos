@@ -1,23 +1,107 @@
-#include "utilities/sensitivity_builder.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors: Martin Fusseder, https://github.com/MFusseder
+//                Michael Andre, https://github.com/msandre
+//                Suneth Warnakulasuriya, https://github.com/sunethwarna
+//
 
-#include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
-#include "input_output/logger.h"
-#include "utilities/openmp_utils.h"
-#include "utilities/variable_utils.h"
-#include "utilities/parallel_utilities.h"
+// System includes
 #include <algorithm>
 #include <utility>
 
-namespace
-{
+// External includes
+
+// Project includes
+#include "containers/global_pointers_vector.h"
+#include "includes/kratos_parameters.h"
+#include "includes/parallel_environment.h"
+#include "includes/ublas_interface.h"
+#include "input_output/logger.h"
+#include "solving_strategies/schemes/residual_based_sensitivity_builder_scheme.h"
+#include "utilities/assemble_utilities.h"
+#include "utilities/communication_coloring_utilities.h"
+#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/variable_utils.h"
+
+// Include base h
+#include "utilities/sensitivity_builder.h"
+
 namespace sensitivity_builder_cpp // cotire guard
 {
 using namespace Kratos;
 
-bool RequiresUpdateSensitivities(const Geometry<Node<3>>& rGeom)
+template <template <class T> class TFunctor, class... TArgs>
+void ExecuteFunctor(
+    const SensitivityBuilder::TSensitivityVariables& rVariables,
+    TArgs&... rArgs)
 {
-    for (auto& r_node : rGeom)
+    for (const auto& r_variable : std::get<0>(rVariables)) {
+        TFunctor<double>()(r_variable, rArgs...);
+    }
+    for (const auto& r_variable : std::get<1>(rVariables)) {
+        TFunctor<array_1d<double, 3>>()(r_variable, rArgs...);
+    }
+}
+
+template <template <class T> class TFunctor, class TContainer, class... TArgs>
+void ExecuteFunctorInContainer(
+    const SensitivityBuilder::TSensitivityVariables& rVariables,
+    TContainer& rContainer,
+    TArgs&... rArgs)
+{
+    block_for_each(rContainer, [&](typename TContainer::value_type& rEntity) {
+        ExecuteFunctor<TFunctor, typename TContainer::value_type, TArgs...>(
+            rVariables, rEntity, rArgs...);
+    });
+}
+
+template <class TDataType>
+class SetNonHistoricalValueToZeroFunctor
+{
+public:
+    template <class TEntityType>
+    void operator()(
+        const SensitivityBuilder::SensitivityVariables<TDataType>& rVariable,
+        TEntityType& rEntity)
+    {
+        rEntity.SetValue(*rVariable.pOutputVariable, rVariable.pOutputVariable->Zero());
+    }
+};
+
+template <class TDataType>
+class SetHistoricalValueToZeroFunctor
+{
+public:
+    void operator()(
+        const SensitivityBuilder::SensitivityVariables<TDataType>& rVariable,
+        ModelPart::NodeType& rNode)
+    {
+        rNode.FastGetSolutionStepValue(*rVariable.pOutputVariable) =
+            rVariable.pOutputVariable->Zero();
+    }
+};
+
+template<class TDerivativeEntityType>
+bool HasSensitivityContributions(
+    const Geometry<ModelPart::NodeType>& rGeometry)
+{
+    return rGeometry.GetValue(UPDATE_SENSITIVITIES);
+}
+
+template<>
+bool HasSensitivityContributions<ModelPart::NodeType>(
+    const Geometry<ModelPart::NodeType>& rGeometry)
+{
+    for (auto& r_node : rGeometry)
     {
         if (r_node.GetValue(UPDATE_SENSITIVITIES))
         {
@@ -27,383 +111,252 @@ bool RequiresUpdateSensitivities(const Geometry<Node<3>>& rGeom)
     return false;
 }
 
-void AssembleOnDataValueContainer(const Variable<double>& rVariable,
-                                  const Vector& rSrc,
-                                  DataValueContainer& rDest)
+template<class TContainerType>
+TContainerType& GetContainer(ModelPart& rModelPart);
+
+template <>
+ModelPart::ElementsContainerType& GetContainer<ModelPart::ElementsContainerType>(
+    ModelPart& rModelPart)
 {
-    KRATOS_ERROR_IF(rSrc.size() != 1) << "Variable: " << rVariable.Name()
-                                      << ", rSrc.size() = " << rSrc.size() << std::endl;
-    rDest[rVariable] += rSrc[0];
+    return rModelPart.Elements();
 }
 
-void AssembleOnDataValueContainer(const Variable<array_1d<double, 3>>& rVariable,
-                                  const Vector& rSrc,
-                                  DataValueContainer& rDest)
+template <>
+ModelPart::ConditionsContainerType& GetContainer<ModelPart::ConditionsContainerType>(
+    ModelPart& rModelPart)
 {
-    KRATOS_ERROR_IF(rSrc.size() > 3) << "Variable: " << rVariable.Name()
-                                     << ", rSrc.size() = " << rSrc.size() << std::endl;
-    array_1d<double, 3>& r_dest = rDest[rVariable];
-    for (std::size_t d = 0; d < rSrc.size(); ++d)
-    {
-        r_dest[d] += rSrc[d];
-    }
+    return rModelPart.Conditions();
 }
 
-void AssembleNodalSolutionStepValues(const Variable<double>& rVariable,
-                                     const Vector& rValues,
-                                     Geometry<Node<3>>& rGeom)
+template<unsigned int TDim, class TEntityType>
+void AssembleVectorValuesInGPValuesMap(
+    AssembleUtilities::TGPMap<TEntityType, double>& rGPMap,
+    const Vector& rValues,
+    const GlobalPointersVector<TEntityType>& rGPVector)
 {
-    KRATOS_TRY;
-    KRATOS_ERROR_IF(rGeom.size() != rValues.size())
-        << "Geometry size: " << rGeom.size()
-        << " is incompatible with vector size: " << rValues.size() << std::endl;
-    std::size_t index = 0;
-    for (auto& r_node : rGeom)
-    {
-        if (r_node.GetValue(UPDATE_SENSITIVITIES))
-        {
-            double& r_dest = r_node.FastGetSolutionStepValue(rVariable);
-            const double rhs = rValues[index];
-#pragma omp atomic
-            r_dest += rhs;
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rValues.size() != rGPVector.size())
+        << "Provided values size is not equal to provided global pointer "
+           "vector size. [ rValues.size() = "
+        << rValues.size() << ", rGPVector.size() = " << rGPVector.size() << " ].\n";
+
+    for (std::size_t i = 0; i < rValues.size(); ++i) {
+        auto p_itr = rGPMap.find(rGPVector(i));
+        if (p_itr == rGPMap.end()) {
+            rGPMap[rGPVector(i)] = rValues[i];
+        } else {
+            p_itr->second += rValues[i];
         }
-        ++index;
     }
+
     KRATOS_CATCH("");
 }
 
-void AssembleNodalSolutionStepValues(const Variable<array_1d<double, 3>>& rVariable,
-                                     const Vector& rValues,
-                                     Geometry<Node<3>>& rGeom)
+template<unsigned int TDim, class TEntityType>
+void AssembleVectorValuesInGPValuesMap(
+    AssembleUtilities::TGPMap<TEntityType, array_1d<double, 3>>& rGPMap,
+    const Vector& rValues,
+    const GlobalPointersVector<TEntityType>& rGPVector)
 {
-    KRATOS_TRY;
-    if (rGeom.size() * rGeom.WorkingSpaceDimension() != rValues.size())
-    {
-        KRATOS_ERROR << "Geometry size: " << rGeom.size()
-                     << " and working space dimension: " << rGeom.WorkingSpaceDimension()
-                     << " are incompatible with incompatible with vector size: "
-                     << rValues.size() << std::endl;
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rValues.size() != rGPVector.size() * TDim)
+        << "Provided values size is not adequate to match with provided global pointer "
+           "vector size. [ rValues.size() = "
+        << rValues.size() << ", rGPVector.size() = " << rGPVector.size() << " ].\n";
+
+    const auto& initialize_gp_value_2d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
+        rValue[0] = rValues[r_index++];
+        rValue[1] = rValues[r_index++];
+        rValue[2] = 0.0;
+    };
+
+    const auto& initialize_gp_value_3d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
+        rValue[0] = rValues[r_index++];
+        rValue[1] = rValues[r_index++];
+        rValue[2] = rValues[r_index++];
+    };
+
+    const auto& update_gp_value_2d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
+        rValue[0] += rValues[r_index++];
+        rValue[1] += rValues[r_index++];
+    };
+
+    const auto& update_gp_value_3d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
+        rValue[0] += rValues[r_index++];
+        rValue[1] += rValues[r_index++];
+        rValue[2] += rValues[r_index++];
+    };
+
+    const auto& r_initialization_method = (TDim == 2) ? initialize_gp_value_2d : initialize_gp_value_3d;
+    const auto& r_update_method = (TDim == 2) ? update_gp_value_2d : update_gp_value_3d;
+
+    int local_index = 0;
+    for (std::size_t i = 0; i < rGPVector.size(); ++i) {
+        auto gp = rGPVector(i);
+        auto p_itr = rGPMap.find(gp);
+        if (p_itr == rGPMap.end()) {
+            array_1d<double, 3>& r_gp_value = rGPMap[gp];
+            r_initialization_method(r_gp_value, local_index, rValues);
+        } else {
+            r_update_method(p_itr->second, local_index, rValues);
+        }
     }
-    std::size_t index = 0;
-    for (auto& r_node : rGeom)
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType, class TDerivativeEntityType, class TDataType>
+void AssembleContainerContributions(
+    TContainerType& rContainer,
+    AdjointResponseFunction& rResponseFunction,
+    SensitivityBuilderScheme& rSensitivityBuilderScheme,
+    AssembleUtilities::TGPMap<TDerivativeEntityType, TDataType>& rDerivativeEntityValuesGPMap,
+    const Variable<TDataType>& rDesignVariable,
+    const DataCommunicator& rDataCommunicator,
+    const ProcessInfo& rProcessInfo,
+    const double& ScalingFactor)
+{
+    KRATOS_TRY
+
+    using gp_map = AssembleUtilities::TGPMap<TDerivativeEntityType, TDataType>;
+
+    const int domain_size = rProcessInfo[DOMAIN_SIZE];
+
+    const auto& r_map_assemble_method =
+        (domain_size == 2)
+            ? [](gp_map& rGPMap, const Vector& rValues, const GlobalPointersVector<TDerivativeEntityType>& rGPVector) {
+                    AssembleVectorValuesInGPValuesMap<2, TDerivativeEntityType>(rGPMap, rValues, rGPVector);
+                }
+            : [](gp_map& rGPMap, const Vector& rValues, const GlobalPointersVector<TDerivativeEntityType>& rGPVector) {
+                    AssembleVectorValuesInGPValuesMap<3, TDerivativeEntityType>(rGPMap, rValues, rGPVector);
+                };
+
+    GlobalPointersVector<TDerivativeEntityType> gp_global_vector;
+    const int number_of_entities = rContainer.size();
+    #pragma omp parallel
     {
-        if (r_node.GetValue(UPDATE_SENSITIVITIES))
-        {
-            array_1d<double, 3>& r_value = r_node.FastGetSolutionStepValue(rVariable);
-            for (std::size_t d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
-            {
-                double& r_dest = r_value[d];
-                const double rhs = rValues[index + d];
-#pragma omp atomic
-                r_dest += rhs;
+        Vector sensitivities;
+        GlobalPointersVector<TDerivativeEntityType> gp_sensitivity_vector;
+        gp_map gp_values_map;
+
+        #pragma omp for
+        for (int i_entity = 0; i_entity < number_of_entities; ++i_entity) {
+            auto& r_entity = *(rContainer.begin() + i_entity);
+            auto& r_geometry = r_entity.GetGeometry();
+
+            if (HasSensitivityContributions<TDerivativeEntityType>(r_geometry)) {
+                rSensitivityBuilderScheme.CalculateSensitivity(
+                    r_entity, rResponseFunction, sensitivities,
+                    gp_sensitivity_vector, rDesignVariable, rProcessInfo);
+
+                // now assemble to thread local gp_map
+                r_map_assemble_method(gp_values_map, sensitivities * ScalingFactor, gp_sensitivity_vector);
             }
         }
-        index += rGeom.WorkingSpaceDimension();
+
+        // now assemble to global gp_map for current process
+        #pragma omp critical
+        {
+            for (const auto& r_item : gp_values_map) {
+                auto p_itr = rDerivativeEntityValuesGPMap.find(r_item.first);
+                if (p_itr == rDerivativeEntityValuesGPMap.end()) {
+                    rDerivativeEntityValuesGPMap[r_item.first] = r_item.second;
+                    gp_global_vector.push_back(r_item.first);
+                } else {
+                    p_itr->second += r_item.second;
+                }
+            }
+        }
     }
+
+    // remove entries from gp_map which are marked as not to update
+    GlobalPointerCommunicator<TDerivativeEntityType> pointer_comm(rDataCommunicator, gp_global_vector);
+
+    auto update_proxy =
+        pointer_comm.Apply([](const GlobalPointer<TDerivativeEntityType>& gp) -> bool {
+            return (gp->Has(UPDATE_SENSITIVITIES) && gp->GetValue(UPDATE_SENSITIVITIES));
+        });
+
+    for (unsigned int i = 0; i < gp_global_vector.size(); ++i) {
+        auto& gp = gp_global_vector(i);
+        if (!update_proxy.Get(gp)) {
+            rDerivativeEntityValuesGPMap.erase(gp);
+        }
+    }
+
     KRATOS_CATCH("");
 }
 
-struct LocalSensitivityBuilder
-{
-    Vector LocalSensitivity; /**< Local contribution to the total sensitivity */
-    Vector PartialSensitivity; /**< Local contribution to the partial derivative of the response function */
-    Vector AdjointVector; /**< Local adjoint vector */
-    Matrix SensitivityMatrix; /**< Local contribution to the partial derivative of the residual */
-
-    /// Calculate the local contributions of the sensitivity
-    template <typename TDataType, typename TElement>
-    LocalSensitivityBuilder& CalculateLocalSensitivity(const Variable<TDataType>& rVariable,
-                                                       TElement& rElement,
-                                                       AdjointResponseFunction& rResponseFunction,
-                                                       const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY;
-        rElement.CalculateSensitivityMatrix(rVariable, SensitivityMatrix, rProcessInfo);
-        rElement.GetValuesVector(AdjointVector);
-        KRATOS_ERROR_IF(AdjointVector.size() != SensitivityMatrix.size2())
-            << "AdjointVector.size(): " << AdjointVector.size()
-            << " incompatible with SensitivityMatrix.size1(): "
-            << SensitivityMatrix.size1() << ". Variable: " << rVariable << std::endl;
-        if (LocalSensitivity.size() != SensitivityMatrix.size1())
-        {
-            LocalSensitivity.resize(SensitivityMatrix.size1(), false);
-        }
-        rResponseFunction.CalculatePartialSensitivity(
-            rElement, rVariable, SensitivityMatrix, PartialSensitivity, rProcessInfo);
-        KRATOS_ERROR_IF(PartialSensitivity.size() != SensitivityMatrix.size1())
-            << "PartialSensitivity.size(): " << PartialSensitivity.size()
-            << " incompatible with SensitivityMatrix.size1(): "
-            << SensitivityMatrix.size1() << ". Variable: " << rVariable << std::endl;
-        noalias(LocalSensitivity) = prod(SensitivityMatrix, AdjointVector) + PartialSensitivity;
-        return *this;
-        KRATOS_CATCH("");
-    }
-};
-
-/**
- * @brief Contains the sensitivity design and output variables
- *
- * The design variable is passed to CalculateSensitivityMatrix()
- * and CalculatePartialSensitivity() when calculating the local
- * sensitivity contributions. The local sensitivities are assembled
- * to the output variable.
- *
- * Example 1:
- * SensitivityVariables<double> vars("THICKNESS");
- * vars.pDesignVariable->Name(); // "THICKNESS"
- * vars.pOutputVariable->Name(); // "THICKNESS_SENSITIVITY"
- *
- * Example 2:
- * SensitivityVariables<double> vars("THICKNESS_SENSITIVITY");
- * vars.pDesignVariable->Name(); // "THICKNESS_SENSITIVITY"
- * vars.pOutputVariable->Name(); // "THICKNESS_SENSITIVITY"
- */
 template <class TDataType>
-struct SensitivityVariables
+class CalculateNodalSolutionStepSensitivityFunctor
 {
-    const Variable<TDataType>* pDesignVariable = nullptr;
-    const Variable<TDataType>* pOutputVariable = nullptr;
-
-    explicit SensitivityVariables(const std::string& rName)
+public:
+    void operator()(
+        const SensitivityBuilder::SensitivityVariables<TDataType>& rVariable,
+        ModelPart& rModelPart,
+        AdjointResponseFunction& rResponseFunction,
+        SensitivityBuilderScheme& rSensitivityBuilderScheme,
+        const double& ScalingFactor)
     {
-        KRATOS_TRY;
-        const std::string output_suffix = "_SENSITIVITY";
-        pDesignVariable = &KratosComponents<Variable<TDataType>>::Get(rName);
-        if (rName.size() > output_suffix.size() &&
-            std::equal(output_suffix.rbegin(), output_suffix.rend(), rName.rbegin()))
-        {
-            pOutputVariable = pDesignVariable;
-        }
-        else
-        {
-            pOutputVariable =
-                &KratosComponents<Variable<TDataType>>::Get(rName + output_suffix);
-        }
+        KRATOS_TRY
+
+        AssembleUtilities::TGPMap<ModelPart::NodeType, TDataType> gp_global_values_map;
+
+        AssembleContainerContributions(
+            rModelPart.Elements(), rResponseFunction, rSensitivityBuilderScheme,
+            gp_global_values_map, *rVariable.pDesignVariable,
+            rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart.GetProcessInfo(), ScalingFactor);
+
+        AssembleContainerContributions(
+            rModelPart.Conditions(), rResponseFunction, rSensitivityBuilderScheme,
+            gp_global_values_map, *rVariable.pDesignVariable,
+            rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart.GetProcessInfo(), ScalingFactor);
+
+        // do the assembly
+        AssembleUtilities::AssembleCurrentDataWithValuesMap(
+            rModelPart, *rVariable.pOutputVariable, gp_global_values_map);
+
         KRATOS_CATCH("");
     }
 };
 
-template <typename TDataType, typename TContainer>
-void AssembleNodalSolutionStepContainerContributions(const SensitivityVariables<TDataType>& rVariables,
-                                                     TContainer& rContainer,
-                                                     AdjointResponseFunction& rResponseFunction,
-                                                     const ProcessInfo& rProcessInfo,
-                                                     double ScalingFactor)
+template <class TDataType>
+class CalculateNonHistoricalSensitivitiesFunctor
 {
-    KRATOS_TRY;
-    block_for_each(
-        rContainer, LocalSensitivityBuilder(),
-        [&](typename TContainer::data_type& rElement, LocalSensitivityBuilder& rBuilder) {
-            auto& r_geom = rElement.GetGeometry();
-            if (RequiresUpdateSensitivities(r_geom) == false)
-                return;
-            rBuilder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
-                                               rResponseFunction, rProcessInfo);
-            // if rElement does not contribute to local sensitivity, skip assembly
-            if (rBuilder.LocalSensitivity.size() != 0) {
-                rBuilder.LocalSensitivity *= ScalingFactor;
-                AssembleNodalSolutionStepValues(*rVariables.pOutputVariable,
-                                                rBuilder.LocalSensitivity, r_geom);
-            }
-        });
-    KRATOS_CATCH("");
-}
+public:
+    template<class TContainerType>
+    void operator()(
+        const SensitivityBuilder::SensitivityVariables<TDataType>& rVariable,
+        TContainerType& rContainer,
+        AdjointResponseFunction& rResponseFunction,
+        SensitivityBuilderScheme& rSensitivityBuilderScheme,
+        const DataCommunicator& rDataCommunicator,
+        const ProcessInfo& rProcessInfo,
+        const double& ScalingFactor)
+    {
+        KRATOS_TRY
 
-template <typename TDataType>
-void CalculateNodalSolutionStepSensitivities(const SensitivityVariables<TDataType>& rVariables,
-                                             ModelPart& rModelPart,
-                                             AdjointResponseFunction& rResponseFunction,
-                                             double ScalingFactor)
-{
-    KRATOS_TRY;
-    auto& r_comm = rModelPart.GetCommunicator();
-    const auto& r_output_variable = *rVariables.pOutputVariable;
-    if (r_comm.TotalProcesses() > 1)
-    {
-        // Make sure we only add the old sensitivity once when we assemble.
-        block_for_each(rModelPart.Nodes(), [&r_output_variable, &r_comm](Node<3>& rNode) {
-            if (rNode.FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
-                rNode.FastGetSolutionStepValue(r_output_variable) =
-                    r_output_variable.Zero();
-        });
-    }
-    AssembleNodalSolutionStepContainerContributions(
-        rVariables, rModelPart.Elements(), rResponseFunction,
-        rModelPart.GetProcessInfo(), ScalingFactor);
-    AssembleNodalSolutionStepContainerContributions(
-        rVariables, rModelPart.Conditions(), rResponseFunction,
-        rModelPart.GetProcessInfo(), ScalingFactor);
-    r_comm.AssembleCurrentData(r_output_variable);
-    KRATOS_CATCH("");
-}
+        AssembleUtilities::TGPContainerMap<TContainerType, TDataType> gp_global_values_map;
 
-void CalculateNodalSolutionStepSensitivities(const std::string& rVariable,
-                                             ModelPart& rModelPart,
-                                             AdjointResponseFunction& rResponseFunction,
-                                             double ScalingFactor)
-{
-    KRATOS_TRY;
-    if (KratosComponents<Variable<double>>::Has(rVariable) == true)
-    {
-        CalculateNodalSolutionStepSensitivities(
-            SensitivityVariables<double>{rVariable}, rModelPart,
-            rResponseFunction, ScalingFactor);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariable) == true)
-    {
-        CalculateNodalSolutionStepSensitivities(
-            SensitivityVariables<array_1d<double, 3>>{rVariable}, rModelPart,
-            rResponseFunction, ScalingFactor);
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported variable: " << rVariable << "." << std::endl;
-    }
-    KRATOS_CATCH("");
-}
+        AssembleContainerContributions(
+            rContainer, rResponseFunction, rSensitivityBuilderScheme,
+            gp_global_values_map, *rVariable.pDesignVariable,
+            rDataCommunicator, rProcessInfo, ScalingFactor);
 
-template <typename TDataType, typename TContainer>
-void CalculateNonHistoricalSensitivities(const SensitivityVariables<TDataType>& rVariables,
-                                         TContainer& rContainer,
-                                         AdjointResponseFunction& rResponseFunction,
-                                         const ProcessInfo& rProcessInfo,
-                                         double ScalingFactor)
-{
-    KRATOS_TRY;
-    block_for_each(
-        rContainer, LocalSensitivityBuilder(),
-        [&](typename TContainer::data_type& rElement, LocalSensitivityBuilder& rBuilder) {
-            if (rElement.GetValue(UPDATE_SENSITIVITIES) == false)
-                return;
-            rBuilder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
-                                               rResponseFunction, rProcessInfo);
-            // if rElement does not contribute to local sensitivity, skip assembly
-            if (rBuilder.LocalSensitivity.size() != 0) {
-                rBuilder.LocalSensitivity *= ScalingFactor;
-                AssembleOnDataValueContainer(*rVariables.pOutputVariable,
-                                             rBuilder.LocalSensitivity, rElement.Data());
-            }
-        });
-    KRATOS_CATCH("");
-}
+        // do the assembly
+        AssembleUtilities::AssembleNonHistoricalDataWithValuesMap(
+            rContainer, rDataCommunicator, *rVariable.pOutputVariable, gp_global_values_map);
 
-template <typename TContainer>
-void CalculateNonHistoricalSensitivities(const std::string& rVariable,
-                                         TContainer& rContainer,
-                                         AdjointResponseFunction& rResponseFunction,
-                                         const ProcessInfo& rProcessInfo,
-                                         double ScalingFactor)
-{
-    KRATOS_TRY;
-    if (KratosComponents<Variable<double>>::Has(rVariable) == true)
-    {
-        CalculateNonHistoricalSensitivities(SensitivityVariables<double>{rVariable},
-                                            rContainer, rResponseFunction,
-                                            rProcessInfo, ScalingFactor);
+        KRATOS_CATCH("");
     }
-    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariable) == true)
-    {
-        CalculateNonHistoricalSensitivities(
-            SensitivityVariables<array_1d<double, 3>>{rVariable}, rContainer,
-            rResponseFunction, rProcessInfo, ScalingFactor);
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported variable: " << rVariable << "." << std::endl;
-    }
-    KRATOS_CATCH("");
-}
+};
 
-template <typename TContainer>
-void CalculateNonHistoricalSensitivities(const std::vector<std::string>& rVariables,
-                                         TContainer& rContainer,
-                                         AdjointResponseFunction& rResponseFunction,
-                                         const ProcessInfo& rProcessInfo,
-                                         double ScalingFactor)
-{
-    KRATOS_TRY;
-    for (auto& r_variable : rVariables)
-    {
-        CalculateNonHistoricalSensitivities(
-            r_variable, rContainer, rResponseFunction, rProcessInfo, ScalingFactor);
-    }
-    KRATOS_CATCH("");
-}
-
-void SetNodalSolutionStepSensitivityVariableToZero(std::string const& rVariable,
-                                                   ModelPart::NodesContainerType& rNodes)
-{
-    KRATOS_TRY;
-    if (KratosComponents<Variable<double>>::Has(rVariable) == true)
-    {
-        auto sensitivity_variables = SensitivityVariables<double>{rVariable};
-        VariableUtils().SetVariable(*sensitivity_variables.pOutputVariable,
-                                    sensitivity_variables.pOutputVariable->Zero(), rNodes);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariable) == true)
-    {
-        auto sensitivity_variables = SensitivityVariables<array_1d<double, 3>>{rVariable};
-        VariableUtils().SetVariable(*sensitivity_variables.pOutputVariable,
-                                    sensitivity_variables.pOutputVariable->Zero(), rNodes);
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported variable: " << rVariable << "." << std::endl;
-    }
-    KRATOS_CATCH("");
-}
-
-void SetNodalSolutionStepSensitivityVariablesToZero(const std::vector<std::string>& rVariables,
-                                                    ModelPart::NodesContainerType& rNodes)
-{
-    KRATOS_TRY;
-    for (auto& r_variable : rVariables)
-    {
-        SetNodalSolutionStepSensitivityVariableToZero(r_variable, rNodes);
-    }
-    KRATOS_CATCH("");
-}
-
-template <typename TContainer>
-void SetNonHistoricalSensitivityVariableToZero(std::string const& rVariable, TContainer& rElements)
-{
-    KRATOS_TRY;
-    if (KratosComponents<Variable<double>>::Has(rVariable) == true)
-    {
-        auto sensitivity_variables = SensitivityVariables<double>{rVariable};
-        VariableUtils().SetNonHistoricalVariable(
-            *sensitivity_variables.pOutputVariable,
-            sensitivity_variables.pOutputVariable->Zero(), rElements);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariable) == true)
-    {
-        auto sensitivity_variables = SensitivityVariables<array_1d<double, 3>>{rVariable};
-        VariableUtils().SetNonHistoricalVariable(
-            *sensitivity_variables.pOutputVariable,
-            sensitivity_variables.pOutputVariable->Zero(), rElements);
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported variable: " << rVariable << "." << std::endl;
-    }
-    KRATOS_CATCH("");
-}
-
-template <typename TContainer>
-void SetNonHistoricalSensitivityVariablesToZero(const std::vector<std::string>& rVariables,
-                                                TContainer& rElements)
-{
-    KRATOS_TRY;
-    for (auto& r_variable : rVariables)
-    {
-        SetNonHistoricalSensitivityVariableToZero(r_variable, rElements);
-    }
-    KRATOS_CATCH("");
-}
-
-void ReplaceDeprecatedNameIfExists(Parameters& rSettings,
-                                   const std::string& rDeprecatedName,
-                                   const std::string& rNewName)
+void ReplaceDeprecatedNameIfExists(
+    Parameters& rSettings,
+    const std::string& rDeprecatedName,
+    const std::string& rNewName)
 {
     KRATOS_TRY;
     if (rSettings.Has(rDeprecatedName))
@@ -417,21 +370,6 @@ void ReplaceDeprecatedNameIfExists(Parameters& rSettings,
     }
     KRATOS_CATCH("");
 }
-
-std::vector<std::string> ArrayOfStringToVector(Parameters Settings)
-{
-    KRATOS_DEBUG_ERROR_IF_NOT(Settings.IsArray())
-        << "Settings must be an array." << std::endl;
-    std::vector<std::string> result(Settings.size());
-    for (std::size_t i = 0; i < result.size(); ++i)
-    {
-        result[i] = Settings.GetArrayItem(i).GetString();
-    }
-    return result;
-}
-
-template<class TContainerType>
-TContainerType& GetContainer(ModelPart& rModelPart);
 
 void AddMatrixSubBlock(
     Matrix& rOutput,
@@ -557,30 +495,33 @@ void ComputeEntityGeometryNeighbourNodeMap(
     KRATOS_CATCH("");
 }
 
-template <>
-ModelPart::ElementsContainerType& GetContainer<ModelPart::ElementsContainerType>(ModelPart& rModelPart)
-{
-    return rModelPart.Elements();
-}
-
-template <>
-ModelPart::ConditionsContainerType& GetContainer<ModelPart::ConditionsContainerType>(ModelPart& rModelPart)
-{
-    return rModelPart.Conditions();
-}
-
-
 } // namespace sensitivity_builder_cpp
-} // namespace
 
 namespace Kratos
 {
-SensitivityBuilder::SensitivityBuilder(Parameters Settings,
-                                       ModelPart& rModelPart,
-                                       AdjointResponseFunction::Pointer pResponseFunction)
-    : mpModelPart(&rModelPart), mpResponseFunction(pResponseFunction)
+SensitivityBuilder::SensitivityBuilder(
+    Parameters Settings,
+    ModelPart& rModelPart,
+    AdjointResponseFunction::Pointer pResponseFunction)
+    : SensitivityBuilder(
+          Settings,
+          rModelPart,
+          pResponseFunction,
+          Kratos::make_unique<ResidualBasedSensitivityBuilderScheme>())
+{
+}
+
+SensitivityBuilder::SensitivityBuilder(
+    Parameters Settings,
+    ModelPart& rModelPart,
+    AdjointResponseFunction::Pointer pResponseFunction,
+    SensitivityBuilderScheme::Pointer pSensitivityBuilderScheme)
+    : mpModelPart(&rModelPart),
+      mpResponseFunction(pResponseFunction),
+      mpSensitivityBuilderScheme(pSensitivityBuilderScheme)
 {
     KRATOS_TRY;
+
     using sensitivity_builder_cpp::ReplaceDeprecatedNameIfExists;
     ReplaceDeprecatedNameIfExists(Settings, "nodal_sensitivity_variables",
                                   "nodal_solution_step_sensitivity_variables");
@@ -606,24 +547,24 @@ SensitivityBuilder::SensitivityBuilder(Parameters Settings,
 
     auto sensitivity_model_part_name =
         Settings["sensitivity_model_part_name"].GetString();
-    if (sensitivity_model_part_name != "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART")
-    {
+    if (sensitivity_model_part_name !=
+        "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART") {
         mpSensitivityModelPart = mpModelPart->pGetSubModelPart(sensitivity_model_part_name);
-    }
-    else
-    {
+    } else {
         mpSensitivityModelPart = mpModelPart;
     }
-    using sensitivity_builder_cpp::ArrayOfStringToVector;
-    mNodalSolutionStepSensitivityVariables = ArrayOfStringToVector(
-        Settings["nodal_solution_step_sensitivity_variables"]);
-    mElementDataValueSensitivityVariables = ArrayOfStringToVector(
-        Settings["element_data_value_sensitivity_variables"]);
-    mConditionDataValueSensitivityVariables = ArrayOfStringToVector(
-        Settings["condition_data_value_sensitivity_variables"]);
+
     mBuildMode = Settings["build_mode"].GetString();
     mNodalSolutionStepSensitivityCalculationIsThreadSafe =
         Settings["nodal_solution_step_sensitivity_calculation_is_thread_safe"].GetBool();
+
+    mNodalSolutionStepSensitivityVariablesList = SensitivityBuilder::GetVariableLists(
+        Settings["nodal_solution_step_sensitivity_variables"].GetStringArray());
+    mElementDataValueSensitivityVariablesList = SensitivityBuilder::GetVariableLists(
+        Settings["element_data_value_sensitivity_variables"].GetStringArray());
+    mConditionDataValueSensitivityVariablesList = SensitivityBuilder::GetVariableLists(
+        Settings["condition_data_value_sensitivity_variables"].GetStringArray());
+
     KRATOS_CATCH("");
 }
 
@@ -634,12 +575,34 @@ void SensitivityBuilder::CalculateNodalSolutionStepSensitivities(
     double ScalingFactor)
 {
     KRATOS_TRY;
-    using sensitivity_builder_cpp::CalculateNodalSolutionStepSensitivities;
-    for (auto& r_variable : rVariables)
-    {
-        CalculateNodalSolutionStepSensitivities(
-            r_variable, rModelPart, rResponseFunction, ScalingFactor);
-    }
+
+    using namespace sensitivity_builder_cpp;
+
+    const auto& r_variables_list = GetVariableLists(rVariables);
+    ResidualBasedSensitivityBuilderScheme scheme;
+
+    CalculateNodalSolutionStepSensitivities(
+        r_variables_list, rModelPart, rResponseFunction, scheme, ScalingFactor);
+
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::CalculateNodalSolutionStepSensitivities(
+    const TSensitivityVariables& rVariables,
+    ModelPart& rModelPart,
+    AdjointResponseFunction& rResponseFunction,
+    SensitivityBuilderScheme& rSensitivityBuilderScheme,
+    double ScalingFactor)
+{
+    KRATOS_TRY;
+
+    using namespace sensitivity_builder_cpp;
+
+    ExecuteFunctorInContainer<SetHistoricalValueToZeroFunctor>(
+        rVariables, rModelPart.GetCommunicator().GhostMesh().Nodes());
+    ExecuteFunctor<CalculateNodalSolutionStepSensitivityFunctor>(
+        rVariables, rModelPart, rResponseFunction, rSensitivityBuilderScheme, ScalingFactor);
+
     KRATOS_CATCH("");
 }
 
@@ -650,9 +613,28 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
     const ProcessInfo& rProcessInfo,
     double ScalingFactor)
 {
-    using sensitivity_builder_cpp::CalculateNonHistoricalSensitivities;
-    CalculateNonHistoricalSensitivities(
-        rVariables, rElements, rResponseFunction, rProcessInfo, ScalingFactor);
+    using namespace sensitivity_builder_cpp;
+
+    const auto& r_variables_list = GetVariableLists(rVariables);
+    ResidualBasedSensitivityBuilderScheme scheme;
+
+    CalculateNonHistoricalSensitivities(r_variables_list, rElements, rResponseFunction,
+                                        scheme, rProcessInfo, ScalingFactor);
+}
+
+void SensitivityBuilder::CalculateNonHistoricalSensitivities(
+    const TSensitivityVariables& rVariables,
+    ModelPart::ElementsContainerType& rElements,
+    AdjointResponseFunction& rResponseFunction,
+    SensitivityBuilderScheme& rSensitivityBuilderScheme,
+    const ProcessInfo& rProcessInfo,
+    double ScalingFactor)
+{
+    using namespace sensitivity_builder_cpp;
+
+    ExecuteFunctor<CalculateNonHistoricalSensitivitiesFunctor>(
+        rVariables, rElements, rResponseFunction, rSensitivityBuilderScheme,
+        ParallelEnvironment::GetDefaultDataCommunicator(), rProcessInfo, ScalingFactor);
 }
 
 void SensitivityBuilder::CalculateNonHistoricalSensitivities(
@@ -662,14 +644,34 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
     const ProcessInfo& rProcessInfo,
     double ScalingFactor)
 {
-    using sensitivity_builder_cpp::CalculateNonHistoricalSensitivities;
-    CalculateNonHistoricalSensitivities(
-        rVariables, rConditions, rResponseFunction, rProcessInfo, ScalingFactor);
+    using namespace sensitivity_builder_cpp;
+
+    const auto& r_variables_list = GetVariableLists(rVariables);
+    ResidualBasedSensitivityBuilderScheme scheme;
+
+    CalculateNonHistoricalSensitivities(r_variables_list, rConditions, rResponseFunction,
+                                        scheme, rProcessInfo, ScalingFactor);
+}
+
+void SensitivityBuilder::CalculateNonHistoricalSensitivities(
+    const TSensitivityVariables& rVariables,
+    ModelPart::ConditionsContainerType& rConditions,
+    AdjointResponseFunction& rResponseFunction,
+    SensitivityBuilderScheme& rSensitivityBuilderScheme,
+    const ProcessInfo& rProcessInfo,
+    double ScalingFactor)
+{
+    using namespace sensitivity_builder_cpp;
+
+    ExecuteFunctor<CalculateNonHistoricalSensitivitiesFunctor>(
+        rVariables, rConditions, rResponseFunction, rSensitivityBuilderScheme,
+        ParallelEnvironment::GetDefaultDataCommunicator(), rProcessInfo, ScalingFactor);
 }
 
 void SensitivityBuilder::Initialize()
 {
     KRATOS_TRY;
+
     Clear();
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              mpSensitivityModelPart->Nodes());
@@ -677,6 +679,10 @@ void SensitivityBuilder::Initialize()
         UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Elements());
     VariableUtils().SetNonHistoricalVariable(
         UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Conditions());
+
+    mpSensitivityBuilderScheme->Initialize(
+        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
+
     KRATOS_CATCH("");
 }
 
@@ -684,49 +690,43 @@ void SensitivityBuilder::UpdateSensitivities()
 {
     KRATOS_TRY;
     double scaling_factor{};
-    if (mBuildMode == "integrate")
-    {
+    if (mBuildMode == "integrate") {
         // integrate in time
         scaling_factor = -mpModelPart->GetProcessInfo()[DELTA_TIME];
-    }
-    else if (mBuildMode == "sum")
-    {
+    } else if (mBuildMode == "sum") {
         scaling_factor = 1.0;
-    }
-    else if (mBuildMode == "static")
-    {
+    } else if (mBuildMode == "static") {
         scaling_factor = 1.0;
         ClearSensitivities();
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "Unsupported \"build_mode\": " << mBuildMode << std::endl;
     }
-    if (mNodalSolutionStepSensitivityCalculationIsThreadSafe)
-    {
+    if (mNodalSolutionStepSensitivityCalculationIsThreadSafe) {
         CalculateNodalSolutionStepSensitivities(
-            mNodalSolutionStepSensitivityVariables, *mpModelPart,
-            *mpResponseFunction, scaling_factor);
-    }
-    else
-    {
+            mNodalSolutionStepSensitivityVariablesList, *mpModelPart,
+            *mpResponseFunction, *mpSensitivityBuilderScheme, scaling_factor);
+    } else {
 #ifdef _OPENMP
         const int max_threads = omp_get_max_threads();
         omp_set_num_threads(1);
 #endif
         CalculateNodalSolutionStepSensitivities(
-            mNodalSolutionStepSensitivityVariables, *mpModelPart,
-            *mpResponseFunction, scaling_factor);
+            mNodalSolutionStepSensitivityVariablesList, *mpModelPart,
+            *mpResponseFunction, *mpSensitivityBuilderScheme, scaling_factor);
 #ifdef _OPENMP
         omp_set_num_threads(max_threads);
 #endif
     }
     CalculateNonHistoricalSensitivities(
-        mElementDataValueSensitivityVariables, mpModelPart->Elements(),
-        *mpResponseFunction, mpModelPart->GetProcessInfo(), scaling_factor);
+        mElementDataValueSensitivityVariablesList, mpModelPart->Elements(),
+        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
     CalculateNonHistoricalSensitivities(
-        mConditionDataValueSensitivityVariables, mpModelPart->Conditions(),
-        *mpResponseFunction, mpModelPart->GetProcessInfo(), scaling_factor);
+        mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions(),
+        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
+
+    mpSensitivityBuilderScheme->Update(
+        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
+
     KRATOS_CATCH("");
 }
 
@@ -743,26 +743,30 @@ void SensitivityBuilder::Clear()
 void SensitivityBuilder::ClearFlags()
 {
     KRATOS_TRY;
+
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
                                              mpModelPart->Nodes());
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
                                              mpModelPart->Elements());
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
                                              mpModelPart->Conditions());
+
     KRATOS_CATCH("");
 }
 
 void SensitivityBuilder::ClearSensitivities()
 {
     KRATOS_TRY;
-    using sensitivity_builder_cpp::SetNodalSolutionStepSensitivityVariablesToZero;
-    using sensitivity_builder_cpp::SetNonHistoricalSensitivityVariablesToZero;
-    SetNodalSolutionStepSensitivityVariablesToZero(
-        mNodalSolutionStepSensitivityVariables, mpModelPart->Nodes());
-    SetNonHistoricalSensitivityVariablesToZero(
-        mElementDataValueSensitivityVariables, mpModelPart->Elements());
-    SetNonHistoricalSensitivityVariablesToZero(
-        mConditionDataValueSensitivityVariables, mpModelPart->Conditions());
+
+    using namespace sensitivity_builder_cpp;
+
+    ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
+        mElementDataValueSensitivityVariablesList, mpModelPart->Elements());
+    ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
+        mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions());
+    ExecuteFunctorInContainer<SetHistoricalValueToZeroFunctor>(
+        mNodalSolutionStepSensitivityVariablesList, mpModelPart->Nodes());
+
     KRATOS_CATCH("");
 }
 
@@ -900,6 +904,29 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(rDerivativeVariable);
     }
+
+    KRATOS_CATCH("");
+}
+
+SensitivityBuilder::TSensitivityVariables SensitivityBuilder::GetVariableLists(
+        const std::vector<std::string>& rVariableNames)
+{
+    KRATOS_TRY;
+
+    THomogeneousSensitivityVariables<double> double_variables;
+    THomogeneousSensitivityVariables<array_1d<double, 3>> array_3d_variables;
+
+    for (const auto& r_variable : rVariableNames) {
+        if (KratosComponents<Variable<double>>::Has(r_variable)) {
+            double_variables.push_back(SensitivityVariables<double>{r_variable});
+        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable)) {
+            array_3d_variables.push_back(SensitivityVariables<array_1d<double, 3>>{r_variable});
+        } else {
+            KRATOS_ERROR << "Unsupported variable: " << r_variable << "." << std::endl;
+        }
+    }
+
+    return std::make_tuple(double_variables, array_3d_variables);
 
     KRATOS_CATCH("");
 }
