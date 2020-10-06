@@ -264,11 +264,15 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticlePenaltyDirichletCondition );
+        rSerializer.save("ContactForce", m_contact_force);
+        rSerializer.save("ReactionIsAdded", mReactionIsAdded);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticlePenaltyDirichletCondition );
+        rSerializer.load("ContactForce", m_contact_force);
+        rSerializer.load("ReactionIsAdded", mReactionIsAdded);
     }
 
 

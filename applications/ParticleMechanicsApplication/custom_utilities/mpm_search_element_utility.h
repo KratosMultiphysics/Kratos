@@ -81,7 +81,7 @@ namespace MPMSearchElementUtility
             }
             for (size_t i = 1; i < cross_products.size(); ++i)
             {
-                if (cross_products[i] * cross_products[0] < 0.0)
+                if (cross_products[i] * cross_products[0] < -std::abs(Tolerance))
                 {
                     is_inside = false;
                     break;
@@ -1003,7 +1003,7 @@ namespace MPMSearchElementUtility
             std::vector<array_1d<double, 3>> xg;
             condition_itr->CalculateOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
 
-            if (xg.size() > 0)
+            if (xg.size() > 0 && condition_itr->Is(BOUNDARY))
             {
                 array_1d<double, 3> local_coordinates;
                 bool is_found = false;

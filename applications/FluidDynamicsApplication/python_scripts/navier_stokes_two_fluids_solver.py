@@ -364,13 +364,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self._bfecc_convection:
             if have_conv_diff:
                 if domain_size == 2:
-                    self.locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part)#.UpdateSearchDatabase()
+                    locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part)
                     locator.UpdateSearchDatabase()
-                    level_set_convection_process = KratosConvDiff.BFECCConvection2D(self.locator)
+                    level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator)
                 else:
-                    self.locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part)#.UpdateSearchDatabase()
+                    locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part)
                     locator.UpdateSearchDatabase()
-                    level_set_convection_process = KratosConvDiff.BFECCConvection3D(self.locator)
+                    level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator)
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:

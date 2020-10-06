@@ -117,6 +117,8 @@ class GiDDamOutputProcess(Process):
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
 
         if settings.Has('result_file_configuration'):
             sub_settings_where_var_is = settings['result_file_configuration']
