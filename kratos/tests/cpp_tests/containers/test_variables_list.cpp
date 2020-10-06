@@ -83,9 +83,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListGetDofInfo, KratosCoreFastSuite) {
                 }                     
             }
 
-            void operator()(Variable<Vector> const& TheVariable) const {} // Skip it for Vector
+            void operator()(Variable<Vector> const& TheVariable) const {} // Skip it for Vector without sending error
 
-            void operator()(Variable<Matrix> const& TheVariable) const {} // Skip it for Matrix
+            void operator()(Variable<Matrix> const& TheVariable) const {} // Skip it for Matrix without sending error
     };  
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesListApplyVisitor, KratosCoreFastSuite)
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListApplyVisitor, KratosCoreFastSuite)
     model_part.CreateNewNode(3, 1.0, 2.0, 3.0);
 
     //now create a container of pointers to variables of type VariablesData*
-    std::vector<VariableData*> variables{&TEMPERATURE, &VELOCITY, &DISPLACEMENT_X, &DISPLACEMENT_Z};
+   VariablesList::VariablesContainerType variables{&TEMPERATURE, &VELOCITY, &DISPLACEMENT_X, &DISPLACEMENT_Z};
 
    VariablesListVisitor<SetModelPartVariableToOne> the_visitor(model_part);
 
