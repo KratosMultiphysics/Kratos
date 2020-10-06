@@ -133,10 +133,10 @@ namespace Kratos
         DenseMappingMatrixSharedPointerType mpMappingMatrixForce = nullptr;
 
         // Origin quantities
-        Vector mInitialOriginInterfaceVelocities; //TODO compressedVector
-        Vector mFinalOriginInterfaceVelocities; //TODO compressedVector
+        Vector mInitialOriginInterfaceVelocities;
+        Vector mFinalOriginInterfaceVelocities;
         CompressedMatrix mProjectorOrigin;
-        Matrix mUnitResponseOrigin;  //TODO CompressedMatrix
+        CompressedMatrix mUnitResponseOrigin;  //TODO CompressedMatrix
 
         Vector mAccumulatedDisplacement;
 
@@ -170,12 +170,12 @@ namespace Kratos
         void ComposeProjector(CompressedMatrix& rProjector, const bool IsOrigin);
 
         void DetermineDomainUnitAccelerationResponse(SystemMatrixType* pK,
-            const CompressedMatrix& rProjector, Matrix& rUnitResponse, const bool sOrigin);
+            const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse, const bool sOrigin);
 
-        void DetermineDomainUnitAccelerationResponseExplicit(Matrix& rUnitResponse,
+        void DetermineDomainUnitAccelerationResponseExplicit(CompressedMatrix& rUnitResponse,
             const CompressedMatrix& rProjector, ModelPart& rDomain, const bool IsOrigin);
 
-        void DetermineDomainUnitAccelerationResponseImplicit(Matrix& rUnitResponse,
+        void DetermineDomainUnitAccelerationResponseImplicit(CompressedMatrix& rUnitResponse,
             const CompressedMatrix& rProjector, SystemMatrixType* pK, const bool IsOrigin);
 
         void CalculateCondensationMatrix(CompressedMatrix& rCondensationMatrix,

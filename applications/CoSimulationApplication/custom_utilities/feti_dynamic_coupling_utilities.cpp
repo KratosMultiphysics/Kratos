@@ -76,7 +76,7 @@ namespace Kratos
 
         // 3 - Determine domain response to unit loads
         if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, true);
-        Matrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
+        CompressedMatrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
         DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination, false);
 
         // 4 - Calculate condensation matrix
@@ -486,7 +486,7 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponse(
-        SystemMatrixType* pK, const CompressedMatrix& rProjector, Matrix& rUnitResponse,
+        SystemMatrixType* pK, const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse,
         const bool isOrigin)
     {
         KRATOS_TRY
@@ -544,7 +544,7 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseExplicit(Matrix& rUnitResponse,
+    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseExplicit(CompressedMatrix& rUnitResponse,
         const CompressedMatrix& rProjector, ModelPart& rDomain, const bool isOrigin)
     {
         KRATOS_TRY
@@ -576,7 +576,7 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseImplicit(Matrix& rUnitResponse,
+    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseImplicit(CompressedMatrix& rUnitResponse,
         const CompressedMatrix& rProjector, SystemMatrixType* pK, const bool isOrigin)
     {
         KRATOS_TRY
@@ -601,7 +601,8 @@ namespace Kratos
             {
                 for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
                 mpSolver->Solve(effective_mass, solution, projector_transpose_column);
-                for (size_t j = 0; j < system_dofs; ++j) rUnitResponse(j, i) = solution[j];
+                #pragma omp critical
+                for (size_t j = 0; j < system_dofs; ++j) rUnitResponse.insert_element(j,i,solution[j]);
             }
         }
 
