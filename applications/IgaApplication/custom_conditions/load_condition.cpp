@@ -56,6 +56,13 @@ namespace Kratos
             Vector determinat_jacobian_vector(integration_points.size());
             r_geometry.DeterminantOfJacobian(determinat_jacobian_vector);
 
+            // initial determinant of jacobian for dead load
+            Vector determinat_jacobian_vector_initial(integration_points.size());
+            if (this->Has(DEAD_LOAD))
+            {
+                DeterminantOfJacobianInitial(r_geometry, determinat_jacobian_vector_initial);
+            }
+
             // Shape function values for all integration points
             const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
@@ -63,11 +70,26 @@ namespace Kratos
             {
                 // Differential area
                 const double integration_weight = integration_points[point_number].Weight();
-
                 const double d_weight = integration_weight * determinat_jacobian_vector[point_number];
 
                 // Split only due to different existing variable names
                 // No check included, which checks correctness of variable
+
+                // Dead load. Dead load is dependent on the initial area.
+                if (this->Has(DEAD_LOAD))
+                {
+                    const array_1d<double, 3>& dead_load = this->GetValue(DEAD_LOAD);
+
+                    const double d0_weight = integration_weight * determinat_jacobian_vector_initial[point_number];
+
+                    for (IndexType i = 0; i < number_of_nodes; i++)
+                    {
+                        IndexType index = 3 * i;
+                        f[index]     += dead_load[0] * r_N(point_number, i) * d0_weight;
+                        f[index + 1] += dead_load[1] * r_N(point_number, i) * d0_weight;
+                        f[index + 2] += dead_load[2] * r_N(point_number, i) * d0_weight;
+                    }
+                }
 
                 // Point loads
                 if (this->Has(POINT_LOAD))
@@ -131,6 +153,38 @@ namespace Kratos
                 // Assembly
                 noalias(rRightHandSideVector) += f;
             }
+        }
+    }
+
+    void LoadCondition::DeterminantOfJacobianInitial(
+        const GeometryType& rGeometry,
+        Vector& rDeterminantOfJacobian)
+    {
+        const IndexType nb_integration_points = rGeometry.IntegrationPointsNumber();
+        if (rDeterminantOfJacobian.size() != nb_integration_points) {
+            rDeterminantOfJacobian.resize(nb_integration_points, false);
+        }
+
+        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
+        const SizeType nb_nodes = rGeometry.PointsNumber();
+
+        Matrix J = ZeroMatrix(working_space_dimension, local_space_dimension);
+        for (IndexType pnt = 0; pnt < nb_integration_points; pnt++)
+        {
+            const Matrix& r_DN_De = rGeometry.ShapeFunctionsLocalGradients()[pnt];
+            J.clear();
+            for (IndexType i = 0; i < nb_nodes; ++i) {
+                const array_1d<double, 3>& r_coordinates = rGeometry[i].GetInitialPosition();
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    const double value = r_coordinates[k];
+                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                        J(k, m) += value * r_DN_De(i, m);
+                    }
+                }
+            }
+
+            rDeterminantOfJacobian[pnt] = MathUtils<double>::GeneralizedDet(J);
         }
     }
 

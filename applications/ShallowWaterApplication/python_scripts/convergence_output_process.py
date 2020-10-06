@@ -16,7 +16,7 @@ def Factory(settings, model):
 class ConvergenceOutputProcess(KM.Process):
 
     def __init__(self, model, settings):
-        super(ConvergenceOutputProcess, self).__init__()
+        super().__init__()
 
         default_settings = KM.Parameters("""
             {

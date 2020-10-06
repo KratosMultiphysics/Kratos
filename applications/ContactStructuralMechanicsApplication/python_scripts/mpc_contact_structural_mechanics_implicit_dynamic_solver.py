@@ -36,7 +36,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         self._validate_settings_in_baseclass=True # To be removed eventually
 
         # Construct the base solver.
-        super(MPCContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         self.mpc_contact_settings = self.settings["mpc_contact_settings"]
         self.mpc_contact_settings.RecursivelyAddMissingParameters(GetDefaults()["mpc_contact_settings"])
@@ -54,7 +54,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
     def AddVariables(self):
 
-        super(MPCContactImplicitMechanicalSolver, self).AddVariables()
+        super().AddVariables()
 
         # We add the contact related variables
         contact_type = self.mpc_contact_settings["contact_type"].GetString()
@@ -63,7 +63,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactImplicitMechanicalSolver]:: ", "Initializing ...")
 
-        super(MPCContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
+        super().Initialize() # The mechanical solver is created here.
 
         # We set the flag INTERACTION
         if self.mpc_contact_settings["simplified_semi_smooth_newton"].GetBool():
@@ -96,7 +96,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         return auxiliar_methods_solvers.AuxiliarMPCNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = GetDefaults()
-        this_defaults.RecursivelyAddMissingParameters(super(MPCContactImplicitMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.RecursivelyAddMissingParameters(super(MPCContactImplicitMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults

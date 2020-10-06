@@ -13,7 +13,7 @@ def CreateSolver(main_model_part, custom_settings):
 class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -48,10 +48,10 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "time_step"           : -0.1
             },
             "consider_periodic_conditions": false,
-            "assign_neighbour_elements_to_conditions": false
+            "assign_neighbour_elements_to_conditions": true
         }""")
 
-        default_settings.AddMissingParameters(super(AdjointVMSMonolithicSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(AdjointVMSMonolithicSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
@@ -118,7 +118,6 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
         builder_and_solver = self._GetBuilderAndSolver()
         calculate_reaction_flag = False
         reform_dof_set_at_each_step = False
@@ -127,7 +126,6 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         return KratosMultiphysics.ResidualBasedLinearStrategy(
             computing_model_part,
             time_scheme,
-            linear_solver,
             builder_and_solver,
             calculate_reaction_flag,
             reform_dof_set_at_each_step,

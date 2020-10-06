@@ -130,7 +130,7 @@ Ubuntu users need to be extra careful with this as default versions tends to be 
 
 `BOOST_ROOT`
 
-Path to boost root directory.
+Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded but without using apt-get.
 
 ## Configuration scripts examples
 
@@ -392,6 +392,8 @@ Path where your applications are located. This variable is not necessary but it 
 
 Controls wether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially usefull if you are developing python files and don't want to reinstall every time you touch a script.
 
+Using this option in windows requires elevated privileges (you must run the script as admin)
+
 
 ### Common Flags
 
@@ -507,4 +509,3 @@ If trilinos was installed using the package manager usually the following lines 
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 ```
-

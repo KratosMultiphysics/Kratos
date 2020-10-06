@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
@@ -16,8 +14,8 @@ class TestModelPart(KratosUnittest.TestCase):
 
         inlet_model_part = model_part.CreateSubModelPart("Inlets")
 
-        parent_model_part_1 = inlet_model_part.GetParentModelPart()
-        self.assertEqual(parent_model_part_1.Name, "Main")
+        self.assertEqual(inlet_model_part.GetParentModelPart().Name, "Main")
+        self.assertEqual(inlet_model_part.GetRootModelPart().Name, "Main")
 
         self.assertTrue(model_part.HasSubModelPart("Inlets"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 1)
@@ -33,37 +31,33 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetSubModelPart("Outlet").Name, "Outlet")
 
         sub_model_part_1 = model_part.GetSubModelPart("Inlets")
-        sub_model_part_1.CreateSubModelPart("Inlet1")
+        sub_sub_model_part_1 = sub_model_part_1.CreateSubModelPart("Inlet1")
         sub_model_part_1.CreateSubModelPart("Inlet2")
+
+        self.assertEqual(sub_sub_model_part_1.GetParentModelPart().Name, "Inlets")
+        self.assertEqual(sub_sub_model_part_1.GetRootModelPart().Name, "Main")
 
         self.assertEqual(model_part.NumberOfSubModelParts(), 3)
         self.assertEqual(model_part.GetSubModelPart("Inlets").Name, "Inlets")
         self.assertEqual(model_part.GetSubModelPart("Outlet").Name, "Outlet")
 
-        #print ("Removing Temp....")
         model_part.RemoveSubModelPart("Temp")
-        #print ("Temp removed!")
 
         self.assertFalse(model_part.HasSubModelPart("Temp"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
         self.assertEqual(model_part.GetSubModelPart("Inlets").Name, "Inlets")
         self.assertEqual(model_part.GetSubModelPart("Outlet").Name, "Outlet")
 
-        #print ("Removing Inlets....")
         model_part.RemoveSubModelPart(sub_model_part_1)
-        #print ("Inlets removed!")
 
         self.assertFalse(model_part.HasSubModelPart("Inlets"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 1)
         self.assertEqual(model_part.GetSubModelPart("Outlet").Name, "Outlet")
 
-       #print ("Removing Outlet....")
         model_part.RemoveSubModelPart("Outlet")
-        #print ("Outlet removed!")
 
         self.assertFalse(model_part.HasSubModelPart("Inlets"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 0)
-        #print (model_part)
 
     def test_variables_list(self):
         current_model = KratosMultiphysics.Model()
@@ -418,6 +412,27 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(inlets_model_part.NumberOfElements(), 5)
         self.assertEqual(model_part.NumberOfElements(), 7)
 
+        nodes = KratosMultiphysics.NodesVector()
+        nodes.append(model_part.CreateNewNode(10, 0.0, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(11, 2.5, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(12, 5.0, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(13, 0.0, 0.5, 0))
+
+        #Create the knots vector
+        knots_u = KratosMultiphysics.Vector(2)
+        knots_u[0] = 0.0
+        knots_u[1] = 1.0
+
+        surface = KratosMultiphysics.NurbsSurfaceGeometry3D(nodes, 1, 1, knots_u, knots_u)
+
+        model_part.CreateNewElement('Element3D3N', 9, surface, model_part.GetProperties()[1])
+
+        self.assertEqual(model_part.NumberOfElements(), 8)
+        self.assertEqual(model_part.GetElement(9).Id, 9)
+        self.assertEqual(model_part.GetElement(9,0).Id, 9)
+        self.assertEqual(model_part.Elements[9].Id, 9)
+        self.assertEqual(len(model_part.Elements), 8)
+
     def test_model_part_conditions(self):
         current_model = KratosMultiphysics.Model()
 
@@ -511,6 +526,24 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(inlet2_model_part.NumberOfConditions(), 2)
         self.assertEqual(inlets_model_part.NumberOfConditions(), 5)
         self.assertEqual(model_part.NumberOfConditions(), 7)
+
+        nodes = KratosMultiphysics.NodesVector()
+        nodes.append(model_part.CreateNewNode(10, 0.0, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(11, 2.5, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(12, 5.0, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(13, 0.0, 0.5, 0))
+
+        #Create the knots vector
+        knots_u = KratosMultiphysics.Vector(2)
+        knots_u[0] = 0.0
+        knots_u[1] = 1.0
+
+        surface = KratosMultiphysics.NurbsSurfaceGeometry3D(nodes, 1, 1, knots_u, knots_u)
+        model_part.CreateNewCondition('SurfaceCondition3D3N', 9, surface, model_part.GetProperties()[1])
+
+        self.assertEqual(model_part.NumberOfConditions(), 8)
+        self.assertEqual(model_part.GetCondition(9).Id, 9)
+        self.assertEqual(len(model_part.Conditions), 8)
 
     def test_modelpart_variables_list(self):
         current_model = KratosMultiphysics.Model()
@@ -794,6 +827,7 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_create_non_existing_element(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
         props = model_part.CreateNewProperties(0)
 
@@ -803,6 +837,7 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_create_non_existing_condition(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
         props = model_part.CreateNewProperties(0)
 
