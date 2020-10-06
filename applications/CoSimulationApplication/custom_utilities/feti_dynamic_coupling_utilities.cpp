@@ -64,13 +64,12 @@ namespace Kratos
 
         const SizeType destination_interface_dofs = dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes();
 
-        PrintInterfaceKinematics(DISPLACEMENT, true);
-        PrintInterfaceKinematics(DISPLACEMENT, false);
-
         // 1 - calculate unbalanced interface free velocity
         Vector unbalanced_interface_free_velocity(destination_interface_dofs);
         CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
-        if (norm_2(unbalanced_interface_free_velocity) > 1e-9)
+
+        // Apply corrections if interface velocities are unbalanced
+        if (norm_2(unbalanced_interface_free_velocity) > numerical_limit)
         {
             // 2 - Construct projection matrices
             if(mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
@@ -105,32 +104,21 @@ namespace Kratos
             if (mIsCheckEquilibrium && !mIsDisableLagrange && mSubTimestepIndex == mTimestepRatio)
             {
                 unbalanced_interface_free_velocity.clear();
-                //PrintInterfaceKinematics(DISPLACEMENT, true);
-                //PrintInterfaceKinematics(DISPLACEMENT, false);
-                //PrintInterfaceKinematics(VELOCITY, true);
-                //PrintInterfaceKinematics(VELOCITY, false);
                 CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity, true);
                 const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
-                KRATOS_WATCH(equilibrium_norm);
-                KRATOS_ERROR_IF(equilibrium_norm > 1e-12)
+                KRATOS_ERROR_IF(equilibrium_norm > numerical_limit)
                     << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
+                    << "Equilibrium norm = " << equilibrium_norm << "\nUnbalanced interface vel = \n"
                     << unbalanced_interface_free_velocity << "\n";
             }
 
             // 8 - Write nodal lagrange multipliers to interface
             WriteLagrangeMultiplierResults(lagrange_vector);
-
-
         } // end if correction needs to be applied
 
         // 9 - Advance subtimestep counter
-        KRATOS_WATCH(mSubTimestepIndex);
         if (mSubTimestepIndex == mTimestepRatio) mSubTimestepIndex = 1;
         else  mSubTimestepIndex += 1;
-        KRATOS_WATCH(mSubTimestepIndex);
-
-        PrintInterfaceKinematics(DISPLACEMENT, true);
-        PrintInterfaceKinematics(DISPLACEMENT, false);
 
         KRATOS_CATCH("")
 	}
@@ -154,9 +142,9 @@ namespace Kratos
             GetInterfaceQuantity(mrOriginInterfaceModelPart, mrEquilibriumVariable, mFinalOriginInterfaceVelocities, dim);
 
         // Interpolate origin velocities to the current sub-timestep
+        const double time_ratio = double(mSubTimestepIndex) / double(mTimestepRatio);
         Vector interpolated_origin_velocities = (IsEquilibriumCheck) ? mFinalOriginInterfaceVelocities
-            : mSubTimestepIndex / mTimestepRatio * mFinalOriginInterfaceVelocities +
-            (1.0 - mSubTimestepIndex / mTimestepRatio) * mInitialOriginInterfaceVelocities;
+            : time_ratio * mFinalOriginInterfaceVelocities + (1.0 - time_ratio) * mInitialOriginInterfaceVelocities;
         CompressedMatrix expanded_mapper(mpMappingMatrix->size1() * dim, mpMappingMatrix->size2() * dim, 0.0);
         GetExpandedMappingMatrix(expanded_mapper, dim);
         Vector mapped_interpolated_origin_velocities = prod(expanded_mapper, interpolated_origin_velocities);

@@ -30,7 +30,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         if int(self.timestep_ratio) != self.timestep_ratio:
             raise Exception("An integer timestep_ratio must be specified in the CoSim parameters file.")
         self.timestep_ratio = int(self.timestep_ratio)
-        self.sub_timestep_index = 1
 
         self.is_initialized = False
 
@@ -46,29 +45,21 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             if self.time == 0.0: # first time a solver returns a time different from 0.0
                 self.time = solver_time
 
-
         return self.time
 
 
-
     def InitializeSolutionStep(self):
-        print("---- calling InitializeSolutionStep")
         super().InitializeSolutionStep()
 
         if self.is_initialized == False:
             self.__InitializeFetiMethod()
 
 
-
-
     def Predict(self):
-        print("---- calling predict")
         super().Predict()
 
 
     def SolveSolutionStep(self):
-        self.sub_timestep_index = 1
-
         for coupling_op in self.coupling_operations_dict.values():
             coupling_op.InitializeCouplingIteration()
 
@@ -91,7 +82,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             # apply the coupling method
             self.feti_coupling.EquilibrateDomains()
 
-            if sub_timestep < self.timestep_ratio+1:
+            if sub_timestep != self.timestep_ratio:
                 solverB.FinalizeSolutionStep()
 
         for coupling_op in self.coupling_operations_dict.values():
@@ -99,11 +90,11 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         return True
 
+
     def __InitializeFetiMethod(self):
         # get mapper parameters
         self.mapper_parameters = self.data_transfer_operators_dict["mapper"].settings["mapper_settings"]
         mapper_type = self.mapper_parameters["mapper_type"].GetString()
-
 
         # get mapper origin and destination modelparts
         origin_modelpart_name = self.mapper_parameters["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString()
@@ -116,11 +107,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
         self.mapper = mapper_create_fct(self.model_part_origin_interface, self.model_part_destination_interface, self.mapper_parameters.Clone())
 
-
         # get interface modelparts created by the mapper modeler
         self.modelpart_interface_origin_from_mapper = self.mapper.GetInterfaceModelPart(0)
         self.modelpart_interface_destination_from_mapper = self.mapper.GetInterfaceModelPart(1)
-
 
         # Get time integration parameters
         origin_newmark_beta = self.settings["origin_newmark_beta"].GetDouble()
@@ -128,14 +117,12 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         destination_newmark_beta = self.settings["destination_newmark_beta"].GetDouble()
         destination_newmark_gamma = self.settings["destination_newmark_gamma"].GetDouble()
 
-
         self.is_implicit = [True, True]
         if origin_newmark_beta == 0.0: self.is_implicit[0] = False
         if destination_newmark_beta == 0.0: self.is_implicit[1] = False
 
         # create the solver
         linear_solver = self._CreateLinearSolver()
-
 
         # Create feti class instance
         self.feti_coupling = CoSim.FetiDynamicCouplingUtilities(
@@ -154,14 +141,12 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         self.feti_coupling.SetLinearSolver(linear_solver)
 
-
         # set the mapper
         if mapper_type == "coupling_geometry":
             p_mapping_matrix = self.mapper.pGetDenseMappingMatrix()
             self.feti_coupling.SetMappingMatrix(p_mapping_matrix)
 
         # Set origin initial velocities
-        print('\n\n--------- SetOriginInitialVelocities -------------\n\n')
         self.feti_coupling.SetOriginInitialVelocities()
 
         self.is_initialized = True
@@ -182,6 +167,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         else:
             KM.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+
 
     @classmethod
     def _GetDefaultSettings(cls):
