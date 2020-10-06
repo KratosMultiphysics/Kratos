@@ -226,6 +226,20 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
 
+    - name: Running MPI Python MeshingApplication (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 3 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python MeshingApplication (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 4 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
+
   windows:
     runs-on: windows-latest
     env:
