@@ -28,7 +28,7 @@ MaterialTest = DEM_procedures.MaterialTest
 class DEMIo(DEM_procedures.DEMIo):
     def PrintResults(self, all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
         if (mpi.rank == 0):
-            super(DEMIo,self).PrintResults(all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
+            super().PrintResults(all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
 
 ParallelUtils = DEM_procedures.ParallelUtils
 SetOfModelParts = DEM_procedures.SetOfModelParts
