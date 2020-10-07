@@ -12,8 +12,6 @@
 //
 //
 
-#ifdef KRATOS_BUILD_CSV_TESTING
-
 // System includes
 #include <string>
 
@@ -161,5 +159,3 @@ KRATOS_TEST_CASE_IN_SUITE(ParseScientificNotation, KratosExternalLibrariesFastSu
 
 } // namespace Testing.
 } // namespace Kratos.
-
-#endif

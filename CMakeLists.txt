@@ -56,12 +56,6 @@ message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
 SET (KRATOS_BUILD_TESTING ON)
 endif(NOT DEFINED KRATOS_BUILD_TESTING)
 
-# If no CSV test policy disable by default
-if(NOT DEFINED KRATOS_BUILD_CSV_TESTING)
-message("-- No KRATOS_BUILD_CSV_TESTING is defined. Setting to OFF. This is due to the fact that it is an external library and represents the need of compiling more than 60 tests. In order to reduce compilation time by default will not be compiled")
-SET (KRATOS_BUILD_CSV_TESTING OFF)
-endif(NOT DEFINED KRATOS_BUILD_CSV_TESTING)
-
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
