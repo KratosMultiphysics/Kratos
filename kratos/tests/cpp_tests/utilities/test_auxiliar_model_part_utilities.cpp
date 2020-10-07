@@ -227,74 +227,74 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
 /******************************************************************************************/
 
 //1. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Node_historicalDatalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Node_historical, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_historical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
     auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::NodeHistorical);
+    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //2. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Node_NonHistorical Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Node_Nonhistorical, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_Nonhistorical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
 
     auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::NodeNonHistorical);
+    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeNonHistorical);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //3. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Element Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Element, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Element, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
     
     auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::Element);
+    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Element);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //4. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Condition Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Condition, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Condition, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
     
     auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::Condition);
+    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Condition);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //5. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on ModelPart Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_ModelPart, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ModelPart, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
     
     auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::ModelPart);
+    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ModelPart);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //6. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on ProcessInfo Datalocation
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_ProcessInfo, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ProcessInfo, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
     
     auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::ProcessInfo);
+    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ProcessInfo);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 

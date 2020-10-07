@@ -284,12 +284,13 @@ public:
     void RemoveConditionsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
 
-    //To export a Scalar data (Double)
-    std::vector<double> GetVariableData(
-        const Variable<double>& rVariable,
-        const DataLocation DataLoc) const
+    // To Export a Scalar data (Double/int/...)
+    template<typename TDataType>
+    std::vector<TDataType> GetScalarData(
+        const Variable<TDataType>& rVariable,
+        const DataLocation DataLoc) 
     {
-        std::vector<double> data;
+        std::vector<TDataType> data;
 
         switch (DataLoc)
         {
@@ -302,27 +303,18 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            IndexType counter = 0;
             data.resize(mrModelPart.NumberOfNodes());
-            for(const auto& r_node : mrModelPart.Nodes()){
-                data[counter++] = r_node.GetValue(rVariable);
-            }
+            GetScalarDataFromContainer(mrModelPart.Nodes(), rVariable, data);
             break;
         }
         case (DataLocation::Element):{
-            IndexType counter = 0;
             data.resize(mrModelPart.NumberOfElements());
-            for(const auto& r_elem : mrModelPart.Elements()){
-                data[counter++] = r_elem.GetValue(rVariable);
-            }
+            GetScalarDataFromContainer(mrModelPart.Elements(), rVariable, data);
             break;
         }
         case (DataLocation::Condition):{
-            IndexType counter = 0;
             data.resize(mrModelPart.NumberOfConditions());
-            for(const auto& r_cond : mrModelPart.Conditions()){
-                data[counter++] = r_cond.GetValue(rVariable);
-            }
+            GetScalarDataFromContainer(mrModelPart.Conditions(), rVariable, data);
             break;
         }
         case (DataLocation::ModelPart):{
@@ -336,7 +328,6 @@ public:
             break;
         }
         default:{
-            //Throw an error about invalid DataLocation
             KRATOS_ERROR << "unknown Datalocation" << std::endl;
             break;
         }
@@ -346,12 +337,11 @@ public:
         return data;
     }
 
-
     //To export a Vector data
     template<std::size_t TSize>
     std::vector<double> GetVariableData(
         const Variable<array_1d<double, TSize>>& rVariable,
-        const DataLocation DataLoc) const
+        const DataLocation DataLoc) 
     {
         std::vector<double> data;
 
@@ -429,7 +419,7 @@ public:
         return data;
     }
 
-    /// To Import a Scalar data (Double/int/...)
+    // To Import a Scalar data (Double/int/...)
     template<typename TDataType>
     void SetScalarData(
         const Variable<TDataType>& rVariable,
@@ -609,6 +599,15 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    template<typename TDataType, class TContainerType>
+    void GetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data)
+    {
+        IndexType counter = 0;
+        for(const auto& r_entity : rContainer){
+            data[counter++] = r_entity.GetValue(rVariable);
+        } 
+    }
 
     template<typename TDataType, class TContainerType>
     void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const std::vector<TDataType>& rData)
