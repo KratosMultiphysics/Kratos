@@ -60,8 +60,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
 
     def SolveSolutionStep(self):
-        #for coupling_op in self.coupling_operations_dict.values():
-        #    coupling_op.InitializeCouplingIteration()
+        is_vtk_fine_timestep_output = self.settings["is_vtk_fine_timestep_output"].GetBool()
 
         # solve domain A
         self.solver_wrappers_vector[0].SolveSolutionStep()
@@ -74,7 +73,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             if sub_timestep > 1:
                 self.solverB_time = solverB.AdvanceInTime(self.solverB_time)
                 solverB.InitializeSolutionStep()
-                self.vtk_output_wrappers_vector[1].InitializeSolutionStep()
+                if is_vtk_fine_timestep_output:
+                    self.vtk_output_wrappers_vector[1].InitializeSolutionStep()
                 solverB.Predict()
 
             solverB.SolveSolutionStep()
@@ -85,12 +85,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
             if sub_timestep != self.timestep_ratio:
                 solverB.FinalizeSolutionStep()
-                self.vtk_output_wrappers_vector[1].FinalizeSolutionStep()
+                if is_vtk_fine_timestep_output:
+                    self.vtk_output_wrappers_vector[1].FinalizeSolutionStep()
                 solverB.OutputSolutionStep()
-
-        #self.vtk_output_wrappers_vector[0].FinalizeCouplingIteration()
-        #for coupling_op in self.coupling_operations_dict.values():
-        #        coupling_op.FinalizeCouplingIteration()
 
         return True
 
@@ -132,8 +129,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         self.feti_coupling = CoSim.FetiDynamicCouplingUtilities(
             self.modelpart_interface_origin_from_mapper,
             self.modelpart_interface_destination_from_mapper,
-            origin_newmark_beta, origin_newmark_gamma,
-            destination_newmark_beta, destination_newmark_gamma,self.timestep_ratio)
+            self.settings)
 
         # The origin and destination interfaces from the mapper submitted above are both
         # stored within the origin modelpart. Now we submit the 'original' origin and destination
@@ -151,7 +147,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.feti_coupling.SetMappingMatrix(p_mapping_matrix)
 
         # Set origin initial velocities
-        self.feti_coupling.SetOriginInitialVelocities()
+        self.feti_coupling.SetOriginInitialKinematics()
 
         # Store the vtk output wrappers
         self.vtk_output_wrappers_vector = []
@@ -186,7 +182,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "destination_newmark_beta" : -1.0,
             "destination_newmark_gamma" : -1.0,
             "timestep_ratio" : 1.0,
-            "vtk_fine_timestep_output" : true,
+            "is_vtk_fine_timestep_output" : true,
+            "equilibrium_variable" : "VELOCITY",
+            "is_disable_coupling" : false,
             "linear_solver_settings" : {}
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultSettings())

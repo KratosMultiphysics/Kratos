@@ -22,23 +22,46 @@
 namespace Kratos
 {
     FetiDynamicCouplingUtilities::FetiDynamicCouplingUtilities(ModelPart& rInterfaceOrigin,
-        ModelPart& rInterFaceDestination, double OriginNewmarkBeta, double OriginNewmarkGamma,
-        double DestinationNewmarkBeta, double DestinationNewmarkGamma, IndexType TimestepRatio)
-    :mrOriginInterfaceModelPart(rInterfaceOrigin), mrDestinationInterfaceModelPart(rInterFaceDestination),
-        mOriginGamma(OriginNewmarkGamma), mDestinationGamma(DestinationNewmarkGamma), mTimestepRatio(TimestepRatio)
+        ModelPart& rInterFaceDestination, Parameters JsonParameters)
+        :mrOriginInterfaceModelPart(rInterfaceOrigin), mrDestinationInterfaceModelPart(rInterFaceDestination),
+        mParameters(JsonParameters)
     {
-        // Check newmark parameters are valid
-        KRATOS_ERROR_IF(mOriginGamma < 0.0 || mOriginGamma > 1.0)
-            << "FetiDynamicCouplingUtilities | Error, mOriginGamma has invalid value. It must be between 0 and 1.";
-        KRATOS_ERROR_IF(mDestinationGamma < 0.0 || mDestinationGamma > 1.0)
-            << "FetiDynamicCouplingUtilities | Error, mDestinationGamma has invalid value. It must be between 0 and 1.";
+        // Check Json settings are present
+        KRATOS_ERROR_IF_NOT(mParameters.Has("origin_newmark_beta")) << "'origin_newmark_beta' was not specified in the CoSim parameters file\n";
+        KRATOS_ERROR_IF_NOT(mParameters.Has("origin_newmark_gamma")) << "'origin_newmark_gamma' was not specified in the CoSim parameters file\n";
+        KRATOS_ERROR_IF_NOT(mParameters.Has("destination_newmark_beta")) << "'destination_newmark_beta' was not specified in the CoSim parameters file\n";
+        KRATOS_ERROR_IF_NOT(mParameters.Has("destination_newmark_gamma")) << "'destination_newmark_gamma' was not specified in the CoSim parameters file\n";
+        KRATOS_ERROR_IF_NOT(mParameters.Has("timestep_ratio")) << "'timestep_ratio' was not specified in the CoSim parameters file\n";
+        KRATOS_ERROR_IF_NOT(mParameters.Has("equilibrium_variable")) << "'equilibrium_variable' was not specified in the CoSim parameters file\n";
+        KRATOS_ERROR_IF_NOT(mParameters.Has("is_disable_coupling")) << "'is_disable_coupling' was not specified in the CoSim parameters file\n";
 
-        mIsImplicitOrigin = (OriginNewmarkBeta > numerical_limit) ? true : false;
-        mIsImplicitDestination = (DestinationNewmarkBeta > numerical_limit) ? true : false;
+        // Check Json settings are correct
+        const double origin_beta = mParameters["origin_newmark_beta"].GetDouble();
+        const double origin_gamma = mParameters["origin_newmark_gamma"].GetDouble();
+        const double destination_beta = mParameters["destination_newmark_beta"].GetDouble();
+        const double destination_gamma = mParameters["destination_newmark_gamma"].GetDouble();
+        const double timestep_ratio = mParameters["timestep_ratio"].GetDouble();
+        mEquilibriumVariableString = mParameters["equilibrium_variable"].GetString();
+
+        KRATOS_ERROR_IF(origin_beta < 0.0 || origin_beta > 1.0) << "'origin_newmark_beta' has invalid value. It must be between 0 and 1.\n";
+        KRATOS_ERROR_IF(origin_gamma < 0.0 || origin_gamma > 1.0) << "'origin_newmark_gamma' has invalid value. It must be between 0 and 1.\n";
+        KRATOS_ERROR_IF(destination_beta < 0.0 || destination_beta > 1.0) << "'destination_beta' has invalid value. It must be between 0 and 1.\n";
+        KRATOS_ERROR_IF(destination_gamma < 0.0 || destination_gamma > 1.0) << "'destination_gamma' has invalid value. It must be between 0 and 1.\n";
+        KRATOS_ERROR_IF(timestep_ratio < 0.0 || std::abs(timestep_ratio - double(int(timestep_ratio))) > numerical_limit) << "'timestep_ratio' has invalid value. It must be a positive integer.\n";
+        KRATOS_ERROR_IF(mEquilibriumVariableString != "VELOCITY" && mEquilibriumVariableString != "DISPLACEMENT" && mEquilibriumVariableString != "ACCELERATION") << "'equilibrium_variable' has invalid value. It must be either DISPLACEMENT, VELOCITY or ACCELERATION.\n";
+
+        // Limit only to implicit average acceleration or explicit central difference
+        KRATOS_ERROR_IF(origin_beta != 0.0 && origin_beta != 0.25) << "origin_beta must be 0.0 or 0.25";
+        KRATOS_ERROR_IF(destination_beta != 0.0 && destination_beta != 0.25) << "destination_beta must be 0.0 or 0.25";
+        KRATOS_ERROR_IF(origin_gamma != 0.5) << "origin_gamma must be 0.5";
+        KRATOS_ERROR_IF(destination_gamma != 0.5) << "destination_gamma must be 0.5";
+
+        mIsImplicitOrigin = (origin_beta > numerical_limit) ? true : false;
+        mIsImplicitDestination = (destination_beta > numerical_limit) ? true : false;
+        mTimestepRatio = timestep_ratio;
 
         mSubTimestepIndex = 1;
-    };
-
+    }
 
 	void FetiDynamicCouplingUtilities::EquilibrateDomains()
 	{
@@ -64,14 +87,14 @@ namespace Kratos
 
         const SizeType destination_interface_dofs = dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes();
 
-        // 1 - calculate unbalanced interface free velocity
-        Vector unbalanced_interface_free_velocity(destination_interface_dofs);
-        CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
+        // 1 - calculate unbalanced interface free kinematics
+        Vector unbalanced_interface_free_kinematics(destination_interface_dofs);
+        CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
 
         // 2 - Construct projection matrices
         if(mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
         const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
-        CompressedMatrix projector_destination(destination_interface_dofs, destination_dofs, 0.0);
+        CompressedMatrix projector_destination(destination_interface_dofs, destination_dofs);
         ComposeProjector(projector_destination, false);
 
         // 3 - Determine domain response to unit loads
@@ -86,27 +109,27 @@ namespace Kratos
 
         // 5 - Calculate lagrange mults
         Vector lagrange_vector(destination_interface_dofs);
-        DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_velocity);
-        if (mIsDisableLagrange) lagrange_vector.clear();
-        if (mIsDisableLagrange) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
+        DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_kinematics);
+        if (mParameters["is_disable_coupling"].GetBool()) lagrange_vector.clear();
+        if (mParameters["is_disable_coupling"].GetBool()) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
 
         // 6 - Apply correction quantities
         if (mSubTimestepIndex == mTimestepRatio) {
-            SetOriginInitialVelocities(); // the final free velocity of A is the initial free velocity of A for the next timestep
+            SetOriginInitialKinematics(); // the final free kinematics of A is the initial free kinematics of A for the next timestep
             ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
         }
         ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
 
         // 7 - Optional check of equilibrium
-        if (mIsCheckEquilibrium && !mIsDisableLagrange && mSubTimestepIndex == mTimestepRatio)
+        if (mIsCheckEquilibrium && !mParameters["is_disable_coupling"].GetBool() && mSubTimestepIndex == mTimestepRatio)
         {
-            unbalanced_interface_free_velocity.clear();
-            CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity, true);
-            const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
+            unbalanced_interface_free_kinematics.clear();
+            CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics, true);
+            const double equilibrium_norm = norm_2(unbalanced_interface_free_kinematics);
             KRATOS_ERROR_IF(equilibrium_norm > numerical_limit)
                 << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
                 << "Equilibrium norm = " << equilibrium_norm << "\nUnbalanced interface vel = \n"
-                << unbalanced_interface_free_velocity << "\n";
+                << unbalanced_interface_free_kinematics << "\n";
         }
 
         // 8 - Write nodal lagrange multipliers to interface
@@ -120,7 +143,7 @@ namespace Kratos
 	}
 
 
-	void FetiDynamicCouplingUtilities::CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities,
+	void FetiDynamicCouplingUtilities::CalculateUnbalancedInterfaceFreeKinematics(Vector& rUnbalancedKinematics,
         const bool IsEquilibriumCheck)
 	{
         KRATOS_TRY
@@ -128,25 +151,26 @@ namespace Kratos
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         auto origin_interface_nodes = mrOriginInterfaceModelPart.NodesArray();
         auto destination_interface_nodes = mrDestinationInterfaceModelPart.NodesArray();
+        Variable< array_1d<double, 3> >& equilibrium_variable = GetEquilibriumVariable();
 
-        // Get destination velocities
-        GetInterfaceQuantity(mrDestinationInterfaceModelPart, mrEquilibriumVariable, rUnbalancedVelocities, dim);
-        rUnbalancedVelocities *= -1.0;
+        // Get destination kinematics
+        GetInterfaceQuantity(mrDestinationInterfaceModelPart, equilibrium_variable, rUnbalancedKinematics, dim);
+        rUnbalancedKinematics *= -1.0;
 
-        // Get final predicted origin velocities
+        // Get final predicted origin kinematics
         if (mSubTimestepIndex == 1 || IsEquilibriumCheck)
-            GetInterfaceQuantity(mrOriginInterfaceModelPart, mrEquilibriumVariable, mFinalOriginInterfaceVelocities, dim);
+            GetInterfaceQuantity(mrOriginInterfaceModelPart, equilibrium_variable, mFinalOriginInterfaceKinematics, dim);
 
-        // Interpolate origin velocities to the current sub-timestep
+        // Interpolate origin kinematics to the current sub-timestep
         const double time_ratio = double(mSubTimestepIndex) / double(mTimestepRatio);
-        Vector interpolated_origin_velocities = (IsEquilibriumCheck) ? mFinalOriginInterfaceVelocities
-            : time_ratio * mFinalOriginInterfaceVelocities + (1.0 - time_ratio) * mInitialOriginInterfaceVelocities;
+        Vector interpolated_origin_kinematics = (IsEquilibriumCheck) ? mFinalOriginInterfaceKinematics
+            : time_ratio * mFinalOriginInterfaceKinematics + (1.0 - time_ratio) * mInitialOriginInterfaceKinematics;
         CompressedMatrix expanded_mapper(mpMappingMatrix->size1() * dim, mpMappingMatrix->size2() * dim, 0.0);
         GetExpandedMappingMatrix(expanded_mapper, dim);
-        Vector mapped_interpolated_origin_velocities = prod(expanded_mapper, interpolated_origin_velocities);
+        Vector mapped_interpolated_origin_kinematics = prod(expanded_mapper, interpolated_origin_kinematics);
 
-        // Determine velocity difference
-        rUnbalancedVelocities += mapped_interpolated_origin_velocities;
+        // Determine kinematics difference
+        rUnbalancedKinematics += mapped_interpolated_origin_kinematics;
 
         KRATOS_CATCH("")
 	}
@@ -221,28 +245,34 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        const double origin_gamma = mParameters["origin_newmark_gamma"].GetDouble();
+        const double dest_gamma = mParameters["destination_newmark_gamma"].GetDouble();
 
         const double origin_dt = mpOriginDomain->GetProcessInfo()[DELTA_TIME];
         const double dest_dt = mpDestinationDomain->GetProcessInfo().GetValue(DELTA_TIME);
         double origin_kinematic_coefficient = 0.0;
         double dest_kinematic_coefficient = 0.0;
 
-        if (mrEquilibriumVariable == ACCELERATION)
+        if (mEquilibriumVariableString == "ACCELERATION")
         {
             origin_kinematic_coefficient = 1.0;
             dest_kinematic_coefficient = 1.0;
         }
-        else if (mrEquilibriumVariable == VELOCITY)
+        else if (mEquilibriumVariableString == "VELOCITY")
         {
-            origin_kinematic_coefficient = mOriginGamma * origin_dt;
-            dest_kinematic_coefficient = mDestinationGamma * dest_dt;
+            origin_kinematic_coefficient = origin_gamma * origin_dt;
+            dest_kinematic_coefficient = dest_gamma * dest_dt;
         }
-        else if (mrEquilibriumVariable == DISPLACEMENT)
+        else if (mEquilibriumVariableString == "DISPLACEMENT")
         {
             KRATOS_ERROR_IF(mIsImplicitOrigin == false || mIsImplicitDestination == false)
-                << "CAN ONLY DO DIAPLCEMENT COUPLING FOR IMPLICIT-IMPLICIT";
-            origin_kinematic_coefficient = mOriginGamma * mOriginGamma * origin_dt * origin_dt;
-            dest_kinematic_coefficient = mDestinationGamma * mDestinationGamma * dest_dt * dest_dt;
+                << "CAN ONLY DO DISPLACEMENT COUPLING FOR IMPLICIT-IMPLICIT";
+            origin_kinematic_coefficient = origin_gamma * origin_gamma * origin_dt * origin_dt;
+            dest_kinematic_coefficient = dest_gamma * dest_gamma * dest_dt * dest_dt;
+        }
+        else
+        {
+            KRATOS_ERROR << "FetiDynamicCouplingUtilities:: The equilibrium variable must be either DISPLACEMENT, VELOCITY or ACCELERATION.";
         }
 
         rCondensationMatrix = prod(rOriginProjector, rOriginUnitResponse);
@@ -259,15 +289,15 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::DetermineLagrangianMultipliers(Vector& rLagrangeVec,
-        CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedVelocities)
+        CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedKinematics)
     {
         KRATOS_TRY
 
-        if (rLagrangeVec.size() != rUnbalancedVelocities.size())
-            rLagrangeVec.resize(rUnbalancedVelocities.size(), false);
+        if (rLagrangeVec.size() != rUnbalancedKinematics.size())
+            rLagrangeVec.resize(rUnbalancedKinematics.size(), false);
 
         rLagrangeVec.clear();
-        mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedVelocities);
+        mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedKinematics);
 
         KRATOS_CATCH("")
     }
@@ -279,7 +309,8 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart* pDomainModelPart = (IsOrigin) ? mpOriginDomain : mpDestinationDomain;
-        const double gamma = (IsOrigin) ? mOriginGamma : mDestinationGamma;
+        const double gamma = (IsOrigin) ? mParameters["origin_newmark_gamma"].GetDouble()
+            : mParameters["destination_newmark_gamma"].GetDouble();
         const double dt = pDomainModelPart->GetProcessInfo().GetValue(DELTA_TIME);
         const bool is_implicit = (IsOrigin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
@@ -382,7 +413,6 @@ namespace Kratos
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
         ModelPart& r_interface = mrDestinationInterfaceModelPart;
-        const double sign = -1.0;
         auto interface_nodes = r_interface.NodesArray();
         for (size_t i = 0; i < interface_nodes.size(); ++i)
         {
@@ -392,9 +422,8 @@ namespace Kratos
             lagrange.clear();
             for (size_t dof = 0; dof < dim; dof++)
             {
-                lagrange[dof] = sign*rLagrange[interface_id * dim + dof];
+                lagrange[dof] = -1.0*rLagrange[interface_id * dim + dof];
             }
-            //KRATOS_WATCH(lagrange);
         }
 
         KRATOS_CATCH("")
@@ -583,12 +612,13 @@ namespace Kratos
         const SizeType system_dofs = rProjector.size2();
 
         // Convert system stiffness matrix to mass matrix
-        const double gamma = (isOrigin) ? mOriginGamma : mDestinationGamma;
+        const double beta = (isOrigin) ? mParameters["origin_newmark_beta"].GetDouble()
+            : mParameters["destination_newmark_beta"].GetDouble();
         const double dt = (isOrigin) ? mpOriginDomain->GetProcessInfo()[DELTA_TIME]
             : mpDestinationDomain->GetProcessInfo()[DELTA_TIME];
-        CompressedMatrix effective_mass = (*pK) * (dt * dt * gamma * gamma);
+        CompressedMatrix effective_mass = (*pK) * (dt * dt * beta);
 
-        auto start = std::chrono::system_clock::now();
+        //auto start = std::chrono::system_clock::now();
         #pragma omp parallel
         {
             Vector solution(system_dofs);
@@ -604,32 +634,30 @@ namespace Kratos
             }
         }
 
-        auto end = std::chrono::system_clock::now();
-        auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-
+        //auto end = std::chrono::system_clock::now();
+        //auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         // reference answer for testing - slow matrix inversion
         const bool is_test_ref = false;
         if (is_test_ref)
         {
-            start = std::chrono::system_clock::now();
+            //start = std::chrono::system_clock::now();
             double det;
             Matrix inv(pK->size1(), pK->size2());
             MathUtils<double>::InvertMatrix(*pK, inv, det);
             Matrix ref = prod(inv, trans(rProjector));
-            end = std::chrono::system_clock::now();
-            auto elasped_invert = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            //end = std::chrono::system_clock::now();
+            //auto elasped_invert = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-            std::cout << "solve time = " << elasped_solve.count() << "\n";
-            std::cout << "invert time = " << elasped_invert.count() << "\n";
+            //std::cout << "solve time = " << elasped_solve.count() << "\n";
+            //std::cout << "invert time = " << elasped_invert.count() << "\n";
         }
 
         KRATOS_CATCH("")
     }
 
 
-    void FetiDynamicCouplingUtilities::SetOriginInitialVelocities()
+    void FetiDynamicCouplingUtilities::SetOriginInitialKinematics()
     {
         KRATOS_TRY
 
@@ -642,12 +670,13 @@ namespace Kratos
         const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
 
-        if (mInitialOriginInterfaceVelocities.size() != origin_interface_dofs)
-            mInitialOriginInterfaceVelocities.resize(origin_interface_dofs);
-        mInitialOriginInterfaceVelocities.clear();
+        if (mInitialOriginInterfaceKinematics.size() != origin_interface_dofs)
+            mInitialOriginInterfaceKinematics.resize(origin_interface_dofs);
+        mInitialOriginInterfaceKinematics.clear();
 
-        GetInterfaceQuantity(mrOriginInterfaceModelPart, mrEquilibriumVariable, mInitialOriginInterfaceVelocities, dim_origin);
+        GetInterfaceQuantity(mrOriginInterfaceModelPart, GetEquilibriumVariable(), mInitialOriginInterfaceKinematics, dim_origin);
 
         KRATOS_CATCH("")
     }
+
 } // namespace Kratos.

@@ -35,7 +35,7 @@ namespace Python{
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         pybind11::class_< FetiDynamicCouplingUtilities>(m, "FetiDynamicCouplingUtilities")
-            .def(pybind11::init<ModelPart&, ModelPart&, double, double, double, double, IndexType>())
+            .def(pybind11::init<ModelPart&, ModelPart&, Parameters>())
             .def("SetOriginAndDestinationDomainsWithInterfaceModelParts",
                 &FetiDynamicCouplingUtilities::SetOriginAndDestinationDomainsWithInterfaceModelParts)
             .def("SetEffectiveStiffnessMatrix",
@@ -44,8 +44,8 @@ namespace Python{
                 pybind11::overload_cast<IndexType>(&FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrix))
             .def("EquilibrateDomains",
                 &FetiDynamicCouplingUtilities::EquilibrateDomains)
-            .def("SetOriginInitialVelocities",
-                &FetiDynamicCouplingUtilities::SetOriginInitialVelocities)
+            .def("SetOriginInitialKinematics",
+                &FetiDynamicCouplingUtilities::SetOriginInitialKinematics)
             .def("SetMappingMatrix",
                 pybind11::overload_cast<DenseMappingMatrixSharedPointerType, DenseMappingMatrixSharedPointerType>(&FetiDynamicCouplingUtilities::SetMappingMatrix))
             .def("SetMappingMatrix",

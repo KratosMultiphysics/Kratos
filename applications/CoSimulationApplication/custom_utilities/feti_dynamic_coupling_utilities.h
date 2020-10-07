@@ -59,10 +59,8 @@ namespace Kratos
         /// The definition of the numerical limit
         static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
 
-        FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin,
-            ModelPart & rInterFaceDestination,
-            double OriginNewmarkBeta, double OriginNewmarkGamma,
-            double DestinationNewmarkBeta, double DestinationNewmarkGamma, IndexType TimestepRatio);
+        FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin, ModelPart & rInterFaceDestination,
+            Parameters JsonParameters);
 
         void SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart & rInterfaceOrigin,
             ModelPart & rInterFaceDestination)
@@ -113,7 +111,7 @@ namespace Kratos
             mpSolver = pSolver;
         }
 
-        void SetOriginInitialVelocities();
+        void SetOriginInitialKinematics();
 
         void EquilibrateDomains();
 
@@ -131,29 +129,25 @@ namespace Kratos
         DenseMappingMatrixSharedPointerType mpMappingMatrixForce = nullptr;
 
         // Origin quantities
-        Vector mInitialOriginInterfaceVelocities;
-        Vector mFinalOriginInterfaceVelocities;
+        Vector mInitialOriginInterfaceKinematics;
+        Vector mFinalOriginInterfaceKinematics;
         CompressedMatrix mProjectorOrigin;
         CompressedMatrix mUnitResponseOrigin;
 
-        Vector mAccumulatedDisplacement;
-
-        const Variable< array_1d<double, 3> >& mrEquilibriumVariable = VELOCITY; //TODO put in parameters file.
+        std::string mEquilibriumVariableString;
 
         LinearSolverSharedPointerType mpSolver = nullptr;
 
-        const double mOriginGamma;
-        const double mDestinationGamma;
         bool mIsImplicitOrigin;
         bool mIsImplicitDestination;
+        const Parameters mParameters;
 
         IndexType mSubTimestepIndex = 1;
         IndexType mTimestepRatio;
 
         const bool mIsCheckEquilibrium = true; // normally true
-        const bool mIsDisableLagrange = false; // normally false
 
-        void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities, const bool IsEquilibriumCheck = false);
+        void CalculateUnbalancedInterfaceFreeKinematics(Vector& rUnbalancedKinematics, const bool IsEquilibriumCheck = false);
 
         void GetInterfaceQuantity(ModelPart& rInterface, const Variable< array_1d<double, 3> >& rVariable,
             Vector& rContainer, const SizeType nDOFs);
@@ -179,7 +173,7 @@ namespace Kratos
             const CompressedMatrix& rOriginProjector, const CompressedMatrix& rDestinationProjector);
 
         void DetermineLagrangianMultipliers(Vector& rLagrangeVec,
-            CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedVelocities);
+            CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedKinematics);
 
         void ApplyCorrectionQuantities(const Vector& rLagrangeVec,
             const CompressedMatrix& rUnitResponse, const bool IsOrigin);
@@ -215,6 +209,14 @@ namespace Kratos
 
             std::cout << "\n\nInterface " << rVariable.Name() << ", is origin = " << IsOrigin
                 << "\n" << interface_velocities << "\n\n";
+        }
+
+        Variable< array_1d<double, 3> >& GetEquilibriumVariable()
+        {
+            if (mEquilibriumVariableString == "VELOCITY") return VELOCITY;
+            else if (mEquilibriumVariableString == "DISPLACEMENT") return DISPLACEMENT;
+            else if (mEquilibriumVariableString == "ACCELERATION") return ACCELERATION;
+            else KRATOS_ERROR << "'equilibrium_variable' has invalid value. It must be either DISPLACEMENT, VELOCITY or ACCELERATION.\n";
         }
 
     };  // namespace FetiDynamicCouplingUtilities.
