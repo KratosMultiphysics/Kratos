@@ -24,8 +24,6 @@ namespace Kratos {
 
 namespace Testing {
 
-using namespace csv;
-
 static std::string err_preamble = "There should be no overlap between "
     "the quote character, the set of possible "
     "delimiters and the set of whitespace characters.";
@@ -35,7 +33,7 @@ static std::string err_preamble = "There should be no overlap between "
  */
 KRATOS_TEST_CASE_IN_SUITE(CSVFormatOverlappingCharacters, KratosExternalLibrariesFastSuite)
 {
-    CSVFormat format_1;
+    csv::CSVFormat format_1;
     bool err_caught = false;
 
     // Tab
@@ -51,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVFormatOverlappingCharacters, KratosExternalLibrarie
         KRATOS_CHECK(err_caught);
     }
 
-    CSVFormat format_2;
+    csv::CSVFormat format_2;
     err_caught = false;
 
     // Tab with multiple other characters
@@ -67,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVFormatOverlappingCharacters, KratosExternalLibrarie
         KRATOS_CHECK(err_caught);
     }
 
-    CSVFormat format_3;
+    csv::CSVFormat format_3;
     err_caught = false;
 
     // Repeated quote
@@ -83,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVFormatOverlappingCharacters, KratosExternalLibrarie
         KRATOS_CHECK(err_caught);
     }
 
-    CSVFormat format_4;
+    csv::CSVFormat format_4;
     err_caught = false;
 
     // Multiple offenders

@@ -24,27 +24,28 @@ namespace Kratos {
 
 namespace Testing {
 
-using namespace csv;
-
 /** Construct a CSVRow object for testing given column names and CSV fields */
-CSVRow make_csv_row(std::vector<std::string> data, std::vector<std::string> col_names) {
+csv::CSVRow make_csv_row(std::vector<std::string> data, std::vector<std::string> col_names) {
     // Concatenate vector or strings into one large string
-    using namespace csv::internals;
 
-    std::string concat;
-    SplitArray splits = {};
+    std::stringstream raw_csv;
+    auto writer = csv::make_csv_writer(raw_csv);
+    writer << col_names;
+    writer << data;
 
-    for (auto& field : data) {
-        concat += field;
-        splits.push_back((StrBufferPos)concat.size());
-    }
+    csv::CSVReader reader;
+    reader.feed(raw_csv.str());
+    reader.end_feed();
 
-    return CSVRow(concat, splits, std::make_shared<internals::ColNames>(col_names));
+    csv::CSVRow row;
+    reader.read_row(row);
+
+    return row;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(json_escape_stringTest, KratosExternalLibrariesFastSuite)
 {
-    using internals::json_escape_string;
+    using csv::internals::json_escape_string;
 
     // Assert that special characters are escaped properly
     KRATOS_CHECK_EQUAL(json_escape_string("Quote\"Quote"), "Quote\\\"Quote");
@@ -61,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(json_escape_stringTest, KratosExternalLibrariesFastSui
 
 KRATOS_TEST_CASE_IN_SUITE(CSVRowto_jsonTest, KratosExternalLibrariesFastSuite)
 {
-    CSVRow row = make_csv_row(
+    csv::CSVRow row = make_csv_row(
         { "Col 1", "Col 2" },   // Fields
         { "A", "B" }            // Column names
     );
@@ -71,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVRowto_jsonTest, KratosExternalLibrariesFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(CSVRowto_jsonwithNumbers, KratosExternalLibrariesFastSuite)
 {
-    CSVRow row = make_csv_row(
+    csv::CSVRow row = make_csv_row(
         { "1234.3", "234" },    // Fields
         { "A", "B"}             // Column names
     );
@@ -81,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVRowto_jsonwithNumbers, KratosExternalLibrariesFastS
 
 KRATOS_TEST_CASE_IN_SUITE(CSVRowto_jsonMixed, KratosExternalLibrariesFastSuite)
 {
-    CSVRow row = make_csv_row(
+    csv::CSVRow row = make_csv_row(
         { "1234.3", "234", "ABCD", "AB1", "1337" },     // Fields
         { "A", "B", "C", "D", "E" }                     // Column names
     );
@@ -100,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVRowto_jsonMixed, KratosExternalLibrariesFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(CSVRowto_json_arrayMixed, KratosExternalLibrariesFastSuite)
 {
-    CSVRow row = make_csv_row(
+    csv::CSVRow row = make_csv_row(
         { "1234.3", "234", "ABCD", "AB1", "1337" },     // Fields
         { "A", "B", "C", "D", "E" }                     // Column names
     );
@@ -129,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVRowto_jsonwithWrongColumns, KratosExternalLibraries
     reader.feed(csv_string);
     reader.end_feed();
 
-    CSVRow first_row;
+    csv::CSVRow first_row;
     reader.read_row(first_row);
 
     // Since the column names provided were wrong, there won't be any data.

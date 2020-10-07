@@ -26,17 +26,15 @@ namespace Kratos {
 
 namespace Testing {
 
-using namespace csv;
-
 KRATOS_TEST_CASE_IN_SUITE(CSVRowInterator, KratosExternalLibrariesFastSuite)
 {
-    auto rows = "A,B,C\r\n" // Header row
+    std::string csv_string = "A,B,C\r\n" // Header row
         "123,234,345\r\n"
         "1,2,3\r\n"
-        "1,2,3"_csv;
-
-
-    CSVRow row;
+        "1,2,3";
+    
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
     rows.read_row(row);
 
     // Forwards and Backwards Iterators
@@ -107,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(BasicCSVReaderIteratorTest, KratosExternalLibrariesFas
     // A file with 100 rows and columns A, B, ... J
     // where every value in the ith row is the number i
     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_iterator.cpp");
-    CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
+    csv::CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
     std::vector<std::string> col_names = {
         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
     };
@@ -125,18 +123,18 @@ KRATOS_TEST_CASE_IN_SUITE(CSVReaderIteratorstdmax_elem, KratosExternalLibrariesF
     // There are 100 rows
     // The second file is a database of California state employee salaries
     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_iterator.cpp");
-    CSVReader r1(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
-    CSVReader r2(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"}));
+    csv::CSVReader r1(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
+    csv::CSVReader r2(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"}));
 
     // Find largest number
-    auto int_finder = [](CSVRow& left, CSVRow& right) {
+    auto int_finder = [](csv::CSVRow& left, csv::CSVRow& right) {
         return (left["A"].get<int>() < right["A"].get<int>());
     };
 
     auto max_int = std::max_element(r1.begin(), r2.end(), int_finder);
 
     // Find highest salary
-    auto wage_finder = [](CSVRow& left, CSVRow& right) {
+    auto wage_finder = [](csv::CSVRow& left, csv::CSVRow& right) {
         return (left["Total Wages"].get<double>() < right["Total Wages"].get<double>());
     };
 

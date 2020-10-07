@@ -24,23 +24,14 @@ namespace Kratos {
 
 namespace Testing {
 
-using namespace csv;
-
 // Construct a CSVRow and assert that its interface works as expected
 KRATOS_TEST_CASE_IN_SUITE(CSVRowTest, KratosExternalLibrariesFastSuite) {
-    // Create a row of size 4
-    auto col_names = std::make_shared<internals::ColNames>(
-        std::vector<std::string>({ "A", "B", "C", "D" })
-        );
+    std::string csv_string = "A,B,C,D\r\n"
+                  "Col1,Col2,Col3,Col4";
 
-    std::string str = "Col1"
-        "Col2"
-        "Col3"
-        "Col4";
-
-    std::vector<internals::StrBufferPos> splits = { 4, 8, 12 };
-
-    const CSVRow row(str, splits, col_names);
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
+    rows.read_row(row);
 
     bool error_caught = false;
 
@@ -108,25 +99,18 @@ KRATOS_TEST_CASE_IN_SUITE(CSVRowTest, KratosExternalLibrariesFastSuite) {
 
 // Integration test for CSVRow/CSVField
 KRATOS_TEST_CASE_IN_SUITE(CSVFieldoperatorEqual, KratosExternalLibrariesFastSuite) {
-    auto col_names = std::make_shared<internals::ColNames>(
-        std::vector<std::string>({ "A", "B", "C", "D" })
-        );
+    std::string csv_string = "A,B,C,D\r\n"
+                  "1,2,3,3.14";
 
-    std::string str;
-    str += "1"
-        "2"
-        "3"
-        "3.14";
-
-    std::vector<internals::StrBufferPos> splits = { 1, 2, 3 };
-    CSVRow row(str, splits, col_names);
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
+    rows.read_row(row);
 
     KRATOS_CHECK_EQUAL(row["A"], 1);
     KRATOS_CHECK_EQUAL(row["B"], 2);
     KRATOS_CHECK_EQUAL(row["C"], 3);
-    KRATOS_CHECK(internals::is_equal(row["D"].get<long double>(), 3.14L));
+    KRATOS_CHECK(csv::internals::is_equal(row["D"].get<long double>(), 3.14L));
 }
 
 } // namespace Testing.
 } // namespace Kratos.
-

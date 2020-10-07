@@ -27,105 +27,113 @@ namespace Kratos {
 
 namespace Testing {
 
-using namespace csv;
-using std::vector;
-using std::string;
-
 KRATOS_TEST_CASE_IN_SUITE(TestParseFlags, KratosExternalLibrariesFastSuite )
 {
-    KRATOS_CHECK_EQUAL(internals::make_parse_flags(',', '"')[162], internals::ParseFlags::QUOTE);
+    KRATOS_CHECK_EQUAL(csv::internals::make_parse_flags(',', '"')[162], csv::internals::ParseFlags::QUOTE);
 }
 
 // Test Main Functions
 KRATOS_TEST_CASE_IN_SUITE(TestReadingCSVFromDirectInput, KratosExternalLibrariesFastSuite )
 {
-    auto rows = "A,B,C\r\n" // Header row
+    std::string csv_string = "A,B,C\r\n" // Header row
                 "123,234,345\r\n"
                 "1,2,3\r\n"
-                "1,2,3"_csv;
+                "1,2,3";
 
     // Expected Results
-    CSVRow row;
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
     rows.read_row(row);
-    vector<string> first_row = {"123", "234", "345"};
-    KRATOS_CHECK_EQUAL( vector<string>(row), first_row );
+    
+    std::vector<std::string> first_row = {"123", "234", "345"};
+    KRATOS_CHECK_EQUAL( std::vector<std::string>(row), first_row );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AssertUTF8HandlingWorks, KratosExternalLibrariesFastSuite)
 {
     // TODO: Actually check to see if flag is set
-    auto rows = "\uFEFFA,B,C\r\n" // Header row
+    std::string csv_string = "\uFEFFA,B,C\r\n" // Header row
         "123,234,345\r\n"
         "1,2,3\r\n"
-        "1,2,3"_csv;
+        "1,2,3";
 
     // Expected Results
-    CSVRow row;
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
     rows.read_row(row);
-    vector<string> first_row = { "123", "234", "345" };
-    KRATOS_CHECK_EQUAL(vector<string>(row), first_row);
+
+    std::vector<std::string> first_row = { "123", "234", "345" };
+    KRATOS_CHECK_EQUAL(std::vector<std::string>(row), first_row);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestEscapedComma, KratosExternalLibrariesFastSuite )
 {
-    auto rows = "A,B,C\r\n" // Header row
+    std::string csv_string = "A,B,C\r\n" // Header row
                 "123,\"234,345\",456\r\n"
                 "1,2,3\r\n"
-                "1,2,3"_csv;
+                "1,2,3";
 
-    CSVRow row;
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
     rows.read_row(row);
-    KRATOS_CHECK_EQUAL( vector<string>(row),
-        vector<string>({"123", "234,345", "456"}));
+
+    KRATOS_CHECK_EQUAL( std::vector<std::string>(row),
+        std::vector<std::string>({"123", "234,345", "456"}));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestEscapedNewline, KratosExternalLibrariesFastSuite )
 {
-    auto rows = "A,B,C\r\n" // Header row
+    std::string csv_string = "A,B,C\r\n" // Header row
                 "123,\"234\n,345\",456\r\n"
                 "1,2,3\r\n"
-                "1,2,3"_csv;
+                "1,2,3";
 
-    CSVRow row;
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
     rows.read_row(row);
-    KRATOS_CHECK_EQUAL( vector<string>(row),
-        vector<string>({ "123", "234\n,345", "456" }) );
+
+    KRATOS_CHECK_EQUAL( std::vector<std::string>(row),
+        std::vector<std::string>({ "123", "234\n,345", "456" }) );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestEmptyField, KratosExternalLibrariesFastSuite )
 {
     // Per RFC 1480, escaped quotes should be doubled up
-    auto rows = "A,B,C\r\n" // Header row
-                "123,\"\",456\r\n"_csv;
+    std::string csv_string = "A,B,C\r\n" // Header row
+                "123,\"\",456\r\n";
 
-    CSVRow row;
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
     rows.read_row(row);
-    KRATOS_CHECK_EQUAL( vector<string>(row),
-        vector<string>({ "123", "", "456" }) );
+
+    KRATOS_CHECK_EQUAL( std::vector<std::string>(row),
+        std::vector<std::string>({ "123", "", "456" }) );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestEscapedQuote, KratosExternalLibrariesFastSuite )
 {
     // Per RFC 1480, escaped quotes should be doubled up
-    string csv_string = (
+    std::string csv_string = (
         "A,B,C\r\n" // Header row
         "123,\"234\"\"345\",456\r\n"
         "123,\"234\"345\",456\r\n" // Unescaped single quote (not strictly valid)
         "123,\"234\"345\",\"456\"" // Quoted field at the end
     );
 
-    auto rows = parse(csv_string);
+    csv::CSVRow row;
+    auto rows = csv::parse(csv_string);
+    rows.read_row(row);
 
     // Expected Results: Double " is an escape for a single "
-    vector<string> correct_row = {"123", "234\"345", "456"};
+    std::vector<std::string> correct_row = {"123", "234\"345", "456"};
     for (auto& row : rows) {
-        KRATOS_CHECK_EQUAL(vector<string>(row), correct_row);
+        KRATOS_CHECK_EQUAL(std::vector<std::string>(row), correct_row);
     }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FragmentTest, KratosExternalLibrariesFastSuite)
 {
-    CSVReader reader;
+    csv::CSVReader reader;
 
     reader.feed("A,B,C\r\n" // Header row
         "123,\"234\"\"345\",456\r\n");
@@ -134,9 +142,9 @@ KRATOS_TEST_CASE_IN_SUITE(FragmentTest, KratosExternalLibrariesFastSuite)
     reader.end_feed();
 
     // Expected Results: Double " is an escape for a single "
-    vector<string> correct_row = { "123", "234\"345", "456" };
+    std::vector<std::string> correct_row = { "123", "234\"345", "456" };
     for (auto& row : reader) {
-        KRATOS_CHECK_EQUAL(vector<string>(row), correct_row);
+        KRATOS_CHECK_EQUAL(std::vector<std::string>(row), correct_row);
     }
 }
 
@@ -153,8 +161,8 @@ KRATOS_TEST_CASE_IN_SUITE(VariableRowLengthHandling, KratosExternalLibrariesFast
 
     // Throw Error
     {
-        CSVFormat format;
-        format.variable_columns(VariableColumnPolicy::THROW);
+        csv::CSVFormat format;
+        format.variable_columns(csv::VariableColumnPolicy::THROW);
 
         auto rows = parse(csv_string, format);
         size_t i = 0;
@@ -178,11 +186,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableRowLengthHandling, KratosExternalLibrariesFast
 
     // Ignore Row
     {
-        CSVFormat format;
+        csv::CSVFormat format;
         format.variable_columns(false);
 
         auto reader = parse(csv_string, format);
-        std::vector<CSVRow> rows(reader.begin(), reader.end());
+        std::vector<csv::CSVRow> rows(reader.begin(), reader.end());
 
         // Expect short/long rows to be dropped
         KRATOS_CHECK_EQUAL(rows.size(), 3);
@@ -192,11 +200,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableRowLengthHandling, KratosExternalLibrariesFast
 
     // Keep Row
     {
-        CSVFormat format;
+        csv::CSVFormat format;
         format.variable_columns(true);
 
         auto reader = parse(csv_string, format);
-        std::vector<CSVRow> rows(reader.begin(), reader.end());
+        std::vector<csv::CSVRow> rows(reader.begin(), reader.end());
 
         // Expect short/long rows to be kept
         KRATOS_CHECK_EQUAL(rows.size(), 5);
@@ -211,7 +219,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariableRowLengthHandling, KratosExternalLibrariesFast
 
 KRATOS_TEST_CASE_IN_SUITE(Testread_rowCSVFieldMemory, KratosExternalLibrariesFastSuite)
 {
-    CSVFormat format;
+    csv::CSVFormat format;
     format.column_names({ "A", "B" });
 
     std::stringstream csv_string;
@@ -220,13 +228,13 @@ KRATOS_TEST_CASE_IN_SUITE(Testread_rowCSVFieldMemory, KratosExternalLibrariesFas
         << "," << std::endl;
 
     auto rows = parse(csv_string.str(), format);
-    CSVRow row;
+    csv::CSVRow row;
     rows.read_row(row);
 
     // First Row
     KRATOS_CHECK((row[0].is_float() && row[0].is_num()));
     KRATOS_CHECK_EQUAL(row[0].get<std::string>().substr(0, 4), "3.14");
-    KRATOS_CHECK(internals::is_equal(row[0].get<double>(), 3.14));
+    KRATOS_CHECK(csv::internals::is_equal(row[0].get<double>(), 3.14));
 
     // Second Row
     rows.read_row(row);
@@ -253,7 +261,7 @@ bar-category,,bar-project
     reader.feed(csv_string);
     reader.end_feed();
 
-    CSVRow first_row, second_row;
+    csv::CSVRow first_row, second_row;
     KRATOS_CHECK(reader.read_row(first_row));
     KRATOS_CHECK(reader.read_row(second_row));
 
@@ -322,10 +330,10 @@ KRATOS_TEST_CASE_IN_SUITE(LongRowTest, KratosExternalLibrariesFastSuite)
         }
     }
 
-    auto rows = parse(csv_string.str());
+    auto rows = csv::parse(csv_string.str());
     KRATOS_CHECK_EQUAL(rows.get_col_names().size(), n_cols);
 
-    CSVRow row;
+    csv::CSVRow row;
     rows.read_row(row);
 
     int i = 0;

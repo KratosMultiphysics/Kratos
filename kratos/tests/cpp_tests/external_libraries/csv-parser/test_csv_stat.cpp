@@ -26,8 +26,6 @@ namespace Kratos {
 
 namespace Testing {
 
-using namespace csv;
-
 KRATOS_TEST_CASE_IN_SUITE(CalculatingStatisticsfromDirectInput, KratosExternalLibrariesFastSuite )
 {
     std::string int_str;
@@ -38,10 +36,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingStatisticsfromDirectInput, KratosExternalLi
     }
 
     // Expected results
-    CSVFormat format;
+    csv::CSVFormat format;
     format.column_names({ "A", "B", "C" });
 
-    CSVStat reader(format);
+    csv::CSVStat reader(format);
     reader.feed(int_list);
     reader.end_feed();
 
