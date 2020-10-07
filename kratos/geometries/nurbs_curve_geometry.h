@@ -317,6 +317,60 @@ public:
     }
 
     ///@}
+    ///@name Geometrical Informations
+    ///@{
+
+    /// Computes the length of a nurbs curve
+    double Length() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            double determinant_jacobian = this->DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
+        }
+        return length;
+    }
+
+    ///@}
+    ///@name Jacobian
+    ///@{
+
+    /// Computes the Jacobian with coordinates
+    Matrix& Jacobian(
+        Matrix& rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        if (rResult.size1() != working_space_dimension || rResult.size2() != 1) {
+            rResult.resize(working_space_dimension, 1, false);
+        }
+        rResult.clear();
+
+        /// Compute shape functions
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 1);
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
+        }
+
+        /// Compute Jacobian
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            const IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
+
+            const array_1d<double, 3>& r_coordinates = (*this)[index].Coordinates();
+            for (IndexType k = 0; k < working_space_dimension; ++k) {
+                rResult(k, 0) += r_coordinates[k] * shape_function_container(i, 1);
+            }
+        }
+        return rResult;
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 

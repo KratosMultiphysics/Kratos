@@ -9,7 +9,7 @@ import KratosMultiphysics.DEMApplication as Dem
 class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
 
     def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-        super(Triaxial2D, self).__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+        super().__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
     def Initialize(self):
         self.PrepareTests()
@@ -81,7 +81,7 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
             node.SetSolutionStepValue(Kratos.EXTERNAL_APPLIED_FORCE, values)
 
     def MeasureForcesAndPressure(self):
-        super(Triaxial2D, self).MeasureForcesAndPressure()
+        super().MeasureForcesAndPressure()
         average_zstress_value = 0.0
 
         if self.test_type == "Triaxial2D":
