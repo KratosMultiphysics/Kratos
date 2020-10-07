@@ -200,11 +200,10 @@ def InitializePeriodicConditions(
     properties = model_part.CreateNewProperties(
         model_part.NumberOfProperties() + 1)
 
-    if (variables_list is not None):
-        pcu = KratosCFD.PeriodicConditionUtilities(
-            model_part, model_part.ProcessInfo[Kratos.DOMAIN_SIZE])
-        for variable in variables_list:
-            pcu.AddPeriodicVariable(properties, variable)
+    pcu = KratosCFD.PeriodicConditionUtilities(
+        model_part, model_part.ProcessInfo[Kratos.DOMAIN_SIZE])
+    for variable in variables_list:
+        pcu.AddPeriodicVariable(properties, variable)
 
     index = model_part.NumberOfConditions()
     for condition in base_model_part.Conditions:

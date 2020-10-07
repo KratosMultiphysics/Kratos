@@ -171,7 +171,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
         settings = self.GetParameters()
 
-        self.solver_settings = self.__CreateSolverSettings(
+        self.solver_settings = self._CreateSolverSettings(
             self.fractional_step_model_part,
             self.GetDomainSize(),
             settings["time_order"].GetInt(),
@@ -227,12 +227,12 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         if (hasattr(self, "is_converged")):
             if (self.is_steady_simulation):
                 settings = self.GetParameters()["steady_convergence_settings"]
-                formulation_converged = self.__CheckTransientConvergence(
+                formulation_converged = self._CheckTransientConvergence(
                     Kratos.VELOCITY,
                     settings["velocity_tolerances"])
                 self.is_converged = self.is_converged and formulation_converged
 
-                formulation_converged = self.__CheckTransientConvergence(
+                formulation_converged = self._CheckTransientConvergence(
                     Kratos.PRESSURE,
                     settings["pressure_tolerances"])
                 self.is_converged = self.is_converged and formulation_converged
@@ -251,14 +251,6 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                 return True
 
         return False
-
-    def InitializeSolutionStep(self):
-        if (self.IsBufferInitialized()):
-            super().InitializeSolutionStep()
-
-    def FinalizeSolutionStep(self):
-        if (self.IsBufferInitialized()):
-            super().FinalizeSolutionStep()
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
@@ -315,7 +307,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             msg += "\tlogarithmic_region_only\n"
             raise Exception(msg)
 
-    def __CheckTransientConvergence(self, variable, settings):
+    def _CheckTransientConvergence(self, variable, settings):
         relative_error, absolute_error = RansVariableUtilities.CalculateTransientVariableConvergence(
             self.GetBaseModelPart(),
             variable)
@@ -332,7 +324,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
         return (relative_error <= relative_tolerance or absolute_error <= absolute_tolerance)
 
-    def __CreateSolverSettings(self, *args):
+    def _CreateSolverSettings(self, *args):
         if (self.IsPeriodic()):
             solver_settings_type = GetKratosObjectType("FractionalStepSettingsPeriodic")
         else:
