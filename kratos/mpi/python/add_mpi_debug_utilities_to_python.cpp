@@ -26,24 +26,25 @@ namespace Python {
 
 // }
 
-template<class TContainerType, class TVariableType>
-void AddNonHistoricalVariableCheck(pybind11::module& m) {
-    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const TContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
-}
+/* Enable this once we move to C++17 */
+// template<class TContainerType, class TVariableType>
+// void AddNonHistoricalVariableCheck(pybind11::module& m) {
+//     m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const TContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+// }
 
-// CheckNonHistoricalNodeVariableConsistency()
-template<class TContainerType, typename... args>
-void AddNonHistoricalVariableCheckFolder(pybind11::module& m) {
-    (AddNonHistoricalVariableCheck<TContainerType, args>(m), ...);
-}
+// // CheckNonHistoricalNodeVariableConsistency()
+// template<class TContainerType, typename... args>
+// void AddNonHistoricalVariableCheckFolder(pybind11::module& m) {
+//     (AddNonHistoricalVariableCheck<TContainerType, args>(m), ...);
+// }
 
-template<class TContainerType>
-void AddNonHistoricalVariableCheck(pybind11::module& m) {
-    AddNonHistoricalVariableCheckFolder<TContainerType, 
-        KRATOS_SINGLE_VARIABLE_TYPES,
-        KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES
-    >(m);
-}
+// template<class TContainerType>
+// void AddNonHistoricalVariableCheck(pybind11::module& m) {
+//     AddNonHistoricalVariableCheckFolder<TContainerType, 
+//         KRATOS_SINGLE_VARIABLE_TYPES,
+//         KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES
+//     >(m);
+// }
 
 void AddMPIDebugUtilitiesToPython(pybind11::module& m)
 {
@@ -51,12 +52,20 @@ void AddMPIDebugUtilitiesToPython(pybind11::module& m)
 
     py::class_<MpiDebugUtilities>(m,"MPIDebugUtilities");
 
-    AddNonHistoricalVariableCheck<ModelPart::NodesContainerType>(m);
-    AddNonHistoricalVariableCheck<ModelPart::ElementsContainerType>(m);
-    AddNonHistoricalVariableCheck<ModelPart::ConditionsContainerType>(m);
+    /* Enable this once we move to C++17 */
+    // AddNonHistoricalVariableCheck<ModelPart::NodesContainerType>(m);
+    // AddNonHistoricalVariableCheck<ModelPart::ElementsContainerType>(m);
+    // AddNonHistoricalVariableCheck<ModelPart::ConditionsContainerType>(m);
 
     // .def("SetMPICommunicator",&MpiDebugUtilities::SetMPICommunicator)
     // ;
+
+    /* Disable this once we move to C++17 */
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+
 }
 
 } // namespace Python
