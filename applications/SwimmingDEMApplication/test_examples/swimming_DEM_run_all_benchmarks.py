@@ -16,7 +16,7 @@ def Run():
     print("\nStarting swimming_DEM Benchmarks..............\n")
     Text=""
 
-    py_cmd = "python3" if shutil.which("python3") is not None else "python"
+    py_cmd = GetPython3Command()
     os.system(py_cmd + " hydrodynamic_forces.py " + " > BenchTemp.txt")
 
     os.remove("BenchTemp.txt")
