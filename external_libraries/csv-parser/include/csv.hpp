@@ -7963,7 +7963,7 @@ namespace csv {
                 auto& fragment_data = this->current_row.data;
                 fragment_data->data.reserve(temp_str.size() + in.size());
                 fragment_data->data = temp_str;
-                fragment_data->data += in;
+                fragment_data->data += static_cast<std::string>(in);
 
                 in = csv::string_view(fragment_data->data);
             }
