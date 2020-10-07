@@ -7000,7 +7000,9 @@ namespace csv {
 
             // Final score is equal to the largest 
             // row size times rows of that size
-            for (auto& [row_size, row_count] : row_tally) {
+            for (auto& pair : row_tally) {
+                const size_t row_size = pair.first;
+                const size_t row_count = pair.second;
                 double score = (double)(row_size * row_count);
                 if (score > final_score) {
                     final_score = score;
