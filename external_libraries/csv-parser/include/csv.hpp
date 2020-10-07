@@ -7949,7 +7949,7 @@ namespace csv {
             this->data_ptr->col_names = this->col_names;
 
             // Check for previous fragments
-            if (this->current_row.data && this->current_row.size() > 0 || this->field_length > 0) {
+            if ((this->current_row.data && this->current_row.size() > 0) || this->field_length > 0) {
                 // Make a separate data buffer for the fragment row
                 auto temp_str = this->current_row.data->data.substr(this->current_row.data_start);
 
