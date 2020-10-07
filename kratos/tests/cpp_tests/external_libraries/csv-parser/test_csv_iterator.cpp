@@ -117,32 +117,5 @@ KRATOS_TEST_CASE_IN_SUITE(BasicCSVReaderIteratorTest, KratosExternalLibrariesFas
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CSVReaderIteratorstdmax_elem, KratosExternalLibrariesFastSuite)
-{
-    // The first is such that each value in the ith row is the number i
-    // There are 100 rows
-    // The second file is a database of California state employee salaries
-    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_iterator.cpp");
-    csv::CSVReader r1(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
-    csv::CSVReader r2(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"}));
-
-    // Find largest number
-    auto int_finder = [](csv::CSVRow& left, csv::CSVRow& right) {
-        return (left["A"].get<int>() < right["A"].get<int>());
-    };
-
-    auto max_int = std::max_element(r1.begin(), r2.end(), int_finder);
-
-    // Find highest salary
-    auto wage_finder = [](csv::CSVRow& left, csv::CSVRow& right) {
-        return (left["Total Wages"].get<double>() < right["Total Wages"].get<double>());
-    };
-
-    auto max_wage = std::max_element(r2.begin(), r2.end(), wage_finder);
-
-    KRATOS_CHECK_EQUAL((*max_int)["A"], 100);
-    KRATOS_CHECK_EQUAL((*max_wage)["Total Wages"], "812064.87");
-}
-
 } // namespace Testing.
 } // namespace Kratos.
