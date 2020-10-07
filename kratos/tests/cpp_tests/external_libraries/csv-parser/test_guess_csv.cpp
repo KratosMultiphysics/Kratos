@@ -28,30 +28,10 @@ namespace Kratos {
 
 namespace Testing {
 
-using namespace csv;
-using std::vector;
-using std::string;
-
-// KRATOS_TEST_CASE_IN_SUITE(guess_delimPipe, KratosExternalLibrariesFastSuite)
-// {
-//     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_guess_csv.cpp");
-//     CSVGuessResult format = guess_format(Kratos::FilesystemExtensions::JoinPaths({working_dir,"data/real_data/2009PowerStatus.txt"}));
-//     KRATOS_CHECK_EQUAL(format.delim, '|');
-//     KRATOS_CHECK_EQUAL(format.header_row, 0);
-// }
-
-// KRATOS_TEST_CASE_IN_SUITE(guess_delimSemiColon, KratosExternalLibrariesFastSuite)
-// {
-//     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_guess_csv.cpp");
-//     CSVGuessResult format = guess_format(Kratos::FilesystemExtensions::JoinPaths({working_dir,"data/real_data/YEAR07_CBSA_NAC3.txt"}));
-//     KRATOS_CHECK_EQUAL(format.delim, ';');
-//     KRATOS_CHECK_EQUAL(format.header_row, 0);
-// }
-
 KRATOS_TEST_CASE_IN_SUITE(guess_delimCSVwithComments, KratosExternalLibrariesFastSuite)
 {
     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_guess_csv.cpp");
-    CSVGuessResult format = guess_format(Kratos::FilesystemExtensions::JoinPaths({working_dir,"data/fake_data/ints_comments.csv"}));
+    csv::CSVGuessResult format = csv::guess_format(Kratos::FilesystemExtensions::JoinPaths({working_dir,"data/fake_data/ints_comments.csv"}));
     KRATOS_CHECK_EQUAL(format.delim, ',');
     KRATOS_CHECK_EQUAL(format.header_row, 5);
 }
