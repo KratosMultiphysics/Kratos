@@ -1867,7 +1867,6 @@ namespace csv {
             return (ParseFlags)((int)flag & ~((int)ParseFlags::QUOTE * quote_escape));
         }
         
-#if __cplusplus >= 201703L
         // Assumed to be true by parsing functions: allows for testing
         // if an item is DELIMITER or NEWLINE with a >= statement
         static_assert(ParseFlags::DELIMITER < ParseFlags::NEWLINE);
@@ -1886,7 +1885,6 @@ namespace csv {
         static_assert(qe_flag(ParseFlags::QUOTE, true) == ParseFlags::QUOTE_ESCAPE_QUOTE);
         static_assert(qe_flag(ParseFlags::DELIMITER, true) == ParseFlags::NOT_SPECIAL);
         static_assert(qe_flag(ParseFlags::NEWLINE, true) == ParseFlags::NOT_SPECIAL);
-#endif
 
         using ParseFlagMap = std::array<ParseFlags, 256>;
         using WhitespaceMap = std::array<bool, 256>;
