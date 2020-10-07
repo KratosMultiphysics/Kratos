@@ -337,6 +337,13 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                                                     GPoint,
                                                                     this->GetIntegrationMethod());
 
+    KRATOS_ERROR_IF(detJp < 0.0)
+     << "ERROR:: ELEMENT ID: "
+     << this->Id()
+     << " INVERTED. detJp: "
+     << detJp
+     << std::endl;
+
     //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateKinematics()") << std::endl;
 
     KRATOS_CATCH( "" )

@@ -1693,10 +1693,6 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics( ElementVariables& rVar
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-
     //Setting the vector of shape functions and the matrix of the shape functions global gradients
     noalias(rVariables.Nu) = row(rVariables.NuContainer, PointNumber);
     noalias(rVariables.Np) = row(rVariables.NpContainer, PointNumber);
