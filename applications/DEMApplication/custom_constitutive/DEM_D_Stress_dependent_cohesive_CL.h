@@ -34,12 +34,14 @@ namespace Kratos {
 
         void InitializeContact(SphericParticle* const element1,
                                SphericParticle* const element2,
-                               const double indentation) override;
+                               double& contact_area,
+                               const double indentation);
 
         void InitializeContactWithFEM(SphericParticle* const element,
                                       Condition* const wall,
+                                      double& contact_area,
                                       const double indentation,
-                                      const double ini_delta = 0.0) override;
+                                      const double ini_delta = 0.0);
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalElasticContactForce[3],
@@ -73,12 +75,16 @@ namespace Kratos {
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,
                                             const double normal_contact_force,
-                                            const double indentation);
+                                            const double contact_area,
+                                            const double indentation,
+                                            const bool initial_time_step);
 
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
                                                    Condition* const wall,
                                                    const double normal_contact_force,
-                                                   const double indentation);
+                                                   const double contact_area,
+                                                   const double indentation,
+                                                   const bool initial_time_step);
 
         template <class NeighbourClassType>
         void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
@@ -89,6 +95,7 @@ namespace Kratos {
                                                    bool& sliding,
                                                    SphericParticle* const element,
                                                    NeighbourClassType* const neighbour,
+                                                   const double contact_area,
                                                    double indentation,
                                                    double previous_indentation,
                                                    double& AuxElasticShearForce,
