@@ -74,14 +74,11 @@ namespace Kratos {
                                                           bool& sliding,
                                                           double LocalCoordSystem[3][3]) {
 
-        ContactInfoSphericParticle* p_element1 = dynamic_cast<ContactInfoSphericParticle*>(element1);
-        ContactInfoSphericParticle* p_element2 = dynamic_cast<ContactInfoSphericParticle*>(element2);
-
-        InitializeContact(p_element1, p_element2, indentation);
+        InitializeContact(element1, element2, indentation);
 
         LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
 
-        CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, p_element1, p_element2);
+        CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
 
         double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
 
@@ -90,13 +87,13 @@ namespace Kratos {
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
         }
 
-        cohesive_force = CalculateCohesiveNormalForce(p_element1, p_element2, normal_contact_force, indentation);
+        cohesive_force = CalculateCohesiveNormalForce(element1, element2, normal_contact_force, indentation);
 
         double AuxElasticShearForce;
         double MaximumAdmisibleShearForce;
 
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              sliding, p_element1, p_element2, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+                                              sliding, element1, element2, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
 
         double& elastic_energy = element1->GetElasticEnergy();
         DEM_D_Linear_viscous_Coulomb::CalculateElasticEnergyDEM(elastic_energy, indentation, LocalElasticContactForce);
