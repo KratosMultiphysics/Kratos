@@ -47,25 +47,25 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
 
         this->AddDampingToLHS (LHS_Contribution, mMatrix.D[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], CurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -73,7 +73,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo)
@@ -83,48 +83,48 @@ public:
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], CurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void Calculate_RHS_Contribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -152,7 +152,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AddDampingToRHS(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         const ProcessInfo& CurrentProcessInfo)
@@ -162,7 +162,7 @@ protected:
         // Adding damping contribution
         if (D.size1() != 0)
         {
-            rCurrentElement->GetFirstDerivativesVector(mVector.v[thread], 0);
+            rCurrentElement.GetFirstDerivativesVector(mVector.v[thread], 0);
 
             noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
         }
