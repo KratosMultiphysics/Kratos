@@ -63,22 +63,21 @@ class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
             for elem in self.main_model_part.Elements:
                 if elem.Id == id_for_print:
                     plot_file = open("PlotElement.txt","a")
-                    number_of_cycles = elem.GetValuesOnIntegrationPoints(SMA.NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
-                    local_number_of_cycles = elem.GetValuesOnIntegrationPoints(SMA.LOCAL_NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
-                    uniaxial_stresses = elem.GetValuesOnIntegrationPoints(SMA.UNIAXIAL_STRESS,self.main_model_part.ProcessInfo)
-                    damage = elem.GetValuesOnIntegrationPoints(SMA.DAMAGE,self.main_model_part.ProcessInfo)
-                    f_red = elem.GetValuesOnIntegrationPoints(SMA.FATIGUE_REDUCTION_FACTOR, self.main_model_part.ProcessInfo)
-                    stress_tensor = elem.GetValuesOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_TENSOR, self.main_model_part.ProcessInfo)
-                    strain_vector = elem.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.main_model_part.ProcessInfo)
-                    wohler_stress = elem.GetValuesOnIntegrationPoints(SMA.WOHLER_STRESS, self.main_model_part.ProcessInfo)
-
-                    young_modulus = self.main_model_part.GetProperties()[1][KratosMultiphysics.YOUNG_MODULUS]
+                    number_of_cycles = elem.CalculateOnIntegrationPoints(SMA.NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
+                    local_number_of_cycles = elem.CalculateOnIntegrationPoints(SMA.LOCAL_NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
+                    uniaxial_stresses = elem.CalculateOnIntegrationPoints(SMA.UNIAXIAL_STRESS,self.main_model_part.ProcessInfo)
+                    damage = elem.CalculateOnIntegrationPoints(SMA.DAMAGE,self.main_model_part.ProcessInfo)
+                    f_red = elem.CalculateOnIntegrationPoints(SMA.FATIGUE_REDUCTION_FACTOR, self.main_model_part.ProcessInfo)
+                    stress_tensor = elem.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_TENSOR, self.main_model_part.ProcessInfo)
+                    strain_vector = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.main_model_part.ProcessInfo)
+                    wohler_stress = elem.CalculateOnIntegrationPoints(SMA.WOHLER_STRESS, self.main_model_part.ProcessInfo)
+                    yield_stress = self.main_model_part.GetProperties()[1][KratosMultiphysics.YIELD_STRESS]
                     
                     if first_code_line == True:
                         plot_file.write("    " + "id_for_print".rjust(20) + "    " + "{0:.4e}".format(id_for_print).rjust(20) +  "\n")    
                         plot_file.write("    " + "self.time".rjust(20) + "    " + "N_c GLOBAL".rjust(20) + "    " + "N_c LOCAL".rjust(20) + "    " + "uniaxial_stresses".rjust(20) + "    " + "damage".rjust(20) + "    " + "f_red".rjust(20) + "    " + "wohler_stress".rjust(20) + "    " + "strain_vector".rjust(20) + "    " + "stress_tensor".rjust(20) + "    " + "stress_tensor_norm".rjust(20) + "    " + "uniaxial_stress_norm".rjust(20) + "\n")    
                     
-                    plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point][0]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point][0]).rjust(20) + "    " + "{0:.14e}".format(uniaxial_stresses[id_gauss_point][0]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point][0]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point][0]).rjust(20) + "    " + "{0:.4e}".format(wohler_stress[id_gauss_point][0]).rjust(20) + "    " + "{0:.4e}".format(strain_vector[id_gauss_point][0]).rjust(20) + "   " + "{0:.4e}".format(stress_tensor[id_gauss_point][0]).rjust(20) + "   " + "{0:.4e}".format(stress_tensor[id_gauss_point][0] / young_modulus).rjust(20) + "   " + "{0:.4e}".format(uniaxial_stresses[id_gauss_point][0] / young_modulus).rjust(20) + "\n")
+                    plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.14e}".format(uniaxial_stresses[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(wohler_stress[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(strain_vector[id_gauss_point][0,0]).rjust(20) + "   " + "{0:.4e}".format(stress_tensor[id_gauss_point][0,0]).rjust(20) + "   " + "{0:.4e}".format(stress_tensor[id_gauss_point][0,0] / yield_stress).rjust(20) + "   " + "{0:.4e}".format(uniaxial_stresses[id_gauss_point] / yield_stress).rjust(20) + "\n")
                     plot_file.close()
 
             id_for_print = self.project_parameters["fatigue"]["node_print"].GetInt()
