@@ -5929,15 +5929,15 @@ namespace csv {
             internals::CSVFieldArray* fields = nullptr;
             RowCollection* _records = nullptr;
 
-            constexpr internals::ParseFlags parse_flag(const char ch) const noexcept {
+            CONSTEXPR internals::ParseFlags parse_flag(const char ch) const noexcept {
                 return _parse_flags.data()[ch + 128];
             }
 
-            constexpr internals::ParseFlags compound_parse_flag(const char ch) const noexcept {
+            CONSTEXPR internals::ParseFlags compound_parse_flag(const char ch) const noexcept {
                 return internals::qe_flag(parse_flag(ch), this->quote_escape);
             }
 
-            constexpr bool ws_flag(const char ch) const noexcept {
+            CONSTEXPR bool ws_flag(const char ch) const noexcept {
                 return _ws_flags.data()[ch + 128];
             }
 
