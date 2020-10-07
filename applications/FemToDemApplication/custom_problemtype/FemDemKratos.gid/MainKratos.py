@@ -5,3 +5,4 @@ import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCoupling
 
 model = KratosMultiphysics.Model()
 MainCouplingFemDem.MainCoupledFemDem_Solution(model).Run()
+
