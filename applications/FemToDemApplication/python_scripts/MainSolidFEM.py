@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import system python modules
 import time as timer
@@ -8,7 +7,7 @@ import os
 # Import kratos core and applications
 import KratosMultiphysics
 
-class Solution(object):
+class Solution():
 
     def __init__(self):
         
@@ -21,8 +20,7 @@ class Solution(object):
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####
-        
-        
+
         #### PARSING THE PARAMETERS ####
 
         # Import input
