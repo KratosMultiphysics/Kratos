@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_filesystem.h"
 #include "utilities/read_materials_utility.h"
 
 namespace Kratos {
@@ -69,6 +70,9 @@ ReadMaterialsUtility::ReadMaterialsUtility(
 
     // Read json string in materials file, create Parameters
     const std::string& r_materials_filename = Params["Parameters"]["materials_filename"].GetString();
+
+    KRATOS_ERROR_IF_NOT(Kratos::filesystem::exists(r_materials_filename)) << "The material file specified with name \"" << r_materials_filename << "\" does not exist!" << std::endl;
+
     std::ifstream ifs(r_materials_filename);
     Parameters materials(ifs);
 
