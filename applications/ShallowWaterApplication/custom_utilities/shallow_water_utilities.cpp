@@ -208,7 +208,7 @@ void ShallowWaterUtilities::ResetDryDomain(ModelPart& rModelPart, double Thickne
         double& height = it_node->FastGetSolutionStepValue(HEIGHT);
         if (height < Thickness)
         {
-            height = 0.1 * Thickness;
+            height = 0.5 * Thickness;
             it_node->FastGetSolutionStepValue(MOMENTUM) = ZeroVector(3);
         }
     }

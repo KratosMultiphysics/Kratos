@@ -335,6 +335,14 @@ protected:
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
+    /*
+     * This method is adding a matrix with positive diagonal and negative
+     * off diagonal terms. The sum of the rows and the columns is zero.
+     */
+    void AddLowOrderDiffusion(
+        MatrixType& rLHS,
+        const ElementData& rData);
+
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
         const ElementData& rData,
