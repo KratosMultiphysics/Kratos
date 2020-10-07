@@ -1,6 +1,5 @@
 import KratosMultiphysics
-# import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.FemToDemApplication
 import MainFemDem
 
