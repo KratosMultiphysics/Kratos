@@ -13,7 +13,6 @@
 //
 
 // System includes
-#include <stdio.h> // For remove()
 #include <sstream>
 #include <queue>
 #include <list>
