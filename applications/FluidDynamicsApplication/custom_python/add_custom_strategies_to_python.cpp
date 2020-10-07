@@ -37,6 +37,7 @@
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
 #include "custom_strategies/strategies/gear_scheme.h"
 #include "custom_strategies/strategies/runge_kutta_strategy.h"
+#include "custom_strategies/strategies/explicit_euler_strategy.h"
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
@@ -76,7 +77,14 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         .def(py::init<ModelPart&, int, bool, bool, bool>())
         ;
 
-
+    typedef ExplicitEulerStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitEulerStrategyType;
+    py::class_<
+        ExplicitEulerStrategyType,
+        typename ExplicitEulerStrategyType::Pointer,
+        BaseSolvingStrategyType>
+        (m, "ExplicitEulerStrategy")
+        .def(py::init<ModelPart&, int, bool, bool, bool>())
+        ;
 
     py::class_<
         ResidualBasedBlockBuilderAndSolverPeriodic<SparseSpaceType, LocalSpaceType, LinearSolverType>,

@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_RUNGE_KUTTA_STRATEGY_H_INCLUDED
-#define KRATOS_RUNGE_KUTTA_STRATEGY_H_INCLUDED
+#ifndef KRATOS_EXPLICIT_EULER_STRATEGY_H_INCLUDED
+#define KRATOS_EXPLICIT_EULER_STRATEGY_H_INCLUDED
 
 
 // System includes
@@ -55,21 +55,21 @@ namespace Kratos
 ///@{
 
 /**
- * @class RungeKuttaStrategy
- * @ingroup FluidDynamicApplication (taken from ShallowWaterApplication)
- * @brief This is the base Runge Kutta method
- * @details 4th order explicit Runge Kutta multi step integration method.
- * @author Miguel Maso Sotomayor
+ * @class ExplicitEulerStrategy
+ * @ingroup FluidDynamicApplication 
+ * @brief This is the base EulerExplicitMethod
+ * @details 1st order Explicit Euler.
+ * @author Andrea Montanino from Miguel Maso Sotomayor's implementation
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class RungeKuttaStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class ExplicitEulerStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RungeKuttaStrategy
-    KRATOS_CLASS_POINTER_DEFINITION(RungeKuttaStrategy);
+    /// Pointer definition of ExplicitEulerStrategy
+    KRATOS_CLASS_POINTER_DEFINITION(ExplicitEulerStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -86,7 +86,7 @@ public:
     ///@{
 
     /// Default constructor.
-    RungeKuttaStrategy(
+    ExplicitEulerStrategy(
         ModelPart& rModelPart,
         int Dimension = 2,
         bool CalculateReactions = false,
@@ -99,11 +99,11 @@ public:
           mSolutionStepIsInitialized(false)
     {
         this->SetEchoLevel(1);
-        mNumberOfSteps = 4;
+        mNumberOfSteps = 1;
     }
 
     /// Destructor.
-    virtual ~RungeKuttaStrategy()
+    virtual ~ExplicitEulerStrategy()
     {
         Clear();
     }
@@ -133,9 +133,10 @@ public:
      */
     virtual void Initialize() override
     {
-        if (!(this->mReformDofSetAtEachStep))
+        if (!(this->mReformDofSetAtEachStep)){
              ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
-
+             ComputeNodalArea();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
+        }
         // InitializeDirichletBoundaryConditions();
         // InitializeSlipBoundaryConditions();
 
@@ -170,7 +171,10 @@ public:
      bool SolveSolutionStep() override
     {
         // Initialize the mass matrix
-        if (this->mReformDofSetAtEachStep)      ComputeNodalMass();
+        if (this->mReformDofSetAtEachStep) {
+            ComputeNodalMass();
+            ComputeNodalArea();
+        }
         
         // Initialize the first step
         SetVariablesToZero(DENSITY_RK4, DENSITY_SOLID_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);
@@ -232,6 +236,8 @@ public:
         // double c_v      = r_properties.GetValue(SPECIFIC_HEAT);
         // double gamma    = r_properties.GetValue(HEAT_CAPACITY_RATIO);
 
+        double tol = 1e-16;
+
         double c_v      = 722;
         double gamma    = 1.4;
         double cs       = 1300;
@@ -239,6 +245,56 @@ public:
 
         double cp       = gamma*c_v;
         double R        = cp - c_v;
+
+        double N1 = 0, N2 = 0, N3 = 0;
+
+        double M1 = 0, M3 = 4;
+
+        while (M3 > tol){
+
+            M1 = 0;
+            M3 = 0;
+            N1 = 0;
+            N3 = 0;
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {   
+                auto it_node    = r_model_part.NodesBegin() + i;
+
+
+                double denS     = it_node->FastGetSolutionStepValue(DENSITY_SOLID);
+                
+                double A = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                
+                if (denS > 0)    {
+                    M1 += denS*A;
+                    N1 += A;
+                }
+                if (denS < 0)    {
+                    M3 += fabs(denS)*A;
+                    N3 += A;
+                }
+            }
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {   
+                auto it_node    = r_model_part.NodesBegin() + i;
+
+                double denS = it_node->FastGetSolutionStepValue(DENSITY_SOLID); 
+                
+                if (denS > 0)   denS -= M3/N1;
+                if (denS < 0)   denS  = 0.0;
+
+                it_node->FastGetSolutionStepValue(DENSITY_SOLID) = denS;
+
+            }
+
+            printf("M3 = %.3e \n", M3);
+
+        }
+
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
@@ -278,6 +334,7 @@ public:
 
         }
 
+
     }
 
     ///@}
@@ -298,7 +355,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "RungeKuttaStrategy" ;
+        buffer << "ExplicitEulerStrategy" ;
         return buffer.str();
     }
 
@@ -421,6 +478,40 @@ private:
 
     }
 
+    void ComputeNodalArea()
+    {
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        auto elements_begin = r_model_part.ElementsBegin();
+        auto conditions_begin = r_model_part.ConditionsBegin();
+
+        const int n_elements = static_cast<int>(r_model_part.NumberOfElements());
+        const int n_conditions = static_cast<int>(r_model_part.NumberOfConditions());
+
+        VariableUtils().SetHistoricalVariableToZero(NODAL_AREA, r_model_part.Nodes());
+
+        #pragma omp parallel firstprivate(n_elements, n_conditions)
+        {
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < n_elements; ++i)
+            {
+                auto it_elem = elements_begin + i;
+                double dummy;
+                it_elem->Calculate(NODAL_AREA, dummy, r_process_info);
+            }
+
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < n_conditions; ++i)
+            {
+                auto it_cond = conditions_begin + i;
+                double dummy;
+                it_cond->Calculate(NODAL_AREA, dummy, r_process_info);
+            }
+        }
+
+    }
+
     void AddExplicitRHSContributions()
     {
         auto& r_model_part = BaseType::GetModelPart();
@@ -457,19 +548,7 @@ private:
     {
         if (Step == 0) // First step
         {
-            ButcherTableau(1.0/2.0, 1.0/6.0);
-        }
-        else if (Step == 1) // Second step
-        {
-            ButcherTableau(1.0/2.0, 1.0/3.0);
-        }
-        else if (Step == 2) // Third step
-        {
-            ButcherTableau(1.0, 1.0/3.0);
-        }
-        else if (Step == 3) // Fourth step
-        {
-            ButcherTableau(1.0, 1.0/6.0);
+            ButcherTableau(0.0, 1.0);
         }
         else
         {
@@ -542,6 +621,13 @@ private:
             auto dk = it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4);
             it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = kn + dk;
 
+/*            if ((it_node->FastGetSolutionStepValue(DENSITY)) < 0)
+                it_node->FastGetSolutionStepValue(DENSITY) = 0.0;
+            if ((it_node->FastGetSolutionStepValue(DENSITY_SOLID)) < 0)
+                it_node->FastGetSolutionStepValue(DENSITY_SOLID) = 0.0;
+            if ((it_node->FastGetSolutionStepValue(TOTAL_ENERGY)) < 0)
+                it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = 0.0;
+*/
         }
 
         auto it_node = r_model_part.NodesBegin() + 1;
@@ -726,14 +812,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    RungeKuttaStrategy& operator=(RungeKuttaStrategy const& rOther){}
+    ExplicitEulerStrategy& operator=(ExplicitEulerStrategy const& rOther){}
 
     /// Copy constructor.
-    RungeKuttaStrategy(RungeKuttaStrategy const& rOther){}
+    ExplicitEulerStrategy(ExplicitEulerStrategy const& rOther){}
 
     ///@}
 
-}; // Class RungeKuttaStrategy
+}; // Class ExplicitEulerStrategy
 
 ///@}
 
@@ -750,4 +836,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RUNGE_KUTTA_STRATEGY_H_INCLUDED  defined
+#endif // KRATOS_EXPLICIT_EULER_STRATEGY_H_INCLUDED  defined

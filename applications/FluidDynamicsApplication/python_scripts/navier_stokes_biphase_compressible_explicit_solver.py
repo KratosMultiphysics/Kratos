@@ -168,15 +168,19 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
-        print("\n\nHere I am1 \n\n")
+#        self.solver = KratosFluid.RungeKuttaStrategy(
+#            self.GetComputingModelPart(),
+#            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+#            self.settings["compute_reactions"].GetBool(),
+#            self.settings["reform_dofs_at_each_step"].GetBool(),
+#            self.settings["move_mesh_flag"].GetBool())
 
-        self.solver = KratosFluid.RungeKuttaStrategy(
+        self.solver = KratosFluid.ExplicitEulerStrategy(
             self.GetComputingModelPart(),
             self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
             self.settings["compute_reactions"].GetBool(),
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["move_mesh_flag"].GetBool())
-
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
        

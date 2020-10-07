@@ -388,8 +388,26 @@ public:
                 #pragma omp atomic
                 r_geom[i].FastGetSolutionStepValue(NODAL_MASS) += lumped_mass*volume;
             }                
+        }
+        
+        if (rVariable == NODAL_AREA)
+        {
+//             rOutput = this->SubscaleErrorEstimate(data);
+            double nodal_area = 0.0;
+
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {   
+                
+                nodal_area = volume/TNumNodes;
+                
+                #pragma omp atomic
+                r_geom[i].FastGetSolutionStepValue(NODAL_AREA) += nodal_area;
+            }
 
         }
+
+
+        
 
         KRATOS_CATCH("")
     }
@@ -488,8 +506,8 @@ protected:
         rData.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
 //        rData.c_s = r_properties.GetValue(SPECIFIC_HEAT_MATERIAL);
 //        rData.ros = r_properties.GetValue(DENSITY_MATERIAL);
-        rData.c_s = 600;
-        rData.ros = 2800;
+        rData.c_s = 1300;
+        rData.ros = 1800;
 
 
         for (unsigned int i = 0; i < TNumNodes; i++)

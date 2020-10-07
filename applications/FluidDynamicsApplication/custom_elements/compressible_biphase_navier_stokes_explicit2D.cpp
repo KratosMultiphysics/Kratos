@@ -37,35 +37,47 @@ void ShockCapturing(const double mu,
                const double c_v,
 			   const double ros,
                const double h,
+			   array_1d<double,2>& dt_diff,
 			   array_1d<double,2>& ds_diff,
                array_1d<double,4>& tau,
                array_1d<double,2>& q,
                double ro_el,
                array_1d<double,10>& gradU, // 5*2
                array_1d<double,5>& Residual,
-			   array_1d<double,2>& a_el)
+			   array_1d<double,5>& U,
+			   array_1d<double,2>& a_el,
+			   double norm_u,
+			   double SpeedSound)
 {
-    const int SpaceDimension = 2;
-    
-   double alpha  = 2.0;
-   double C_diff = 1.4;                               // Algorithm constant
-   const double tol = 1e-10;                               
+    const int SpaceDimension  = 2;
+	
+    double alpha  	= 2.0;
+	double beta  	= 0.5;
+    const double tol  = 1e-32;
+    const double tol2 = 1e-32;                               
 
     unsigned int i;
 
-    double a_sc = 0.0;
+    double a_ds = 0.0;
+	double a_dt = 0.0;
 	double v_sc = 0.0;
     double k_sc = 0.0;
     
-	array_1d<double,SpaceDimension> res_m;
-	array_1d<double,SpaceDimension> t_el;
-    double res_ds 	= Residual(1);
+	array_1d<double,SpaceDimension>  res_m;
+	array_1d<double,SpaceDimension>  t_el;
+    double ds_ref 	= U(1);
+	double ds_ref2 	= U(1)*U(1);
+	double dt_ref 	= U(0);
+	double dt_ref2 	= U(0)*U(0);
+	double res_dt 	= Residual(0);
+	double res_ds 	= Residual(1);
 	double res_e 	= Residual(4);
     double norm_res_ds;
+	double norm_res_dt;
 	double norm_res_m;
     double norm_res_e;
     double normgradm = 0.0;
-    
+	    
 	t_el(0) = -a_el(1);
 	t_el(1) =  a_el(0);
 
@@ -73,15 +85,110 @@ void ShockCapturing(const double mu,
     res_m(1) = Residual(3);
 
 	norm_res_ds = sqrt(res_ds*res_ds);
-    norm_res_m 	= sqrt(res_m(0) * res_m(0) + res_m(1) * res_m(1));
+	norm_res_dt = sqrt(res_dt*res_dt);
+    norm_res_m 	= sqrt(res_m(0)*res_m(0) + res_m(1)*res_m(1));
     norm_res_e 	= sqrt(res_e*res_e);
 
-	double norm_grad_ds = 0.0;              // Frobenius norm of dust density
-    for (i = 2; i < 4; i++)      norm_grad_ds += gradU(i)*gradU(i);
+	double normnormdt = 0.0;              // Frobenius norm of dust density
+	double normnormds = 0.0;              // Frobenius norm of dust density
+    
+	double ZsuY = sqrt(res_ds*res_ds/ds_ref2);
+	double ZsuYt = sqrt(res_dt*res_dt/dt_ref2);
 
-	norm_grad_ds = sqrt(norm_grad_ds);
+	for (i = 0; i < 2; i++)      normnormdt += gradU(i)*gradU(i)/dt_ref2;
+	for (i = 2; i < 4; i++)      normnormds += gradU(i)*gradU(i)/ds_ref2;
+	
+	for (i = 4; i < 8; i++){
+        normgradm += gradU(i)*gradU(i);
+    }
 
-	if (norm_grad_ds > tol)         a_sc = 0.5*h*C_diff*(norm_res_ds/norm_grad_ds);
+    normgradm = sqrt(normgradm);
+
+    if (normgradm > tol){         
+        v_sc = 0.5*h*alpha*(norm_res_m/normgradm);
+    }
+    
+    
+	double norm_grade = 0.0;              // Frobenius norm of total energy gradient
+    for (i = 8; i < 10; i++)      norm_grade += gradU(i)*gradU(i);
+    
+    norm_grade = sqrt(norm_grade);
+    
+	if (norm_grade > tol)         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
+	
+	if (fabs(ds_ref) < tol2)	  
+		a_ds = 0.0;		
+	else a_ds = ZsuY*pow(normnormds,0.5*beta - 1.0)*pow(0.5*h,beta);
+	
+	a_dt = ZsuYt*pow(normnormdt,0.5*beta - 1.0)*pow(0.5*h,beta);
+	
+	for (i = 0; i < 2; i++)       dt_diff[i] = 0.0; //a_dt*gradU[i];
+	for (i = 0; i < 2; i++)       ds_diff[i] = a_ds*gradU[i+2];
+
+	for (i = 0; i < 4; i++)       tau[i] *= (1.0 + ro_el*v_sc/mu);
+
+    for (i = 0; i < 2; i++)       q[i] *= (1.0 + ro_el*c_v*k_sc/lambda);
+
+}
+
+
+void ShockCapturing2(const double mu,
+               const double lambda,
+               const double c_v,
+			   const double ros,
+               const double h,
+			   array_1d<double,2>& dt_diff,
+			   array_1d<double,2>& ds_diff,
+               array_1d<double,4>& tau,
+               array_1d<double,2>& q,
+               double ro_el,
+               array_1d<double,10>& gradU, // 5*2
+               array_1d<double,5>& Residual,
+			   array_1d<double,5>& U,
+			   array_1d<double,2>& a_el,
+			   double norm_u,
+			   double SpeedSound)
+{
+    const int SpaceDimension  = 2;
+	
+    double alpha  	  = 2.0;
+	double alpha_dc   = 2.0;
+	const double tol  = 1e-32;
+    const double tol2 = 1e-32;                               
+
+    unsigned int i;
+
+    double a_ds = 0.0;
+	double a_dt = 0.0;
+	double v_sc = 0.0;
+    double k_sc = 0.0;
+    
+	array_1d<double,SpaceDimension>  res_m;
+	array_1d<double,SpaceDimension>  t_el;
+    double dt_ref 	= U(0);
+	double ds_ref 	= U(1);
+	double res_dt 	= Residual(0);
+	double res_ds 	= Residual(1);
+	double res_e 	= Residual(4);
+    double norm_res_ds;
+	double norm_res_dt;
+	double norm_res_m;
+    double norm_res_e;
+    double normgradm = 0.0;
+
+	double normgraddt = sqrt(gradU(0)*gradU(0) + gradU(1)*gradU(1));
+	double normgradds = sqrt(gradU(2)*gradU(2) + gradU(3)*gradU(3));
+	    
+	t_el(0) = -a_el(1);
+	t_el(1) =  a_el(0);
+
+    res_m(0) = Residual(2); 
+    res_m(1) = Residual(3);
+
+	norm_res_ds = sqrt(res_ds*res_ds);
+	norm_res_dt = sqrt(res_dt*res_dt);
+    norm_res_m 	= sqrt(res_m(0)*res_m(0) + res_m(1)*res_m(1));
+    norm_res_e 	= sqrt(res_e*res_e);
 
 	for (i = 4; i < 8; i++){
         normgradm += gradU(i)*gradU(i);
@@ -94,28 +201,52 @@ void ShockCapturing(const double mu,
     }
     
     
-	
-	
 	double norm_grade = 0.0;              // Frobenius norm of total energy gradient
     for (i = 8; i < 10; i++)      norm_grade += gradU(i)*gradU(i);
     
     norm_grade = sqrt(norm_grade);
     
 	if (norm_grade > tol)         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
-
-
-	double grad_DS_a = gradU(2)*a_el(0) + gradU(3)*a_el(1);
-	double grad_DS_t = gradU(2)*t_el(0) + gradU(3)*t_el(1);
-
-    for (i = 0; i < 2; i++)       ds_diff[i] = a_sc*(grad_DS_a*a_el(i) + grad_DS_t*t_el(i));
 	
+	if (normgraddt > tol) 		  a_dt = 0.0*h*alpha_dc*norm_res_dt; 
+	if (normgradds > tol) 		  a_ds = 0.5*h*alpha_dc*norm_res_ds;
+
+	
+//	Isotropic DC density
+
+	for (i = 0; i < 2; i++)       dt_diff[i] = a_dt*gradU[i];
+	for (i = 0; i < 2; i++)       ds_diff[i] = a_ds*gradU[i+2];
+
+
+//	Crosswind DC density
+
+/*
+	const double ads = a_el[0]*gradU[2] + a_el[1]*gradU[3];
+	const double adt = a_el[0]*gradU[0] + a_el[1]*gradU[1];
+
+	const double tds = t_el[0]*gradU[2] + t_el[1]*gradU[3];
+	const double tdt = t_el[0]*gradU[0] + t_el[1]*gradU[1];
+
+	const double k_dt_stream = 0.0;
+	const double k_ds_stream = 1.0;
+
+	const double k_dt_cross = 0.0;
+	const double k_ds_cross = 0.5;
+
+	for (i = 0; i < 2; i++){
+		dt_diff[i] = k_dt_stream*a_dt*adt*a_el[i] + k_dt_cross*a_dt*tdt*t_el[i];
+		ds_diff[i] = k_ds_stream*a_ds*ads*a_el[i] + k_ds_cross*a_ds*tds*t_el[i];
+	}
+*/
+
 	for (i = 0; i < 4; i++)       tau[i] *= (1.0 + ro_el*v_sc/mu);
 
     for (i = 0; i < 2; i++)       q[i] *= (1.0 + ro_el*c_v*k_sc/lambda);
 
-//    printf("%.3e %.3e %.3e %.3e %.3e \n",res_m(0),res_m(1),res_e,v_sc,k_sc);
-    
+
 }
+
+
 
 void LocalMassMatrix(array_1d<double,15>& LumpedMassMatrix,const array_1d<double,3>& N, const unsigned int nodesElement)
 {
@@ -182,7 +313,8 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     array_1d<double,nScalarVariables*SpaceDimension>     G;
     array_1d<double,nScalarVariables*nScalarVariables>   S;
     array_1d<double,nScalarVariables*nScalarVariables>   B;
-    array_1d<double,SpaceDimension>                      ds_diff;
+    array_1d<double,SpaceDimension>                      dt_diff;
+	array_1d<double,SpaceDimension>                      ds_diff;
 	array_1d<double,SpaceDimension*SpaceDimension>       tau;
     array_1d<double,SpaceDimension>                      q;
 	array_1d<double,SpaceDimension>                      a_el;
@@ -190,6 +322,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     array_1d<double,nScalarVariables*SpaceDimension>     gradU;
     array_1d<double,(nScalarVariables*SpaceDimension)*nNodalVariables>   gradV;
     array_1d<double,nScalarVariables>                    invtauStab;
+	array_1d<double,nScalarVariables>                    switchStab;
 
     array_1d<double,nNodalVariables>     FConv;
     array_1d<double,nNodalVariables>     FStab;
@@ -220,7 +353,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     const double lambda = data.lambda;
     const double Cv = data.c_v;
     const double gamma = data.gamma;
-    const double Cp = Cv*gamma;
+    const double Cp = Cv * gamma;
     const double R = Cp - Cv;
     const double ros = data.ros;
     const double Cs = data.c_s;
@@ -231,7 +364,13 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 
 
     const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;    
+    const double stab_c2 = 2.0;
+
+	switchStab[0] = 1.0;
+	switchStab[1] = 1.0;
+	switchStab[2] = 1.0;
+	switchStab[3] = 1.0;
+	switchStab[4] = 1.0;    
 
     // Get shape function values
     const array_1d<double,nodesElement>& N = data.N;					       
@@ -246,7 +385,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     for (i = 0; i < nodesElement; i++){
         for (j = 0; j < nScalarVariables; j++){
             
-            UUp(i,j) = (UU(i,j) - UUn(i,j))/dt;   // This could be done better, since we have an estimation of the udot from the previous substep
+    //        UUp(i,j) = (UU(i,j) - UUn(i,j))/dt;   // This could be done better, since we have an estimation of the udot from the previous substep
             
         }
     }
@@ -255,6 +394,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
         U_gauss(i) = 0;
         for (j = 0; j < nodesElement; j++){
             U_gauss(i) += N(j)*UU(j,i);
+
         }
     }
 
@@ -317,7 +457,8 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 
 	const double Prandtl = 0.5;
 
-	const double lambda_mixture = lambda; // Cp_mixture*mu_mixture/Prandtl;
+//	const double lambda_mixture = Cp_mixture*mu_mixture/Prandtl;
+	const double lambda_mixture = lambda;
 
 	// Fine variazione
 
@@ -336,18 +477,21 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 		a_el(1) = 0.0;	 
 	}	
 
-    const double	DG_el2    	= DG_el*DG_el;
-	const double	DTOT2		= DTOT_el*DTOT_el;
-	const double	DTOT3		= DTOT_el*DTOT2;
+
+
+    const double	DG_el2  = DG_el*DG_el;
+	const double	DTOT2	= DTOT_el*DTOT_el;
+	const double	DTOT3	= DTOT_el*DTOT2;
 	
-	const double	Cmixed      = (Cs*DS_el + Cv*(-DS_el + DTOT_el));
-	const double	Cmixed2     = Cmixed*Cmixed;
-	const double	Cmixed3     = Cmixed*Cmixed2;
+	const double	Cmixed  = Cs*DS_el + Cv*DG_el;
+	const double	Cmixed2 = Cmixed*Cmixed;
+	const double	Cmixed3 = Cmixed*Cmixed2;
+	const double	Cpmixed = Cs*DS_el + (Cv + R)*DG_el;
 	
-	const double 	Cs2Ds3		= Cs*Cs*DS_el*DS_el*DS_el;
-	const double 	Cv2Dg3		= Cv*Cv*DG_el*DG_el*DG_el;
+	const double 	Cs2Ds3	= Cs*Cs*DS_el*DS_el*DS_el;
+	const double 	Cv2Dg3	= Cv*Cv*DG_el*DG_el*DG_el;
 	
-	const double a_d 	= 0;
+	const double 	a_d 	= 0;
 	
 	const double	p_el   	= (DG_el*(2*DTOT_el*etot_el - norm2m)*R)/(2*DTOT_el*Cmixed);
 		
@@ -379,9 +523,17 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 
 	// printf("eps_g = %.3e\n", gas_concentration);
 
-    const double SpeedSound  = sqrt(R*Temperature)*sqrt(gas_density/(gas_concentration * DTOT_el));  // verificare sound_speed
+    double SpeedSound2  = DG_el*R*Cpmixed*(2*etot_el - DTOT_el*norm2u)/(2*DTOT_el*Cmixed2);  // verificare sound_speed
+	double SpeedSound;
+
+	SpeedSound = sqrt(SpeedSound2);
+		 
 
 	// printf("gamma = %.3e - SpeedSound = %.3e\n", gamma, SpeedSound); 
+
+	if (dt > h/(SpeedSound + norm_u))   printf("dt = %.3e dt_crit = %.3e\n", dt, h/(SpeedSound + norm_u));
+
+	if (DTOT_el < 0)    				printf("dtot_el = %.3e \n", DTOT_el);
 
     for (i = 0; i < size3; i++)     A(i) = 0.0;
 	for (i = 0; i < size4; i++)     dAdU(i) = 0.0;
@@ -530,6 +682,15 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 	
 	dAdU[conta(3,1,4,0,5,2,5,5)] = pdget;
 	dAdU[conta(3,1,4,1,5,2,5,5)] = pdset;
+	dAdU[conta(3,1,2,1,5,2,5,5)] = pdsm1;
+	dAdU[conta(3,1,2,2,5,2,5,5)] = pm1m1;
+	
+	dAdU[conta(3,1,3,0,5,2,5,5)] = -2*m2_el/DTOT2 + pdgm2;
+	dAdU[conta(3,1,3,1,5,2,5,5)] = pdsm2;
+	dAdU[conta(3,1,3,3,5,2,5,5)] = 2.0/DTOT_el + pm2m2; 
+	
+	dAdU[conta(3,1,4,0,5,2,5,5)] = pdget;
+	dAdU[conta(3,1,4,1,5,2,5,5)] = pdset;
 			
 // 4 //////////////////////////////////////////////////////////////////////
 			
@@ -658,10 +819,12 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 
 
 	invtauStab[0] =	stab_c2*(norm_u + SpeedSound)/h; 
-    invtauStab[1] =	stab_c2*(norm_u + SpeedSound)/h; 
+    invtauStab[1] =	stab_c2*(norm_u + SpeedSound)/h;
 	invtauStab[2] =	stab_c1*mu_mixture/(DTOT_el*h*h) + invtauStab[0];
 	invtauStab[3] =	invtauStab[2];
 	invtauStab[4] = stab_c1*lambda_mixture/(DTOT_el*Cp_mixture*h*h) + invtauStab[0];  
+
+	
 // controllare L
     L[0] = 0.0;
     L[1] = 0.0;
@@ -669,6 +832,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     L[3] = -S[3*nScalarVariables + 0]*U_gauss[0] - S[3*nScalarVariables + 1]*U_gauss[1];
     L[4] = 0.0;
     
+
     for (k = 0; k < nScalarVariables - 1 ; k++){
         L[4] -= S[4*nScalarVariables + k]*U_gauss[k];
     }
@@ -704,7 +868,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     for (i = 0; i < sizeK;  i++)    K[i]  = 0.0;
     for (i = 0; i < sizeKT; i++)    KT[i] = 0.0;
 			
-		K[conta(0,0,0,0,2,2,5,2)] =  (-2.0 + ctau)*m1_el/DTOT2;
+	K[conta(0,0,0,0,2,2,5,2)] =  (-2.0 + ctau)*m1_el/DTOT2;
 	K[conta(0,0,0,1,2,2,5,2)] =  ctau*m2_el/DTOT2;
 	K[conta(0,0,2,0,2,2,5,2)] =  (2.0 - ctau)/DTOT_el;
 	K[conta(0,0,3,1,2,2,5,2)] = -ctau/DTOT_el;  
@@ -738,6 +902,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     for (i = 0; i < SpaceDimension; i++){
         
         q(i) = 0.0;
+		dt_diff(i) = 0.0;
 		ds_diff(i) = 0.0;
 
         for (j = 0; j < SpaceDimension; j++){
@@ -757,7 +922,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
         }
     }
 
-    ShockCapturing(mu_mixture, lambda_mixture, Cv_mixture, ros, h, ds_diff, tau, q, DTOT_el, gradU, Residual,a_el);
+    ShockCapturing2(mu_mixture, lambda_mixture, Cv_mixture, ros, h, dt_diff, ds_diff,tau, q, DTOT_el, gradU, Residual,U_gauss,a_el,norm_u,SpeedSound);
 
     // Build diffusive term: Diffusion tensor
 
@@ -771,6 +936,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 
 	for (j = 0; j < SpaceDimension; j++){
 
+		G[0*SpaceDimension + j] = -dt_diff[j];
 		G[1*SpaceDimension + j] = -ds_diff[j];   // Numerical diffusivity for dust
 		G[4*SpaceDimension + j] = q[j];
 
@@ -800,17 +966,59 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 		FStab[s] = 0.0;
 
 		for (k = 0; k < nScalarVariables; k++){
-			FStab[s] += Lstar[s*nScalarVariables + k]*Residual[k]/invtauStab[k];
+			FStab[s] += Lstar[s*nScalarVariables + k]*Residual[k]/invtauStab[k]*switchStab[k];
 		}
 	}
 
     // Force contribuution at the Gauss Point   
 
+	int check = 1;
+
     for (i = 0; i < nNodalVariables; i++){
 
 		rhs[i] = - sw_conv*FConv[i] - sw_diff*FDiff[i] - sw_stab*FStab[i];
 
+		if (std::isnan(FConv[i]) == 1 || std::isnan(FDiff[i]) == 1 || std::isnan(FStab[i]) == 1){
+			printf("%d %.3e %.3e %.3e\n", i, FConv[i], FDiff[i], FStab[i]);
+			check = 0;
+		}
+
 	}
+	if (check == 0)	{
+		printf("%.3e %.3e %.3e %.3e %.3e \n", U_gauss(0), U_gauss(1), U_gauss(2), U_gauss(3), U_gauss(4));
+
+		for (s = 0; s < nNodalVariables; s++){
+
+			FStab[s] = 0.0;
+
+			for (k = 0; k < nScalarVariables; k++){
+				FStab[s] += Lstar[s*nScalarVariables + k]*Residual[k]/invtauStab[k]*switchStab[k];
+
+				printf("%d %d %.3e %.3e %.3e\n", s, k, Lstar[s*nScalarVariables + k], Residual[k], invtauStab[k]);
+			}
+		}
+
+		printf("stab_c2 = %.3e - norm_u = %.3e - SpeedSound = %.3e - stab_c1 = %.3e - mu_mixture = %.3e - lambda_mixture = %.3e"
+			"Cp_mixture = %.3e \n", stab_c2, norm_u, SpeedSound, stab_c1, mu_mixture, lambda_mixture, Cp_mixture);
+
+		double sps2 = DG_el*R*Cpmixed*(2*etot_el - DTOT_el*norm2u)/(2*DTOT_el*Cmixed2);
+		
+		printf("spsound2 = %.3e\n",sps2);
+
+		printf("DG_el = %.3e - Cpmixed = %.3e - en-u2 = %.3e - DTOT_el = %.3e - Cmixed2 = %.3e\n",
+		DG_el, Cpmixed, 2*etot_el - DTOT_el*norm2u, DTOT_el, Cmixed2);
+		
+		printf("%.3e %.3e \n",2*etot_el, DTOT_el*norm2u);
+
+		printf("cos cos cos \n\n");
+		
+
+
+		abort();
+	}
+
+	
+	
 }
 
 
