@@ -23,7 +23,7 @@ def AssembleTestSuites():
 
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
-    smallMPISuite.addTest(TestMPIMetrics('test_remesh_hessian'))
+    smallMPISuite.addTest(TestMPIMetrics('test_mpi_hessian'))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
