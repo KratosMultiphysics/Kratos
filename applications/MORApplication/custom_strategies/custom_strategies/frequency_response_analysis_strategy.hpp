@@ -448,8 +448,17 @@ class FrequencyResponseAnalysisStrategy
                 //copy the rhs to the complex space
                 r_RHS = TSolutionVectorType(r_tmp_RHS);
 
-                //resize working matrix
+                //resize and itialize working matrix
                 r_A.resize(r_K.size1(), r_K.size2(), false);
+                noalias(r_A) = r_K;
+
+                if( mUseModalDamping ) {
+                    noalias(r_A) += r_Ki + r_C - r_Mi;
+                } else {
+                    noalias(r_A) += r_C;
+                }
+                r_A *= complex(0,1);
+                noalias(r_A) += r_K - r_M;
             }
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -521,29 +530,26 @@ class FrequencyResponseAnalysisStrategy
         const double excitation_frequency = r_process_info[FREQUENCY];
         const double excitation_frequency2 = std::pow(excitation_frequency, 2);
 
-        //Build imaginary part
-        BuiltinTimer build_imag;
-        TSolutionMatrixType tmp_i(r_K.size1(), r_K.size2());
-        if( mUseModalDamping ) {
-            noalias(tmp_i) = r_Ki + excitation_frequency * r_C - excitation_frequency2 * r_Mi;
-        } else {
-            noalias(tmp_i) = excitation_frequency * r_C;
+        TSolutionSpace::SetToZero(r_A);
+
+        BuiltinTimer build_time;
+        #pragma omp parallel for schedule(static)// nowait
+        for( int i=0; i<static_cast<int>(r_A.size2()); ++i ) {
+            // row(r_A, i) = row(r_Ki, i) + excitation_frequency * row(r_C, i) - excitation_frequency2 * row(r_Mi, i);
+            row(r_A, i) += row(r_Ki, i);
+            row(r_A, i) += excitation_frequency * row(r_C, i);
+            row(r_A, i) -= excitation_frequency2 * row(r_Mi, i);
         }
-        KRATOS_INFO_IF("Build Imag Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << build_imag.ElapsedSeconds() << std::endl;
+        r_A *= complex(0,1);
 
-        //Build real part
-        BuiltinTimer build_real;
-        TSolutionMatrixType tmp_r(r_K.size1(), r_K.size2());
-        noalias(tmp_r) = r_K - excitation_frequency2 * r_M;
-        KRATOS_INFO_IF("Build Real Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << build_real.ElapsedSeconds() << std::endl;
-
-        //Set up complex matrix
-        BuiltinTimer build_system;
-        noalias(r_A) = tmp_r + complex(0,1)*tmp_i;
-        KRATOS_INFO_IF("Build System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << build_system.ElapsedSeconds() << std::endl;
+        #pragma omp parallel for schedule(static)// nowait
+        for( int i=0; i<static_cast<int>(r_A.size2()); ++i ) {
+            // row(r_A, i) += row(r_K, i) - excitation_frequency2 * row(r_M, i);
+            row(r_A, i) += row(r_K, i);
+            row(r_A, i) -= excitation_frequency2 * row(r_M, i);
+        }
+        KRATOS_INFO_IF("Dynamic Stiffness Matrix Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << build_time.ElapsedSeconds() << std::endl;
 
         //Solve the system
         BuiltinTimer solve_time;
@@ -681,6 +687,22 @@ class FrequencyResponseAnalysisStrategy
         std::stringstream matrix_market_vectname;
         matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
         TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
+    }
+
+    template <typename SparseSpaceType>
+    void MatrixOutput(typename SparseSpaceType::MatrixType matrix, const std::string name)
+    {
+        std::stringstream matrix_market_name;
+        matrix_market_name << name << ".mm";
+        SparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), matrix, false);
+    }
+
+    template <typename SparseSpaceType>
+    void VectorOutput(typename SparseSpaceType::VectorType vector, const std::string name)
+    {
+        std::stringstream matrix_market_name;
+        matrix_market_name << name << ".mm.rhs";
+        SparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_name.str()).c_str(), vector);
     }
 
     ///@}
