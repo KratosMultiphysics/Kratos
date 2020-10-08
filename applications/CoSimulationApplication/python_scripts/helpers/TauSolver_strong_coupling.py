@@ -308,7 +308,7 @@ def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
 
     return coupling_interface_imported
 
-factor = 0.1
+factor = 1.0
 for i in range(n_steps):
 
     sub_step = 0
