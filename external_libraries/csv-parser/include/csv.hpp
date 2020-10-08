@@ -412,7 +412,7 @@ public:
      * handle (which is closed when the object destructs or `unmap` is called), which is
      * then used to memory map the requested region. Upon failure, `error` is set to
      * indicate the reason and the object remains in an unmapped state.
-     * 
+     *
      * The entire file is mapped.
      */
     template<typename String>
@@ -451,7 +451,7 @@ public:
      * `handle`, which must be a valid file handle, which is used to memory map the
      * requested region. Upon failure, `error` is set to indicate the reason and the
      * object remains in an unmapped state.
-     * 
+     *
      * The entire file is mapped.
      */
     void map(const handle_type handle, std::error_code& error)
@@ -1831,7 +1831,7 @@ namespace csv {
 
             /** Size of a memory page in bytes */
             const int PAGE_SIZE = getpagesize();
-        #elif defined(__linux__) 
+        #elif defined(__linux__)
             const int PAGE_SIZE = getpagesize();
         #else
             const int PAGE_SIZE = 4096;
@@ -1866,25 +1866,25 @@ namespace csv {
         constexpr ParseFlags qe_flag(ParseFlags flag, bool quote_escape) noexcept {
             return (ParseFlags)((int)flag & ~((int)ParseFlags::QUOTE * quote_escape));
         }
-        
+
         // Assumed to be true by parsing functions: allows for testing
         // if an item is DELIMITER or NEWLINE with a >= statement
-        static_assert(ParseFlags::DELIMITER < ParseFlags::NEWLINE);
+        static_assert(ParseFlags::DELIMITER < ParseFlags::NEWLINE, "unknown");
 
         /** Optimizations for reducing branching in parsing loop
          *
          *  Idea: The meaning of all non-quote characters changes depending
          *  on whether or not the parser is in a quote-escaped mode (0 or 1)
          */
-        static_assert(qe_flag(ParseFlags::NOT_SPECIAL, false) == ParseFlags::NOT_SPECIAL);
-        static_assert(qe_flag(ParseFlags::QUOTE, false) == ParseFlags::QUOTE);
-        static_assert(qe_flag(ParseFlags::DELIMITER, false) == ParseFlags::DELIMITER);
-        static_assert(qe_flag(ParseFlags::NEWLINE, false) == ParseFlags::NEWLINE);
+        static_assert(qe_flag(ParseFlags::NOT_SPECIAL, false) == ParseFlags::NOT_SPECIAL, "unknown");
+        static_assert(qe_flag(ParseFlags::QUOTE, false) == ParseFlags::QUOTE, "unknown");
+        static_assert(qe_flag(ParseFlags::DELIMITER, false) == ParseFlags::DELIMITER, "unknown");
+        static_assert(qe_flag(ParseFlags::NEWLINE, false) == ParseFlags::NEWLINE, "unknown");
 
-        static_assert(qe_flag(ParseFlags::NOT_SPECIAL, true) == ParseFlags::NOT_SPECIAL);
-        static_assert(qe_flag(ParseFlags::QUOTE, true) == ParseFlags::QUOTE_ESCAPE_QUOTE);
-        static_assert(qe_flag(ParseFlags::DELIMITER, true) == ParseFlags::NOT_SPECIAL);
-        static_assert(qe_flag(ParseFlags::NEWLINE, true) == ParseFlags::NOT_SPECIAL);
+        static_assert(qe_flag(ParseFlags::NOT_SPECIAL, true) == ParseFlags::NOT_SPECIAL, "unknown");
+        static_assert(qe_flag(ParseFlags::QUOTE, true) == ParseFlags::QUOTE_ESCAPE_QUOTE, "unknown");
+        static_assert(qe_flag(ParseFlags::DELIMITER, true) == ParseFlags::NOT_SPECIAL, "unknown");
+        static_assert(qe_flag(ParseFlags::NEWLINE, true) == ParseFlags::NOT_SPECIAL, "unknown");
 
         using ParseFlagMap = std::array<ParseFlags, 256>;
         using WhitespaceMap = std::array<bool, 256>;
@@ -1906,7 +1906,7 @@ namespace csv {
  *  Defines various compatibility macros
  */
 
-/** Helper macro which should be #defined as "inline" 
+/** Helper macro which should be #defined as "inline"
  *  in the single header version
  */
 #define CSV_INLINE inline
@@ -3232,7 +3232,7 @@ nssv_RESTORE_WARNINGS()
 #endif // NONSTD_SV_LITE_H_INCLUDED
 
 
-// If there is another version of Hedley, then the newer one 
+// If there is another version of Hedley, then the newer one
 // takes precedence.
 // See: https://github.com/nemequ/hedley
 /* Hedley - https://nemequ.github.io/hedley
@@ -4832,7 +4832,7 @@ namespace csv {
 
             // Make all numbers positive
             T iterations = n > 0 ? n : -n;
-            
+
             for (T i = 0; i < iterations; i++) {
                 ret *= multiplicand;
             }
@@ -5159,7 +5159,7 @@ namespace csv {
     };
 
     /** Stores information about how to parse a CSV file.
-     *  Can be used to construct a csv::CSVReader. 
+     *  Can be used to construct a csv::CSVReader.
      */
     class CSVFormat {
     public:
@@ -5173,7 +5173,7 @@ namespace csv {
         CSVFormat& delimiter(char delim);
 
         /** Sets a list of potential delimiters
-         *  
+         *
          *  @throws `std::runtime_error` thrown if trim, quote, or possible delimiting characters overlap
          *  @param[in] delim An array of possible delimiters to try parsing the CSV with
          */
@@ -5255,7 +5255,7 @@ namespace csv {
         std::vector<char> get_trim_chars() const { return this->trim_chars; }
         CONSTEXPR VariableColumnPolicy get_variable_column_policy() const { return this->variable_column_policy; }
         #endif
-        
+
         /** CSVFormat for guessing the delimiter */
         CSV_INLINE static CSVFormat guess_csv() {
             CSVFormat format;
@@ -5380,7 +5380,7 @@ namespace csv {
         static const std::string ERROR_FLOAT_TO_INT =
             "Attempted to convert a floating point value to an integral type.";
         static const std::string ERROR_NEG_TO_UNSIGNED = "Negative numbers cannot be converted to unsigned types.";
-    
+
         std::string json_escape_string(csv::string_view s) noexcept;
 
         /** A barebones class used for describing CSV fields */
@@ -5612,7 +5612,7 @@ namespace csv {
         friend internals::BasicCSVParser;
 
         CSVRow() = default;
-        
+
         /** Construct a CSVRow from a RawCSVDataPtr */
         CSVRow(internals::RawCSVDataPtr _data) : data(_data) {}
 
@@ -5819,7 +5819,7 @@ namespace csv {
 
             /** Returns true if a thread is actively pushing items to this deque */
             constexpr bool is_waitable() const noexcept { return this->_is_waitable; }
-            
+
             /** Wait for an item to become available */
             void wait() {
                 if (!is_waitable()) {
@@ -5880,7 +5880,7 @@ namespace csv {
                 this->set_output(records);
                 this->parse(in);
             }
-        
+
             void end_feed() {
                 using internals::ParseFlags;
 
@@ -5894,7 +5894,7 @@ namespace csv {
                 }
 
                 // Push row
-                if (this->current_row.size() > 0) 
+                if (this->current_row.size() > 0)
                     this->push_row();
             }
 
@@ -6178,7 +6178,7 @@ namespace csv {
         std::vector<std::string> get_col_names() const;
         int index_of(csv::string_view col_name) const;
         ///@}
-        
+
         /** @name CSV Metadata: Attributes */
         ///@{
         constexpr bool empty() const noexcept { return this->size() == 0; }
@@ -6394,11 +6394,11 @@ namespace csv {
     }
     #endif
 
-    /** 
+    /**
      *  Class for writing delimiter separated values files
      *
      *  To write formatted strings, one should
-     *   -# Initialize a DelimWriter with respect to some output stream 
+     *   -# Initialize a DelimWriter with respect to some output stream
      *   -# Call write_row() on std::vector<std::string>s of unformatted text
      *
      *  @tparam OutputStream The output stream, e.g. `std::ofstream`, `std::stringstream`
@@ -6717,12 +6717,12 @@ namespace csv {
     }
 
     /** Allows parsing in-memory sources (by calling feed() and end_feed()). */
-    CSV_INLINE CSVReader::CSVReader(CSVFormat format) : 
+    CSV_INLINE CSVReader::CSVReader(CSVFormat format) :
         unicode_bom_scan(!format.unicode_detect) {
         if (!format.col_names.empty()) {
             this->set_col_names(format.col_names);
         }
-        
+
         this->set_parse_flags(format);
     }
 
@@ -6765,7 +6765,7 @@ namespace csv {
     CSV_INLINE CSVFormat CSVReader::get_format() const {
         CSVFormat new_format = this->_format;
 
-        // Since users are normally not allowed to set 
+        // Since users are normally not allowed to set
         // column names and header row simulatenously,
         // we will set the backing variables directly here
         new_format.col_names = this->col_names->get_col_names();
@@ -6957,7 +6957,7 @@ namespace csv {
                 return true;
             }
         }
-    
+
         return false;
     }
 }
@@ -6998,7 +6998,7 @@ namespace csv {
             double final_score = 0;
             size_t header_row = 0;
 
-            // Final score is equal to the largest 
+            // Final score is equal to the largest
             // row size times rows of that size
             for (auto& pair : row_tally) {
                 const size_t row_size = pair.first;
@@ -7065,7 +7065,7 @@ namespace csv {
             if (error) {
                 throw std::runtime_error("Cannot open file " + std::string(filename));
             }
-            
+
             return std::string(mmap.begin(), mmap.end());
         }
     }
@@ -7335,7 +7335,7 @@ namespace csv {
         this->operator--();
         return temp;
     }
-    
+
     CSV_INLINE CSVRow::iterator CSVRow::iterator::operator+(difference_type n) const {
         // Allows for iterator arithmetic
         return CSVRow::iterator(this->daddy, i + (int)n);
@@ -7364,9 +7364,9 @@ namespace csv {
 
     The code is licensed under the [MIT
     License](http://opensource.org/licenses/MIT):
-    
+
     Copyright &copy; 2013-2015 Niels Lohmann.
-    
+
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation files
     (the "Software"), to deal in the Software without restriction,
@@ -7374,10 +7374,10 @@ namespace csv {
     publish, distribute, sublicense, and/or sell copies of the Software,
     and to permit persons to whom the Software is furnished to do so,
     subject to the following conditions:
-    
+
     The above copyright notice and this permission notice shall be
     included in all copies or substantial portions of the Software.
-    
+
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -7554,7 +7554,7 @@ namespace csv {
 
         const size_t _n_cols = col_names.size();
         std::string ret = "{";
-        
+
         for (size_t i = 0; i < _n_cols; i++) {
             auto& col = col_names[i];
             auto field = this->operator[](col);
@@ -7639,7 +7639,7 @@ namespace csv {
 
     /** Return current means */
     CSV_INLINE std::vector<long double> CSVStat::get_mean() const {
-        std::vector<long double> ret;        
+        std::vector<long double> ret;
         for (size_t i = 0; i < this->col_names->size(); i++) {
             ret.push_back(this->rolling_means[i]);
         }
@@ -7648,7 +7648,7 @@ namespace csv {
 
     /** Return current variances */
     CSV_INLINE std::vector<long double> CSVStat::get_variance() const {
-        std::vector<long double> ret;        
+        std::vector<long double> ret;
         for (size_t i = 0; i < this->col_names->size(); i++) {
             ret.push_back(this->rolling_vars[i]/(this->n[i] - 1));
         }
@@ -7657,7 +7657,7 @@ namespace csv {
 
     /** Return current mins */
     CSV_INLINE std::vector<long double> CSVStat::get_mins() const {
-        std::vector<long double> ret;        
+        std::vector<long double> ret;
         for (size_t i = 0; i < this->col_names->size(); i++) {
             ret.push_back(this->mins[i]);
         }
@@ -7666,7 +7666,7 @@ namespace csv {
 
     /** Return current maxes */
     CSV_INLINE std::vector<long double> CSVStat::get_maxes() const {
-        std::vector<long double> ret;        
+        std::vector<long double> ret;
         for (size_t i = 0; i < this->col_names->size(); i++) {
             ret.push_back(this->maxes[i]);
         }
@@ -7684,7 +7684,7 @@ namespace csv {
 
     /** Get data type counts for each column */
     CSV_INLINE std::vector<CSVStat::TypeCount> CSVStat::get_dtypes() const {
-        std::vector<TypeCount> ret;        
+        std::vector<TypeCount> ret;
         for (size_t i = 0; i < this->col_names->size(); i++) {
             ret.push_back(this->dtypes[i]);
         }
@@ -7718,7 +7718,7 @@ namespace csv {
 
     CSV_INLINE void CSVStat::calc_worker(const size_t &i) {
         /** Worker thread for CSVStat::calc() which calculates statistics for one column.
-         * 
+         *
          *  @param[in] i Column index
          */
 
@@ -7756,7 +7756,7 @@ namespace csv {
          *  @param[in]  record Data observation
          *  @param[out] i      The column index that should be updated
          */
-        
+
         auto type = data.type();
         if (this->dtypes[i].find(type) !=
             this->dtypes[i].end()) {
@@ -7795,7 +7795,7 @@ namespace csv {
             this->mins[i] = x_n;
         if (std::isnan(this->maxes[i]))
             this->maxes[i] = x_n;
-        
+
         if (x_n < this->mins[i])
             this->mins[i] = x_n;
         else if (x_n > this->maxes[i])
@@ -7815,7 +7815,7 @@ namespace csv {
         long double delta2;
 
         current_n++;
-        
+
         if (current_n == 1) {
             current_rolling_mean = x_n;
         } else {
@@ -8046,7 +8046,7 @@ namespace csv {
                             break;
                         }
                     }
-                    
+
                     // Case: Unescaped single quote => not strictly valid but we'll keep it
                     this->field_length++;
                     i++;
