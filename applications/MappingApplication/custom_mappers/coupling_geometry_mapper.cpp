@@ -150,7 +150,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerDestination->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
         mMapperLocalSystemsSlave,
-        echo_level);
+        0); // @Phil - reduce echo to prevent row sum check on unfinished matrix
 
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrixProjector,
@@ -159,7 +159,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerOrigin->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
         mMapperLocalSystemsProjector,
-        echo_level);
+        0); // @Phil - reduce echo to prevent row sum check on unfinished matrix
 
     // Perform consistency scaling if requested
     if (mMapperSettings["consistency_scaling"].GetBool()) {
@@ -185,16 +185,18 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         }
 
         SparseMatrixMultiplicationUtility::MatrixMultiplication(*mpMappingMatrixSlave, *mpMappingMatrixProjector, *mpMappingMatrix);
-        //MappingMatrixUtilities::CheckRowSum(*mpMappingMatrix, "dummy"); // TODO re-enable
     }
     else {
-        if (is_precompute_mapping_matrix) {
-            // Precalculate the mortar mapping matrix
-            CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
-            //MappingMatrixUtilities::CheckRowSum(*mpMappingMatrix, "dummy"); // TODO re-enable
-        }
-        else {
-            MappingMatrixUtilities::InitializeSystemVector<TSparseSpace, TDenseSpace>(mpTempVector, mpInterfaceVectorContainerDestination->GetModelPart().NumberOfNodes());
+        MappingMatrixUtilities::InitializeSystemVector<TSparseSpace, TDenseSpace>(mpTempVector, mpInterfaceVectorContainerDestination->GetModelPart().NumberOfNodes());
+        if (is_precompute_mapping_matrix)  CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
+    }
+
+    // Check row sum of pre-computed mapping matrices only
+    if (echo_level > 2) {
+        if (is_precompute_mapping_matrix || dual_mortar) {
+            const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
+            SparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_" + base_file_name).c_str(), *mpMappingMatrix, false);
+            MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name);
         }
     }
 }
