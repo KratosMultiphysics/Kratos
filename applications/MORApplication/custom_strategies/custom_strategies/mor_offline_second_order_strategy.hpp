@@ -529,7 +529,6 @@ class MorOfflineSecondOrderStrategy
 
                     r_model_part.GetProcessInfo()[BUILD_LEVEL] = 111;
                     p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_Ki, tmp);
-                    KRATOS_WATCH(r_Ki)
                     DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_Ki, tmp, fixed_dofs, 0.0);
 
                     r_model_part.GetProcessInfo()[BUILD_LEVEL] = 121;
@@ -855,7 +854,7 @@ class MorOfflineSecondOrderStrategy
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
-    virtual TSystemVectorType& GetSystemVector()
+    virtual TSystemVectorType& GetSystemVector() override
     {
         TSystemVectorType& mb = *mpRHS;
 

@@ -121,10 +121,10 @@ class LinearMorMatrixOutputStrategy
 
         // Setting up the default builder and solver
          mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new TBuilderAndSolverType(pNewLinearSolver)); 
+            new TBuilderAndSolverType(pNewLinearSolver));
 
         // Saving the linear solver
-        mpLinearSolver = pNewLinearSolver;            
+        mpLinearSolver = pNewLinearSolver;
 
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
@@ -469,7 +469,7 @@ class LinearMorMatrixOutputStrategy
         p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), rA, tmp);
 
         // Applying the Dirichlet Boundary conditions
-        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), rA, tmp, rRHS);  
+        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), rA, tmp, rRHS);
 
         p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), rM, tmp);
 
@@ -521,7 +521,7 @@ class LinearMorMatrixOutputStrategy
      * @brief This method returns the LHS matrix
      * @return The LHS matrix
      */
-    TSystemMatrixType &GetSystemMatrix()
+    TSystemMatrixType &GetSystemMatrix() override
     {
         TSystemMatrixType &mA = *mpA;
 
@@ -539,7 +539,7 @@ class LinearMorMatrixOutputStrategy
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
-    TSystemVectorType& GetSystemVector()
+    TSystemVectorType& GetSystemVector() override
     {
         TSystemVectorType& mb = *mpRHS;
 
@@ -645,7 +645,7 @@ class LinearMorMatrixOutputStrategy
 
         std::stringstream matrix_market_mass_name;
         matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);            
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
 
         std::stringstream matrix_market_vectname;
         matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
