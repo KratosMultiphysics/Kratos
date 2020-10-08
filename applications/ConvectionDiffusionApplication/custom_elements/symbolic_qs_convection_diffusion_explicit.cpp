@@ -303,7 +303,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -344,8 +344,8 @@ const double crhs16 =             DN_DX_0_0*v(0,0) + DN_DX_0_1*v(0,1) + DN_DX_1_
 const double crhs17 =             crhs15*crhs16;
 const double crhs18 =             -0.166666666666667*crhs17;
 const double crhs19 =             0.25*f[2];
-const double crhs20 =             3*crhs4*k;
-const double crhs21 =             3*crhs10*k;
+const double crhs20 =             3*alpha*crhs4;
+const double crhs21 =             3*alpha*crhs10;
 const double crhs22 =             0.166666666666667*v(1,0);
 const double crhs23 =             crhs1 + crhs22 + 0.666666666666667*v(2,0);
 const double crhs24 =             crhs23*crhs4;
@@ -425,7 +425,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -487,9 +487,9 @@ const double crhs31 =             crhs30*(crhs25 + crhs26 + crhs29);
 const double crhs32 =             -0.1381966*crhs31;
 const double crhs33 =             0.19999999899376*f[2];
 const double crhs34 =             0.19999999899376*f[3];
-const double crhs35 =             4*crhs6*k;
-const double crhs36 =             4*crhs14*k;
-const double crhs37 =             4*crhs22*k;
+const double crhs35 =             4*alpha*crhs6;
+const double crhs36 =             4*alpha*crhs14;
+const double crhs37 =             4*alpha*crhs22;
 const double crhs38 =             0.1381966*v(1,0);
 const double crhs39 =             crhs1 + crhs38;
 const double crhs40 =             crhs2 + crhs39 + 0.5854102*v(3,0);
@@ -618,7 +618,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScale
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -663,8 +663,8 @@ const double crhs22 =             DN_DX_0_0*v(0,0) + DN_DX_0_1*v(0,1) + DN_DX_1_
 const double crhs23 =             crhs22*(crhs20 + crhs21 + 0.666666666666667*phi[1]);
 const double crhs24 =             0.166666666666667*crhs23;
 const double crhs25 =             -0.25*f[2];
-const double crhs26 =             3*crhs3*k;
-const double crhs27 =             3*crhs8*k;
+const double crhs26 =             3*alpha*crhs3;
+const double crhs27 =             3*alpha*crhs8;
 const double crhs28 =             0.166666666666667*v(1,0);
 const double crhs29 =             crhs3*(crhs1 + crhs28 + 0.666666666666667*v(2,0));
 const double crhs30 =             0.166666666666667*crhs29;
@@ -712,7 +712,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScale
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -778,9 +778,9 @@ const double crhs37 =             crhs36*(crhs32 + crhs35 + 0.5854102*phi[1]);
 const double crhs38 =             0.1381966*crhs37;
 const double crhs39 =             -0.19999999899376*f[2];
 const double crhs40 =             -0.19999999899376*f[3];
-const double crhs41 =             4*crhs5*k;
-const double crhs42 =             4*crhs12*k;
-const double crhs43 =             4*crhs19*k;
+const double crhs41 =             4*alpha*crhs5;
+const double crhs42 =             4*alpha*crhs12;
+const double crhs43 =             4*alpha*crhs19;
 const double crhs44 =             0.1381966*v(1,0);
 const double crhs45 =             crhs1 + crhs44;
 const double crhs46 =             crhs5*(crhs2 + crhs45 + 0.5854102*v(3,0));

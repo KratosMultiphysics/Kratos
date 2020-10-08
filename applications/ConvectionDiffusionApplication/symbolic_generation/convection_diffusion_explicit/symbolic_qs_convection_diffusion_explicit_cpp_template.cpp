@@ -303,7 +303,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -349,7 +349,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -402,7 +402,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScale
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -446,7 +446,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScale
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;

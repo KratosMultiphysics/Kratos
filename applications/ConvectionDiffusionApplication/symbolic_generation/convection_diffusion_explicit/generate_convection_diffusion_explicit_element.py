@@ -110,7 +110,7 @@ for dim in dim_vector:
 
     # Other data definitions
     f = DefineVector('f',nnodes)       # forcing term
-    k = Symbol('k',positive= True)     # diffusion coefficient
+    alpha = Symbol('alpha',positive= True)     # diffusion coefficient
     v = DefineMatrix('v',nnodes,dim)   # convective velocity
     tau = DefineVector('tau',ngauss) # stabilization coefficient
     delta_time = Symbol('delta_time',positive= True) # time current time step
@@ -153,7 +153,7 @@ for dim in dim_vector:
 
         ##### Galerkin functional terms #####
         rhs_forcing = q_gauss.transpose() * f_gauss
-        rhs_diffusion = - k * grad_phi.transpose() * grad_q
+        rhs_diffusion = - alpha * grad_phi.transpose() * grad_q
         rhs_convective_1 = - q_gauss * (v_gauss.transpose() * grad_phi)
         rhs_convective_2 = - q_gauss * phi_gauss * div_v
         rhs_galerkin = rhs_forcing + rhs_diffusion + rhs_convective_1 + rhs_convective_2
@@ -181,7 +181,7 @@ for dim in dim_vector:
         rhs_stab_2_mass = tau[i_gauss] * q_gauss.transpose() * N.transpose() * (phi-phi_old)/(delta_time_coefficient*delta_time)
         rhs_stab_2_convection_1 = tau[i_gauss] * q_gauss * (v_gauss.transpose() * grad_phi)
         rhs_stab_2_convection_2 = tau[i_gauss] * q_gauss * phi_gauss * div_v
-        rhs_stab_2_diffusion = tau[i_gauss] * k * grad_phi.transpose() * grad_q
+        rhs_stab_2_diffusion = tau[i_gauss] * alpha * grad_phi.transpose() * grad_q
         rhs_stab_2_subgrid_old = - tau[i_gauss] * q_gauss.transpose() * phi_subscale_gauss[i_gauss]
         rhs_stab_2_mass_subgrid_old = q_gauss.transpose() * phi_subscale_gauss[i_gauss] / delta_time
         rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_mass + rhs_stab_2_convection_1 + rhs_stab_2_convection_2 + rhs_stab_2_diffusion + rhs_stab_2_subgrid_old + rhs_stab_2_mass_subgrid_old
@@ -202,7 +202,7 @@ for dim in dim_vector:
         # lhs_OSS_mass = q_gauss.transpose() * phi_acceleration_old_gauss # use acceleration step n
         lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * (phi-phi_old)/(delta_time_coefficient*delta_time))
         lhs_OSS_mass_subscale = - q_gauss.transpose() * (phi_subscale_gauss[i_gauss]/delta_time)
-        lhs_OSS_diffusion = k * grad_phi.transpose() * grad_q
+        lhs_OSS_diffusion = alpha * grad_phi.transpose() * grad_q
         lhs_OSS_convective_1 = q_gauss * (v_gauss.transpose() * grad_phi)
         lhs_OSS_convective_2 = q_gauss * phi_gauss * div_v
         res_OSS = lhs_OSS_forcing + lhs_OSS_mass + lhs_OSS_diffusion + lhs_OSS_convective_1 + lhs_OSS_convective_2

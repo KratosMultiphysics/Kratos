@@ -179,7 +179,7 @@ void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -227,7 +227,7 @@ void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -282,7 +282,7 @@ void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScaleR
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
@@ -328,7 +328,7 @@ void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScaleR
     this->CalculateTau(rData);
 
     // Retrieve element data
-    const auto& k = rData.diffusivity;
+    const auto& alpha = rData.diffusivity;
     const auto& f = rData.forcing;
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
