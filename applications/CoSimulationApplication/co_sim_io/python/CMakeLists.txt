@@ -36,7 +36,7 @@ set_target_properties(CoSimIO PROPERTIES
 
 if(IN_KRATOS)
     # if compiled from inside of Kratos, then install to the Kratos root install folder (same as "KratosMultiphysics")
-    install(TARGETS CoSimIO DESTINATION . )
+    # install(TARGETS CoSimIO DESTINATION . )
 else()
     # otherwise install to current directory
     install(TARGETS CoSimIO DESTINATION ${CMAKE_SOURCE_DIR} )

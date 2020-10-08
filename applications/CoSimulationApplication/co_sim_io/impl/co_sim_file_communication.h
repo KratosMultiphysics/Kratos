@@ -418,7 +418,7 @@ private:
 
         int control_signal;
         input_file >> control_signal;
-        std::cout << "control-signal: " << control_signal << std::endl;
+        std::cout << "\tAABBCC rIdentifier: " << rIdentifier << "  control-signal: " << control_signal << std::endl;
         input_file >> rIdentifier;
 
         RemoveFile(file_name);

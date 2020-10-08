@@ -2,6 +2,7 @@
 import shutil, sys, os, time, json
 import numpy as np
 import CoSimIO
+
 from mpi4py import MPI
 
 def print_on_rank_zero(*args):
@@ -48,6 +49,13 @@ else:
 para_path_mod = para_path + ".mod"
 para_path_up = 'input/airfoil_Structured_up.cntl'
 para_path_down = 'input/airfoil_Structured_down.cntl'
+para_path_tip = 'input/airfoil_Structured_tip.cntl'
+para_path_le = 'input/airfoil_Structured_le.cntl'
+para_path_te = 'input/airfoil_Structured_te.cntl'
+para_path_root = 'input/airfoil_Structured_root.cntl'
+para_path_periodic_up = 'input/airfoil_Structured_periodic_up.cntl'
+para_path_periodic_down = 'input/airfoil_Structured_periodic_down.cntl'
+para_path_farfield = 'input/airfoil_Structured_farfield.cntl'
 shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
@@ -97,8 +105,6 @@ def AdvanceInTime(current_time):
     advanceTime = True
     global step
     step += 1
-    global sub_step
-    sub_step = 0
     
     Prep.run(write_dualgrid=1,free_primgrid=False)
     tau_parallel_sync()
@@ -154,7 +160,7 @@ def SolveSolutionStep(advanceTime, sub_step):
     Solver.stop()
     # Convert tau output to dat file using tau2plt
     if tau_mpi_rank() == 0:
-        TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh)
+        TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh, sub_step)
     tau_parallel_sync()
 
 def FinalizeSolutionStep():
@@ -168,12 +174,13 @@ def FinalizeSolutionStep():
     Para.free_parameters()
 
 
-def ImportData(conn_name, identifier):
+def ImportData(conn_name, identifier, factor):
     tau_parallel_sync()
     if tau_mpi_rank() == 0:
         if tau_settings["echo_level"] > 0:
             print "TAU SOLVER ImportData"
         displacements = CoSimIO.ImportData(conn_name, identifier)
+        print('FACTOR = ', factor)
     tau_parallel_sync()
 
     # identifier is the data-name in json
@@ -183,7 +190,7 @@ def ImportData(conn_name, identifier):
         ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_up)
         tau_parallel_sync()
         if tau_mpi_rank() == 0:
-            new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
+            new_displacements = factor*TauFunctions.ChangeFormatDisplacements(displacements)
             TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
             with open('new_displacement_up' + str(step) + '.dat','w') as fname:
                for i in range(len(new_displacements)):
@@ -195,7 +202,7 @@ def ImportData(conn_name, identifier):
         ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_down)
         tau_parallel_sync()
         if tau_mpi_rank() == 0:
-            new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
+            new_displacements = factor*TauFunctions.ChangeFormatDisplacements(displacements)
             TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_DOWN")
         tau_parallel_sync()
     else:
@@ -217,13 +224,13 @@ def ExportData(conn_name, identifier):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", ouput_file_pattern)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", ouput_file_pattern, sub_step)
             with open('forces_up' + str(step) + '.dat','w') as fname:
                for i in range(len(forces)/3):
                    fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern)
+            forces = -TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -233,7 +240,7 @@ def ExportData(conn_name, identifier):
             print "TAU SOLVER After ExportData"
     tau_parallel_sync()
 
-def ExportMesh(conn_name, identifier):
+def ExportMesh(conn_name, identifier, sub_step):
     tau_parallel_sync()
     if tau_mpi_rank() == 0:
         if tau_settings["echo_level"] > 0:
@@ -241,9 +248,9 @@ def ExportMesh(conn_name, identifier):
 
         # identifier is the data-name in json
         if identifier == "UpperInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", ouput_file_pattern)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", ouput_file_pattern, sub_step)
         elif identifier == "LowerInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
             # elem_connectivities += int(30000)
             # print(elem_connectivities)
         else:
@@ -272,27 +279,85 @@ n_steps = int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
 
-def InnerLoop(coupling_interface_imported, advanceTime):
+def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
     SolveSolutionStep(advanceTime, sub_step)
 
     if not coupling_interface_imported:
         advanceTime = False
         if tau_mpi_rank() == 0:
-            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern)
+            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
         tau_parallel_sync()
-        ExportMesh(connection_name, "UpperInterface")
-        ExportMesh(connection_name, "LowerInterface")
+        ExportMesh(connection_name, "UpperInterface", sub_step)
+        ExportMesh(connection_name, "LowerInterface", sub_step)
         coupling_interface_imported = True
 
     if tau_mpi_rank() == 0:
-        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern)
+        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
     tau_parallel_sync()
     ExportData(connection_name, "Upper_Interface_force")
     ExportData(connection_name, "Lower_Interface_force")
 
     # Read displacements
-    ImportData(connection_name, "Upper_Interface_disp")
-    ImportData(connection_name, "Lower_Interface_disp")
+    ImportData(connection_name, "Upper_Interface_disp", factor)
+    ImportData(connection_name, "Lower_Interface_disp", factor)
+
+    '''
+    #Para_origin_tip = PyPara.Parafile(para_path_tip)
+    #ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_tip)
+    #if tau_mpi_rank() == 0:
+    #    number_of_nodes = int(len(ids))
+    #    zero_displacements = np.zeros([number_of_nodes, 3])
+    #    TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"TIP")
+    #tau_parallel_sync
+
+    Para_origin_le = PyPara.Parafile(para_path_le)
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_le)
+    if tau_mpi_rank() == 0:
+        number_of_nodes = int(len(ids))
+        zero_displacements = np.zeros([number_of_nodes, 3])
+        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"LEADING_EDGE")
+    tau_parallel_sync
+
+    Para_origin_te = PyPara.Parafile(para_path_te)
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_te)
+    if tau_mpi_rank() == 0:
+        number_of_nodes = int(len(ids))
+        zero_displacements = np.zeros([number_of_nodes, 3])
+        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"TRAILING_EDGE")
+    tau_parallel_sync
+
+    Para_origin_root = PyPara.Parafile(para_path_root)
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_root)
+    if tau_mpi_rank() == 0:
+        number_of_nodes = int(len(ids))
+        zero_displacements = np.zeros([number_of_nodes, 3])
+        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"ROOT")
+    tau_parallel_sync
+
+    Para_origin_periodic_up = PyPara.Parafile(para_path_periodic_up)
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_periodic_up)
+    if tau_mpi_rank() == 0:
+        number_of_nodes = int(len(ids))
+        zero_displacements = np.zeros([number_of_nodes, 3])
+        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"PERIODIC_UP")
+    tau_parallel_sync
+
+    Para_origin_periodic_down = PyPara.Parafile(para_path_periodic_down)
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_periodic_down)
+    if tau_mpi_rank() == 0:
+        number_of_nodes = int(len(ids))
+        zero_displacements = np.zeros([number_of_nodes, 3])
+        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"PERIODIC_DOWN")
+    tau_parallel_sync
+
+    Para_origin_farfield = PyPara.Parafile(para_path_farfield)
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_farfield)
+    if tau_mpi_rank() == 0:
+        number_of_nodes = int(len(ids))
+        zero_displacements = np.zeros([number_of_nodes, 3])
+        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"FARFIELD")
+    tau_parallel_sync
+   '''
 
     Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
 
@@ -301,9 +366,10 @@ def InnerLoop(coupling_interface_imported, advanceTime):
 
     return coupling_interface_imported
 
-
+factor = 0.1
 for i in range(n_steps):
 
+    sub_step = 0
     AdvanceInTime(0.0)
 
     InitializeSolutionStep()
@@ -314,15 +380,15 @@ for i in range(n_steps):
             advanceTime = False
             if tau_mpi_rank() == 0:
                 print("#################################")
-                print("###   ATENTION NOT Converged ### ")
+                print("###   ATENTION  ### ")
                 print("###   Advance in Time = " + str(advanceTime) + "   ###   ")
                 print("###   step = " + str(step) + "   ###   ")
                 print("###   sub_step = " + str(sub_step + 1) + "   ###   ")
                 print("#################################")
             tau_parallel_sync
-            coupling_interface_imported = InnerLoop(coupling_interface_imported, advanceTime)
+            coupling_interface_imported = InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor)
             print("coupling_interface_imported ", coupling_interface_imported)
-            global sub_step
+
             sub_step += 1
 
 	    if tau_mpi_rank() == 0:
@@ -330,10 +396,13 @@ for i in range(n_steps):
                 print("RECEIVING worked", is_converged)
             is_converged = comm.bcast(is_converged, 0)
 
+	    if factor < 0.99:
+           	factor += 0.1
 
-    sub_step = 0
+
     tau_parallel_sync()
     FinalizeSolutionStep()
+    factor = 1.0
 
 if rank == 0:
     CoSimIO.Disconnect(connection_name)

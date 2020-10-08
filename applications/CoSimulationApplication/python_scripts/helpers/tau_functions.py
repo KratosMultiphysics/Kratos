@@ -59,7 +59,7 @@ def RemoveFilesFromPreviousSimulations():
 
 
 # Convert tau output to dat file using tau2plt
-def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh):
+def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh, substep):
     PrintBlockHeader("Start Garthering Solution Data at time %s" % (str(time)))
     # Execute gather
     command = tau_path + 'gather ' +  para_path_mod
@@ -68,7 +68,7 @@ def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, 
 
     PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))
     # Write Tautoplt.cntl file
-    tautoplt_filename = WriteTautoplt(working_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh)
+    tautoplt_filename = WriteTautoplt(working_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh, substep)
 
     # Execute tau2plt to convert output file into dat
     command = tau_path + 'tau2plt ' + tautoplt_filename
@@ -98,9 +98,9 @@ def ExecuteBeforeMeshDeformation(total_displacements, step, para_path_mod, start
 
 
 # Computes fluid forces at the nodes
-def ComputeFluidForces(working_path, step, word, ouput_file_pattern):
+def ComputeFluidForces(working_path, step, word, ouput_file_pattern, substep):
     # Read mesh and pressure from interface file
-    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 41.09, word, ouput_file_pattern)
+    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 30.33, word, ouput_file_pattern, substep)
 
     # calculating the force vector
     fluid_forces = CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities)
@@ -109,9 +109,9 @@ def ComputeFluidForces(working_path, step, word, ouput_file_pattern):
 
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
-def GetFluidMesh(working_path, step, word, ouput_file_pattern):
+def GetFluidMesh(working_path, step, word, ouput_file_pattern, substep):
     # Read mesh from interface file
-    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 41.09, word, ouput_file_pattern)
+    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 30.33, word, ouput_file_pattern, substep)
     print("after ReadTauOutput")
 
     # Transform nodal coordinates to numpy array
@@ -127,7 +127,7 @@ def GetFluidMesh(working_path, step, word, ouput_file_pattern):
 
 
 # Write Tautoplt.cntl file
-def WriteTautoplt(working_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh):
+def WriteTautoplt(working_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh, substep):
     # Define Tautoplt.cntl file name and check if it already exists
     tautoplt_filename = working_path + 'Tautoplt.cntl'
     RemoveFileIfExists(tautoplt_filename)
@@ -140,7 +140,7 @@ def WriteTautoplt(working_path, step, para_path_mod, start_step, ouput_file_patt
         # Loop over lines
         for line in tautoplt_file_reading:
             # Check if line is from IO section and modify it
-            line = ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh)
+            line = ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh, substep)
             tautoplt_file_writing.write(line)
 
         # Close files
@@ -179,6 +179,7 @@ def ChangeFormatDisplacements(total_displacements):
 
     # Declaring and initializing new displacement vector
     number_of_nodes = int(len(total_displacements)/3)
+    print('len(number_of_nodes) = ', str(number_of_nodes))
     new_displacements = np.zeros([number_of_nodes, 3])
 
     # Loop over nodes
@@ -221,9 +222,9 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word
     nodel_z_displacements[:] = relative_displacements[:,2]
     ncf.close()
 
-def ChangeFormat(working_path, step, word1, word2, ouput_file_pattern):
+def ChangeFormat(working_path, step, word1, word2, ouput_file_pattern, substep):
     # Find the interface file name
-    interface_filename = FindInterfaceFilename(working_path, step, ouput_file_pattern)
+    interface_filename = FindInterfaceFilename(working_path, step, ouput_file_pattern, substep)
     # Change Format of 'interface_filename'
     print("Looking for number 1")
     number1 = CF.Countline(interface_filename, word1)
@@ -254,9 +255,9 @@ def ChangeFormat(working_path, step, word1, word2, ouput_file_pattern):
 
 
 # Read mesh and data from tau output file
-def ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern):
+def ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern, substep):
     # Find the interface file name
-    interface_filename_original = FindInterfaceFilename(working_path, step, ouput_file_pattern)
+    interface_filename_original = FindInterfaceFilename(working_path, step, ouput_file_pattern, substep)
     print("interface_filename_original = ",interface_filename_original)
     interface_filename = interface_filename_original[0:len(interface_filename_original)-4] + '.' + word + '.dat'
 
@@ -330,7 +331,7 @@ def CheckIfPathExists(path):
 
 
 # Checks if the line is from IO section in tau2plot.cntl and modifies it
-def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh):
+def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh, substep):
     if 'Primary grid filename:' in line:
         primary_grid_filename = FindPrimaryGridFilename(working_path, step_mesh, start_step)
         line = 'Primary grid filename:' + primary_grid_filename + ' \n'
@@ -338,7 +339,7 @@ def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step, oupu
         parameter_filename = working_path + para_path_mod
         line = 'Boundary mapping filename:' + parameter_filename + ' \n'
     elif 'Restart-data prefix:' in line:
-        output_filename = FindOutputFilename(working_path, step, ouput_file_pattern)
+        output_filename = FindOutputFilename(working_path, step, ouput_file_pattern, substep)
         CheckIfPathExists(output_filename)
         line = 'Restart-data prefix:' + output_filename + ' \n'
 
@@ -346,8 +347,8 @@ def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step, oupu
 
 
 # Find the interface file name
-def FindInterfaceFilename(working_path, step, ouput_file_pattern):
-    output_filename = FindOutputFilename(working_path, step, ouput_file_pattern)
+def FindInterfaceFilename(working_path, step, ouput_file_pattern, substep):
+    output_filename = FindOutputFilename(working_path, step, ouput_file_pattern, substep)
     interface_filename = output_filename.replace('pval', 'surface.pval')
     if '.dat' not in interface_filename:
         interface_filename = interface_filename.replace('+', '') + '.dat'
@@ -433,14 +434,14 @@ def FindPrimaryGridFilename(working_path, step_mesh, start_step):
 
 
 # Finds output filename
-def FindOutputFilename(working_path, step, ouput_file_pattern):
+def FindOutputFilename(working_path, step, ouput_file_pattern, substep):
     outputs_path = working_path + "Outputs/"
     CheckIfPathExists(outputs_path)
     # if rotate and unsteady "airfoilSol.pval.deform_i="
     # if non rotate and unsteady "airfoilSol.pval.unsteady_i="
     # if rotate and steady
-    CheckIfPathExists(FindFilename(outputs_path, ouput_file_pattern, step))
-    return FindFilename(outputs_path, ouput_file_pattern, step)
+    CheckIfPathExists(FindFilename(outputs_path, ouput_file_pattern, step, substep))
+    return FindFilename(outputs_path, ouput_file_pattern, step, substep)
 
 
 # Read header from interface file
@@ -554,12 +555,12 @@ def FindMeshFilename(path, pattern, step):
 
 
 # Looks for a file matching the given pattern within the given path
-def FindFilename(path, pattern, step):
+def FindFilename(path, pattern, step, substep):
     files_list = glob.glob(path + "*")
     #if echo_level > 0:
        ###08/07/2020      ###  print('files_list = ', files_list)
     for file in files_list:
-        if file.startswith('%s' % path + '%s' % pattern + '%s' % step) and 'domain' not in file:
+        if file.startswith('%s' % path + '%s' % pattern + '%s' % step) and 'subiter=' + str(substep) in file and 'domain' not in file:
             print('file = ',file)
             return file
     raise Exception('File: "{}" not found'.format(path + pattern + str(step)))

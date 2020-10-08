@@ -80,6 +80,67 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         # Creating output
         super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
 
+        upper_membrane = self._GetSolver().GetComputingModelPart().GetSubModelPart('PointLoad3D_UpperMembrane')
+        number_of_points = upper_membrane.NumberOfNodes()
+        print('NUMBER OF NODES = ', number_of_points)
+
+        from scipy.io import netcdf
+        ncf = netcdf.netcdf_file('UPPER_STRUCTURE.interface_deformfile.nc', 'w')
+        nops = 'no_of_points'
+
+        ncf.createDimension(nops, number_of_points)
+
+        # define variables
+        global_node_ids = ncf.createVariable('global_id', 'i', (nops,))
+        nodal_x_coordinates = ncf.createVariable('x', 'd', (nops,))
+        nodal_y_coordinates = ncf.createVariable('y', 'd', (nops,))
+        nodal_z_coordinates = ncf.createVariable('z', 'd', (nops,))
+        nodal_x_displacements = ncf.createVariable('dx', 'd', (nops,))
+        nodal_y_displacements = ncf.createVariable('dy', 'd', (nops,))
+        nodel_z_displacements = ncf.createVariable('dz', 'd', (nops,))
+
+        i = 0
+        for node in upper_membrane.Nodes:
+            global_node_ids[i] = node.Id
+            nodal_x_coordinates[i] = node.X
+            nodal_y_coordinates[i] = node.Y
+            nodal_z_coordinates[i] = node.Z
+            nodal_x_displacements[i] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+            nodal_y_displacements[i] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+            nodel_z_displacements[i] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+            i += 1
+        ncf.close()
+
+        lower_membrane = self._GetSolver().GetComputingModelPart().GetSubModelPart('PointLoad3D_LowerMembrane')
+        number_of_points = lower_membrane.NumberOfNodes()
+        print('NUMBER OF NODES = ', number_of_points)
+
+        ncf = netcdf.netcdf_file('LOWER_STRUCTURE.interface_deformfile.nc', 'w')
+        nops = 'no_of_points'
+
+        ncf.createDimension(nops, number_of_points)
+
+        # define variables
+        global_node_ids = ncf.createVariable('global_id', 'i', (nops,))
+        nodal_x_coordinates = ncf.createVariable('x', 'd', (nops,))
+        nodal_y_coordinates = ncf.createVariable('y', 'd', (nops,))
+        nodal_z_coordinates = ncf.createVariable('z', 'd', (nops,))
+        nodal_x_displacements = ncf.createVariable('dx', 'd', (nops,))
+        nodal_y_displacements = ncf.createVariable('dy', 'd', (nops,))
+        nodel_z_displacements = ncf.createVariable('dz', 'd', (nops,))
+
+        i = 0
+        for node in lower_membrane.Nodes:
+            global_node_ids[i] = node.Id
+            nodal_x_coordinates[i] = node.X
+            nodal_y_coordinates[i] = node.Y
+            nodal_z_coordinates[i] = node.Z
+            nodal_x_displacements[i] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+            nodal_y_displacements[i] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+            nodel_z_displacements[i] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+            i += 1
+        ncf.close()
+
 
     def Check(self):
         super(StructuralMechanicsAnalysis, self).Check()
