@@ -280,11 +280,12 @@ coupling_interface_imported = False
 
 
 def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
-    # Read displacements
-    ImportData(connection_name, "Upper_Interface_disp", factor)
-    ImportData(connection_name, "Lower_Interface_disp", factor)
+    if coupling_interface_imported:
+        # Read displacements
+        ImportData(connection_name, "Upper_Interface_disp", factor)
+        ImportData(connection_name, "Lower_Interface_disp", factor)
 
-    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
+        Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
 
     SolveSolutionStep(advanceTime, sub_step)
 
@@ -295,13 +296,17 @@ def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
         tau_parallel_sync()
         ExportMesh(connection_name, "UpperInterface", sub_step)
         ExportMesh(connection_name, "LowerInterface", sub_step)
-        coupling_interface_imported = True
 
     if tau_mpi_rank() == 0:
         TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
     tau_parallel_sync()
-    ExportData(connection_name, "Upper_Interface_force")
-    ExportData(connection_name, "Lower_Interface_force")
+
+    if coupling_interface_imported:
+        ExportData(connection_name, "Upper_Interface_force")
+        ExportData(connection_name, "Lower_Interface_force")
+
+    if not coupling_interface_imported:
+        coupling_interface_imported = True
 
     global step_mesh
     step_mesh += 1
