@@ -1,7 +1,6 @@
 import os
 import sys
 import platform
-import shutil
 from KratosMultiphysics.testing.utilities import GetPython3Command
 
 kratos_benchmarking_path = '../../../benchmarking'
