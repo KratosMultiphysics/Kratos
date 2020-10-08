@@ -7,7 +7,6 @@ from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import C
 
 import os
 import subprocess
-from shutil import which
 
 
 class TestKratosCoSimIO(KratosUnittest.TestCase):
