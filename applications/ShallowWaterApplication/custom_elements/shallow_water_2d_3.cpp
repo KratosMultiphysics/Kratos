@@ -106,6 +106,21 @@ void ShallowWater2D3::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& 
     KRATOS_CATCH("")
 }
 
+void ShallowWater2D3::GetValuesVector(Vector& rValues, int Step) const
+{
+    if (rValues.size() != 9)
+        rValues.resize(9, false);
+
+    const GeometryType& r_geom = this->GetGeometry();
+    size_t counter = 0;
+    for (size_t i = 0; i < 3; i++)
+    {
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_X, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_Y, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(HEIGHT, Step);
+    }
+}
+
 void ShallowWater2D3::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -140,7 +155,7 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     AddShockCapturingTerm(rLeftHandSideMatrix, data, DN_DX);
 
-    AddLowOrderDiffusion(rLeftHandSideMatrix, data);
+    // AddLowOrderDiffusion(rLeftHandSideMatrix, data);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
