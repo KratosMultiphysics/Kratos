@@ -140,8 +140,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
     mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_slave, num_nodes_interface_master);
 
-    const int echo_level = mMapperSettings["echo_level"].GetInt();
-
     // TODO Philipp I am pretty sure we should separate the vector construction from the matrix construction, should be independent otherwise no clue what is happening
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrixSlave,
