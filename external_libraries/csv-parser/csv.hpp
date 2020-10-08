@@ -6953,7 +6953,7 @@ namespace csv {
                 }
             }
             else {
-                row = std::move(this->records.pop_front());
+                row = CSVRow(this->records.pop_front());
                 this->n_rows++;
                 return true;
             }
@@ -7086,7 +7086,7 @@ namespace csv {
             if (this->records.empty()) return this->end();
         }
 
-        CSVReader::iterator ret(this, std::move(this->records.pop_front()));
+        CSVReader::iterator ret(this, this->records.pop_front());
         return ret;
     }
 
