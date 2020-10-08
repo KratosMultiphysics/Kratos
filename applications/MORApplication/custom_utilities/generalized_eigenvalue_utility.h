@@ -96,6 +96,8 @@ namespace GeneralizedEigenvalueUtility
         Eigen::ComplexEigenSolver<EigenMatrixType> ces;
         ces.compute(B.lu().solve(A));
 
+        KRATOS_ERROR_IF(ces.eigenvalues().size() != ev.size() ) << "No eigenvalues could be obtained. Check input matrices." << std::endl;
+
         ev = ces.eigenvalues();
     }
 
