@@ -22,8 +22,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
@@ -74,7 +72,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( int, STEP )
     KRATOS_DEFINE_VARIABLE( int, PRINTED_STEP )
     KRATOS_DEFINE_VARIABLE( int, PRINTED_RESTART_STEP )
-
+    KRATOS_DEFINE_VARIABLE( int, RUNGE_KUTTA_STEP )
 
     //doubles
 
@@ -89,6 +87,8 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, RESIDUAL_NORM )
     KRATOS_DEFINE_VARIABLE( double, CONVERGENCE_RATIO )
     KRATOS_DEFINE_VARIABLE( double, BUILD_SCALE_FACTOR )
+    KRATOS_DEFINE_VARIABLE( double, CONSTRAINT_SCALE_FACTOR )
+    KRATOS_DEFINE_VARIABLE( double, AUXILIAR_CONSTRAINT_SCALE_FACTOR )
 
     KRATOS_DEFINE_VARIABLE( double, TEMPERATURE )
     KRATOS_DEFINE_VARIABLE( double, PRESSURE )
@@ -196,6 +196,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, NUMBER_OF_NEIGHBOUR_ELEMENTS )
     KRATOS_DEFINE_VARIABLE(bool, UPDATE_SENSITIVITIES )
     KRATOS_DEFINE_VARIABLE(AdjointExtensions::Pointer, ADJOINT_EXTENSIONS )
+    KRATOS_DEFINE_VARIABLE(Matrix, NORMAL_SHAPE_DERIVATIVE )
 
     // For MeshingApplication
     KRATOS_DEFINE_VARIABLE( double, NODAL_ERROR )

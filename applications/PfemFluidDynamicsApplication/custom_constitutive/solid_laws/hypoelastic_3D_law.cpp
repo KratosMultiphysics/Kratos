@@ -84,7 +84,7 @@ int Hypoelastic3DLaw::Check(const Properties& rMaterialProperties, const Geometr
         << "Incorrect or missing POISSON_RATIO provided in process info for Hypoelastic3DLaw: "
         << rMaterialProperties[POISSON_RATIO] << std::endl;
 
-    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] <= 0.0)
+    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0)
         << "Incorrect or missing DENSITY provided in process info for Hypoelastic3DLaw: "
         << rMaterialProperties[DENSITY] << std::endl;
 

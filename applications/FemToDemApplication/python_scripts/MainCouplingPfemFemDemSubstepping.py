@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.FemToDemApplication as FEMDEM
@@ -22,7 +21,9 @@ class MainCouplingPfemFemDemSubstepping_Solution(MainCouplingPfemFemDem.MainCoup
 
     def __init__(self, Model, PFEMparameters):
         # Initialize solutions of the FEMDEM and PFEM
+        self.model = Model
         self.FEMDEM_Solution = MainCouplingFemDemSubstepping_for_PFEM_coupling.MainCoupledFemDemSubstepping_for_PFEM_coupling_Solution(Model)
+        self.FEMDEM_Solution.is_slave = True
         self.FEMDEM_Solution.Initialize()
 
         self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, 

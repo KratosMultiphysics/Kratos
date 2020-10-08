@@ -64,6 +64,7 @@ public:
     typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
     typedef ResidualBasedBDFScheme<TSparseSpace,TDenseSpace>               BDFBaseType;
+    typedef ResidualBasedBDFDisplacementScheme<TSparseSpace, TDenseSpace>    ClassType;
 
     /// Data type definition
     typedef typename BDFBaseType::TDataType                                  TDataType;
@@ -99,14 +100,11 @@ public:
      * @param ThisParameters Parameters with the integration order
      */
     explicit ResidualBasedBDFDisplacementScheme(Parameters ThisParameters)
-        : ResidualBasedBDFDisplacementScheme(ThisParameters.Has("integration_order") ? static_cast<std::size_t>(ThisParameters["integration_order"].GetInt()) : 2)
+        : BDFBaseType()
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {   "name"              : "ResidualBasedBDFDisplacementScheme",
-            "integration_order" : 2
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -148,6 +146,15 @@ public:
     ///@{
 
     /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
+    /**
      * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
      * @param rModelPart The model part of the problem to solve
      * @param rA LHS matrix
@@ -181,9 +188,9 @@ public:
         const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
 
         std::array<bool, 3> fixed = {false, false, false};
-        const std::array<Variable<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
-        const std::array<Variable<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
-        const std::array<Variable<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+        const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+        const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+        const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
         #pragma omp parallel for private(fixed)
         for(int i = 0;  i < num_nodes; ++i) {
@@ -194,16 +201,16 @@ public:
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        it_node->Fix(disp_components[i_dim]);
+                    if (it_node->GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                        it_node->Fix(*disp_components[i_dim]);
                         fixed[i_dim] = true;
                     }
                 }
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(vel_components[i_dim], velpos + i_dim).IsFixed() && !fixed[i_dim]) {
-                        it_node->Fix(disp_components[i_dim]);
+                    if (it_node->GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !fixed[i_dim]) {
+                        it_node->Fix(*disp_components[i_dim]);
                     }
                 }
             }
@@ -251,9 +258,9 @@ public:
 
         // Auxiliar variables
         std::array<bool, 3> predicted = {false, false, false};
-        const std::array<Variable<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
-        const std::array<Variable<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
-        const std::array<Variable<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+        const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+        const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+        const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
         #pragma omp parallel for private(predicted)
         for(int i = 0;  i< num_nodes; ++i) {
@@ -271,15 +278,15 @@ public:
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                    if (it_node->GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
                         dotun0[i_dim] = dot2un0[i_dim];
                         for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            dotun0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(vel_components[i_dim], i_order);
+                            dotun0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*vel_components[i_dim], i_order);
                         dotun0[i_dim] /= BDFBaseType::mBDF[i_dim];
 
                         un0[i_dim] = dotun0[i_dim];
                         for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(disp_components[i_dim], i_order);
+                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
                         un0[i_dim] /= BDFBaseType::mBDF[i_dim];
                         predicted[i_dim] = true;
                     }
@@ -287,17 +294,17 @@ public:
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(vel_components[i_dim], velpos + i_dim).IsFixed() && !predicted[i_dim]) {
+                    if (it_node->GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !predicted[i_dim]) {
                         un0[i_dim] = dotun0[i_dim];
                         for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(disp_components[i_dim], i_order);
+                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
                         un0[i_dim] /= BDFBaseType::mBDF[i_dim];
                         predicted[i_dim] = true;
                     }
                 }
             }
             for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                if (!it_node->GetDof(disp_components[i_dim], disppos + i_dim).IsFixed() && !predicted[i_dim]) {
+                if (!it_node->GetDof(*disp_components[i_dim], disppos + i_dim).IsFixed() && !predicted[i_dim]) {
                     un0[i_dim] = un1[i_dim] + delta_time * dotun1[i_dim] + 0.5 * std::pow(delta_time, 2) * dot2un1[i_dim];
                 }
             }
@@ -345,6 +352,33 @@ public:
         KRATOS_CATCH( "" );
 
         return 0;
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "bdf_displacement_scheme",
+            "integration_order"  : 2
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BDFBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "bdf_displacement_scheme";
     }
 
     ///@}

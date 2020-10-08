@@ -109,8 +109,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True
             for process in self.aux_processes:
-                #process.ExecuteInitializeSolutionStep() # WARNING: Should be this one, for retrocompatibility we consider the Execute!!!
-                process.Execute()
+                process.ExecuteInitializeSolutionStep()
 
 
     def ExecuteFinalizeSolutionStep(self):

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 
 def GetDefaultInputParameters():
@@ -76,7 +75,10 @@ def GetDefaultInputParameters():
             "search_tolerance_against_walls"   : 0.0,
             "CoordinationNumber"               : 10,
             "LocalCoordinationNumberOption"    : false,
-            "GlobalCoordinationNumberOption"    : true,
+            "GlobalCoordinationNumberOption"   : true,
+            "respect_preprocessor_marked_skin" : true,
+            "AutomaticSkinComputation" : false,
+            "SkinFactorRadius" : 1.0,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
             "ModelDataInfo"                    : false,
@@ -169,12 +171,13 @@ def GetDefaultInputParameters():
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
             "PostControlModule"                : false,
+            "output_configuration" : {
+                "print_number_of_neighbours_histogram" : false
+            },
             "post_vtk_option"                  : false,
-
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
             "LoadingVelocityTop"               : 0.0,
             "LoadingVelocityBot"               : 0.0,
-
             "problem_name" : "dummy_name.Provide_a_real_one",
             "processes" : {}
             }""")

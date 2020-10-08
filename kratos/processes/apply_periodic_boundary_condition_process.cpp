@@ -174,7 +174,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
             {
                 const std::string var_name = mParameters["variable_names"][j].GetString();
                 // Checking if the variable is a vector variable
-                if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
+                if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name))
                 {   // TODO: Look for a better alternative to do this.
                     ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
                 } else if (KratosComponents<VariableType>::Has(var_name))
@@ -193,9 +193,9 @@ template <int TDim>
 void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
                                                                                         const std::string& rVarName )
 {
-    const VariableComponentType& r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
-    const VariableComponentType& r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
-    const VariableComponentType& r_var_z = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Z"));
+    const auto& r_var_x = KratosComponents<VariableType>::Get(rVarName + std::string("_X"));
+    const auto& r_var_y = KratosComponents<VariableType>::Get(rVarName + std::string("_Y"));
+    const auto& r_var_z = KratosComponents<VariableType>::Get(rVarName + std::string("_Z"));
 
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");

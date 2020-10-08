@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
@@ -26,12 +25,16 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         FEMDEM_utilities = KratosFemDem.FEMDEMCouplingUtilities()
         FEMDEM_utilities.SaveStructuralSolution(self.FEM_Solution.main_model_part)
+        # FEMDEM_utilities.IdentifyFreeParticles(self.FEM_Solution.main_model_part, self.DEM_Solution.spheres_model_part)
+
         # Perform substepping
         pseudo_substepping_time = 0
         if self.DEM_Solution.spheres_model_part.NumberOfElements() > 0:
-            self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping...")
+            self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping... Explicit time step: " + str(self.DEM_Solution.solver.dt))
+            self.FEM_Solution.KratosPrintInfo("")
             while pseudo_substepping_time <= self.FEM_Solution.delta_time:
                 ### Begin Substepping
+                
                 self.BeforeSolveDEMOperations()
                 FEMDEM_utilities.InterpolateStructuralSolution(self.FEM_Solution.main_model_part,
                                                                self.FEM_Solution.delta_time,
@@ -53,7 +56,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                 self.UpdateDEMVariables()
 
                 # DEM GiD print output
-                self.PrintDEMResults()
+                # self.PrintDEMResults()
 
                 # Advancing in DEM explicit scheme
                 pseudo_substepping_time += self.DEM_Solution.solver.dt
@@ -78,9 +81,6 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
-        # Update Coupled Postprocess file for Gid (post.lst)
-        self.WritePostListFile()
-
         # Print required info
         self.PrintPlotsFiles()
         
@@ -94,11 +94,14 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
 
         # write output results GiD: (frequency writing is controlled internally)
-        self.FEM_Solution.GraphicalOutputPrintOutput()
+        # self.FEM_Solution.GraphicalOutputPrintOutput()
 
         # processes to be executed after writting the output
         self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
 
+        if not self.is_slave:
+            self.PrintResults()
+            
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
 

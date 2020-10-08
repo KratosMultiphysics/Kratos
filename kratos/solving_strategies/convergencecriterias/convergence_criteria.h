@@ -20,6 +20,7 @@
 
 /* Project includes */
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -62,6 +63,9 @@ public:
     /// Pointer definition of ConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);
 
+    /// The definition of the current class
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
+
     /// Data type definition
     typedef typename TSparseSpace::DataType TDataType;
     /// Matrix type definition
@@ -87,6 +91,20 @@ public:
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
         SetEchoLevel(1);
+    }
+
+    /**
+     * @brief Constructor with Parameters
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ConvergenceCriteria(Kratos::Parameters ThisParameters)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        mActualizeRHSIsNeeded = false;
+        mConvergenceCriteriaIsInitialized = false;
     }
 
     /** Copy constructor.
@@ -115,6 +133,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Get component wise element components
@@ -350,6 +377,29 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name"       : "convergence_criteria",
+            "echo_level" : 1
+        })");
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "convergence_criteria";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -406,6 +456,31 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
+    }
+
 
     ///@}
     ///@name Protected  Access

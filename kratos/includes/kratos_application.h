@@ -61,6 +61,10 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 
+// Modelers
+#include "modeler/modeler.h"
+#include "modeler/cad_io_modeler.h"
+
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
@@ -105,14 +109,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpArray1D9Variables(rOther.mpArray1D9Variables),
           mpVectorVariables(rOther.mpVectorVariables),
           mpMatrixVariables(rOther.mpMatrixVariables),
-          mpArray1DVariableComponents(rOther.mpArray1DVariableComponents),
-          mpArray1D4VariableComponents(rOther.mpArray1D4VariableComponents),
-          mpArray1D6VariableComponents(rOther.mpArray1D6VariableComponents),
-          mpArray1D9VariableComponents(rOther.mpArray1D9VariableComponents),
           mpGeometries(rOther.mpGeometries),
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
-          mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
+          mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints),
+          mpModelers(rOther.mpModelers) {}
 
     /// Destructor.
     virtual ~KratosApplication() {}
@@ -198,26 +199,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpMatrixVariables;
     }
 
-    KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 3> > > >::ComponentsContainerType& GetComponents(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& rComponentType) {
-        return *mpArray1DVariableComponents;
-    }
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 4> > > >::ComponentsContainerType& GetComponents(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > const& rComponentType) {
-        return *mpArray1D4VariableComponents;
-    }
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 6> > > >::ComponentsContainerType& GetComponents(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > const& rComponentType) {
-        return *mpArray1D6VariableComponents;
-    }
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 9> > > >::ComponentsContainerType& GetComponents(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > const& rComponentType) {
-        return *mpArray1D9VariableComponents;
-    }
-
     KratosComponents<VariableData>::ComponentsContainerType& GetVariables() {
         return *mpVariableData;
     }
@@ -236,6 +217,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<MasterSlaveConstraint>::ComponentsContainerType& GetMasterSlaveConstraints() {
         return *mpMasterSlaveConstraints;
+    }
+
+    KratosComponents<Modeler>::ComponentsContainerType& GetModelers() {
+        return *mpModelers;
     }
 
     void SetComponents(
@@ -268,6 +253,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     {
         mpMasterSlaveConstraints->insert(MasterSlaveConstraintComponents.begin(), MasterSlaveConstraintComponents.end());
+    }
+
+    void SetComponents(KratosComponents<Modeler>::ComponentsContainerType const& ModelerComponents)
+    {
+        mpModelers->insert(ModelerComponents.begin(), ModelerComponents.end());
     }
 
     void SetComponents(
@@ -345,6 +335,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         rOStream << "MasterSlaveConstraints:" << std::endl;
 
         KratosComponents<MasterSlaveConstraint>().PrintData(rOStream);
+
+        rOStream << std::endl;
+
+        rOStream << "Modelers:" << std::endl;
+
+        KratosComponents<Modeler>().PrintData(rOStream);
     }
 
     ///@}
@@ -396,6 +392,19 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D8<NodeType> mHexahedra3D8Prototype = Hexahedra3D8<NodeType>( GeometryType::PointsArrayType(8));
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
+    //QuadraturePointGeometries:
+    const QuadraturePointGeometry<Node<3>,1> mQuadraturePointGeometryPoint1D = QuadraturePointGeometry<Node<3>,1>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,2,1> mQuadraturePointGeometryPoint2D = QuadraturePointGeometry<Node<3>,2,1>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,3,1> mQuadraturePointGeometryPoint3D = QuadraturePointGeometry<Node<3>,3,1>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,2> mQuadraturePointGeometrySurface2D = QuadraturePointGeometry<Node<3>,2>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node<3>,3,2>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node<3>,3>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
 
@@ -448,6 +457,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
 
+    // Modeler
+    const Modeler mModeler;
+    const CadIoModeler mCadIoModeler;
+
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
 
@@ -474,14 +487,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<Variable<Matrix> >::ComponentsContainerType* mpMatrixVariables;
 
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType* mpArray1DVariableComponents;
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >::ComponentsContainerType* mpArray1D4VariableComponents;
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >::ComponentsContainerType* mpArray1D6VariableComponents;
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::ComponentsContainerType* mpArray1D9VariableComponents;
-
     KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
 
     KratosComponents<Element>::ComponentsContainerType* mpElements;
@@ -489,6 +494,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;
 
     KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
+
+    KratosComponents<Modeler>::ComponentsContainerType* mpModelers;
 
     // Serialization
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
