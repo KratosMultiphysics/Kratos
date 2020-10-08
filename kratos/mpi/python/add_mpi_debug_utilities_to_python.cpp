@@ -60,11 +60,16 @@ void AddMPIDebugUtilitiesToPython(pybind11::module& m)
     // .def("SetMPICommunicator",&MpiDebugUtilities::SetMPICommunicator)
     // ;
 
+
     /* Disable this once we move to C++17 */
-    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
-    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
-    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
-    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<int>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<unsigned int>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<double>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<bool>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<array_1d<double, 3>>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<array_1d<double, 4>>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<array_1d<double, 6>>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckNonHistoricalNodeVariable",[](ModelPart& rModelPart, const ModelPart::NodesContainerType& rContainer, const Kratos::Variable<array_1d<double, 9>>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
 
 }
 
