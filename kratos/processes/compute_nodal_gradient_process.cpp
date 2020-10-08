@@ -158,27 +158,10 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
 {
     KRATOS_TRY
 
-    auto& r_nodes = rModelPart.Nodes();
+    CheckOriginAndAreaVariables();
 
-    // Doing several checks
-    if (!mNonHistoricalVariable) {
-        VariableUtils().CheckVariableExists(rOriginVariable, r_nodes);
-    } else {
-        bool hasVariable = 0;
-        if(mrModelPart.NumberOfNodes() != 0)
-            hasVariable = mrModelPart.Nodes().begin()->Has(rOriginVariable);
-        hasVariable = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(hasVariable);
-
-        KRATOS_ERROR_IF_NOT(hasVariable) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
-    }
-    VariableUtils().CheckVariableExists(rGradientVariable, r_nodes);
-
-    // In case the area or gradient variable is not initialized we initialize it
-    if (mrModelPart.NumberOfNodes() != 0) {
-        if (!r_nodes.begin()->Has( rAreaVariable )) {
-            VariableUtils().SetNonHistoricalVariable(rAreaVariable, 0.0, r_nodes);
-        }
-    }
+    // Checking historical gradient variable
+    VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
 
     KRATOS_CATCH("")
 }
@@ -201,29 +184,44 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
 {
     KRATOS_TRY
 
-    auto& r_nodes = rModelPart.Nodes();
+    CheckOriginAndAreaVariables();
 
-    // Additional checks
+    // In case the area or gradient variable is not initialized we initialize it
+    if (mrModelPart.NumberOfNodes() != 0) {
+        if (!mrModelPart.Nodes().begin()->Has( rGradientVariable )) {
+            const array_1d<double,3> zero_vector = ZeroVector(3);
+            VariableUtils().SetNonHistoricalVariable(rGradientVariable, zero_vector, mrModelPart.Nodes());
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool THistorical>
+void ComputeNodalGradientProcess<THistorical>::CheckOriginAndAreaVariables()
+{
+    KRATOS_TRY
+
+    auto& r_nodes = mrModelPart.Nodes();
+    // Doing several checks
     if (!mNonHistoricalVariable) {
-        // Not sure about this, seems to be doing nothing.
-        VariableUtils().CheckVariableExists(rOriginVariable, r_nodes);
+        VariableUtils().CheckVariableExists(*mpOriginVariable, r_nodes);
     } else {
         bool hasVariable = 0;
         if(mrModelPart.NumberOfNodes() != 0)
-            hasVariable = mrModelPart.Nodes().begin()->Has(rOriginVariable);
+            hasVariable = r_nodes.begin()->Has(*mpOriginVariable);
         hasVariable = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(hasVariable);
 
-        KRATOS_ERROR_IF_NOT(hasVariable) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+        KRATOS_ERROR_IF_NOT(hasVariable) << "Variable " << mpOriginVariable->Name() << " not defined on non-historial database" << std::endl;
     }
 
     // In case the area or gradient variable is not initialized we initialize it
     if (mrModelPart.NumberOfNodes() != 0) {
-        if (!r_nodes.begin()->Has( rGradientVariable )) {
-            const array_1d<double,3> zero_vector = ZeroVector(3);
-            VariableUtils().SetNonHistoricalVariable(rGradientVariable, zero_vector, r_nodes);
-        }
-        if (!r_nodes.begin()->Has( rAreaVariable )) {
-            VariableUtils().SetNonHistoricalVariable(rAreaVariable, 0.0, r_nodes);
+        if (!r_nodes.begin()->Has(*mpAreaVariable)) {
+            VariableUtils().SetNonHistoricalVariable(*mpAreaVariable, 0.0, r_nodes);
         }
     }
 

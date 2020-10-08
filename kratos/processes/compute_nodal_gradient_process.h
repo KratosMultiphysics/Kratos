@@ -282,6 +282,12 @@ private:
     // TODO: Try to use enable_if!!!
 
     /**
+     * This checks the definition and correct initialization of the origin variable, for which the
+     * gradient will be computed, and the variable chosen to compute the area.
+     */
+    void CheckOriginAndAreaVariables();
+
+    /**
      * This clears the gradient
      */
     void ClearGradient();
