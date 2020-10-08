@@ -186,7 +186,7 @@ public:
   mMessage = TheMessage;
   }
 
-  std::string const& GetLoggerMessage() const {
+  std::string const& GetMessage() const {
   return mMessage;
   }
 
