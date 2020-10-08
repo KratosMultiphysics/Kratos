@@ -30,6 +30,8 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         self._create_condition(sub_background,dimension, geometry_element)
         for condition in grid_model_part.Conditions:
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, num_particle)
+            condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, 1)
+
 
         # Create element and nodes for initial meshes
         sub_mp = initial_mesh_model_part.CreateSubModelPart("test")

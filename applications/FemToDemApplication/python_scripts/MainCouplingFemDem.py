@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 
 import KratosMultiphysics
@@ -22,11 +21,11 @@ def Wait():
 #============================================================================================================================
 class MainCoupledFemDem_Solution:
 #============================================================================================================================
-    def __init__(self, Model):
+    def __init__(self, Model, path = ""):
         self.model = Model
         # Initialize solutions
-        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model)
-        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model)
+        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path)
+        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, path)
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
@@ -52,6 +51,7 @@ class MainCoupledFemDem_Solution:
         else: # 3D
             self.number_of_nodes_element = 4
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
+            
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
 
@@ -812,11 +812,11 @@ class MainCoupledFemDem_Solution:
                 time_to_print = self.FEM_Solution.time - self.FEM_Solution.time_old_print
 
             if print_parameters["output_control_type"].GetString() == "step":
-                if print_parameters["output_frequency"].GetInt() - time_to_print == 0:
+                if print_parameters["output_interval"].GetInt() - time_to_print == 0:
                     self.gid_output.Writeresults(self.FEM_Solution.time)
                     self.FEM_Solution.step_old_print = self.FEM_Solution.step
             else:
-                if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEM_Solution.delta_time:
+                if print_parameters["output_interval"].GetDouble() - time_to_print < 1e-2 * self.FEM_Solution.delta_time:
                     self.gid_output.Writeresults(self.FEM_Solution.time)
                     self.FEM_Solution.time_old_print = self.FEM_Solution.time
 

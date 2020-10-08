@@ -8,32 +8,14 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+import auxiliary_functions_for_tests
+
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
-
-    # os.environ['OMP_NUM_THREADS']='1'
-    # os.system("echo Unittest will be running on $OMP_NUM_THREADS cpu")
-
-    omp_utils = KratosMultiphysics.OpenMPUtils()
-    if "OMP_NUM_THREADS" in os.environ:
-        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
-        omp_utils.SetNumThreads(1)
-
-    with open(parameters_file_name,'r') as parameter_file:
-        project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    my_obj(model, project_parameters).Run()
-
-    if "OMP_NUM_THREADS" in os.environ:
-        omp_utils.SetNumThreads(int(initial_number_of_threads))
-
-
-
-class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -43,7 +25,7 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(DEM2D_InletTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1.001
         for node in self.spheres_model_part.Nodes:
             node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
@@ -52,26 +34,8 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
                 if self.time >= 1.15:
                     print(node_vel)
                     print(node_force)
-                    expected_value = 0.380489240
-                    self.CheckVel(node_vel, expected_value, tolerance)
-                    expected_value = -120983.1002
-                    self.CheckForce(node_force, expected_value, tolerance)
-
-
-    @classmethod
-    def CheckVel(self, vel, expected_value, tolerance):
-        if abs(expected_value) > abs(vel*tolerance) or abs(expected_value) < abs(vel/tolerance):
-            raise ValueError('Incorrect value for VELOCITY_Y: expected value was '+ str(expected_value) + ' but received ' + str(vel))
-
-    @classmethod
-    def CheckForce(self, force, expected_value, tolerance):
-        if abs(expected_value) > abs(force*tolerance) or abs(expected_value) < abs(force/tolerance):
-            raise ValueError('Incorrect value for TOTAL_FORCES_Y: expected value was '+ str(expected_value) + ' but received ' + str(force))
-
-    def Finalize(self):
-        super(DEM2D_InletTestSolution, self).Finalize()
-
-
+                    self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
+                    self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
 
 class TestDEM2DInlet(KratosUnittest.TestCase):
 
@@ -83,7 +47,7 @@ class TestDEM2DInlet(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_inlet_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM2D_InletTestSolution, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_InletTestSolution, model, parameters_file_name, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_inlet_tests_files", "TimesPartialRelease")

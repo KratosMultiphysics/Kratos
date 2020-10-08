@@ -187,26 +187,6 @@ void VariableUtils::CopyVectorVar(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariableUtils::CopyComponentVar(
-    const ComponentVarType& OriginVariable,
-    const ComponentVarType& DestinationVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->FastGetSolutionStepValue(DestinationVariable) = it_node->FastGetSolutionStepValue(OriginVariable);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void VariableUtils::CopyScalarVar(
     const DoubleVarType& OriginVariable,
     const DoubleVarType& DestinationVariable,
@@ -367,10 +347,6 @@ bool VariableUtils::CheckVariableKeys()
     CheckVariableKeysHelper< Variable<unsigned int> >();
     CheckVariableKeysHelper< Variable<Vector> >();
     CheckVariableKeysHelper< Variable<Matrix> >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >();
 
     return true;
 
@@ -488,13 +464,38 @@ void VariableUtils::AuxiliaryAtomicAdd(
 }
 
 template <>
-ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(ModelPart& rModelPart)
+KRATOS_API(KRATOS_CORE) ModelPart::NodesContainerType& VariableUtils::GetContainer<ModelPart::NodesContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
+}
+
+
+template <>
+KRATOS_API(KRATOS_CORE) ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template <>
-ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(ModelPart& rModelPart)
+KRATOS_API(KRATOS_CORE) ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
+template <>
+KRATOS_API(KRATOS_CORE) const ModelPart::NodesContainerType& VariableUtils::GetContainer<ModelPart::NodesContainerType>(const ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
+}
+
+template <>
+KRATOS_API(KRATOS_CORE) const ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(const ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template <>
+KRATOS_API(KRATOS_CORE) const ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(const ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
