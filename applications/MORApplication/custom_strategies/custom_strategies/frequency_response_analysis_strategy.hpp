@@ -417,6 +417,9 @@ class FrequencyResponseAnalysisStrategy
                 p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_K, r_tmp_RHS);
                 DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_K, r_tmp_RHS, fixed_dofs, 1.0);
 
+                //copy the rhs to the complex space
+                r_RHS = TSolutionVectorType(r_tmp_RHS);
+
                 //if required, set up the imaginary part of the stiffness and mass
                 if( mUseModalDamping )
                 {
@@ -445,8 +448,6 @@ class FrequencyResponseAnalysisStrategy
 
                 p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), r_K, tmp, tmp);
 
-                //copy the rhs to the complex space
-                r_RHS = TSolutionVectorType(r_tmp_RHS);
 
                 //resize and itialize working matrix
                 r_A.resize(r_K.size1(), r_K.size2(), false);
@@ -536,9 +537,14 @@ class FrequencyResponseAnalysisStrategy
         #pragma omp parallel for schedule(static)// nowait
         for( int i=0; i<static_cast<int>(r_A.size2()); ++i ) {
             // row(r_A, i) = row(r_Ki, i) + excitation_frequency * row(r_C, i) - excitation_frequency2 * row(r_Mi, i);
-            row(r_A, i) += row(r_Ki, i);
             row(r_A, i) += excitation_frequency * row(r_C, i);
-            row(r_A, i) -= excitation_frequency2 * row(r_Mi, i);
+        }
+        if( mUseModalDamping ) {
+            #pragma omp parallel for schedule(static)
+            for( int i=0; i<static_cast<int>(r_A.size2()); ++i ) {
+                row(r_A, i) += row(r_Ki, i);
+                row(r_A, i) -= excitation_frequency2 * row(r_Mi, i);
+            }
         }
         r_A *= complex(0,1);
 
@@ -553,7 +559,7 @@ class FrequencyResponseAnalysisStrategy
 
         //Solve the system
         BuiltinTimer solve_time;
-        mpComplexLinearSolver->Solve( r_A, r_Dx, r_RHS);
+        mpComplexLinearSolver->Solve(r_A, r_Dx, r_RHS);
         KRATOS_INFO_IF("Linear Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << solve_time.ElapsedSeconds() << std::endl;
 
@@ -604,7 +610,7 @@ class FrequencyResponseAnalysisStrategy
      * @brief This method returns the LHS matrix
      * @return The LHS matrix
      */
-    TSystemMatrixType &GetSystemMatrix()
+    TSystemMatrixType &GetSystemMatrix() override
     {
         TSystemMatrixType &mA = *mpK;
 
