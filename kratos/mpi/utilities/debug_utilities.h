@@ -26,9 +26,6 @@
 #define KRATOS_SINGLE_VARIABLE_TYPES bool, int, double, unsigned int
 #define KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES array_1d<double,3>, array_1d<double,4>, array_1d<double,6>, array_1d<double,9>
 #define KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES Vector, Matrix
-#define KRATOS_COMP_ADAPTOR_VARIABLE_TYPES VectorComponentAdaptor<array_1d<double,3>>, VectorComponentAdaptor<array_1d<double,4>>, VectorComponentAdaptor<array_1d<double,6>>, VectorComponentAdaptor<array_1d<double,9>>
-
-
 namespace Kratos {
 
 class MpiDebugUtilities {
