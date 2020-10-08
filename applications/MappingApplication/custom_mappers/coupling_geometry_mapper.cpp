@@ -314,7 +314,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
             // Correct entries
             const double alpha = (slave_row_sums_vector[row_counter] / projected_row_sums_vector[row_counter] < scalingLimit)
                 ? slave_row_sums_vector[row_counter] / projected_row_sums_vector[row_counter] : scalingLimit;
-            for (auto col_it = row_it.begin(); col_it != row_it.end(); ++row_it) (*col_it) *= alpha;
+            for (auto col_it = row_it.begin(); col_it != row_it.end(); ++col_it) (*col_it) *= alpha;
         }
         ++row_counter;
     }
