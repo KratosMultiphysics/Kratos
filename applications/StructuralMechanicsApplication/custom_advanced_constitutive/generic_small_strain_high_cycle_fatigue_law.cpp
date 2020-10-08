@@ -44,7 +44,6 @@ template <class TConstLawIntegratorType>
 void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Integrate Stress Damage
-    // Vector& r_integrated_stress_vector = mStressVector;
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const Flags& r_constitutive_law_options = rValues.GetOptions();
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
@@ -54,7 +53,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateValue(rValues, STRAIN, r_strain_vector);
+        BaseType::CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // Elastic Matrix
@@ -147,7 +146,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             }
 
             if (adnvance_strategy_applied) {
-                // KRATOS_WATCH("AQUÍ????")
                 cycles_after_advance_strategy = 0;
                 double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
                 double alphat;
@@ -241,7 +239,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateValue(rValues, STRAIN, r_strain_vector);
+        BaseType::CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // Elastic Matrix
@@ -274,8 +272,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         bool max_indicator = mMaxDetected;
         bool min_indicator = mMinDetected;
         double fatigue_reduction_factor = mFatigueReductionFactor;
-        double previous_max = max_stress;
-        double previous_min = min_stress;
 
         HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
             uniaxial_stress,
@@ -296,7 +292,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         if (F > tolerance) {
             const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
-            // This routine updates the PredictiveStress to verify the yield surf
+            // This routine updates the PredictiveStress to verify the yield surface
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector,
                 uniaxial_stress,
@@ -343,8 +339,6 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
         return true;
     } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
         return true;
-    } else if (rThisVariable == CYCLES_AFTER_ADVANCE_STRATEGY) {
-        return true;
     }
     return false;
 }
@@ -356,7 +350,7 @@ template <class TConstLawIntegratorType>
 bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
     if (rThisVariable == DAMAGE || rThisVariable == UNIAXIAL_STRESS || rThisVariable == THRESHOLD) {
-        GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(rThisVariable);
+        BaseType::Has(rThisVariable);
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         return true;
     } else if (rThisVariable == WOHLER_STRESS) {
@@ -376,7 +370,7 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
     } else if (rThisVariable == CYCLE_PERIOD) {
         return true;
     } else {
-        return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(rThisVariable);
+        return BaseType::Has(rThisVariable);
     }
     return false;
 }
@@ -409,8 +403,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
         mNumberOfCyclesGlobal = rValue;
     } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
         mNumberOfCyclesLocal = rValue;
-    } else if (rThisVariable == CYCLES_AFTER_ADVANCE_STRATEGY) {
-        mCyclesAfterAdvanceStrategy = rValue;
     }
 }
 
@@ -425,7 +417,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
     )
 {
     if (rThisVariable == DAMAGE || rThisVariable == UNIAXIAL_STRESS || rThisVariable == THRESHOLD) {
-        GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         mFatigueReductionFactor = rValue;
     } else if (rThisVariable == WOHLER_STRESS) {
@@ -445,7 +437,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
     } else if (rThisVariable == CYCLE_PERIOD) {
         mPeriod = rValue;
     } else {
-        return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -477,8 +469,6 @@ int& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
         rValue = mNumberOfCyclesGlobal;
     } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
         rValue = mNumberOfCyclesLocal;
-    } else if (rThisVariable == CYCLES_AFTER_ADVANCE_STRATEGY) {
-        rValue = mCyclesAfterAdvanceStrategy;
     }
     return rValue;
 }
@@ -493,7 +483,7 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     )
 {
     if (rThisVariable == DAMAGE || rThisVariable == UNIAXIAL_STRESS || rThisVariable == THRESHOLD) {
-        GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
+        BaseType::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         rValue = mFatigueReductionFactor;
     } else if (rThisVariable == WOHLER_STRESS) {
@@ -513,7 +503,7 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     } else if (rThisVariable == CYCLE_PERIOD) {
         rValue = mPeriod;
     } else {
-        return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
+        return BaseType::GetValue(rThisVariable, rValue);
     }
     return rValue;
 }
@@ -530,7 +520,6 @@ Matrix& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
 {
     if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
         rValue = MathUtils<double>::StressVectorToTensor(this->GetStressVector());
-        // rValue = MathUtils<double>::StressVectorToTensor(mStressVector);
     } else if (rThisVariable == CONSTITUTIVE_MATRIX) {
         this->CalculateElasticMatrix(rValue, rParameterValues);
     }

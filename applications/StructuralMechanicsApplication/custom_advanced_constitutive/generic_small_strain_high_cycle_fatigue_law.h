@@ -77,7 +77,7 @@ public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Definition of the base class
-    //typedef typename GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
+    typedef GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
 
     ///@}
     ///@name Life Cycle
@@ -192,7 +192,7 @@ public:
 
     /**
      * @brief Sets the value of a specified variable (integer)
-     * @param rVariable the variable to be returned
+     * @param rThisVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */

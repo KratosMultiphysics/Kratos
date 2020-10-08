@@ -35,7 +35,6 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<bool> cycle_identificator;
-    std::vector<int> cycles_after_advance_strategy;
     std::vector<double> damage;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     bool cycles_from_last_advance = false;
@@ -43,14 +42,10 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
     if (process_info[DAMAGE_ACTIVATION] == false) {
         for (auto& r_elem : mrModelPart.Elements()) {
             r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
-            r_elem.CalculateOnIntegrationPoints(CYCLES_AFTER_ADVANCE_STRATEGY, cycles_after_advance_strategy, process_info);
-            const int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+            const unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
             for (unsigned int i = 0; i < number_of_ip; i++){
                     if (damage[i] > 0.0){
                         process_info[DAMAGE_ACTIVATION] = true;
-                    }
-                    if (cycles_after_advance_strategy[i] > 1){
-                        cycles_from_last_advance = true;
                     }
             }
         }
@@ -97,7 +92,7 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::CyclePeriodPerIntegrationPoin
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
 
-		const int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+		const unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         
         // Check if the HCF CL is being used. Otherwise there is no reason for entering into the advance in time strategy
         std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
@@ -142,7 +137,7 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::StableConditionForAdvancingSt
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);        
 
-        const int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        const unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         for (unsigned int i = 0; i < number_of_ip; i++){
             if (max_stress[i] > s_th[i]) {
                 fatigue_in_course = true;
@@ -198,7 +193,7 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeIncrement(double& rIncrem
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
-		const int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+		const unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         for (unsigned int i = 0; i < number_of_ip; i++){
             if (max_stress[i] > s_th[i]) {  //This is used to guarantee that only IP in fatigue conditions are taken into account
                 double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
@@ -233,7 +228,7 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeAndCyclesUpdate(double In
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, r_process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
 
-		const int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+		const unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         for (unsigned int i = 0; i < number_of_ip; i++){
             unsigned int local_cycles_increment;
             if (period[i] == 0.0) {
