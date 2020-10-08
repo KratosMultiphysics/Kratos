@@ -4395,7 +4395,6 @@ HEDLEY_DIAGNOSTIC_POP
 #  if \
      (__cplusplus >= 201703L) || \
      ((__cplusplus >= 201103L) && HEDLEY_HAS_CPP_ATTRIBUTE(fallthrough))
-#pragma clang diagnostic ignored "-Wc++1z-extensions"
 #    define HEDLEY_FALL_THROUGH [[fallthrough]]
 #  elif (__cplusplus >= 201103L) && HEDLEY_HAS_CPP_ATTRIBUTE(clang::fallthrough)
 #    define HEDLEY_FALL_THROUGH [[clang::fallthrough]]
