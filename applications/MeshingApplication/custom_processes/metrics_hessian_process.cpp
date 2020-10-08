@@ -70,7 +70,7 @@ void ComputeHessianSolMetricProcess::Execute()
     // Computing auxiliar Hessian
     CalculateAuxiliarHessian();
 
-    if (mrModelPart.NumberOfNodes()>0) {
+    if (mrModelPart.NumberOfNodes() > 0) {
         // Some checks
         NodesArrayType& r_nodes_array = mrModelPart.Nodes();
         if (!mNonHistoricalVariable) {
