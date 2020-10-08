@@ -4,13 +4,12 @@ import csv
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.MORApplication as MOR
-import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 
 from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-eigen_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
+linear_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 class TestIrkaStrategies(KratosUnittest.TestCase):
 
@@ -62,8 +61,10 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
 
         return model
 
-    @KratosUnittest.skipUnless(eigen_solvers_application_available,"Missing required application: EigenSolversApplication")
+    @KratosUnittest.skipUnless(linear_solvers_application_available,"Missing required application: LinearSolversApplication")
     def test_complex_irka(self):
+        import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
+
         material_settings = KratosMultiphysics.Parameters("""
         {
             "Parameters": {
@@ -88,8 +89,8 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
         cplx_linear_solver = ConstructSolver(cplx_linear_solver_settings)
 
         solver_type = 'complex_dense_col_piv_householder_qr'
-        cplx_dense_linear_solver_settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
-        cplx_dense_linear_solver = EigenSolversApplication.ComplexDenseLinearSolverFactory().Create(cplx_dense_linear_solver_settings)
+        cplx_dense_linear_solver_settings = KratosMultiphysics.Parameters('{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }')
+        cplx_dense_linear_solver = LinearSolversApplication.ComplexDenseLinearSolverFactory().Create(cplx_dense_linear_solver_settings)
 
         scheme = MOR.MatrixBuilderScheme()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(KratosMultiphysics.LinearSolver())
@@ -135,8 +136,9 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
             for r, xr in zip(result, expected_result):
                 self.assertAlmostEqual(r[1], complex(xr[1]))
 
-    @KratosUnittest.skipUnless(eigen_solvers_application_available,"Missing required application: EigenSolversApplication")
+    @KratosUnittest.skipUnless(linear_solvers_application_available,"Missing required application: LinearSolversApplication")
     def test_real_irka(self):
+        import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
         material_settings = KratosMultiphysics.Parameters("""
         {
             "Parameters": {
@@ -161,8 +163,8 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
         cplx_linear_solver = ConstructSolver(cplx_linear_solver_settings)
 
         solver_type = 'complex_dense_col_piv_householder_qr'
-        cplx_dense_linear_solver_settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
-        cplx_dense_linear_solver = EigenSolversApplication.ComplexDenseLinearSolverFactory().Create(cplx_dense_linear_solver_settings)
+        cplx_dense_linear_solver_settings = KratosMultiphysics.Parameters('{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }')
+        cplx_dense_linear_solver = LinearSolversApplication.ComplexDenseLinearSolverFactory().Create(cplx_dense_linear_solver_settings)
 
         scheme = MOR.MatrixBuilderScheme()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(KratosMultiphysics.LinearSolver())
