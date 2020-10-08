@@ -44,6 +44,7 @@ class PythonMapper(metaclass=ABCMeta):
     def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "mapper_type" : "",
+            "is_precompute_mapping_matrix" : false,
             "echo_level"  : 0
         }""")
 
