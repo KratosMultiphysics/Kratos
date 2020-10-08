@@ -47,7 +47,8 @@ void KRATOS_API(MAPPING_APPLICATION) BuildMappingMatrix(
 template<class TSparseSpace, class TDenseSpace>
 void KRATOS_API(MAPPING_APPLICATION) CheckRowSum(
     const typename TSparseSpace::MatrixType& rM,
-    const std::string& rBaseFileName);
+    const std::string& rBaseFileName,
+    const bool is_throw_error = false);
 
 }  // namespace MappinMatrixUtilities.
 

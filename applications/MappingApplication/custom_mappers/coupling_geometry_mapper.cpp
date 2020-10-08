@@ -192,12 +192,9 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     }
 
     // Check row sum of pre-computed mapping matrices only
-    if (echo_level > 2) {
-        if (is_precompute_mapping_matrix || dual_mortar) {
-            const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
-            SparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_" + base_file_name).c_str(), *mpMappingMatrix, false);
-            MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name);
-        }
+    if (is_precompute_mapping_matrix || dual_mortar) {
+        const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
+        MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true);
     }
 }
 
