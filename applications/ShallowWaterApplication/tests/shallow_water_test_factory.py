@@ -22,3 +22,11 @@ class TestLagrangianShallowWaterElement(ShallowWaterTestFactory):
 class TestShallowWaterElement(ShallowWaterTestFactory):
     execution_directory = "element_tests"
     execution_file = "swe"
+
+class TestSetTopographyProcess(ShallowWaterTestFactory):
+    execution_directory = "processes_tests"
+    execution_file = "set_topography_process"
+
+class TestVisualizationMeshProcess(ShallowWaterTestFactory):
+    execution_directory = "processes_tests"
+    execution_file = "visualization_mesh_process"

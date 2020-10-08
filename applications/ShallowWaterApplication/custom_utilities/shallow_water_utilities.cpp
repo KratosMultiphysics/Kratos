@@ -214,37 +214,6 @@ void ShallowWaterUtilities::ResetDryDomain(ModelPart& rModelPart, double Thickne
     }
 }
 
-void ShallowWaterUtilities::ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        if (it_node->Is(WetFlag)) {
-            if (it_node->FastGetSolutionStepValue(TOPOGRAPHY) > SeaWaterLevel) {
-                it_node->SetValue(WATER_HEIGHT, it_node->FastGetSolutionStepValue(HEIGHT));
-            }
-            else {
-                it_node->SetValue(WATER_HEIGHT, it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - SeaWaterLevel);
-            }
-        }
-        else {
-            // This is the undefined value for GiD
-            it_node->SetValue(WATER_HEIGHT, std::numeric_limits<float>::lowest());
-        }
-    }
-}
-
-void ShallowWaterUtilities::ComputeVisualizationWaterSurface(ModelPart& rModelPart)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        it_node->SetValue(WATER_SURFACE_Z, it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION));
-    }
-}
-
 void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable)
 {
     #pragma omp parallel for
@@ -265,6 +234,26 @@ void ShallowWaterUtilities::SetMinimumValue(ModelPart& rModelPart, const Variabl
     {
         auto& value = (rModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rVariable);
         value = std::max(value, MinValue);
+    }
+}
+
+void ShallowWaterUtilities::SetMeshZCoordinateToZero(ModelPart& rModelPart)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        it_node->Z() = 0.0;
+    }
+}
+
+void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        it_node->Z() = it_node->FastGetSolutionStepValue(rVariable);
     }
 }
 

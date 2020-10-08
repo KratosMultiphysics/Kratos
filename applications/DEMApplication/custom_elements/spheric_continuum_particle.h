@@ -19,7 +19,6 @@
 #include "utilities/timer.h"
 #include "Particle_Contact_Element.h"
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
-#include "containers/vector_component_adaptor.h"
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
