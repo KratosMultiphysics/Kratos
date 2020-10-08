@@ -278,25 +278,29 @@ if rank == 0:
 n_steps = int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
-first_iteration = True
+first_iteration = False
 
 def InnerLoop(advanceTime, sub_step, factor):
+    '''
     if not first_iteration:
         # Read displacements
         ImportData(connection_name, "Upper_Interface_disp", factor)
         ImportData(connection_name, "Lower_Interface_disp", factor)
 
         Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
+    '''
 
     SolveSolutionStep(advanceTime, sub_step)
 
-    if first_iteration:
+    #if first_iteration:
+    if not coupling_interface_imported:
         advanceTime = False
         if tau_mpi_rank() == 0:
             TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
         tau_parallel_sync()
         ExportMesh(connection_name, "UpperInterface", sub_step)
         ExportMesh(connection_name, "LowerInterface", sub_step)
+        coupling_interface_imported = True
 
     if tau_mpi_rank() == 0:
         TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
@@ -305,6 +309,13 @@ def InnerLoop(advanceTime, sub_step, factor):
     if not first_iteration:
         ExportData(connection_name, "Upper_Interface_force")
         ExportData(connection_name, "Lower_Interface_force")
+
+    if not first_iteration:
+        # Read displacements
+        ImportData(connection_name, "Upper_Interface_disp", factor)
+        ImportData(connection_name, "Lower_Interface_disp", factor)
+
+        Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
 
     global step_mesh
     step_mesh += 1
@@ -340,7 +351,7 @@ for i in range(n_steps):
             is_converged = comm.bcast(is_converged, 0)
 
             if factor < 0.99:
-            factor += 0.1
+                factor += 0.1
 
             first_iteration = False
 
