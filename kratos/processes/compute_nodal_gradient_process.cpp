@@ -223,7 +223,7 @@ ComputeNodalGradientProcess<THistorical>::ComputeNodalGradientProcess(
         mpAreaVariable = &KratosComponents<Variable<double>>::Get(r_area_variable_name);
     } else {
         KRATOS_ERROR << "Only doubles are allowed as variables, given variables: " <<
-            r_gradient_variable_name << " " << r_area_variable_name << std::endl;
+            r_origin_variable_name << " " << r_area_variable_name << std::endl;
     }
 
     // We push the list of double variables
