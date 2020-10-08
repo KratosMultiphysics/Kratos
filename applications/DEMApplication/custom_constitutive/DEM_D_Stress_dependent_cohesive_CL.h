@@ -32,16 +32,22 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
+        double CalculateContactArea(SphericParticle* const element1,
+                                    SphericParticle* const element2,
+                                    const double indentation);
+
+        double CalculateContactAreaWithFEM(SphericParticle* const element,
+                                           const double indentation,
+                                           const double ini_delta = 0.0);
+
         void InitializeContact(SphericParticle* const element1,
                                SphericParticle* const element2,
-                               double& contact_area,
-                               const double indentation);
+                               const double indentation) override;
 
         void InitializeContactWithFEM(SphericParticle* const element,
                                       Condition* const wall,
-                                      double& contact_area,
                                       const double indentation,
-                                      const double ini_delta = 0.0);
+                                      const double ini_delta = 0.0) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalElasticContactForce[3],
@@ -70,36 +76,21 @@ namespace Kratos {
                                     Condition* const wall,
                                     bool& sliding) override;
 
-        double CalculateNormalForce(const double indentation) override;
+        double CalculateStressDependentCohesiveNormalForce(SphericParticle* const element1,
+                                                           SphericParticle* const element2,
+                                                           const double normal_contact_force,
+                                                           const double indentation,
+                                                           const bool initial_time_step);
 
-        double CalculateCohesiveNormalForce(SphericParticle* const element1,
-                                            SphericParticle* const element2,
-                                            const double normal_contact_force,
-                                            const double contact_area,
-                                            const double indentation,
-                                            const bool initial_time_step);
+        double CalculateStressDependentCohesiveNormalForceWithFEM(SphericParticle* const element,
+                                                                  Condition* const wall,
+                                                                  const double normal_contact_force,
+                                                                  const double indentation,
+                                                                  const bool initial_time_step);
 
-        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
-                                                   Condition* const wall,
-                                                   const double normal_contact_force,
-                                                   const double contact_area,
-                                                   const double indentation,
-                                                   const bool initial_time_step);
+        using DEM_D_Linear_viscous_Coulomb::CalculateNormalForce;
 
-        template <class NeighbourClassType>
-        void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
-                                                   const double OldLocalElasticContactForce[3],
-                                                   double LocalElasticContactForce[3],
-                                                   double ViscoDampingLocalContactForce[3],
-                                                   const double LocalDeltDisp[3],
-                                                   bool& sliding,
-                                                   SphericParticle* const element,
-                                                   NeighbourClassType* const neighbour,
-                                                   const double contact_area,
-                                                   double indentation,
-                                                   double previous_indentation,
-                                                   double& AuxElasticShearForce,
-                                                   double& MaximumAdmisibleShearForce);
+        using DEM_D_Linear_viscous_Coulomb::CalculateTangentialForceWithNeighbour;
 
         using DEM_D_Linear_viscous_Coulomb::CalculateViscoDampingForce;
         using DEM_D_Linear_viscous_Coulomb::CalculateViscoDampingForceWithFEM;
