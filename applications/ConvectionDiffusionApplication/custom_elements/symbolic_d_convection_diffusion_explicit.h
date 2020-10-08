@@ -87,6 +87,7 @@ public:
     SymbolicDConvectionDiffusionExplicit(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
+
     SymbolicDConvectionDiffusionExplicit(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
@@ -135,14 +136,11 @@ public:
         KRATOS_CATCH("");
     }
 
-    void AddExplicitContribution(
-        const ProcessInfo &rCurrentProcessInfo) override;
+    void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override;
 
-    void Initialize(
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -176,12 +174,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    BoundedVector<double, TNumNodes> mUnknownSubScale;
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -211,6 +206,8 @@ private:
 
     ///@name Static Member Variables
     ///@{
+
+    BoundedVector<double, TNumNodes> mUnknownSubScale;
 
     ///@}
     ///@name Member Variables
@@ -257,8 +254,7 @@ private:
         ElementData& rData,
         unsigned int g);
 
-    void CalculateTau(
-        ElementData& rData);
+    void CalculateTau(ElementData& rData);
 
     ///@}
     ///@name Private  Access

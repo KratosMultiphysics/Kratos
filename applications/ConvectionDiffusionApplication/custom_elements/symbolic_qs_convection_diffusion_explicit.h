@@ -87,6 +87,7 @@ public:
     SymbolicQSConvectionDiffusionExplicit(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
+
     SymbolicQSConvectionDiffusionExplicit(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
@@ -143,8 +144,7 @@ public:
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void AddExplicitContribution(
-        const ProcessInfo &rCurrentProcessInfo) override;
+    void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(
         MatrixType &rMassMatrix,
@@ -223,8 +223,7 @@ protected:
         ElementData& rData,
         const ProcessInfo& rCurrentProcessInfo);
 
-    double ComputeH(
-        BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
+    double ComputeH(BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
 
     ///@}
     ///@name Protected  Access
@@ -295,18 +294,15 @@ private:
         BoundedVector<double, TNumNodes>& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateTau(
-        ElementData& rData);
+    void CalculateTau(ElementData& rData);
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
