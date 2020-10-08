@@ -194,7 +194,7 @@ protected:
         double unknown_subscale;
         double volume;
         // arrays
-	    array_1d<double,TNumNodes> tau;
+        array_1d<double,TNumNodes> tau;
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
         array_1d<double,TNumNodes> unknown_old;
@@ -207,7 +207,7 @@ protected:
         // auxiliary containers for the symbolically-generated data for Gauss integration
         array_1d<double,TNumNodes> N;
         BoundedMatrix<double,TNumNodes,TNumNodes> N_gausspoint;
-	    BoundedMatrix<double,TNumNodes,TDim> DN_DX;
+        BoundedMatrix<double,TNumNodes,TDim> DN_DX;
     };
 
     ///@}
