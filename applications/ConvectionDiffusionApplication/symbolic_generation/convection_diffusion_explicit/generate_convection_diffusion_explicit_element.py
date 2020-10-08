@@ -114,7 +114,7 @@ for dim in dim_vector:
     v = DefineMatrix('v',nnodes,dim)   # convective velocity
     tau = DefineVector('tau',ngauss) # stabilization coefficient
     delta_time = Symbol('delta_time',positive= True) # time current time step
-    RK_time_coefficient = Symbol('RK_time_coefficient',positive= True) # time coefficient for RK scheme
+    delta_time_coefficient = Symbol('delta_time_coefficient',positive= True) # time coefficient for RK scheme
     prj = DefineVector('prj',nnodes)       # OSS projection term
 
     # Loop and accumulate the residual in each Gauss point
@@ -162,7 +162,7 @@ for dim in dim_vector:
         # ASGS/OSS Convective term
         rhs_stab_1_forcing = tau[i_gauss] * (v_gauss.transpose() * grad_q) * f_gauss
         # rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * phi_acceleration_old_gauss # use acceleration step n
-        rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
+        rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * N.transpose() * (phi-phi_old)/(delta_time_coefficient*delta_time)
         rhs_stab_1_convection_1 = - tau[i_gauss] * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
         rhs_stab_1_convection_2 = - tau[i_gauss] * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
         rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection_1 + rhs_stab_1_convection_2 + rhs_stab_1_mass
@@ -178,7 +178,7 @@ for dim in dim_vector:
         # ASGS/OSS dynamic term
         rhs_stab_2_forcing = - tau[i_gauss] * q_gauss.transpose() * f_gauss
         # rhs_stab_2_mass = tau[i_gauss] * q_gauss.transpose() * phi_acceleration_old_gauss # use acceleration step n
-        rhs_stab_2_mass = tau[i_gauss] * q_gauss.transpose() * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
+        rhs_stab_2_mass = tau[i_gauss] * q_gauss.transpose() * N.transpose() * (phi-phi_old)/(delta_time_coefficient*delta_time)
         rhs_stab_2_convection_1 = tau[i_gauss] * q_gauss * (v_gauss.transpose() * grad_phi)
         rhs_stab_2_convection_2 = tau[i_gauss] * q_gauss * phi_gauss * div_v
         rhs_stab_2_diffusion = tau[i_gauss] * k * grad_phi.transpose() * grad_q
@@ -200,7 +200,7 @@ for dim in dim_vector:
         # with lhs we refer to the fact we take the strong equation on the left side
         lhs_OSS_forcing = - q_gauss.transpose() * f_gauss
         # lhs_OSS_mass = q_gauss.transpose() * phi_acceleration_old_gauss # use acceleration step n
-        lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time))
+        lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * (phi-phi_old)/(delta_time_coefficient*delta_time))
         lhs_OSS_mass_subscale = - q_gauss.transpose() * (phi_subscale_gauss[i_gauss]/delta_time)
         lhs_OSS_diffusion = k * grad_phi.transpose() * grad_q
         lhs_OSS_convective_1 = q_gauss * (v_gauss.transpose() * grad_phi)

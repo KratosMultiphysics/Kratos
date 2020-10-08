@@ -241,7 +241,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
 {
     // Observations
-    // * SGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient*delta_time)
+    // * SGS time derivative term approximated as (phi-phi_old)/(delta_time_coefficient*delta_time)
     //   observe that for RK step = 1 ASGS time derivative term = 0 because phi = phi_old (null acceleration wrt step n)
     // * convective velocity and forcing term:
     //   RK step 1: evaluated at previous time step
@@ -251,7 +251,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     //   velocity_mesh = 0 in eulerian framework
     if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==1)
     {
-        rData.RK_time_coefficient = std::numeric_limits<double>::max();
+        rData.delta_time_coefficient = std::numeric_limits<double>::max();
         rData.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1);
         rData.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0];
         rData.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1];
@@ -259,7 +259,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     }
     else if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==2 || r_process_info.GetValue(RUNGE_KUTTA_STEP)==3)
     {
-        rData.RK_time_coefficient = 0.5;
+        rData.delta_time_coefficient = 0.5;
         rData.forcing[node_element] = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable()) + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1));
         rData.convective_velocity(node_element,0) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0]);
         rData.convective_velocity(node_element,1) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1]);
@@ -267,7 +267,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     }
     else
     {
-        rData.RK_time_coefficient = 1.0;
+        rData.delta_time_coefficient = 1.0;
         rData.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
         rData.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
         rData.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
@@ -308,7 +308,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& delta_time_coefficient = rData.delta_time_coefficient;
     const auto& v = rData.convective_velocity;
     const auto& tau = rData.tau;
     const auto& prj = rData.oss_projection;
@@ -379,8 +379,8 @@ const double crhs51 =             crhs45 + crhs50 + 0.666666666666667*prj[1];
 const double crhs52 =             crhs40 + crhs47 + 0.666666666666667*f[2];
 const double crhs53 =             tau[2]*(DN_DX_0_0*crhs23 + DN_DX_0_1*crhs29);
 const double crhs54 =             crhs44 + crhs50 + 0.666666666666667*prj[2];
-const double crhs55 =             1.0/RK_time_coefficient;
-const double crhs56 =             1.0/delta_time;
+const double crhs55 =             1.0/delta_time;
+const double crhs56 =             1.0/delta_time_coefficient;
 const double crhs57 =             -0.166666666666667*phi_old[1];
 const double crhs58 =             -0.166666666666667*phi_old[2];
 const double crhs59 =             crhs55*crhs56*(crhs38 + crhs57 + crhs58 - 0.666666666666667*phi_old[0]);
@@ -430,7 +430,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& delta_time_coefficient = rData.delta_time_coefficient;
     const auto& v = rData.convective_velocity;
     const auto& tau = rData.tau;
     const auto& prj = rData.oss_projection;
@@ -554,8 +554,8 @@ const double crhs98 =             crhs86 + crhs97 + 0.5854102*prj[2];
 const double crhs99 =             crhs79 + crhs94 + 0.5854102*f[3];
 const double crhs100 =             tau[3]*(DN_DX_0_0*crhs40 + DN_DX_0_1*crhs50 + DN_DX_0_2*crhs60);
 const double crhs101 =             crhs85 + crhs97 + 0.5854102*prj[3];
-const double crhs102 =             1.0/RK_time_coefficient;
-const double crhs103 =             1.0/delta_time;
+const double crhs102 =             1.0/delta_time;
+const double crhs103 =             1.0/delta_time_coefficient;
 const double crhs104 =             -0.1381966*phi_old[2];
 const double crhs105 =             -0.1381966*phi_old[3];
 const double crhs106 =             crhs104 + crhs105;
@@ -623,7 +623,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScale
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& delta_time_coefficient = rData.delta_time_coefficient;
     const auto& v = rData.convective_velocity;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
@@ -648,7 +648,7 @@ const double crhs7 =             0.166666666666667*v(2,1);
 const double crhs8 =             DN_DX_0_1*phi[0] + DN_DX_1_1*phi[1] + DN_DX_2_1*phi[2];
 const double crhs9 =             crhs8*(crhs6 + crhs7 + 0.666666666666667*v(1,1));
 const double crhs10 =             0.166666666666667*crhs9;
-const double crhs11 =             1/(RK_time_coefficient*delta_time);
+const double crhs11 =             1/(delta_time*delta_time_coefficient);
 const double crhs12 =             0.111111111111111*phi[1];
 const double crhs13 =             -0.111111111111111*phi_old[1];
 const double crhs14 =             crhs12 + crhs13;
@@ -717,7 +717,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScale
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& delta_time_coefficient = rData.delta_time_coefficient;
     const auto& v = rData.convective_velocity;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
@@ -759,7 +759,7 @@ const double crhs18 =             crhs16 + crhs17;
 const double crhs19 =             DN_DX_0_2*phi[0] + DN_DX_1_2*phi[1] + DN_DX_2_2*phi[2] + DN_DX_3_2*phi[3];
 const double crhs20 =             crhs19*(crhs15 + crhs18 + 0.5854102*v(1,2));
 const double crhs21 =             0.1381966*crhs20;
-const double crhs22 =             1/(RK_time_coefficient*delta_time);
+const double crhs22 =             1/(delta_time*delta_time_coefficient);
 const double crhs23 =             0.08090169924532*phi[1];
 const double crhs24 =             -0.08090169924532*phi_old[1];
 const double crhs25 =             0.01909830025156*phi[0];

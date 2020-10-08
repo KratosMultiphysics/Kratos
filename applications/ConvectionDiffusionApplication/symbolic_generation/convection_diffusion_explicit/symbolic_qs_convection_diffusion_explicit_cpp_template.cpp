@@ -241,7 +241,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
 {
     // Observations
-    // * SGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient*delta_time)
+    // * SGS time derivative term approximated as (phi-phi_old)/(delta_time_coefficient*delta_time)
     //   observe that for RK step = 1 ASGS time derivative term = 0 because phi = phi_old (null acceleration wrt step n)
     // * convective velocity and forcing term:
     //   RK step 1: evaluated at previous time step
@@ -251,7 +251,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     //   velocity_mesh = 0 in eulerian framework
     if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==1)
     {
-        rData.RK_time_coefficient = std::numeric_limits<double>::max();
+        rData.delta_time_coefficient = std::numeric_limits<double>::max();
         rData.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1);
         rData.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0];
         rData.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1];
@@ -259,7 +259,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     }
     else if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==2 || r_process_info.GetValue(RUNGE_KUTTA_STEP)==3)
     {
-        rData.RK_time_coefficient = 0.5;
+        rData.delta_time_coefficient = 0.5;
         rData.forcing[node_element] = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable()) + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1));
         rData.convective_velocity(node_element,0) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0]);
         rData.convective_velocity(node_element,1) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1]);
@@ -267,7 +267,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     }
     else
     {
-        rData.RK_time_coefficient = 1.0;
+        rData.delta_time_coefficient = 1.0;
         rData.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
         rData.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
         rData.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
@@ -308,7 +308,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& delta_time_coefficient = rData.delta_time_coefficient;
     const auto& v = rData.convective_velocity;
     const auto& tau = rData.tau;
     const auto& prj = rData.oss_projection;
@@ -354,7 +354,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& delta_time_coefficient = rData.delta_time_coefficient;
     const auto& v = rData.convective_velocity;
     const auto& tau = rData.tau;
     const auto& prj = rData.oss_projection;
@@ -407,7 +407,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScale
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& delta_time_coefficient = rData.delta_time_coefficient;
     const auto& v = rData.convective_velocity;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
@@ -451,7 +451,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScale
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& delta_time_coefficient = rData.delta_time_coefficient;
     const auto& v = rData.convective_velocity;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
