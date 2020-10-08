@@ -150,7 +150,6 @@ class MPMSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        #TODO: Check if this must be moved for first condition search??
         self._SearchElement()
         self._GetSolutionStrategy().Initialize()
 
@@ -221,7 +220,6 @@ class MPMSolver(PythonSolver):
         # Generate MP Element and Condition
         KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
         KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
-
 
     def _SearchElement(self):
         searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()

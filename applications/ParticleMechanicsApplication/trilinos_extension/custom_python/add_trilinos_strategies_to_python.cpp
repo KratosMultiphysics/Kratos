@@ -27,6 +27,7 @@
 
 // ParticleMechanicsApplication
 #include "../custom_strategies/strategies/mpm_residual_based_newton_raphson_strategy.hpp"
+#include "../custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
 
 namespace Kratos {
 namespace Python {
@@ -43,10 +44,19 @@ void AddTrilinosStrategiesToPython(pybind11::module& m){
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
     typedef BuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverType;
 
+    // Trilinos MPM Residual Based Strategy
     typedef MPMResidualBasedNewtonRaphsonStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosMPMResidualBasedNewtonRaphsonStrategyType;
     py::class_< TrilinosMPMResidualBasedNewtonRaphsonStrategyType,typename TrilinosMPMResidualBasedNewtonRaphsonStrategyType::Pointer, TrilinosBaseSolvingStrategyType >
         (m,"TrilinosMPMResidualBasedNewtonRaphsonStrategy").def(py::init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosConvergenceCriteria::Pointer, TrilinosBuilderAndSolverType::Pointer, int, bool, bool, bool >() )
     ;
+
+    // Trilinos MPM Residual Based Bossak Scheme Type
+    typedef MPMResidualBasedBossakScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosMPMResidualBasedBossakSchemeType;
+    py::class_< TrilinosMPMResidualBasedBossakSchemeType,typename TrilinosMPMResidualBasedBossakSchemeType::Pointer, TrilinosBaseSchemeType >(m,"TrilinosMPMResidualBasedBossakScheme")
+        .def(py::init < ModelPart&, unsigned int, unsigned int, double, double, bool>())
+        .def("Initialize", &TrilinosMPMResidualBasedBossakSchemeType::Initialize)
+        ;
+
 }
 
 }// namespace Kratos
