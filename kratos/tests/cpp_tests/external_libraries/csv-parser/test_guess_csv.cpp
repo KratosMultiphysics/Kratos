@@ -22,7 +22,7 @@
 #include "testing/testing.h"
 #include "includes/kratos_filesystem.h"
 #include "utilities/string_utilities.h"
-#include "csv-parser/include/csv.hpp"
+#include "csv-parser/csv.hpp"
 
 namespace Kratos {
 

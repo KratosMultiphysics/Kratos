@@ -20,7 +20,7 @@
 #include "testing/testing.h"
 #include "utilities/string_utilities.h"
 #include "includes/kratos_filesystem.h"
-#include "csv-parser/include/csv.hpp"
+#include "csv-parser/csv.hpp"
 
 namespace Kratos {
 
@@ -32,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVRowInterator, KratosExternalLibrariesFastSuite)
         "123,234,345\r\n"
         "1,2,3\r\n"
         "1,2,3";
-    
+
     csv::CSVRow row;
     auto rows = csv::parse(csv_string);
     rows.read_row(row);

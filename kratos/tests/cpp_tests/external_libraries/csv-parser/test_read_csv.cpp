@@ -21,7 +21,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/string_utilities.h"
-#include "csv-parser/include/csv.hpp"
+#include "csv-parser/csv.hpp"
 
 namespace Kratos {
 
@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestReadingCSVFromDirectInput, KratosExternalLibraries
     csv::CSVRow row;
     auto rows = csv::parse(csv_string);
     rows.read_row(row);
-    
+
     std::vector<std::string> first_row = {"123", "234", "345"};
     KRATOS_CHECK_EQUAL( std::vector<std::string>(row), first_row );
 }
