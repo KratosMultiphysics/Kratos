@@ -236,8 +236,8 @@ public:
 
     MappingMatrixType& GetMappingMatrix() override
     {
-        if (mMapperSettings["is_precompute_mapping_matrix"].GetBool()) return *(mpMappingMatrix.get());
-        else KRATOS_ERROR << "'is_precompute_mapping_matrix' must be 'true' in your parameters to retrieve the computed mapping matrix!" << std::endl;
+        if (mMapperSettings["is_precompute_mapping_matrix"].GetBool() || mMapperSettings["dual_mortar"].GetBool()) return *(mpMappingMatrix.get());
+        else KRATOS_ERROR << "'is_precompute_mapping_matrix' or 'dual_mortar' must be 'true' in your parameters to retrieve the computed mapping matrix!" << std::endl;
     }
 
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
