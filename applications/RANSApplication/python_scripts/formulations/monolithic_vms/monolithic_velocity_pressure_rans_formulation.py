@@ -62,7 +62,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         self.SetMaxCouplingIterations(1)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Construction of formulation finished.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
 
     def AddVariables(self):
         base_model_part = self.GetBaseModelPart()
@@ -88,7 +88,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         base_model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
     def AddDofs(self):
         base_model_part = self.GetBaseModelPart()
@@ -97,16 +97,16 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Z, Kratos.REACTION_Z, base_model_part)
         Kratos.VariableUtils().AddDof(Kratos.PRESSURE, Kratos.REACTION_WATER_PRESSURE, base_model_part)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added dofs.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added dofs.")
 
     def PrepareModelPart(self):
         self.monolithic_model_part = CreateRansFormulationModelPart(
             self.GetComputingModelPart(),
-            self.GetName(),
+            self.__class__.__name__,
             self.GetDomainSize(),
             "VMS",
             self.condition_name)
-        Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Created formulation model part.")
 
     def Initialize(self):
         model_part = self.GetBaseModelPart()
@@ -167,7 +167,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         super().Initialize()
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Solver initialization finished.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -179,7 +179,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 self.solver.Predict()
                 _ = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
-                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
                 return True
 
         return False

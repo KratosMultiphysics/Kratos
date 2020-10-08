@@ -28,11 +28,6 @@ class RansFormulation:
         """
         return self.__settings
 
-    def GetName(self):
-        """Returns the name of the formulation
-        """
-        return self.__class__.__name__
-
     def GetDomainSize(self):
         """Returns domain size
         """
@@ -127,7 +122,7 @@ class RansFormulation:
                 if (not formulation.SolveCouplingStep()):
                     return False
             self.ExecuteAfterCouplingSolveStep()
-            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling itr. " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. " + str(iteration + 1) + "/" + str(max_iterations) + ".")
 
         return True
 
@@ -193,7 +188,7 @@ class RansFormulation:
         if (self.GetStrategy() is not None):
             is_converged = self.GetStrategy().IsConverged()
             if (is_converged):
-                Kratos.Logger.PrintInfo(self.GetName(), " *** CONVERGENCE ACHIEVED ***")
+                Kratos.Logger.PrintInfo(self.__class__.__name__, " *** CONVERGENCE ACHIEVED ***")
             return is_converged
 
         return True
@@ -368,7 +363,7 @@ class RansFormulation:
         Returns:
             str: Information of all the formulations
         """
-        info = "\n" + self.GetName()
+        info = "\n" + self.__class__.__name__
         if (self.GetModelPart() is not None):
             info += "\n   Model part    : " + str(self.GetModelPart().Name)
 

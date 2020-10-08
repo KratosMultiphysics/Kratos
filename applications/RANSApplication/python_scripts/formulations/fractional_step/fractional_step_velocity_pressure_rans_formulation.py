@@ -96,7 +96,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         self.echo_level = settings["echo_level"].GetInt()
         self.SetMaxCouplingIterations(1)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Construction of formulation finished.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
 
     def AddVariables(self):
         base_model_part = self.GetBaseModelPart()
@@ -124,7 +124,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         base_model_part.AddNodalSolutionStepVariable(Kratos.DIVPROJ)
         base_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
     def AddDofs(self):
         base_model_part = self.GetBaseModelPart()
@@ -133,17 +133,17 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Z, Kratos.REACTION_Z, base_model_part)
         Kratos.VariableUtils().AddDof(Kratos.PRESSURE, Kratos.REACTION_WATER_PRESSURE, base_model_part)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added dofs.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added dofs.")
 
     def PrepareModelPart(self):
         self.fractional_step_model_part = CreateRansFormulationModelPart(
             self.GetComputingModelPart(),
-            self.GetName(),
+            self.__class__.__name__,
             self.GetDomainSize(),
             "FractionalStep",
             self.condition_name)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Created formulation model part.")
 
     def Initialize(self):
         model_part = self.GetBaseModelPart()
@@ -218,7 +218,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
         super().Initialize()
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Solver initialization finished.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -247,7 +247,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                 self.solver.Predict()
                 self.is_converged = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
-                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
                 return True
 
         return False
@@ -320,7 +320,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             relative_tolerance,
             absolute_error,
             absolute_tolerance)
-        Kratos.Logger.PrintInfo(self.GetName(), info)
+        Kratos.Logger.PrintInfo(self.__class__.__name__, info)
 
         return (relative_error <= relative_tolerance or absolute_error <= absolute_tolerance)
 

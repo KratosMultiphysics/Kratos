@@ -59,7 +59,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.REACTION)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.REACTION_WATER_PRESSURE)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
     def AddDofs(self):
         Kratos.VariableUtils().AddDof(KratosRANS.VELOCITY_POTENTIAL, self.GetBaseModelPart())
@@ -70,7 +70,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
         Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Z, Kratos.REACTION_Z,self.GetBaseModelPart())
         Kratos.VariableUtils().AddDof(Kratos.PRESSURE, Kratos.REACTION_WATER_PRESSURE,self.GetBaseModelPart())
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added solution step dofs.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step dofs.")
 
     def GetMinimumBufferSize(self):
         return 1
@@ -85,12 +85,12 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
     def PrepareModelPart(self):
         self.velocity_model_part = CreateRansFormulationModelPart(
             self.GetComputingModelPart(),
-            self.GetName(),
+            self.__class__.__name__,
             self.GetDomainSize(),
             "RansIncompressiblePotentialFlowVelocity",
             "RansIncompressiblePotentialFlowVelocityInlet")
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Created formulation model part.")
 
     def Initialize(self):
         CalculateNormalsOnConditions(self.GetBaseModelPart())
@@ -114,7 +114,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
         convergence_criteria.SetEchoLevel(solver_settings["echo_level"].GetInt() - 1)
 
         super().Initialize()
-        Kratos.Logger.PrintInfo(self.GetName(), "Initialized formulation")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Initialized formulation")
 
     def InitializeSolutionStep(self):
         if (not hasattr(self, "is_initialized")):
@@ -139,9 +139,9 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             self.velocity_strategy.Predict()
             self.is_converged = self.velocity_strategy.SolveSolutionStep()
             self.ExecuteAfterCouplingSolveStep()
-            Kratos.Logger.PrintInfo(self.GetName(), "Solved  formulation.")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved  formulation.")
             if (self.is_converged):
-                Kratos.Logger.PrintInfo(self.GetName(), "*** CONVERGENCE ACHIEVED ****")
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "*** CONVERGENCE ACHIEVED ****")
         return True
 
     def ExecuteAfterCouplingSolveStep(self):
