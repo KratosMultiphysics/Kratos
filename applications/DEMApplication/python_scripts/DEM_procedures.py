@@ -1,6 +1,3 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 import math
 import os
 import shutil
@@ -46,7 +43,7 @@ def GetBoolParameterIfItExists(set_of_parameters, parameter_key):
     return False
 
 
-class MdpaCreator(object):
+class MdpaCreator():
 
     def __init__(self, path, DEM_parameters):
 
@@ -90,7 +87,7 @@ class MdpaCreator(object):
         mdpa.write('End NodalData' + '\n' + '\n')
 
 
-class SetOfModelParts(object):
+class SetOfModelParts():
     def __init__(self, model_parts_list):
         self.MaxNodeId = 0
         self.MaxElemId = 0
@@ -129,7 +126,7 @@ class SetOfModelParts(object):
         return self.model_parts[name]
 
     def Add(self, model_part, name=None):
-        if name != None:
+        if name is not None:
             self.model_parts[name] = model_part
         else:
             self.model_parts[model_part.Name] = model_part
@@ -137,7 +134,7 @@ class SetOfModelParts(object):
         self.mp_list.append(model_part)
 
 
-class GranulometryUtils(object):
+class GranulometryUtils():
 
     def __init__(self, domain_volume, model_part):
 
@@ -173,7 +170,7 @@ class GranulometryUtils(object):
         Logger.Print("spheres per area unit: ", self.spheres_per_area, label="")
 
 
-class PostUtils(object):
+class PostUtils():
 
     def __init__(self, DEM_parameters, spheres_model_part):
 
@@ -259,7 +256,7 @@ class PostUtils(object):
         PostUtilities().ComputeEulerAngles(spheres_model_part, cluster_model_part)
 
 
-class DEMEnergyCalculator(object):
+class DEMEnergyCalculator():
 
     def __init__(self, DEM_parameters, spheres_model_part, cluster_model_part, graphs_path, energy_plot):
 
@@ -330,7 +327,7 @@ class DEMEnergyCalculator(object):
             self.energy_plot.close
 
 
-class Procedures(object):
+class Procedures():
 
     def __init__(self, DEM_parameters):
 
@@ -387,7 +384,7 @@ class Procedures(object):
                 rotational_scheme = SymplecticEulerScheme()
             elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme':
                 rotational_scheme = TaylorScheme()
-            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
                 rotational_scheme = VelocityVerletScheme()
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta':
             rotational_scheme = RungeKuttaScheme()
@@ -548,7 +545,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
 
     def AddElasticFaceVariables(self, model_part, DEM_parameters): #Only used in CSM coupling
-        self.AddRigidFaceVariables(model_part,self.DEM_parameters)
+        self.AddRigidFaceVariables(model_part, self.DEM_parameters)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
 
     @classmethod
@@ -798,7 +795,8 @@ class Procedures(object):
         if self.DEM_parameters["BoundingBoxOption"].GetBool():
             self.SetBoundingBox(all_model_parts.Get("SpheresPart"), all_model_parts.Get("ClusterPart"), all_model_parts.Get("RigidFacePart"), all_model_parts.Get("DEMInletPart"), creator_destructor)
             bounding_box_time_limits = [self.solver.bounding_box_start_time, self.solver.bounding_box_stop_time]
-            return bounding_box_time_limits
+
+        return bounding_box_time_limits
 
     def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, dem_inlet_model_part, creator_destructor):
 
@@ -837,8 +835,7 @@ class Procedures(object):
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            self.KratosPrintWarning("The type expected was " +
-                             a + " but " + b + " was read.")
+            self.KratosPrintWarning("The type expected was " + a + " but " + b + " was read.")
             self.KratosPrintWarning(
                 "**************************************************************************")
             sys.exit()
@@ -856,7 +853,7 @@ class Procedures(object):
         Logger.Flush()
 
 
-class DEMFEMProcedures(object):
+class DEMFEMProcedures():
 
     def __init__(self, DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part):
 
@@ -963,58 +960,8 @@ class DEMFEMProcedures(object):
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
         evaluate_computation_of_fem_results()
 
-    def MoveAllMeshes(self, all_model_parts, time, dt): # TODO: deprecated
-        message = 'Warning!'
-        message += '\nFunction \'MoveAllMeshes\' is deprecated. It is called inside sphere_strategy.py'
-        message += '\nIt will be removed after 10/31/2019.\n'
-        Logger.PrintWarning("DEM_procedures.py", message)
-
-        spheres_model_part = all_model_parts.Get("SpheresPart")
-        dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
-        rigid_face_model_part = all_model_parts.Get("RigidFacePart")
-
-        self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
-
-    # def MoveAllMeshesUsingATable(self, model_part, time, dt):
-
-    #     self.mesh_motion.MoveAllMeshesUsingATable(model_part, time, dt)
-
-        # for smp in model_part.SubModelParts:
-
-        #     if not smp[TABLE_NUMBER]:
-        #         continue
-
-        #     Logger.Print("Info:", label="")
-        #     Logger.Print(smp[IDENTIFIER], label="")
-        #     Logger.Print(smp[TABLE_NUMBER], label="")
-
-        #     for node in smp.Nodes:
-
-        #         old_coords = Vector(3)
-        #         old_coords[0] = node.X
-        #         old_coords[1] = node.Y
-        #         old_coords[2] = node.Z
-
-        #         velocity = Vector(3)
-        #         velocity[0] = model_part.GetTable(smp[TABLE_NUMBER]).GetValue(time)
-        #         velocity[1] = 0.0
-        #         velocity[2] = 0.0
-        #         node.SetSolutionStepValue(VELOCITY, velocity)
-
-        #         node.X = old_coords[0] + velocity[0] * dt
-        #         node.Y = old_coords[1] + velocity[1] * dt
-        #         node.Z = old_coords[2] + velocity[2] * dt
-
-        #         displacement = Vector(3)
-        #         displacement[0] = node.X - node.X0
-        #         displacement[1] = node.Y - node.Y0
-        #         displacement[2] = node.Z - node.Z0
-        #         node.SetSolutionStepValue(DISPLACEMENT, displacement)
-
     @classmethod
-    def UpdateTimeInModelParts(self, all_model_parts, time, dt, step, is_time_to_print = False):
+    def UpdateTimeInModelParts(self, all_model_parts, time, dt, step, is_time_to_print=False):
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
@@ -1027,7 +974,7 @@ class DEMFEMProcedures(object):
         self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step, is_time_to_print)
 
     @classmethod
-    def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print = False):
+    def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print=False):
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step
@@ -1188,7 +1135,7 @@ class DEMFEMProcedures(object):
                         node.Fix(VELOCITY_Y)
 
 
-class Report(object):
+class Report():
 
     def __init__(self):
         pass
@@ -1203,10 +1150,7 @@ class Report(object):
 
     def BeginReport(self, timer):
         label = "DEM: "
-        report = "Main loop starting..." + "\n" + \
-            label + "Total number of TIME STEPs expected in the calculation: " + \
-            str(self.total_steps_expected) + "\n" + label
-
+        report = label + "Total number of time s expected in the calculation: " + str(self.total_steps_expected) + "\n\n"
         return report
 
     def StepiReport(self, timer, time, step):
@@ -1232,10 +1176,10 @@ class Report(object):
             self.first_print = False
             estimated_sim_duration = 60.0 * (self.total_steps_expected / step)  # seconds
 
-            report = report + "\n" + label + "The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
-                + label + "In minutes: " + str(estimated_sim_duration / 60.0) + " minutes" + "\n"\
-                + label + "In hours:   " + str(estimated_sim_duration / 3600.0) + " hours" + "\n"\
-                + label + "In days:    " + str(estimated_sim_duration / 86400.0) + " days" + "\n" + label
+            report = report + "\n" + label + "****** The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
+                + label + "****** In minutes: " + str(round(estimated_sim_duration / 60.0, 2)) + " minutes" + "\n"\
+                + label + "****** In hours: " + str(round(estimated_sim_duration / 3600.0, 3)) + " hours" + "\n"\
+                + label + "****** In days: " + str(round(estimated_sim_duration / 86400.0, 3)) + " days" + "\n" + label
 
         return report
 
@@ -1252,12 +1196,12 @@ class Report(object):
         return report
 
 
-class PreUtils(object):
+class PreUtils():
 
     def __init__(self):
         pass
 
-class MaterialTest(object):
+class MaterialTest():
 
     def __init__(self):
         pass
@@ -1304,7 +1248,7 @@ class MaterialTest(object):
             self.script.GenerateGraphics()
 
 
-class MultifileList(object):
+class MultifileList():
 
     def __init__(self, post_path, name, step, which_folder):
         self.index = 0
@@ -1319,7 +1263,7 @@ class MultifileList(object):
         self.file = open(absolute_path_to_file, "w")
 
 
-class DEMIo(object):
+class DEMIo():
 
     def __init__(self, model, DEM_parameters, post_path, all_model_parts):
 
@@ -1460,9 +1404,9 @@ class DEMIo(object):
         )
         self.SetMultifileLists(self.multifiles)
 
-
+    @classmethod
     def KratosPrintInfo(self, message):
-        Logger.PrintInfo(message,label="DEM")
+        Logger.PrintInfo(message, label="DEM")
         Logger.Flush()
 
     @classmethod
@@ -1498,7 +1442,7 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDisplacement, DISPLACEMENT, self.global_variables)
         self.PushPrintVar(self.PostVelocity, VELOCITY, self.global_variables)
         self.PushPrintVar(self.PostTotalForces, TOTAL_FORCES, self.global_variables)
-        self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_FORCE,  self.global_variables)
+        self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_FORCE, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_MOMENT, self.global_variables)
         if self.DEM_parameters["PostAngularVelocity"].GetBool():
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
@@ -1515,7 +1459,7 @@ class DEMIo(object):
 
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
-        self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
+        self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE, self.spheres_and_clusters_variables)
 
     # variables common to spheres and clusters
     def AddSpheresNotInClusterAndClustersVariables(self):
@@ -1532,9 +1476,6 @@ class DEMIo(object):
         self.PushPrintVar(self.PostTangentialImpactVelocity, TANGENTIAL_IMPACT_VELOCITY, self.spheres_variables)
         self.PushPrintVar(self.PostFaceNormalImpactVelocity, FACE_NORMAL_IMPACT_VELOCITY, self.spheres_variables)
         self.PushPrintVar(self.PostFaceTangentialImpactVelocity, FACE_TANGENTIAL_IMPACT_VELOCITY, self.spheres_variables)
-        #self.PushPrintVar(self.PostLinearImpulse, LINEAR_IMPULSE, self.spheres_variables)
-        #self.PushPrintVar(1, DELTA_DISPLACEMENT, self.spheres_variables)  # Debugging
-        #self.PushPrintVar(1, PARTICLE_ROTATION_ANGLE, self.spheres_variables)  # Debugging
 
         if "PostRollingResistanceMoment" in self.DEM_parameters.keys():
             if self.DEM_parameters["RotationOption"].GetBool():
@@ -1591,11 +1532,6 @@ class DEMIo(object):
 
     def AddRigidBodyVariables(self):
         pass
-        #self.PushPrintVar(1,                         PARTICLE_MOMENT,              self.rigid_body_variables)
-        #self.PushPrintVar(1,                         DELTA_DISPLACEMENT,           self.rigid_body_variables)
-        #self.PushPrintVar(1,                         DELTA_ROTATION,               self.rigid_body_variables)
-        #self.PushPrintVar(1,                         EXTERNAL_APPLIED_FORCE,       self.rigid_body_variables)
-        #self.PushPrintVar(1,                         EXTERNAL_APPLIED_MOMENT,      self.rigid_body_variables)
 
     def AddContactVariables(self):
         # Contact Elements Variables
@@ -1798,13 +1734,6 @@ class DEMIo(object):
 
     def PrintResults(self, all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
 
-        #TODO: move these definitions to the constructor! (__init__) moved!
-        # self.spheres_model_part = spheres_model_part = all_model_parts.Get("SpheresPart")
-        # self.cluster_model_part = cluster_model_part = all_model_parts.Get("ClusterPart")
-        # self.rigid_face_model_part = rigid_face_model_part = all_model_parts.Get("RigidFacePart")
-        # self.contact_model_part = contact_model_part = all_model_parts.Get("ContactPart")
-        # self.mapping_model_part = mapping_model_part = all_model_parts.Get("MappingPart")
-
         if self.filesystem == MultiFileFlag.MultipleFiles:
             self.InitializeResults(self.spheres_model_part,
                                    self.rigid_face_model_part,
@@ -1974,22 +1903,22 @@ class DEMIo(object):
 
         # BB Elements:
         props = Properties(10000)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 1, [node1.Id, node4.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 2, [node4.Id, node8.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 3, [node8.Id, node5.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 4, [node5.Id, node1.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 5, [node1.Id, node2.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 6, [node3.Id, node4.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 7, [node7.Id, node8.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 8, [node5.Id, node6.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 9, [node6.Id, node2.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 1, [node1.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 2, [node4.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 3, [node8.Id, node5.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 4, [node5.Id, node1.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 5, [node1.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 6, [node3.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 7, [node7.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 8, [node5.Id, node6.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 9, [node6.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 10, [node2.Id, node3.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 11, [node3.Id, node7.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 12, [node7.Id, node6.Id], props)
 
 
 
-class ParallelUtils(object):
+class ParallelUtils():
 
     def __init__(self):
         pass
