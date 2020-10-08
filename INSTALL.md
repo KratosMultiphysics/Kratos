@@ -130,7 +130,7 @@ Ubuntu users need to be extra careful with this as default versions tends to be 
 
 `BOOST_ROOT`
 
-Path to boost root directory.
+Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded but without using apt-get.
 
 ## Configuration scripts examples
 
@@ -509,4 +509,3 @@ If trilinos was installed using the package manager usually the following lines 
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 ```
-
