@@ -174,12 +174,6 @@ public:
         KRATOS_ERROR << "This mapper doesn't implement \"AreMeshesConforming\"!" << std::endl;
     };
 
-    /**
-     * @brief This method returns the mapping-matrix
-     * @return The mapping-matrix
-     */
-    virtual TMappingMatrixType& GetMappingMatrix() = 0;
-
     ///@}
     ///@name Input and output
     ///@{

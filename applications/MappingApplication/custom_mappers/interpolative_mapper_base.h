@@ -181,11 +181,6 @@ public:
         return *mpMappingMatrix;
     }
 
-    TMappingMatrixType& GetMappingMatrix() override
-    {
-        return *(mpMappingMatrix.get());
-    }
-
     ///@}
     ///@name Inquiry
     ///@{
