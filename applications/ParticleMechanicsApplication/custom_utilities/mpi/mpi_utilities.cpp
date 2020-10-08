@@ -13,7 +13,6 @@
 // Kratos includes
 #include "mpi_utilities.h"
 #include "particle_mechanics_application_variables.h"
-#include "utilities/builtin_timer.h"
 
 namespace Kratos {
 
@@ -76,8 +75,11 @@ namespace Kratos {
         rSendConditions.clear();
     }
 
-    void MPM_MPI_Utilities::SynchronizeNodalDisplacementAtInterface(ModelPart& rModelPart){
-        BuiltinTimer timer;
+    // ##############################################################################################
+    // !!!This function is no longer needed. However, function is kept for some while just in case.!!!
+    // ##############################################################################################
+    void MPM_MPI_Utilities::SynchronizeNodalDisplacementAtInterface(ModelPart& rModelPart)
+    {
         const unsigned int rank = rModelPart.GetCommunicator().MyPID();
         const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
 
@@ -97,11 +99,10 @@ namespace Kratos {
         const auto ghost_nodes_it_begin = rModelPart.GetCommunicator().GhostMesh().NodesBegin();
         const unsigned int number_ghost_nodes = rModelPart.GetCommunicator().GhostMesh().NumberOfNodes();
 
-        // TODO: Make this better
-        for( int i = 0; i < number_ghost_nodes; ++i){
-            auto ghost_node_it = ghost_nodes_it_begin + i;
-            ghost_node_it->SetValue(IS_GHOST_NODE, true);
-        }
+        // for( int i = 0; i < number_ghost_nodes; ++i){
+        //     auto ghost_node_it = ghost_nodes_it_begin + i;
+        //     ghost_node_it->SetValue(IS_GHOST_NODE, true);
+        // }
 
         auto node_it_begin = rModelPart.GetCommunicator().InterfaceMesh().NodesBegin();
         const unsigned int number_of_interface_nodes = rModelPart.GetCommunicator().InterfaceMesh().NumberOfNodes();
@@ -110,7 +111,7 @@ namespace Kratos {
                 auto node_it = node_it_begin + i;
                 int node_id = node_it->Id();
                 auto disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
-                if( norm_2(disp) != 0 && !node_it->GetValue(IS_GHOST_NODE)) //Only send and non-ghost nodes
+                if( norm_2(disp) != 0 ) //&&!node_it->GetValue(IS_GHOST_NODE)) //Only send and non-ghost nodes
                     send_nodes_container[neighbour].push_back(*node_it.base());
             }
         }
@@ -130,7 +131,6 @@ namespace Kratos {
             }
         }
         rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
-        KRATOS_INFO("NodalSync") << "Elapes time: " << timer.ElapsedSeconds() << std::endl;
     }
 
     void MPM_MPI_Utilities::SetMPICommunicator( ModelPart& SourceModelPart, ModelPart& DestModelPart){

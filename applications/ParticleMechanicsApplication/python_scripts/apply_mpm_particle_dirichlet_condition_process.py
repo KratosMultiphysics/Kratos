@@ -136,13 +136,9 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         if (self.model_part_name.startswith('Background_Grid.')):
             self.model_part_name = self.model_part_name.replace('Background_Grid.','')
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
-
-        # Muss für sich ändernde Conditions nochmal unten aufgreufen werden!!
-        # Weil nur initialter Modellpart hat den submodelpart
         if( self.model.HasModelPart(mpm_material_model_part_name )):
             self.model_part = self.model[mpm_material_model_part_name]
-        #TODO: Is the function call below really required?
-        #self.ExecuteInitializeSolutionStep()
+        self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step

@@ -14,14 +14,13 @@
 #include "mpm_mpi_search.h"
 #include "mpi_utilities.h"
 #include "custom_utilities/mpm_search_element_utility.h"
-#include "utilities/builtin_timer.h"
 
 namespace Kratos {
 
-void MPM_MPI_SEARCH::SearchElementMPI(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart,
+template <std::size_t TDimension>
+void MPM_MPI_SEARCH<TDimension>::SearchElementMPI(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart,
                                       const std::size_t MaxNumberOfResults, const double Tolerance)
 {
-    BuiltinTimer timer;
     MPMSearchElementUtility::ResetElementsAndNodes(rBackgroundGridModelPart);
     // Attention: Run search on submodel_parts, to ensure that elements/conditions are added to
     //            correct model_partp after mpi-send.
@@ -36,22 +35,22 @@ void MPM_MPI_SEARCH::SearchElementMPI(ModelPart& rBackgroundGridModelPart, Model
         MPMSearchElementUtility::NeighbourSearchElements(r_submodel_part, rBackgroundGridModelPart, missing_elements, Tolerance);
         MPMSearchElementUtility::NeighbourSearchConditions(r_submodel_part, rBackgroundGridModelPart, missing_conditions, Tolerance);
 
-        std::vector<int> element_search_result_dummy(missing_elements.size());
-        std::vector<int> condition_search_result_dummy(missing_conditions.size());
+        std::vector<int> element_search_results_dummy(missing_elements.size());
+        std::vector<int> condition_search_results_dummy(missing_conditions.size());
         if (missing_conditions.size() > 0 || missing_elements.size() > 0)
             BinBasedSearchElementsAndConditionsMPI(r_submodel_part,
-                rBackgroundGridModelPart, missing_elements, element_search_result_dummy, missing_conditions,
-                condition_search_result_dummy, MaxNumberOfResults, Tolerance);
+                rBackgroundGridModelPart, missing_elements, element_search_results_dummy, missing_conditions,
+                condition_search_results_dummy, MaxNumberOfResults, Tolerance);
 
         SearchElementsInOtherPartitions(r_submodel_part, rBackgroundGridModelPart, missing_elements,
             missing_conditions, MaxNumberOfResults, Tolerance);
 
     }
-    MPM_MPI_Utilities::SynchronizeNodalDisplacementAtInterface(rMPMModelPart);
-    rMPMModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+    //rMPMModelPart.GetCommunicator().GetDataCommunicator().Barrier();
 }
 
-void MPM_MPI_SEARCH::SearchElementsInOtherPartitions(ModelPart& rMPMSubModelPart, ModelPart& rBackgroundGridModelPart,
+template <std::size_t TDimension>
+void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPMSubModelPart, ModelPart& rBackgroundGridModelPart,
                                                      std::vector<Element::Pointer>& rMissingElements,
                                                      std::vector<Condition::Pointer>& rMissingConditions,
                                                      const std::size_t MaxNumberOfResults, const double Tolerance)
@@ -64,10 +63,10 @@ void MPM_MPI_SEARCH::SearchElementsInOtherPartitions(ModelPart& rMPMSubModelPart
     const unsigned int number_of_missing_conditions = rMissingConditions.size();
 
     // Get local and gloabl number of elements/conditions
-    // unsigned int local_number_of_elements = rMPMSubModelPart.NumberOfElements();
-    // const unsigned int global_number_of_elements_begin = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_elements);
-    // unsigned int local_number_of_conditions = rMPMSubModelPart.NumberOfConditions();
-    // const unsigned int global_number_of_conditions_begin = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_conditions);
+    unsigned int local_number_of_elements = rMPMSubModelPart.NumberOfElements();
+    const unsigned int global_number_of_elements_begin = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_elements);
+    unsigned int local_number_of_conditions = rMPMSubModelPart.NumberOfConditions();
+    const unsigned int global_number_of_conditions_begin = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_conditions);
 
     // Construct element containers
     std::vector<ElementsArrayType> send_elements_container(size);
@@ -96,7 +95,7 @@ void MPM_MPI_SEARCH::SearchElementsInOtherPartitions(ModelPart& rMPMSubModelPart
 
     // Loop over all available ranks
     for( int i = 0; i < size; ++i){
-        // Consttruct missing element/condition containers
+        // Construct missing element/condition containers
         std::vector<Element::Pointer> missing_elements;
         std::vector<Condition::Pointer> missing_conditions;
         // Initialize search results containers
@@ -142,7 +141,6 @@ void MPM_MPI_SEARCH::SearchElementsInOtherPartitions(ModelPart& rMPMSubModelPart
                     missing_conditions.push_back(*it.base());
                 }
                 // Run search and fill local_search_results
-                BuiltinTimer timer_2;
                 BinBasedSearchElementsAndConditionsMPI(rMPMSubModelPart,
                             rBackgroundGridModelPart, missing_elements, local_element_search_results, missing_conditions,
                             local_condition_search_results, MaxNumberOfResults, Tolerance);
@@ -205,22 +203,23 @@ void MPM_MPI_SEARCH::SearchElementsInOtherPartitions(ModelPart& rMPMSubModelPart
 
     // TODO: If everything works, change the comparison "!=" to "<". This will than indicate that not all elements/conditions were found
     //       and hence left the global domain (global backgroundgrid)
-    // local_number_of_conditions = rMPMSubModelPart.NumberOfConditions();
-    // const unsigned int global_number_of_conditions_end = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_conditions);
-    // KRATOS_ERROR_IF(global_number_of_conditions_begin != global_number_of_conditions_end) << "MPM_MPI_SEARCH::SearchElements: "
-    //     << "Global number of conditions before (" << global_number_of_conditions_begin << ") and after (" << global_number_of_conditions_end
-    //     << ") mpi-send/recv operations are not identical!" << std::endl;
+    local_number_of_conditions = rMPMSubModelPart.NumberOfConditions();
+    const unsigned int global_number_of_conditions_end = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_conditions);
+    KRATOS_ERROR_IF(global_number_of_conditions_begin != global_number_of_conditions_end) << "MPM_MPI_SEARCH::SearchElements: "
+        << "Global number of conditions before (" << global_number_of_conditions_begin << ") and after (" << global_number_of_conditions_end
+        << ") mpi-send/recv operations are not identical!" << std::endl;
 
-    // local_number_of_elements = rMPMSubModelPart.NumberOfElements();
-    // const unsigned int global_number_of_elements_end = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_elements);
-    // KRATOS_ERROR_IF(global_number_of_elements_begin != global_number_of_elements_end) << "MPM_MPI_SEARCH::SearchElements: "
-    //     << "Global number of elements before (" << global_number_of_elements_begin << ") and after (" << global_number_of_elements_end
-    //     << ") mpi-send/recv operations are not identical!" << std::endl;
+    local_number_of_elements = rMPMSubModelPart.NumberOfElements();
+    const unsigned int global_number_of_elements_end = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_elements);
+    KRATOS_ERROR_IF(global_number_of_elements_begin != global_number_of_elements_end) << "MPM_MPI_SEARCH::SearchElements: "
+        << "Global number of elements before (" << global_number_of_elements_begin << ") and after (" << global_number_of_elements_end
+        << ") mpi-send/recv operations are not identical!" << std::endl;
 
 
 }
 
-void MPM_MPI_SEARCH::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModelPart,
+template <std::size_t TDimension>
+void MPM_MPI_SEARCH<TDimension>::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModelPart,
         ModelPart& rBackgroundGridModelPart,
         std::vector<typename Element::Pointer>& rMissingElements,
         std::vector<int>& element_search_results,
@@ -228,7 +227,7 @@ void MPM_MPI_SEARCH::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModel
         std::vector<int>& condition_search_results,
         const std::size_t MaxNumberOfResults, const double Tolerance)
 {
-    constexpr int TDimension = 2;
+    //constexpr int TDimension = 2;
     const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
     bool is_pqmpm = (r_process_info.Has(IS_PQMPM))
         ? r_process_info.GetValue(IS_PQMPM) : false;
@@ -243,14 +242,11 @@ void MPM_MPI_SEARCH::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModel
     std::vector<Condition::Pointer> missing_conditions;
     missing_conditions.reserve(rMissingConditions.size());
 
-
     #pragma omp parallel
     {
-
-        BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
+        BinBasedFastPointLocator<Dimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
-
-        typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
+        typename BinBasedFastPointLocator<Dimension>::ResultContainerType results(max_result);
 
         // Element search and assign background grid
         #pragma omp for
@@ -258,7 +254,7 @@ void MPM_MPI_SEARCH::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModel
             auto element_itr = *(rMissingElements.begin() + i);
             std::vector<array_1d<double, 3>> xg;
             element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rMPMModelPart.GetProcessInfo());
-            typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+            typename BinBasedFastPointLocator<Dimension>::ResultIteratorType result_begin = results.begin();
             Element::Pointer pelem;
 
             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
@@ -283,6 +279,7 @@ void MPM_MPI_SEARCH::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModel
                     //}
                 }
                 pelem->Set(ACTIVE);
+                element_itr->Set(ACTIVE);
 
                 const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
                     ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
@@ -297,16 +294,13 @@ void MPM_MPI_SEARCH::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModel
                 {
                     auto p_quadrature_point_geometry = element_itr->pGetGeometry();
                     array_1d<double, 3> local_coordinates;
-
                     //Shouldn't this be also in the normal search!!! BUG???
                     pelem->GetGeometry().PointLocalCoordinates(local_coordinates, xg[0]);
-
                     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                         p_quadrature_point_geometry, local_coordinates,
                         p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
                 }
-                element_itr->Set(ACTIVE);
                 auto& r_geometry = element_itr->GetGeometry();
                 for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j){
                     r_geometry[j].Set(ACTIVE);
@@ -314,7 +308,6 @@ void MPM_MPI_SEARCH::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModel
                 element_search_results[i] = 1;
             }
             else {
-
                 //TODO: Add that it still clears conditions if only one mpi node is available
                 #pragma omp critical
                 missing_elements.push_back(&*element_itr);
@@ -332,7 +325,7 @@ void MPM_MPI_SEARCH::BinBasedSearchElementsAndConditionsMPI(ModelPart& rMPMModel
             if (xg.size() > 0) {
                 // Only search for particle based BCs!
                 // Grid BCs are still applied on MP_model_part but we don't want to search for them.
-                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+                typename BinBasedFastPointLocator<Dimension>::ResultIteratorType result_begin = results.begin();
                 Element::Pointer pelem;
 
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions

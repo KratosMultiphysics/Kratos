@@ -29,26 +29,23 @@ namespace Python{
             const std::size_t MaxNumberOfResults,
             const double Tolerance)
     {
-        // Todo:: Templatize this..
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        if (dimension == 2) MPM_MPI_SEARCH::SearchElementMPI(rBackgroundGridModelPart, rMPMModelPart, MaxNumberOfResults, Tolerance);
-        else if (dimension == 3) MPM_MPI_SEARCH::SearchElementMPI(rBackgroundGridModelPart, rMPMModelPart, MaxNumberOfResults, Tolerance);
-    }
-
-    void AddCustomMPISearchToPython(pybind11::module& m)
-    {
-        m.def("SearchElementMPI",SearchElementMPIAccordingToDimension);
+        if(dimension == 2)
+            MPM_MPI_SEARCH<2>::SearchElementMPI(rBackgroundGridModelPart, rMPMModelPart, MaxNumberOfResults, Tolerance);
+        else if(dimension == 3)
+            MPM_MPI_SEARCH<3>::SearchElementMPI(rBackgroundGridModelPart, rMPMModelPart, MaxNumberOfResults, Tolerance);
     }
 
     void  AddCustomMPIUtilitiesToPython(pybind11::module& m)
     {
-        namespace py = pybind11;
+        m.def("SearchElementMPI",SearchElementMPIAccordingToDimension);
 
+        namespace py = pybind11;
         py::class_<MPM_MPI_Utilities, MPM_MPI_Utilities::Pointer>(m, "MPM_MPI_Utilities")
             .def_static("TransferElements", &MPM_MPI_Utilities::TransferElements)
             .def_static("TransferConditions", &MPM_MPI_Utilities::TransferConditions)
             .def_static("SetMPICommunicator",&MPM_MPI_Utilities::SetMPICommunicator);
     }
 
-}  // namespace Python.
+ }  // namespace Python.
 } // Namespace Kratos

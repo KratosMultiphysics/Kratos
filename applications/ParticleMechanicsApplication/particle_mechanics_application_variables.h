@@ -98,9 +98,6 @@ namespace Kratos
     // Mesh variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, std::vector<typename Geometry<Node<3>>::Pointer>, GEOMETRY_NEIGHBOURS)
 
-    // MPI variables
-    KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, MPI_SEND_COUNTER )
-
     /* NODAL VARIABLES */
     // Conditions
     // Particle Conditions

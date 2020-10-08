@@ -21,9 +21,6 @@
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
 
-
-
-
 namespace Kratos {
 
 ///@addtogroup ParticleMechanicsApplication
@@ -31,8 +28,6 @@ namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
-
-
 
 /**
  * @class MPM_MPI_Utilities
@@ -78,6 +73,7 @@ public:
 
     /**
      * @brief Synchronize nodal displacement at interface mesh;
+     * !!!This function is no longer needed. However, function is kept for some while just in case.!!!
      **/
     static void SynchronizeNodalDisplacementAtInterface(ModelPart& rModelPart);
 

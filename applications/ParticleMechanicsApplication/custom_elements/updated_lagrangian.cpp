@@ -861,6 +861,9 @@ void UpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProces
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
+        r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
+        r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
+        r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_Z) = 0.0;
         r_geometry[i].UnSetLock();
     }
 }

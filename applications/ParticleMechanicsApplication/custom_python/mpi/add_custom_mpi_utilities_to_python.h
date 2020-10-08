@@ -25,7 +25,6 @@ namespace Kratos {
 namespace Python {
 
 void  AddCustomMPIUtilitiesToPython(pybind11::module& m);
-void  AddCustomMPISearchToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
