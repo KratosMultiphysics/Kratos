@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 import KratosMultiphysics as KM
@@ -19,7 +17,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
     """Interface for the CFD-Solver TAU
     """
     def __init__(self, settings, solver_name):
-        super(TAUWrapper, self).__init__(settings, solver_name)
+        super().__init__(settings, solver_name)
         print("Hellow world wrapper")
 
         wrapper_settings = self.settings["solver_wrapper_settings"]
@@ -91,7 +89,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
 
     def Initialize(self):
         print('TAUWrapper Initialize')
-        super(TAUWrapper, self).Initialize()
+        super().Initialize()
 
         if not self.coupling_interface_imported:
             for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
@@ -127,7 +125,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
 
     def InitializeSolutionStep(self):
         print('TAUWrapper InitializeSolutionStep')
-        super(TAUWrapper, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.InitializeSolutionStep)
             # self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.BreakSolutionLoop)
@@ -135,16 +133,16 @@ class TAUWrapper(CoSimulationSolverWrapper):
 
     def SolveSolutionStep(self):
         print('TAUWrapper SolveSolutionStep')
-        super(TAUWrapper, self).SolveSolutionStep()
+        super().SolveSolutionStep()
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.SolveSolutionStep)
 
- 
+
         print('TAUWrapper SolveSolutionStep End')
 
     def FinalizeSolutionStep(self):
         print('TAUWrapper FinalizeSolutionStep')
-        super(TAUWrapper, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         self.vtk_io_up.PrintOutput()
         self.vtk_io_down.PrintOutput()
         if self.controlling_external_solver:
@@ -155,21 +153,21 @@ class TAUWrapper(CoSimulationSolverWrapper):
         print('TAUWrapper Finalize')
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.BreakSolutionLoop)
-        super(TAUWrapper, self).Finalize() # this also does the disconnect
+        super().Finalize() # this also does the disconnect
         print('TAUWrapper Finalize End')
 
     def ImportCouplingInterface(self, interface_config):
         print('TAUWrapper ImportCouplingInterface')
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ExportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
-        super(TAUWrapper, self).ImportCouplingInterface(interface_config)
+        super().ImportCouplingInterface(interface_config)
         print('TAUWrapper ImportCouplingInterface End')
 
     def ExportCouplingInterface(self, interface_config):
         print('TAUWrapper ExportCouplingInterface')
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ImportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
-        super(TAUWrapper, self).ExportCouplingInterface(interface_config)
+        super().ExportCouplingInterface(interface_config)
         print('TAUWrapper ExportCouplingInterface End')
 
     def ImportData(self, data_config):
@@ -177,7 +175,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
         if self.controlling_external_solver and data_config["type"] == "coupling_interface_data":
             # CoSim imports, the external solver exports
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ExportData, data_config["interface_data"].name)
-        super(TAUWrapper, self).ImportData(data_config)
+        super().ImportData(data_config)
         print('TAUWrapper ImportData End')
 
     def ExportData(self, data_config):
@@ -188,7 +186,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
                 self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ImportData, data_config["interface_data"].name)
             #elif data_config["type"] == "convergence_signal":
             #    return # we control the ext solver, no need for sending a convergence signal
-        super(TAUWrapper, self).ExportData(data_config)
+        super().ExportData(data_config)
         print('TAUWrapper ExportData End')
 
     def PrintInfo(self):
