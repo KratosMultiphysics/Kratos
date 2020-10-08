@@ -4,6 +4,7 @@ import sys
 import platform
 import smtplib
 import shutil
+from KratosMultiphysics.testing.utilities import GetPython3Command
 
 kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)

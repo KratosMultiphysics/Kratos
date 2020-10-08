@@ -8,6 +8,7 @@ import threading
 from glob import glob
 import shutil
 import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics.testing.utilities import GetPython3Command
 
 
 kratos_benchmarking_path = os.path.join('..','..','..','benchmarking')

@@ -1,5 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.testing.utilities import GetPython3Command
 
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos_co_sim_io import Create as CreateKratosCoSimIO
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
