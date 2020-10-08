@@ -280,7 +280,7 @@ coupling_interface_imported = False
 
 first_iteration = False
 
-def InnerLoop(advanceTime, sub_step, factor):
+def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
     '''
     if not first_iteration:
         # Read displacements
@@ -320,6 +320,8 @@ def InnerLoop(advanceTime, sub_step, factor):
     global step_mesh
     step_mesh += 1
 
+    return coupling_interface_imported
+
 factor = 1.0
 for i in range(n_steps):
 
@@ -340,7 +342,7 @@ for i in range(n_steps):
                 print("###   sub_step = " + str(sub_step + 1) + "   ###   ")
                 print("#################################")
             tau_parallel_sync()
-            InnerLoop(advanceTime, sub_step, factor)
+            InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor)
             print("first_iteration ", first_iteration)
 
             sub_step += 1
