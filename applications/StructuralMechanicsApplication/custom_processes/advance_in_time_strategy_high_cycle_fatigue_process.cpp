@@ -37,7 +37,6 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
     std::vector<bool> cycle_identificator;
     std::vector<double> damage;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
-    bool cycles_from_last_advance = false;
 
     if (process_info[DAMAGE_ACTIVATION] == false) {
         for (auto& r_elem : mrModelPart.Elements()) {
