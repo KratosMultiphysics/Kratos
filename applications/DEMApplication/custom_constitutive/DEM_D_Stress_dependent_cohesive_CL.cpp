@@ -42,27 +42,32 @@ namespace Kratos {
     //        DEM-DEM INTERACTION        //
     ///////////////////////////////////////
 
-    double DEM_D_Stress_Dependent_Cohesive::CalculateContactArea(SphericParticle* const element1,
-                                                                 SphericParticle* const element2,
-                                                                 const double indentation) {
+    void DEM_D_Stress_Dependent_Cohesive::CalculateIndentedContactArea(const double radius,
+                                                                       const double other_radius,
+                                                                       const double indentation,
+                                                                       double &calculation_area) {
+
+        KRATOS_TRY
 
         //Get equivalent Radius
-        const double my_radius       = element1->GetRadius();
-        const double other_radius    = element2->GetRadius();
-        const double radius_sum      = my_radius + other_radius;
-        const double equiv_radius    = 2.0 * (my_radius * other_radius) / radius_sum;
-
+        const double radius_sum      = radius + other_radius;
+        const double equiv_radius    = 2.0 * (radius * other_radius) / radius_sum;
         const double normalize_dist = radius_sum / (radius_sum - indentation);
+        calculation_area = Globals::Pi * equiv_radius * equiv_radius * normalize_dist;
 
-        return Globals::Pi * equiv_radius * equiv_radius * normalize_dist;
+        KRATOS_CATCH("")
     }
 
     void DEM_D_Stress_Dependent_Cohesive::InitializeContact(SphericParticle* const element1,
                                                             SphericParticle* const element2,
                                                             const double indentation) {
 
+        KRATOS_TRY
+
         //Particles Radius Sum
-        const double radius_sum      = element1->GetRadius() + element2->GetRadius();
+        const double radius = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        const double radius_sum = radius + other_radius;
 
         //Get equivalent Young's Modulus
         const double my_young        = element1->GetYoung();
@@ -76,11 +81,14 @@ namespace Kratos {
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
-        double contact_area = CalculateContactArea(element1, element2, indentation);
+        double contact_area = 0.0;
+        CalculateIndentedContactArea(radius, other_radius, indentation, contact_area);
 
         //Normal and Tangent elastic constants
         mKn = contact_area * equiv_young / (radius_sum - indentation);
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
+
+        KRATOS_CATCH("")
     }
 
     void DEM_D_Stress_Dependent_Cohesive::CalculateForces(const ProcessInfo& r_process_info,
@@ -96,6 +104,8 @@ namespace Kratos {
                                                           SphericParticle* element2,
                                                           bool& sliding,
                                                           double LocalCoordSystem[3][3]) {
+
+        KRATOS_TRY
 
         InitializeContact(element1, element2, indentation);
 
@@ -133,18 +143,25 @@ namespace Kratos {
         double& inelastic_viscodamping_energy = element1->GetInelasticViscodampingEnergy();
         DEM_D_Linear_viscous_Coulomb::CalculateInelasticViscodampingEnergyDEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
 
+        KRATOS_CATCH("")
     }
 
     double DEM_D_Stress_Dependent_Cohesive::CalculateStressDependentCohesiveNormalForce(SphericParticle* const element1,
-                                                                         SphericParticle* const element2,
-                                                                         const double normal_contact_force,
-                                                                         const double indentation,
-                                                                         const bool initial_time_step) {
+                                                                                        SphericParticle* const element2,
+                                                                                        const double normal_contact_force,
+                                                                                        const double indentation,
+                                                                                        const bool initial_time_step) {
+
+        KRATOS_TRY
 
         ContactInfoSphericParticle* p_element1 = dynamic_cast<ContactInfoSphericParticle*>(element1);
         ContactInfoSphericParticle* p_element2 = dynamic_cast<ContactInfoSphericParticle*>(element2);
 
-        double contact_area = CalculateContactArea(p_element1, p_element2, indentation);
+        const double radius = p_element1->GetRadius();
+        const double other_radius = p_element2->GetRadius();
+
+        double contact_area = 0.0;
+        CalculateIndentedContactArea(radius, other_radius, indentation, contact_area);
 
         double equiv_cohesion = 0.0;
         double equiv_amount_of_cohesion_from_stress = 0.5 * (p_element1->GetAmountOfCohesionFromStress() + p_element2->GetAmountOfCohesionFromStress());
@@ -164,23 +181,27 @@ namespace Kratos {
         const double cohesive_force = equiv_cohesion * contact_area;
 
         return cohesive_force;
+
+        KRATOS_CATCH("")
     }
 
     ///////////////////////////////////////
     //        DEM-FEM INTERACTION        //
     ///////////////////////////////////////
 
-    double DEM_D_Stress_Dependent_Cohesive::CalculateContactAreaWithFEM(SphericParticle* const element,
-                                                                        const double indentation,
-                                                                        const double ini_delta) {
+    void DEM_D_Stress_Dependent_Cohesive::CalculateIndentedContactAreaWithFEM(const double radius,
+                                                                              const double indentation,
+                                                                              double &calculation_area,
+                                                                              const double ini_delta) {
+
+        KRATOS_TRY
 
         //Get effective Radius
-        const double my_radius           = element->GetRadius(); //Get equivalent Radius
-        const double effective_radius    = my_radius - ini_delta;
+        const double effective_radius    = radius - ini_delta;
+        const double normalize_dist = radius / (radius - indentation);
+        calculation_area = Globals::Pi * effective_radius * effective_radius * normalize_dist;
 
-        const double normalize_dist = my_radius / (my_radius - indentation);
-
-        return Globals::Pi * effective_radius * effective_radius * normalize_dist;
+        KRATOS_CATCH("")
     }
 
     void DEM_D_Stress_Dependent_Cohesive::InitializeContactWithFEM(SphericParticle* const element,
@@ -188,8 +209,10 @@ namespace Kratos {
                                                                    const double indentation,
                                                                    const double ini_delta) {
 
+        KRATOS_TRY
+
         //Particle Radius
-        const double my_radius           = element->GetRadius(); //Get equivalent Radius
+        const double radius           = element->GetRadius();
 
         //Get equivalent Young's Modulus
         const double my_young            = element->GetYoung();
@@ -203,10 +226,13 @@ namespace Kratos {
         const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
         const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
 
-        double contact_area = CalculateContactAreaWithFEM(element, indentation);
+        double contact_area = 0.0;
+        CalculateIndentedContactAreaWithFEM(radius, indentation, contact_area);
 
-        mKn = contact_area * equiv_young / (my_radius - indentation);
+        mKn = contact_area * equiv_young / (radius - indentation);
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
+
+        KRATOS_CATCH("")
     }
 
     void DEM_D_Stress_Dependent_Cohesive::CalculateForcesWithFEM(ProcessInfo& r_process_info,
@@ -221,6 +247,8 @@ namespace Kratos {
                                                                  SphericParticle* const element,
                                                                  Condition* const wall,
                                                                  bool& sliding) {
+
+        KRATOS_TRY
 
         InitializeContactWithFEM(element, wall, indentation);
 
@@ -257,6 +285,8 @@ namespace Kratos {
 
         double& inelastic_viscodamping_energy = element->GetInelasticViscodampingEnergy();
         DEM_D_Linear_viscous_Coulomb::CalculateInelasticViscodampingEnergyFEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
+
+        KRATOS_CATCH("")
     }
 
     double DEM_D_Stress_Dependent_Cohesive::CalculateStressDependentCohesiveNormalForceWithFEM(SphericParticle* const element,
@@ -265,9 +295,14 @@ namespace Kratos {
                                                                                                const double indentation,
                                                                                                const bool initial_time_step) {
 
+        KRATOS_TRY
+
         ContactInfoSphericParticle* p_element = dynamic_cast<ContactInfoSphericParticle*>(element);
 
-        double contact_area = CalculateContactAreaWithFEM(p_element, indentation);
+        const double radius           = element->GetRadius();
+
+        double contact_area = 0.0;
+        CalculateIndentedContactAreaWithFEM(radius, indentation, contact_area);
 
         double equiv_cohesion = 0.0;
         double equiv_amount_of_cohesion_from_stress = p_element->GetAmountOfCohesionFromStress();
@@ -287,6 +322,8 @@ namespace Kratos {
         const double cohesive_force   = equiv_cohesion * contact_area;
 
         return cohesive_force;
+
+        KRATOS_CATCH("")
     }
 
 } // namespace Kratos

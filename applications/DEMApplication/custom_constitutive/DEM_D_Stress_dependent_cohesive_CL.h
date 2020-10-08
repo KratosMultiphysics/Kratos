@@ -32,13 +32,15 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        double CalculateContactArea(SphericParticle* const element1,
-                                    SphericParticle* const element2,
-                                    const double indentation);
+        void CalculateIndentedContactArea(const double radius,
+                                          const double other_radius,
+                                          const double indentation,
+                                          double &calculation_area);
 
-        double CalculateContactAreaWithFEM(SphericParticle* const element,
-                                           const double indentation,
-                                           const double ini_delta = 0.0);
+        void CalculateIndentedContactAreaWithFEM(const double radius,
+                                                 const double indentation,
+                                                 double &calculation_area,
+                                                 const double ini_delta = 0.0);
 
         void InitializeContact(SphericParticle* const element1,
                                SphericParticle* const element2,
