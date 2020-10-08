@@ -1,9 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 from KratosMultiphysics import KratosUnittest
-from KratosMultiphysics.MappingApplication import Mapper
 data_comm = KM.DataCommunicator.GetDefault()
-import mapper_test_case
 import os
 
 def GetFilePath(file_name):
