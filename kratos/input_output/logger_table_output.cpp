@@ -77,7 +77,7 @@ namespace Kratos
 
     if (column_index >= 0) { // The label found in columns
       MoveCursorToColumn(column_index);
-      auto message = TheMessage.GetMessage();
+      auto message = TheMessage.GetLoggerMessage();
       message.erase(message.find_last_not_of(" \n\t") + 1);
       this->GetStream()  << std::left << std::setw(mColumnsWidth[column_index]) << message;
     }
