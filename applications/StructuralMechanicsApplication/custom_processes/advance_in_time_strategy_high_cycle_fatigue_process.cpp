@@ -57,11 +57,11 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
         bool advancing_strategy = false;
         this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in 
                                                                         //terms of max stress and reversion factor variation.  
-        double increment = 0.0;
         if (advancing_strategy) {
+            double increment = 0.0;
             if (!process_info[DAMAGE_ACTIVATION]) {
                 this->TimeIncrement(increment);
-                if(increment > 0){
+                if(increment > 0.0){
                     this->TimeAndCyclesUpdate(increment);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 }

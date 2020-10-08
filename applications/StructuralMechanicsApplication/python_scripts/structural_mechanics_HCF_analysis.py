@@ -21,18 +21,17 @@ class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
         It can be overridden by derived classes
         """
         while self.KeepAdvancingSolutionLoop():
+            self.time = self._GetSolver().AdvanceInTime(self.time)
             process = SMA.AdvanceInTimeStrategyHighCycleFatigueProcess(self._GetSolver().GetComputingModelPart(), self.project_parameters)
             if self.project_parameters["fatigue"]["advancing_strategy"].GetBool():
                 process.Execute()
                 time_incr = self._GetSolver().GetComputingModelPart().ProcessInfo[SMA.TIME_INCREMENT]
                 self.time += time_incr
                 self._GetSolver().GetComputingModelPart().ProcessInfo[SMA.TIME_INCREMENT] = 0.0
-
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
-            self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
-            is_converged = self._GetSolver().SolveSolutionStep()
+            self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -45,7 +44,6 @@ class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
         for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
 
-        time = self.time
         interval = 0
         if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
             self.TimePreviousPlotting=0
