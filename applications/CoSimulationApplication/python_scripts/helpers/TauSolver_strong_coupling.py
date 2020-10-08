@@ -328,7 +328,7 @@ for i in range(n_steps):
                 print("###   step = " + str(step) + "   ###   ")
                 print("###   sub_step = " + str(sub_step + 1) + "   ###   ")
                 print("#################################")
-            tau_parallel_sync
+            tau_parallel_sync()
             InnerLoop(advanceTime, sub_step, factor)
             print("first_iteration ", first_iteration)
 
