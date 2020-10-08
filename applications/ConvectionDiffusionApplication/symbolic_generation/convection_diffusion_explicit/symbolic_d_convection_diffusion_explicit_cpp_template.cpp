@@ -155,7 +155,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
         }
     }
     else {
-        KRATOS_ERROR << "Variable not implemented to compute OSS projection. Use SCALAR_PROJECTION instead." << std::endl;
+        BaseType::Calculate(rVariable,Output,rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("");
