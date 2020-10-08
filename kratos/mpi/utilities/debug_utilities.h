@@ -35,18 +35,18 @@ public:
 
     MpiDebugUtilities() {}
 
-    template <class T, class... Ts>
-    struct is_any : std::integral_constant<bool, (std::is_same<T, Ts>::value || ...)> {};
+    /* ==== Enable this once we move to C++17 ==== */
+    // template <class T, class... Ts>
+    // struct is_any : std::integral_constant<bool, (std::is_same<T, Ts>::value || ...)> {};
 
-    template<class TVarType> struct is_kratos_single_variable : is_any<TVarType, KRATOS_SINGLE_VARIABLE_TYPES> {};
-    template<class TVarType> struct is_kratos_bounded_vector_variable : is_any<TVarType, KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES> {};
-    template<class TVarType> struct is_kratos_unbounded_vector_variable : is_any<TVarType, KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES> {};
+    // template<class TVarType> struct is_kratos_single_variable : is_any<TVarType, KRATOS_SINGLE_VARIABLE_TYPES> {};
+    // template<class TVarType> struct is_kratos_bounded_vector_variable : is_any<TVarType, KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES> {};
+    // template<class TVarType> struct is_kratos_unbounded_vector_variable : is_any<TVarType, KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES> {};
 
-    template<class TVarType, class TReturnType> using EnalbeIfSingle = typename std::enable_if<is_kratos_single_variable<TVarType>::value, TReturnType>::type;
-    template<class TVarType, class TReturnType> using EnalbeIfBoundedVector = typename std::enable_if<is_kratos_bounded_vector_variable<TVarType>::value, TReturnType>::type;
-    template<class TVarType, class TReturnType> using EnalbeIfUnbounedVector = typename std::enable_if<is_kratos_unbounded_vector_variable<TVarType>::value, TReturnType>::type;
+    // template<class TVarType, class TReturnType> using EnalbeIfSingle = typename std::enable_if<is_kratos_single_variable<TVarType>::value, TReturnType>::type;
+    // template<class TVarType, class TReturnType> using EnalbeIfBoundedVector = typename std::enable_if<is_kratos_bounded_vector_variable<TVarType>::value, TReturnType>::type;
+    // template<class TVarType, class TReturnType> using EnalbeIfUnbounedVector = typename std::enable_if<is_kratos_unbounded_vector_variable<TVarType>::value, TReturnType>::type;
 
-    // This will work with #5091 or when we move to C++17
     // static void CheckNodalHistoricalDatabase(ModelPart & rModelPart) { 
     //     // Build the list of indices and the pointer communicator
     //     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
@@ -69,23 +69,78 @@ public:
     //         CheckNodalHistoricalVariable(rModelPart, variable, pointer_comm, gp_map);
     //     }
     // }
+    /* ==== Enable this once we move to C++17 ==== */
 
     // Non historical Variables
-
-    template<class TVarType>
-    static EnalbeIfSingle<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
+    static bool InteralCmpEq(const bool& rVar1, const bool& rVar2) 
     {
         return rVar1 == rVar2;
     }
 
-    template<class TVarType>
-    static EnalbeIfBoundedVector<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
+    static bool InteralCmpEq(const int& rVar1, const int& rVar2) 
     {
-        for(typename TVarType::array_type::size_type i = 0; i < std::tuple_size<typename TVarType::array_type>::value; i++) {
+        return rVar1 == rVar2;
+    }
+
+    static bool InteralCmpEq(const unsigned int& rVar1, const unsigned int& rVar2) 
+    {
+        return rVar1 == rVar2;
+    }
+
+    static bool InteralCmpEq(const double& rVar1, const double& rVar2) 
+    {
+        return rVar1 == rVar2;
+    }
+
+    static bool InteralCmpEq(const array_1d<double,3>& rVar1, const array_1d<double,3>& rVar2) 
+    {
+        for(int i = 0; i < 3; i++) {
             if(rVar1[i] != rVar2[i]) return false;
         }
         return true;
     }
+
+    static bool InteralCmpEq(const array_1d<double,4>& rVar1, const array_1d<double,4>& rVar2) 
+    {
+        for(int i = 0; i < 4; i++) {
+            if(rVar1[i] != rVar2[i]) return false;
+        }
+        return true;
+    }
+
+    static bool InteralCmpEq(const array_1d<double,6>& rVar1, const array_1d<double,6>& rVar2) 
+    {
+        for(int i = 0; i < 6; i++) {
+            if(rVar1[i] != rVar2[i]) return false;
+        }
+        return true;
+    }
+
+    static bool InteralCmpEq(const array_1d<double,9>& rVar1, const array_1d<double,9>& rVar2) 
+    {
+        for(int i = 0; i < 9; i++) {
+            if(rVar1[i] != rVar2[i]) return false;
+        }
+        return true;
+    }
+
+    /* ==== Enable this once we move to C++17 ==== */
+    // This will prevent having to specialize the functions inline and also will make them generic to all types having traits.
+    // template<class TVarType>
+    // static EnalbeIfSingle<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
+    // {
+    //     return rVar1 == rVar2;
+    // }
+
+    // template<class TVarType>
+    // static EnalbeIfBoundedVector<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
+    // {
+    //     for(typename TVarType::array_type::size_type i = 0; i < std::tuple_size<typename TVarType::array_type>::value; i++) {
+    //         if(rVar1[i] != rVar2[i]) return false;
+    //     }
+    //     return true;
+    // }
+    /* ==== Enable this once we move to C++17 ==== */
 
     template<class TVarType, class TContainerType>
     static void CheckNonHistoricalVariable(
