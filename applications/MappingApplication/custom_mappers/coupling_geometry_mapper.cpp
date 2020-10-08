@@ -291,22 +291,33 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     MappingMatrixType& rInterfaceMatrixProjected,
     const double scalingLimit)
 {
-    // // Performs scaling of projected mapping entries as per eqn25 Wang2016
-    // for (IndexType i = 0; i < rInterfaceMatrixSlave.size1(); ++i) {
-    //     double row_sum_slave = 0.0;
-    //     double row_sum_projector = 0.0;
+    // Performs scaling of projected mapping entries as per eqn25 Wang2016
 
-    //     for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j)
-    //         row_sum_slave += rInterfaceMatrixSlave(i, j);
+    // Get row sum vector of slave matrix
+    SparseSpaceType::VectorType unit_vector(SparseSpaceType::Size2(rInterfaceMatrixSlave));
+    SparseSpaceType::Set(unit_vector, 1.0);
+    SparseSpaceType::VectorType slave_row_sums_vector(SparseSpaceType::Size1(rInterfaceMatrixSlave));
+    SparseSpaceType::Mult(rInterfaceMatrixSlave, unit_vector, slave_row_sums_vector);
 
-    //     for (IndexType j = 0; j < rInterfaceMatrixProjected.size2(); ++j)
-    //         row_sum_projector += rInterfaceMatrixProjected(i, j);
+    // Get row sum vector of projected matrix
+    unit_vector.resize(SparseSpaceType::Size2(rInterfaceMatrixProjected));
+    SparseSpaceType::Set(unit_vector, 1.0);
+    SparseSpaceType::VectorType projected_row_sums_vector(SparseSpaceType::Size1(rInterfaceMatrixProjected));
+    SparseSpaceType::Mult(rInterfaceMatrixProjected, unit_vector, projected_row_sums_vector);
 
-    //     const double alpha = (row_sum_slave / row_sum_projector < scalingLimit)
-    //         ? row_sum_slave / row_sum_projector : scalingLimit;
-    //     for (IndexType j = 0; j < rInterfaceMatrixProjected.size2(); ++j)
-    //             rInterfaceMatrixProjected(i, j) *= alpha;
-    // }
+    // Loop over sparse rows of projected matrix and correct entries if needed
+    IndexType row_counter = 0;
+    for (auto row_it = rInterfaceMatrixProjected.begin1(); row_it != rInterfaceMatrixProjected.end1(); ++row_it)
+    {
+        if (std::abs(slave_row_sums_vector[row_counter]/ projected_row_sums_vector[row_counter] - 1.0) > 1e-15)
+        {
+            // Correct entries
+            const double alpha = (slave_row_sums_vector[row_counter] / projected_row_sums_vector[row_counter] < scalingLimit)
+                ? slave_row_sums_vector[row_counter] / projected_row_sums_vector[row_counter] : scalingLimit;
+            for (auto col_it = row_it.begin(); col_it != row_it.end(); ++row_it) (*col_it) *= alpha;
+        }
+        ++row_counter;
+    }
 }
 
 template<class TSparseSpace, class TDenseSpace>
