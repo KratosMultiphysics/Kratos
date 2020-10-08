@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics.python_solver import PythonSolver
@@ -13,7 +11,7 @@ def CreateSolver(model, custom_settings):
 class ShallowWaterBaseSolver(PythonSolver):
     def __init__(self, model, settings):  # Constructor of the class
         self._validate_settings_in_baseclass = True
-        super(ShallowWaterBaseSolver, self).__init__(model, settings)
+        super().__init__(model, settings)
 
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
@@ -237,7 +235,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             },
             "multigrid_settings"       : {}
         }""")
-        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def _ReplaceElementsAndConditions(self):

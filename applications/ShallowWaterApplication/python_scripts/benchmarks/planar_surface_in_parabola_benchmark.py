@@ -24,7 +24,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
 
         The base class validates the settings and sets the model_part, the variables and the benchmark_settings
         """
-        super(PlanarSurfaceInParabolaBenchmark, self).__init__(model, settings)
+        super().__init__(model, settings)
 
         self.h0 = self.benchmark_settings["depth"].GetDouble()
         self.a = self.benchmark_settings["amplitude"].GetDouble()
@@ -68,7 +68,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
     def Check(self):
         """This method checks if the input values have physical sense."""
 
-        super(PlanarSurfaceInParabolaBenchmark, self).Check()
+        super().Check()
         label = self.__class__.__name__
         if self.g <= 0:
             msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z component in the ProcessInfo."

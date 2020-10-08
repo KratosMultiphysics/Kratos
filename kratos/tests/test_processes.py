@@ -6,6 +6,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics import process_factory
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 import math
 import os
@@ -2060,6 +2061,73 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_X))
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Y))
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Z))
+
+    def test_FindGlobalNodalNeighboursProcess(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"), model_part)
+
+        process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part.GetCommunicator().GetDataCommunicator(), model_part)
+        process.Execute()
+
+        node_id_map = process.GetNeighbourIds(model_part.Nodes)
+
+        check_map = {
+            1: [2, 5],
+            2: [1, 3, 5, 6],
+            3: [2, 4, 6, 7],
+            4: [3, 7, 8],
+            5: [1, 2, 6, 9],
+            6: [2, 3, 5, 7, 9, 10],
+            7: [3, 4, 6, 8, 10, 11],
+            8: [4, 7, 11, 12],
+            9: [5, 6, 10, 13],
+            10: [6, 7, 9, 11, 13, 14],
+            11: [7, 8, 10, 12, 14, 15],
+            12: [8, 11, 15, 16],
+            13: [9, 10, 14],
+            14: [10, 11, 13, 15],
+            15: [11, 12, 14, 16],
+            16: [12, 15]
+        }
+
+        for node in model_part.Nodes:
+            self.assertEqual(node_id_map[node.Id], check_map[node.Id])
+
+    def test_FindGlobalNodalNeighboursForConditionsProcess(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"), model_part)
+
+        process = KratosMultiphysics.FindGlobalNodalNeighboursForConditionsProcess(model_part.GetCommunicator().GetDataCommunicator(), model_part)
+        process.Execute()
+
+        node_id_map = process.GetNeighbourIds(model_part.Nodes)
+
+        check_map = {
+            1: [2, 5],
+            2: [1, 3],
+            3: [2, 4],
+            4: [3, 8],
+            5: [1, 9],
+            6: [],
+            7: [],
+            8: [4, 12],
+            9: [5, 13],
+            10: [],
+            11: [],
+            12: [8, 16],
+            13: [9, 14],
+            14: [13, 15],
+            15: [14, 16],
+            16: [12, 15]
+        }
+
+        for node in model_part.Nodes:
+            self.assertEqual(node_id_map[node.Id], check_map[node.Id])
+
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]

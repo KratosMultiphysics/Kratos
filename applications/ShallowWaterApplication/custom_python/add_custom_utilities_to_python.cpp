@@ -32,26 +32,6 @@ namespace Kratos
 namespace Python
 {
 
-  void SetOriginMeshZCoordinate1(ReplicateModelPartUtility& rReplicateModelPartUtility)
-  {
-      rReplicateModelPartUtility.SetOriginMeshZCoordinate();
-  }
-
-  void SetOriginMeshZCoordinate2(ReplicateModelPartUtility& rReplicateModelPartUtility, Variable<double>& rVariable)
-  {
-      rReplicateModelPartUtility.SetOriginMeshZCoordinate(rVariable);
-  }
-
-  void SetDestinationMeshZCoordinate1(ReplicateModelPartUtility& rReplicateModelPartUtility)
-  {
-      rReplicateModelPartUtility.SetDestinationMeshZCoordinate();
-  }
-
-  void SetDestinationMeshZCoordinate2(ReplicateModelPartUtility& rReplicateModelPartUtility, Variable<double>& rVariable)
-  {
-      rReplicateModelPartUtility.SetDestinationMeshZCoordinate(rVariable);
-  }
-
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
     namespace py = pybind11;
@@ -86,12 +66,12 @@ namespace Python
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::NodesContainerType>)
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ElementsContainerType>)
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ConditionsContainerType>)
-        .def("ComputeVisualizationWaterHeight", &ShallowWaterUtilities::ComputeVisualizationWaterHeight)
-        .def("ComputeVisualizationWaterSurface", &ShallowWaterUtilities::ComputeVisualizationWaterSurface)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
+        .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
+        .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
@@ -107,10 +87,6 @@ namespace Python
         .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
-        .def("SetOriginMeshZCoordinate", SetOriginMeshZCoordinate1)
-        .def("SetOriginMeshZCoordinate", SetOriginMeshZCoordinate2)
-        .def("SetDestinationMeshZCoordinate", SetDestinationMeshZCoordinate1)
-        .def("SetDestinationMeshZCoordinate", SetDestinationMeshZCoordinate2)
         ;
 
     py::class_< PostProcessUtilities > (m, "PostProcessUtilities")
