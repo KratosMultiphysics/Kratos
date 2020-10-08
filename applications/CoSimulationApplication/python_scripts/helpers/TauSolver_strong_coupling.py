@@ -334,17 +334,15 @@ for i in range(n_steps):
 
             sub_step += 1
 
-	    if tau_mpi_rank() == 0 and not first_iteration:
-           	is_converged = CoSimIO.IsConverged(connection_name)
+            if tau_mpi_rank() == 0 and not first_iteration:
+                is_converged = CoSimIO.IsConverged(connection_name)
                 print("RECEIVING worked", is_converged)
             is_converged = comm.bcast(is_converged, 0)
 
-	    if factor < 0.99:
-           	factor += 0.1
+            if factor < 0.99:
+            factor += 0.1
 
-        first_iteration = False
-
-
+            first_iteration = False
 
     tau_parallel_sync()
     FinalizeSolutionStep()
