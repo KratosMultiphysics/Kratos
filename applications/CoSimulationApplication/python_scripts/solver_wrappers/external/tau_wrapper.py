@@ -134,8 +134,25 @@ class TAUWrapper(CoSimulationSolverWrapper):
     def SolveSolutionStep(self):
         print('TAUWrapper SolveSolutionStep')
         super().SolveSolutionStep()
+
+        wrapper_settings = self.settings["solver_wrapper_settings"]
+
+        for data_name in wrapper_settings["data_export_to_tau"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ExportData(data_config)
+
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.SolveSolutionStep)
+
+        for data_name in wrapper_settings["data_import_from_tau"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ImportData(data_config)
 
 
         print('TAUWrapper SolveSolutionStep End')

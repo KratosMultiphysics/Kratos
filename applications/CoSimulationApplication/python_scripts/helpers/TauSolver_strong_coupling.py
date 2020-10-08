@@ -105,7 +105,7 @@ def AdvanceInTime(current_time):
     advanceTime = True
     global step
     step += 1
-    
+
     Prep.run(write_dualgrid=1,free_primgrid=False)
     tau_parallel_sync()
     TauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
@@ -148,7 +148,7 @@ def SolveSolutionStep(advanceTime, sub_step):
 
     Solver.outer_loop()
     tau_parallel_sync()
- #   Solver.output() 
+ #   Solver.output()
     tau_solver_output_field()
     tau_parallel_sync()
     tau_solver_output_surface()
@@ -280,6 +280,12 @@ coupling_interface_imported = False
 
 
 def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
+    # Read displacements
+    ImportData(connection_name, "Upper_Interface_disp", factor)
+    ImportData(connection_name, "Lower_Interface_disp", factor)
+
+    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
+
     SolveSolutionStep(advanceTime, sub_step)
 
     if not coupling_interface_imported:
@@ -296,70 +302,6 @@ def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
     tau_parallel_sync()
     ExportData(connection_name, "Upper_Interface_force")
     ExportData(connection_name, "Lower_Interface_force")
-
-    # Read displacements
-    ImportData(connection_name, "Upper_Interface_disp", factor)
-    ImportData(connection_name, "Lower_Interface_disp", factor)
-
-    '''
-    #Para_origin_tip = PyPara.Parafile(para_path_tip)
-    #ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_tip)
-    #if tau_mpi_rank() == 0:
-    #    number_of_nodes = int(len(ids))
-    #    zero_displacements = np.zeros([number_of_nodes, 3])
-    #    TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"TIP")
-    #tau_parallel_sync
-
-    Para_origin_le = PyPara.Parafile(para_path_le)
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_le)
-    if tau_mpi_rank() == 0:
-        number_of_nodes = int(len(ids))
-        zero_displacements = np.zeros([number_of_nodes, 3])
-        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"LEADING_EDGE")
-    tau_parallel_sync
-
-    Para_origin_te = PyPara.Parafile(para_path_te)
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_te)
-    if tau_mpi_rank() == 0:
-        number_of_nodes = int(len(ids))
-        zero_displacements = np.zeros([number_of_nodes, 3])
-        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"TRAILING_EDGE")
-    tau_parallel_sync
-
-    Para_origin_root = PyPara.Parafile(para_path_root)
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_root)
-    if tau_mpi_rank() == 0:
-        number_of_nodes = int(len(ids))
-        zero_displacements = np.zeros([number_of_nodes, 3])
-        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"ROOT")
-    tau_parallel_sync
-
-    Para_origin_periodic_up = PyPara.Parafile(para_path_periodic_up)
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_periodic_up)
-    if tau_mpi_rank() == 0:
-        number_of_nodes = int(len(ids))
-        zero_displacements = np.zeros([number_of_nodes, 3])
-        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"PERIODIC_UP")
-    tau_parallel_sync
-
-    Para_origin_periodic_down = PyPara.Parafile(para_path_periodic_down)
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_periodic_down)
-    if tau_mpi_rank() == 0:
-        number_of_nodes = int(len(ids))
-        zero_displacements = np.zeros([number_of_nodes, 3])
-        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"PERIODIC_DOWN")
-    tau_parallel_sync
-
-    Para_origin_farfield = PyPara.Parafile(para_path_farfield)
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_farfield)
-    if tau_mpi_rank() == 0:
-        number_of_nodes = int(len(ids))
-        zero_displacements = np.zeros([number_of_nodes, 3])
-        TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, zero_displacements,"FARFIELD")
-    tau_parallel_sync
-   '''
-
-    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
 
     global step_mesh
     step_mesh += 1
@@ -434,9 +376,9 @@ tau("exit")
 #for i in dir(tau_python):
 #    print(i)
 
-    #tau_current_time = float(tau_solver_unsteady_get_physical_time())    
+    #tau_current_time = float(tau_solver_unsteady_get_physical_time())
     #print 'tau_current_time = ', tau_current_time
-    #print 'tau_time_step = ', tau_time_step    
+    #print 'tau_time_step = ', tau_time_step
     #advanced = tau_solver_unsteady_advance_time()
     #tau_solver_unsteady_advance_motion()
     #tau_current_time = float(tau_solver_unsteady_get_physical_time())
