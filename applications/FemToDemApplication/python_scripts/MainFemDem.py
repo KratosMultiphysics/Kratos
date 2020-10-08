@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import system python modules
 import time as timer
@@ -16,6 +15,9 @@ import KratosMultiphysics.gid_output_process as gid_output_process
 def Wait():
     input("Press Something")
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 class FEM_Solution(MainSolidFEM.Solution):
 
     def Info(self):
@@ -25,7 +27,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         KratosMultiphysics.Logger.Print(message, label="")
         KratosMultiphysics.Logger.Flush()
 #============================================================================================================================                    
-    def __init__(self, Model):
+    def __init__(self, Model, path = ""):
 
         #### TIME MONITORING START ####
         # Time control starts        
@@ -39,7 +41,11 @@ class FEM_Solution(MainSolidFEM.Solution):
         #### PARSING THE PARAMETERS ####
 
         # Import input
-        parameter_file = open("ProjectParameters.json",'r')
+        if path == "":
+            parameter_file = open("ProjectParameters.json",'r')
+        else:
+            parameter_file = open(path + "ProjectParameters.json")
+
         self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         # set echo level

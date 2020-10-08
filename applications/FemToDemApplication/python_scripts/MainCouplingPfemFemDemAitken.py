@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.FemToDemApplication as FEMDEM
@@ -21,8 +20,8 @@ def KratosPrintInfo(message):
 class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingPfemFemDem_Solution):
 #============================================================================================================================
 
-    def __init__(self, Model, PFEMparameters):
-        super(MainCouplingPfemFemDemAitken_Solution, self).__init__(Model, PFEMparameters)
+    def __init__(self, Model, PFEMparameters, path=""):
+        super(MainCouplingPfemFemDemAitken_Solution, self).__init__(Model, PFEMparameters, path)
 
         project_parameters = self.FEMDEM_Solution.FEM_Solution.ProjectParameters
         if (project_parameters.Has("Aitken_parameters")):
