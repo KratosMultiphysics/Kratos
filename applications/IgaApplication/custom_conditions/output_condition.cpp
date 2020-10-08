@@ -35,9 +35,9 @@ namespace Kratos
             rOutput.resize(integration_points.size());
         rOutput.clear();
 
-        for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         {
-            for (IndexType i = 0; i < nb_nodes; i++)
+            for (IndexType i = 0; i < nb_nodes; ++i)
             {
                 double output_solution_step_value = r_geometry[point_number].GetSolutionStepValue(rVariable);
                 rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
@@ -61,10 +61,10 @@ namespace Kratos
         if (rOutput.size() != integration_points.size())
             rOutput.resize(integration_points.size());
 
-        for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         {
             rOutput[point_number] = ZeroVector(3);
-            for (IndexType i = 0; i < nb_nodes; i++)
+            for (IndexType i = 0; i < nb_nodes; ++i)
             {
                 array_1d<double, 3> output_solution_step_value = r_geometry[point_number].GetSolutionStepValue(rVariable);
                 rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
