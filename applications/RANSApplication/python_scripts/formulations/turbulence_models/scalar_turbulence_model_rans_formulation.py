@@ -72,8 +72,8 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                                 "Created formulation model part.")
 
     def Initialize(self):
-        InitializeYPlusVariablesInConditions(self.GetModelPart())
-        CalculateNormalsOnConditions(self.GetModelPart())
+        InitializeYPlusVariablesInConditions(self.GetBaseModelPart())
+        CalculateNormalsOnConditions(self.GetBaseModelPart())
 
         settings = self.GetParameters()
 

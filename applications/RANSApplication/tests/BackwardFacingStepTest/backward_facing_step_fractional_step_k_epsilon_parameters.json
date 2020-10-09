@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "geometry",
         "parallel_type": "<PARALLEL_TYPE>",
-        "echo_level": 1,
+        "echo_level": 0,
         "start_time": 0.0,
         "end_time": 5
     },
@@ -87,7 +87,7 @@
                         "verbosity": 0
                     }
                 },
-                "echo_level": 2,
+                "echo_level": 0,
                 "coupling_settings": {
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
