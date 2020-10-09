@@ -219,7 +219,27 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
         rOutput.resize( r_integration_points.size() );
     }
 
-    if (rVariable == SHOCK_CAPTURING_VISCOSITY) {
+    if (rVariable == SHOCK_SENSOR) {
+        const double sc = this->GetValue(SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == DENSITY_SHOCK_SENSOR) {
+        const double sc = this->GetValue(DENSITY_SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == MOMENTUM_SHOCK_SENSOR) {
+        const double sc = this->GetValue(MOMENTUM_SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == TOTAL_ENERGY_SHOCK_SENSOR) {
+        const double sc = this->GetValue(TOTAL_ENERGY_SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == SHOCK_CAPTURING_VISCOSITY) {
         const double nu_sc = this->GetValue(SHOCK_CAPTURING_VISCOSITY);
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = nu_sc;
@@ -250,6 +270,16 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
         const auto& tot_ener_grad = this->GetValue(TOTAL_ENERGY_GRADIENT);
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = tot_ener_grad;
+        }
+    } else if (rVariable == DENSITY_GRADIENT) {
+        const auto& rho_grad = this->GetValue(DENSITY_GRADIENT);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = rho_grad;
+        }
+    } else if (rVariable == PRESSURE_GRADIENT) {
+        const auto& pres_grad = this->GetValue(PRESSURE_GRADIENT);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = pres_grad;
         }
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
