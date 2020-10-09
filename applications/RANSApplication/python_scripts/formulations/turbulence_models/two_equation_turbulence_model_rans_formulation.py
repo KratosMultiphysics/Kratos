@@ -41,7 +41,7 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             elif (scheme_type == "bdf2" or scheme_type == "bossak"):
                 self.is_steady_simulation = False
                 default_settings = Kratos.Parameters('''{
-                    "scheme_type": "transient",
+                    "scheme_type": "PLEASE_SPECIFY_SCHEME_TYPE",
                     "alpha_bossak": -0.3
                 }''')
                 settings.ValidateAndAssignDefaults(default_settings)
@@ -62,6 +62,7 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         for iteration in range(max_iterations):
             self.nu_t_convergence_utility.InitializeCalculation()
 
+            self.ExecuteBeforeCouplingSolveStep()
             for formulation in self.GetRansFormulationsList():
                 if (not formulation.SolveCouplingStep()):
                     return False
@@ -70,13 +71,11 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             relative_error, absolute_error = self.nu_t_convergence_utility.CalculateDifferenceNorm()
             info = GetConvergenceInfo(Kratos.TURBULENT_VISCOSITY, relative_error, relative_tolerance, absolute_error, absolute_tolerance)
             Kratos.Logger.PrintInfo(self.__class__.__name__ + " CONVERGENCE", info)
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. {:d}/{:d}.".format(iteration + 1, max_iterations))
 
             is_converged = relative_error < relative_tolerance or absolute_error < absolute_tolerance
             if (is_converged):
                 Kratos.Logger.PrintInfo(self.__class__.__name__ + " CONVERGENCE", "TURBULENT_VISCOSITY *** CONVERGENCE ACHIEVED ***")
-
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. {:d}/{:d}.".format(iteration + 1, max_iterations))
-            if (is_converged):
                 return True
 
         return True

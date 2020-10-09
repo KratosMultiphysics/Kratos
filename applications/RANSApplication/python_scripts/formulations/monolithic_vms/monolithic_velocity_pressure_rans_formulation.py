@@ -176,6 +176,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         if (self.IsBufferInitialized()):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
+                self.ExecuteBeforeCouplingSolveStep()
                 self.solver.Predict()
                 _ = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()

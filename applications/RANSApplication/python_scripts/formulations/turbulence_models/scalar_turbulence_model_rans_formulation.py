@@ -117,8 +117,10 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
 
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
+            self.ExecuteBeforeCouplingSolveStep()
             self.solver.Predict()
             self.solver.SolveSolutionStep()
+            self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved  formulation.")
             return True
 
