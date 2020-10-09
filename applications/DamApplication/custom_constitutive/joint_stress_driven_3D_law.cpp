@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-int JointStressDriven3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int JointStressDriven3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 {
     // Verify ProcessInfo variables
     KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);

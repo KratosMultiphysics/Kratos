@@ -467,10 +467,10 @@ class TestParameters(KratosUnittest.TestCase):
     def test_is_methods(self):
         # This method checks all the "IsXXX" Methods
         tmp = Parameters("""{
-            "int_value" : 10,
-            "double_value": 2.0,
-            "bool_value" : true,
-            "string_value" : "hello",
+            "int_value" : 10, /* This is comment to check that comments work */
+            "double_value": 2.0, // This is comment too, but using another comment
+            "bool_value" : true, // This is another comment being meta as realizing that all the possibilities are already check
+            "string_value" : "hello",/* This is a nihilist comment about the futile existence of the previous comment as a metacomment */
             "vector_value" : [5,3,4],
             "matrix_value" : [[1,2],[3,6]]
         }""") # if you add more values to this, make sure to add the corresponding in the loop
