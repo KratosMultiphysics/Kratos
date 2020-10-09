@@ -7,7 +7,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Sergio Jimenez/Alejandro Cornejo/Lucia Barbu
-//  Collaborator:    
+//  Collaborator:
 //
 
 #if !defined(KRATOS_GENERIC_SMALL_STRAIN_HIGH_CYCLE_FATIGUE_LAW_H_INCLUDED)
@@ -30,7 +30,7 @@ namespace Kratos
 
 // The size type definition
 typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -63,16 +63,16 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
-    
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainHighCycleFatigueLaw);
 
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
-    
+
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -90,7 +90,7 @@ public:
     {
     }
 
-    GenericSmallStrainHighCycleFatigueLaw(  const double FatigueReductionFactor, 
+    GenericSmallStrainHighCycleFatigueLaw(  const double FatigueReductionFactor,
                                             const double PreviousStress0,
                                             const double PreviousStress1,
                                             const double MaxStress,
@@ -122,15 +122,15 @@ public:
     GenericSmallStrainHighCycleFatigueLaw(const GenericSmallStrainHighCycleFatigueLaw &rOther)
         : GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>(rOther),
             mFatigueReductionFactor(rOther.mFatigueReductionFactor),
-            mPreviousStresses(rOther.mPreviousStresses), 
-            mMaxStress(rOther.mMaxStress), 
-            mMinStress(rOther.mMinStress),  
-            mPreviousMaxStress(rOther.mPreviousMaxStress),  
-            mPreviousMinStress(rOther.mPreviousMinStress),  
-            mNumberOfCyclesGlobal(rOther.mNumberOfCyclesGlobal), 
-            mNumberOfCyclesLocal(rOther.mNumberOfCyclesLocal), 
-            mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
-            mStressVector(rOther.mStressVector), 
+            mPreviousStresses(rOther.mPreviousStresses),
+            mMaxStress(rOther.mMaxStress),
+            mMinStress(rOther.mMinStress),
+            mPreviousMaxStress(rOther.mPreviousMaxStress),
+            mPreviousMinStress(rOther.mPreviousMinStress),
+            mNumberOfCyclesGlobal(rOther.mNumberOfCyclesGlobal),
+            mNumberOfCyclesLocal(rOther.mNumberOfCyclesLocal),
+            mFatigueReductionParameter(rOther.mFatigueReductionParameter),
+            mStressVector(rOther.mStressVector),
             mMaxDetected(rOther.mMaxDetected),
             mMinDetected(rOther.mMinDetected),
             mWohlerStress(rOther.mWohlerStress)
@@ -186,8 +186,8 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<bool>& rThisVariable, 
-        const bool& Value, 
+        const Variable<bool>& rThisVariable,
+        const bool& Value,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -197,7 +197,7 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<int>& rThisVariable, 
+        const Variable<int>& rThisVariable,
         const int& rValue,
         const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -208,7 +208,7 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<double>& rThisVariable, 
+        const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -219,7 +219,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     bool& GetValue(
-        const Variable<bool>& rThisVariable, 
+        const Variable<bool>& rThisVariable,
         bool& rValue) override;
 
     /**
@@ -229,7 +229,7 @@ public:
      * @return rValue output: the value of the specified variable
      */
     int& GetValue(
-        const Variable<int>& rThisVariable, 
+        const Variable<int>& rThisVariable,
         int& rValue) override;
 
     /**
@@ -239,7 +239,7 @@ public:
      * @return rValue output: the value of the specified variable
      */
     double& GetValue(
-        const Variable<double>& rThisVariable, 
+        const Variable<double>& rThisVariable,
         double& rValue) override;
 
     /**
@@ -298,7 +298,7 @@ protected:
     ///@{
 
     ///@}
-    
+
     ///@name Protected member Variables
     ///@{
 
@@ -328,7 +328,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    ///@}    
+    ///@}
     ///@name Access
     ///@{
     Vector GetStressVector() {return mStressVector;}
@@ -349,14 +349,13 @@ private:
     bool mMaxDetected = false; // Maximum's indicator in the current cycle
     bool mMinDetected = false; // Minimum's indicator in the current cycle
     double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
-    double mReversionFactorRelativeError = 0.0; 
-    double mMaxStressRelativeError = 0.0; 
-    bool mNewCycleIndicator = 0; 
-    double mCyclesToFailure = 0.0;
-    double mPreviousCycleTime = 0.0;
-    double mPeriod = 0.0;
-    double mThresholdStress = 0.0;
-    unsigned int mCyclesAfterAdvanceStrategy = 0;
+    double mThresholdStress = 0.0; // Endurance limit of the fatigue model.
+    double mReversionFactorRelativeError = 0.0; // Relative error of the R = Smin / Smax between cycles inducing recalculation of Nlocal and advanciing process.
+    double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advanciing process.
+    bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process.
+    double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
+    double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
 
     ///@}
     ///@name Private Operators
@@ -391,7 +390,12 @@ private:
         rSerializer.save("MinDetected", mMinDetected);
         rSerializer.save("WohlerStress", mWohlerStress);
         rSerializer.save("ThresholdStress", mThresholdStress);
-        rSerializer.save("CyclesAfterAdvanceStrategy", mCyclesAfterAdvanceStrategy);
+        rSerializer.save("ReversionFactorRelativeError", mReversionFactorRelativeError);
+        rSerializer.save("MaxStressRelativeError", mMaxStressRelativeError);
+        rSerializer.save("NewCycleIndicator", mNewCycleIndicator);
+        rSerializer.save("CyclesToFailure", mCyclesToFailure);
+        rSerializer.save("PreviousCycleTime", mPreviousCycleTime);
+        rSerializer.save("Period", mPeriod);
     }
 
     void load(Serializer &rSerializer) override
@@ -411,7 +415,12 @@ private:
         rSerializer.load("MinDetected", mMinDetected);
         rSerializer.load("WohlerStress", mWohlerStress);
         rSerializer.load("ThresholdStress", mThresholdStress);
-        rSerializer.load("CyclesAfterAdvanceStrategy", mCyclesAfterAdvanceStrategy);
+        rSerializer.load("ReversionFactorRelativeError", mReversionFactorRelativeError);
+        rSerializer.load("MaxStressRelativeError", mMaxStressRelativeError);
+        rSerializer.load("NewCycleIndicator", mNewCycleIndicator);
+        rSerializer.load("CyclesToFailure", mCyclesToFailure);
+        rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
+        rSerializer.load("Period", mPeriod);
     }
     ///@}
 

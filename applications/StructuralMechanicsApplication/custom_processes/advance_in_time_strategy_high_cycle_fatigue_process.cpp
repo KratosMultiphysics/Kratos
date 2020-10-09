@@ -31,10 +31,9 @@ namespace Kratos
 
 void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
 {
-    
+
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
-    std::vector<bool> cycle_identificator;
     std::vector<double> damage;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
 
@@ -50,13 +49,13 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
         }
     }
 
-    this->CyclePeriodPerIntegrationPoint(cycle_found);  //This method detects if a cycle has finished somewhere in the model and 
+    this->CyclePeriodPerIntegrationPoint(cycle_found);  //This method detects if a cycle has finished somewhere in the model and
                                                         //computes the time period of the cycle that has just finished.
-    
+
     if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
         bool advancing_strategy = false;
-        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in 
-                                                                        //terms of max stress and reversion factor variation.  
+        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in
+                                                                        //terms of max stress and reversion factor variation.
         if (advancing_strategy) {
             double increment = 0.0;
             if (!process_info[DAMAGE_ACTIVATION]) {
@@ -67,8 +66,8 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
                 }
             } else {
                 double increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
-                this->TimeAndCyclesUpdate(increment);   
-                process_info[ADVANCE_STRATEGY_APPLIED] = true;             
+                this->TimeAndCyclesUpdate(increment);
+                process_info[ADVANCE_STRATEGY_APPLIED] = true;
             }
         }
     }
@@ -77,31 +76,31 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeStrategyHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& rCycleFound) 
+void AdvanceInTimeStrategyHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& rCycleFound)
 {
     auto& process_info = mrModelPart.GetProcessInfo();
-    std::vector<bool> cycle_identificator;
+    std::vector<bool> cycle_identifier;
     std::vector<double> previous_cycle_time;    //time when the previous cycle finished. It is used to obtain the new period for the current cycle
     std::vector<double> period;
     double time = process_info[TIME];
-    
+
     for (auto& r_elem : mrModelPart.Elements()) {
 
-        r_elem.CalculateOnIntegrationPoints(CYCLE_INDICATOR, cycle_identificator, process_info);
+        r_elem.CalculateOnIntegrationPoints(CYCLE_INDICATOR, cycle_identifier, process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
 
 		const unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
-        
+
         // Check if the HCF CL is being used. Otherwise there is no reason for entering into the advance in time strategy
         std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
         r_elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
 
         const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
-        
+
         if (is_fatigue){
             for (unsigned int i = 0; i < number_of_ip; i++){
-                    if (cycle_identificator[i]){
+                    if (cycle_identifier[i]){
                         period[i] = time - previous_cycle_time[i];
                         previous_cycle_time[i] = time;
                         rCycleFound = true;
@@ -109,14 +108,14 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::CyclePeriodPerIntegrationPoin
             }
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
             r_elem.SetValuesOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
-        }    
+        }
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeStrategyHighCycleFatigueProcess::StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool DamageIndicator) 
+void AdvanceInTimeStrategyHighCycleFatigueProcess::StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool DamageIndicator)
 {
     rAdvancingStrategy = false;
     auto& process_info = mrModelPart.GetProcessInfo();
@@ -124,17 +123,17 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::StableConditionForAdvancingSt
     std::vector<double> rev_factor_rel_error;
     std::vector<double> s_th;
     std::vector<double> max_stress;
-    
+
     double acumulated_max_stress_rel_error = 0.0;
     double acumulated_rev_factor_rel_error = 0.0;
     bool fatigue_in_course = false;
-    for (auto& r_elem : mrModelPart.Elements()) {   //This loop is done for all the integration points even if the cycle has not changed 
+    for (auto& r_elem : mrModelPart.Elements()) {   //This loop is done for all the integration points even if the cycle has not changed
                                                     //in order to guarantee the stable condition in the WHOLE model (when Smax > Sth)
         r_elem.Id();
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS_RELATIVE_ERROR, max_stress_rel_error, process_info);
         r_elem.CalculateOnIntegrationPoints(REVERSION_FACTOR_RELATIVE_ERROR, rev_factor_rel_error, process_info);
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
-        r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);        
+        r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
 
         const unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         for (unsigned int i = 0; i < number_of_ip; i++){
@@ -153,7 +152,7 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::StableConditionForAdvancingSt
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeIncrement(double& rIncrement) 
+void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
 {
     auto& process_info = mrModelPart.GetProcessInfo();
     std::vector<double>  cycles_to_failure_element;
@@ -168,7 +167,6 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeIncrement(double& rIncrem
     double user_avancing_time = mThisParameters["fatigue"]["advancing_strategy_time"].GetDouble();
     double user_avancing_cycles = mThisParameters["fatigue"]["advancing_strategy_cycles"].GetDouble();
     std::vector<std::string> constraints_list = mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
-    
     double model_part_final_time = mThisParameters["problem_data"]["end_time"].GetDouble();
     for (unsigned int i = 0; i < constraints_list.size(); i++){
         for (unsigned int j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++){
@@ -187,8 +185,8 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeIncrement(double& rIncrem
     double model_part_advancing_time = model_part_final_time - time;
     min_time_increment = std::min(user_avancing_time, model_part_advancing_time);
     for (auto& r_elem : mrModelPart.Elements()) {
-        r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info); 
-        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info); 
+        r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
+        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
@@ -212,7 +210,7 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeIncrement(double& rIncrem
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeAndCyclesUpdate(double Increment) 
+void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeAndCyclesUpdate(double Increment)
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
     std::vector<int>  local_number_of_cycles;
@@ -222,8 +220,8 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeAndCyclesUpdate(double In
     std::vector<double> previous_cycle_time;    //time when the previous cycle finished. It is used to obtain the new period for the current cycle
 
     for (auto& r_elem : mrModelPart.Elements()) {
-        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info); 
-        r_elem.CalculateOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info); 
+        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
+        r_elem.CalculateOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, r_process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
 

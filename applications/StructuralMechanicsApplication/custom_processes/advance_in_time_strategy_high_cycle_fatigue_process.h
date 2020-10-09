@@ -55,7 +55,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)AdvanceInTimeStrategyHighCycle
     ///@{
 
 protected:
-    
+
 
 public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -76,15 +76,15 @@ public:
     void Execute() override;
 
     /**
-     * @brief This method computes the cycle time period per integration point 
-     * @param rCycleFound Bool variable indicating that a cycle has overcome at some integration point 
+     * @brief This method computes the cycle time period per integration point
+     * @param rCycleFound Bool variable indicating that a cycle has overcome at some integration point
      */
     void CyclePeriodPerIntegrationPoint(bool& rCycleFound);
 
     /**
      * @brief This method stablishes if stable conditions have been reached for initiating the advance strategy
      * @param rAdvancingStrategy Bool variable indicating weather advancing strategy will start or not
-     * @param DamageIndicator Bool variable indicating that damage has iniciated at some point 
+     * @param DamageIndicator Bool variable indicating that damage has iniciated at some point
      */
     void StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool DamageIndicator);
 

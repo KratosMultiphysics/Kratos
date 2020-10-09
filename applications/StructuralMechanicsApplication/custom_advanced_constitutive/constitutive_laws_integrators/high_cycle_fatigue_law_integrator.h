@@ -27,7 +27,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -91,16 +91,16 @@ public:
     /**
      * @brief This method checks and saves the previous stress state if it was a maximum or a minimum.
      * @param CurrentStress Equivalent stress in the current step.
-     * @param rMaximumStress Maximum stress. 
-     * @param rMinimumStress Minimum stress. 
-     * @param PreviousStresses Equivalent stresses in the two previous steps. 
-     * @param rMaxIndicator Indicator of a maximum in the current cycle. 
-     * @param rMinIndicator Indicator of a minimum in the current cycle. 
+     * @param rMaximumStress Maximum stress.
+     * @param rMinimumStress Minimum stress.
+     * @param PreviousStresses Equivalent stresses in the two previous steps.
+     * @param rMaxIndicator Indicator of a maximum in the current cycle.
+     * @param rMinIndicator Indicator of a minimum in the current cycle.
      */
     static void CalculateMaximumAndMinimumStresses(
         const double CurrentStress,
-        double& rMaximumStress, 
-        double& rMinimumStress,  
+        double& rMaximumStress,
+        double& rMinimumStress,
         const Vector PreviousStresses,
         bool& rMaxIndicator,
         bool& rMinIndicator)
@@ -119,10 +119,10 @@ public:
     }
 
     /**
-     * @brief This method checks if the global stress state is tension or compression; -1 for a generalized compression state and 1 for a generalized tensile state. 
+     * @brief This method checks if the global stress state is tension or compression; -1 for a generalized compression state and 1 for a generalized tensile state.
      * @param StressVector Current predictive stress tensor.
      */
-    static double CalculateTensionCompressionFactor(const Vector& rStressVector) 
+    static double CalculateTensionCompressionFactor(const Vector& rStressVector)
     {
         array_1d<double,3> principal_stresses;
         ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stresses, rStressVector);
@@ -144,9 +144,9 @@ public:
     }
 
     /**
-     * @brief This method returns de reversion factor 
+     * @brief This method returns de reversion factor
      * @param MaxStress Signed maximum equivalent stress in the current cycle.
-     * @param MinStress Signed minimum equivalent stress in the current cycle. 
+     * @param MinStress Signed minimum equivalent stress in the current cycle.
      */
     static double CalculateReversionFactor(const double MaxStress, const double MinStress)
     {
@@ -154,12 +154,12 @@ public:
     }
 
     /**
-     * @brief This method computes internal variables (B0, Sth and ALPHAT) of the CL  
+     * @brief This method computes internal variables (B0, Sth and ALPHAT) of the CL
      * @param MaxStress Signed maximum stress in the current cycle.
      * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
      * @param MaterialParameters Material properties.
      * @param rB0 Internal variable of the fatigue model.
-     * @param rSth Internal variable of the fatigue model of the fatigue model. 
+     * @param rSth Endurance limit of the fatigue model.
      * @param rAlphat Internal variable of the fatigue model.
      */
     static void CalculateFatigueParameters(const double MaxStress,
@@ -175,7 +175,7 @@ public:
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
         const double Se = r_fatigue_coefficients[0] * yield_stress;
-        const double STHR1 = r_fatigue_coefficients[1];  
+        const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
         const double ALFAF = r_fatigue_coefficients[3];
         const double BETAF = r_fatigue_coefficients[4];
@@ -198,7 +198,7 @@ public:
     }
 
     /**
-     * @brief This method computes the reduction factor and the wohler stress (SN curve) 
+     * @brief This method computes the reduction factor and the wohler stress (SN curve)
      * @param MaterialParameters Material properties.
      * @param MaxStress Signed maximum stress in the current cycle.
      * @param LocalNumberOfCycles Number of cycles in the current load.

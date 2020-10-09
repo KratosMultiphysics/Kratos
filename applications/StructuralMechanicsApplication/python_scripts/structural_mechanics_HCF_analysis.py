@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
@@ -9,8 +7,7 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 
 class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
     """
-    This class is used to complement the structurea_mechanics_analysis 
-    
+    This class is used to complement the structurea_mechanics_analysis
     when using the HCF constitutive law
     """
     def __init__(self, model, project_parameters):
@@ -70,11 +67,10 @@ class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
                     strain_vector = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.main_model_part.ProcessInfo)
                     wohler_stress = elem.CalculateOnIntegrationPoints(SMA.WOHLER_STRESS, self.main_model_part.ProcessInfo)
                     yield_stress = self.main_model_part.GetProperties()[1][KratosMultiphysics.YIELD_STRESS]
-                    
+
                     if first_code_line == True:
-                        plot_file.write("    " + "id_for_print".rjust(20) + "    " + "{0:.4e}".format(id_for_print).rjust(20) +  "\n")    
-                        plot_file.write("    " + "self.time".rjust(20) + "    " + "N_c GLOBAL".rjust(20) + "    " + "N_c LOCAL".rjust(20) + "    " + "uniaxial_stresses".rjust(20) + "    " + "damage".rjust(20) + "    " + "f_red".rjust(20) + "    " + "wohler_stress".rjust(20) + "    " + "strain_vector".rjust(20) + "    " + "stress_tensor".rjust(20) + "    " + "stress_tensor_norm".rjust(20) + "    " + "uniaxial_stress_norm".rjust(20) + "\n")    
-                    
+                        plot_file.write("    " + "id_for_print".rjust(20) + "    " + "{0:.4e}".format(id_for_print).rjust(20) +  "\n")
+                        plot_file.write("    " + "self.time".rjust(20) + "    " + "N_c GLOBAL".rjust(20) + "    " + "N_c LOCAL".rjust(20) + "    " + "uniaxial_stresses".rjust(20) + "    " + "damage".rjust(20) + "    " + "f_red".rjust(20) + "    " + "wohler_stress".rjust(20) + "    " + "strain_vector".rjust(20) + "    " + "stress_tensor".rjust(20) + "    " + "stress_tensor_norm".rjust(20) + "    " + "uniaxial_stress_norm".rjust(20) + "\n")
                     plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.14e}".format(uniaxial_stresses[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(wohler_stress[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(strain_vector[id_gauss_point][0,0]).rjust(20) + "   " + "{0:.4e}".format(stress_tensor[id_gauss_point][0,0]).rjust(20) + "   " + "{0:.4e}".format(stress_tensor[id_gauss_point][0,0] / yield_stress).rjust(20) + "   " + "{0:.4e}".format(uniaxial_stresses[id_gauss_point] / yield_stress).rjust(20) + "\n")
                     plot_file.close()
 
@@ -83,6 +79,5 @@ class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
                 if node.Id == id_for_print:
                     plot_file = open("PlotNode.txt","a")
                     displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-
                     plot_file.write("    " + "{0:.4e}".format(self.time).rjust(11) + "    " + "{0:.4e}".format(displacement[0]).rjust(11) + "\n")
                     plot_file.close()
