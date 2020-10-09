@@ -32,7 +32,7 @@ Parameters VtkOutput::GetDefaultParameters()
     Parameters default_parameters = Parameters(R"(
     {
         "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "file_format"                                 : "ascii",
+        "file_format"                                 : "binary",
         "output_precision"                            : 7,
         "output_control_type"                         : "step",
         "output_interval"                             : 1.0,
