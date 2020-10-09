@@ -46,7 +46,7 @@ public:
         return 3;
     }
 
-    static const IntegrationPointsArrayType IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.5 , 0.5 , 1.00 / 3.00 ),
@@ -90,7 +90,7 @@ public:
         return 4;
     }
 
-    static const IntegrationPointsArrayType IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , -0.562500000000000 ),
@@ -135,7 +135,7 @@ public:
         return 6;
     }
 
-    static const IntegrationPointsArrayType IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.816847572980459 , 0.091576213509771 , 0.109951743655322 ),
@@ -182,7 +182,7 @@ public:
         return 7;
     }
 
-    static const IntegrationPointsArrayType IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , 0.225000000000000 ),
@@ -230,7 +230,7 @@ public:
         return 12;
     }
 
-    static const IntegrationPointsArrayType IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.873821971016996 , 0.063089014491502 , 0.050844906370207 ),
@@ -283,7 +283,7 @@ public:
         return 13;
     }
 
-    static const IntegrationPointsArrayType IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , -0.149570044467670 ),

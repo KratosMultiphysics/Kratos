@@ -46,7 +46,7 @@ public:
         return 2;
     }
 
-    static const IntegrationPointsArrayType IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( -1.00 , 0.00, 1.00 ),
@@ -88,7 +88,7 @@ public:
         return 4;
     }
 
-    static const IntegrationPointsArrayType IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( -1.00 , -1.00, 0.50 ),
