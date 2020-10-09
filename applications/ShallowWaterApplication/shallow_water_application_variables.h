@@ -19,10 +19,9 @@
 // External includes
 
 // Project includes
+#include "containers/variable.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 
 namespace Kratos
 {
@@ -52,8 +51,6 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, DRY_DISCHARGE_PENALTY)     // Dry domain penalty for the specific discharge
 
     // Post-process variables
-    KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, WATER_HEIGHT)              // For visualization purpose
-    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(SHALLOW_WATER_APPLICATION, WATER_SURFACE)  // For visualization purpose, equivalent to free surface
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(SHALLOW_WATER_APPLICATION, TOPOGRAPHY_GRADIENT)
 
     // Specific variables for PFEM2

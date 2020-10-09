@@ -34,7 +34,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class SlidingCableElement3D : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) SlidingCableElement3D : public Element
     {
     protected:
 

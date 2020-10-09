@@ -60,6 +60,8 @@
 // Fluid constitutive laws
 #include "custom_constitutive/fluid_laws/bingham_2D_law.h"
 #include "custom_constitutive/fluid_laws/bingham_3D_law.h"
+#include "custom_constitutive/fluid_laws/frictional_viscoplastic_2D_law.h"
+#include "custom_constitutive/fluid_laws/frictional_viscoplastic_3D_law.h"
 #include "custom_constitutive/fluid_laws/bingham_temperature_dependent_2D_law.h"
 #include "custom_constitutive/fluid_laws/bingham_temperature_dependent_3D_law.h"
 #include "custom_constitutive/fluid_laws/newtonian_2D_law.h"
@@ -297,6 +299,8 @@ private:
   // Fluid constitutive laws
   const Bingham2DLaw mBingham2DLaw;
   const Bingham3DLaw mBingham3DLaw;
+  const FrictionalViscoplastic2DLaw mFrictionalViscoplastic2DLaw;
+  const FrictionalViscoplastic3DLaw mFrictionalViscoplastic3DLaw;
   const BinghamTemperatureDependent2DLaw mBinghamTemperatureDependent2DLaw;
   const BinghamTemperatureDependent3DLaw mBinghamTemperatureDependent3DLaw;
   const Newtonian2DLaw mNewtonian2DLaw;

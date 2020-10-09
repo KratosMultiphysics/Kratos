@@ -274,7 +274,7 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
 
     // In case of considering meric tensor
     if (it_node_begin->Has(r_tensor_variable)) {
-        #pragma omp parallel for
+        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -290,7 +290,7 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
             }
         }
     } else {
-        #pragma omp parallel for
+        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -372,6 +372,11 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     auto& r_nodes_array = mrThisModelPart.Nodes();
     KRATOS_DEBUG_ERROR_IF(r_nodes_array.size() == 0) << "The model part considered has not nodes\n" << mrThisModelPart << std::endl;
     const auto& r_old_dofs = r_nodes_array.begin()->GetDofs();
+
+    // Clear before assign new ones
+    mDofs.clear();
+
+    // Assign dofs
     for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof)
         mDofs.push_back(Kratos::make_unique<NodeType::DofType>(**it_dof));
     for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)

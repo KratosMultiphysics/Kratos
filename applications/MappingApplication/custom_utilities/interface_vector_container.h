@@ -40,7 +40,7 @@ namespace Kratos
 /** Detail class definition.
  */
 template<class TSparseSpace, class TDenseSpace>
-class InterfaceVectorContainer
+class KRATOS_API(MAPPING_APPLICATION) InterfaceVectorContainer
 {
 public:
     ///@name Type Definitions

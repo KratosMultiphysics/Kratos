@@ -77,7 +77,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
     static constexpr SizeType VoigtSize = 6;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+    typedef BoundedMatrix<double, 3, 3> BoundedMatrixType;
 
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
