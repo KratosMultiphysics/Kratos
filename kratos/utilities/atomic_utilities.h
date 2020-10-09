@@ -83,7 +83,17 @@ inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
  * KLUDGE: might not be supported by all compilers even though the openmp standard does support it
  */
 template<class TDataType>
-inline void AtomicAssign(TDataType& target, const TDataType& value) {
+inline void AtomicAssign(TDataType& target, const TDataType& value)
+{
+    // different OS support different types for atomic
+    // listing here the types that are supported everywhere
+    static_assert(
+        std::is_same<TDataType, double>::value ||
+        std::is_same<TDataType, float>::value  ||
+        std::is_same<TDataType, int>::value    ||
+        std::is_same<TDataType, unsigned int>::value
+            , "Atomic assign is not compatible with this type");
+
     #pragma omp atomic
     target = value;
 }
