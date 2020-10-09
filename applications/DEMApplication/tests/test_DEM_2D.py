@@ -14,7 +14,7 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -24,32 +24,19 @@ class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEM
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(DEM2DTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
             if node.Id == 1:
                 if self.time > 0.2:
-                    expected_value = 6.076801447242313
-                    self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 6.076801447242313, delta=tolerance)
             if node.Id == 2:
                 if self.time > 0.2:
-                    expected_value = 8.604163136887411
-                    self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 8.604163136887411, delta=tolerance)
             if node.Id == 3:
                 if self.time > 0.2:
-                    expected_value = 10.016439272775422
-                    self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
-
-    @classmethod
-    def CheckValueOfVelocity(self, normal_impact_vel, expected_value, tolerance):
-        if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:
-            raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(normal_impact_vel))
-
-    def Finalize(self):
-        super(DEM2DTestSolution, self).Finalize()
-
-
+                    self.assertAlmostEqual(normal_impact_vel, 10.016439272775422, delta=tolerance)
 
 class TestDEM2D(KratosUnittest.TestCase):
 

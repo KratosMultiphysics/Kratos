@@ -16,7 +16,7 @@ def GetFilePath(fileName):
 
 
 
-class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -26,7 +26,7 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(AnalyticsTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
@@ -34,33 +34,19 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
             if node.Id == 1:
                 if self.time > 0.099:
                     expected_value = 11.07179
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
                     expected_value = 6.941702
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
+                    self.assertAlmostEqual(face_normal_impact_vel, expected_value, delta=tolerance)
             if node.Id == 2:
                 if self.time > 0.099:
                     expected_value = 16.29633
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
             if node.Id == 3:
                 if self.time > 0.099:
                     expected_value = 16.29633
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
 
-    @classmethod
-    def CheckValueOfNormalImpactVelocity(self, normal_impact_vel, expected_value, tolerance):
-        if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:
-            raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(normal_impact_vel))
-
-    @classmethod
-    def CheckValueOfFaceNormalImpactVelocity(self, face_normal_impact_vel, expected_value, tolerance):
-        if face_normal_impact_vel > expected_value + tolerance or face_normal_impact_vel < expected_value - tolerance:
-            raise ValueError('Incorrect value for FACE_NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(face_normal_impact_vel))
-
-    def Finalize(self):
-        super(AnalyticsTestSolution, self).Finalize()
-
-
-class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -70,14 +56,14 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def RunAnalytics(self, time, is_time_to_print=True):
-            self.MakeAnalyticsMeasurements()
-            if is_time_to_print:
-                self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
-                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                    self.CheckTotalNumberOfCrossingParticles()
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:
+            self.FaceAnalyzerClass.CreateNewFile()
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
+                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+                self.CheckTotalNumberOfCrossingParticles()
 
-            self.FaceAnalyzerClass.RemoveOldFile()
+        self.FaceAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -85,17 +71,9 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
         if self.time > 0.145:
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('1/n_accum')
+            self.assertEqual(n_accum_h5[-1], -4)
 
-            if n_accum_h5[-1] != -4:
-                print(n_accum_h5[-1])
-                raise ValueError('The total value of crossing particles was not the expected!')
-
-    def Finalize(self):
-        super(GhostsTestSolution, self).Finalize()
-
-
-
-class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -122,14 +100,7 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         if self.time > 1.9:
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('2/n_accum')
-
-            if n_accum_h5[-1] != -4:
-                print(n_accum_h5[-1])
-                raise ValueError('The total value of crossing particles was not the expected!')
-
-    def Finalize(self):
-        super(MultiGhostsTestSolution, self).Finalize()
-
+            self.assertEqual(n_accum_h5[-1], -4)
 
 class TestAnalytics(KratosUnittest.TestCase):
 

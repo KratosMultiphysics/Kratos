@@ -31,6 +31,7 @@ class EmptySolverForTesting(PythonSolver):
 
     def AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(SW.HEIGHT)
+        self.model_part.AddNodalSolutionStepVariable(SW.FREE_SURFACE_ELEVATION)
         self.model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)

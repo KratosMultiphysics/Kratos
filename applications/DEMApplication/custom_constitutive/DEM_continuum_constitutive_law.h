@@ -14,7 +14,6 @@
 #include "custom_utilities/GeometryFunctions.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_elements/Particle_Contact_Element.h"
-#include "containers/vector_component_adaptor.h"
 #include "containers/array_1d.h"
 
 

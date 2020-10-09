@@ -13,7 +13,7 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -23,7 +23,7 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(KinematicConstraintsTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
@@ -73,19 +73,11 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
                     expected_value = 0.2192
                     self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
 
-    @classmethod
     def CheckValueOfVelocity(self, velocity, component, expected_value, tolerance):
-        if velocity[component] > expected_value + tolerance or velocity[component] < expected_value - tolerance:
-            raise ValueError('Incorrect value for VELOCITY ' + str(component) + ': expected value was '+ str(expected_value) + ' but received ' + str(velocity))
+        self.assertAlmostEqual(velocity[component], expected_value, delta=tolerance)
 
-    @classmethod
     def CheckValueOfAngularVelocity(self, angular_velocity, component, expected_value, tolerance):
-        if angular_velocity[component] > expected_value + tolerance or angular_velocity[component] < expected_value - tolerance:
-            raise ValueError('Incorrect value for ANGULAR_VELOCITY ' + str(component) + ': expected value was '+ str(expected_value) + ' but received ' + str(angular_velocity))
-
-    def Finalize(self):
-        super(KinematicConstraintsTestSolution, self).Finalize()
-
+        self.assertAlmostEqual(angular_velocity[component], expected_value, delta=tolerance)
 
 class TestKinematicConstraints(KratosUnittest.TestCase):
 

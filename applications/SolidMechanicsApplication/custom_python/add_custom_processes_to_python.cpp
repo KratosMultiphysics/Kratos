@@ -27,7 +27,7 @@
 #include "custom_processes/add_dofs_process.hpp"
 #include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.hpp"
 #include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.hpp"
-#include "custom_processes/build_string_skin_process.hpp"
+// #include "custom_processes/build_string_skin_process.hpp"
 
 
 // Solver Processes
@@ -170,13 +170,13 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //**********BUILD STRING SKIN PROCESS*********//
 
-  py::class_<BuildStringSkinProcess, BuildStringSkinProcess::Pointer, Process>(m,"BuildStringSkinProcess")
-      .def(py::init<ModelPart&, unsigned int, double>())
-      .def("ExecuteInitialize", &BuildStringSkinProcess::ExecuteInitialize)
-      .def("ExecuteFinalizeSolutionStep", &BuildStringSkinProcess::ExecuteFinalizeSolutionStep)
-      .def("ExecuteBeforeOutputStep", &BuildStringSkinProcess::ExecuteBeforeOutputStep)
-      .def("ExecuteAfterOutputStep", &BuildStringSkinProcess::ExecuteAfterOutputStep)
-      ;
+//   py::class_<BuildStringSkinProcess, BuildStringSkinProcess::Pointer, Process>(m,"BuildStringSkinProcess")
+//       .def(py::init<ModelPart&, unsigned int, double>())
+//       .def("ExecuteInitialize", &BuildStringSkinProcess::ExecuteInitialize)
+//       .def("ExecuteFinalizeSolutionStep", &BuildStringSkinProcess::ExecuteFinalizeSolutionStep)
+//       .def("ExecuteBeforeOutputStep", &BuildStringSkinProcess::ExecuteBeforeOutputStep)
+//       .def("ExecuteAfterOutputStep", &BuildStringSkinProcess::ExecuteAfterOutputStep)
+//       ;
 
 
 
