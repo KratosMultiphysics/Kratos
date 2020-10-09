@@ -22,6 +22,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaEdgeCableElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mOutputCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mPenaltyCouplingCondition(0, Condition::GeometryType::Pointer(
@@ -55,6 +57,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("IgaEdgeCableElement", mIgaEdgeCableElement)
 
     // CONDITIONS
+    KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
     KRATOS_REGISTER_CONDITION("LagrangeCouplingCondition", mLagrangeCouplingCondition)
