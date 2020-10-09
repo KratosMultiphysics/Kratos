@@ -93,7 +93,7 @@ SOFTWARE.
 #define MIO_PAGE_HEADER
 
 #ifdef _WIN32
-# include <windows.h>
+// # include <windows.h>
 #else
 # include <unistd.h>
 #endif
@@ -158,7 +158,7 @@ inline size_t make_offset_page_aligned(size_t offset) noexcept
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif // WIN32_LEAN_AND_MEAN
-# include <windows.h>
+// # include <windows.h>
 #else // ifdef _WIN32
 # define INVALID_HANDLE_VALUE -1
 #endif // ifdef _WIN32
@@ -1334,7 +1334,7 @@ bool operator>=(const basic_mmap<AccessMode, ByteT>& a,
 #define MIO_PAGE_HEADER
 
 #ifdef _WIN32
-# include <windows.h>
+// # include <windows.h>
 #else
 # include <unistd.h>
 #endif
@@ -1806,7 +1806,7 @@ using shared_ummap_sink = basic_shared_mmap_sink<unsigned char>;
 #include <deque>
 
 #if defined(_WIN32)
-#include <Windows.h>
+// #include <Windows.h>
 #define WIN32_LEAN_AND_MEAN
 #undef max
 #undef min
