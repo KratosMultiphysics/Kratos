@@ -39,7 +39,7 @@ namespace Kratos
         {
             for (IndexType i = 0; i < nb_nodes; ++i)
             {
-                double output_solution_step_value = r_geometry[i].GetSolutionStepValue(rVariable);
+                double output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(rVariable);
                 rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
             }
         }
@@ -73,4 +73,3 @@ namespace Kratos
     }
 
 } // Namespace Kratos
-
