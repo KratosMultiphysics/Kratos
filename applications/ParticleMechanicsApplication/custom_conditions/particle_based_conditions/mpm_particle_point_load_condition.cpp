@@ -179,6 +179,21 @@ namespace Kratos
         m_xg += delta_xg ;
     }
 
+    void MPMParticlePointLoadCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rValues.size() != 1)
+            rValues.resize(1);
+
+        if (rVariable == POINT_LOAD) {
+            rValues[0] = m_point_load;
+        }
+        else {
+            MPMParticleBaseLoadCondition::CalculateOnIntegrationPoints(
+                rVariable, rValues, rCurrentProcessInfo);
+        }
+    }
     void MPMParticlePointLoadCondition::SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > > rValues,

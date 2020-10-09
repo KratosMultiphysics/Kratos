@@ -209,64 +209,60 @@ class PreUtilities
         }
     }
 
-    void BreakBondUtility(ModelPart& rSpheresModelPart){
+    void BreakBondUtility(ModelPart& rSpheresModelPart) {
 
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
         #pragma omp parallel for
         for (int k = 0; k < (int)pElements.size(); k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-                Element* p_element = &(*it);
-                SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
+            Element* p_element = &(*it);
+            SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
 
-                if (p_sphere->mNeighbourElements[k] == NULL) continue;
+            if (p_sphere->mNeighbourElements[k] == NULL) continue;
 
-                double x_node = p_sphere->GetGeometry()[0].Coordinates()[0];
-                double y_node = p_sphere->GetGeometry()[0].Coordinates()[1];
-                double z_node = p_sphere->GetGeometry()[0].Coordinates()[2];
-                double radius = 0.0225; // radi
+            double x_node = p_sphere->GetGeometry()[0].Coordinates()[0];
+            double y_node = p_sphere->GetGeometry()[0].Coordinates()[1];
+            double z_node = p_sphere->GetGeometry()[0].Coordinates()[2];
+            double radius = 0.0225; // radi
 
+            if ((x_node*x_node + z_node*z_node >= radius*radius && y_node < 0.01) || (x_node*x_node + z_node*z_node >= radius*radius && y_node > 0.07)) {   // 1- geometry condition
+                unsigned int number_of_neighbors = p_sphere->mContinuumInitialNeighborsSize;
+                for (unsigned int i = 0; i < number_of_neighbors; i++)
+                {
+                    SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(p_sphere->mNeighbourElements[i]);
+                    double x_node_it = neighbour_iterator->GetGeometry()[0].Coordinates()[0];
+                    double z_node_it = neighbour_iterator->GetGeometry()[0].Coordinates()[2];
+                    double radius_it = 0.0225; // radi de la entalla en el shear test.
+                    if (x_node_it*x_node_it + z_node_it*z_node_it < radius_it*radius_it) {   // 2- geometry condition
 
-                if ((x_node*x_node + z_node*z_node >= radius*radius && y_node < 0.01) || (x_node*x_node + z_node*z_node >= radius*radius && y_node > 0.07)){   // 1- geometry condition
-                    unsigned int number_of_neighbors = p_sphere->mContinuumInitialNeighborsSize;
-                    for (unsigned int i = 0; i < number_of_neighbors; i++)
-                    {
-                        SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(p_sphere->mNeighbourElements[i]);
-                        double x_node_it = neighbour_iterator->GetGeometry()[0].Coordinates()[0];
-                        double z_node_it = neighbour_iterator->GetGeometry()[0].Coordinates()[2];
-                        double radius_it = 0.0225; // radi de la entalla en el shear test.
-                        if (x_node_it*x_node_it + z_node_it*z_node_it < radius_it*radius_it){   // 2- geometry condition
+                        //int& failure_type = p_sphere->mIniNeighbourFailureId[i];
+                        //failure_type = 1;
+                        p_sphere->Set(TO_ERASE, true);
+                        neighbour_iterator->Set(TO_ERASE, true);
 
-                                //int& failure_type = p_sphere->mIniNeighbourFailureId[i];
-                                //failure_type = 1;
-                                p_sphere->Set(TO_ERASE, true);
-                                neighbour_iterator->Set(TO_ERASE, true);
-
-                            //noalias(other_to_me_vector)         = p_sphere->GetGeometry()[0].Coordinates() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].Coordinates();
-                            //noalias(initial_other_to_me_vector) = p_sphere->GetGeometry()[0].GetInitialPosition() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].GetInitialPosition();
-                        }
+                        //noalias(other_to_me_vector)         = p_sphere->GetGeometry()[0].Coordinates() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].Coordinates();
+                        //noalias(initial_other_to_me_vector) = p_sphere->GetGeometry()[0].GetInitialPosition() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].GetInitialPosition();
                     }
-                } else if ((x_node*x_node + z_node*z_node < radius*radius && y_node < 0.01) || (x_node*x_node + z_node*z_node < radius*radius && y_node > 0.07)) {
-                    unsigned int number_of_neighbors = p_sphere->mContinuumInitialNeighborsSize;
-                    for (unsigned int i = 0; i < number_of_neighbors; i++)
-                    {
-                        SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(p_sphere->mNeighbourElements[i]);
-                        double x_node_it = neighbour_iterator->GetGeometry()[0].Coordinates()[0];
-                        double z_node_it = neighbour_iterator->GetGeometry()[0].Coordinates()[2];
-                        double radius_it = 0.0225; // radi de la entalla en el shear test.
-                        if (x_node_it*x_node_it + z_node_it*z_node_it > radius_it*radius_it){   // 2- geometry condition
+                }
+            } else if ((x_node*x_node + z_node*z_node < radius*radius && y_node < 0.01) || (x_node*x_node + z_node*z_node < radius*radius && y_node > 0.07)) {
+                unsigned int number_of_neighbors = p_sphere->mContinuumInitialNeighborsSize;
+                for (unsigned int i = 0; i < number_of_neighbors; i++)
+                {
+                    SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(p_sphere->mNeighbourElements[i]);
+                    double x_node_it = neighbour_iterator->GetGeometry()[0].Coordinates()[0];
+                    double z_node_it = neighbour_iterator->GetGeometry()[0].Coordinates()[2];
+                    double radius_it = 0.0225; // radi de la entalla en el shear test.
+                    if (x_node_it*x_node_it + z_node_it*z_node_it > radius_it*radius_it) {   // 2- geometry condition
 
-                                //int& failure_type = p_sphere->mIniNeighbourFailureId[i];
-                                //failure_type = 1;
-                                p_sphere->Set(TO_ERASE, true);
-                                neighbour_iterator->Set(TO_ERASE, true);
-
-
-                        }
+                        //int& failure_type = p_sphere->mIniNeighbourFailureId[i];
+                        //failure_type = 1;
+                        p_sphere->Set(TO_ERASE, true);
+                        neighbour_iterator->Set(TO_ERASE, true);
                     }
                 }
             }
-
+        }
     }
 
     void CreateCartesianSpecimenMdpa(std::string filename) {

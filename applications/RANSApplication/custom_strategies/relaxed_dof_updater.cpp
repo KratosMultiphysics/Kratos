@@ -36,21 +36,9 @@ void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::UpdateDofs
     DofsArrayType& rDofSet,
     const SystemVectorType& rDx)
 {
-    BlockPartition<DofsArrayType>(rDofSet).for_each([&](DofType& rDof) {
+    block_for_each(rDofSet, [&](DofType& rDof) {
         if (rDof.IsFree()) {
             rDof.GetSolutionStepValue() += rDx[rDof.EquationId()] * mRelaxationFactor;
-        }
-    });
-}
-
-template <>
-void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::AssignDofs(
-    DofsArrayType& rDofSet,
-    const SystemVectorType& rX)
-{
-    BlockPartition<DofsArrayType>(rDofSet).for_each([&](DofType& rDof) {
-        if (rDof.IsFree()) {
-            rDof.GetSolutionStepValue() = rX[rDof.EquationId()];
         }
     });
 }
@@ -76,4 +64,3 @@ template class RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>;
 ///@}
 
 ///@} addtogroup block
-

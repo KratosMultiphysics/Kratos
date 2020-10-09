@@ -152,11 +152,20 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
+        rSerializer.save("displacement",m_displacement);
+        rSerializer.save("imposed_displacement",m_imposed_displacement);
+        rSerializer.save("imposed_velocity",m_imposed_velocity);
+        rSerializer.save("imposed_acceleration",m_imposed_acceleration);
+
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
+        rSerializer.load("displacement",m_displacement);
+        rSerializer.load("imposed_displacement",m_imposed_displacement);
+        rSerializer.load("imposed_velocity",m_imposed_velocity);
+        rSerializer.load("imposed_acceleration",m_imposed_acceleration);
     }
 
     ///@}

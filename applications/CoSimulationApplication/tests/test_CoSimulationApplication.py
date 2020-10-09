@@ -1,9 +1,6 @@
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
-
 try:
     import numpy
     numpy_available = True
@@ -31,12 +28,12 @@ if numpy_available:
     from test_co_simulation_coupled_solver import TestCoupledSolverModelAccess
     from test_co_simulation_coupled_solver import TestCoupledSolverPassingModel
     from test_co_simulation_coupled_solver import TestCoupledSolverCouplingInterfaceDataAccess
+    from test_model_part_utilties import TestModelPartUtiliites
 
-if not using_pykratos:
-    from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
-    from test_co_sim_io_py_exposure import TestCoSimIOPyExposure
-    from test_co_sim_io_py_exposure import TestCoSimIOPyExposure_aux_tests
-    from test_kratos_co_sim_io import TestKratosCoSimIO
+from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
+from test_co_sim_io_py_exposure import TestCoSimIOPyExposure
+from test_co_sim_io_py_exposure import TestCoSimIOPyExposure_aux_tests
+from test_kratos_co_sim_io import TestKratosCoSimIO
 
 
 def AssembleTestSuites():
@@ -56,6 +53,8 @@ def AssembleTestSuites():
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreatePointBasedEntitiesProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure_aux_tests]))
     if numpy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
@@ -68,10 +67,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverModelAccess]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverPassingModel]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverCouplingInterfaceDataAccess]))
-    if not using_pykratos:
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure_aux_tests]))
-    if not using_pykratos and numpy_available:
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtiliites]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
 
@@ -81,9 +77,8 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
     nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
     nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
-    if not using_pykratos:
-        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
-        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
 
     nightSuite.addTests(smallSuite)
 
@@ -92,7 +87,7 @@ def AssembleTestSuites():
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
     validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
-    if not using_pykratos and numpy_available:
+    if numpy_available:
         validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
 
     ################################################################################

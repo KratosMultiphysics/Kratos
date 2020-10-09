@@ -76,14 +76,10 @@ public:
     BossakRelaxationScalarScheme(
         const double AlphaBossak,
         const double RelaxationFactor,
-        const Variable<double>& rScalarVariable,
-        const Variable<double>& rScalarRateVariable,
-        const Variable<double>& rRelaxedScalarRateVariable)
+        const Variable<double>& rScalarVariable)
     : BaseType(RelaxationFactor),
         mAlphaBossak(AlphaBossak),
-        mrScalarVariable(rScalarVariable),
-        mrScalarRateVariable(rScalarRateVariable),
-        mrRelaxedScalarRateVariable(rRelaxedScalarRateVariable)
+        mrScalarVariable(rScalarVariable)
     {
         // Allocate auxiliary memory.
         const int num_threads = OpenMPUtils::GetNumThreads();
@@ -120,10 +116,7 @@ public:
         BossakRelaxationScalarScheme::CalculateBossakConstants(
             mBossak, mAlphaBossak, delta_time);
 
-#pragma omp critical
-        {
-            rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
-        }
+        rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
 
         KRATOS_CATCH("");
     }
@@ -153,11 +146,11 @@ public:
         KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(mrScalarVariable))
             << mrScalarVariable.Name() << " not in nodal solution step variable list of "
             << rModelPart.Name() << ".\n";
-        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(mrScalarRateVariable))
-            << mrScalarRateVariable.Name() << " not in nodal solution step variable list of "
+        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(mrScalarVariable.GetTimeDerivative()))
+            << mrScalarVariable.GetTimeDerivative().Name() << " not in nodal solution step variable list of "
             << rModelPart.Name() << ".\n";
-        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(mrRelaxedScalarRateVariable))
-            << mrRelaxedScalarRateVariable.Name() << " not in nodal solution step variable list of "
+        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(mrScalarVariable.GetTimeDerivative().GetTimeDerivative()))
+            << mrScalarVariable.GetTimeDerivative().GetTimeDerivative().Name() << " not in nodal solution step variable list of "
             << rModelPart.Name() << ".\n";
 
         return value;
@@ -217,9 +210,9 @@ public:
         msg << "Using generic residual based bossak scalar transport scheme "
                "with\n"
             << "     Scalar variable             : " << mrScalarVariable.Name() << "\n"
-            << "     Scalar rate variable        : " << mrScalarRateVariable.Name() << "\n"
+            << "     Scalar rate variable        : " << mrScalarVariable.GetTimeDerivative().Name() << "\n"
             << "     Relaxed scalar rate variable: "
-            << mrRelaxedScalarRateVariable.Name() << "\n"
+            << mrScalarVariable.GetTimeDerivative().GetTimeDerivative().Name() << "\n"
             << "     Relaxation factor           : " << this->mRelaxationFactor;
 
         return msg.str();
@@ -247,8 +240,6 @@ private:
     const double mAlphaBossak;
 
     const Variable<double>& mrScalarVariable;
-    const Variable<double>& mrScalarRateVariable;
-    const Variable<double>& mrRelaxedScalarRateVariable;
 
     BossakConstants mBossak;
 
@@ -378,25 +369,19 @@ private:
 
     void UpdateScalarRateVariables(ModelPart& rModelPart)
     {
-        BlockPartition<ModelPart::NodesContainerType>(rModelPart.Nodes())
-            .for_each([&](ModelPart::NodeType& rNode) {
-                double& r_current_rate =
-                    rNode.FastGetSolutionStepValue(mrScalarRateVariable);
-                const double old_rate =
-                    rNode.FastGetSolutionStepValue(mrScalarRateVariable, 1);
-                const double current_value =
-                    rNode.FastGetSolutionStepValue(mrScalarVariable);
-                const double old_value =
-                    rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            double& r_current_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative());
+            const double old_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative(), 1);
+            const double current_value = rNode.FastGetSolutionStepValue(mrScalarVariable);
+            const double old_value = rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
 
-                // update scalar rate variable
-                r_current_rate =
-                    mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
+            // update scalar rate variable
+            r_current_rate = mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
 
-                // update relaxed scalar rate variable
-                rNode.FastGetSolutionStepValue(mrRelaxedScalarRateVariable) =
-                    this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
-            });
+            // update relaxed scalar rate variable
+            rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative().GetTimeDerivative()) =
+                this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
+        });
     }
 
     ///@}
