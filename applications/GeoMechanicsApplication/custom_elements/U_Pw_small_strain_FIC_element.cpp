@@ -1060,7 +1060,7 @@ void UPwSmallStrainFICElement<2,4>::
                                          ElementVariables& rVariables,
                                          FICElementVariables& rFICVariables )
 {
-    noalias(rVariables.PUMatrix) = signFactor * rVariables.VelocityCoefficient
+    noalias(rVariables.PUMatrix) = PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient
                                   * 0.25      * rFICVariables.ElementLength 
                                               * rFICVariables.ElementLength
                                               * rVariables.BiotCoefficient
@@ -1090,7 +1090,7 @@ void UPwSmallStrainFICElement<3,8>::
                                          ElementVariables& rVariables,
                                          FICElementVariables& rFICVariables )
 {
-    noalias(rVariables.PUMatrix) =  signFactor * rVariables.VelocityCoefficient
+    noalias(rVariables.PUMatrix) =  PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient
                                   * 0.25       * rFICVariables.ElementLength
                                                * rFICVariables.ElementLength
                                                * rVariables.BiotCoefficient
@@ -1111,7 +1111,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 {
     this->CalculateConstitutiveTensorGradients(rFICVariables,rVariables);
 
-    double StabilizationParameter = - signFactor * rFICVariables.ElementLength
+    double StabilizationParameter = - PORE_PRESSURE_SIGN_FACTOR * rFICVariables.ElementLength
                                                  * rFICVariables.ElementLength
                                                  * rVariables.BiotCoefficient/(8.0*rFICVariables.ShearModulus);
 
@@ -1335,7 +1335,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
                                            ElementVariables& rVariables,
                                            FICElementVariables& rFICVariables)
 {
-    const double SignBiotCoefficient = - signFactor * rVariables.BiotCoefficient;
+    const double SignBiotCoefficient = - PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient;
 
     const double StabilizationParameter =  rFICVariables.ElementLength
                                          * rFICVariables.ElementLength
@@ -1390,7 +1390,7 @@ void UPwSmallStrainFICElement<2,4>::
                                        FICElementVariables& rFICVariables )
 {
     noalias(rVariables.PUMatrix) = 0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength
-                                        * rVariables.BiotCoefficient  * (-signFactor)
+                                        * rVariables.BiotCoefficient  * (-PORE_PRESSURE_SIGN_FACTOR)
                                         * prod(rVariables.GradNpT, rFICVariables.StrainGradients)
                                         * rVariables.IntegrationCoefficient;
 
@@ -1420,7 +1420,7 @@ void UPwSmallStrainFICElement<3,8>::
                                        FICElementVariables& rFICVariables )
 {
     noalias(rVariables.PUMatrix) = 0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength
-                                        * rVariables.BiotCoefficient  * (-signFactor)
+                                        * rVariables.BiotCoefficient  * (-PORE_PRESSURE_SIGN_FACTOR)
                                         * prod(rVariables.GradNpT, rFICVariables.StrainGradients)
                                         * rVariables.IntegrationCoefficient;
 
@@ -1441,7 +1441,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     this->CalculateDtStressGradients(rFICVariables,rVariables);
 
     double StabilizationParameter =   rFICVariables.ElementLength * rFICVariables.ElementLength
-                                    * (rVariables.BiotCoefficient  * (-signFactor)) /(8.0*rFICVariables.ShearModulus);
+                                    * (rVariables.BiotCoefficient  * (-PORE_PRESSURE_SIGN_FACTOR)) /(8.0*rFICVariables.ShearModulus);
 
     noalias(rVariables.PVector) = StabilizationParameter/3.0 * prod(rVariables.GradNpT,rFICVariables.DimVector)
                                                              * rVariables.IntegrationCoefficient;
@@ -1496,7 +1496,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
                                          ElementVariables& rVariables,
                                          FICElementVariables& rFICVariables )
 {
-    double SignBiotCoefficient = -signFactor * rVariables.BiotCoefficient;
+    double SignBiotCoefficient = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient;
     double StabilizationParameter =  rFICVariables.ElementLength * rFICVariables.ElementLength
                                     *SignBiotCoefficient / (8.0*rFICVariables.ShearModulus);
 

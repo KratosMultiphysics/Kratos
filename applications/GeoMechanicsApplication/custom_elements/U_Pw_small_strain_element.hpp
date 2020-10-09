@@ -46,7 +46,6 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim,TNumNodes>::signFactor;
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

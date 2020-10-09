@@ -107,9 +107,9 @@ public:
 
                 noalias(Coordinates) = it->Coordinates();
 
-                const double pressure = - signFactor * mSpecificWeight*( mreference_coordinate - Coordinates[mgravity_direction] );
+                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight*( mreference_coordinate - Coordinates[mgravity_direction] );
 
-                if ((- signFactor * pressure) > 0.0)
+                if ((- PORE_PRESSURE_SIGN_FACTOR * pressure) > 0.0)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
@@ -162,9 +162,6 @@ private:
 
     /// Copy constructor.
     //ApplyConstantHydrostaticPressureProcess(ApplyConstantHydrostaticPressureProcess const& rOther);
-
-    // convention factor for liquid pressure
-    static constexpr double signFactor = 1.0;
 
 }; // Class ApplyConstantHydrostaticPressureProcess
 

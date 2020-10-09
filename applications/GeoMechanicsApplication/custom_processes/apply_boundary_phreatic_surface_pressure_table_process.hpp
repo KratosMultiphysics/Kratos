@@ -148,8 +148,6 @@ private:
 
     /// Copy constructor.
     //ApplyBoundaryPhreaticSurfacePressureTableProcess(ApplyBoundaryPhreaticSurfacePressureTableProcess const& rOther);
-    // convention factor for liquid pressure
-    static constexpr double signFactor = 1.0;
 }; // Class ApplyBoundaryPhreaticSurfacePressureTableProcess
 
 /// input stream function

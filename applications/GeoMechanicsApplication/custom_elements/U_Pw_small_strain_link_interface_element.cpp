@@ -93,7 +93,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-            noalias(GradPressureTerm) += signFactor * FluidDensity*BodyAcceleration;
+            noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
 
             noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
 
@@ -243,7 +243,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-            noalias(GradPressureTerm) += signFactor * FluidDensity*BodyAcceleration;
+            noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
 
             noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
 

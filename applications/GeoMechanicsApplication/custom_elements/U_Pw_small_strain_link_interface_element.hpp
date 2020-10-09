@@ -37,14 +37,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( UPwSmallStrainLinkInterfaceElement );
 
     typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
+    typedef Properties PropertiesType;
     typedef Node <3> NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim,TNumNodes>::signFactor;
 
     typedef typename UPwSmallStrainInterfaceElement<TDim,TNumNodes>::SFGradAuxVariables SFGradAuxVariables;
     typedef typename UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InterfaceElementVariables InterfaceElementVariables;

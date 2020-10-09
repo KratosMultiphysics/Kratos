@@ -1251,7 +1251,7 @@ void SmallStrainUPwDiffOrderElement::
                 Pressure += Variables.NuContainer(PointNumber, node)*PressureVector[node];
             }
 
-            noalias(Variables.StressVector) += signFactor * BiotCoefficient*Pressure*VoigtVector;
+            noalias(Variables.StressVector) += PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient*Pressure*VoigtVector;
 
             if ( rOutput[PointNumber].size() != Variables.StressVector.size() )
                 rOutput[PointNumber].resize( Variables.StressVector.size(), false );
@@ -1874,7 +1874,7 @@ void SmallStrainUPwDiffOrderElement::
 
     for (unsigned int i=0; i < Dim; ++i) VoigtVector[i] = 1.0;
 
-    Matrix CouplingMatrix = -signFactor * rVariables.BiotCoefficient
+    Matrix CouplingMatrix = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient
                                         * prod( trans(rVariables.B), Matrix(outer_prod(VoigtVector,rVariables.Np)) )
                                         * rVariables.IntegrationCoefficient;
 
@@ -1896,7 +1896,7 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    Matrix CouplingMatrixT = -signFactor * rVariables.NewmarkCoefficient1*trans(CouplingMatrix);
+    Matrix CouplingMatrixT = -PORE_PRESSURE_SIGN_FACTOR * rVariables.NewmarkCoefficient1*trans(CouplingMatrix);
 
     //Distribute transposed coupling block matrix into the elemental matrix
 
@@ -1925,7 +1925,7 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix") << std::endl;
 
-    Matrix CompressibilityMatrix = -signFactor * rVariables.NewmarkCoefficient2
+    Matrix CompressibilityMatrix = -PORE_PRESSURE_SIGN_FACTOR * rVariables.NewmarkCoefficient2
                                                * rVariables.BiotModulusInverse 
                                                * outer_prod(rVariables.Np,rVariables.Np)
                                                * rVariables.IntegrationCoefficient;
@@ -1957,7 +1957,7 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix") << std::endl;
 
-    Matrix PermeabilityMatrix = -signFactor * (  1.0/rVariables.DynamicViscosity
+    Matrix PermeabilityMatrix = -PORE_PRESSURE_SIGN_FACTOR * (  1.0/rVariables.DynamicViscosity
                                                * prod( rVariables.DNp_DX, 
                                                        Matrix( prod(rVariables.IntrinsicPermeability,
                                                                trans(rVariables.DNp_DX)) ) )
@@ -2116,7 +2116,7 @@ void SmallStrainUPwDiffOrderElement::
         VoigtVector[idim] = 1.0;
     }
 
-    Matrix CouplingMatrix = - signFactor * rVariables.BiotCoefficient
+    Matrix CouplingMatrix = - PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient
                                          * prod( trans(rVariables.B), 
                                                  Matrix( outer_prod(VoigtVector, rVariables.Np) ) )
                                          * rVariables.IntegrationCoefficient;
@@ -2137,7 +2137,7 @@ void SmallStrainUPwDiffOrderElement::
 
     if (!rVariables.IgnoreUndrained)
     {
-        Vector CouplingFlow = -signFactor * prod(trans(CouplingMatrix),rVariables.VelocityVector);
+        Vector CouplingFlow = -PORE_PRESSURE_SIGN_FACTOR * prod(trans(CouplingMatrix),rVariables.VelocityVector);
 
         //Distribute coupling block vector 2 into the elemental vector
         const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
@@ -2161,7 +2161,7 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow") << std::endl;
 
-    Matrix CompressibilityMatrix = -signFactor * rVariables.BiotModulusInverse
+    Matrix CompressibilityMatrix = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse
                                                * outer_prod(rVariables.Np, rVariables.Np)
                                                * rVariables.IntegrationCoefficient;
 
@@ -2191,7 +2191,7 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow") << std::endl;
 
-    Matrix PermeabilityMatrix = -signFactor * (  1.0/rVariables.DynamicViscosity
+    Matrix PermeabilityMatrix = -PORE_PRESSURE_SIGN_FACTOR * (  1.0/rVariables.DynamicViscosity
                                                * prod( rVariables.DNp_DX,
                                                        Matrix( prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)) ) )
                                                * rVariables.IntegrationCoefficient);

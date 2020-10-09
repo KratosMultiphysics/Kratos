@@ -96,9 +96,9 @@ public:
                 }
                 distance = -(distance - mEqRHS) / d;
                 distance += deltaH;
-                const double pressure = - signFactor * mSpecificWeight * distance ;
+                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
 
-                if ((- signFactor * pressure) > 0.0)
+                if ((- PORE_PRESSURE_SIGN_FACTOR * pressure) > 0.0)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
@@ -147,8 +147,6 @@ private:
 
     /// Copy constructor.
     //ApplyPhreaticSurfacePressureTableProcess(ApplyPhreaticSurfacePressureTableProcess const& rOther);
-    // convention factor for liquid pressure
-    static constexpr double signFactor = 1.0;
 }; // Class ApplyPhreaticSurfacePressureTableProcess
 
 /// input stream function

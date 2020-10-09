@@ -37,6 +37,9 @@ namespace Kratos
     constexpr double TINY  = 1.0e-60;
     constexpr double LARGE = 1.0e10;
 
+    // factor for pore pressure calculations: 1: mechanical sign convention, -1: soil mechanics sign convention
+    constexpr double PORE_PRESSURE_SIGN_FACTOR = 1.0;
+
     // Static definition of the VoigtSize
     constexpr SizeType VOIGT_SIZE_3D = 6;
     constexpr SizeType VOIGT_SIZE_2D_PLANE_STRESS = 3;

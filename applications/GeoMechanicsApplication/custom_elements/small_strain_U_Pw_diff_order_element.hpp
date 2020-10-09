@@ -299,9 +299,6 @@ private:
         rNode.UnSetLock();
     }
 
-    // convention factor for liquid pressure
-    const double signFactor = 1.0;
-
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos

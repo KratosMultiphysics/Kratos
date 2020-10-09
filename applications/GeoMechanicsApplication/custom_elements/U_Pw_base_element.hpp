@@ -141,9 +141,6 @@ public:
 
 protected:
 
-    // convention factor for liquid pressure (1: mechanical convention, -1: soil mechanics convention)
-    const double signFactor = 1.0;
-
     /// Member Variables
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;

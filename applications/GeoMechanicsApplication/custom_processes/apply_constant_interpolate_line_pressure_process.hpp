@@ -113,7 +113,7 @@ public:
 
                 double pressure= CalculatePressure(it);
 
-                if ((- signFactor * pressure) > 0.0)
+                if ((- PORE_PRESSURE_SIGN_FACTOR * pressure) > 0.0)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
@@ -199,9 +199,6 @@ private:
 
     /// Copy constructor.
     //ApplyConstantInterpolateLinePressureProcess(ApplyConstantInterpolateLinePressureProcess const& rOther);
-
-    // convention factor for liquid pressure
-    static constexpr double signFactor = 1.0;
 
     void CalculateBoundaryPressure( const ModelPart::NodesContainerType::iterator &it,
                                     const std::vector< ModelPart::NodesContainerType::iterator> &iterBoundaryNodes,
