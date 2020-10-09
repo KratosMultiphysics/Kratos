@@ -61,11 +61,7 @@ public:
         buffer << "Prism Gauss-Lobatto quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLobattoIntegrationPoints1
 
@@ -107,11 +103,7 @@ public:
         buffer << "Prism Gauss-Lobatto quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLobattoIntegrationPoints2
 

@@ -60,11 +60,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPoints1
 
@@ -106,11 +102,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPoints2
 
@@ -155,11 +147,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPoints3
 
@@ -207,11 +195,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPoints4
 
@@ -262,11 +246,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 5 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPoints5
 
@@ -306,11 +286,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 2, 1 point in plane";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPointsExt1
 
@@ -349,11 +325,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 3, 1 point in plane";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPointsExt2
 
@@ -394,11 +366,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 5, 1 point in plane";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPointsExt3
 
@@ -441,11 +409,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 4, 1 point in plane";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPointsExt4
 
@@ -492,11 +456,7 @@ public:
         buffer << "Prism Gauss-Legendre quadrature 4, 1 point in plane";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPointsExt5
 

@@ -59,11 +59,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 };
 
@@ -102,11 +98,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 };
 
@@ -146,11 +138,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLobattoIntegrationPoints3
 
@@ -192,11 +180,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLobattoIntegrationPoints4
 
@@ -239,11 +223,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 5 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLobattoIntegrationPoints5
 
@@ -287,11 +267,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 6 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLobattoIntegrationPoints6
 
@@ -336,11 +312,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 7 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLobattoIntegrationPoints7
 
@@ -386,11 +358,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 8 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLobattoIntegrationPoints8
 
@@ -437,11 +405,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 9 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLobattoIntegrationPoints9
 
@@ -489,11 +453,7 @@ public:
         buffer << "Line Gauss-Lobatto quadrature 10 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLobattoIntegrationPoints10
 

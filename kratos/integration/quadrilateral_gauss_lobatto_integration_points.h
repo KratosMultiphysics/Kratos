@@ -61,11 +61,7 @@ public:
         buffer << "Quadrilateral Gauss-Lobatto integration 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralGaussLobattoIntegrationPoints1
 
@@ -105,11 +101,7 @@ public:
         buffer << "Quadrilateral Gauss-Lobatto integration 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 }; // Class QuadrilateralGaussLobattoIntegrationPoints2
 
 

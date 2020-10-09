@@ -59,11 +59,7 @@ public:
         buffer << "Hexahedron Gauss-Legendre quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class HexahedronGaussLegendreIntegrationPoints1
 
@@ -107,11 +103,7 @@ public:
         buffer << "Hexahedron Gauss-Legendre quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class HexahedronGaussLegendreIntegrationPoints2
 
@@ -182,11 +174,7 @@ public:
         buffer << "Hexadra Gauss-Legendre quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class HexahedronGaussLegendreIntegrationPoints3
 
@@ -286,11 +274,7 @@ public:
         buffer << "Hexadra Gauss-Legendre quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-   static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class HexahedronGaussLegendreIntegrationPoints4
 
@@ -451,11 +435,7 @@ public:
         buffer << "Hexadra Gauss-Legendre quadrature 5 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-   static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class HexahedronGaussLegendreIntegrationPoints5
 

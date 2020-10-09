@@ -59,11 +59,7 @@ public:
         buffer << "Line Collocation quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineCollocationIntegrationPoints1
 
@@ -105,11 +101,7 @@ public:
         buffer << "Line Collocation quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineCollocationIntegrationPoints2
 
@@ -153,11 +145,7 @@ public:
         buffer << "Line Collocation quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineCollocationIntegrationPoints3
 
@@ -204,11 +192,7 @@ public:
         buffer << "Line Collocation quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineCollocationIntegrationPoints4
 
@@ -257,11 +241,7 @@ public:
         buffer << "Line Collocation quadrature 5 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineCollocationIntegrationPoints5
 

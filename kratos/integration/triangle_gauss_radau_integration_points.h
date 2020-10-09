@@ -62,11 +62,7 @@ public:
         buffer << "Triangle Gauss-Radau quadrature 1 (3 points, degree of precision = 2) ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussRadauIntegrationPoints1
 
@@ -107,11 +103,7 @@ public:
         buffer << "Triangle Gauss-Radau quadrature 2 (4 points, degree of precision = 3)";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussRadauIntegrationPoints2
 
@@ -154,11 +146,7 @@ public:
         buffer << "Triangle Gauss-Radau quadrature 3 (6 points, degree of precision = 4) ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussRadauIntegrationPoints2
 
@@ -202,11 +190,7 @@ public:
         buffer << "Triangle Gauss-Radau quadrature 4 (7 points, degree of precision = 5) ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussRadauIntegrationPoints4
 
@@ -255,11 +239,7 @@ public:
         buffer << "Triangle Gauss-Radau quadrature 5 (12 points, degree of precision = 6) ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussRadauIntegrationPoints5
 
@@ -309,11 +289,7 @@ public:
         buffer << "Triangle Gauss-Radau quadrature 6 (13 points, degree of precision = 7) ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussRadauIntegrationPoints6
 

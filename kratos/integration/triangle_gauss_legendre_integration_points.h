@@ -57,11 +57,7 @@ public:
         buffer << "Triangle Gauss-Legendre quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussLegendreIntegrationPoints1
 
@@ -101,11 +97,7 @@ public:
         buffer << "Triangle Gauss-Legendre quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussLegendreIntegrationPoints2
 
@@ -146,11 +138,7 @@ public:
         buffer << "Triangle Gauss-Legendre quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussLegendreIntegrationPoints2
 
@@ -200,11 +188,7 @@ public:
         buffer << "Triangle Gauss-Legendre quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussLegendreIntegrationPoints4
 
@@ -264,11 +248,7 @@ public:
         buffer << "Triangle Gauss-Legendre quadrature 5 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussLegendreIntegrationPoints5
 

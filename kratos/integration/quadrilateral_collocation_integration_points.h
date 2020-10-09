@@ -62,11 +62,7 @@ public:
         buffer << "Quadrilateral Collocation quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralCollocationIntegrationPoints1
 
@@ -111,11 +107,7 @@ public:
         buffer << "Quadrilateral Collocation quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralCollocationIntegrationPoints2
 
@@ -167,11 +159,7 @@ public:
         buffer << "Quadrilateral Collocation quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralCollocationIntegrationPoints3
 
@@ -232,11 +220,7 @@ public:
         buffer << "Quadrilateral Collocation quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralCollocationIntegrationPoints4
 
@@ -307,11 +291,7 @@ public:
         buffer << "Quadrilateral Collocation quadrature 5 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralCollocationIntegrationPoints5
 

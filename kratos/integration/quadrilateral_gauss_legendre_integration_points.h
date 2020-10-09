@@ -58,11 +58,7 @@ public:
         buffer << "Quadrilateral Gauss-Legendre quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints1
 
@@ -102,11 +98,7 @@ public:
         buffer << "Quadrilateral Gauss-Legendre quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints2
 
@@ -151,11 +143,7 @@ public:
         buffer << "Quadrilateral Gauss-Legendre quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints3
 
@@ -204,11 +192,7 @@ public:
         buffer << "Quadrilateral Gauss-Legendre quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints4
 
@@ -248,11 +232,7 @@ public:
 		buffer << "Quadrilateral Gauss-Legendre quadrature 5 ";
 		return buffer.str();
 	}
-protected:
 
-private:
-
-	static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints5
 

@@ -60,11 +60,7 @@ public:
         buffer << "Tetrahedron Gauss-Legendre quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints1
 
@@ -104,11 +100,7 @@ public:
         buffer << "Tetrahedron Gauss-Legendre quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints2
 
@@ -152,11 +144,7 @@ public:
         buffer << "Tetrahedron Gauss-Legendre quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints3
 
@@ -207,11 +195,7 @@ public:
         return buffer.str();
     }
 
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints4
 
@@ -272,11 +256,7 @@ public:
         return buffer.str();
     }
 
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints5
 

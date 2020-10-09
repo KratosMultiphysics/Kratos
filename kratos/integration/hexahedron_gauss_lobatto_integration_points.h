@@ -64,11 +64,7 @@ public:
         buffer << "Hexahedron Gauss-Lobatto quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class HexahedronGaussLobattoIntegrationPoints1
 
@@ -112,11 +108,7 @@ public:
         buffer << "Hexahedron Gauss-Lobatto quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class HexahedronGaussLobattoIntegrationPoints2
 

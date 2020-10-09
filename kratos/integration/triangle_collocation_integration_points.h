@@ -58,11 +58,7 @@ public:
         buffer << "Triangle Collocation quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleCollocationIntegrationPoints1
 
@@ -105,11 +101,7 @@ public:
         buffer << "Triangle Collocation quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleCollocationIntegrationPoints2
 
@@ -156,11 +148,7 @@ public:
         buffer << "Triangle Collocation quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleCollocationIntegrationPoints2
 
@@ -212,11 +200,7 @@ public:
         buffer << "Triangle Collocation quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleCollocationIntegrationPoints4
 
@@ -273,11 +257,7 @@ public:
         buffer << "Triangle Collocation quadrature 5 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleCollocationIntegrationPoints5
 

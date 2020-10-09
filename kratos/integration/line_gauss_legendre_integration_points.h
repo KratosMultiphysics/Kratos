@@ -56,11 +56,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints1
 
@@ -99,11 +95,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints2
 
@@ -143,11 +135,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 3 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints3
 
@@ -189,11 +177,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 4 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints4
 
@@ -236,11 +220,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 5 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints4
 
@@ -284,11 +264,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 6 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints6
 
@@ -333,11 +309,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 7 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints7
 
@@ -383,11 +355,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 8 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints8
 
@@ -434,11 +402,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 9 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints9
 
@@ -486,11 +450,7 @@ public:
         buffer << "Line Gauss-Legendre quadrature 10 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineGaussLegendreIntegrationPoints10
 
