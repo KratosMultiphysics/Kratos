@@ -366,7 +366,7 @@ public:
                 }
                 //NOTE: this can be made nonblocking 
                 auto& recv_data = mrecv_buffers[color];
-                rComm.SendRecv(send_data, color, 0, recv_data, color, 0);
+                rComm.SendRecv(send_data, color, 0, recv_data, color, 0); //TODO, we know all the sizes, we shall use that!
 
                 for(IndexType i=0; i<recv_data.size(); ++i)
                 {
