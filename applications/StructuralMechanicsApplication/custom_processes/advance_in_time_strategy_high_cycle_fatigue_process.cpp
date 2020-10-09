@@ -65,7 +65,7 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 }
             } else {
-                double increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
+                increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
                 this->TimeAndCyclesUpdate(increment);
                 process_info[ADVANCE_STRATEGY_APPLIED] = true;
             }
