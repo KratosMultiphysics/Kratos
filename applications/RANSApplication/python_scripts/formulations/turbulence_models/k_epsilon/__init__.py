@@ -17,7 +17,6 @@ from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 
 class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):
-        super().__init__(model_part, settings)
         default_settings = Kratos.Parameters(r'''
         {
             "formulation_name": "k_epsilon",
@@ -36,15 +35,11 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.stabilization_method = settings["stabilization_method"].GetString()
-
-        self.tke_formulation = KEpsilonKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"])
-        self.tke_formulation.SetStabilizationMethod(self.stabilization_method)
-        self.AddRansFormulation(self.tke_formulation)
-
-        self.epsilon_formulation = KEpsilonEpsilonRansFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"])
-        self.epsilon_formulation.SetStabilizationMethod(self.stabilization_method)
-        self.AddRansFormulation(self.epsilon_formulation)
+        super().__init__(
+            model_part,
+            settings,
+            KEpsilonKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"]),
+            KEpsilonEpsilonRansFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"]))
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)

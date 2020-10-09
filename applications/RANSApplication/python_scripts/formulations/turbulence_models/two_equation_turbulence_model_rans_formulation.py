@@ -11,8 +11,18 @@ from KratosMultiphysics.RANSApplication import ScalarVariableDifferenceNormCalcu
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 
 class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, formulation_1, formulation_2):
         super().__init__(model_part, settings)
+
+        self.stabilization_method = settings["stabilization_method"].GetString()
+
+        self.formulation_1 = formulation_1
+        self.formulation_1.SetStabilizationMethod(self.stabilization_method)
+        self.AddRansFormulation(self.formulation_1)
+
+        self.formulation_2 = formulation_2
+        self.formulation_2.SetStabilizationMethod(self.stabilization_method)
+        self.AddRansFormulation(self.formulation_2)
 
         self.echo_level = settings["echo_level"].GetInt()
         self.nu_t_convergence_utility = ScalarVariableDifferenceNormCalculationUtility(self.GetBaseModelPart(), Kratos.TURBULENT_VISCOSITY)
