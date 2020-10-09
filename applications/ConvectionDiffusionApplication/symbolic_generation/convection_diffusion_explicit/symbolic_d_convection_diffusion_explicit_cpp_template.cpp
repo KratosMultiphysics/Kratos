@@ -184,7 +184,7 @@ void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& delta_time_coefficient = rData.delta_time_coefficient;
+    const auto& explicit_step_coefficient = rData.explicit_step_coefficient;
     const auto& v = rData.convective_velocity;
     const auto& tau = rData.tau;
     const auto& prj = rData.oss_projection;
@@ -232,7 +232,7 @@ void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& delta_time_coefficient = rData.delta_time_coefficient;
+    const auto& explicit_step_coefficient = rData.explicit_step_coefficient;
     const auto& v = rData.convective_velocity;
     const auto& tau = rData.tau;
     const auto& prj = rData.oss_projection;
@@ -287,7 +287,7 @@ void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScaleR
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& delta_time_coefficient = rData.delta_time_coefficient;
+    const auto& explicit_step_coefficient = rData.explicit_step_coefficient;
     const auto& v = rData.convective_velocity;
     const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
@@ -333,7 +333,7 @@ void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScaleR
     const auto& phi = rData.unknown;
     const auto& phi_old = rData.unknown_old;
     const auto& delta_time = rData.delta_time;
-    const auto& delta_time_coefficient = rData.delta_time_coefficient;
+    const auto& explicit_step_coefficient = rData.explicit_step_coefficient;
     const auto& v = rData.convective_velocity;
     const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element

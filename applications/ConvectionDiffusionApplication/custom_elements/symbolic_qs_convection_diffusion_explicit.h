@@ -189,7 +189,7 @@ protected:
         double lumping_factor;
         double weight;
         double delta_time;
-        double delta_time_coefficient;
+        double explicit_step_coefficient;
         double dynamic_tau;
         double unknown_subscale;
         double volume;
