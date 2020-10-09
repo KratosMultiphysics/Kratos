@@ -233,7 +233,9 @@ public:
             for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
                 r_node.SetValue(NODAL_AREA, 0.0);
                 r_node.SetValue(MOMENTUM_GRADIENT, ZeroMatrix(dim,dim));
-                r_node.SetValue(TOTAL_ENERGY_GRADIENT, ZeroVector(dim));
+                r_node.SetValue(PRESSURE_GRADIENT, ZeroVector(3));
+                r_node.SetValue(TOTAL_ENERGY_GRADIENT, ZeroVector(3));
+                r_node.SetValue(DENSITY_GRADIENT, ZeroVector(3));
             }
 
             // Initialize elemental values
@@ -241,7 +243,9 @@ public:
                 r_elem.SetValue(SHOCK_CAPTURING_VISCOSITY, 0.0);
                 r_elem.SetValue(SHOCK_CAPTURING_CONDUCTIVITY, 0.0);
                 r_elem.SetValue(MOMENTUM_GRADIENT, ZeroMatrix(dim,dim));
-                r_elem.SetValue(TOTAL_ENERGY_GRADIENT, ZeroVector(dim));
+                r_elem.SetValue(PRESSURE_GRADIENT, ZeroVector(3));
+                r_elem.SetValue(TOTAL_ENERGY_GRADIENT, ZeroVector(3));
+                r_elem.SetValue(DENSITY_GRADIENT, ZeroVector(3));
             }
         }
 
@@ -615,8 +619,10 @@ private:
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
             it_node->GetValue(NODAL_AREA) = 0.0;
+            it_node->GetValue(DENSITY_GRADIENT) = ZeroVector(3);
+            it_node->GetValue(PRESSURE_GRADIENT) = ZeroVector(3);
             it_node->GetValue(MOMENTUM_GRADIENT) = ZeroMatrix(dim,dim);
-            it_node->GetValue(TOTAL_ENERGY_GRADIENT) = ZeroVector(dim);
+            it_node->GetValue(TOTAL_ENERGY_GRADIENT) = ZeroVector(3);
         }
 
         // Set the functor to calculate the element size
@@ -646,42 +652,58 @@ private:
             const double geom_domain_size = r_geom.DomainSize();
             const double aux_weight = geom_domain_size / static_cast<double>(n_nodes);
 
+            // Get fluid properties
+            const auto p_prop = it_elem->pGetProperties();
+            const double heat_capacity_ratio = p_prop->GetValue(HEAT_CAPACITY_RATIO);
+
             // Calculate the gradients in the center of the element
             auto& r_elem_mom_grad = it_elem->GetValue(MOMENTUM_GRADIENT);
+            auto& r_elem_rho_grad = it_elem->GetValue(DENSITY_GRADIENT);
+            auto& r_elem_pres_grad = it_elem->GetValue(PRESSURE_GRADIENT);
             auto& r_elem_tot_ener_grad = it_elem->GetValue(TOTAL_ENERGY_GRADIENT);
             r_elem_mom_grad = ZeroMatrix(dim, dim);
-            r_elem_tot_ener_grad = ZeroVector(dim);
+            r_elem_pres_grad = ZeroVector(3);
+            r_elem_rho_grad = ZeroVector(3);
+            r_elem_tot_ener_grad = ZeroVector(3);
             dNdX_container = r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
             const auto& r_dNdX = dNdX_container[0];
 
             for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
                 auto& r_node = r_geom[i_node];
                 const auto node_dNdX = row(r_dNdX, i_node);
+                const auto& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
                 const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
                 const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+                const double r_mom_norm_squared = r_mom[0] * r_mom[0] + r_mom[1] * r_mom[1] + r_mom[2] * r_mom[2];
+                const double i_node_p = (heat_capacity_ratio - 1.0) * (r_tot_ener - 0.5 * r_mom_norm_squared / r_rho);
                 for (int d1 = 0; d1 < dim; ++d1) {
-                    const double aux_val_ener = node_dNdX(d1) * r_tot_ener;
-                    r_elem_tot_ener_grad[d1] += aux_val_ener;
+                    r_elem_rho_grad[d1] += node_dNdX(d1) * r_rho;
+                    r_elem_pres_grad[d1] += node_dNdX(d1) * i_node_p;
+                    r_elem_tot_ener_grad[d1] += node_dNdX(d1) * r_tot_ener;
                     for (int d2 = 0; d2 < dim; ++d2) {
-                        const double aux_val_mom = node_dNdX(d1) * r_mom[d2];
-                        r_elem_mom_grad(d1,d2) += aux_val_mom;
+                        r_elem_mom_grad(d1,d2) += node_dNdX(d1) * r_mom[d2];
                     }
                 }
             }
 
             // Project the computed gradients to the nodes
-            const double midpoint_N = 1.0 / static_cast<double>(n_nodes);
             for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
                 // Get nodal values
                 auto& r_node = r_geom[i_node];
                 auto& r_node_mom_grad = r_node.GetValue(MOMENTUM_GRADIENT);
+                auto& r_node_pres_grad = r_node.GetValue(PRESSURE_GRADIENT);
+                auto& r_node_rho_grad = r_node.GetValue(DENSITY_GRADIENT);
                 auto& r_node_tot_ener_grad = r_node.GetValue(TOTAL_ENERGY_GRADIENT);
                 for (int d1 = 0; d1 < dim; ++d1) {
 #pragma omp atomic
-                    r_node_tot_ener_grad[d1] += midpoint_N * geom_domain_size * r_elem_tot_ener_grad[d1];
+                    r_node_rho_grad[d1] += aux_weight * r_elem_rho_grad[d1];
+#pragma omp atomic
+                    r_node_pres_grad[d1] += aux_weight * r_elem_pres_grad[d1];
+#pragma omp atomic
+                    r_node_tot_ener_grad[d1] += aux_weight * r_elem_tot_ener_grad[d1];
                     for (int d2 = 0; d2 < dim; ++d2) {
 #pragma omp atomic
-                        r_node_mom_grad(d1,d2) += midpoint_N * geom_domain_size * r_elem_mom_grad(d1,d2);
+                        r_node_mom_grad(d1,d2) += aux_weight * r_elem_mom_grad(d1,d2);
                     }
                 }
 #pragma omp atomic
@@ -689,93 +711,143 @@ private:
             }
         }
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
-            // const double mass = r_lumped_mass_vector(i_node * block_size);
-            // it_node->GetValue(MOMENTUM_GRADIENT) /= mass;
-            // it_node->GetValue(TOTAL_ENERGY_GRADIENT) /= mass;
             const double weight = it_node->GetValue(NODAL_AREA);
+            it_node->GetValue(DENSITY_GRADIENT) /= weight;
+            it_node->GetValue(PRESSURE_GRADIENT) /= weight;
             it_node->GetValue(MOMENTUM_GRADIENT) /= weight;
             it_node->GetValue(TOTAL_ENERGY_GRADIENT) /= weight;
         }
 
         // Calculate shock capturing values
         const double zero_tol = 1.0e-12;
-        const double sc_visc_max_ratio = 1.0e0;
-        const double sc_cond_max_ratio = 1.0e0;
 
-        array_1d<double,3> midpoint_v;
+        double midpoint_rho;
+        double midpoint_pres;
+        double midpoint_tot_ener;
+        array_1d<double,3> midpoint_v, midpoint_m;
         Matrix midpoint_mom_grad_proj;
+        Vector midpoint_rho_grad_proj;
+        Vector midpoint_pres_grad_proj;
         Vector midpoint_tot_ener_grad_proj;
         // Vector N_container, midpoint_tot_ener_grad_proj;
 // #pragma omp parallel for private(N_container, midpoint_v, midpoint_mom_grad_proj, midpoint_tot_ener_grad_proj)
-#pragma omp parallel for private(midpoint_v, midpoint_mom_grad_proj, midpoint_tot_ener_grad_proj)
+#pragma omp parallel for private(midpoint_v, midpoint_m, midpoint_rho, midpoint_mom_grad_proj, midpoint_tot_ener_grad_proj, midpoint_pres_grad_proj, midpoint_rho_grad_proj)
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
             auto it_elem = r_model_part.ElementsBegin() + i_elem;
             auto& r_geom = it_elem->GetGeometry();
             const unsigned int n_nodes = r_geom.PointsNumber();
 
+            // Get fluid properties
+            const auto p_prop = it_elem->pGetProperties();
+            const double heat_capacity_ratio = p_prop->GetValue(HEAT_CAPACITY_RATIO);
+
             // Interpolate the nodal projection values in the midpoint and calculate the average velocity norm
+            midpoint_rho = 0.0;
+            midpoint_pres = 0.0;
+            midpoint_tot_ener = 0.0;
             midpoint_v = ZeroVector(3);
+            midpoint_m = ZeroVector(3);
             midpoint_mom_grad_proj = ZeroMatrix(dim, dim);
-            midpoint_tot_ener_grad_proj = ZeroVector(dim);
+            midpoint_rho_grad_proj = ZeroVector(3);
+            midpoint_pres_grad_proj = ZeroVector(3);
+            midpoint_tot_ener_grad_proj = ZeroVector(3);
             const double midpoint_N = 1.0 / static_cast<double>(n_nodes);
-            // r_geom.ShapeFunctionsValues(N_container, r_geom.Center());
             for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
                 const auto& r_node = r_geom[i_node];
                 // Interpolate the nodal projection values in the midpoint
+                const auto& r_node_rho_grad = r_node.GetValue(DENSITY_GRADIENT);
+                const auto& r_node_pres_grad = r_node.GetValue(PRESSURE_GRADIENT);
                 const auto& r_node_mom_grad = r_node.GetValue(MOMENTUM_GRADIENT);
                 const auto& r_node_tot_ener_grad = r_node.GetValue(TOTAL_ENERGY_GRADIENT);
                 midpoint_mom_grad_proj += midpoint_N * r_node_mom_grad;
+                midpoint_rho_grad_proj += midpoint_N * r_node_rho_grad;
+                midpoint_pres_grad_proj += midpoint_N * r_node_pres_grad;
                 midpoint_tot_ener_grad_proj += midpoint_N * r_node_tot_ener_grad;
-                // midpoint_mom_grad_proj += N_container[i_node] * r_node_mom_grad;
-                // midpoint_tot_ener_grad_proj += N_container[i_node] * r_node_tot_ener_grad;
                 // Calculate the midpoint velocity
                 const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
                 const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
                 midpoint_v += midpoint_N * r_mom / r_rho;
-                // midpoint_v += N_container[i_node] * r_mom / r_rho;
+                // Calculate the midpoint momentum
+                midpoint_m += midpoint_N * r_mom;
+                // Calculate the midpoint total energy
+                const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+                midpoint_tot_ener += midpoint_N * r_tot_ener;
+                // Calculate the midpoint pressure
+                const double r_mom_norm_squared = r_mom[0] * r_mom[0] + r_mom[1] * r_mom[1] + r_mom[2] * r_mom[2];
+                const double i_node_p = (heat_capacity_ratio - 1.0) * (r_tot_ener - 0.5 * r_mom_norm_squared / r_rho);
+                midpoint_pres += midpoint_N * i_node_p;
+                // Calculate the midpoint density
+                midpoint_rho += midpoint_N * r_rho;
             }
 
             // Calculate the norms of the gradients
             // Total energy gradients
             const auto& r_tot_ener_elem_grad = it_elem->GetValue(TOTAL_ENERGY_GRADIENT);
             const double tot_ener_grad_norm = norm_2(r_tot_ener_elem_grad);
-            const double tot_ener_grad_proj_norm = norm_2(r_tot_ener_elem_grad - midpoint_tot_ener_grad_proj);
+            const double tot_ener_grad_proj_norm = norm_2(midpoint_tot_ener_grad_proj);
+
             // Momentum gradients
             const auto& r_elem_mom_grad = it_elem->GetValue(MOMENTUM_GRADIENT);
             double mom_grad_norm = 0.0;
             double mom_grad_proj_norm = 0.0;
             for (unsigned int d1 = 0; d1 < dim; ++d1) {
                 for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                    const double& r_aux = r_elem_mom_grad(d1,d2);
-                    mom_grad_norm += std::pow(r_aux,2);
-                    mom_grad_proj_norm += std::pow(r_aux - midpoint_mom_grad_proj(d1,d2), 2);
+                    mom_grad_norm += std::pow(r_elem_mom_grad(d1,d2), 2);
+                    mom_grad_proj_norm += std::pow(midpoint_mom_grad_proj(d1,d2), 2);
                 }
             }
             mom_grad_norm = std::sqrt(mom_grad_norm);
             mom_grad_proj_norm = std::sqrt(mom_grad_proj_norm);
 
-            // Calculate the shock capturing magnitudes
-            const double c_a = 0.0001;
-            const double v_norm = norm_2(midpoint_v);
-            const double aux = 0.5 * c_a * v_norm * avg_h_function(r_geom);
-            // it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = mom_grad_norm > zero_tol ? aux * mom_grad_proj_norm / mom_grad_norm : 0.0;
-            // it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = tot_ener_grad_norm > zero_tol ? aux * tot_ener_grad_proj_norm / tot_ener_grad_norm : 0.0;
-            if (mom_grad_norm > zero_tol) {
-                const double sc_visc_ratio = mom_grad_proj_norm / mom_grad_norm;
-                it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = sc_visc_ratio < sc_visc_max_ratio ? aux * sc_visc_ratio : aux * sc_visc_max_ratio;
-            } else  {
-                it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = 0.0;
-            }
+            // Pressure gradients
+            const auto& r_elem_pres_grad = it_elem->GetValue(PRESSURE_GRADIENT);
+            const double pres_grad_norm = norm_2(r_elem_pres_grad);
+            const double pres_grad_proj_norm = norm_2(midpoint_pres_grad_proj);
 
-            if (tot_ener_grad_norm > zero_tol) {
-                const double sc_cond_ratio = tot_ener_grad_proj_norm / tot_ener_grad_norm;
-                it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = sc_cond_ratio < sc_cond_max_ratio ? aux * sc_cond_ratio : aux * sc_cond_max_ratio;
-            } else {
-                it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = 0.0;
-            }
+            // Density gradients
+            const auto& r_elem_rho_grad = it_elem->GetValue(DENSITY_GRADIENT);
+            const double rho_grad_norm = norm_2(r_elem_rho_grad);
+            const double rho_grad_proj_norm = norm_2(midpoint_rho_grad_proj);
+
+            // Calculate the shock capturing magnitudes
+            const double c_a = 0.8;
+            const double v_norm = norm_2(midpoint_v);
+            const double avg_h = avg_h_function(r_geom);
+            const double aux = 0.5 * c_a * v_norm * avg_h;
+
+            const double mom_epsilon = 1.0;
+            const double rho_epsilon = 1.0e-4;
+            const double pres_epsilon = 1.0e-4;
+            const double tot_ener_epsilon = 1.0e-4;
+
+            const double mu = p_prop->GetValue(DYNAMIC_VISCOSITY);
+            const double c_v = p_prop->GetValue(SPECIFIC_HEAT);
+            const double lambda = p_prop->GetValue(CONDUCTIVITY);
+
+            // Momentum sensor
+            const double mom_sensor = std::abs(mom_grad_norm - mom_grad_proj_norm) / (mom_grad_norm + mom_grad_proj_norm + mom_epsilon * (1.0 + norm_2(midpoint_m) / avg_h));
+            it_elem->SetValue(MOMENTUM_SHOCK_SENSOR, mom_sensor);
+
+            // Total energy sensor
+            const double tot_ener_sensor = std::abs(tot_ener_grad_norm - tot_ener_grad_proj_norm) / (tot_ener_grad_norm + tot_ener_grad_proj_norm + tot_ener_epsilon * (1.0 + midpoint_tot_ener / avg_h));
+            it_elem->SetValue(TOTAL_ENERGY_SHOCK_SENSOR, tot_ener_sensor);
+
+            // Pressure sensor
+            const double pres_sensor = std::abs(pres_grad_norm - pres_grad_proj_norm) / (pres_grad_norm + pres_grad_proj_norm + pres_epsilon * (midpoint_pres / avg_h));
+            it_elem->SetValue(SHOCK_SENSOR, pres_sensor);
+
+            // Density sensor
+            const double rho_sensor = std::abs(rho_grad_norm - rho_grad_proj_norm) / (rho_grad_norm + rho_grad_proj_norm + rho_epsilon * (midpoint_rho / avg_h));
+            it_elem->SetValue(DENSITY_SHOCK_SENSOR, rho_sensor);
+
+            // Artificial diffusion calculation
+            const double max_artificial_viscosity_ratio = 10.0;
+            const double max_artificial_conductivity_ratio = 10.0;
+            it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = std::min(aux * mom_sensor, max_artificial_viscosity_ratio * mom_sensor * mu / midpoint_rho);
+            it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = std::min(aux * rho_sensor, max_artificial_conductivity_ratio * rho_sensor * lambda / midpoint_rho / c_v);
         }
     }
 
@@ -796,7 +868,7 @@ private:
                 const double r_mom_n = inner_prod(r_mom, unit_normal);
                 r_mom -= r_mom_n * unit_normal;
             }
-        }        
+        }
     }
 
     void CalculateValuesSmoothing()
