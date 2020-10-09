@@ -11,6 +11,7 @@ class MonolithicVelocityPressureFormulationTest(
             "BackwardFacingStepTest",
             "backward_facing_step_monolithic_velocity_pressure_parameters.json",
             False)
+        cls.transient_scheme_type = "bossak"
 
 
 if __name__ == '__main__':
