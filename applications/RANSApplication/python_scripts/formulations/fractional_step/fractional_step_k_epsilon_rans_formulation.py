@@ -6,7 +6,7 @@ from KratosMultiphysics.RANSApplication.formulations.rans_formulation import Ran
 
 # import formulations
 from ..incompressible_potential_flow import IncompressiblePotentialFlowRansFormulation
-from ..turbulence_models.k_epsilon import KEpsilonRansFormulation
+from ..turbulence_models.k_epsilon_rans_formulation import KEpsilonRansFormulation
 from .fractional_step_velocity_pressure_rans_formulation import FractionalStepVelocityPressureRansFormulation
 
 class FractionalStepKEpsilonRansFormulation(RansFormulation):

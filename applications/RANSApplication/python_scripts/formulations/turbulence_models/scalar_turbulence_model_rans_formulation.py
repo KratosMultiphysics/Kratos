@@ -13,6 +13,8 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBloc
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeYPlusVariablesInConditions
 
 class ScalarTurbulenceModelRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -70,6 +72,9 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                                 "Created formulation model part.")
 
     def Initialize(self):
+        InitializeYPlusVariablesInConditions(self.GetModelPart())
+        CalculateNormalsOnConditions(self.GetModelPart())
+
         settings = self.GetParameters()
 
         if (self.IsPeriodic()):

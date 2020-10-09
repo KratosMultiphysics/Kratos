@@ -6,8 +6,8 @@ from KratosMultiphysics.RANSApplication.formulations.rans_formulation import Ran
 
 # import formulations
 from ..incompressible_potential_flow import IncompressiblePotentialFlowRansFormulation
+from ..turbulence_models.k_epsilon_rans_formulation import KEpsilonRansFormulation
 from .monolithic_velocity_pressure_rans_formulation import MonolithicVelocityPressureRansFormulation
-from ..turbulence_models.k_epsilon import KEpsilonRansFormulation
 
 class MonolithicKEpsilonRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
