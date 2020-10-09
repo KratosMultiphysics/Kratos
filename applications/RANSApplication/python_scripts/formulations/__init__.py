@@ -10,8 +10,8 @@ from .fractional_step.fractional_step_velocity_pressure_rans_formulation import 
 
 # turbulence model formulations
 ### k-epsilon formulations
-from .monolithic_vms.monolithic_k_epsilon_formulation import MonolithicKEpsilonFormulation
-from .fractional_step.fractional_step_k_epsilon_formulation import FractionalStepKEpsilonFormulation
+from .monolithic_vms.monolithic_k_epsilon_rans_formulation import MonolithicKEpsilonRansFormulation
+from .fractional_step.fractional_step_k_epsilon_rans_formulation import FractionalStepKEpsilonRansFormulation
 
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
@@ -19,8 +19,8 @@ def Factory(model_part, settings):
         ["incompressible_potential_flow", IncompressiblePotentialFlowRansFormulation],
         ["monolithic", MonolithicVelocityPressureRansFormulation],
         ["fractional_step", FractionalStepVelocityPressureRansFormulation],
-        ["monolithic_k_epsilon", MonolithicKEpsilonFormulation],
-        ["fractional_step_k_epsilon", FractionalStepKEpsilonFormulation]
+        ["monolithic_k_epsilon", MonolithicKEpsilonRansFormulation],
+        ["fractional_step_k_epsilon", FractionalStepKEpsilonRansFormulation]
     ]
 
     formulation_names_list = [
