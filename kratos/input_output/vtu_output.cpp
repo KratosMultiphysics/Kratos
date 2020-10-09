@@ -163,6 +163,36 @@ void GetData(
 
 } // helpers namespace
 
+Parameters VtuOutput::GetDefaultParameters()
+{
+    // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
+    Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                                 : "ascii",
+        "output_precision"                            : 7,
+        "output_control_type"                         : "step",
+        "output_frequency"                            : 1.0,
+        "output_sub_model_parts"                      : false,
+        "folder_name"                                 : "VTU_Output",
+        "custom_name_prefix"                          : "",
+        "custom_name_postfix"                         : "",
+        "save_output_files_in_folder"                 : true,
+        "write_deformed_configuration"                : false,
+        "write_ids"                                   : false,
+        "nodal_solution_step_data_variables"          : [],
+        "nodal_data_value_variables"                  : [],
+        "nodal_flags"                                 : [],
+        "element_data_value_variables"                : [],
+        "element_flags"                               : [],
+        "condition_data_value_variables"              : [],
+        "condition_flags"                             : [],
+        "gauss_point_variables_extrapolated_to_nodes" : [],
+        "gauss_point_variables_in_elements"           : []
+    })" );
+
+    return default_parameters;
+}
 
 VtuOutput::VtuOutput(
     ModelPart& rModelPart,
@@ -311,37 +341,6 @@ std::string VtuOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     }
 
     return output_file_name;
-}
-
-Parameters VtuOutput::GetDefaultParameters()
-{
-    // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "file_format"                                 : "ascii",
-        "output_precision"                            : 7,
-        "output_control_type"                         : "step",
-        "output_frequency"                            : 1.0,
-        "output_sub_model_parts"                      : false,
-        "folder_name"                                 : "VTU_Output",
-        "custom_name_prefix"                          : "",
-        "custom_name_postfix"                         : "",
-        "save_output_files_in_folder"                 : true,
-        "write_deformed_configuration"                : false,
-        "write_ids"                                   : false,
-        "nodal_solution_step_data_variables"          : [],
-        "nodal_data_value_variables"                  : [],
-        "nodal_flags"                                 : [],
-        "element_data_value_variables"                : [],
-        "element_flags"                               : [],
-        "condition_data_value_variables"              : [],
-        "condition_flags"                             : [],
-        "gauss_point_variables_extrapolated_to_nodes" : [],
-        "gauss_point_variables_in_elements"           : []
-    })" );
-
-    return default_parameters;
 }
 
 } // namespace Kratos
