@@ -83,12 +83,6 @@ KRATOS_API(RANS_APPLICATION)
 void AssignBoundaryFlagsToGeometries(
     ModelPart& rModelPart);
 
-KRATOS_API(RANS_APPLICATION)
-void CalculateMagnitudeSquareForNodal3DVariable(
-    ModelPart& rModelPart,
-    const Variable<array_1d<double, 3>>& r3DVariable,
-    const Variable<double>& rOutputVariable);
-
 template <typename TDataType>
 KRATOS_API(RANS_APPLICATION)
 double GetVariableValueNorm(const TDataType& rValue);

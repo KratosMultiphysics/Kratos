@@ -95,7 +95,7 @@ private:
     ///@{
     const ModelPart& mrModelPart;
     const Variable<TDataType>& mrVariable;
-    std::vector<double> mData;
+    std::vector<TDataType> mData;
 
     ///@}
 
@@ -106,13 +106,15 @@ private:
 ///@{
 
 template <typename TDataType>
-inline std::istream& operator>>(std::istream& rIStream,
-                                RansVariableDifferenceNormsCalculationUtility<TDataType>& rThis);
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    RansVariableDifferenceNormsCalculationUtility<TDataType>& rThis);
 
 /// output stream function
 template <typename TDataType>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansVariableDifferenceNormsCalculationUtility<TDataType>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansVariableDifferenceNormsCalculationUtility<TDataType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

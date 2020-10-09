@@ -3,14 +3,15 @@ __all__ = ["Factory"]
 import KratosMultiphysics as Kratos
 
 # flow solver formulations
-from .incompressible_potential_flow import IncompressiblePotentialFlowFormulation
-from .monolithic_vms.monolithic_velocity_pressure_formulation import MonolithicVelocityPressureFormulation
-from .fractional_step.fractional_step_velocity_pressure_formulation import FractionalStepVelocityPressureFormulation
+from .incompressible_potential_flow import IncompressiblePotentialFlowRansFormulation
+from .monolithic_vms.monolithic_velocity_pressure_rans_formulation import MonolithicVelocityPressureRansFormulation
+from .fractional_step.fractional_step_velocity_pressure_rans_formulation import FractionalStepVelocityPressureRansFormulation
+
 
 # turbulence model formulations
 ### k-epsilon formulations
-from .monolithic_vms.monolithic_k_epsilon_formulation import MonolithicKEpsilonFormulation
-from .fractional_step.fractional_step_k_epsilon_formulation import FractionalStepKEpsilonFormulation
+from .monolithic_vms.monolithic_k_epsilon_rans_formulation import MonolithicKEpsilonRansFormulation
+from .fractional_step.fractional_step_k_epsilon_rans_formulation import FractionalStepKEpsilonRansFormulation
 
 ### k-omega formulations
 from .monolithic_vms.monolithic_k_omega_formulation import MonolithicKOmegaFormulation
@@ -19,12 +20,12 @@ from .fractional_step.fractional_step_k_omega_formulation import FractionalStepK
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
     formulations_list = [
-        ["incompressible_potential_flow", IncompressiblePotentialFlowFormulation],
-        ["monolithic", MonolithicVelocityPressureFormulation],
-        ["monolithic_k_epsilon", MonolithicKEpsilonFormulation],
+        ["incompressible_potential_flow", IncompressiblePotentialFlowRansFormulation],
+        ["monolithic", MonolithicVelocityPressureRansFormulation],
+        ["fractional_step", FractionalStepVelocityPressureRansFormulation],
+        ["monolithic_k_epsilon", MonolithicKEpsilonRansFormulation],
+        ["fractional_step_k_epsilon", FractionalStepKEpsilonRansFormulation],
         ["monolithic_k_omega", MonolithicKOmegaFormulation],
-        ["fractional_step", FractionalStepVelocityPressureFormulation],
-        ["fractional_step_k_epsilon", FractionalStepKEpsilonFormulation],
         ["fractional_step_k_omega", FractionalStepKOmegaFormulation]
     ]
 
@@ -43,7 +44,7 @@ def Factory(model_part, settings):
     current_formulation = formulation_list[formulation_names_list.index(
         formulation_name)](model_part, settings)
 
-    Kratos.Logger.PrintInfo("RANSFormulationFactory",
+    Kratos.Logger.PrintInfo("RansFormulationFactory",
                             "Created " + formulation_name + " formulation.")
 
     return current_formulation

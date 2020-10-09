@@ -28,14 +28,14 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "linear_solver_settings" : {
                 "solver_type" : "amesos",
                 "amesos_solver_type" : "Amesos_Klu"
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):
@@ -91,7 +91,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
             guess_row_size = 15
         else:
             guess_row_size = 45
-        if(self.settings["block_builder"].GetBool() == True):
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(epetra_communicator,
                                                                                    guess_row_size,
                                                                                    linear_solver)

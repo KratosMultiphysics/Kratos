@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import sys
 import time as timer
 import os
@@ -15,7 +13,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 from KratosMultiphysics.DemStructuresCouplingApplication import dem_structures_coupling_gid_output
 
-class Algorithm(object):
+class Algorithm():
 
     def __init__(self):
         self.model = Kratos.Model()

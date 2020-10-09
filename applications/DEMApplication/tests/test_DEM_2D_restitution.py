@@ -1,36 +1,23 @@
 import os
 import KratosMultiphysics
 from KratosMultiphysics import Logger
-Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
+import auxiliary_functions_for_tests
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
+Logger.GetDefaultOutput().SetSeverity(Logger.Severity.INFO)
 
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
-    omp_utils = KratosMultiphysics.OpenMPUtils()
-    if "OMP_NUM_THREADS" in os.environ:
-        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
-        omp_utils.SetNumThreads(1)
-
-    with open(parameters_file_name,'r') as parameter_file:
-        project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    my_obj(model, project_parameters).Run()
-
-    if "OMP_NUM_THREADS" in os.environ:
-        omp_utils.SetNumThreads(int(initial_number_of_threads))
-
-class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     def Initialize(self):
-        super(DEM2D_RestitutionTestSolution, self).Initialize()
+        super().Initialize()
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
 
@@ -41,25 +28,19 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    @classmethod
-    def CheckRestitution(self, reference, restitution_coefficient, tolerance):
-        if not (reference < restitution_coefficient*tolerance and reference > restitution_coefficient/tolerance):
-            raise ValueError('Incorrect value for COEFFICIENT_OF_RESTITUTION: expected value was '+ str(reference) + ' but received ' + str(restitution_coefficient))
-
     def Finalize(self):
         tolerance = 1.0+1.0e-4
         for node in self.spheres_model_part.Nodes:
             final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-            Logger.PrintInfo("initial velocity:",self.initial_normal_vel)
-            Logger.PrintInfo("final velocity:",final_vel)
+            Logger.PrintInfo("initial velocity:", self.initial_normal_vel)
+            Logger.PrintInfo("final velocity:", final_vel)
             restitution_coefficient = -final_vel / self.initial_normal_vel
-            Logger.PrintInfo("restitution_coefficient",restitution_coefficient)
-            Logger.PrintInfo("ref:",self.coeff)
-            Logger.PrintInfo("upper bound:",restitution_coefficient*tolerance)
-            Logger.PrintInfo("lower bound:",restitution_coefficient/tolerance)
-            self.CheckRestitution(self.coeff, restitution_coefficient, tolerance)
-        super(DEM2D_RestitutionTestSolution, self).Finalize()
-
+            Logger.PrintInfo("restitution_coefficient", restitution_coefficient)
+            Logger.PrintInfo("ref:", self.coeff)
+            Logger.PrintInfo("upper bound:", restitution_coefficient*tolerance)
+            Logger.PrintInfo("lower bound:", restitution_coefficient/tolerance)
+            self.assertAlmostEqual(self.coeff, restitution_coefficient, delta=tolerance)
+        super().Finalize()
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
         properties = KratosMultiphysics.Properties(0)
@@ -82,6 +63,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         coordinates = KratosMultiphysics.Array3()
         coordinates[0] = 0.0
         coordinates[1] = 0.00255
+        coordinates[2] = 0.0
         radius = 0.0025
         self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
 
@@ -159,14 +141,14 @@ class TestDEM2DRestitution(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM2D_RestitutionTestSolution, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution, model, parameters_file_name, 1)
 
     @classmethod
     def test_DEM2D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM2D_RestitutionTestSolution_2, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution_2, model, parameters_file_name, 1)
 
 
     def tearDown(self):
