@@ -109,10 +109,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpArray1D9Variables(rOther.mpArray1D9Variables),
           mpVectorVariables(rOther.mpVectorVariables),
           mpMatrixVariables(rOther.mpMatrixVariables),
-          mpArray1DVariableComponents(rOther.mpArray1DVariableComponents),
-          mpArray1D4VariableComponents(rOther.mpArray1D4VariableComponents),
-          mpArray1D6VariableComponents(rOther.mpArray1D6VariableComponents),
-          mpArray1D9VariableComponents(rOther.mpArray1D9VariableComponents),
           mpGeometries(rOther.mpGeometries),
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
@@ -201,26 +197,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Variable<Matrix> >::ComponentsContainerType& GetComponents(
         Variable<Matrix> const& rComponentType) {
         return *mpMatrixVariables;
-    }
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 3> > > >::ComponentsContainerType& GetComponents(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& rComponentType) {
-        return *mpArray1DVariableComponents;
-    }
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 4> > > >::ComponentsContainerType& GetComponents(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > const& rComponentType) {
-        return *mpArray1D4VariableComponents;
-    }
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 6> > > >::ComponentsContainerType& GetComponents(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > const& rComponentType) {
-        return *mpArray1D6VariableComponents;
-    }
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 9> > > >::ComponentsContainerType& GetComponents(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > const& rComponentType) {
-        return *mpArray1D9VariableComponents;
     }
 
     KratosComponents<VariableData>::ComponentsContainerType& GetVariables() {
@@ -510,14 +486,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Variable<Vector> >::ComponentsContainerType* mpVectorVariables;
 
     KratosComponents<Variable<Matrix> >::ComponentsContainerType* mpMatrixVariables;
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType* mpArray1DVariableComponents;
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >::ComponentsContainerType* mpArray1D4VariableComponents;
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >::ComponentsContainerType* mpArray1D6VariableComponents;
-
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::ComponentsContainerType* mpArray1D9VariableComponents;
 
     KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
 

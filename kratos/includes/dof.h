@@ -27,7 +27,6 @@
 #include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
-#include "containers/vector_component_adaptor.h"
 #include "containers/array_1d.h"
 
 
@@ -36,11 +35,7 @@ namespace Kratos
 
 
 #define KRATOS_DOF_TRAITS \
-        KRATOS_MAKE_DOF_TRAIT(0) Variable<TDataType> KRATOS_END_DOF_TRAIT(0); \
-        KRATOS_MAKE_DOF_TRAIT(1) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 3> > > KRATOS_END_DOF_TRAIT(1); \
-        KRATOS_MAKE_DOF_TRAIT(2) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 4> > > KRATOS_END_DOF_TRAIT(2); \
-        KRATOS_MAKE_DOF_TRAIT(3) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 6> > > KRATOS_END_DOF_TRAIT(3); \
-        KRATOS_MAKE_DOF_TRAIT(4) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 9> > > KRATOS_END_DOF_TRAIT(4);
+        KRATOS_MAKE_DOF_TRAIT(0) Variable<TDataType> KRATOS_END_DOF_TRAIT(0);
 
 
 
@@ -126,7 +121,6 @@ public:
 
     @see Node
     @see Variable
-    @see VariableComponent
     */
     template<class TVariableType>
     Dof(NodalData* pThisNodalData,
@@ -164,7 +158,6 @@ public:
 
     @see Node
     @see Variable
-    @see VariableComponent
     */
     template<class TVariableType, class TReactionType>
     Dof(NodalData* pThisNodalData,
@@ -183,7 +176,7 @@ public:
         KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisReaction))
             << "The Reaction-Variable " << rThisReaction.Name() << " is not "
             << "in the list of variables" << std::endl;
-        
+
         mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, &rThisReaction);
 
     }
@@ -417,7 +410,7 @@ public:
 
 
     /// Turn back information as a string.
-    std::string Info() const 
+    std::string Info() const
     {
         std::stringstream buffer;
 
@@ -434,14 +427,14 @@ public:
 
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const 
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const 
+    void PrintData(std::ostream& rOStream) const
     {
         rOStream << "    Variable               : " << GetVariable().Name() << std::endl;
         rOStream << "    Reaction               : " << GetReaction().Name() << std::endl;
@@ -529,7 +522,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const 
+    void save(Serializer& rSerializer) const
     {
         rSerializer.save("IsFixed", static_cast<bool>(mIsFixed));
         rSerializer.save("EquationId", static_cast<EquationIdType>(mEquationId));
@@ -540,7 +533,7 @@ private:
 
     }
 
-    void load(Serializer& rSerializer) 
+    void load(Serializer& rSerializer)
     {
         std::string name;
         bool is_fixed;

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import math
 import datetime
 import shutil
@@ -470,11 +468,15 @@ class MaterialTest():
 
         if self.test_type == "BTS":
             self.bts_export.close()
-            #self.bts_stress_export.close()
         else:
-            self.graph_export.close()
+            self.graph_export_1.close()
+            self.graph_export_2.close()
+            self.graph_export_3.close()
 
-            if self.test_type =="Hydrostatic":
+            if self.test_type != "Shear":
+                self.graph_export_4.close()
+
+            if self.test_type == "Hydrostatic":
                 self.graph_export_volumetric.close()
 
     def OrientationStudy(self,contact_model_part,step):
