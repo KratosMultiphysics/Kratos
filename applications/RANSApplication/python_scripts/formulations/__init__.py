@@ -5,13 +5,15 @@ import KratosMultiphysics as Kratos
 # flow solver formulations
 from .incompressible_potential_flow import IncompressiblePotentialFlowRansFormulation
 from .monolithic_vms.monolithic_velocity_pressure_rans_formulation import MonolithicVelocityPressureRansFormulation
+from .fractional_step.fractional_step_velocity_pressure_rans_formulation import FractionalStepVelocityPressureRansFormulation
 
 
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
     formulations_list = [
         ["incompressible_potential_flow", IncompressiblePotentialFlowRansFormulation],
-        ["monolithic", MonolithicVelocityPressureRansFormulation]
+        ["monolithic", MonolithicVelocityPressureRansFormulation],
+        ["fractional_step", FractionalStepVelocityPressureRansFormulation]
     ]
 
     formulation_names_list = [
