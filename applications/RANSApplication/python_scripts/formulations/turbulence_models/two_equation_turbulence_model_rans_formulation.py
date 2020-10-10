@@ -64,8 +64,7 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
 
             self.ExecuteBeforeCouplingSolveStep()
             for formulation in self.GetRansFormulationsList():
-                if (not formulation.SolveCouplingStep()):
-                    return False
+                formulation.SolveCouplingStep()
             self.ExecuteAfterCouplingSolveStep()
 
             relative_error, absolute_error = self.nu_t_convergence_utility.CalculateDifferenceNorm()
