@@ -18,6 +18,7 @@
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/distributed_sparse_graph.h"
 #include "containers/distributed_csr_matrix.h"
+#include "containers/distributed_system_vector.h"
 
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
@@ -149,13 +150,38 @@ MatrixMapType GetReferenceMatrixAsMap(const std::vector<IndexType>& bounds)
     KRATOS_CATCH("")
 }
 
+
+std::map<IndexType, double> GetReferencebAsMap(const std::vector<IndexType>& bounds)
+{
+    KRATOS_TRY
+    MatrixMapType all_connectivities = GetReferenceMatrixAsMap();
+    if(bounds[1]>all_connectivities.size())
+        KRATOS_ERROR << "bounds : " << bounds << " exceed the total size : "
+         << all_connectivities.size() << std::endl;
+    
+    std::vector<double> reference_b_vector{1,3,2,3,3,3,5,6,4,4,2,4,3,1,6,3,5,3,6,3,0,1,4,1,4,4,6,1,5,2,2,3,1,4,1,5,2,4,1,3};
+
+    std::map<IndexType, double> reference_b_map;
+
+    for(unsigned int i=0; i<reference_b_vector.size(); ++i)
+    {
+        if(i>=bounds[0] && i<bounds[1])
+            reference_b_map.insert({i,reference_b_vector[i]});
+    }
+
+    return reference_b_map;
+    KRATOS_CATCH("")
+}
+
+
+
 template< class TSparseGraphType>
 bool CheckGraph(
         const TSparseGraphType& rAgraph,
         const MatrixMapType& rReferenceGraph)
 {
     //check that all entries in Agraph are also in reference_A_map
-    for(IndexType local_i = 0; local_i<rAgraph.Size();++local_i) //i is the LOCAL index
+    for(IndexType local_i = 0; local_i<rAgraph.LocalSize();++local_i) //i is the LOCAL index
     {
         auto I = rAgraph.GlobalId(local_i);
         for(auto J : rAgraph[local_i] )
@@ -326,7 +352,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreF
     }
     A.FinalizeAssemble();
 
-    for(const auto item : reference_A_map)
+    for(const auto& item : reference_A_map)
     {
         auto GlobalI = item.first.first;
         auto GlobalJ = item.first.second;
@@ -377,6 +403,55 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
     double end_graph = OpenMPUtils::GetCurrentTime();
     std::cout << "graph - time = " << end_graph-start_graph << std::endl;
 
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosCoreFastSuite)
+{
+    typedef DistributedSparseGraph::IndexType IndexType;
+
+    DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
+    int world_size =rComm.Size();
+    int my_rank = rComm.Rank();
+
+    auto dofs_bounds = ComputeBounds<IndexType>(40, world_size, my_rank);
+    auto reference_A_map = GetReferenceMatrixAsMap(dofs_bounds);
+    auto reference_b_map = GetReferencebAsMap(dofs_bounds);
+
+    auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
+    const auto connectivities = ElementConnectivities(el_bounds);
+
+    DistributedSparseGraph Agraph(dofs_bounds, rComm);
+
+    #pragma omp parallel for
+    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+        Agraph.AddEntries(connectivities[i]);
+    Agraph.Finalize();
+
+    //FEM assembly
+    DistributedSystemVector<> b(Agraph);
+
+    b.SetValue(0.0);
+    b.BeginAssemble();
+
+    for(const auto& c : connectivities)
+    {   
+        Vector vdata(c.size(),1.0);
+        b.Assemble(vdata,c);
+    }    
+
+    b.FinalizeAssemble();
+
+    IndexType local_size = b.LocalSize();
+    for(unsigned int i=0; i<local_size; ++i)
+    {
+        auto global_i = b.GlobalId(i);
+        auto it = reference_b_map.find(global_i);
+        const auto& ref_value = it->second;
+        KRATOS_CHECK_NEAR(b(i) ,  ref_value , 1e-10 );
+    }
+
+
+    
 }
 
 

@@ -74,20 +74,46 @@ public:
             mLocalBounds(rGraph.GetLocalBounds()),
             mCpuBounds(rGraph.GetCpuBounds())
     {
-        mLocalData.resize(rGraph.Size(),false);
-
+        mLocalData.resize(rGraph.LocalSize(),false);
+        mNonLocalData.resize(mrComm.Size());
 
         //now add entries in nonlocal data;
         const auto& r_non_local_graphs = rGraph.GetNonLocalGraphs();
-        for(unsigned int cpu_id = 0; cpu_id<r_non_local_graphs.size(); ++cpu_id)
+
         IndexPartition<IndexType>(r_non_local_graphs.size()).for_each([&](IndexType cpu_id)
         {
-            for(const auto& item : r_non_local_graphs[cpu_id])
+            const auto& graph = r_non_local_graphs[cpu_id];
+
+            for(auto item=graph.begin(); item!=graph.end(); ++item)
             {
-                IndexType row = item.first;
-                mNonLocalData[cpu_id][row] = TDataType(); //first touching of nonlocaldata
+                    IndexType row = item.GetRowIndex(); //note that this is a "remote local id"
+                    mNonLocalData[cpu_id][row] = TDataType(); //first touching of nonlocaldata
+                //}
             }
         });
+
+        //compute communication colors
+        const auto& nonlocal_graphs = rGraph.GetNonLocalGraphs();
+        std::vector<int> send_list;
+        for(unsigned int cpu_id = 0; cpu_id<nonlocal_graphs.size(); ++cpu_id)
+                if( !nonlocal_graphs[cpu_id].IsEmpty())
+                    send_list.push_back(cpu_id);
+
+        mfem_assemble_colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, GetComm());
+
+        //fill the list of indices to be received
+        for(auto color : mfem_assemble_colors)
+        {
+            if(color >= 0) //-1 would imply no communication
+            {
+                //compute the list of ids to send
+                std::vector<IndexType> send_ids;
+                for(const auto& item : mNonLocalData[color])
+                    send_ids.push_back(item.first);
+                mRecvIndicesByColor[color] = GetComm().SendRecv(send_ids, color, color); 
+            }
+        }
+
     }
 
     /// Destructor.
@@ -96,6 +122,10 @@ public:
     ///@}
     ///@name Operators
     ///@{
+    const DataCommunicator& GetComm(){
+        return mrComm;
+    }
+
     void Clear()
     {
         mLocalData.clear();
@@ -108,7 +138,7 @@ public:
         });
     }
 
-    IndexType Size() const
+    IndexType LocalSize() const
     {
         return mLocalData.size();
     }
@@ -172,10 +202,48 @@ public:
     ///@{
     void BeginAssemble(){
         //TODO set to zero nonlocal data prior to assembly
+        IndexPartition<IndexType>(mNonLocalData.size()).for_each([&](IndexType cpu_id){
+            for(auto & item : this->mNonLocalData[cpu_id])
+            {
+                item.second = 0.0;
+            }
+        });
+
     } 
 
-    void FinalizeAssemble(){
-        //TODO communications
+    //communicate data to finalize the assembly
+    void FinalizeAssemble()
+    {
+        std::vector<TDataType> send_buffer;
+        std::vector<TDataType> recv_buffer;
+
+        //sendrecv data
+        for(auto color : mfem_assemble_colors)
+        {
+            if(color >= 0) //-1 would imply no communication
+            {
+                const auto& recv_indices = mRecvIndicesByColor[color];
+                send_buffer.resize(mNonLocalData[color].size());
+                recv_buffer.resize(mRecvIndicesByColor[color].size());
+
+                IndexType counter = 0;
+                for(const auto& it : mNonLocalData[color])
+                {
+                    send_buffer[counter++] = it.second;
+                }
+
+                // //NOTE: this can be made nonblocking 
+                GetComm().SendRecv(send_buffer, color, 0, recv_buffer, color, 0); //TODO, we know all the sizes, we shall use that!
+
+                for(IndexType i=0; i<recv_buffer.size(); ++i)
+                {
+                    IndexType local_i = recv_indices[i];
+
+                    AtomicAdd( mLocalData[local_i] , recv_buffer[i]);
+                }
+            }
+        }
+
     }
 
     template<class TVectorType, class TIndexVectorType >
@@ -188,8 +256,8 @@ public:
 
         for(unsigned int i=0; i<EquationId.size(); ++i){
             IndexType global_i = EquationId[i];
-            
-            if(Islocal(global_i))
+
+            if(IsLocal(global_i))
             {
                 IndexType local_i = LocalId(global_i);
                 AtomicAdd(mLocalData(local_i) , rVectorInput[i]);
@@ -197,9 +265,10 @@ public:
             else
             {
                 auto owner_rank = OwnerRank(global_i);
-                auto& it = *(mNonLocalData[owner_rank].find(global_i));
+                IndexType local_i = RemoteLocalId(global_i, owner_rank);
+                auto it = (mNonLocalData[owner_rank].find( local_i ));
                 KRATOS_DEBUG_ERROR_IF(it == mNonLocalData[owner_rank].end()) << "global_i = "<< global_i << " not in mNonLocalData" << std::endl;
-                TDataType& value = *it;
+                TDataType& value = (*it).second;
                 AtomicAdd(value , rVectorInput[i]);
             }
         }
@@ -293,7 +362,10 @@ private:
     std::vector<IndexType> mCpuBounds;
 
     DenseVector<TDataType> mLocalData; //contains the local data
-    std::unordered_map<IndexType, TDataType> mNonLocalData;
+    std::vector< std::unordered_map<IndexType, TDataType> > mNonLocalData;
+    std::vector<int> mfem_assemble_colors; //coloring of communication
+
+    std::unordered_map<IndexType, std::vector<IndexType> > mRecvIndicesByColor;
 
     ///@}
     ///@name Private Operators
