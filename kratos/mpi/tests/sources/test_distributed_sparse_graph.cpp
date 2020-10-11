@@ -19,6 +19,7 @@
 #include "containers/distributed_sparse_graph.h"
 #include "containers/distributed_csr_matrix.h"
 #include "containers/distributed_system_vector.h"
+#include "containers/distributed_vector_importer.h"
 
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
@@ -447,11 +448,36 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
         auto global_i = b.GlobalId(i);
         auto it = reference_b_map.find(global_i);
         const auto& ref_value = it->second;
-        KRATOS_CHECK_NEAR(b(i) ,  ref_value , 1e-10 );
+        KRATOS_CHECK_NEAR(b(i) ,  ref_value , 1e-14 );
     }
 
+    //test importing
+    std::vector<IndexType> to_import{39, 0,37,2};
+    DistributedVectorImporter<double,IndexType> importer(b.GetComm(),to_import,b.GetCpuBounds());   //this operation is expensive since it requires mounting the communication plan
+    auto x = importer.ImportData(b);
+    KRATOS_CHECK_NEAR(x[0] ,  3 , 1e-14 );
+    KRATOS_CHECK_NEAR(x[1] ,  1 , 1e-14 );
+    KRATOS_CHECK_NEAR(x[2] ,  4 , 1e-14 );
+    KRATOS_CHECK_NEAR(x[3] ,  2 , 1e-14 );
 
-    
+    //Test SPMV - TODO: move this to a different test
+    DistributedCsrMatrix<double, IndexType> A(Agraph);
+    A.BeginAssemble();   
+    for(const auto& c : connectivities){   
+        Matrix data(c.size(),c.size(),1.0);
+        A.Assemble(data,c);
+    }
+    A.FinalizeAssemble();
+
+    DistributedSystemVector<> y(Agraph);
+    y.SetValue(0.0);
+    b.SetValue(1.0);
+    A.SpMV(y,b);
+
+    for(unsigned int i=0; i<y.LocalSize(); ++i)
+        std::cout << y[i] << " ";
+    std::cout << std::endl;
+
 }
 
 
