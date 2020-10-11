@@ -21,7 +21,7 @@ class FractionalStepKEpsilonRansFormulation(RansFormulation):
             "k_epsilon_solver_settings": {},
             "max_iterations": 1
         }''')
-        settings = self.GetParameters()
+
         settings.ValidateAndAssignDefaults(default_settings)
 
         if (not settings["incompressible_potential_flow_initialization_settings"].IsEquivalentTo(
