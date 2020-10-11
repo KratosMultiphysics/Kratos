@@ -462,10 +462,13 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorAssembly, KratosCoreFastSuite)
         reference_sum += c.size();
     }  
 
+std::cout << "{";
     double sum = 0.0; //for this test the final value is 124
-    for(IndexType i=0; i!=b.Size(); ++i){
+    for(IndexType i=0; i!=b.size(); ++i){
         sum += b(i);
+        std::cout << b(i) << ",";
     }
+std::cout << std::endl;
     KRATOS_CHECK_EQUAL(sum, reference_sum);
 }
 
@@ -498,7 +501,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
     A.SpMV(x,y); //x += A*y
 
     double sum = 0.0; //for this test the final value is 124
-    for(IndexType i=0; i!=x.Size(); ++i){
+    for(IndexType i=0; i!=x.size(); ++i){
         sum += x(i);
     }
 
