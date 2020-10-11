@@ -73,7 +73,7 @@ public:
     CsrMatrix(const TGraphType& rSparseGraph)
     {
         rSparseGraph.ExportCSRArrays(mRowIndices,mColIndices);
-        mNrows = rSparseGraph.Size();
+        //mNrows = rSparseGraph.Size();
 
         //TODO: parallelize
         IndexType max_col = 0;
@@ -163,13 +163,10 @@ public:
     }
 
     // y += A*x  -- where A is *this
-    void SpMV(SystemVector<TDataType,TIndexType>& y,
-              const SystemVector<TDataType,TIndexType>& x) const
+    template<class TVec1, class TVec2>
+    void SpMV(TVec1& y, const TVec2& x) const
     {
-        KRATOS_ERROR_IF(y.Size() != size1()) << "size mismatch in SpMV" ;
-        KRATOS_ERROR_IF(x.Size() != size1()) << "size mismatch in SpMV" ;
-
-        IndexPartition<IndexType>(x.Size()).for_each( [&](IndexType i){
+        IndexPartition<IndexType>(x.size()).for_each( [&](IndexType i){
             IndexType row_begin = index1_data()[i];
             IndexType row_end   = index1_data()[i+1];
             for(IndexType k = row_begin; k < row_end; ++k){

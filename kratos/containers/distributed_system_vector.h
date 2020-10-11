@@ -59,6 +59,8 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
+    typedef int MpiIndexType;
+
 
     /// Pointer definition of DistributedSystemVector
     KRATOS_CLASS_POINTER_DEFINITION(DistributedSystemVector);
@@ -152,6 +154,15 @@ public:
         return mLocalData[I];
     }
 
+    TDataType& operator[](IndexType I){
+        return mLocalData[I];
+    }
+
+
+    const TDataType& operator[](IndexType I) const{
+        return mLocalData[I];
+    }
+
     bool IsLocal(const IndexType I) const
     {
         return (I>=mLocalBounds[0] && I<mLocalBounds[1]);
@@ -196,6 +207,18 @@ public:
 
     }
 
+    const std::vector<IndexType> GetCpuBounds() const {
+        return mCpuBounds;
+    }
+
+    DenseVector<TDataType>& GetLocalData(){
+        return mLocalData;
+    }
+
+
+    const DenseVector<TDataType>& GetLocalData() const{
+        return mLocalData;
+    }
 
     ///@}
     ///@name Operations
@@ -212,8 +235,8 @@ public:
     } 
 
     //communicate data to finalize the assembly
-    void FinalizeAssemble()
-    {
+    void FinalizeAssemble(){
+
         std::vector<TDataType> send_buffer;
         std::vector<TDataType> recv_buffer;
 

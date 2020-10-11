@@ -18,6 +18,7 @@
 #include <iostream>
 #include "containers/csr_matrix.h"
 #include "containers/distributed_sparse_graph.h"
+#include "containers/distributed_vector_importer.h"
 #include "includes/key_hash.h"
 #include "utilities/atomic_utilities.h"
 
@@ -162,6 +163,16 @@ public:
         }
 
         PrepareNonLocalCommunications(rSparseGraph);
+
+        //mount importer for SpMV calculations
+        std::vector<IndexType> off_diag_global_ids;
+        for(auto& item : mNonDiagonalLocalIds)
+        {
+            IndexType global_i = item.first;
+            off_diag_global_ids.push_back(global_i);
+        }
+        auto pimporter = Kratos::make_unique<DistributedVectorImporter<double,IndexType>>(GetComm(),off_diag_global_ids,rSparseGraph.GetCpuBounds());
+        mpVectorImporter.swap(pimporter);
     }
 
     /// Destructor.
@@ -188,13 +199,15 @@ public:
         mOffDiagBlock.SetValue(value);
     }
 
-    IndexType local_size1()
+    IndexType local_size1() const
     {
+        return mDiagBlock.size1();
         //TODO decide if we should give back the local or globale sizes
     }
 
-    IndexType size2()
+    IndexType size2() const
     {
+        return -1; 
         //TODO decide if we should give back the local or globale sizes
     }
 
@@ -311,21 +324,14 @@ public:
     //-
     //*
 
-    template<class TOutputVector, class TInputVector>
-    static void MultAndAdd(
-        TOutputVector& rOutputVector,
-        const DistributedCsrMatrix& rA,
-        const TInputVector& rInputVector
-    )
+   void SpMV(DistributedSystemVector<TDataType,TIndexType>& y,
+              const DistributedSystemVector<TDataType,TIndexType>& x) const
     {
-        IndexPartition<IndexType>(rA.index1_data().size()-1).for_each([&](IndexType i)
-        {
-            for(int k=rA.index1_data()[i]; k<rA.index1_data()[i+1]; ++k)
-            {
-                auto j = rA.index2_data()[k];
-                rOutputVector[i] += rA.value_data()[k]*rInputVector[j];
-            }
-        });
+        //get off diagonal terms (requires communication)
+        auto off_diag_x = mpVectorImporter->ImportData(x);
+
+        mOffDiagBlock.SpMV(y.GetLocalData(),off_diag_x);
+        // mDiagBlock.SpMV(y.GetLocalData(),x.GetLocalData());
     }
 
 
@@ -625,6 +631,8 @@ private:
 
     IndexType mNrows=0;
     IndexType mNcols=0;
+
+    std::unique_ptr<DistributedVectorImporter<double,IndexType>> mpVectorImporter;
 
     ///@}
     ///@name Private Operators

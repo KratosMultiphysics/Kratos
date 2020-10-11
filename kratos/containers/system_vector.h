@@ -90,7 +90,7 @@ public:
         });
     }
 
-    IndexType Size() const
+    IndexType size() const
     {
         return mData.size();
     }
