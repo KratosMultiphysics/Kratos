@@ -12,6 +12,8 @@ class FractionalStepKOmegaTest(
             "backward_facing_step_fractional_step_k_omega_parameters.json",
             False)
 
+        cls.transient_scheme_type = "bdf2"
+
 
 if __name__ == '__main__':
     UnitTest.main()
