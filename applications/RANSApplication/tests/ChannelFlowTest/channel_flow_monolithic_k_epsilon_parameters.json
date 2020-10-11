@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "geometry",
         "parallel_type": "OpenMP",
-        "echo_level": 1,
+        "echo_level": 0,
         "start_time": 0.0,
         "end_time": 4.0
     },
@@ -38,7 +38,7 @@
             "formulation_name": "monolithic_k_epsilon",
             "monolithic_flow_solver_settings": {
                 "maximum_iterations": 1,
-                "echo_level": 2,
+                "echo_level": 0,
                 "compute_reactions": false,
                 "reform_dofs_at_each_step": false,
                 "relative_velocity_tolerance": 1e-12,
@@ -61,7 +61,7 @@
                     "relative_tolerance": 5e-16,
                     "absolute_tolerance": 1e-4,
                     "max_iterations": 5,
-                    "echo_level": 2,
+                    "echo_level": 0,
                     "relaxation_factor": 0.9,
                     "linear_solver_settings": {
                         "solver_type": "<LINEAR_SOLVER_TYPE>"
@@ -71,13 +71,13 @@
                     "relative_tolerance": 5e-16,
                     "absolute_tolerance": 1e-4,
                     "max_iterations": 5,
-                    "echo_level": 2,
+                    "echo_level": 0,
                     "relaxation_factor": 0.9,
                     "linear_solver_settings": {
                         "solver_type": "<LINEAR_SOLVER_TYPE>"
                     }
                 },
-                "echo_level": 2,
+                "echo_level": 0,
                 "coupling_settings": {
                     "relative_tolerance": 1e-16,
                     "absolute_tolerance": 1e-5,
@@ -187,7 +187,7 @@
                         ],
                         "magnitude": 6.28
                     },
-                    "echo_level": 1,
+                    "echo_level": 0,
                     "reorder": false
                 }
             },

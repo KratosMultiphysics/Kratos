@@ -5,9 +5,9 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import formulations
-from ..incompressible_potential_flow import IncompressiblePotentialFlowRansFormulation
-from ..turbulence_models.k_epsilon import KEpsilonRansFormulation
-from .fractional_step_velocity_pressure_rans_formulation import FractionalStepVelocityPressureRansFormulation
+from KratosMultiphysics.RANSApplication.formulations.incompressible_potential_flow import IncompressiblePotentialFlowRansFormulation
+from KratosMultiphysics.RANSApplication.formulations.turbulence_models.k_epsilon_rans_formulation import KEpsilonRansFormulation
+from KratosMultiphysics.RANSApplication.formulations.fractional_step.fractional_step_velocity_pressure_rans_formulation import FractionalStepVelocityPressureRansFormulation
 
 class FractionalStepKEpsilonRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):

@@ -13,6 +13,8 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBloc
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeYPlusVariablesInConditions
 
 class ScalarTurbulenceModelRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -28,8 +30,6 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
-        super().__init__(model_part, settings)
-
         defaults = Kratos.Parameters(r"""{
             "relative_tolerance"    : 1e-3,
             "absolute_tolerance"    : 1e-5,
@@ -42,9 +42,10 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             "boundary_flags": ["INLET", "STRUCTURE"]
         }""")
 
-        settings = self.GetParameters()
         settings.ValidateAndAssignDefaults(defaults)
         self.echo_level = settings["echo_level"].GetInt()
+
+        super().__init__(model_part, settings)
 
     @abstractmethod
     def GetSolvingVariable(self):
@@ -70,6 +71,9 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                                 "Created formulation model part.")
 
     def Initialize(self):
+        InitializeYPlusVariablesInConditions(self.GetBaseModelPart())
+        CalculateNormalsOnConditions(self.GetBaseModelPart())
+
         settings = self.GetParameters()
 
         if (self.IsPeriodic()):
@@ -145,7 +149,7 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                 "\"scheme_type\" is missing in time scheme settings")
 
     def GetMaxCouplingIterations(self):
-        return "N/A"
+        return 0
 
     def GetModelPart(self):
         return self.turbulence_model_part
@@ -168,15 +172,15 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
         self.condition_name = self.GetConditionNamePrefix()
 
         if (self.condition_name != ""):
-            wall_function_region_type = "logarithmic_region_only"
             if (settings.Has("wall_function_region_type")):
-                wall_function_region_type = settings[
-                    "wall_function_region_type"].GetString()
+                wall_function_region_type = settings["wall_function_region_type"].GetString()
+            else:
+                wall_function_region_type = "logarithmic_region_only"
 
-            wall_friction_velocity_calculation_method = "velocity_based"
             if (settings.Has("wall_friction_velocity_calculation_method")):
-                wall_friction_velocity_calculation_method = settings[
-                    "wall_friction_velocity_calculation_method"].GetString()
+                wall_friction_velocity_calculation_method = settings["wall_friction_velocity_calculation_method"].GetString()
+            else:
+                wall_friction_velocity_calculation_method = "velocity_based"
 
             if (wall_function_region_type == "logarithmic_region_only"):
                 if (wall_friction_velocity_calculation_method == "velocity_based"):

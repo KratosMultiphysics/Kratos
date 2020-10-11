@@ -5,15 +5,34 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 # import RANS
 import KratosMultiphysics.RANSApplication as KratosRANS
 
-# import formulation interface
+# import formulation interfaces
+from KratosMultiphysics.RANSApplication.formulations.turbulence_models.scalar_turbulence_model_rans_formulation import ScalarTurbulenceModelRansFormulation
 from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equation_turbulence_model_rans_formulation import TwoEquationTurbulenceModelRansFormulation
-
-# import formulations
-from .k_epsilon_k_rans_formulation import KEpsilonKRansFormulation
-from .k_epsilon_epsilon_rans_formulation import KEpsilonEpsilonRansFormulation
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
+
+class KEpsilonKRansFormulation(ScalarTurbulenceModelRansFormulation):
+    def GetSolvingVariable(self):
+        return KratosRANS.TURBULENT_KINETIC_ENERGY
+
+    def GetElementNamePrefix(self):
+        return "RansKEpsilonK"
+
+    def GetConditionNamePrefix(self):
+        return ""
+
+
+class KEpsilonEpsilonRansFormulation(ScalarTurbulenceModelRansFormulation):
+    def GetSolvingVariable(self):
+        return KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
+
+    def GetElementNamePrefix(self):
+        return "RansKEpsilonEpsilon"
+
+    def GetConditionNamePrefix(self):
+        return "RansKEpsilonEpsilon"
+
 
 class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):
