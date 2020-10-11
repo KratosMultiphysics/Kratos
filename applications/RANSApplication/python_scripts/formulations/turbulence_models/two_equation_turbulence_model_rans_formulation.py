@@ -1,5 +1,6 @@
 # import kratos
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.process_factory import KratosProcessFactory
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
@@ -31,6 +32,15 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             return 1
         else:
             return 2
+
+    def Initialize(self):
+        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
+        self.auxiliar_process_list = factory.ConstructListOfProcesses(
+            self.GetParameters()["auxiliar_process_list"])
+        for process in self.auxiliar_process_list:
+            self.AddProcess(process)
+
+        super().Initialize()
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
