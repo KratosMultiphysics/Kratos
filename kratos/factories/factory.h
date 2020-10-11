@@ -205,6 +205,25 @@ public:
     ///@}
 };
 
+namespace Internals
+{
+    template <typename TBaseCategoryType>
+    class RegisteredPrototypeBase {
+        public:
+        RegisteredPrototypeBase() = default;
+    };
+
+    template <typename TClassType, typename TBaseCategoryType>
+    class RegisteredPrototype : public  RegisteredPrototypeBase<TBaseCategoryType> {
+        public:
+        explicit RegisteredPrototype(const std::string& rName, const TClassType& rPrototype)
+        {
+            KratosComponents<TBaseCategoryType>::Add(rName, rPrototype);
+        }
+    };
+
+}
+
 ///@}
 ///@name Type Definitions
 ///@{

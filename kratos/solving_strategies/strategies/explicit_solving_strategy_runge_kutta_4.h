@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "factories/factory.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 
 namespace Kratos
@@ -417,6 +418,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     ///@}
     ///@name Member Variables

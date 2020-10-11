@@ -111,7 +111,6 @@ void KratosApplication::RegisterKratosCore() {
 
     // Register of solving strategies
     RegisterExplicitBuildersFactories();
-    RegisterExplicitStrategiesFactories();
 
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
