@@ -109,9 +109,6 @@ void KratosApplication::RegisterKratosCore() {
     RegisterLinearSolvers();
     RegisterPreconditioners();
 
-    // Register of solving strategies
-    RegisterExplicitBuildersFactories();
-
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
     Serializer::Register("Dof", Dof<double>());

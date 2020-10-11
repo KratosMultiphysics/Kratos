@@ -35,20 +35,12 @@ typedef TUblasDenseSpace<double> LocalSpaceType;
 
 ///@}
 
-void RegisterExplicitBuildersFactories();
-
 typedef ExplicitSolvingStrategy<SparseSpaceType, LocalSpaceType> ExplicitSolvingStrategyType;
 typedef ExplicitBuilder<SparseSpaceType, LocalSpaceType> ExplicitBuilderType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitSolvingStrategyType>;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitBuilderType>;
-
-#ifdef KRATOS_REGISTER_EXPLICIT_BUILDER
-#undef KRATOS_REGISTER_EXPLICIT_BUILDER
-#endif
-#define KRATOS_REGISTER_EXPLICIT_BUILDER(name, reference) \
-    KratosComponents<ExplicitBuilderType>::Add(name, reference);
 
 }  // namespace Kratos.
 

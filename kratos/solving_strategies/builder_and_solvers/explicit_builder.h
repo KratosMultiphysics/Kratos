@@ -26,6 +26,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "includes/kratos_parameters.h"
+#include "factories/factory.h"
 
 namespace Kratos
 {
@@ -856,6 +857,42 @@ protected:
 
     ///@}
     ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    static std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
     ///@{
 
 
