@@ -35,11 +35,10 @@ namespace Kratos
 /**
  * @brief Base class for convergence accelerators
  * This class is intended to be the base of any convergence accelerator in Kratos
- * @tparam TSpace Linear algebra sparse space
- * @tparam TSpace Linear algebra dense space
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
  */
-template<class TSparseSpace,
-         class TDenseSpace>
+template<class TSparseSpace, class TDenseSpace>
 class ConvergenceAccelerator
 {
 

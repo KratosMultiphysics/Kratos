@@ -59,7 +59,6 @@ public:
 
     typedef typename TSpace::MatrixType                              MatrixType;
     typedef typename TSpace::MatrixPointerType                MatrixPointerType;
-
     ///@}
     ///@name Public member Variables
     ///@{
@@ -67,6 +66,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
 
     /**
      * Old Jacobian pointer constructor.
@@ -398,19 +398,23 @@ private:
 }; /* Class JacobianEmulator */
 
 
-/** @brief MVQN (MultiVectorQuasiNewton method) acceleration scheme
+/** @brief Recursive MVQN acceleration scheme
+ * Recursive MultiVectorQuasiNewton convergence accelerator. This convergence accelerator
+ * is an alternative implementation of the standard MVQN that avoids the storage of the
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
  */
-template<class TSpace>
-class MVQNRecursiveJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSpace> {
+template<class TSparseSpace, class TDenseSpace>
+class MVQNRecursiveJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSparseSpace, TDenseSpace> {
 public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( MVQNRecursiveJacobianConvergenceAccelerator );
 
-    typedef ConvergenceAccelerator<TSpace>                                             BaseType;
+    typedef ConvergenceAccelerator<TSparseSpace, TDenseSpace>                          BaseType;
     typedef typename BaseType::Pointer                                          BaseTypePointer;
 
-    typedef typename JacobianEmulator<TSpace>::Pointer              JacobianEmulatorPointerType;
+    typedef typename JacobianEmulator<TDenseSpace>::Pointer         JacobianEmulatorPointerType;
 
     typedef typename BaseType::VectorType                                            VectorType;
     typedef typename BaseType::VectorPointerType                              VectorPointerType;
@@ -486,7 +490,7 @@ public:
     {
         KRATOS_TRY;
 
-        mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator <TSpace> > (new JacobianEmulator<TSpace>());
+        mpCurrentJacobianEmulatorPointer = Kratos::make_unique<JacobianEmulator<TDenseSpace>>();
 
         KRATOS_CATCH( "" );
     }
@@ -505,10 +509,10 @@ public:
 
         if (mConvergenceAcceleratorStep <= mJacobianBufferSize) {
             // Construct the inverse Jacobian emulator
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer)));
+            mpCurrentJacobianEmulatorPointer = Kratos::make_unique<JacobianEmulator<TDenseSpace>>(std::move(mpCurrentJacobianEmulatorPointer));
         } else {
             // Construct the inverse Jacobian emulator considering the recursive elimination
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize));
+            mpCurrentJacobianEmulatorPointer = Kratos::make_unique<JacobianEmulator<TDenseSpace>>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize);
         }
 
         KRATOS_CATCH( "" );
@@ -526,7 +530,7 @@ public:
     {
         KRATOS_TRY;
 
-        const auto problem_size = TSpace::Size(rResidualVector);
+        const auto problem_size = TSparseSpace::Size(rResidualVector);
 
         VectorPointerType pAuxResidualVector(new VectorType(rResidualVector));
         VectorPointerType pAuxIterationGuess(new VectorType(rIterationGuess));
@@ -536,7 +540,7 @@ public:
         if (mConvergenceAcceleratorIteration == 0) {
             if (mConvergenceAcceleratorFirstCorrectionPerformed == false) {
                 // The very first correction of the problem is done with a fixed point iteration
-                TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
+                TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
 
                 mConvergenceAcceleratorFirstCorrectionPerformed = true;
             } else {
@@ -545,15 +549,15 @@ public:
                 // The first correction of the current step is done with the previous step inverse Jacobian approximation
                 mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pInitialCorrection);
 
-                TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pInitialCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
+                TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, *pInitialCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
             }
         } else {
             // Gather the new observation matrices column information
             VectorPointerType pNewColV(new VectorType(*mpResidualVector_1));
             VectorPointerType pNewColW(new VectorType(*mpIterationValue_1));
 
-            TSpace::UnaliasedAdd(*pNewColV, -1.0, *mpResidualVector_0); // NewColV = ResidualVector_1 - ResidualVector_0
-            TSpace::UnaliasedAdd(*pNewColW, -1.0, *mpIterationValue_0); // NewColW = IterationValue_1 - IterationValue_0
+            TSparseSpace::UnaliasedAdd(*pNewColV, -1.0, *mpResidualVector_0); // NewColV = ResidualVector_1 - ResidualVector_0
+            TSparseSpace::UnaliasedAdd(*pNewColW, -1.0, *mpIterationValue_0); // NewColW = IterationValue_1 - IterationValue_0
 
             // Observation matrices information filling
             bool info_added = false;
@@ -569,7 +573,7 @@ public:
             VectorPointerType pIterationCorrection(new VectorType(rResidualVector));
             mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pIterationCorrection);
 
-            TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
+            TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
         }
 
         KRATOS_CATCH( "" );

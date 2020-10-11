@@ -40,10 +40,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Aitken acceleration scheme
+/** @brief Aitken convergence accelerator
+ * Aitken formula-based
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
  */
-template<class TSpace>
-class AitkenConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
+template<class TSparseSpace, class TDenseSpace>
+class AitkenConvergenceAccelerator: public ConvergenceAccelerator<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -51,7 +54,7 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( AitkenConvergenceAccelerator );
 
-    typedef ConvergenceAccelerator<TSpace>                                 BaseType;
+    typedef ConvergenceAccelerator<TSparseSpace, TDenseSpace>              BaseType;
 
     typedef typename BaseType::Pointer                              BaseTypePointer;
 
@@ -146,19 +149,19 @@ public:
 
         if (mConvergenceAcceleratorIteration == 1)
         {
-            TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
+            TDenseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
         }
         else
         {
             VectorType Aux1minus0(*mpResidualVector_1);                  // Auxiliar copy of mResidualVector_1
-            TSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
+            TDenseSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
 
-            double den = TSpace::Dot(Aux1minus0, Aux1minus0);
-            double num = TSpace::Dot(*mpResidualVector_0, Aux1minus0);
+            double den = TDenseSpace::Dot(Aux1minus0, Aux1minus0);
+            double num = TDenseSpace::Dot(*mpResidualVector_0, Aux1minus0);
 
             mOmega_1 = -mOmega_0*(num/den);
 
-            TSpace::UnaliasedAdd(rIterationGuess, mOmega_1, *mpResidualVector_1);
+            TDenseSpace::UnaliasedAdd(rIterationGuess, mOmega_1, *mpResidualVector_1);
             mOmega_0 = mOmega_1;
         }
 
