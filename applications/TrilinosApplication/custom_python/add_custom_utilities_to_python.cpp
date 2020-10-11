@@ -76,7 +76,7 @@ void AuxiliarComputeInterfaceResidualVector(
 }
 
 void AuxiliarUpdateSolution(
-    ConvergenceAccelerator<TrilinosSparseSpaceType> &dummy,
+    ConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType> &dummy,
     AuxiliaryVectorWrapper &rResidualVector,
     AuxiliaryVectorWrapper &rIterationGuess)
 {
@@ -178,9 +178,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilitiesArray3DType::CheckCurrentCoordinatesStructure);
 
     // Convergence accelerators (from FSIApplication)
-    typedef ConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosConvergenceAccelerator;
-    typedef AitkenConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosAitkenAccelerator;
-    typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosMVQNRecursiveAccelerator;
+    typedef ConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosConvergenceAccelerator;
+    typedef AitkenConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosAitkenAccelerator;
+    typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosMVQNRecursiveAccelerator;
 
     // Convergence accelerator base class
     py::class_< TrilinosConvergenceAccelerator> (m,"TrilinosConvergenceAccelerator").def(py::init < >())

@@ -149,19 +149,19 @@ public:
 
         if (mConvergenceAcceleratorIteration == 1)
         {
-            TDenseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
+            TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
         }
         else
         {
             VectorType Aux1minus0(*mpResidualVector_1);                  // Auxiliar copy of mResidualVector_1
-            TDenseSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
+            TSparseSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
 
-            double den = TDenseSpace::Dot(Aux1minus0, Aux1minus0);
-            double num = TDenseSpace::Dot(*mpResidualVector_0, Aux1minus0);
+            double den = TSparseSpace::Dot(Aux1minus0, Aux1minus0);
+            double num = TSparseSpace::Dot(*mpResidualVector_0, Aux1minus0);
 
             mOmega_1 = -mOmega_0*(num/den);
 
-            TDenseSpace::UnaliasedAdd(rIterationGuess, mOmega_1, *mpResidualVector_1);
+            TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_1, *mpResidualVector_1);
             mOmega_0 = mOmega_1;
         }
 
