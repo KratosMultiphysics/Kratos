@@ -137,7 +137,7 @@ public:
         return mrComm;
     }
 
-    IndexType Size() const{
+    IndexType LocalSize() const{
         return mLocalGraph.Size(); //note that this is only valid after Finalize has been called
     }
 

@@ -79,7 +79,7 @@ public:
             mLocalBounds(rSparseGraph.GetLocalBounds()),
             mCpuBounds(rSparseGraph.GetCpuBounds())
     {
-        mNrows = rSparseGraph.Size();
+        mNrows = rSparseGraph.LocalSize();
         mNonDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
         //count entries in diagonal and off_diag blocks
@@ -188,7 +188,7 @@ public:
         mOffDiagBlock.SetValue(value);
     }
 
-    IndexType size1()
+    IndexType local_size1()
     {
         //TODO decide if we should give back the local or globale sizes
     }
