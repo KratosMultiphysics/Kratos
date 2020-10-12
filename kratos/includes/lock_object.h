@@ -32,9 +32,7 @@ namespace Kratos
   ///@{
 
   /// This class defines stores a lock and gives interface to it.
-  /** The class makes a tiny wrapper over the OpenMP Lock and also
-  provides some auxiliary methods to obtain number of threads and
-  current thread number
+  /** The class makes a tiny wrapper over the ahared memory locking mechanisms
   */
   class LockObject
     {
