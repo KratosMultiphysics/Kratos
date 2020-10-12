@@ -90,39 +90,13 @@ namespace Kratos
 			return *this;
 		}
 
-
       ///@}
       ///@name Operations
       ///@{
 
-		static inline int GetNumberOfThreads()
-		{
-#ifdef KRATOS_SMP_OPENMP
-			return omp_get_max_threads();
-#else
-			return 1;
-#endif
-		}
-
-		static inline int GetThreadNumber()
-		{
-#ifdef KRATOS_SMP_OPENMP
-			return omp_get_thread_num();
-#else
-			return 0;
-#endif
-		}
-
       ///@}
       ///@name Access
       ///@{
-
-#ifdef KRATOS_SMP_OPENMP
-		omp_lock_t& GetLock() const
-		{
-			return mLock;
-		}
-#endif
 
 		inline void SetLock() const
 		{
@@ -162,5 +136,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_LOCK_OBJECT_H_INCLUDED  defined
-
-
