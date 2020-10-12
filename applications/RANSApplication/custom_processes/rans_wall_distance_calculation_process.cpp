@@ -56,9 +56,7 @@ void CalculateAndUpdateNodalMinimumWallDistance(
 
     rNode.SetLock();
     double& current_distance = rNode.FastGetSolutionStepValue(rDistanceVariable);
-    if (current_distance > wall_distance) {
-        current_distance = wall_distance;
-    }
+    current_distance = std::min(current_distance, wall_distance);
     rNode.Set(VISITED, true);
     rNode.UnSetLock();
 }
@@ -89,14 +87,11 @@ RansWallDistanceCalculationProcess::RansWallDistanceCalculationProcess(
     mMaxLevels = rParameters["max_levels"].GetInt();
     mEchoLevel = rParameters["echo_level"].GetInt();
     mMaxDistance = rParameters["max_distance"].GetDouble();
-    mModelPartName = rParameters["model_part_name"].GetString();
-    mWallFlagVariableName = rParameters["wall_flag_variable_name"].GetString();
-    mWallFlagVariableValue = rParameters["wall_flag_variable_value"].GetBool();
+    mMainModelPartName = rParameters["main_model_part_name"].GetString();
+    mWallModelPartName = rParameters["wall_model_part_name"].GetString();
     mDistanceVariableName = rParameters["distance_variable_name"].GetString();
     mNodalAreaVariableName = rParameters["nodal_area_variable_name"].GetString();
     mRecalculateAtEachTimeStep = rParameters["re_calculate_at_each_time_step"].GetBool();
-    mCorrectDistancesUsingNeighbors =
-        rParameters["correct_distances_using_neighbors"].GetBool();
 
     KRATOS_CATCH("");
 }
@@ -105,20 +100,20 @@ int RansWallDistanceCalculationProcess::Check()
 {
     KRATOS_TRY
 
-    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mMainModelPartName);
 
     const auto& r_distance_variable =
         KratosComponents<Variable<double>>::Get(mDistanceVariableName);
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_distance_variable))
         << r_distance_variable.Name() << " is not found in nodal solution step variables list of "
-        << mModelPartName << " used to store nodal distances.";
+        << mMainModelPartName << " used to store nodal distances.";
 
     const auto& r_nodal_area_variable = KratosComponents<Variable<double>>::Get(mNodalAreaVariableName);
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_nodal_area_variable))
         << r_nodal_area_variable.Name() << " is not found in nodal solution step variables list of "
-        << mModelPartName << " used to store nodal areas.";
+        << mMainModelPartName << " used to store nodal areas.";
 
     return RansFormulationProcess::Check();
 
@@ -148,49 +143,50 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
 
     using namespace WallDistanceCalculationUtilities;
 
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-    auto& r_communicator = r_model_part.GetCommunicator();
+    auto& r_main_model_part = mrModel.GetModelPart(mMainModelPartName);
+    auto& r_wall_model_part = mrModel.GetModelPart(mWallModelPartName);
+    auto& r_communicator = r_main_model_part.GetCommunicator();
 
-    const auto& r_wall_flag = KratosComponents<Flags>::Get(mWallFlagVariableName);
     const auto& r_distance_variable = KratosComponents<Variable<double>>::Get(mDistanceVariableName);
     const auto& r_nodal_area_variable = KratosComponents<Variable<double>>::Get(mNodalAreaVariableName);
 
     // variable initialization
-    block_for_each(r_model_part.Nodes(), [&](ModelPart::NodeType& rNode){
+    block_for_each(r_main_model_part.Nodes(), [&](ModelPart::NodeType& rNode){
         rNode.SetValue(NORMAL, NORMAL.Zero());
         rNode.Set(VISITED, false);
         rNode.FastGetSolutionStepValue(r_distance_variable) = mMaxDistance;
     });
 
+    // identify all wall nodes to negative small distance values
+    block_for_each(r_wall_model_part.Nodes(), [&](ModelPart::NodeType& rNode){
+        rNode.FastGetSolutionStepValue(r_distance_variable) = -1e-12;
+        rNode.Set(VISITED, true);
+    });
+
     // calculate wall distances based on conditions
-    block_for_each(r_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
-        if (rCondition.Is(r_wall_flag) == mWallFlagVariableValue) {
-            array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
-            const double normal_magnitude = norm_2(normal);
-            KRATOS_ERROR_IF(normal_magnitude == 0.0)
-                << "NORMAL is not properly initialized in condition with id "
-                << rCondition.Id() << " at "
-                << rCondition.GetGeometry().Center() << ".\n";
-            normal /= normal_magnitude;
+    block_for_each(r_wall_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
+        array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
+        const double normal_magnitude = norm_2(normal);
+        KRATOS_ERROR_IF(normal_magnitude == 0.0)
+            << "NORMAL is not properly initialized in condition with id "
+            << rCondition.Id() << " at " << rCondition.GetGeometry().Center() << ".\n";
+        normal /= normal_magnitude;
 
-            auto& parent_geometry =
-                rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
-            for (auto& r_parent_node : parent_geometry) {
-                if (r_parent_node.Is(r_wall_flag) != mWallFlagVariableValue) {
-                    CalculateAndUpdateNodalMinimumWallDistance(
-                        r_parent_node, rCondition.GetGeometry().Center(),
-                        normal, r_distance_variable);
-                }
+        auto& parent_geometry = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
+        for (auto& r_parent_node : parent_geometry) {
+            if (r_parent_node.FastGetSolutionStepValue(r_distance_variable) > 0.0) {
+                CalculateAndUpdateNodalMinimumWallDistance(
+                    r_parent_node, rCondition.GetGeometry().Center(), normal, r_distance_variable);
             }
+        }
 
-            // update nodal non-historical NORMAL to be used in case where
-            // some nodes needs updating of nodal distances via Elements.
-            auto& r_geometry = rCondition.GetGeometry();
-            for (auto& r_node : r_geometry) {
-                r_node.SetLock();
-                r_node.GetValue(NORMAL) += normal;
-                r_node.UnSetLock();
-            }
+        // update nodal non-historical NORMAL to be used in case where
+        // some nodes needs updating of nodal distances via Elements.
+        auto& r_geometry = rCondition.GetGeometry();
+        for (auto& r_node : r_geometry) {
+            r_node.SetLock();
+            r_node.GetValue(NORMAL) += normal;
+            r_node.UnSetLock();
         }
     });
 
@@ -200,7 +196,7 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
     r_communicator.SynchronizeOrNodalFlags(VISITED);
 
     // calculate distances based on elements (on wall adjacent nodes which are not covered by conditions)
-    block_for_each(r_model_part.Elements(), [&](ModelPart::ElementType& rElement) {
+    block_for_each(r_main_model_part.Elements(), [&](ModelPart::ElementType& rElement) {
         auto& r_geometry = rElement.GetGeometry();
 
         array_1d<double, 3> normal = ZeroVector(3);
@@ -213,7 +209,7 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
         // lies on the wall.
         for (std::size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             const auto& r_node = r_geometry[i_node];
-            if (r_node.Is(r_wall_flag) == mWallFlagVariableValue) {
+            if (r_node.FastGetSolutionStepValue(r_distance_variable) < 0.0) {
                 noalias(normal) += r_node.GetValue(NORMAL);
                 noalias(normal_center) += r_node.Coordinates();
                 normals_count += 1.0;
@@ -245,147 +241,26 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
     r_communicator.SynchronizeOrNodalFlags(VISITED);
 
     // update rest of the domain
-    block_for_each(r_model_part.Nodes(), [&](ModelPart::NodeType& rNode) {
-        if (rNode.Is(r_wall_flag) == mWallFlagVariableValue) {
-            rNode.FastGetSolutionStepValue(r_distance_variable) = -1e-12;
-        } else if (!rNode.Is(VISITED)) {
-            rNode.FastGetSolutionStepValue(r_distance_variable) = 0.0;
-        }
-    });
+    VariableUtils().SetVariable(r_distance_variable, 0.0, r_main_model_part.Nodes(),
+                                VISITED, false);
 
-    const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
+    const int domain_size = r_main_model_part.GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
         ParallelDistanceCalculator<2>().CalculateDistances(
-            r_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
+            r_main_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
     } else if (domain_size == 3) {
         ParallelDistanceCalculator<3>().CalculateDistances(
-            r_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
+            r_main_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
     } else {
-        KRATOS_ERROR << "Unsupported domain size in " << r_model_part.Name()
+        KRATOS_ERROR << "Unsupported domain size in " << r_main_model_part.Name()
                      << ". [ DOMAIN_SIZE = " << domain_size << " ]\n";
     }
 
     // revert boundary negative distances to zero
-    VariableUtils().SetVariable(r_distance_variable, 0.0, r_model_part.Nodes(),
-                                r_wall_flag, mWallFlagVariableValue);
-
-    if (mCorrectDistancesUsingNeighbors) {
-        CorrectWallDistances();
-    }
+    VariableUtils().SetVariable(r_distance_variable, 0.0, r_wall_model_part.Nodes());
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-        << "Wall distances calculated in " << mModelPartName << ".\n";
-
-    KRATOS_CATCH("");
-}
-
-void RansWallDistanceCalculationProcess::CorrectWallDistances()
-{
-    KRATOS_TRY
-
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-    auto& r_communicator = r_model_part.GetCommunicator();
-    auto& r_data_communicator = r_communicator.GetDataCommunicator();
-
-    auto& r_nodes = r_communicator.LocalMesh().Nodes();
-
-    const auto& r_distance_variable = KratosComponents<Variable<double>>::Get(mDistanceVariableName);
-
-    VariableUtils().SetNonHistoricalVariableToZero(r_distance_variable, r_model_part.Nodes());
-
-    FindGlobalNodalNeighboursProcess find_nodal_neighbours_process(
-        r_data_communicator, r_model_part);
-    find_nodal_neighbours_process.Execute();
-
-    class GlobalPointerAdder
-    {
-    public:
-        typedef GlobalPointersVector<ModelPart::NodeType> value_type;
-        value_type gp_vector;
-
-        value_type GetValue()
-        {
-            gp_vector.Unique();
-            return gp_vector;
-        }
-
-        void LocalReduce(const value_type& rGPVector)
-        {
-            for (auto& r_gp : rGPVector.GetContainer()) {
-                this->gp_vector.push_back(r_gp);
-            }
-        }
-        void ThreadSafeReduce(GlobalPointerAdder& rOther)
-        {
-#pragma omp critical
-            {
-                for (auto& r_gp : rOther.gp_vector.GetContainer()) {
-                    this->gp_vector.push_back(r_gp);
-                }
-            }
-        }
-    };
-
-    auto all_global_pointers =
-        block_for_each<GlobalPointerAdder>(r_nodes, [](ModelPart::NodeType& rNode) {
-            return rNode.GetValue(NEIGHBOUR_NODES);
-        });
-
-    GlobalPointerCommunicator<ModelPart::NodeType> pointer_comm(
-        r_data_communicator, all_global_pointers);
-
-    auto distance_proxy =
-        pointer_comm.Apply([&](const GlobalPointer<ModelPart::NodeType>& gp) -> double {
-            return gp->FastGetSolutionStepValue(r_distance_variable);
-        });
-
-    int number_of_modified_nodes = block_for_each<SumReduction<int>>(
-        r_nodes, [&](ModelPart::NodeType& rNode) -> int {
-            if (rNode.FastGetSolutionStepValue(r_distance_variable) < 0.0) {
-                const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
-
-                int count = 0;
-                double average_value = 0.0;
-                for (int j_node = 0;
-                     j_node < static_cast<int>(r_neighbours.size()); ++j_node) {
-                    const double j_distance = distance_proxy.Get(r_neighbours(j_node));
-                    if (j_distance > 0.0) {
-                        average_value += j_distance;
-                        count++;
-                    }
-                }
-
-                if (count > 0) {
-                    rNode.SetValue(r_distance_variable,
-                                   average_value / static_cast<double>(count));
-                } else {
-                    KRATOS_ERROR
-                        << "Node " << rNode.Id() << " at " << rNode.Coordinates()
-                        << " didn't find any neighbour(" << r_neighbours.size()
-                        << ") with positive " << r_distance_variable.Name()
-                        << ". Please recheck " << mModelPartName << ".\n";
-                }
-
-                return 1;
-            }
-            return 0;
-        });
-
-    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-        double& r_distance = rNode.FastGetSolutionStepValue(r_distance_variable);
-        const double avg_distance = rNode.GetValue(r_distance_variable);
-        if (r_distance < 0.0) {
-            r_distance = avg_distance;
-        }
-    });
-
-    r_communicator.SynchronizeVariable(r_distance_variable);
-    number_of_modified_nodes =
-        r_communicator.GetDataCommunicator().SumAll(number_of_modified_nodes);
-
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0 && number_of_modified_nodes > 0)
-        << "Corrected " << number_of_modified_nodes
-        << " nodal wall distances in " << mModelPartName << ".\n";
+        << "Wall distances calculated in " << mMainModelPartName << ".\n";
 
     KRATOS_CATCH("");
 }
@@ -394,16 +269,14 @@ const Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() cons
 {
     const auto default_parameters = Parameters(R"(
         {
-            "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "main_model_part_name"             : "PLEASE_SPECIFY_MAIN_MODEL_PART_NAME",
+            "wall_model_part_name"             : "PLEASE_SPECIFY_WALL_MODEL_PART_NAME",
             "max_levels"                       : 100,
             "max_distance"                     : 1e+30,
             "echo_level"                       : 0,
             "distance_variable_name"           : "DISTANCE",
             "nodal_area_variable_name"         : "NODAL_AREA",
-            "wall_flag_variable_name"          : "STRUCTURE",
-            "wall_flag_variable_value"         : true,
-            "re_calculate_at_each_time_step"   : false,
-            "correct_distances_using_neighbors": true
+            "re_calculate_at_each_time_step"   : false
         })");
 
     return default_parameters;

@@ -97,15 +97,14 @@ private:
     ///@{
 
     Model& mrModel;
-    std::string mModelPartName;
+    std::string mMainModelPartName;
+    std::string mWallModelPartName;
+
     int mMaxLevels;
     int mEchoLevel;
-    std::string mWallFlagVariableName;
     std::string mDistanceVariableName;
     std::string mNodalAreaVariableName;
-    bool mWallFlagVariableValue;
     bool mRecalculateAtEachTimeStep;
-    bool mCorrectDistancesUsingNeighbors;
     double mMaxDistance;
 
     ///@}
@@ -130,18 +129,6 @@ private:
      *
      */
     void CalculateWallDistances();
-
-    /**
-     * @brief Corrects wall distances
-     *
-     * If process gives incorrect negative wall distances
-     * when mesh is not refined enough. This method iterates through NEIGHBOUR nodes for a node with negative
-     * DISTANCE and corrects it by calculated positive DISTANCE average from the NEIGHBOURs
-     *
-     * Works in MPI as well.
-     *
-     */
-    void CorrectWallDistances();
 
     ///@}
 

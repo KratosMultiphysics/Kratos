@@ -440,28 +440,14 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSApplication",
                 "python_module" : "cpp_process_factory",
-                "process_name"  : "ApplyFlagProcess",
-                "Parameters" : {
-                    "model_part_name"                : "test.Slip2D.Slip2D_walls",
-                    "echo_level"                     : 0,
-                    "flag_variable_name"             : "STRUCTURE",
-                    "flag_variable_value"            : true,
-                    "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
-                }
-            },
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
                 "process_name"  : "WallDistanceCalculationProcess",
                 "Parameters" : {
-                    "model_part_name"                  : "test",
+                    "main_model_part_name"             : "test",
+                    "wall_model_part_name"             : "test.Slip2D.Slip2D_walls",
                     "echo_level"                       : 0,
                     "max_distance"                     : "max",
                     "max_levels"                       : 14,
-                    "wall_flag_variable_name"          : "STRUCTURE",
-                    "wall_flag_variable_value"         : true,
-                    "re_calculate_at_each_time_step"   : false,
-                    "correct_distances_using_neighbors": true
+                    "re_calculate_at_each_time_step"   : false
                 }
             }
         ]''')
