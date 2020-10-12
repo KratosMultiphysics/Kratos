@@ -382,7 +382,27 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR(std::logic_error,"SmallStrainUPwDiffOrderElement::CalculateLeftHandSide not implemented","");
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    //Resetting the LHS
+    if ( rLeftHandSideMatrix.size1() != ElementSize )
+        rLeftHandSideMatrix.resize( ElementSize, ElementSize, false );
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( ElementSize, ElementSize );
+
+    //calculation flags
+    bool CalculateStiffnessMatrixFlag = true;
+    bool CalculateResidualVectorFlag = false;
+    VectorType tempRightHandSideVector;
+
+    CalculateAll(rLeftHandSideMatrix,
+                 tempRightHandSideVector,
+                 rCurrentProcessInfo,
+                 CalculateStiffnessMatrixFlag,
+                 CalculateResidualVectorFlag);
 
     KRATOS_CATCH( "" )
 }
@@ -1641,10 +1661,12 @@ void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients( ElementVariable
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients") << std::endl;
 
-    rVariables.BiotCoefficient = 1.0 - BulkModulus / GetProperties()[BULK_MODULUS_SOLID];
-    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - GetProperties()[POROSITY])
-                                   / GetProperties()[BULK_MODULUS_SOLID] 
-                                   + GetProperties()[POROSITY]/GetProperties()[BULK_MODULUS_FLUID];
+    const PropertiesType& Prop = this->GetProperties();
+
+    rVariables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - Prop[POROSITY])
+                                   / Prop[BULK_MODULUS_SOLID] 
+                                   + Prop[POROSITY]/Prop[BULK_MODULUS_FLUID];
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients") << std::endl;
     KRATOS_CATCH( "" )
