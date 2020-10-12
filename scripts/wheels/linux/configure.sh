@@ -36,6 +36,7 @@ add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
+add_app ${KRATOS_APP_DIR}/MappingApplication;
 
 # Clean
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"

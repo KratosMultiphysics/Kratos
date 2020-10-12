@@ -8,7 +8,8 @@
         "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
         "KratosLinearSolversApplication==${KRATOS_VERSION}",
         "KratosExternalSolversApplication==${KRATOS_VERSION}",
-        "KratosShapeOptimizationApplication==${KRATOS_VERSION}"
+        "KratosShapeOptimizationApplication==${KRATOS_VERSION}",
+        "KratosMappingApplication==${KRATOS_VERSION}"
     ],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
