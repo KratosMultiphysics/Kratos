@@ -73,7 +73,9 @@ jobs:
 
     - name: Build
       shell: cmd
-      run: .github/workflows/configure.cmd
+      run: |
+        copy .\.github\workflows\configure.cmd
+        configure.cmd
 
     - name: Running nightly tests
       shell: cmd
