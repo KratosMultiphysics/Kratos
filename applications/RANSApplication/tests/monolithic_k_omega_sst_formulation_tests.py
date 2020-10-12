@@ -12,6 +12,8 @@ class MonolithicKOmegaSSTTest(
             "backward_facing_step_monolithic_k_omega_sst_parameters.json",
             False)
 
+        cls.transient_scheme_type = "bossak"
+
 class MonolithicKOmegaSSTPeriodicTest(
         periodic_turbulence_modelling_test_case.PeriodicTurbulenceModellingTestCase):
     @classmethod
