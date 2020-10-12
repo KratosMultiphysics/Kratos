@@ -9,8 +9,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED
+#if !defined (KRATOS_LINEAR_PLANE_STRESS_PRE_STRAIN_LAW_H_INCLUDED)
+#define  KRATOS_LINEAR_PLANE_STRESS_PRE_STRAIN_LAW_H_INCLUDED
 
 // System includes
 
@@ -40,13 +40,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class LinearPlaneStress
+ * @class LinearPlaneStressPreStrain
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane stress cases
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStress 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStressPreStrain 
     : public ElasticIsotropic3D
 {
 public:
@@ -75,8 +75,8 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
     
-    /// Counted pointer of LinearPlaneStress
-    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStress );
+    /// Counted pointer of LinearPlaneStressPreStrain
+    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStressPreStrain );
 
     ///@name Life Cycle
     ///@{
@@ -84,20 +84,20 @@ public:
     /**
      * Default constructor.
      */
-    LinearPlaneStress();
+    LinearPlaneStressPreStrain();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    LinearPlaneStress (const LinearPlaneStress& rOther);
+    LinearPlaneStressPreStrain (const LinearPlaneStressPreStrain& rOther);
 
 
     /**
      * Destructor.
      */
-    ~LinearPlaneStress() override;
+    ~LinearPlaneStressPreStrain() override;
 
     ///@}
     ///@name Operators
@@ -152,6 +152,12 @@ public:
      * @param rValue output: the value of the specified variable
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+
+    bool Has(const Variable<double>& rThisVariable) override;
+
+    void SetValue(const Variable<double>& rVariable,
+        const double& Value,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
@@ -212,6 +218,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    double m_pre_strain_factor = 0;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -242,6 +250,6 @@ private:
     }
 
 
-}; // Class LinearPlaneStress
+}; // Class LinearPlaneStressPreStrain
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED  defined

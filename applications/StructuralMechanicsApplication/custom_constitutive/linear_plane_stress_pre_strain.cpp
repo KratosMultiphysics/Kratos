@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/linear_plane_stress_pre_strain.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -24,7 +24,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearPlaneStress::LinearPlaneStress()
+LinearPlaneStressPreStrain::LinearPlaneStressPreStrain()
     : ElasticIsotropic3D()
 {
 }
@@ -32,7 +32,7 @@ LinearPlaneStress::LinearPlaneStress()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-LinearPlaneStress::LinearPlaneStress(const LinearPlaneStress& rOther)
+LinearPlaneStressPreStrain::LinearPlaneStressPreStrain(const LinearPlaneStressPreStrain& rOther)
     : ElasticIsotropic3D(rOther)
 {
 }
@@ -40,23 +40,23 @@ LinearPlaneStress::LinearPlaneStress(const LinearPlaneStress& rOther)
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearPlaneStress::Clone() const
+ConstitutiveLaw::Pointer LinearPlaneStressPreStrain::Clone() const
 {
-    LinearPlaneStress::Pointer p_clone(new LinearPlaneStress(*this));
+    LinearPlaneStressPreStrain::Pointer p_clone(new LinearPlaneStressPreStrain(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-LinearPlaneStress::~LinearPlaneStress()
+LinearPlaneStressPreStrain::~LinearPlaneStressPreStrain()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-bool& LinearPlaneStress::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+bool& LinearPlaneStressPreStrain::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
     if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
@@ -65,10 +65,28 @@ bool& LinearPlaneStress::GetValue(const Variable<bool>& rThisVariable, bool& rVa
     return rValue;
 }
 
+
+bool LinearPlaneStressPreStrain::Has(const Variable<double>& rThisVariable)
+
+{
+    if (rThisVariable == PRE_STRAIN_FACTOR) {
+        return true;
+    }
+    return false;
+}
+
+void LinearPlaneStressPreStrain::SetValue(const Variable<double>& rVariable,
+    const double& Value,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == PRE_STRAIN_FACTOR) {
+        m_pre_strain_factor = Value;
+    }
+}
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
+void LinearPlaneStressPreStrain::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
     rFeatures.mOptions.Set( PLANE_STRESS_LAW );
@@ -89,7 +107,7 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStressPreStrain::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -111,7 +129,7 @@ void LinearPlaneStress::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Param
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculatePK2Stress(
+void LinearPlaneStressPreStrain::CalculatePK2Stress(
     const Vector& rStrainVector,
     Vector& rStressVector,
     ConstitutiveLaw::Parameters& rValues
@@ -125,15 +143,19 @@ void LinearPlaneStress::CalculatePK2Stress(
     const double c2 = c1 * NU;
     const double c3 = 0.5* E / (1 + NU);
 
-    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
-    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
-    rStressVector[2] = c3 * rStrainVector[2];
+    Vector strain_with_pre_strain = rStrainVector;
+    strain_with_pre_strain[0] += m_pre_strain_factor;
+    strain_with_pre_strain[1] += m_pre_strain_factor;
+
+    rStressVector[0] = c1 * strain_with_pre_strain[0] + c2 * strain_with_pre_strain[1];
+    rStressVector[1] = c2 * strain_with_pre_strain[0] + c1 * strain_with_pre_strain[1];
+    rStressVector[2] = c3 * strain_with_pre_strain[2];
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
+void LinearPlaneStressPreStrain::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
