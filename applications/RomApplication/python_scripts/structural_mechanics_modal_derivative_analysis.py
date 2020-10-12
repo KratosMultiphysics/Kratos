@@ -73,19 +73,19 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         with open(rom_parameters_filename) as rom_parameters_file:
             rom_parameters = json.load(rom_parameters_file)
 
-            number_of_initial_rom_dofs = rom_parameters["rom_settings"]["number_of_rom_dofs"]
+            self.number_of_initial_rom_dofs = rom_parameters["rom_settings"]["number_of_rom_dofs"]
             
             number_of_extended_rom_dofs = None
             if derivative_type_flag and derivative_parameter_type_flag:
-                number_of_extended_rom_dofs = int(number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ))
+                number_of_extended_rom_dofs = int(self.number_of_initial_rom_dofs * ( self.number_of_initial_rom_dofs + 1 ))
             elif not derivative_type_flag and derivative_parameter_type_flag: 
-                number_of_extended_rom_dofs = int(number_of_initial_rom_dofs + number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ) / 2)
+                number_of_extended_rom_dofs = int(self.number_of_initial_rom_dofs + self.number_of_initial_rom_dofs * ( self.number_of_initial_rom_dofs + 1 ) / 2)
             elif not derivative_parameter_type_flag:
-                number_of_extended_rom_dofs = int((1+num_sub_model_parts)*number_of_initial_rom_dofs)
+                number_of_extended_rom_dofs = int((1+num_sub_model_parts)*self.number_of_initial_rom_dofs)
 
             eigenvalues = rom_parameters["eigenvalues"]
-            kratos_eigenvalues = KratosMultiphysics.Vector(number_of_initial_rom_dofs)
-            for i in range(number_of_initial_rom_dofs):
+            kratos_eigenvalues = KratosMultiphysics.Vector(self.number_of_initial_rom_dofs)
+            for i in range(self.number_of_initial_rom_dofs):
                 kratos_eigenvalues[i] = eigenvalues[i]
             computing_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = kratos_eigenvalues
                         
@@ -94,9 +94,10 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             nodal_modes = rom_parameters["nodal_modes"]
             for node in computing_model_part.Nodes:
                 aux = KratosMultiphysics.Matrix(nodal_dofs, number_of_extended_rom_dofs)
+                aux.fill(0.0)
                 for i in range(nodal_dofs):
                     Counter=str(node.Id)
-                    for j in range(number_of_initial_rom_dofs):
+                    for j in range(self.number_of_initial_rom_dofs):
                         aux[i,j] = nodal_modes[Counter][i][j]
                 node.SetValue(RomApplication.ROM_BASIS, aux ) # ROM basis
                 node.SetValue(RomApplication.AUX_ID, counter) # Aux ID
@@ -107,7 +108,10 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         # Iniate nodal modes dictionary
         rom_parameters = {}
         rom_parameters["rom_settings"] = {}
-        rom_parameters["rom_settings"]["nodal_unknowns"] = ["ROTATION_X", "ROTATION_Y", "ROTATION_Z", "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"]
+        if self.project_parameters["solver_settings"]["rotation_dofs"].GetBool():
+            rom_parameters["rom_settings"]["nodal_unknowns"] = ["ROTATION_X", "ROTATION_Y", "ROTATION_Z", "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"]
+        else:
+            rom_parameters["rom_settings"]["nodal_unknowns"] = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"]
         rom_parameters["nodal_modes"] = {}
         
         eigenvalues = self.model.GetModelPart('Structure').ProcessInfo[RomApplication.EIGENVALUE_VECTOR]

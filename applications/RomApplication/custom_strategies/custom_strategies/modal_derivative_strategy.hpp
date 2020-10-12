@@ -546,18 +546,19 @@ public:
                 this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
                 // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
 
-                if (mDerivativeTypeFlag) // Compute and add null space solution
+                if (mDerivativeTypeFlag){
+                    // Compute and add null space solution
                     this->ComputeAndAddNullSpaceSolution(rDx, basis);
+                    // Free the constrained DOF related to the dynamic derivative
+                    this->FreeDynamicDerivativeConstraint();
+                } 
+                    
 
                 Timer::Stop("Solve");
                 const double stop_solve = OpenMPUtils::GetCurrentTime();
 
                 KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
                 ///////////////////////////////////////////////////////////////
-
-                // Free the constrained DOF related to the dynamic derivative
-                if (mDerivativeTypeFlag)
-                    this->FreeDynamicDerivativeConstraint();
 
                 // Mass orthonormalization
                 if (mMassOrthonormalizeFlag)
@@ -633,7 +634,7 @@ public:
                 // Compute the derivative of the eigenvalue
                 const double deigenvalue_i_dparameter = -inner_prod(basis, rb);
                 r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dparameter;
-
+                
                 if (mComputeBasisDerivativesFlag)
                 {
                     // Dynamic derivative RHS
@@ -668,9 +669,12 @@ public:
                         this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
                         // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
 
-                        // Compute and add null space solution in case of dynamic derivative
-                        if (mDerivativeTypeFlag)
+                        if (mDerivativeTypeFlag){
+                            // Compute and add null space solution in case of dynamic derivative
                             this->ComputeAndAddNullSpaceSolution(rDx, basis);
+                            // Free the constrained DOF related to the dynamic derivative
+                            this->FreeDynamicDerivativeConstraint();
+                        }
                     }
                     else
                     {
@@ -686,9 +690,6 @@ public:
                 }
                 else
                     TSparseSpace::SetToZero(rDx);
-
-                if (mDerivativeTypeFlag)
-                    this->FreeDynamicDerivativeConstraint();
 
                 // Mass orthonormalization
                 if (mMassOrthonormalizeFlag && mComputeBasisDerivativesFlag)

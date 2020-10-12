@@ -282,37 +282,35 @@ public:
         // Derivative of basis_i
         const std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
         
-        // Create PhiElemental
-        LocalSystemVectorType PhiElemental;
-        std::size_t num_element_nodal_dofs = 0;
+        // Create PhiElementalGlobal
+        LocalSystemVectorType PhiElementalGlobal;
+        std::size_t elementalGlobalDofSize = 0;
         for (auto& node_i : rElement.GetGeometry())
-            num_element_nodal_dofs += node_i.GetDofs().size();
-        PhiElemental.resize(num_element_nodal_dofs);
-        
+            elementalGlobalDofSize += node_i.GetDofs().size();
+        PhiElementalGlobal.resize(elementalGlobalDofSize);
+
+        std::vector<Dof<double>::Pointer> rElementalDofList;
+        rElement.GetDofList(rElementalDofList, rCurrentProcessInfo);
+        std::size_t elementalLocalDofSize = rElementalDofList.size();
+
         // Get PhiElemental
-        std::size_t dof_ctr = 0;
+        std::size_t elem_glob_dof_ctr = 0;
+        // Loop over nodes
         for (auto& node_i : rElement.GetGeometry()) {
             auto& node_i_dofs = node_i.GetDofs();
             
             const Matrix *pPhiNodal = &(node_i.GetValue(ROM_BASIS));
-            for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
-                PhiElemental[dof_ctr + dof_idx] = (*pPhiNodal)(dof_idx, basis_i);
+            for (std::size_t node_i_glob_dof_ctr = 0; node_i_glob_dof_ctr < pPhiNodal->size1(); node_i_glob_dof_ctr++)
+            {
+                PhiElementalGlobal[elem_glob_dof_ctr + node_i_glob_dof_ctr] = (*pPhiNodal)(node_i_glob_dof_ctr, basis_i);
             }
-            dof_ctr += node_i_dofs.size();
-        }
-        
-        // Build RHS contribution
 
-        // Initialize RHS contribution
-        std::vector<Dof<double>::Pointer> rElementalDofList;
-        rElement.GetDofList(rElementalDofList, rCurrentProcessInfo);
-        std::size_t elementalDofSize = rElementalDofList.size();
-        rRHS_Contribution.resize(elementalDofSize);
-        rRHS_Contribution.clear();
-        
+            elem_glob_dof_ctr += node_i_dofs.size();
+        }
+
         // Compute element LHS derivative
         Matrix element_matrix_derivative;
-        element_matrix_derivative.resize(elementalDofSize,elementalDofSize,false);
+        element_matrix_derivative.resize(elementalLocalDofSize,elementalLocalDofSize,false);
         if (mDerivativeParameter == MODAL_COORDINATE)
         {   // Modal parameter            
 
@@ -326,7 +324,7 @@ public:
 
         }
         else if (mDerivativeParameter == DENSITY || mDerivativeParameter == YOUNG_MODULUS || mDerivativeParameter == POISSON_RATIO)
-        {   // Mass parameter
+        {   // Material parameter
             
             if (mFiniteDifferenceTypeFlag) // Central Difference
                 this->CentralDifferencingWithMaterialParameter(rElement, element_matrix_derivative, mDerivativeParameter, rCurrentProcessInfo);
@@ -335,25 +333,50 @@ public:
 
         }
 
-        // Compute RHS contribution
-        if (element_matrix_derivative.size1() != PhiElemental.size()){
-            // TODO: this is a workaround. use a map as in ROM analysis
-            // retrieve only displacement dofs from PhiElemental
+        // Create PhiElementalLocal
+        LocalSystemVectorType PhiElementalLocal;
+        PhiElementalLocal.resize(elementalLocalDofSize);
+
+        // Initialize RHS contribution
+        rRHS_Contribution.resize(elementalLocalDofSize);
+        rRHS_Contribution.clear();
+
+        // Build RHS contribution
+        if (elementalGlobalDofSize == elementalLocalDofSize && elementalGlobalDofSize / rElement.GetGeometry().size() == 3)
+        {   // there are only disp dofs both in global and in local dof sets
+            rRHS_Contribution -= prod(element_matrix_derivative, PhiElementalGlobal);
+        } 
+        else if (elementalGlobalDofSize == elementalLocalDofSize && elementalGlobalDofSize / rElement.GetGeometry().size() == 6)
+        {   // there are disp and rot dofs both in global and in local dof sets. reorder PhiElementalGlobal into PhiElementalLocal
             const std::size_t disp_shifter = 3;
-            Vector tmpPhiElemental;
-            tmpPhiElemental.resize(PhiElemental.size() / 2);
+            std::size_t dof_shifter = 0;
+            for (auto& node_i : rElement.GetGeometry()) {
+                auto& node_i_dofs = node_i.GetDofs();
+                
+                for (auto& dof_i : node_i_dofs) {
+                    if (dof_i->GetVariable().GetSourceVariable() == DISPLACEMENT){
+                        PhiElementalLocal[dof_shifter + dof_i->GetVariable().GetComponentIndex()] = PhiElementalGlobal(dof_shifter + disp_shifter + dof_i->GetVariable().GetComponentIndex());
+                    } else {
+                        PhiElementalLocal[dof_shifter + disp_shifter + dof_i->GetVariable().GetComponentIndex()] = PhiElementalGlobal(dof_shifter + dof_i->GetVariable().GetComponentIndex());
+                    }
+                }
+                dof_shifter += node_i_dofs.size();
+            }
+            rRHS_Contribution -= prod(element_matrix_derivative, PhiElementalLocal);
+
+        } else if (elementalGlobalDofSize != elementalLocalDofSize) 
+        {   // there are disp dofs in element dof set and both disp and rot dofs in the global dof set. filter out only disp dofs
+            const std::size_t disp_shifter = 3;
+            const std::size_t nodal_dof_size = elementalGlobalDofSize / rElement.GetGeometry().size();
             for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++)
             {
                 for (std::size_t iXYZ = 0; iXYZ < 3; iXYZ++)
                 {
-                    tmpPhiElemental[iNode * 3 + iXYZ] = PhiElemental[iNode * 6 + disp_shifter + iXYZ];
+                    PhiElementalLocal[iNode * 3 + iXYZ] = PhiElementalGlobal[iNode * nodal_dof_size + disp_shifter + iXYZ];
                 }
             }
-            rRHS_Contribution -= prod(element_matrix_derivative, tmpPhiElemental);
-        }
-        else
-        {
-            rRHS_Contribution -= prod(element_matrix_derivative, PhiElemental);
+
+            rRHS_Contribution -= prod(element_matrix_derivative, PhiElementalLocal);
         }
 
         if (mDerivativeMatrixType)
