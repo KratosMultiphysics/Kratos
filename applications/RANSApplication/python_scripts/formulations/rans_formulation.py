@@ -367,7 +367,7 @@ class RansFormulation:
         if (self.GetModelPart() is not None):
             info += "\n   Model part    : " + str(self.GetModelPart().Name)
 
-        if (str(self.GetMaxCouplingIterations()) != "N/A"):
+        if (self.GetMaxCouplingIterations() != 0):
             info += "\n   Max iterations: " + str(self.GetMaxCouplingIterations())
 
         if (len(self.GetProcessList()) > 0):

@@ -4,7 +4,7 @@
         "parallel_type": "<PARALLEL_TYPE>",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 0.05
+        "end_time": 3
     },
     "output_processes": {},
     "solver_settings": {
@@ -25,7 +25,7 @@
         ],
         "time_stepping": {
             "automatic_time_step": false,
-            "time_step": 0.01
+            "time_step": 1.0
         },
         "time_scheme_settings": {
             "scheme_type": "<TIME_SCHEME_TYPE>"
@@ -33,27 +33,66 @@
         "material_import_settings": {
             "materials_filename": "backward_facing_step_material_properties.json"
         },
-        "no_skin_parts": [],
+        "wall_function_settings": {
+            "wall_function_region_type": "logarithmic_region_only",
+            "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
+        },
         "formulation_settings": {
-            "formulation_name": "fractional_step",
-            "predictor_corrector": false,
-            "maximum_velocity_iterations": 20,
-            "maximum_pressure_iterations": 1,
-            "velocity_tolerance": 1e-4,
-            "pressure_tolerance": 1e-3,
-            "dynamic_tau": 0.01,
-            "oss_switch": 0,
-            "echo_level": 0,
-            "time_order": 2,
-            "compute_reactions": false,
-            "reform_dofs_at_each_step": false,
-            "pressure_linear_solver_settings": {
-                "solver_type": "amgcl",
-                "tolerance": 1e-12
+            "formulation_name": "monolithic_k_epsilon",
+            "incompressible_potential_flow_initialization_settings": {},
+            "monolithic_flow_solver_settings": {
+                "maximum_iterations": 20,
+                "echo_level": 0,
+                "compute_reactions": false,
+                "reform_dofs_at_each_step": false,
+                "relative_velocity_tolerance": 1e-3,
+                "absolute_velocity_tolerance": 1e-5,
+                "relative_pressure_tolerance": 0.001,
+                "absolute_pressure_tolerance": 1e-3,
+                "velocity_relaxation": 0.9,
+                "pressure_relaxation": 0.9,
+                "linear_solver_settings": {
+                    "solver_type": "amgcl",
+                    "tolerance": 1e-12
+                },
+                "move_mesh_strategy": 0,
+                "move_mesh_flag": false,
+                "oss_switch": 0,
+                "dynamic_tau": 1.0
             },
-            "velocity_linear_solver_settings": {
-                "solver_type": "amgcl",
-                "tolerance": 1e-12
+            "k_epsilon_solver_settings": {
+                "stabilization_method": "<STABILIZATION_METHOD>",
+                "turbulent_kinetic_energy_solver_settings": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5,
+                    "max_iterations": 3,
+                    "echo_level": 0,
+                    "relaxation_factor": 0.9,
+                    "linear_solver_settings": {
+                        "solver_type": "amgcl",
+                        "tolerance": 1e-9,
+                        "verbosity": 0
+                    }
+                },
+                "turbulent_energy_dissipation_rate_solver_settings": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5,
+                    "max_iterations": 3,
+                    "echo_level": 0,
+                    "relaxation_factor": 0.9,
+                    "linear_solver_settings": {
+                        "solver_type": "amgcl",
+                        "tolerance": 1e-9,
+                        "verbosity": 0
+                    }
+                },
+                "echo_level": 0,
+                "coupling_settings": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5,
+                    "max_iterations": 1
+                },
+                "auxiliar_process_list": []
             }
         }
     },
@@ -65,8 +104,8 @@
                 "process_name": "ApplyConstantScalarValueProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
-                    "variable_name": "VISCOSITY",
-                    "value": 1.0
+                    "variable_name": "TURBULENT_KINETIC_ENERGY",
+                    "value": 6.1e-4
                 }
             },
             {
@@ -76,7 +115,27 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
                     "variable_name": "KINEMATIC_VISCOSITY",
-                    "value": 1.0
+                    "value": 100.0
+                }
+            },
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart",
+                    "variable_name": "VISCOSITY",
+                    "value": 100.0
+                }
+            },
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart",
+                    "variable_name": "TURBULENT_VISCOSITY",
+                    "value": 100.0
                 }
             },
             {
@@ -86,12 +145,22 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
                     "variable_name": "VELOCITY",
-                    "modulus": 0.0,
+                    "modulus": 7.72,
                     "direction": [
                         1.0,
                         0.0,
                         0.0
                     ]
+                }
+            },
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart",
+                    "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
+                    "value": 9.422e-5
                 }
             },
             {
@@ -112,7 +181,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
                     "variable_name": "VELOCITY",
-                    "modulus": "1.0 * t / 3.0",
+                    "modulus": 1.0,
                     "direction": "automatic_inwards_normal",
                     "interval": [
                         0.0,
@@ -130,6 +199,24 @@
                     "value": 0.0,
                     "hydrostatic_outlet": false,
                     "h_top": 0.0
+                }
+            },
+            {
+                "python_module": "cpp_process_factory",
+                "kratos_module": "KratosMultiphysics.RANSApplication",
+                "process_name": "KTurbulentIntensityInletProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
+                    "turbulent_intensity": 6.1e-4
+                }
+            },
+            {
+                "python_module": "cpp_process_factory",
+                "kratos_module": "KratosMultiphysics.RANSApplication",
+                "process_name": "EpsilonTurbulentMixingLengthInletProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
+                    "turbulent_mixing_length": 0.0588
                 }
             },
             {
@@ -166,11 +253,14 @@
                 "process_name": "FromJsonCheckResultProcess",
                 "Parameters": {
                     "check_variables": [
-                            "VELOCITY_X",
-                            "VELOCITY_Y",
-                            "PRESSURE"
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE",
+                        "TURBULENT_KINETIC_ENERGY",
+                        "TURBULENT_ENERGY_DISSIPATION_RATE",
+                        "TURBULENT_VISCOSITY"
                     ],
-                    "input_file_name": "backward_facing_step_fractional_step_velocity_pressure_field_<TIME_SCHEME_TYPE>_test_results.json",
+                    "input_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "tolerance": 1e-9,
                     "relative_tolerance": 1e-12,
@@ -187,11 +277,14 @@
             "process_name": "FromJsonCheckResultProcess",
             "Parameters": {
                 "check_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_ENERGY_DISSIPATION_RATE",
+                    "TURBULENT_VISCOSITY"
                 ],
-                "input_file_name": "backward_facing_step_fractional_step_velocity_pressure_field_<TIME_SCHEME_TYPE>_test_results.json",
+                "input_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "tolerance": 1e-9,
                 "relative_tolerance": 1e-12,
@@ -205,11 +298,14 @@
             "process_name": "JsonOutputProcess",
             "Parameters": {
                 "output_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_ENERGY_DISSIPATION_RATE",
+                    "TURBULENT_VISCOSITY"
                 ],
-                "output_file_name": "backward_facing_step_fractional_step_velocity_pressure_field_<TIME_SCHEME_TYPE>_test_results.json",
+                "output_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "time_frequency": -2
             }

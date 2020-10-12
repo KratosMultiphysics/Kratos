@@ -21,6 +21,11 @@ from incompressible_potential_flow_solver_formulation_tests import Incompressibl
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
 
+# turbulence model test_classes
+### k-epsilon test_classes
+from monolithic_k_epsilon_formulation_tests import MonolithicKEpsilonTest
+from fractional_step_k_epsilon_formulation_tests import FractionalStepKEpsilonTest
+
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
@@ -52,6 +57,11 @@ def AssembleTestSuites():
 
     # adding fractional step flow solver tests
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepVelocityPressureFormulationTest]))
+
+    # adding monolithic k-epsilon high re tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonTest]))
+    # adding fractional step k-epsilon high re tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonTest]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
