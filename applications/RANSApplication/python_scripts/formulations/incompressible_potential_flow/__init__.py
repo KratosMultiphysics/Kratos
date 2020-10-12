@@ -13,7 +13,7 @@ from KratosMultiphysics.RANSApplication.formulations.rans_formulation import Ran
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 
 class IncompressiblePotentialFlowRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -97,7 +97,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
 
         solver_settings = self.GetParameters()
 
-        linear_solver_factory = GetKratosObjectType("LinearSolverFactory")
+        linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
         linear_solver = linear_solver_factory(solver_settings["linear_solver_settings"])
 
         builder_and_solver = CreateBlockBuilderAndSolver(
@@ -105,13 +105,13 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             self.IsPeriodic(),
             self.GetCommunicator())
 
-        convergence_criteria_type = GetKratosObjectType("MixedGenericCriteria")
+        convergence_criteria_type = GetKratosObjectPrototype("MixedGenericCriteria")
         convergence_criteria = convergence_criteria_type(
             [(KratosRANS.VELOCITY_POTENTIAL, solver_settings["relative_tolerance"].GetDouble(),
             solver_settings["absolute_tolerance"].GetDouble())])
 
-        scheme_type = GetKratosObjectType("ResidualBasedIncrementalUpdateStaticScheme")
-        strategy_type = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")
+        scheme_type = GetKratosObjectPrototype("ResidualBasedIncrementalUpdateStaticScheme")
+        strategy_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
 
         self.velocity_strategy = strategy_type(
             self.velocity_model_part, scheme_type(),

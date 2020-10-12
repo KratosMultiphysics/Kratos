@@ -12,7 +12,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRans
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeYPlusVariablesInConditions
 
@@ -82,7 +82,7 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                 self.GetModelPart(),
                 [self.GetSolvingVariable()])
 
-        linear_solver_factory = GetKratosObjectType("LinearSolverFactory")
+        linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
         linear_solver = linear_solver_factory(settings["linear_solver_settings"])
 
         builder_and_solver = CreateBlockBuilderAndSolver(
@@ -90,7 +90,7 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             self.IsPeriodic(),
             self.GetCommunicator())
 
-        convergence_criteria_type = GetKratosObjectType("MixedGenericCriteria")
+        convergence_criteria_type = GetKratosObjectPrototype("MixedGenericCriteria")
         convergence_criteria = convergence_criteria_type([
             (self.GetSolvingVariable(),
              settings["relative_tolerance"].GetDouble(),
@@ -99,13 +99,13 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
         if (self.is_steady_simulation):
             scheme = self.scheme_type(settings["relaxation_factor"].GetDouble())
         else:
-            scheme_type = GetKratosObjectType("BossakRelaxationScalarScheme")
+            scheme_type = GetKratosObjectPrototype("BossakRelaxationScalarScheme")
             scheme = scheme_type(
                 self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
                 settings["relaxation_factor"].GetDouble(),
                 self.GetSolvingVariable())
 
-        solver_type = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")
+        solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
         self.solver = solver_type(
             self.GetModelPart(),
             scheme,
@@ -164,10 +164,10 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             self.scheme_type = self._CreateAlgebraicFluxCorrectedSteadyScalarScheme
         elif (stabilization_method == "residual_based_flux_corrected"):
             self.element_name = self.element_name + "RFC"
-            self.scheme_type = GetKratosObjectType("SteadyScalarScheme")
+            self.scheme_type = GetKratosObjectPrototype("SteadyScalarScheme")
         elif (stabilization_method == "non_linear_cross_wind_dissipation"):
             self.element_name = self.element_name + "CWD"
-            self.scheme_type = GetKratosObjectType("SteadyScalarScheme")
+            self.scheme_type = GetKratosObjectPrototype("SteadyScalarScheme")
         else:
             raise Exception("Unsupported stabilization method")
 
@@ -205,6 +205,6 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
 
     def _CreateAlgebraicFluxCorrectedSteadyScalarScheme(self, relaxation_factor):
         if (self.IsPeriodic()):
-            return GetKratosObjectType("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, GetBoundaryFlags(self.GetParameters()["boundary_flags"]), KratosCFD.PATCH_INDEX)
+            return GetKratosObjectPrototype("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, GetBoundaryFlags(self.GetParameters()["boundary_flags"]), KratosCFD.PATCH_INDEX)
         else:
-            return GetKratosObjectType("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, GetBoundaryFlags(self.GetParameters()["boundary_flags"]))
+            return GetKratosObjectPrototype("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, GetBoundaryFlags(self.GetParameters()["boundary_flags"]))
