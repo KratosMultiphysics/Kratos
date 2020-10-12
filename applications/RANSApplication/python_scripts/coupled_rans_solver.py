@@ -8,7 +8,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import application specific modules
-from KratosMultiphysics.RANSApplication.formulations import Factory as FomulationFactory
+from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
@@ -20,8 +20,64 @@ elif (IsDistributedRun()):
     raise Exception("Distributed run requires TrilinosApplication")
 
 class CoupledRANSSolver(PythonSolver):
+    def __init__(self, model, custom_settings):
+        """RANS solver to be used with RANSFormulations
+
+        This solver creates PythonSolver based on the RANSFormulations specified in custom_settings.
+
+        Args:
+            model (Kratos.Model): Model to be used in the solver.
+            custom_settings (Kratos.Parameters): Settings to be used in the solver.
+        """
+
+        self._validate_settings_in_baseclass = True  # To be removed eventually
+        super().__init__(model, custom_settings)
+
+        model_part_name = self.settings["model_part_name"].GetString()
+        if model_part_name == "":
+            raise Exception(
+                'Please provide the model part name as the "model_part_name" (string) parameter!'
+            )
+
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model.GetModelPart(model_part_name)
+        else:
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
+
+        self.domain_size = self.settings["domain_size"].GetInt()
+        if self.domain_size == -1:
+            raise Exception(
+                'Please provide the domain size as the "domain_size" (int) parameter!'
+            )
+        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE,
+                                                  self.domain_size)
+
+        self.formulation = FormulationFactory(self.main_model_part,
+                                self.settings["formulation_settings"])
+
+        self.formulation.SetConstants(self.settings["constants"])
+        self.formulation.SetIsPeriodic(self.settings["consider_periodic_conditions"].GetBool())
+
+        self.is_periodic = self.formulation.IsPeriodic()
+
+        self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
+        self.formulation.SetWallFunctionSettings(self.settings["wall_function_settings"])
+        scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
+        if (scheme_type == "steady"):
+            self.is_steady = True
+        else:
+            self.is_steady = False
+
+        self.is_converged = False
+        self.min_buffer_size = self.formulation.GetMinimumBufferSize()
+        self.move_mesh = self.settings["move_mesh"].GetBool()
+        self.echo_level = self.settings["echo_level"].GetInt()
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__,
+                                            "Solver construction finished.")
+
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = Kratos.Parameters("""
         {
@@ -58,56 +114,8 @@ class CoupledRANSSolver(PythonSolver):
             "constants": {}
         }""")
 
-        default_settings.AddMissingParameters(
-            super(CoupledRANSSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
-
-    def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass = True  # To be removed eventually
-        super(CoupledRANSSolver, self).__init__(model, custom_settings)
-
-        model_part_name = self.settings["model_part_name"].GetString()
-        if model_part_name == "":
-            raise Exception(
-                'Please provide the model part name as the "model_part_name" (string) parameter!'
-            )
-
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
-
-        self.domain_size = self.settings["domain_size"].GetInt()
-        if self.domain_size == -1:
-            raise Exception(
-                'Please provide the domain size as the "domain_size" (int) parameter!'
-            )
-        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE,
-                                                  self.domain_size)
-
-        self.formulation = FomulationFactory(self.main_model_part,
-                                self.settings["formulation_settings"])
-
-        self.formulation.SetConstants(self.settings["constants"])
-        self.formulation.SetIsPeriodic(self.settings["consider_periodic_conditions"].GetBool())
-
-        self.is_periodic = self.formulation.IsPeriodic()
-
-        self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
-        self.formulation.SetWallFunctionSettings(self.settings["wall_function_settings"])
-        scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
-        if (scheme_type == "steady"):
-            self.is_steady = True
-        else:
-            self.is_steady = False
-
-        self.is_converged = False
-        self.min_buffer_size = self.formulation.GetMinimumBufferSize()
-        self.move_mesh = self.settings["move_mesh"].GetBool()
-        self.echo_level = self.settings["echo_level"].GetInt()
-
-        Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                            "Solver construction finished.")
 
     def AddVariables(self):
         self.formulation.AddVariables()

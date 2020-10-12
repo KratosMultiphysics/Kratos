@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RANSApplication.test_utilities import RunParametericTestCase
+from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
 
 
 class IncompressiblePotentialFlowSolverFormulationTest(UnitTest.TestCase):
@@ -13,14 +13,14 @@ class IncompressiblePotentialFlowSolverFormulationTest(UnitTest.TestCase):
         self._runTest()
 
     def _runTest(self):
-        self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
+        self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("BackwardFacingStepTest"))
 
         self.parameters = {}
         if (km.IsDistributedRun()):
             self.parameters["<PARALLEL_TYPE>"] = "MPI"
         else:
             self.parameters["<PARALLEL_TYPE>"] = "OpenMP"
-        RunParametericTestCase(
+        RunParametricTestCase(
             "backward_facing_step_incompressible_potential_flow_parameters.json",
             "BackwardFacingStepTest", self.parameters, self.print_output)
 

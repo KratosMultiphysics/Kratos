@@ -7,7 +7,7 @@ class CoSimulationDataTransferOperator(object):
     """
     def __init__(self, settings):
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
         self.echo_level = self.settings["echo_level"].GetInt()
         self.__checked_combinations = []
 
@@ -55,7 +55,7 @@ class CoSimulationDataTransferOperator(object):
                 raise Exception(err_msg)
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "echo_level" : 0

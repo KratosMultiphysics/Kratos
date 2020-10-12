@@ -13,6 +13,8 @@ class MonolithicKEpsilonTest(
             "backward_facing_step_monolithic_k_epsilon_parameters.json",
             False)
 
+        cls.transient_scheme_type = "bossak"
+
 class MonolithicKEpsilonPeriodicTest(
         periodic_turbulence_modelling_test_case.PeriodicTurbulenceModellingTestCase):
     @classmethod

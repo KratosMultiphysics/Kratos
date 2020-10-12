@@ -1,7 +1,7 @@
+from KratosMultiphysics import IsDistributedRun
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RANSApplication.test_utilities import RunParametericTestCase
-
+from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
 
 class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
     @classmethod
@@ -11,6 +11,10 @@ class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
         cls.print_output = print_output
         cls.parameters = {}
         cls.parameters["<LINEAR_SOLVER_TYPE>"] = "skyline_lu_factorization"
+
+    def setUp(self):
+        if (IsDistributedRun()):
+            self.skipTest("Skipping since Periodic tests are not designed to be run in MPI.")
 
     def testAfcTkeSteady(self):
         self.parameters["<STABILIZATION_METHOD>"] = "algebraic_flux_corrected"
@@ -39,6 +43,6 @@ class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
     def _runTest(self):
         self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
 
-        RunParametericTestCase(self.parameters_file_name, self.working_folder,
+        RunParametricTestCase(self.parameters_file_name, self.working_folder,
                                self.parameters, self.print_output)
 
