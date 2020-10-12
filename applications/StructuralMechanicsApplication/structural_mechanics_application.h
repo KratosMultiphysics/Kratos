@@ -97,6 +97,9 @@
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
 
+#include "custom_constitutive/elastic_isotropic_pre_strain_3d.h"
+#include "custom_constitutive/linear_plane_stress_pre_strain.h"
+
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 // Advanced Constitutive laws
 #include "custom_advanced_constitutive/truss_plasticity_constitutive_law.h"
@@ -502,6 +505,9 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
+
+    const ElasticIsotropicPrestrain3D mElasticIsotropicPrestrain3D;
+    const LinearPlaneStressPreStrain mLinearPlaneStressPreStrain;
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
     // Damage and plasticity laws

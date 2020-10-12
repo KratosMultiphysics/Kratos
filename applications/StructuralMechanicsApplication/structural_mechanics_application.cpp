@@ -686,6 +686,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("UserProvidedLinearElastic2DLaw", mUserProvidedLinearElastic2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("UserProvidedLinearElastic3DLaw", mUserProvidedLinearElastic3DLaw);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticIsotropicPreStrain3D", mElasticIsotropicPrestrain3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStressPreStrain", mLinearPlaneStressPreStrain);
+
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
     // Damage and plasticity
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
