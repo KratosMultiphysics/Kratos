@@ -82,15 +82,16 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                 self.GetModelPart(),
                 [self.GetSolvingVariable()])
 
-        linear_solver = GetKratosObjectType("LinearSolverFactory")(
-            settings["linear_solver_settings"])
+        linear_solver_factory = GetKratosObjectType("LinearSolverFactory")
+        linear_solver = linear_solver_factory(settings["linear_solver_settings"])
 
         builder_and_solver = CreateBlockBuilderAndSolver(
             linear_solver,
             self.IsPeriodic(),
             self.GetCommunicator())
 
-        convergence_criteria = GetKratosObjectType("MixedGenericCriteria")([
+        convergence_criteria_type = GetKratosObjectType("MixedGenericCriteria")
+        convergence_criteria = convergence_criteria_type([
             (self.GetSolvingVariable(),
              settings["relative_tolerance"].GetDouble(),
              settings["absolute_tolerance"].GetDouble())])
@@ -98,12 +99,14 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
         if (self.is_steady_simulation):
             scheme = self.scheme_type(settings["relaxation_factor"].GetDouble())
         else:
-            scheme = GetKratosObjectType("BossakRelaxationScalarScheme")(
+            scheme_type = GetKratosObjectType("BossakRelaxationScalarScheme")
+            scheme = scheme_type(
                 self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
                 settings["relaxation_factor"].GetDouble(),
                 self.GetSolvingVariable())
 
-        self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
+        solver_type = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")
+        self.solver = solver_type(
             self.GetModelPart(),
             scheme,
             convergence_criteria,

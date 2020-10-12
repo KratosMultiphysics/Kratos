@@ -199,15 +199,16 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             settings["pressure_tolerance"].GetDouble(),
             settings["maximum_pressure_iterations"].GetInt())
 
+        solver_type = GetKratosObjectType("FractionalStepStrategy")
         if self.IsPeriodic():
-            self.solver = GetKratosObjectType("FractionalStepStrategy")(
+            self.solver = solver_type(
                 self.fractional_step_model_part,
                 self.solver_settings,
                 settings["predictor_corrector"].GetBool(),
                 False,
                 KratosCFD.PATCH_INDEX)
         else:
-            self.solver = GetKratosObjectType("FractionalStepStrategy")(
+            self.solver = solver_type(
                 self.fractional_step_model_part,
                 self.solver_settings,
                 settings["predictor_corrector"].GetBool(),
