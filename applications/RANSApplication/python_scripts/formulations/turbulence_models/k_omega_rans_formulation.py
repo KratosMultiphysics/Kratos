@@ -1,6 +1,5 @@
 # import kratos
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.process_factory import KratosProcessFactory
 
 # import RANS
 import KratosMultiphysics.RANSApplication as KratosRANS
@@ -106,12 +105,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                                             1e-12,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
-
-        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
-        self.auxiliar_process_list = factory.ConstructListOfProcesses(
-            self.GetParameters()["auxiliar_process_list"])
-        for process in self.auxiliar_process_list:
-            self.AddProcess(process)
 
         super().Initialize()
 
