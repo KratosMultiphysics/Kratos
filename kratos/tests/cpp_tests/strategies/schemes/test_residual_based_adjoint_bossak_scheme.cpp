@@ -167,16 +167,6 @@ namespace NonLinearSpringMassDamper
  * mass1 * acc1 + 2 * damping * vel1 - damping * vel2 + 2 * disp1 - disp2 + stiffness * disp1^3 - stiffness * (disp2 - disp1)^3 = 0,
  * mass2 * acc2 - damping * vel1 + damping * vel2 - disp1 + disp2 + stiffness * (disp2 - disp1)^3 - 1.0 * disp2^3 + 2.0 * damping * vel2 + mass1 * acc2 = 0.
  *
- * The above mentioned test is calculating sensitivity on a quantity inside an element (i.e. sensitivity w.r.t. stiffness).
- * ResidualBasedAdjointBossakScheme is capable of formulating adjoint system of equations even if Elements and Conditions are
- * both using this same quantity inside. But since this test only pass SCALAR_SENSITIVITY variable to sensitivity builder under
- * elements container, when it builds up sensitivities it does not get the contributions coming from the conditions.
- * Therefore, this test does not use `stiffness` inside the conditions to avoid it to have any contributions for partial
- * sensitivity matrix.
- *
- * In the case, if nodal sensitivities are calculated, then sensitivity builder calls to get contributions for partial sensitivity
- * from Elements as well as Conditions. Therefore, Elements and Condtions can be safely used without any trouble in the case of
- * nodal sensitivities.
  */
 
 // global properties
@@ -704,6 +694,21 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * The above mentioned test is calculating sensitivity on a quantity inside an element (i.e. sensitivity w.r.t. stiffness).
+     * ResidualBasedAdjointBossakScheme is capable of formulating adjoint system of equations even if Elements and Conditions are
+     * both using this same quantity inside. But since this test only pass SCALAR_SENSITIVITY variable to sensitivity builder under
+     * elements container, when it builds up sensitivities it does not get the contributions coming from the conditions.
+     * Therefore, this test does not use `stiffness` inside the conditions to avoid it to have any contributions for partial
+     * sensitivity matrix.
+     *
+     * In the case, if nodal sensitivities are calculated, then sensitivity builder calls to get contributions for partial sensitivity
+     * from Elements as well as Conditions. Therefore, Elements and Condtions can be safely used without any trouble in the case of
+     * nodal sensitivities.
+     *
+     * This method is not called in this test
+     *
+     **/
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                     Matrix& rOutput,
                                     const ProcessInfo& rCurrentProcessInfo) override
@@ -792,6 +797,8 @@ class ResponseFunction : public AdjointResponseFunction
                                Vector& rResponseGradient,
                                const ProcessInfo& rProcessInfo) override
         {
+            // there is no contribution coming from the condition, element
+            // adds the contributions correctly.
             rResponseGradient.resize(1, false);
             rResponseGradient(0) = 0.0;
         }
@@ -801,6 +808,8 @@ class ResponseFunction : public AdjointResponseFunction
                                                Vector& rResponseGradient,
                                                const ProcessInfo& rProcessInfo) override
         {
+            // there is no contribution coming from the condition, element
+            // adds the contributions correctly.
             rResponseGradient.resize(1, false);
             rResponseGradient(0) = 0.0;
         }

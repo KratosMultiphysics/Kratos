@@ -317,6 +317,11 @@ public:
         this->CalculateSecondDerivativeContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
+        // It is not required to call CalculatePreviousTimeStepContributions here again
+        // since, the previous time step contributions from conditions are stored in variables
+        // mentioned in AdjointExtensions, and they are added via CalculateSystemContributions<ElementType>
+        // method.
+
         this->CalculateResidualLocalContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
@@ -654,10 +659,9 @@ private:
         const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
-        auto& r_response_function = *(this->mpResponseFunction);
         rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rCurrentProcessInfo);
         mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
-        r_response_function.CalculateSecondDerivativesGradient(
+        this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, mSecondDerivsLHS[k],
             mSecondDerivsResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) += mBossak.C7 * mSecondDerivsLHS[k];
@@ -676,7 +680,7 @@ private:
      *      - \frac{1}{\beta\Delta t^2}\left[\frac{\partial \underline{R}^{n+1}}{\underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
      *      - \frac{1}{\beta\Delta t^2}\frac{\partial J^{n+1}}{\underline{\ddot{w}}^n}
      *      + \frac{\beta - \gamma\left(\gamma + \frac{1}{2}\right)}{\beta^2\Delta t}\underline{\lambda}_2^{n+1}
-     *      - \frac{\gamma + \frac{1}{2}}{\beta^2\Delta t}\underline{\lambda}_3^{n+1}
+     *      - \frac{\gamma + \frac{1}{2}}{\beta^2\Delta t^2}\underline{\lambda}_3^{n+1}
      *
      * @param rCurrentElement           Current element
      * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
@@ -718,27 +722,27 @@ private:
      * @brief Calculates entity time scheme contributions as depicted.
      *
      *   \[
-     *       rAdjointTimeSchemeValues1 =
+     *       rAdjointTimeSchemeValues2 =
      *           - \frac{\partial J^{n}}{\partial \underline{\dot{w}}^n}
      *           - \left[\frac{\partial \underline{R}^{n}}{\partial \underline{\dot{w}}}\right]^T\underline{\lambda}_1^{n+1}
      *   \]
      *   \[
-     *       rAdjointTimeSchemeValues2 =
+     *       rAdjointTimeSchemeValues3 =
      *           - \frac{\partial J^{n}}{\partial \underline{\ddot{w}}^n}
      *           - \left(1-\alpha\right)\left[\frac{\partial \underline{R}^{n}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
      *   \]
      *
      * @tparam TEntityType
      * @param rCurrentEntity
-     * @param rAdjointTimeSchemeValues1
      * @param rAdjointTimeSchemeValues2
+     * @param rAdjointTimeSchemeValues3
      * @param rProcessInfo
      */
     template<class TEntityType>
     void CalculateEntityTimeSchemeContributions(
         TEntityType& rCurrentEntity,
-        LocalSystemVectorType& rAdjointTimeSchemeValues1,
         LocalSystemVectorType& rAdjointTimeSchemeValues2,
+        LocalSystemVectorType& rAdjointTimeSchemeValues3,
         const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
@@ -758,14 +762,14 @@ private:
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], rProcessInfo);
 
-        if (rAdjointTimeSchemeValues1.size() != mFirstDerivsResponseGradient[k].size())
-            rAdjointTimeSchemeValues1.resize(mFirstDerivsResponseGradient[k].size(), false);
-        noalias(rAdjointTimeSchemeValues1) =
+        if (rAdjointTimeSchemeValues2.size() != mFirstDerivsResponseGradient[k].size())
+            rAdjointTimeSchemeValues2.resize(mFirstDerivsResponseGradient[k].size(), false);
+        noalias(rAdjointTimeSchemeValues2) =
             -mFirstDerivsResponseGradient[k] -
             prod(mFirstDerivsLHS[k], mAdjointValuesVector[k]);
-        if (rAdjointTimeSchemeValues2.size() != mSecondDerivsResponseGradient[k].size())
-            rAdjointTimeSchemeValues2.resize(mSecondDerivsResponseGradient[k].size(), false);
-        noalias(rAdjointTimeSchemeValues2) =
+        if (rAdjointTimeSchemeValues3.size() != mSecondDerivsResponseGradient[k].size())
+            rAdjointTimeSchemeValues3.resize(mSecondDerivsResponseGradient[k].size(), false);
+        noalias(rAdjointTimeSchemeValues3) =
             -mSecondDerivsResponseGradient[k] -
             prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
 
@@ -898,8 +902,7 @@ private:
         const int number_of_elements = rEntityContainer.size();
 
         Vector adjoint2_aux, adjoint3_aux;
-        std::vector<IndirectScalar<double>> adjoint2_old, adjoint3_old;
-#pragma omp parallel for private(adjoint2_aux, adjoint3_aux, adjoint2_old, adjoint3_old)
+#pragma omp parallel for private(adjoint2_aux, adjoint3_aux)
         for (int i = 0; i < number_of_elements; ++i) {
             auto& r_entity = *(rEntityContainer.begin() + i);
             const int k = OpenMPUtils::ThisThread();
