@@ -33,10 +33,10 @@ namespace Kratos
 
         if (rOutput.size() != integration_points.size())
             rOutput.resize(integration_points.size());
-        rOutput.clear();
 
         for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         {
+            rOutput[point_number] = 0.0;
             for (IndexType i = 0; i < nb_nodes; ++i)
             {
                 double output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(rVariable);
