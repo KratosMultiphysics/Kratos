@@ -228,17 +228,17 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesMohrCoulombFemDemElement3D", mTotalLagrangianMixturesMohrCoulombFemDemElement3D)
 
     //Register Constitutive Laws
-    Serializer::Register("ElasticIsotropic3D", mElasticIsotropic3D);
-    Serializer::Register("LinearPlaneStress", mLinearPlaneStress);
-    Serializer::Register("LinearPlaneStrain", mLinearPlaneStrain);
-    Serializer::Register("HyperElasticIsotropicNeoHookean3D", mHyperElasticIsotropicNeoHookean3D);
-    Serializer::Register("HyperElasticIsotropicNeoHookeanPlaneStrain2D", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
+    // Serializer::Register("ElasticIsotropic3D", mElasticIsotropic3D);
+    // Serializer::Register("LinearPlaneStress", mLinearPlaneStressFEMDEM);
+    // Serializer::Register("LinearPlaneStrain", mLinearPlaneStrain);
+    // Serializer::Register("HyperElasticIsotropicNeoHookean3D", mHyperElasticIsotropicNeoHookean3D);
+    // Serializer::Register("HyperElasticIsotropicNeoHookeanPlaneStrain2D", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticIsotropic3D", mElasticIsotropic3D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStress", mLinearPlaneStress)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStrain", mLinearPlaneStrain)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookean3D", mHyperElasticIsotropicNeoHookean3D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookeanPlaneStrain2D", mHyperElasticIsotropicNeoHookeanPlaneStrain2D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticIsotropic3DFEMDEM", mElasticIsotropic3DFEMDEM)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStressFEMDEM", mLinearPlaneStressFEMDEM)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStrainFEMDEM", mLinearPlaneStrainFEMDEM)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookean3DFEMDEM", mHyperElasticIsotropicNeoHookean3DFEMDEM)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM", mHyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM)
 
 }
 
