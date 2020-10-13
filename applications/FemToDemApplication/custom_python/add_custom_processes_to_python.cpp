@@ -58,7 +58,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
   class_<AssignScalarVariableToEntitiesProcess, AssignScalarVariableToEntitiesProcess::Pointer, Process>(m,"AssignScalarToEntitiesProcess")
       .def(init<ModelPart&, Parameters>())
-      .def(init< ModelPart&, Parameters& >())
+      .def(init<ModelPart&, Parameters&>())
       .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute);
 
   class_<FixScalarDofProcess, FixScalarDofProcess::Pointer, Process>(m,"FixScalarDofProcess")
