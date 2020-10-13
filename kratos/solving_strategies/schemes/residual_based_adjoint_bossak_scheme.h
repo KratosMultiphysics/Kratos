@@ -447,20 +447,20 @@ protected:
      * @brief Calculate time scheme contributions from elements
      *
      * @param rElement
-     * @param rAdjointTimeSchemeValues1
      * @param rAdjointTimeSchemeValues2
+     * @param rAdjointTimeSchemeValues3
      * @param rCurrentProcessInfo
      */
     virtual void CalculateTimeSchemeContributions(
         Element& rElement,
-        LocalSystemVectorType& rAdjointTimeSchemeValues1,
         LocalSystemVectorType& rAdjointTimeSchemeValues2,
+        LocalSystemVectorType& rAdjointTimeSchemeValues3,
         AdjointResponseFunction& rAdjointResponseFunction,
         const BossakConstants& rBossakConstants,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateEntityTimeSchemeContributions(rElement, rAdjointTimeSchemeValues1,
-                                               rAdjointTimeSchemeValues2,
+        CalculateEntityTimeSchemeContributions(rElement, rAdjointTimeSchemeValues2,
+                                               rAdjointTimeSchemeValues3,
                                                rCurrentProcessInfo);
     }
 
@@ -468,20 +468,20 @@ protected:
      * @brief Calculates time scheme contributions from conditions
      *
      * @param rCondition
-     * @param rAdjointTimeSchemeValues1
      * @param rAdjointTimeSchemeValues2
+     * @param rAdjointTimeSchemeValues3
      * @param rCurrentProcessInfo
      */
     virtual void CalculateTimeSchemeContributions(
         Condition& rCondition,
-        LocalSystemVectorType& rAdjointTimeSchemeValues1,
         LocalSystemVectorType& rAdjointTimeSchemeValues2,
+        LocalSystemVectorType& rAdjointTimeSchemeValues3,
         AdjointResponseFunction& rAdjointResponseFunction,
         const BossakConstants& rBossakConstants,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateEntityTimeSchemeContributions(rCondition, rAdjointTimeSchemeValues1,
-                                               rAdjointTimeSchemeValues2,
+        CalculateEntityTimeSchemeContributions(rCondition, rAdjointTimeSchemeValues2,
+                                               rAdjointTimeSchemeValues3,
                                                rCurrentProcessInfo);
     }
 
