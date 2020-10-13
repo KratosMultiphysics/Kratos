@@ -281,32 +281,16 @@ public:
         
         // Derivative of basis_i
         const std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
-        
-        // Create PhiElementalGlobal
-        LocalSystemVectorType PhiElementalGlobal;
+
+        // Get elementalGlobalDofSize
         std::size_t elementalGlobalDofSize = 0;
         for (auto& node_i : rElement.GetGeometry())
             elementalGlobalDofSize += node_i.GetDofs().size();
-        PhiElementalGlobal.resize(elementalGlobalDofSize);
-
+        
+        // Get elementalLocalDofSize
         std::vector<Dof<double>::Pointer> rElementalDofList;
         rElement.GetDofList(rElementalDofList, rCurrentProcessInfo);
         std::size_t elementalLocalDofSize = rElementalDofList.size();
-
-        // Get PhiElemental
-        std::size_t elem_glob_dof_ctr = 0;
-        // Loop over nodes
-        for (auto& node_i : rElement.GetGeometry()) {
-            auto& node_i_dofs = node_i.GetDofs();
-            
-            const Matrix *pPhiNodal = &(node_i.GetValue(ROM_BASIS));
-            for (std::size_t node_i_glob_dof_ctr = 0; node_i_glob_dof_ctr < pPhiNodal->size1(); node_i_glob_dof_ctr++)
-            {
-                PhiElementalGlobal[elem_glob_dof_ctr + node_i_glob_dof_ctr] = (*pPhiNodal)(node_i_glob_dof_ctr, basis_i);
-            }
-
-            elem_glob_dof_ctr += node_i_dofs.size();
-        }
 
         // Compute element LHS derivative
         Matrix element_matrix_derivative;
@@ -333,9 +317,27 @@ public:
 
         }
 
+        // Create PhiElementalGlobal 
+        LocalSystemVectorType PhiElementalGlobal;
+        PhiElementalGlobal.resize(elementalGlobalDofSize);
+        // Get PhiElemental
+        std::size_t elem_glob_dof_ctr = 0;
+        // Loop over nodes
+        for (auto& node_i : rElement.GetGeometry()) {
+            auto& node_i_dofs = node_i.GetDofs();
+            
+            const Matrix *pPhiNodal = &(node_i.GetValue(ROM_BASIS));
+            for (std::size_t node_i_glob_dof_ctr = 0; node_i_glob_dof_ctr < pPhiNodal->size1(); node_i_glob_dof_ctr++)
+            {
+                PhiElementalGlobal[elem_glob_dof_ctr + node_i_glob_dof_ctr] = (*pPhiNodal)(node_i_glob_dof_ctr, basis_i);
+            }
+
+            elem_glob_dof_ctr += node_i_dofs.size();
+        }
+
         // Create PhiElementalLocal
         LocalSystemVectorType PhiElementalLocal;
-        PhiElementalLocal.resize(elementalLocalDofSize);
+        PhiElementalLocal.resize(elementalLocalDofSize);        
 
         // Initialize RHS contribution
         rRHS_Contribution.resize(elementalLocalDofSize);
