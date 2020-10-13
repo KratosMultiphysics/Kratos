@@ -55,9 +55,9 @@ def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
 # Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-ASGS_stabilization = True           # Consider ASGS stabilization terms
+stabilization = True                # Consider ASGS or OSS stabilization. By default simple ASGS is used
+OSS_stabilization = True            # Requires stabilization to be true
 dynamic_subscales = True            # Consider subscale dynamic
-OSS_stabilization = True            # Requires ASGS stabilization to be true
 mode = "c"                          # Output mode to a c++ file
 
 if (dim_to_compute == "2D"):
@@ -161,7 +161,6 @@ for dim in dim_vector:
         #####  Stabilization ASGS/OSS functional terms #####
         # ASGS/OSS Convective term
         rhs_stab_1_forcing = tau[i_gauss] * (v_gauss.transpose() * grad_q) * f_gauss
-        # rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * phi_acceleration_old_gauss # use acceleration step n
         rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * N.transpose() * (phi-phi_old)*explicit_step_coefficient
         rhs_stab_1_convection_1 = - tau[i_gauss] * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
         rhs_stab_1_convection_2 = - tau[i_gauss] * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
@@ -177,7 +176,6 @@ for dim in dim_vector:
 
         # ASGS/OSS dynamic term
         rhs_stab_2_forcing = - tau[i_gauss] * q_gauss.transpose() * f_gauss
-        # rhs_stab_2_mass = tau[i_gauss] * q_gauss.transpose() * phi_acceleration_old_gauss # use acceleration step n
         rhs_stab_2_mass = tau[i_gauss] * q_gauss.transpose() * N.transpose() * (phi-phi_old)*explicit_step_coefficient
         rhs_stab_2_convection_1 = tau[i_gauss] * q_gauss * (v_gauss.transpose() * grad_phi)
         rhs_stab_2_convection_2 = tau[i_gauss] * q_gauss * phi_gauss * div_v
@@ -199,7 +197,6 @@ for dim in dim_vector:
         ##### OSS step #####
         # with lhs we refer to the fact we take the strong equation on the left side
         lhs_OSS_forcing = - q_gauss.transpose() * f_gauss
-        # lhs_OSS_mass = q_gauss.transpose() * phi_acceleration_old_gauss # use acceleration step n
         lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * (phi-phi_old)*explicit_step_coefficient)
         lhs_OSS_mass_subscale = - q_gauss.transpose() * (phi_subscale_gauss[i_gauss]/delta_time)
         lhs_OSS_diffusion = alpha * grad_phi.transpose() * grad_q
@@ -210,7 +207,7 @@ for dim in dim_vector:
             res_OSS = res_OSS + lhs_OSS_mass_subscale
 
         # Add the stabilization terms to the original residual terms
-        if (ASGS_stabilization):
+        if (stabilization):
             res = rhs_galerkin + rhs_stabilization
         else:
             res = rhs_galerkin
