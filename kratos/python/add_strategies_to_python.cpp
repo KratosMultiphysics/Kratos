@@ -572,7 +572,7 @@ namespace Kratos
                     .def("GetSystemMatrix", &BaseSolvingStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
                     .def("GetSystemVector", &BaseSolvingStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
                     .def("GetSolutionVector", &BaseSolvingStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
-                    //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
+                    .def("GetModelPart", &BaseSolvingStrategyType::GetModelPart)
                     .def("Info", &BaseSolvingStrategyType::Info)
                     ;
 

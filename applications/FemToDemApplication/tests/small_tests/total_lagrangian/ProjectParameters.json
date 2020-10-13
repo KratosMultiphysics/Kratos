@@ -1,0 +1,127 @@
+{
+   "AMR_data": {
+        "activate_AMR":                    false,
+           "hessian_variable_parameters":  {
+              "normalized_free_energy":           false,
+              "correct_with_displacements":       true,
+              "correction_factor":                1.0
+         }
+    },
+   "problem_data": {
+        "problem_name":         "small_test_damage",
+        "model_part_name":      "Structure",
+        "domain_size":          2,
+        "start_time":           0.0,
+        "end_time":             3.0,
+        "time_step":            0.05,
+        "echo_level":           0
+    },
+  "pressure_load_extrapolation":     false,
+  "DEM_FEM_contact":                 true,
+  "create_initial_skin":             false,
+   "solver_settings": {
+            "solver_type":                       "FemDemDynamicSolver",
+            "solution_type":                     "Dynamic",
+            "time_integration_method":           "Implicit",
+			"scheme_type": "Bossak",
+            "echo_level":                         1,
+            "model_import_settings":              {
+                 "input_type":         "mdpa",
+                 "input_filename":     "small_test_damage",
+				 "path_to_mdpa"  :     "small_tests/total_lagrangian/",
+                 "input_file_label":    0
+            },
+            "reform_dofs_at_each_step":              true,
+            "line_search":                          false,
+            "convergence_criterion":               "FemDem_Residual_criterion",
+            "displacement_relative_tolerance":      1.0E-4,
+            "displacement_absolute_tolerance":      1.0E-9,
+            "residual_relative_tolerance":          1.0E-4,
+            "residual_absolute_tolerance":          1.0E-9,
+            "max_iteration":                        15,
+            "linear_solver_settings":     {
+                 "solver_type":      "skyline_lu_factorization",
+                 "scaling":           false
+            },
+        "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Solid_Displacement-auto-4"]
+   },
+    "constraints_process_list": [{
+        "python_module": "assign_vector_components_to_nodes_process",
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name":  "AssignVectorComponentsToNodesProcess",
+        "Parameters":    {
+            "model_part_name": "Solid_Displacement-auto-1",
+            "variable_name":   "DISPLACEMENT",
+            "value":           [0.0,0.0,0.0],
+            "interval":        [0.0,"End"]
+        }
+    },{
+        "python_module": "assign_vector_components_to_nodes_process",
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name":  "AssignVectorComponentsToNodesProcess",
+        "Parameters":    {
+            "model_part_name": "Solid_Displacement-auto-2",
+            "variable_name":   "DISPLACEMENT",
+            "value":           [0.0,null,0.0],
+            "interval":        [0.0,"End"]
+        }
+    },{
+        "python_module": "assign_vector_components_to_nodes_process",
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name":  "AssignVectorComponentsToNodesProcess",
+        "Parameters":    {
+            "model_part_name": "Solid_Displacement-auto-3",
+            "variable_name":   "DISPLACEMENT",
+            "value":           ["0.00007*t",null,0.0],
+            "interval":        [0.0,2.0]
+        }
+    },{
+        "python_module": "assign_vector_components_to_nodes_process",
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name":  "AssignVectorComponentsToNodesProcess",
+        "Parameters":    {
+            "model_part_name": "Solid_Displacement-auto-4",
+            "variable_name":   "DISPLACEMENT",
+            "value":           ["0.00007*2 -0.00007*(t-2)",null,0.0],
+            "interval":        [2,"End"]
+        }
+    }],
+    "loads_process_list":       [],
+    "output_configuration": {
+        "result_file_configuration": {
+            "gidpost_flags":       {
+                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteConditionsFlag":   "WriteElementsOnly",
+                "GiDPostMode":           "GiD_PostBinary",
+                "MultiFileFlag":         "MultipleFiles"
+            },
+            "file_label":          "step",
+            "output_control_type": "step",
+            "output_interval":     1,
+            "body_output":          true,
+            "node_output":          false,
+            "skin_output":          false,
+            "plane_output":         [],
+            "nodal_results":       ["DISPLACEMENT","VELOCITY","ACCELERATION"],
+            "gauss_point_results": ["STRESS_VECTOR_INTEGRATED", "GREEN_LAGRANGE_STRAIN_VECTOR","DAMAGE_ELEMENT"]
+        },
+        "point_data_configuration":  []
+    },
+    "restart_options":     {
+        "SaveRestart":        false,
+        "RestartFrequency":   0,
+        "LoadRestart":        false,
+        "Restart_Step":       0
+    },
+    "constraints_data":     {
+        "incremental_load":                false,
+        "incremental_displacement":        false
+    },
+    "list_of_nodes_displacement":  [],
+    "list_of_nodes_reaction":      [],
+    "interval_of_watching"  :      0.0,
+    "watch_nodes_list"      :      [],
+    "watch_elements_list"   :      [],
+    "initial_DEM_skin_list" :      []
+}

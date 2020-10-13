@@ -15,7 +15,7 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -25,7 +25,7 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(DEM2D_InletTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1.001
         for node in self.spheres_model_part.Nodes:
             node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
@@ -34,26 +34,8 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
                 if self.time >= 1.15:
                     print(node_vel)
                     print(node_force)
-                    expected_value = 0.380489240
-                    self.CheckVel(node_vel, expected_value, tolerance)
-                    expected_value = -120983.1002
-                    self.CheckForce(node_force, expected_value, tolerance)
-
-
-    @classmethod
-    def CheckVel(self, vel, expected_value, tolerance):
-        if abs(expected_value) > abs(vel*tolerance) or abs(expected_value) < abs(vel/tolerance):
-            raise ValueError('Incorrect value for VELOCITY_Y: expected value was '+ str(expected_value) + ' but received ' + str(vel))
-
-    @classmethod
-    def CheckForce(self, force, expected_value, tolerance):
-        if abs(expected_value) > abs(force*tolerance) or abs(expected_value) < abs(force/tolerance):
-            raise ValueError('Incorrect value for TOTAL_FORCES_Y: expected value was '+ str(expected_value) + ' but received ' + str(force))
-
-    def Finalize(self):
-        super(DEM2D_InletTestSolution, self).Finalize()
-
-
+                    self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
+                    self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
 
 class TestDEM2DInlet(KratosUnittest.TestCase):
 

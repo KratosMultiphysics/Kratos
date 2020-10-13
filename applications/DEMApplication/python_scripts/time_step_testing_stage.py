@@ -3,7 +3,7 @@ from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
 
-class TimeStepTester(object):
+class TimeStepTester():
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
         self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet"]
@@ -61,7 +61,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         self.LoadParametersFile()
         # with open("ProjectParametersDEM.json",'r') as parameter_file:
         #     project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        super(CustomizedSolutionForTimeStepTesting, self).__init__(model, self.project_parameters)
+        super().__init__(model, self.project_parameters)
 
     def LoadParametersFile(self):
         self.project_parameters = KratosMultiphysics.Parameters(
@@ -264,7 +264,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
 
     def FinalizeSolutionStep(self):
-        super(CustomizedSolutionForTimeStepTesting, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
         current_test_energy = self.ComputeEnergy()
         #if not self.step%200:

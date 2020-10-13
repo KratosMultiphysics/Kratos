@@ -20,11 +20,8 @@ def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
     if MapperFactory.HasMapper(mapper_type):
         return MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_settings)
     else:
-        try:
-            mapper_module = import_module(mapper_type)
-            return mapper_module.Create(model_part_origin, model_part_destination, mapper_settings)
-        except BaseException as e:
-            KM.Logger.PrintWarning("PythonMapperFactory", 'Creating a python based mapper failed with the following error:\n', e)
+        mapper_module = import_module(mapper_type)
+        return mapper_module.Create(model_part_origin, model_part_destination, mapper_settings)
 
     list_avail_mappers = MapperFactory.GetRegisteredMapperNames()
 
@@ -45,11 +42,8 @@ def CreateMPIMapper(model_part_origin, model_part_destination, mapper_settings):
     if MapperFactory.HasMPIMapper(mapper_type):
         return MapperFactory.CreateMPIMapper(model_part_origin, model_part_destination, mapper_settings)
     else:
-        try:
-            mapper_module = import_module(mapper_type)
-            return mapper_module.Create(model_part_origin, model_part_destination, mapper_settings)
-        except BaseException as e:
-            KM.Logger.PrintWarning("PythonMapperFactory", 'Creating a python based mapper failed with the following error:\n', e)
+        mapper_module = import_module(mapper_type)
+        return mapper_module.Create(model_part_origin, model_part_destination, mapper_settings)
 
     list_avail_mappers = MapperFactory.GetRegisteredMPIMapperNames()
 
