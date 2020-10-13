@@ -490,9 +490,6 @@ class CustomProcessTest(UnitTest.TestCase):
             if (hasattr(process, "ExecuteAfterCouplingSolveStep")):
                 process.ExecuteAfterCouplingSolveStep()
         for process in self.process_list:
-            if (hasattr(process, "ExecuteAfterCouplingSolveStep")):
-                process.ExecuteAfterCouplingSolveStep()
-        for process in self.process_list:
             process.ExecuteFinalizeSolutionStep()
         for process in self.process_list:
             process.ExecuteFinalize()
