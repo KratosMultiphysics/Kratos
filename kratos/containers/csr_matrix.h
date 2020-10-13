@@ -166,7 +166,7 @@ public:
     template<class TVec1, class TVec2>
     void SpMV(TVec1& y, const TVec2& x) const
     {
-        IndexPartition<IndexType>(x.size()).for_each( [&](IndexType i){
+        IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
             IndexType row_begin = index1_data()[i];
             IndexType row_end   = index1_data()[i+1];
             for(IndexType k = row_begin; k < row_end; ++k){
@@ -174,7 +174,6 @@ public:
                 y(i) += value_data()[k] * x(col);
             }  
         });
-
     }
 
     ///@}
