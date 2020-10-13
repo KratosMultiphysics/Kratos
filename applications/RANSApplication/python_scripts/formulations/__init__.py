@@ -16,6 +16,10 @@ from KratosMultiphysics.RANSApplication.formulations.fractional_step.fractional_
 from KratosMultiphysics.RANSApplication.formulations.monolithic_vms.monolithic_k_omega_rans_formulation import MonolithicKOmegaRansFormulation
 from KratosMultiphysics.RANSApplication.formulations.fractional_step.fractional_step_k_omega_rans_formulation import FractionalStepKOmegaRansFormulation
 
+### k-omega-sst formulations
+from KratosMultiphysics.RANSApplication.formulations.monolithic_vms.monolithic_k_omega_sst_rans_formulation import MonolithicKOmegaSSTRansFormulation
+from KratosMultiphysics.RANSApplication.formulations.fractional_step.fractional_step_k_omega_sst_rans_formulation import FractionalStepKOmegaSSTRansFormulation
+
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
     formulations_list = [
@@ -25,7 +29,9 @@ def Factory(model_part, settings):
         ["monolithic_k_epsilon", MonolithicKEpsilonRansFormulation],
         ["fractional_step_k_epsilon", FractionalStepKEpsilonRansFormulation],
         ["monolithic_k_omega", MonolithicKOmegaRansFormulation],
-        ["fractional_step_k_omega", FractionalStepKOmegaRansFormulation]
+        ["fractional_step_k_omega", FractionalStepKOmegaRansFormulation],
+        ["monolithic_k_omega_sst", MonolithicKOmegaSSTRansFormulation],
+        ["fractional_step_k_omega_sst", FractionalStepKOmegaSSTRansFormulation]
     ]
 
     formulation_names_list = [
