@@ -38,7 +38,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):
         default_settings = Kratos.Parameters(r'''
         {
-            "formulation_name": "k_Omega",
+            "formulation_name": "k_omega_sst",
             "stabilization_method": "algebraic_flux_corrected",
             "turbulent_kinetic_energy_solver_settings": {},
             "turbulent_specific_energy_dissipation_rate_solver_settings": {},
@@ -59,7 +59,8 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                 "max_iterations": 10
             },
             "auxiliar_process_list": [],
-            "echo_level": 0
+            "echo_level": 0,
+            "minimum_turbulent_viscosity": 1e-12
         }''')
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -102,7 +103,9 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         model_part = self.GetBaseModelPart()
         model = model_part.GetModel()
 
-        wall_distance_calculation_settings = self.GetParameters()["wall_distance_calculation_settings"]
+        settings = self.GetParameters()
+
+        wall_distance_calculation_settings = settings["wall_distance_calculation_settings"]
         wall_distance_calculation_settings.AddEmptyValue("model_part_name")
         wall_distance_calculation_settings["model_part_name"].SetString(self.GetBaseModelPart().Name)
 
@@ -115,13 +118,14 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         beta_star = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
+        minimum_nut = settings["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKOmegaSSTUpdateProcess(
                                             model,
                                             self.GetBaseModelPart().Name,
                                             a1,
                                             beta_star,
-                                            1e-12,
+                                            minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_process)
 
@@ -129,7 +133,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                                             model,
                                             wall_model_part_name,
                                             kappa,
-                                            1e-12,
+                                            minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
 
