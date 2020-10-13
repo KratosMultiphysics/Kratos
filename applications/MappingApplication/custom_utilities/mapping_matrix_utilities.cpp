@@ -144,7 +144,7 @@ template<>
 void CheckRowSum<SparseSpaceType, DenseSpaceType>(
     const typename SparseSpaceType::MatrixType& rM,
     const std::string& rBaseFileName,
-    const bool is_throw_error)
+    const bool ThrowError)
 {
     SparseSpaceType::VectorType unit_vector(SparseSpaceType::Size2(rM));
     SparseSpaceType::Set(unit_vector, 1.0);
@@ -163,7 +163,7 @@ void CheckRowSum<SparseSpaceType, DenseSpaceType>(
 
     if (write_mm_file) {
         SparseSpaceType::WriteMatrixMarketVector(("RowSumVector_" + rBaseFileName).c_str(), row_sums_vector);
-        KRATOS_ERROR_IF(is_throw_error) << "Mapping matrix does not sum to unity. Please check file " << rBaseFileName << " in your project directory for row sums\n";
+        KRATOS_ERROR_IF(ThrowError) << "Mapping matrix does not sum to unity. Please check file " << rBaseFileName << " in your project directory for row sums\n";
     }
 }
 
