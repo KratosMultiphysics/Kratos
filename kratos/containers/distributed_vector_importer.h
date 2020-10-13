@@ -103,17 +103,23 @@ public:
         }
         mvector_comm_colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, rComm);
 
+        //ensure that we have lists for all colors;
+        for(auto color : mvector_comm_colors)
+        {
+            if(color >= 0) //-1 would imply no communication
+            {
+                mlocal_i_by_color[color]; //note that here we touch the entry and we create it if not existing
+                to_recv_by_color[color];
+            }
+        }
+
         //communicate the remote_local_id so that the other node knows what to send
         for(auto color : mvector_comm_colors)
         {
             if(color >= 0) //-1 would imply no communication
             {
-KRATOS_WATCH(GetComm().Rank())
-KRATOS_WATCH(color)
-KRATOS_WATCH(to_recv_by_color[color])
                 //NOTE: this can be made nonblocking 
                 mto_send_by_color[color] = rComm.SendRecv(to_recv_by_color[color], color, color); //TODO, we know all the sizes, we shall use that!
-KRATOS_WATCH(mto_send_by_color[color])
             }
         }
     }
@@ -124,14 +130,13 @@ KRATOS_WATCH(mto_send_by_color[color])
 
         std::vector<TDataType> send_buffer;
         std::vector<TDataType> recv_buffer;
-
         for(auto color : mvector_comm_colors)
         {
             if(color >= 0) //-1 would imply no communication
             {
                 const auto& local_ids = mlocal_i_by_color.find(color)->second;
                 const auto& to_send_ids = mto_send_by_color.find(color)->second; 
-KRATOS_WATCH(to_send_ids)
+
                 send_buffer.resize(to_send_ids.size());
                 recv_buffer.resize(local_ids.size());
 
@@ -141,15 +146,11 @@ KRATOS_WATCH(to_send_ids)
                 //NOTE: this can be made nonblocking
                 GetComm().SendRecv(send_buffer, color, 0, recv_buffer, color, 0); //TODO, we know all the sizes, we shall use that!
 
-KRATOS_WATCH(local_ids)
-KRATOS_WATCH(send_buffer)
-KRATOS_WATCH(recv_buffer)
                 //write the recv_data onto the output
                 for(IndexType i=0; i<recv_buffer.size(); ++i)
                     ImportedData(local_ids[i]) = recv_buffer[i];
             }
         }
-KRATOS_WATCH(mLocallyOwnedIds)
         //treat local data
         for(IndexType i=0; i<mLocallyOwnedIds.size(); ++i )
 

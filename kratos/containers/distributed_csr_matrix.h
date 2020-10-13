@@ -96,6 +96,7 @@ public:
                 else{
                     offdiag_nnz += 1;
                     mNonDiagonalLocalIds[global_j] = 0;
+KRATOS_WATCH(global_j)
                 }
             }
         }
@@ -169,6 +170,7 @@ public:
         for(auto& item : mNonDiagonalLocalIds)
         {
             IndexType global_i = item.first;
+std::cout << item.first << " " << item.second << std::endl;
             off_diag_global_ids.push_back(global_i);
         }
         auto pimporter = Kratos::make_unique<DistributedVectorImporter<double,IndexType>>(GetComm(),off_diag_global_ids,rSparseGraph.GetCpuBounds());
@@ -329,9 +331,8 @@ public:
     {
         //get off diagonal terms (requires communication)
         auto off_diag_x = mpVectorImporter->ImportData(x);
-
         mOffDiagBlock.SpMV(y.GetLocalData(),off_diag_x);
-        // mDiagBlock.SpMV(y.GetLocalData(),x.GetLocalData());
+        mDiagBlock.SpMV(y.GetLocalData(),x.GetLocalData());
     }
 
 
