@@ -8,6 +8,7 @@ if not KM.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
+from test_mpi_metrics import TestMPIMetrics
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -22,6 +23,7 @@ def AssembleTestSuites():
 
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
+    smallMPISuite.addTest(TestMPIMetrics('test_mpi_hessian'))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']

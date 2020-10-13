@@ -514,6 +514,7 @@ class CustomProcessTest(UnitTest.TestCase):
                 }
             }
         """
+
         settings_str = settings_str.replace("<VARIABLES_LIST>", CustomProcessTest.__GetVariablesString(output_variables))
         settings_str = settings_str.replace("<OUTPUT_FILE_NAME>", output_file_name)
         settings_str = settings_str.replace("<OUTPUT_MODEL_PART_NAME>", output_model_part_name)

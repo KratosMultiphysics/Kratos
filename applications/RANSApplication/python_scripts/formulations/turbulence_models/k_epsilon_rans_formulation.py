@@ -48,7 +48,8 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                 "max_iterations": 10
             },
             "auxiliar_process_list": [],
-            "echo_level": 0
+            "echo_level": 0,
+            "minimum_turbulent_viscosity": 1e-12
         }''')
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -91,12 +92,13 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
         c_mu = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
+        minimum_nut = self.GetParameters()["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKEpsilonUpdateProcess(
                                             model,
                                             self.GetBaseModelPart().Name,
                                             c_mu,
-                                            1e-12,
+                                            minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_process)
 
@@ -104,7 +106,7 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                                             model,
                                             wall_model_part_name,
                                             kappa,
-                                            1e-12,
+                                            minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
 
