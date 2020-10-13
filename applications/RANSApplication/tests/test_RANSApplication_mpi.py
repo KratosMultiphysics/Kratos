@@ -26,6 +26,10 @@ from fractional_step_velocity_pressure_formulation_tests import FractionalStepVe
 from monolithic_k_epsilon_formulation_tests import MonolithicKEpsilonTest
 from fractional_step_k_epsilon_formulation_tests import FractionalStepKEpsilonTest
 
+### k_omega test_classes
+from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
+from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
+
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
@@ -62,6 +66,11 @@ def AssembleTestSuites():
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonTest]))
     # adding fractional step k-epsilon high re tests
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonTest]))
+
+    # adding monolithic k-omega high re tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaTest]))
+    # adding fractional step k-omega high re tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']

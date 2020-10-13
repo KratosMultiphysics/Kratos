@@ -11,36 +11,36 @@ from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equat
 # import utilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 
-class KEpsilonKRansFormulation(ScalarTurbulenceModelRansFormulation):
+class KOmegaKRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetSolvingVariable(self):
         return KratosRANS.TURBULENT_KINETIC_ENERGY
 
     def GetElementNamePrefix(self):
-        return "RansKEpsilonK"
+        return "RansKOmegaK"
 
     def GetConditionNamePrefix(self):
         return ""
 
 
-class KEpsilonEpsilonRansFormulation(ScalarTurbulenceModelRansFormulation):
+class KOmegaOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetSolvingVariable(self):
-        return KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
+        return KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE
 
     def GetElementNamePrefix(self):
-        return "RansKEpsilonEpsilon"
+        return "RansKOmegaOmega"
 
     def GetConditionNamePrefix(self):
-        return "RansKEpsilonEpsilon"
+        return "RansKOmegaOmega"
 
 
-class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
+class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):
         default_settings = Kratos.Parameters(r'''
         {
-            "formulation_name": "k_epsilon",
+            "formulation_name": "k_omega",
             "stabilization_method": "algebraic_flux_corrected",
             "turbulent_kinetic_energy_solver_settings": {},
-            "turbulent_energy_dissipation_rate_solver_settings": {},
+            "turbulent_specific_energy_dissipation_rate_solver_settings": {},
             "coupling_settings":
             {
                 "relative_tolerance": 1e-3,
@@ -57,8 +57,8 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         super().__init__(
             model_part,
             settings,
-            KEpsilonKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"]),
-            KEpsilonEpsilonRansFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"]))
+            KOmegaKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"]),
+            KOmegaOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"]))
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
@@ -71,8 +71,8 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_1)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_2)
 
@@ -80,7 +80,7 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
     def AddDofs(self):
         Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_KINETIC_ENERGY, self.GetBaseModelPart())
-        Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, self.GetBaseModelPart())
+        Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, self.GetBaseModelPart())
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step dofs.")
 
@@ -90,14 +90,12 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
         process_info = model_part.ProcessInfo
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        c_mu = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
         minimum_nut = self.GetParameters()["minimum_turbulent_viscosity"].GetDouble()
 
-        nut_process = KratosRANS.RansNutKEpsilonUpdateProcess(
+        nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
                                             model,
                                             self.GetBaseModelPart().Name,
-                                            c_mu,
                                             minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_process)
@@ -117,10 +115,13 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             "wall_smoothness_beta"                          : 5.2,
             "von_karman"                                    : 0.41,
             "c_mu"                                          : 0.09,
-            "c1"                                            : 1.44,
-            "c2"                                            : 1.92,
-            "sigma_k"                                       : 1.0,
-            "sigma_epsilon"                                 : 1.3,
+            "c1"                                            : 0.1,
+            "beta_zero"                                     : 0.0708,
+            "beta"                                          : 0.072,
+            "gamma"                                         : 0.52,
+            "sigma_k"                                       : 0.6,
+            "sigma_omega"                                   : 0.5,
+            "y_plus_lower_limit"                            : 2.0,
             "stabilizing_upwind_operator_coefficient"       : 1.2,
             "stabilizing_positivity_preserving_coefficient" : 1.2
         }''')
@@ -131,10 +132,10 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, settings["wall_smoothness_beta"].GetDouble())
         process_info.SetValue(KratosRANS.WALL_VON_KARMAN, settings["von_karman"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
-        process_info.SetValue(KratosRANS.TURBULENCE_RANS_C1, settings["c1"].GetDouble())
-        process_info.SetValue(KratosRANS.TURBULENCE_RANS_C2, settings["c2"].GetDouble())
+        process_info.SetValue(KratosRANS.TURBULENCE_RANS_BETA, settings["beta"].GetDouble())
+        process_info.SetValue(KratosRANS.TURBULENCE_RANS_GAMMA, settings["gamma"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENT_KINETIC_ENERGY_SIGMA, settings["sigma_k"].GetDouble())
-        process_info.SetValue(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA, settings["sigma_epsilon"].GetDouble())
+        process_info.SetValue(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA, settings["sigma_omega"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, settings["stabilizing_upwind_operator_coefficient"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, settings["stabilizing_positivity_preserving_coefficient"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, RansCalculationUtilities.CalculateLogarithmicYPlusLimit(

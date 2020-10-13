@@ -4,8 +4,7 @@ import turbulence_modelling_test_case
 import periodic_turbulence_modelling_test_case
 
 
-class MonolithicKEpsilonTest(
-        turbulence_modelling_test_case.TurbulenceModellingTestCase):
+class MonolithicKEpsilonTest(turbulence_modelling_test_case.TurbulenceModellingTestCase):
     @classmethod
     def setUpClass(cls):
         super(MonolithicKEpsilonTest, cls).setUpCase(
@@ -15,8 +14,7 @@ class MonolithicKEpsilonTest(
 
         cls.transient_scheme_type = "bossak"
 
-class MonolithicKEpsilonPeriodicTest(
-        periodic_turbulence_modelling_test_case.PeriodicTurbulenceModellingTestCase):
+class MonolithicKEpsilonPeriodicTest(periodic_turbulence_modelling_test_case.PeriodicTurbulenceModellingTestCase):
     @classmethod
     def setUpClass(cls):
         super(MonolithicKEpsilonPeriodicTest, cls).setUpCase(
