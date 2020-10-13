@@ -157,7 +157,8 @@ public:
         mDerivativeSubModelPartNames = InputParameters["sub_model_parts_list"].GetStringArray();
                 
         mMassOrthonormalizeFlag = InputParameters["mass_orthonormalize"].GetBool();
-        mComputeBasisDerivativesFlag = InputParameters["compute_basis_derivatives"].GetBool();
+        if (mDerivativeParameterType == 0 || InputParameters["compute_basis_derivatives"].GetBool()) 
+            mComputeBasisDerivativesFlag = true;
 
         mNumberInitialBasis = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
 
@@ -323,12 +324,32 @@ public:
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
+                if (mComputeBasisDerivativesFlag)
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-                if (mDerivativeTypeFlag || mMassOrthonormalizeFlag)
+                else {
+
+                    if (mpDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
+                    {
+                        TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
+                        mpDx.swap(pNewDx);
+                    }
+                    if (mpb == NULL) //if the pointer is not initialized initialize it to an empty matrix
+                    {
+                        TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
+                        mpb.swap(pNewb);
+                    }
+
+                    const int dof_set_size = this->pGetBuilderAndSolver()->GetDofSet().size();
+
+                    mpDx->resize(dof_set_size, false);
+                    mpb->resize(dof_set_size, false);
+
+                }
+                if ((mDerivativeTypeFlag || mMassOrthonormalizeFlag) && mComputeBasisDerivativesFlag)
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-                if (mDerivativeTypeFlag)
+                if (mDerivativeTypeFlag && mComputeBasisDerivativesFlag)
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
 
@@ -407,12 +428,10 @@ public:
         TSystemMatrixType& rA = *mpA;
         TSystemMatrixType& rStiffnessMatrix = *mpStiffnessMatrix;
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
-        TSystemVectorType basis;
-        TSparseSpace::Resize(basis, rA.size1());
 
         // Build system matrices
         // Build mass matrix
-        if (mMassOrthonormalizeFlag || mDerivativeTypeFlag)
+        if ((mMassOrthonormalizeFlag || mDerivativeTypeFlag) && mComputeBasisDerivativesFlag)
         {
             r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
             this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rMassMatrix);
@@ -420,13 +439,12 @@ public:
 
         // Build stiffness matrix
         r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
-        if (mDerivativeTypeFlag)
+        if (mDerivativeTypeFlag && mComputeBasisDerivativesFlag)
         {   // Dynamic derivatives
-            
             // Build stiffness matrix separately
             this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);   
         } 
-        else
+        else if (mComputeBasisDerivativesFlag)
         {   // Static derivatives
             
             // Build the stiffness matrix into system matrix directly
@@ -459,7 +477,7 @@ public:
         TSystemVectorType& rb = *mpb;
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType basis;
-        TSparseSpace::Resize(basis, rA.size1());
+        TSparseSpace::Resize(basis, this->pGetBuilderAndSolver()->GetDofSet().size());
         
         // Get eigenvalues vector
         LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
@@ -591,7 +609,7 @@ public:
         TSystemVectorType& rb = *mpb;
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType basis;
-        TSparseSpace::Resize(basis, rA.size1());
+        TSparseSpace::Resize(basis, this->pGetBuilderAndSolver()->GetDofSet().size());
         
         // Get eigenvalues vector
         LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
@@ -606,7 +624,7 @@ public:
             TSparseSpace::SetToZero(basis);
             this->GetBasis(basis_i, basis);
 
-            if (mDerivativeTypeFlag)
+            if (mDerivativeTypeFlag && mComputeBasisDerivativesFlag)
             {   // Dynamic derivatives
 
                 const double eigenvalue_i = r_eigenvalues[basis_i];
@@ -620,23 +638,26 @@ public:
             {
                 ModelPart& r_sub_model_part = r_model_part.GetSubModelPart(sub_model_part_name);
 
-                // Reset RHS and solution vector at each step
+                // Reset RHS vector at each step
                 TSparseSpace::SetToZero(rb);
-                TSparseSpace::SetToZero(rDx);
-
-                // Compute RHS and solve
+                
+                // Compute RHS
                 const double start_build_rhs = OpenMPUtils::GetCurrentTime();
                 Timer::Start("BuildRHS");
 
                 // Build stiffness contribution first
                 this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_sub_model_part, rb);
-
+                
                 // Compute the derivative of the eigenvalue
                 const double deigenvalue_i_dparameter = -inner_prod(basis, rb);
                 r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dparameter;
                 
+                // Solve
                 if (mComputeBasisDerivativesFlag)
                 {
+                    // Reset solution vector at each step
+                    TSparseSpace::SetToZero(rDx);
+
                     // Dynamic derivative RHS
                     if (mDerivativeTypeFlag)
                         rb += deigenvalue_i_dparameter * prod(rMassMatrix, basis);
