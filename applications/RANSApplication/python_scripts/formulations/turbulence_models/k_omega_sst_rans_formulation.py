@@ -10,7 +10,7 @@ from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equat
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
+from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess
 
 class KOmegaSSTKRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetSolvingVariable(self):
@@ -44,13 +44,12 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             "turbulent_specific_energy_dissipation_rate_solver_settings": {},
             "wall_distance_calculation_settings":
             {
-                "max_iterations"           : 10,
-                "echo_level"               : 0,
-                "wall_flag_variable_name"  : "STRUCTURE",
-                "wall_flag_variable_value" : true,
-                "linear_solver_settings" : {
-                    "solver_type"     : "amgcl"
-                }
+                "max_levels"                       : 100,
+                "max_distance"                     : "max",
+                "echo_level"                       : 0,
+                "distance_variable_name"           : "DISTANCE",
+                "nodal_area_variable_name"         : "NODAL_AREA",
+                "re_calculate_at_each_time_step"   : false
             },
             "coupling_settings":
             {
@@ -102,21 +101,23 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def Initialize(self):
         model_part = self.GetBaseModelPart()
         model = model_part.GetModel()
+        process_info = model_part.ProcessInfo
+        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
 
         settings = self.GetParameters()
 
         wall_distance_calculation_settings = settings["wall_distance_calculation_settings"]
-        wall_distance_calculation_settings.AddEmptyValue("model_part_name")
-        wall_distance_calculation_settings["model_part_name"].SetString(self.GetBaseModelPart().Name)
+        wall_distance_calculation_settings.AddEmptyValue("main_model_part_name")
+        wall_distance_calculation_settings["main_model_part_name"].SetString(self.GetBaseModelPart().Name)
+        wall_distance_calculation_settings.AddEmptyValue("wall_model_part_name")
+        wall_distance_calculation_settings["wall_model_part_name"].SetString(wall_model_part_name)
 
-        wall_distance_process_type = GetKratosObjectPrototype("RansWallDistanceCalculationProcess")
-        wall_distance_process = wall_distance_process_type(model, wall_distance_calculation_settings)
+        wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
         self.AddProcess(wall_distance_process)
 
-        process_info = model_part.ProcessInfo
         a1 = process_info[KratosRANS.TURBULENCE_RANS_A1]
         beta_star = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
-        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
+
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
         minimum_nut = settings["minimum_turbulent_viscosity"].GetDouble()
 
