@@ -148,7 +148,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerDestination->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
         mMapperLocalSystemsSlave,
-        0); // @Phil - reduce echo to prevent row sum check on unfinished matrix
+        0); // The echo-level is no longer neeed here, refactor in separate PR
 
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrixProjector,
@@ -157,7 +157,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerOrigin->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
         mMapperLocalSystemsProjector,
-        0); // @Phil - reduce echo to prevent row sum check on unfinished matrix
+        0); // The echo-level is no longer neeed here, refactor in separate PR
 
     // Perform consistency scaling if requested
     if (mMapperSettings["consistency_scaling"].GetBool()) {
@@ -304,8 +304,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     IndexType row_counter = 0;
     for (auto row_it = rInterfaceMatrixProjected.begin1(); row_it != rInterfaceMatrixProjected.end1(); ++row_it)
     {
-        if (std::abs(slave_row_sums_vector[row_counter]/ projected_row_sums_vector[row_counter] - 1.0) > 1e-15)
-        {
+        if (std::abs(slave_row_sums_vector[row_counter]/ projected_row_sums_vector[row_counter] - 1.0) > 1e-15) {
             // Correct entries
             const double alpha = (slave_row_sums_vector[row_counter] / projected_row_sums_vector[row_counter] < scalingLimit)
                 ? slave_row_sums_vector[row_counter] / projected_row_sums_vector[row_counter] : scalingLimit;

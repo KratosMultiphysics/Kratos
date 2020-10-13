@@ -208,11 +208,12 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
 
     BuildMatrix(rpMappingMatrix, rMapperLocalSystems);
 
-    if (EchoLevel > 2) {
-        const std::string base_file_name = "O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
-        SparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_"+base_file_name).c_str(), *rpMappingMatrix, false);
-        CheckRowSum<SparseSpaceType, DenseSpaceType>(*rpMappingMatrix, base_file_name);
-    }
+    // refactor to be used from the mapper directly
+    // if (EchoLevel > 2) {
+    //     const std::string base_file_name = "O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
+    //     SparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_"+base_file_name).c_str(), *rpMappingMatrix, false);
+    //     CheckRowSum<SparseSpaceType, DenseSpaceType>(*rpMappingMatrix, base_file_name);
+    // }
 
     InitializeSystemVector<SparseSpaceType, DenseSpaceType>(rpInterfaceVectorOrigin, num_nodes_origin);
     InitializeSystemVector<SparseSpaceType, DenseSpaceType>(rpInterfaceVectorDestination, num_nodes_destination);
