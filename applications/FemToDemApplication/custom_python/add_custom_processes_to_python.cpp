@@ -40,6 +40,8 @@
 #include "custom_processes/update_pressure_volume_process.h"
 #include "custom_processes/generate_initial_skin_DEM_process.h"
 #include "custom_processes/transfer_entities_between_model_parts_process.hpp"
+#include "custom_processes/fix_scalar_dof_process.hpp"
+#include "custom_processes/free_scalar_dof_process.hpp"
 
 
 namespace Kratos
@@ -52,6 +54,25 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     typedef Process ProcessBaseType;
     typedef std::vector<Flags>  FlagsContainer;
+
+  class_<FixScalarDofProcess, FixScalarDofProcess::Pointer, Process>(m,"FixScalarDofProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>())
+      .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
+      .def(init<ModelPart&, const Variable<double>&>())
+      .def(init<ModelPart&, const Variable<int>&>())
+      .def(init<ModelPart&, const Variable<bool>&>())
+      .def("Execute", &FixScalarDofProcess::Execute);
+
+
+  class_<FreeScalarDofProcess, FreeScalarDofProcess::Pointer, Process>(m,"FreeScalarDofProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>())
+      .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
+      .def(init<ModelPart&, const Variable<double>&>())
+      .def(init<ModelPart&, const Variable<int>&>())
+      .def(init<ModelPart&, const Variable<bool>&>())
+      .def("Execute", &FreeScalarDofProcess::Execute);
 
     // Stress extrapolation to Nodes
     class_<StressToNodesProcess, StressToNodesProcess::Pointer, Process>(m, "StressToNodesProcess")
