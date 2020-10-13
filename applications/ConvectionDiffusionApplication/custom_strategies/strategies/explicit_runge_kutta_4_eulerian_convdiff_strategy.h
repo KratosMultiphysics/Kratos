@@ -278,6 +278,8 @@ protected:
             }
         }
 
+        return true;
+
         KRATOS_CATCH("");
     };
 
