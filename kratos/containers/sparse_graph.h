@@ -402,7 +402,7 @@ private:
             {
                 auto I = IJ[counter++];
                 auto nrow = IJ[counter++];
-                auto begin = &IJ[counter];s
+                auto begin = &IJ[counter];
                 AddEntries(I, begin, begin+nrow);
                 counter += nrow;
             }
