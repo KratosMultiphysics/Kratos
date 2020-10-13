@@ -441,7 +441,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     }    
 
     b.FinalizeAssemble();
-
     IndexType local_size = b.LocalSize();
     for(unsigned int i=0; i<local_size; ++i)
     {
@@ -450,7 +449,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
         const auto& ref_value = it->second;
         KRATOS_CHECK_NEAR(b(i) ,  ref_value , 1e-14 );
     }
-
     //test importing
     std::vector<IndexType> to_import{39, 0,37,2};
     DistributedVectorImporter<double,IndexType> importer(b.GetComm(),to_import,b.GetCpuBounds());   //this operation is expensive since it requires mounting the communication plan
@@ -469,14 +467,19 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     }
     A.FinalizeAssemble();
 
+    //here we test SPMV by a vector of 1s
     DistributedSystemVector<> y(Agraph);
     y.SetValue(0.0);
     b.SetValue(1.0);
+
     A.SpMV(y,b);
 
+    std::vector<double> reference_spmv_res{4,12,8,12,12,12,20,24,16,16,8,16,12,4,24,12,20,12,24,12,0,4,16,4,16,16,24,4,20,8,8,12,4,16,4,20,8,16,4,12};
     for(unsigned int i=0; i<y.LocalSize(); ++i)
-        std::cout << y[i] << " ";
-    std::cout << std::endl;
+    {
+        IndexType global_i = y.GlobalId(i);
+        KRATOS_CHECK_NEAR(y[i] ,  reference_spmv_res[global_i] , 1e-14 );
+    }
 
 }
 
