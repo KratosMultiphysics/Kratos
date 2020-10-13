@@ -180,7 +180,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
 {
     KRATOS_TRY;
 
-    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << std::endl;
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << CalculateStiffnessMatrixFlag << " " << CalculateStiffnessMatrixFlag << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -265,6 +265,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
     const SizeType Dim = rGeom.WorkingSpaceDimension();
 
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+
     Matrix ReducedKgMatrix = prod( rVariables.DNu_DX,
                                    rVariables.IntegrationCoefficient *
                                    Matrix( prod( StressTensor, trans(rVariables.DNu_DX) ) ) ); //to be optimized
@@ -274,11 +275,12 @@ void UpdatedLagrangianUPwDiffOrderElement::
     MathUtils<double>::ExpandAndAddReducedMatrix( UMatrix, ReducedKgMatrix, Dim );
 
     //Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, UMatrix, NumUNodes, Dim);
+    this->AssembleUBlockMatrix(rLeftHandSideMatrix,UMatrix);
+
+    KRATOS_CATCH( "" )
 
     //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix()") << std::endl;
 
-    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------

@@ -1083,7 +1083,7 @@ void SmallStrainUPwDiffOrderElement::
                                  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-CalculateOnIntegrationPoints(array_1d)") << std::endl;
+    // //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-CalculateOnIntegrationPoints(array_1d)") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( this->GetIntegrationMethod() );
@@ -1136,7 +1136,7 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-CalculateOnIntegrationPoints(array_1d)") << std::endl;
+    // //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-CalculateOnIntegrationPoints(array_1d)") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1523,7 +1523,7 @@ double SmallStrainUPwDiffOrderElement::CalculateBulkModulus(const Matrix &Consti
     const double G = ConstitutiveMatrix(IndexG, IndexG);
     const double BulkModulus = M - (4.0/3.0)*G;
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateBulkModulus") << BulkModulus << std::endl;
+    // //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateBulkModulus") << BulkModulus << std::endl;
 
     return BulkModulus;
     KRATOS_CATCH( "" )
@@ -1738,7 +1738,7 @@ void SmallStrainUPwDiffOrderElement::
     CalculateBMatrix(Matrix& rB, const Matrix& DNp_DX)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateBMatrix()") << std::endl;
+    // //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateBMatrix()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -1776,7 +1776,7 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateBMatrix()") << std::endl;
+    // //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateBMatrix()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1850,6 +1850,20 @@ void SmallStrainUPwDiffOrderElement::
                             * rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
+    this->AssembleUBlockMatrix(rLeftHandSideMatrix,StiffnessMatrix);
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
+                        const Matrix &StiffnessMatrix) const
+{
+    KRATOS_TRY
+
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -1874,10 +1888,10 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix") << std::endl;
-
     KRATOS_CATCH( "" )
 }
+
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::

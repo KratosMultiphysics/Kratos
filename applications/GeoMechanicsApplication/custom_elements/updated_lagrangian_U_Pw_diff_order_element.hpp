@@ -74,6 +74,7 @@ public:
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
     using SmallStrainUPwDiffOrderElement::mStressVector;
     using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
+    using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
 
     typedef typename SmallStrainUPwDiffOrderElement::ElementVariables ElementVariables;
 

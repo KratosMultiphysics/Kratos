@@ -270,6 +270,9 @@ protected:
 
     void AssignPressureToIntermediateNodes();
 
+    void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
+                              const Matrix &StiffnessMatrix) const;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
