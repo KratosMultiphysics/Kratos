@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 from KratosMultiphysics import KratosUnittest
-data_comm = KM.DataCommunicator.GetDefault()
+from KratosMultiphysics.testing.utilities import ReadModelPart
 import os
 
 def GetFilePath(file_name):
@@ -99,6 +99,9 @@ def SetupModelParts(self):
     self.model_part_origin = self.model.CreateModelPart("origin")
     self.model_part_destination = self.model.CreateModelPart("destination")
 
+    self.model_part_origin.ProcessInfo[KM.DOMAIN_SIZE] = 3
+    self.model_part_destination.ProcessInfo[KM.DOMAIN_SIZE] = 3
+
     self.model_part_origin.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
     self.model_part_origin.AddNodalSolutionStepVariable(KM.FORCE)
 
@@ -108,13 +111,9 @@ def SetupModelParts(self):
     origin_mdpa_file_name = "cube_tri"
     destination_mdpa_file_name = "cube_quad"
 
-    ReadModelPart(self.model_part_origin, origin_mdpa_file_name)
-    ReadModelPart(self.model_part_destination, destination_mdpa_file_name)
+    ReadModelPart(GetFilePath(origin_mdpa_file_name), self.model_part_origin)
+    ReadModelPart(GetFilePath(destination_mdpa_file_name), self.model_part_destination)
 
-
-def ReadModelPart(model_part, mdpa_file_name):
-    import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
-    KM.ModelPartIO(GetFilePath(mdpa_file_name), import_flags).ReadModelPart(model_part)
 
 def SetDefaultMappingParameters(self):
     self.mapper_parameters = KM.Parameters("""{
@@ -142,27 +141,13 @@ def CreateMapper(self):
     dest_interface_string = self.mapper_parameters["modeler_parameters"]["destination_interface_sub_model_part_name"].GetString()
     self.interface_model_part_destination =self.model.GetModelPart(dest_interface_string)
 
-    if data_comm.IsDistributed():
-        self.mapper = KratosMapping.MapperFactory.CreateMPIMapper(
-            self.model_part_origin, self.model_part_destination, self.mapper_parameters)
-    else:
-        self.mapper = KratosMapping.MapperFactory.CreateMapper(
-            self.model_part_origin, self.model_part_destination, self.mapper_parameters)
+    self.mapper = KratosMapping.MapperFactory.CreateMapper(self.model_part_origin, self.model_part_destination, self.mapper_parameters)
 
-def SetConstantVariable(model_part,variable,reference_value):
-    for node in model_part.Nodes:
-        var_x = reference_value
-        var_y = reference_value
-        var_z = reference_value
-        node.SetSolutionStepValue(variable, KM.Vector([var_x, var_y, var_z]))
+def SetConstantVariable(model_part, variable, reference_value):
+    KM.VariableUtils().SetVariable(variable, KM.Vector([reference_value, reference_value, reference_value]), model_part.Nodes)
 
-def GetInterfaceResult(model_part,variable):
-    var_vector = []
-    for node in model_part.Nodes:
-        nodal_result = node.GetSolutionStepValue(variable)
-        for dof in nodal_result:
-            var_vector.append(dof)
-    return var_vector
+def GetInterfaceResult(model_part, variable):
+    return [val for node in model_part.Nodes for val in node.GetSolutionStepValue(variable)]
 
 
 if __name__ == '__main__':
