@@ -172,7 +172,9 @@ template struct MMGMeshInfo<MMGLibrary::MMGS>;
 // The member variables related with the MMG library
 MMG5_pMesh mMmgMesh; /// The mesh data from MMG
 MMG5_pSol  mMmgMet;  /// The metric variable for MMG
-MMG5_pSol  mMmgSol;  /// The solution variable for MMG
+#if MMG_VERSION_GE(5,5)
+    MMG5_pSol  mMmgSol;  /// The solution variable for MMG
+#endif
 MMG5_pSol  mMmgDisp; /// The displacement variable for MMG
 
 /***********************************************************************************/
