@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
+import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 
 ## This proces sets the value of a scalar variable
@@ -123,7 +124,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set time integration method
-        self.SetTimeIntegration()
+        # self.SetTimeIntegration()
 
         # set processes
         self.FixDofsProcesses     = []
@@ -209,15 +210,15 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     #
     def SetFixAndFreeProcesses(self,params):
 
-        if( self.fix_time_integration == True ):
-            params["variable_name"].SetString(self.settings["variable_name"].GetString())
-            self.primary_variable_name = self.TimeIntegrationMethod.GetPrimaryVariableName()
-            if( self.primary_variable_name != self.variable_name ):
-                params["variable_name"].SetString(self.primary_variable_name)
+        # if( self.fix_time_integration == True ):
+        #     params["variable_name"].SetString(self.settings["variable_name"].GetString())
+        #     self.primary_variable_name = self.TimeIntegrationMethod.GetPrimaryVariableName()
+        #     if( self.primary_variable_name != self.variable_name ):
+        #         params["variable_name"].SetString(self.primary_variable_name)
 
-        fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+        fix_dof_process  =  KratosFemDem.FixScalarDofProcess(self.model_part, params)
         self.FixDofsProcesses.append(fix_dof_process)
-        free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+        free_dof_process = KratosFemDem.FreeScalarDofProcess(self.model_part, params)
         self.FreeDofsProcesses.append(free_dof_process)
 
     #

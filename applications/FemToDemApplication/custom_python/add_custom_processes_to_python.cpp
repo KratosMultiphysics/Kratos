@@ -42,6 +42,7 @@
 #include "custom_processes/transfer_entities_between_model_parts_process.hpp"
 #include "custom_processes/fix_scalar_dof_process.hpp"
 #include "custom_processes/free_scalar_dof_process.hpp"
+#include "custom_processes/assign_scalar_variable_to_entities_process.hpp"
 
 
 namespace Kratos
@@ -54,6 +55,11 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     typedef Process ProcessBaseType;
     typedef std::vector<Flags>  FlagsContainer;
+
+  class_<AssignScalarVariableToEntitiesProcess, AssignScalarVariableToEntitiesProcess::Pointer, Process>(m,"AssignScalarToEntitiesProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init< ModelPart&, Parameters& >())
+      .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute);
 
   class_<FixScalarDofProcess, FixScalarDofProcess::Pointer, Process>(m,"FixScalarDofProcess")
       .def(init<ModelPart&, Parameters>())
