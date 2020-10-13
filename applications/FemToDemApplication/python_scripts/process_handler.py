@@ -158,8 +158,11 @@ class ProcessHandler(KratosMultiphysics.Process):
 
     #
     def ConstructProcess(self, process):
-
-        python_module = import_module(process["kratos_module"].GetString() + "." + process["python_module"].GetString())
+        module = process["kratos_module"].GetString()
+        if module == "KratosMultiphysics.SolidMechanicsApplication":
+            module = "KratosMultiphysics.FemToDemApplication"
+        print(module)
+        python_module = import_module(module + "." + process["python_module"].GetString())
         return(python_module.Factory(process, self.model))
 
     #

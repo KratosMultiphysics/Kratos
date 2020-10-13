@@ -138,7 +138,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         if( self.ProjectParameters.Has("output_process_list") ):
             process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
 
-        return (KratosMultiphysics.SolidMechanicsApplication.process_handler.ProcessHandler(self.Model, process_parameters))
+        return (KratosMultiphysics.FemToDemApplication.process_handler.ProcessHandler(self.Model, process_parameters))
 
 #============================================================================================================================    
     def Run(self):
