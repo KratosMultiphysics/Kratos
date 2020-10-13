@@ -58,7 +58,6 @@ namespace MPMParticleGeneratorUtility
         else
             last_condition_id = number_conditions + 1;
 
-        last_condition_id += 10000;
         //NOTE: For a mpi-run, unique Id's across all mpi nodes are required.
         unsigned int size = 1;
         unsigned int rank = 0;
@@ -83,8 +82,6 @@ namespace MPMParticleGeneratorUtility
 
             // For submodelpart without condition, exit
             if (submodelpart.NumberOfConditions() != 0){
-
-
                 // For regular conditions: straight copy all conditions
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
                     if (submodelpart.NodesBegin()->Is(SLIP)){

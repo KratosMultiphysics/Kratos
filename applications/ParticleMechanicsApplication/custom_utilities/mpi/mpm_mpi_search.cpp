@@ -229,7 +229,6 @@ void MPM_MPI_SEARCH<TDimension>::BinBasedSearchElementsAndConditionsMPI(ModelPar
         std::vector<int>& condition_search_results,
         const std::size_t MaxNumberOfResults, const double Tolerance)
 {
-    //constexpr int TDimension = 2;
     const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
     bool is_pqmpm = (r_process_info.Has(IS_PQMPM))
         ? r_process_info.GetValue(IS_PQMPM) : false;

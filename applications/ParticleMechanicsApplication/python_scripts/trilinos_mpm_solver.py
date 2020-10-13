@@ -126,14 +126,13 @@ class TrilinosMPMSolver(MPMSolver):
             guess_row_size = 15
         else:
             guess_row_size = 45
-        if(self.settings["block_builder"].GetBool() == True):
-            builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(epetra_communicator,
-                                                                                   guess_row_size,
-                                                                                   linear_solver)
+        if(self.settings["block_builder"].GetBool()):
+            builder_and_solver = TrilinosExtension.TrilinosMPMBlockBuilderAndSolver(epetra_communicator,
+                                                                                    guess_row_size,
+                                                                                    linear_solver)
         else:
-            builder_and_solver = TrilinosApplication.TrilinosEliminationBuilderAndSolver(epetra_communicator,
-                                                                                         guess_row_size,
-                                                                                         linear_solver)
+            raise Exception("Elimination Builder is not yet implementde for MPI!")
+
         return builder_and_solver
 
     def _CreateLinearStrategy(self):
