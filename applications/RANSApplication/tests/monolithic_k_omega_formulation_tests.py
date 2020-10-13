@@ -3,8 +3,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 import turbulence_modelling_test_case
 import periodic_turbulence_modelling_test_case
 
-class MonolithicKOmegaTest(
-        turbulence_modelling_test_case.TurbulenceModellingTestCase):
+class MonolithicKOmegaTest(turbulence_modelling_test_case.TurbulenceModellingTestCase):
     @classmethod
     def setUpClass(cls):
         super(MonolithicKOmegaTest, cls).setUpCase(
@@ -14,8 +13,7 @@ class MonolithicKOmegaTest(
 
         cls.transient_scheme_type = "bossak"
 
-class MonolithicKOmegaPeriodicTest(
-        periodic_turbulence_modelling_test_case.PeriodicTurbulenceModellingTestCase):
+class MonolithicKOmegaPeriodicTest(periodic_turbulence_modelling_test_case.PeriodicTurbulenceModellingTestCase):
     @classmethod
     def setUpClass(cls):
         super(MonolithicKOmegaPeriodicTest, cls).setUpCase(

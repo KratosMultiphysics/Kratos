@@ -37,7 +37,7 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):
         default_settings = Kratos.Parameters(r'''
         {
-            "formulation_name": "k_Omega",
+            "formulation_name": "k_omega",
             "stabilization_method": "algebraic_flux_corrected",
             "turbulent_kinetic_energy_solver_settings": {},
             "turbulent_specific_energy_dissipation_rate_solver_settings": {},
@@ -48,7 +48,8 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                 "max_iterations": 10
             },
             "auxiliar_process_list": [],
-            "echo_level": 0
+            "echo_level": 0,
+            "minimum_turbulent_viscosity": 1e-12
         }''')
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -90,11 +91,12 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info = model_part.ProcessInfo
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
+        minimum_nut = self.GetParameters()["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
                                             model,
                                             self.GetBaseModelPart().Name,
-                                            1e-12,
+                                            minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_process)
 
@@ -102,7 +104,7 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                                             model,
                                             wall_model_part_name,
                                             kappa,
-                                            1e-12,
+                                            minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
 

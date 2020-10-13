@@ -3,8 +3,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 import turbulence_modelling_test_case
 
 
-class FractionalStepKOmegaTest(
-        turbulence_modelling_test_case.TurbulenceModellingTestCase):
+class FractionalStepKOmegaTest(turbulence_modelling_test_case.TurbulenceModellingTestCase):
     @classmethod
     def setUpClass(cls):
         super(FractionalStepKOmegaTest, cls).setUpCase(
