@@ -91,7 +91,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
             y = node.Y
             u_analytical = x - sin(bar_simulation.time)
             u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-            error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+            error += (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
         error = sqrt(error)
         self.assertAlmostEqual(error,0.17200571595025685,delta=1e-12)
 
