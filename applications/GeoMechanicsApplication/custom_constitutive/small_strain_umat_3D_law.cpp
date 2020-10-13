@@ -304,6 +304,19 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties &rMaterialProperties)
    lib_handle = dlopen((rMaterialProperties[UDSM_NAME]).c_str(), RTLD_LAZY);
    if (!lib_handle)
    {
+      std::string name = rMaterialProperties[UDSM_NAME];
+      // check if the name of the file is based on Windows extension
+      std::size_t found = name.find(".dll");
+      if (found!=std::string::npos)
+      {
+         // check if there is an equivalent .so file
+         name.replace(found, 4, ".so");
+         lib_handle = dlopen(name.c_str(), RTLD_LAZY);
+      }
+   }
+
+   if (!lib_handle)
+   {
       KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UMAT ", rMaterialProperties[UDSM_NAME]);
       return false;
    }
@@ -336,6 +349,19 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
 #ifdef KRATOS_COMPILED_IN_WINDOWS
 
    HINSTANCE hGetProcIDDLL = LoadLibrary((rMaterialProperties[UDSM_NAME]).c_str());
+
+   if (!hGetProcIDDLL)
+   {
+      std::string name = rMaterialProperties[UDSM_NAME];
+      // check if the name of the file is based on Linux extension
+      std::size_t found = name.find(".so");
+      if (found!=std::string::npos)
+      {
+         // check if there is an equivalent .dll file
+         name.replace(found, 3, ".dll");
+         hGetProcIDDLL = LoadLibrary((name.c_str());
+      }
+   }
 
    if (!hGetProcIDDLL)
    {
