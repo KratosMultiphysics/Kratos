@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -62,8 +61,11 @@ class TrilinosMPMSolver(MPMSolver):
         # Construct the mpi-communicator
         self.distributed_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMPMSolver]::", "ModelPart prepared for Solver.")
+        # Clear elements and non-grid conditions from communciator
+        KratosParticle.MPM_MPI_Utilities.ClearLocalElementsFromCommunicator(self.grid_model_part)
         # Copy mpi-communicator to material_point_model_part
         KratosParticle.MPM_MPI_Utilities.SetMPICommunicator(self.grid_model_part, self.material_point_model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMPMSolver]::", "Communicator prepared for Solver.")
 
     def _SearchElement(self):
         searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()
@@ -94,10 +96,10 @@ class TrilinosMPMSolver(MPMSolver):
         #TODO: All missing criteria
         R_RT = self.settings["residual_relative_tolerance"].GetDouble()
         R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-        #convergence_criterion = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
+        convergence_criterion = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
         D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
         D_AT = self.settings["displacement_relative_tolerance"].GetDouble()
-        convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
+        #convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
         convergence_criterion.SetEchoLevel(1)
         #convergence_criterion = convergence_criteria_factory.convergence_criterion(self._GetConvergenceCriterionSettings())
         return convergence_criterion

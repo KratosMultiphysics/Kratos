@@ -85,28 +85,21 @@ namespace MPMParticleGeneratorUtility
         std::vector<double> mp_mass(1);
         std::vector<double> mp_volume(1);
 
-        //TODO: Check if this is possible/ better solution than before. So far MPMModelPart only consists backgroundgrid nodes.
-        //      Souldn't we redefine all node Id's in the MPMModelPart from 1 to number_of_nodes?? This is so far not given!!
-        //NOTE: For a mpi-run, unique Id's across all mpi nodes are required.
-        int k = 1;
-        for( auto& node : rMPMModelPart.Nodes()){
-            node.SetId(k);
-            k++;
-        }
+        // Determine element index: This convention is done in order for the purpose of visualization in GiD
+        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements();
         const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
-        unsigned int last_element_id = number_nodes + 1;
+        unsigned int last_element_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements + 1);
 
+        //NOTE: For a mpi-run, unique Id's across all mpi nodes are required.
         unsigned int size = 1;
         unsigned int rank = 0;
-        // Synchronize element id's in mpi run, to ensure unique element id's across processes
         if( rBackgroundGridModelPart.GetCommunicator().IsDistributed() ){
             size = rBackgroundGridModelPart.GetCommunicator().TotalProcesses();
             rank = rBackgroundGridModelPart.GetCommunicator().MyPID();
             last_element_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().MaxAll(last_element_id) + rank;
         }
-
-
         unsigned int new_element_id = last_element_id;
+
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);

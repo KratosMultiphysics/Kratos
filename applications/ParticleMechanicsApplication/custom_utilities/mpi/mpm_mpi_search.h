@@ -68,7 +68,6 @@ public:
 	 *                 only be added to the model_part in rank 4)
 	 *              5. Update parent geometry of particle and set corresponding grid element active.
 	 **/
-
 	static void SearchElementMPI(ModelPart& rBackgroundGridModelPart,
 					ModelPart& rMPMModelPart,
 					const std::size_t MaxNumberOfResults,
@@ -86,7 +85,7 @@ public:
 	 * 5. Update parent geometry of particle and set corresponding grid element active.
 	 * @param rMissingElements contains missing particle elements
 	 * @param rMissingConditions contains missing particle conditions
-	 * */
+	 **/
 	static void SearchElementsInOtherPartitions(ModelPart& rMPMModelPart, ModelPart& rBackgroundGridModelPart,
 									std::vector<Element::Pointer>& rMissingElements,
 									std::vector<Condition::Pointer>& rMissingConditions,

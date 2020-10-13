@@ -72,16 +72,27 @@ public:
                             std::vector<ConditionsContainerType>& rRecvCondition);
 
     /**
-     * @brief Synchronize nodal displacement at interface mesh;
-     * !!!This function is no longer needed. However, function is kept for some while just in case.!!!
+     * @brief Synchronize the Is(ACTIVE) flag at the interface meshes.
+     * @details Active ghost nodes are send to their local process. Recieved nodes are then set to be active.
+     *          This ensures that all necessary local dofs will be activated. Check...(put strategy function name here)
      **/
-    static void SynchronizeNodalDisplacementAtInterface(ModelPart& rModelPart);
+    static void SynchronizeActiveDofsAtInterface(ModelPart& rModelPart);
 
     /**
      * @brief Set DestModelPart communicator to SourceModelPart communicator.
      **/
     static void SetMPICommunicator( ModelPart& SourceModelPart, ModelPart& DestModelPart);
 
+    /**
+     * @brief Remove elements and non-grid conditions from local mesh of communicator.
+     **/
+    static void ClearLocalElementsFromCommunicator( ModelPart& rModelPart);
+
+    /**
+     * @brief Synchronize nodal displacement at interface mesh;
+     * !!!This function is no longer needed. However, function is kept for some while just in case.!!!
+     **/
+    static void SynchronizeNodalDisplacementAtInterface(ModelPart& rModelPart);
     ///@}
 
 }; // end class MPM_MPI_Utilities

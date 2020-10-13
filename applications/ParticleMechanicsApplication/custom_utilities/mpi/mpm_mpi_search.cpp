@@ -23,13 +23,14 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementMPI(ModelPart& rBackgroundGridMode
 {
     MPMSearchElementUtility::ResetElementsAndNodes(rBackgroundGridModelPart);
     // Attention: Run search on submodel_parts, to ensure that elements/conditions are added to
-    //            correct model_partp after mpi-send.
+    //            correct model_part after mpi send/recv-operations.
     // TODO: This should be bottom up style!! Here only one submodel_part hierachy of rMPMModelPart is considered
-    //       However, in mpm_particle_generator also only one submodel_part hierachy level is considered.
+    //       However, in mpm_particle_generator also only one submodel_part hierachy level is considered so far.
     for( auto& r_submodel_part : rMPMModelPart.SubModelParts() ){
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
 
+        // Make sure elements/conditions are added to the rMPMModelPart Communicator (and not to the r_submodel_part-communicator).
         MPM_MPI_Utilities::SetMPICommunicator(rMPMModelPart, r_submodel_part);
 
         MPMSearchElementUtility::NeighbourSearchElements(r_submodel_part, rBackgroundGridModelPart, missing_elements, Tolerance);
@@ -46,7 +47,9 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementMPI(ModelPart& rBackgroundGridMode
             missing_conditions, MaxNumberOfResults, Tolerance);
 
     }
-    //rMPMModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+    MPM_MPI_Utilities::SynchronizeActiveDofsAtInterface(rMPMModelPart);
+    // Sync proc's
+    rMPMModelPart.GetCommunicator().GetDataCommunicator().Barrier();
 }
 
 template <std::size_t TDimension>
@@ -78,7 +81,7 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
     // Fill element and condition containers
     send_elements.insert(rMissingElements.begin(), rMissingElements.end());
     send_conditions.insert(rMissingConditions.begin(), rMissingConditions.end());
-    for( int i = 0; i < size; ++i){
+    for( std::size_t i = 0; i < size; ++i){
         if( i != rank){
             send_elements_container[i] = send_elements;
             send_conditions_container[i] = send_conditions;
@@ -91,10 +94,11 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
 
     // Transfer elements and conditions
     MPM_MPI_Utilities::TransferElements(rMPMSubModelPart, send_elements_container, recv_elements_container);
+    rMPMSubModelPart.GetCommunicator().GetDataCommunicator().Barrier();
     MPM_MPI_Utilities::TransferConditions(rMPMSubModelPart, send_conditions_container, recv_conditions_container);
 
     // Loop over all available ranks
-    for( int i = 0; i < size; ++i){
+    for( std::size_t i = 0; i < size; ++i){
         // Construct missing element/condition containers
         std::vector<Element::Pointer> missing_elements;
         std::vector<Condition::Pointer> missing_conditions;
@@ -156,8 +160,8 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
             // Make sure every element is only found ones!
             std::vector<int> global_element_search_results_combined(number_sent_elements);
             std::fill(global_element_search_results_combined.begin(), global_element_search_results_combined.end(), 0);
-            for(int j = 0; j < size; ++j){
-                for(int k = 0; k < number_sent_elements; ++k){
+            for(std::size_t j = 0; j < size; ++j){
+                for(std::size_t k = 0; k < number_sent_elements; ++k){
                     if( global_element_search_results_combined[k] >= 1 && global_element_search_results[k + j * number_sent_elements] >= 1 ){
                         global_element_search_results[k + j * number_sent_elements] = 0;
                     }
@@ -180,8 +184,8 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
             // global_search_results_combined must in the end only contain 1's
             std::vector<int> global_condition_search_results_combined(number_sent_conditions);
             std::fill(global_condition_search_results_combined.begin(), global_condition_search_results_combined.end(), 0);
-            for(int j = 0; j < size; ++j){
-                for(int k = 0; k < number_sent_conditions; ++k){
+            for(std::size_t j = 0; j < size; ++j){
+                for(std::size_t k = 0; k < number_sent_conditions; ++k){
                     if( global_condition_search_results_combined[k] >= 1 && global_condition_search_results[k + j * number_sent_conditions] >= 1 ){
                         global_condition_search_results[k + j * number_sent_conditions] = 0;
                     }
@@ -214,8 +218,6 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
     KRATOS_ERROR_IF(global_number_of_elements_begin != global_number_of_elements_end) << "MPM_MPI_SEARCH::SearchElements: "
         << "Global number of elements before (" << global_number_of_elements_begin << ") and after (" << global_number_of_elements_end
         << ") mpi-send/recv operations are not identical!" << std::endl;
-
-
 }
 
 template <std::size_t TDimension>

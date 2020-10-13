@@ -46,12 +46,20 @@ namespace MPMParticleGeneratorUtility
         double mpc_area = 0.0;
         double mpc_penalty_factor = 0.0;
 
-        //TODO: Check if this is possible/ better solution than before. So far MPMModelPart only consists backgroundgrid nodes
-        //      and generated particle elements. Still problem with grid conditions. Id's are coming from rBackgroundgridModelPart.
-        //      Souldn't we renumber them?
-        //NOTE: For a mpi-run, unique Id's across all mpi nodes are required.
+        // Determine condition index: This convention is done in order for the purpose of visualization in GiD
+        const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
+        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements() + rMPMModelPart.NumberOfElements();
         const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
-        unsigned int last_condition_id = number_nodes + rMPMModelPart.NumberOfElements() + 1;
+        unsigned int last_condition_id;
+        if (number_elements > number_nodes && number_elements > number_conditions)
+            last_condition_id = number_elements + 1;
+        else if (number_nodes > number_elements && number_nodes > number_conditions)
+            last_condition_id = number_nodes + 1;
+        else
+            last_condition_id = number_conditions + 1;
+
+        last_condition_id += 10000;
+        //NOTE: For a mpi-run, unique Id's across all mpi nodes are required.
         unsigned int size = 1;
         unsigned int rank = 0;
         // Synchronize condition id's in mpi run, to ensure unique condition id's across mpi-processes
@@ -61,9 +69,6 @@ namespace MPMParticleGeneratorUtility
             last_condition_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().MaxAll(last_condition_id) + rank;
         }
         unsigned int new_condition_id = last_condition_id;
-        // Suggestion:
-        // Here loop over background grid conditions. If(condition->Boundary) condition->SetId(new_condition_id++)
-        // Then all particle/elements/conditons should have uniwue id's
 
         // Loop over the submodelpart of rBackgroundGridModelPart
         for (ModelPart::SubModelPartIterator submodelpart_it = rBackgroundGridModelPart.SubModelPartsBegin();
@@ -399,7 +404,7 @@ namespace MPMParticleGeneratorUtility
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                             //TODO: Test if this also works in python..
-                            rMPMModelPart.GetSubModelPart(submodelpart_name).GetCommunicator().LocalMesh().AddCondition(p_condition);
+                            rMPMModelPart.GetCommunicator().LocalMesh().AddCondition(p_condition);
                         }
 
                         last_condition_id += integration_point_per_conditions;
@@ -461,7 +466,7 @@ namespace MPMParticleGeneratorUtility
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                             //TODO: Test if this also works in python..
-                            rMPMModelPart.GetSubModelPart(submodelpart_name).GetCommunicator().LocalMesh().AddCondition(p_condition);
+                            rMPMModelPart.GetCommunicator().LocalMesh().AddCondition(p_condition);
                         }
 
                     }

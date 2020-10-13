@@ -44,7 +44,8 @@ namespace Python{
         py::class_<MPM_MPI_Utilities, MPM_MPI_Utilities::Pointer>(m, "MPM_MPI_Utilities")
             .def_static("TransferElements", &MPM_MPI_Utilities::TransferElements)
             .def_static("TransferConditions", &MPM_MPI_Utilities::TransferConditions)
-            .def_static("SetMPICommunicator",&MPM_MPI_Utilities::SetMPICommunicator);
+            .def_static("SetMPICommunicator",&MPM_MPI_Utilities::SetMPICommunicator)
+            .def_static("ClearLocalElementsFromCommunicator", &MPM_MPI_Utilities::ClearLocalElementsFromCommunicator);
     }
 
  }  // namespace Python.

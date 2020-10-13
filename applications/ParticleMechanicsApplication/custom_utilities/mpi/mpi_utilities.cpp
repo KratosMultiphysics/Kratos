@@ -75,6 +75,52 @@ namespace Kratos {
         rSendConditions.clear();
     }
 
+    void MPM_MPI_Utilities::SynchronizeActiveDofsAtInterface(ModelPart& rModelPart){
+        const unsigned int rank = rModelPart.GetCommunicator().MyPID();
+        const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
+
+        // Get neigbours of each rank
+        auto neighbours = rModelPart.GetCommunicator().NeighbourIndices();
+        std::vector<int> neighbours_custom;
+        for( auto neighbour : neighbours){
+            if(neighbour >= 0)
+                neighbours_custom.push_back(neighbour);
+        }
+
+        // Fill send nodes containers
+        std::vector<NodesContainerType> send_nodes_container(size);
+        NodesContainerType send_nodes;
+
+        // Send active ghost nodes to their home partition.
+        const unsigned int number_of_ghost_nodes = rModelPart.GetCommunicator().GhostMesh().NumberOfNodes();
+        const auto ghost_nodes_it_begin = rModelPart.GetCommunicator().GhostMesh().NodesBegin();
+        for( unsigned int i = 0; i < number_of_ghost_nodes; ++i){
+            auto node_it = ghost_nodes_it_begin + i;
+            if( node_it->Is(ACTIVE) ){
+                const unsigned int partition = node_it->FastGetSolutionStepValue(PARTITION_INDEX);
+                send_nodes_container[partition].push_back(*node_it.base());
+            }
+        }
+
+        // Transfer nodes among proc's
+        std::vector<NodesContainerType> recv_nodes_container(size);
+        rModelPart.GetCommunicator().TransferObjects(send_nodes_container, recv_nodes_container);
+
+        // Set recieved nodes active
+        // Attention: Right now this function only requires the nodal id;
+        // TODO: Only send nodal id. Keep this for a while, in case more information is required.
+        auto& r_local_nodes = rModelPart.GetCommunicator().LocalMesh().Nodes();
+        for( auto neighbour : neighbours_custom){
+            for( auto it = recv_nodes_container[neighbour].begin(); it != recv_nodes_container[neighbour].end(); ++it){
+                const unsigned int node_id = it->Id();
+                auto found_node_it = r_local_nodes.find(node_id);
+                if( found_node_it != r_local_nodes.end() ){
+                    found_node_it->Set(ACTIVE, true);
+                }
+            }
+        }
+    }
+
     // ##############################################################################################
     // !!!This function is no longer needed. However, function is kept for some while just in case.!!!
     // ##############################################################################################
@@ -118,15 +164,15 @@ namespace Kratos {
 
         std::vector<NodesContainerType> recv_nodes_container(size);
         rModelPart.GetCommunicator().TransferObjects(send_nodes_container, recv_nodes_container);
-
+        auto& interface_nodes = rModelPart.GetCommunicator().InterfaceMesh().Nodes();
         // Update ghost nodes
         for( auto neighbour : neighbours_custom){
             for( auto it = recv_nodes_container[neighbour].begin(); it != recv_nodes_container[neighbour].end(); ++it){
                 int node_id = it->Id();
 
                 auto displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-                auto ghost_node = r_ghost_nodes.find(node_id);
-                if( ghost_node != r_ghost_nodes.end() )
+                auto ghost_node = interface_nodes.find(node_id);
+                if( ghost_node != interface_nodes.end() )
                     ghost_node->FastGetSolutionStepValue(DISPLACEMENT) = displacement;
             }
         }
@@ -135,6 +181,19 @@ namespace Kratos {
 
     void MPM_MPI_Utilities::SetMPICommunicator( ModelPart& SourceModelPart, ModelPart& DestModelPart){
         DestModelPart.SetCommunicator(SourceModelPart.pGetCommunicator());
+    }
+
+    void MPM_MPI_Utilities::ClearLocalElementsFromCommunicator( ModelPart& rModelPart){
+        rModelPart.GetCommunicator().LocalMesh().Elements().clear();
+        // Remove non-grid conditions
+        const auto condition_it_begin = rModelPart.ConditionsBegin();
+        const unsigned int number_of_conditions = rModelPart.NumberOfConditions();
+        for( unsigned int i = 0; i < number_of_conditions; ++i){
+            auto condition_it = condition_it_begin + i;
+            if( condition_it->Is(BOUNDARY) ){
+                rModelPart.GetCommunicator().LocalMesh().RemoveCondition(&*condition_it);
+            }
+        }
     }
 
 } // end namespace Kratos

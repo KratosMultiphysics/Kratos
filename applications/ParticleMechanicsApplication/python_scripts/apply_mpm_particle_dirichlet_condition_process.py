@@ -136,8 +136,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         if (self.model_part_name.startswith('Background_Grid.')):
             self.model_part_name = self.model_part_name.replace('Background_Grid.','')
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
-        if( self.model.HasModelPart(mpm_material_model_part_name )):
-            self.model_part = self.model[mpm_material_model_part_name]
+        self.model_part = self.model[mpm_material_model_part_name]
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
