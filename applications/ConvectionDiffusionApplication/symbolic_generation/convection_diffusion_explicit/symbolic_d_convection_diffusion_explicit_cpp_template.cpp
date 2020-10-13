@@ -171,7 +171,9 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 {
     KRATOS_TRY;
 
-    if (rVariable == SCALAR_PROJECTION) {
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+    if (rVariable == p_settings->GetProjectionVariable()) {
         auto& r_geometry = this->GetGeometry();
         const unsigned int local_size = r_geometry.size();
         BoundedVector<double, TNumNodes> rhs_oss;

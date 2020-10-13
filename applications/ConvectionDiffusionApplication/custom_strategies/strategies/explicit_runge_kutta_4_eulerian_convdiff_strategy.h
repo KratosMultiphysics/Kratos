@@ -141,14 +141,18 @@ public:
     {
         KRATOS_TRY;
 
+
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
+        ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+        auto& r_settings = *p_settings;
+
         // Call the base method
         BaseType::Initialize();
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
             for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
-                r_node.SetValue(SCALAR_PROJECTION, 0.0);
+                r_node.SetValue(r_settings.GetProjectionVariable(), 0.0);
             }
         }
         r_process_info.GetValue(TIME_INTEGRATION_THETA) = 1.0;
@@ -330,19 +334,19 @@ private:
 
         // Initialize the projection value
         block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode){
-            rNode.GetValue(SCALAR_PROJECTION) = 0.0;
+            rNode.GetValue(r_settings.GetProjectionVariable()) = 0.0;
         });
 
         // Calculate the unknown projection
         double unknown_proj;
         block_for_each(r_model_part.Elements(), [&](ModelPart::ElementType& rElement){
-            rElement.Calculate(SCALAR_PROJECTION, unknown_proj, r_process_info);
+            rElement.Calculate(r_settings.GetProjectionVariable(), unknown_proj, r_process_info);
         });
         IndexPartition<int>(r_model_part.NumberOfNodes()).for_each(
             [&](int i_node){
                 auto it_node = r_model_part.NodesBegin() + i_node;
                 const double mass = r_lumped_mass_vector(i_node);
-                it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(SCALAR_PROJECTION) / mass;
+                it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(r_settings.GetProjectionVariable()) / mass;
             }
         );
 
