@@ -267,25 +267,25 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     rData.dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
     rData.delta_time = rCurrentProcessInfo[DELTA_TIME];
     double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
-    if (theta == 1.0) {
+    if (theta == 0.0) {
         rData.explicit_step_coefficient = 0.0;
     }
     else {
-        rData.explicit_step_coefficient = 1.0/((1-theta)*r_process_info[DELTA_TIME]);
+        rData.explicit_step_coefficient = 1.0/((theta)*r_process_info[DELTA_TIME]);
     }
 
     for(unsigned int node_element = 0; node_element<local_size; node_element++) {
         // Observations
-        // * unknown acceleration approximated as (phi-phi_old)*explicit_step_coefficient = (phi-phi_old)/((1-theta)*delta_time)
-        //   observe that for theta = 1, phi = phi_old and explicit_step_coefficient = 0
+        // * unknown acceleration approximated as (phi-phi_old)*explicit_step_coefficient = (phi-phi_old)/((theta)*delta_time)
+        //   observe that for theta = 0.0, phi = phi_old and explicit_step_coefficient = 0
         // * convective velocity and forcing term:
         //   interpolation exploiting theta
         // * convective_velocity = velocity - velocity_mesh
         //   velocity_mesh = 0 in eulerian framework
-        rData.forcing[node_element] = theta*r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVolumeSourceVariable(),1) + (1-theta)*r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVolumeSourceVariable());
-        rData.convective_velocity(node_element,0) = theta * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable(),1)[0]) + (1-theta) * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable())[0]);
-        rData.convective_velocity(node_element,1) = theta * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable(),1)[1]) + (1-theta) * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable())[1]);
-        rData.convective_velocity(node_element,2) = theta * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable(),1)[2]) + (1-theta) * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable())[2]);
+        rData.forcing[node_element] = (1-theta) * r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVolumeSourceVariable(),1) + theta * r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVolumeSourceVariable());
+        rData.convective_velocity(node_element,0) = (1-theta) * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable(),1)[0]) + theta * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable())[0]);
+        rData.convective_velocity(node_element,1) = (1-theta) * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable(),1)[1]) + theta * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable())[1]);
+        rData.convective_velocity(node_element,2) = (1-theta) * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable(),1)[2]) + theta * (r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetMeshVelocityVariable())[2]);
 
         rData.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetProjectionVariable());
         rData.diffusivity += r_geometry[node_element].FastGetSolutionStepValue(p_settings->GetDiffusionVariable());
