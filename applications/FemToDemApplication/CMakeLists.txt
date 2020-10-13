@@ -2,7 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFemToDemApplication ****")
 
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/SolidMechanicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
@@ -12,7 +11,6 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApp
 include(pybind11Tools)
 
 include_directories(${CMAKE_SOURCE_DIR}/kratos )
-include_directories(${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/DEMApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/MeshingApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
@@ -61,7 +59,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFemToDemApplication MODULE ${KRATOS_FEM_TO_DEM_APPLICATION_SOURCES})
 
-target_link_libraries(KratosFemToDemApplication PRIVATE KratosSolidMechanicsCore KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore)
+target_link_libraries(KratosFemToDemApplication PRIVATE KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore)
 set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)

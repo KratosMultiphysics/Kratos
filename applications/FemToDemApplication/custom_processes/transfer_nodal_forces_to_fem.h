@@ -18,7 +18,6 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 #include "DEM_application_variables.h"
 #include "includes/variables.h"
 

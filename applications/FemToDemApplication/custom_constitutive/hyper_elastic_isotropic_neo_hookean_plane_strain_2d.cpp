@@ -16,7 +16,6 @@
 // Project includes
 #include "hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

@@ -18,7 +18,6 @@
 #include "hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
