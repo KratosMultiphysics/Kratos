@@ -73,18 +73,19 @@ public:
     DistributedVectorImporter(
         const DataCommunicator& rComm,
         const TGlobalIndicesVectorType& rGlobalIndices,
-        const std::vector<IndexType>& CpuBounds)
+        const DistributedNumbering<IndexType>& rNumbering)
         :
-        mrComm(rComm), mCpuBounds(CpuBounds) 
+        mrComm(rComm)
     {
+        mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >(rNumbering);
         mImportedDataSize = rGlobalIndices.size();
         std::unordered_map<int, std::vector<IndexType>> to_recv_by_color; //do not need to store this
 
         for(unsigned int local_i=0; local_i<rGlobalIndices.size(); ++local_i)
         {
             IndexType global_i = rGlobalIndices[local_i];
-            MpiIndexType owner_rank = OwnerRank(global_i);
-            IndexType remote_local_i = RemoteLocalId(global_i, owner_rank);
+            MpiIndexType owner_rank = mpNumbering->OwnerRank(global_i);
+            IndexType remote_local_i = mpNumbering->RemoteLocalId(global_i, owner_rank);
 
             mlocal_i_by_color[owner_rank].push_back(local_i);
             to_recv_by_color[owner_rank].push_back(remote_local_i);
@@ -170,54 +171,7 @@ public:
         return mrComm;
     }
 
-    bool IsLocal(const IndexType I) const
-    {
-        const auto k = GetComm().Rank();
-        return (I>=mCpuBounds[k] && I<mCpuBounds[k+1]);
-    }
-
-    IndexType LocalId(const IndexType rGlobalId) const
-    {
-        const auto k = GetComm().Rank();
-        return rGlobalId-mCpuBounds[k];
-    }
-
-    IndexType GlobalId(const IndexType rLocalId) const
-    {
-        const auto k = GetComm().Rank();
-        return rLocalId+mCpuBounds[k];
-    }
-
-    IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
-    {
-        return rGlobalId-mCpuBounds[rOwnerRank];
-    } 
-
-    IndexType RemoteGlobalId(const IndexType rRemoteLocalId, const IndexType rOwnerRank) const
-    {
-        return rRemoteLocalId+mCpuBounds[rOwnerRank];
-    } 
-
-    IndexType OwnerRank(const IndexType RowIndex)
-    {
-        //position of element just larger than RowIndex in mCpuBounds
-        auto it = std::upper_bound(mCpuBounds.begin(), mCpuBounds.end(), RowIndex);
-
-        KRATOS_DEBUG_ERROR_IF(it == mCpuBounds.end()) <<
-            "row RowIndex " << RowIndex <<
-            " is not owned by any processor " << std::endl;
-
-        IndexType owner_rank = (it-mCpuBounds.begin()-1);
-
-        KRATOS_DEBUG_ERROR_IF(owner_rank < 0) <<
-            "row RowIndex " << RowIndex <<
-            " is not owned by any processor " << std::endl;
-
-        return owner_rank;
-
-    }
-
-
+    
     ///@}
     ///@name Operations
     ///@{
@@ -303,7 +257,8 @@ private:
     ///@name Member Variables
     ///@{
     const DataCommunicator& mrComm;
-    std::vector<IndexType> mCpuBounds;
+    typename DistributedNumbering<IndexType>::UniquePointer mpNumbering;
+
 
     IndexType mImportedDataSize;
     std::unordered_map<int, std::vector<IndexType>> mto_send_by_color;

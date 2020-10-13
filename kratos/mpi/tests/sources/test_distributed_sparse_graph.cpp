@@ -184,7 +184,7 @@ bool CheckGraph(
     //check that all entries in Agraph are also in reference_A_map
     for(IndexType local_i = 0; local_i<rAgraph.LocalSize();++local_i) //i is the LOCAL index
     {
-        auto I = rAgraph.GlobalId(local_i);
+        auto I = rAgraph.GetRowNumbering().GlobalId(local_i);
         for(auto J : rAgraph[local_i] )
         {
             if(rReferenceGraph.find({I,J}) == rReferenceGraph.end()) //implies it is not present
@@ -444,14 +444,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     IndexType local_size = b.LocalSize();
     for(unsigned int i=0; i<local_size; ++i)
     {
-        auto global_i = b.GlobalId(i);
+        auto global_i = b.GetNumbering().GlobalId(i);
         auto it = reference_b_map.find(global_i);
         const auto& ref_value = it->second;
         KRATOS_CHECK_NEAR(b(i) ,  ref_value , 1e-14 );
     }
     //test importing
     std::vector<IndexType> to_import{39, 0,37,2};
-    DistributedVectorImporter<double,IndexType> importer(b.GetComm(),to_import,b.GetCpuBounds());   //this operation is expensive since it requires mounting the communication plan
+    DistributedVectorImporter<double,IndexType> importer(b.GetComm(),to_import,b.GetNumbering());   //this operation is expensive since it requires mounting the communication plan
     auto x = importer.ImportData(b);
     KRATOS_CHECK_NEAR(x[0] ,  3 , 1e-14 );
     KRATOS_CHECK_NEAR(x[1] ,  1 , 1e-14 );
@@ -477,7 +477,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     std::vector<double> reference_spmv_res{4,12,8,12,12,12,20,24,16,16,8,16,12,4,24,12,20,12,24,12,0,4,16,4,16,16,24,4,20,8,8,12,4,16,4,20,8,16,4,12};
     for(unsigned int i=0; i<y.LocalSize(); ++i)
     {
-        IndexType global_i = y.GlobalId(i);
+        IndexType global_i = y.GetNumbering().GlobalId(i);
         KRATOS_CHECK_NEAR(y[i] ,  reference_spmv_res[global_i] , 1e-14 );
     }
 

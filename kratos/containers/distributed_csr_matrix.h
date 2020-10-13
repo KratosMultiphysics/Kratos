@@ -76,11 +76,12 @@ public:
     /// Default constructor.
     DistributedCsrMatrix(const DistributedSparseGraph& rSparseGraph)
         :
-            mrComm(rSparseGraph.GetComm()),
-            mLocalBounds(rSparseGraph.GetLocalBounds()),
-            mCpuBounds(rSparseGraph.GetCpuBounds())
+            mrComm(rSparseGraph.GetComm())
     {
-        mNrows = rSparseGraph.LocalSize();
+        mpRowNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rSparseGraph.GetRowNumbering());
+        mpColNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(*mpRowNumbering); //TODO compute correctly the col numbering, instead of just using the row numbering!!!
+
+
         mNonDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
         //count entries in diagonal and off_diag blocks
@@ -90,13 +91,12 @@ public:
         IndexType diag_nnz = 0, offdiag_nnz=0;
         for(const auto& entries : local_graph){
             for(const auto& global_j : entries){
-                if(rSparseGraph.IsLocal(global_j)){
+                if(GetColNumbering().IsLocal(global_j)){ 
                     diag_nnz += 1;
                 }
                 else{
                     offdiag_nnz += 1;
                     mNonDiagonalLocalIds[global_j] = 0;
-KRATOS_WATCH(global_j)
                 }
             }
         }
@@ -115,8 +115,8 @@ KRATOS_WATCH(global_j)
             IndexType row_begin = mDiagBlock.index1_data()[counter];
             for(auto global_j : entries){
                 
-                if(IsLocal(global_j)){
-                    IndexType local_j = LocalId(global_j);
+                if(GetColNumbering().IsLocal(global_j)){
+                    IndexType local_j = GetColNumbering().LocalId(global_j);
                     mDiagBlock.index2_data()[row_begin+k] = local_j;
                     mDiagBlock.value_data()[row_begin+k] = 0.0;
                     k++;
@@ -145,7 +145,7 @@ KRATOS_WATCH(global_j)
             unsigned int k = 0;
             IndexType row_begin = mOffDiagBlock.index1_data()[counter];
             for(auto global_j : entries){
-                if( ! IsLocal(global_j)){
+                if( ! GetColNumbering().IsLocal(global_j)){
                     IndexType local_j = GetOffDiagLocalId(global_j);
                     mOffDiagBlock.index2_data()[row_begin+k] = local_j;
                     mOffDiagBlock.value_data()[row_begin+k] = 0.0;
@@ -170,10 +170,12 @@ KRATOS_WATCH(global_j)
         for(auto& item : mNonDiagonalLocalIds)
         {
             IndexType global_i = item.first;
-std::cout << item.first << " " << item.second << std::endl;
             off_diag_global_ids.push_back(global_i);
         }
-        auto pimporter = Kratos::make_unique<DistributedVectorImporter<double,IndexType>>(GetComm(),off_diag_global_ids,rSparseGraph.GetCpuBounds());
+
+
+
+        auto pimporter = Kratos::make_unique<DistributedVectorImporter<double,IndexType>>(GetComm(),off_diag_global_ids, GetColNumbering()); 
         mpVectorImporter.swap(pimporter);
     }
 
@@ -195,6 +197,16 @@ std::cout << item.first << " " << item.second << std::endl;
 
     }
 
+    inline const DistributedNumbering<IndexType>& GetRowNumbering() const
+    {
+        return *mpRowNumbering;
+    }
+    
+    inline const DistributedNumbering<IndexType>& GetColNumbering() const
+    {
+        return *mpColNumbering;
+    }
+
     void SetValue(const TDataType value)
     {
         mDiagBlock.SetValue(value);
@@ -213,8 +225,8 @@ std::cout << item.first << " " << item.second << std::endl;
         //TODO decide if we should give back the local or globale sizes
     }
 
-    inline IndexType nnz() const{
-        //TODO decide if we should give back the local or globale sizes
+    inline IndexType local_nnz() const{
+        return mDiagBlock.nnz();
     }
 
     const DataCommunicator& GetComm(){
@@ -235,30 +247,9 @@ std::cout << item.first << " " << item.second << std::endl;
         return mOffDiagBlock;
     }
 
-    bool IsLocal(const IndexType I) const
-    {
-        return (I>=mLocalBounds[0] && I<mLocalBounds[1]);
-    }
 
-    IndexType LocalId(const IndexType rGlobalId) const
-    {
-        return rGlobalId-mLocalBounds[0];
-    }
 
-    IndexType GlobalId(const IndexType rLocalId) const
-    {
-        return rLocalId+mLocalBounds[0];
-    }
-
-    IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
-    {
-        return rGlobalId-mCpuBounds[rOwnerRank];
-    } 
-
-    IndexType RemoteGlobalId(const IndexType rRemoteLocalId, const IndexType rOwnerRank) const
-    {
-        return rRemoteLocalId+mCpuBounds[rOwnerRank];
-    } 
+    
 
     IndexType GetOffDiagLocalId(IndexType GlobalJ) const{
         auto it = mNonDiagonalLocalIds.find(GlobalJ);
@@ -267,11 +258,11 @@ std::cout << item.first << " " << item.second << std::endl;
     }
 
     TDataType& GetLocalDataByGlobalId(IndexType GlobalI, IndexType GlobalJ){
-        KRATOS_DEBUG_ERROR_IF(  ! IsLocal(GlobalI) ) << "non local row access for GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << std::endl;
+        KRATOS_DEBUG_ERROR_IF(  ! GetRowNumbering().IsLocal(GlobalI) ) << "non local row access for GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << std::endl;
 
-        IndexType LocalI = LocalId(GlobalI);
-        if(IsLocal(GlobalJ)){
-            return mDiagBlock( LocalI, LocalId(GlobalJ) );
+        IndexType LocalI = GetRowNumbering().LocalId(GlobalI);
+        if(GetColNumbering().IsLocal(GlobalJ)){ 
+            return mDiagBlock( LocalI, GetColNumbering().LocalId(GlobalJ) );
         }
         else{
             return mOffDiagBlock( LocalI, GetOffDiagLocalId(GlobalJ) );
@@ -279,39 +270,12 @@ std::cout << item.first << " " << item.second << std::endl;
     }
 
     TDataType& GetNonLocalDataByGlobalId(IndexType GlobalI, IndexType GlobalJ){
-        KRATOS_DEBUG_ERROR_IF(  IsLocal(GlobalI) ) << " local row access for GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << " expected to be nonlocal" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(  GetRowNumbering().IsLocal(GlobalI) ) << " local row access for GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << " expected to be nonlocal" << std::endl;
         auto it = mNonLocalData.find(std::make_pair(GlobalI,GlobalJ));
         KRATOS_DEBUG_ERROR_IF(it == mNonLocalData.end()) << " entry GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << " not found in NonLocalData" << std::endl;
         return it->second;
     }
 
-    // bool Has(const IndexType GlobalI, const IndexType GlobalJ) const //TODO implement!!
-    // {
-    //     return mLocalGraph.Has(LocalId(GlobalI),GlobalJ);
-    // }
-
-    IndexType OwnerRank(const IndexType RowIndex)
-    {
-        //NOTE: here we assume that CPUs with lower rank get the rows with lower rank
-        //this leads to efficient checks but may well be too restrictive
-        //TODO: decide if we want to relax this limitation
-
-        //position of element just larger than RowIndex in mCpuBounds
-        auto it = std::upper_bound(mCpuBounds.begin(), mCpuBounds.end(), RowIndex);
-
-        KRATOS_DEBUG_ERROR_IF(it == mCpuBounds.end()) <<
-            "row RowIndex " << RowIndex <<
-            " is not owned by any processor " << std::endl;
-
-        IndexType owner_rank = (it-mCpuBounds.begin()-1);
-
-        KRATOS_DEBUG_ERROR_IF(owner_rank < 0) <<
-            "row RowIndex " << RowIndex <<
-            " is not owned by any processor " << std::endl;
-
-        return owner_rank;
-
-    }
 
     // TDataType& operator()(IndexType I, IndexType J){
     // }
@@ -408,7 +372,7 @@ std::cout << item.first << " " << item.second << std::endl;
 
         for(unsigned int i=0; i<EquationId.size(); ++i){
             const IndexType global_i = EquationId[i];
-            if(IsLocal(global_i))
+            if(GetRowNumbering().IsLocal(global_i))
             {
                for(unsigned int j = 0; j<EquationId.size(); ++j)
                 {
@@ -546,7 +510,7 @@ protected:
                 for(auto row_it=send_graph.begin(); row_it!=send_graph.end(); ++row_it)
                 {
                     const auto remote_local_I = row_it.GetRowIndex();
-                    const auto remote_global_I = RemoteGlobalId(remote_local_I, color);
+                    const auto remote_global_I = GetRowNumbering().RemoteGlobalId(remote_local_I, color);
 
                     for(auto J : *row_it){
                         TDataType& value = mNonLocalData[std::make_pair(remote_global_I,J)]; //here we create the I,J entry in the nonlocal data (entry was there in the graph!)
@@ -610,8 +574,8 @@ private:
     ///@{
     const DataCommunicator& mrComm;
 
-    std::vector<IndexType> mLocalBounds;
-    std::vector<IndexType> mCpuBounds;
+    typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering;
+    typename DistributedNumbering<IndexType>::UniquePointer mpColNumbering;
 
     CsrMatrix<double,IndexType> mDiagBlock;
     CsrMatrix<double,IndexType> mOffDiagBlock;
@@ -629,9 +593,6 @@ private:
 
     std::unordered_map< unsigned int, std::vector<TDataType> > msend_buffers;
     std::unordered_map< unsigned int, std::vector<TDataType> > mrecv_buffers;
-
-    IndexType mNrows=0;
-    IndexType mNcols=0;
 
     std::unique_ptr<DistributedVectorImporter<double,IndexType>> mpVectorImporter;
 

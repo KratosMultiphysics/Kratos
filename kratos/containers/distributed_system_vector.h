@@ -24,6 +24,8 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/distributed_system_vector.h"
+#include "containers/distributed_sparse_graph.h"
+#include "containers/distributed_numbering.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
@@ -72,10 +74,10 @@ public:
     /// Default constructor.
     DistributedSystemVector(const DistributedSparseGraph& rGraph)
             :
-            mrComm(rGraph.GetComm()),
-            mLocalBounds(rGraph.GetLocalBounds()),
-            mCpuBounds(rGraph.GetCpuBounds())
+            mrComm(rGraph.GetComm())
     {
+        mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rGraph.GetRowNumbering());
+
         mLocalData.resize(rGraph.LocalSize(),false);
         mNonLocalData.resize(mrComm.Size());
 
@@ -128,6 +130,11 @@ public:
         return mrComm;
     }
 
+    const DistributedNumbering<IndexType>& GetNumbering() const
+    {
+        return *mpNumbering;
+    }
+
     void Clear()
     {
         mLocalData.clear();
@@ -138,11 +145,6 @@ public:
         IndexPartition<IndexType>(mLocalData.size()).for_each([&](IndexType i){
             mLocalData[i] = value;
         });
-    }
-
-    IndexType LocalSize() const
-    {
-        return mLocalData.size();
     }
 
     TDataType& operator()(IndexType I){
@@ -158,58 +160,48 @@ public:
         return mLocalData[I];
     }
 
-
     const TDataType& operator[](IndexType I) const{
         return mLocalData[I];
     }
 
-    bool IsLocal(const IndexType I) const
-    {
-        return (I>=mLocalBounds[0] && I<mLocalBounds[1]);
+    inline IndexType LocalSize() const{
+        return mpNumbering->LocalSize(); 
     }
 
-    IndexType LocalId(const IndexType rGlobalId) const
-    {
-        return rGlobalId-mLocalBounds[0];
-    }
+    // inline bool IsLocal(const IndexType rGlobalId) const
+    // {
+    //     return mpNumbering->IsLocal(rGlobalId);
+    // }
 
-    IndexType GlobalId(const IndexType rLocalId) const
-    {
-        return rLocalId+mLocalBounds[0];
-    }
+    // inline IndexType LocalId(const IndexType rGlobalId) const
+    // {
+    //     return mpNumbering->LocalId(rGlobalId);
+    // }
 
-    IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
-    {
-        return rGlobalId-mCpuBounds[rOwnerRank];
-    } 
+    // inline IndexType GlobalId(const IndexType rLocalId) const
+    // {
+    //     return mpNumbering->GlobalId(rLocalId);
+    // }
 
-    IndexType RemoteGlobalId(const IndexType rRemoteLocalId, const IndexType rOwnerRank) const
-    {
-        return rRemoteLocalId+mCpuBounds[rOwnerRank];
-    } 
+    // inline IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
+    // {
+    //     return mpNumbering->RemoteLocalId(rGlobalId, rOwnerRank);
+    // }
 
-    IndexType OwnerRank(const IndexType RowIndex)
-    {
-        //position of element just larger than RowIndex in mCpuBounds
-        auto it = std::upper_bound(mCpuBounds.begin(), mCpuBounds.end(), RowIndex);
+    // inline IndexType OwnerRank(const IndexType RowIndex) const
+    // {
+    //     return mpNumbering->OwnerRank(RowIndex);
+    // }
 
-        KRATOS_DEBUG_ERROR_IF(it == mCpuBounds.end()) <<
-            "row RowIndex " << RowIndex <<
-            " is not owned by any processor " << std::endl;
+    // IndexType RemoteGlobalId(const IndexType rRemoteLocalId, const IndexType rOwnerRank) const
+    // {
+    //     return mpNumbering->RemoteGlobalId(rRemoteLocalId, rOwnerRank);
+    // } 
 
-        IndexType owner_rank = (it-mCpuBounds.begin()-1);
 
-        KRATOS_DEBUG_ERROR_IF(owner_rank < 0) <<
-            "row RowIndex " << RowIndex <<
-            " is not owned by any processor " << std::endl;
 
-        return owner_rank;
 
-    }
 
-    const std::vector<IndexType> GetCpuBounds() const {
-        return mCpuBounds;
-    }
 
     DenseVector<TDataType>& GetLocalData(){
         return mLocalData;
@@ -280,15 +272,15 @@ public:
         for(unsigned int i=0; i<EquationId.size(); ++i){
             IndexType global_i = EquationId[i];
 
-            if(IsLocal(global_i))
+            if(GetNumbering().IsLocal(global_i))
             {
-                IndexType local_i = LocalId(global_i);
+                IndexType local_i = GetNumbering().LocalId(global_i);
                 AtomicAdd(mLocalData(local_i) , rVectorInput[i]);
             }
             else
             {
-                auto owner_rank = OwnerRank(global_i);
-                IndexType local_i = RemoteLocalId(global_i, owner_rank);
+                auto owner_rank = GetNumbering().OwnerRank(global_i);
+                IndexType local_i = GetNumbering().RemoteLocalId(global_i, owner_rank);
                 auto it = (mNonLocalData[owner_rank].find( local_i ));
                 KRATOS_DEBUG_ERROR_IF(it == mNonLocalData[owner_rank].end()) << "global_i = "<< global_i << " not in mNonLocalData" << std::endl;
                 TDataType& value = (*it).second;
@@ -381,8 +373,7 @@ private:
     ///@name Member Variables
     ///@{
     const DataCommunicator& mrComm;
-    std::vector<IndexType> mLocalBounds;
-    std::vector<IndexType> mCpuBounds;
+    typename DistributedNumbering<IndexType>::UniquePointer mpNumbering;
 
     DenseVector<TDataType> mLocalData; //contains the local data
     std::vector< std::unordered_map<IndexType, TDataType> > mNonLocalData;

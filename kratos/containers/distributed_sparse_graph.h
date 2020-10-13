@@ -19,6 +19,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/parallel_environment.h"
+#include "containers/distributed_numbering.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "containers/sparse_graph.h"
 #include "containers/sparse_contiguous_row_graph.h"
@@ -84,10 +85,11 @@ public:
     /// Default constructor.
     DistributedSparseGraph(const std::vector<IndexType> limits,
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
-    : mLocalBounds(limits),
+    : 
       mrComm(rComm),
       mLocalGraph(limits[1]-limits[0])
     {
+        std::vector<IndexType> mLocalBounds(limits);
         mNonLocalGraphs.resize(mrComm.Size(),false);
         mNonLocalLocks.resize(mrComm.Size(),false);
 
@@ -120,6 +122,7 @@ public:
             if(tmp[i][2] > tmp[i+1][2])
                 KRATOS_ERROR << "cpu bounds are not ordered correctly" << std::endl;
         }
+        std::vector<IndexType> mCpuBounds;
         mCpuBounds.push_back(tmp[0][0]);
         for(unsigned int i=0; i<tmp.size(); ++i)
         {
@@ -127,70 +130,32 @@ public:
             mCpuBounds.push_back(tmp[i][1]);
         }
 
+        mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm,mCpuBounds);
     }
 
     /// Destructor.
     virtual ~DistributedSparseGraph(){}
 
-    const DataCommunicator& GetComm() const
+    inline const DataCommunicator& GetComm() const
     { 
         return mrComm;
     }
 
-    IndexType LocalSize() const{
-        return mLocalGraph.Size(); //note that this is only valid after Finalize has been called
-    }
-
-    bool IsLocal(const IndexType I) const
+    inline const DistributedNumbering<IndexType>& GetRowNumbering() const
     {
-        return (I>=mLocalBounds[0] && I<mLocalBounds[1]);
+        return *mpRowNumbering;
     }
 
-    IndexType LocalId(const IndexType rGlobalId) const
-    {
-        return rGlobalId-mLocalBounds[0];
+    inline IndexType LocalSize() const{
+        return mpRowNumbering->LocalSize(); 
     }
-
-    IndexType GlobalId(const IndexType rLocalId) const
-    {
-        return rLocalId+mLocalBounds[0];
-    }
-
-    IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
-    {
-        return rGlobalId-mCpuBounds[rOwnerRank];
-    }
-
+    
     bool Has(const IndexType GlobalI, const IndexType GlobalJ) const
     {
-        return mLocalGraph.Has(LocalId(GlobalI),GlobalJ);
+        return mLocalGraph.Has(GetRowNumbering().LocalId(GlobalI),GlobalJ);
     }
 
-    IndexType OwnerRank(const IndexType RowIndex)
-    {
-        //NOTE: here we assume that CPUs with lower rank get the rows with lower rank
-        //this leads to efficient checks but may well be too restrictive
-        //TODO: decide if we want to relax this limitation
-
-        //position of element just larger than RowIndex in mCpuBounds
-        auto it = std::upper_bound(mCpuBounds.begin(), mCpuBounds.end(), RowIndex);
-
-        KRATOS_DEBUG_ERROR_IF(it == mCpuBounds.end()) <<
-            "row RowIndex " << RowIndex <<
-            " is not owned by any processor " << std::endl;
-
-        IndexType owner_rank = (it-mCpuBounds.begin()-1);
-
-        KRATOS_DEBUG_ERROR_IF(owner_rank < 0) <<
-            "row RowIndex " << RowIndex <<
-            " is not owned by any processor " << std::endl;
-
-        return owner_rank;
-
-    }
-
-
-
+ 
     ///@}
     ///@name Operators
     ///@{
@@ -207,13 +172,13 @@ public:
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
     {
-        if(IsLocal(RowIndex)){
-            mLocalGraph.AddEntry(LocalId(RowIndex), ColIndex);
+        if(GetRowNumbering().IsLocal(RowIndex)){
+            mLocalGraph.AddEntry(GetRowNumbering().LocalId(RowIndex), ColIndex);
         }
         else{
-            IndexType owner = OwnerRank(RowIndex);
+            IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
             mNonLocalLocks[owner].SetLock();
-            mNonLocalGraphs[owner].AddEntry(RemoteLocalId(RowIndex,owner), ColIndex);
+            mNonLocalGraphs[owner].AddEntry(GetRowNumbering().RemoteLocalId(RowIndex,owner), ColIndex);
             mNonLocalLocks[owner].UnSetLock();
         }
     }
@@ -221,13 +186,13 @@ public:
     template<class TContainerType>
     void AddEntries(const IndexType RowIndex, const TContainerType& rColIndices)
     {
-        if(IsLocal(RowIndex)){
-            mLocalGraph.AddEntries(LocalId(RowIndex), rColIndices);
+        if(GetRowNumbering().IsLocal(RowIndex)){
+            mLocalGraph.AddEntries(GetRowNumbering().LocalId(RowIndex), rColIndices);
         }
         else{
-            IndexType owner = OwnerRank(RowIndex);
+            IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
             mNonLocalLocks[owner].SetLock();
-            mNonLocalGraphs[owner].AddEntries(RemoteLocalId(RowIndex,owner), rColIndices);
+            mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(RowIndex,owner), rColIndices);
             mNonLocalLocks[owner].UnSetLock();
         }
     }
@@ -238,13 +203,13 @@ public:
                     const TIteratorType& rColEnd
                     )
     {
-        if(IsLocal(RowIndex)){
-            mLocalGraph.AddEntries(LocalId(RowIndex), rColBegin, rColEnd);
+        if(GetRowNumbering().IsLocal(RowIndex)){
+            mLocalGraph.AddEntries(GetRowNumbering().LocalId(RowIndex), rColBegin, rColEnd);
         }
         else{
-            IndexType owner = OwnerRank(RowIndex);
+            IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
             mNonLocalLocks[owner].SetLock();
-            mNonLocalGraphs[owner].AddEntries(RemoteLocalId(RowIndex,owner), rColBegin, rColEnd);
+            mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(RowIndex,owner), rColBegin, rColEnd);
             mNonLocalLocks[owner].UnSetLock();
         }
     }
@@ -254,13 +219,13 @@ public:
     {
         for(auto I : rIndices)
         {
-            if(IsLocal(I)){
-                mLocalGraph.AddEntries(LocalId(I), rIndices);
+            if(GetRowNumbering().IsLocal(I)){
+                mLocalGraph.AddEntries(GetRowNumbering().LocalId(I), rIndices);
             }
             else{
-                IndexType owner = OwnerRank(I);
+                IndexType owner = GetRowNumbering().OwnerRank(I);
                 mNonLocalLocks[owner].SetLock();
-                mNonLocalGraphs[owner].AddEntries(RemoteLocalId(I,owner), rIndices);;
+                mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(I,owner), rIndices);;
                 mNonLocalLocks[owner].UnSetLock();
             }
         }
@@ -319,14 +284,7 @@ public:
         return mNonLocalGraphs;
     }
 
-    const std::vector<IndexType> GetLocalBounds() const {
-        return mLocalBounds;
-    }
 
-
-    const std::vector<IndexType> GetCpuBounds() const {
-        return mCpuBounds;
-    }
     ///@}
     ///@name Operations
     ///@{
@@ -412,10 +370,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    std::vector<IndexType> mLocalBounds;
+    DistributedNumbering<IndexType>::UniquePointer mpRowNumbering = nullptr;
     DataCommunicator& mrComm;
 
-    std::vector<IndexType> mCpuBounds;
     LocalGraphType mLocalGraph;
     DenseVector<NonLocalGraphType> mNonLocalGraphs;
     DenseVector<LockObject> mNonLocalLocks;
