@@ -6,6 +6,7 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplica
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -59,7 +60,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFemToDemApplication MODULE ${KRATOS_FEM_TO_DEM_APPLICATION_SOURCES})
 
-target_link_libraries(KratosFemToDemApplication PRIVATE KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore)
+target_link_libraries(KratosFemToDemApplication PRIVATE KratosStructuralMechanicsCore KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore)
 set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
