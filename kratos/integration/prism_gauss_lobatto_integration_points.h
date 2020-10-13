@@ -26,7 +26,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) PrismGaussLobattoIntegrationPoints1
+class PrismGaussLobattoIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLobattoIntegrationPoints1);
@@ -65,7 +65,7 @@ public:
 
 }; // Class PrismGaussLobattoIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) PrismGaussLobattoIntegrationPoints2
+class PrismGaussLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLobattoIntegrationPoints2);

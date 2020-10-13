@@ -27,7 +27,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints1
+class QuadrilateralGaussLobattoIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints1);
@@ -65,7 +65,7 @@ public:
 
 }; // Class QuadrilateralGaussLobattoIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints2
+class QuadrilateralGaussLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints2);

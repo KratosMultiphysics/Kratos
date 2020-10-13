@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) TriangleCollocationIntegrationPoints1
+class TriangleCollocationIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleCollocationIntegrationPoints1);
@@ -63,7 +63,7 @@ public:
 }; // Class TriangleCollocationIntegrationPoints1
 
 
-class KRATOS_API(KRATOS_CORE) TriangleCollocationIntegrationPoints2
+class TriangleCollocationIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleCollocationIntegrationPoints2);
@@ -106,7 +106,7 @@ public:
 }; // Class TriangleCollocationIntegrationPoints2
 
 
-class KRATOS_API(KRATOS_CORE) TriangleCollocationIntegrationPoints3
+class TriangleCollocationIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleCollocationIntegrationPoints3);
@@ -153,7 +153,7 @@ public:
 }; // Class TriangleCollocationIntegrationPoints2
 
 
-class KRATOS_API(KRATOS_CORE) TriangleCollocationIntegrationPoints4
+class TriangleCollocationIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleCollocationIntegrationPoints4);
@@ -204,7 +204,7 @@ public:
 
 }; // Class TriangleCollocationIntegrationPoints4
 
-class KRATOS_API(KRATOS_CORE) TriangleCollocationIntegrationPoints5
+class TriangleCollocationIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleCollocationIntegrationPoints5);

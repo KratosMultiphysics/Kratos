@@ -27,7 +27,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) TetrahedronGaussLegendreIntegrationPoints1
+class TetrahedronGaussLegendreIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints1);
@@ -64,7 +64,7 @@ public:
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) TetrahedronGaussLegendreIntegrationPoints2
+class TetrahedronGaussLegendreIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints2);
@@ -104,7 +104,7 @@ public:
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints2
 
-class KRATOS_API(KRATOS_CORE) TetrahedronGaussLegendreIntegrationPoints3
+class TetrahedronGaussLegendreIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints3);
@@ -148,7 +148,7 @@ public:
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints3
 
-class KRATOS_API(KRATOS_CORE) TetrahedronGaussLegendreIntegrationPoints4
+class TetrahedronGaussLegendreIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints4);
@@ -199,7 +199,7 @@ public:
 
 }; // Class TetrahedronGaussLegendreIntegrationPoints4
 
-class KRATOS_API(KRATOS_CORE) TetrahedronGaussLegendreIntegrationPoints5
+class TetrahedronGaussLegendreIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints5);

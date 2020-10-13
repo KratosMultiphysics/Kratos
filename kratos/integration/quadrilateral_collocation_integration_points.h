@@ -26,7 +26,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralCollocationIntegrationPoints1
+class QuadrilateralCollocationIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralCollocationIntegrationPoints1);
@@ -66,7 +66,7 @@ public:
 
 }; // Class QuadrilateralCollocationIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralCollocationIntegrationPoints2
+class QuadrilateralCollocationIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralCollocationIntegrationPoints2);
@@ -111,7 +111,7 @@ public:
 
 }; // Class QuadrilateralCollocationIntegrationPoints2
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralCollocationIntegrationPoints3
+class QuadrilateralCollocationIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralCollocationIntegrationPoints3);
@@ -163,7 +163,7 @@ public:
 
 }; // Class QuadrilateralCollocationIntegrationPoints3
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralCollocationIntegrationPoints4
+class QuadrilateralCollocationIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralCollocationIntegrationPoints4);
@@ -224,7 +224,7 @@ public:
 
 }; // Class QuadrilateralCollocationIntegrationPoints4
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralCollocationIntegrationPoints5 {
+class QuadrilateralCollocationIntegrationPoints5 {
 public:
 	KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralCollocationIntegrationPoints5);
 	typedef std::size_t SizeType;

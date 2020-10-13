@@ -26,7 +26,7 @@
 
 namespace Kratos
 {
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints1
+class LineGaussLobattoIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints1);
@@ -64,7 +64,7 @@ public:
 };
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints2
+class LineGaussLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints2);
@@ -103,7 +103,7 @@ public:
 };
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints3
+class LineGaussLobattoIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints3);
@@ -144,7 +144,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints4
+class LineGaussLobattoIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints4);
@@ -186,7 +186,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints5
+class LineGaussLobattoIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints5);
@@ -229,7 +229,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints6
+class LineGaussLobattoIntegrationPoints6
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints6);
@@ -273,7 +273,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints7
+class LineGaussLobattoIntegrationPoints7
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints7);
@@ -318,7 +318,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints8
+class LineGaussLobattoIntegrationPoints8
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints8);
@@ -364,7 +364,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints9
+class LineGaussLobattoIntegrationPoints9
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints9);
@@ -411,7 +411,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints10
+class LineGaussLobattoIntegrationPoints10
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints10);

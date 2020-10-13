@@ -25,7 +25,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints1
+class QuadrilateralGaussLegendreIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints1);
@@ -62,7 +62,7 @@ public:
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints2
+class QuadrilateralGaussLegendreIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints2);
@@ -102,7 +102,7 @@ public:
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints2
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints3
+class QuadrilateralGaussLegendreIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints3);
@@ -147,7 +147,7 @@ public:
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints3
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints4
+class QuadrilateralGaussLegendreIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints4);
@@ -196,7 +196,7 @@ public:
 
 }; // Class QuadrilateralGaussLegendreIntegrationPoints4
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints5 {
+class QuadrilateralGaussLegendreIntegrationPoints5 {
 public:
 	KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints5);
 	typedef std::size_t SizeType;

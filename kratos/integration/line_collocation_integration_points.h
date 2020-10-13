@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-class KRATOS_API(KRATOS_CORE) LineCollocationIntegrationPoints1
+class LineCollocationIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineCollocationIntegrationPoints1);
@@ -64,7 +64,7 @@ public:
 }; // Class LineCollocationIntegrationPoints1
 
 
-class KRATOS_API(KRATOS_CORE) LineCollocationIntegrationPoints2
+class LineCollocationIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineCollocationIntegrationPoints2);
@@ -106,7 +106,7 @@ public:
 }; // Class LineCollocationIntegrationPoints2
 
 
-class KRATOS_API(KRATOS_CORE) LineCollocationIntegrationPoints3
+class LineCollocationIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineCollocationIntegrationPoints3);
@@ -151,7 +151,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineCollocationIntegrationPoints4
+class LineCollocationIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineCollocationIntegrationPoints4);
@@ -198,7 +198,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineCollocationIntegrationPoints5
+class LineCollocationIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineCollocationIntegrationPoints5);

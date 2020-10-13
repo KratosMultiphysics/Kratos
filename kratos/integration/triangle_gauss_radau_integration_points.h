@@ -27,7 +27,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) TriangleGaussRadauIntegrationPoints1
+class TriangleGaussRadauIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussRadauIntegrationPoints1);
@@ -67,7 +67,7 @@ public:
 }; // Class TriangleGaussRadauIntegrationPoints1
 
 
-class KRATOS_API(KRATOS_CORE) TriangleGaussRadauIntegrationPoints2
+class TriangleGaussRadauIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussRadauIntegrationPoints2);
@@ -108,7 +108,7 @@ public:
 }; // Class TriangleGaussRadauIntegrationPoints2
 
 
-class KRATOS_API(KRATOS_CORE) TriangleGaussRadauIntegrationPoints3
+class TriangleGaussRadauIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussRadauIntegrationPoints3);
@@ -151,7 +151,7 @@ public:
 }; // Class TriangleGaussRadauIntegrationPoints2
 
 
-class KRATOS_API(KRATOS_CORE) TriangleGaussRadauIntegrationPoints4
+class TriangleGaussRadauIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussRadauIntegrationPoints4);
@@ -195,7 +195,7 @@ public:
 }; // Class TriangleGaussRadauIntegrationPoints4
 
 
-class KRATOS_API(KRATOS_CORE) TriangleGaussRadauIntegrationPoints5
+class TriangleGaussRadauIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussRadauIntegrationPoints5);
@@ -244,7 +244,7 @@ public:
 }; // Class TriangleGaussRadauIntegrationPoints5
 
 
-class KRATOS_API(KRATOS_CORE) TriangleGaussRadauIntegrationPoints6
+class TriangleGaussRadauIntegrationPoints6
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussRadauIntegrationPoints6);

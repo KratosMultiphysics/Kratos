@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints1
+class LineGaussLegendreIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints1);
@@ -61,7 +61,7 @@ public:
 }; // Class LineGaussLegendreIntegrationPoints1
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints2
+class LineGaussLegendreIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints2);
@@ -100,7 +100,7 @@ public:
 }; // Class LineGaussLegendreIntegrationPoints2
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints3
+class LineGaussLegendreIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints3);
@@ -141,7 +141,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints4
+class LineGaussLegendreIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints4);
@@ -183,7 +183,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints5
+class LineGaussLegendreIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints5);
@@ -226,7 +226,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints6
+class LineGaussLegendreIntegrationPoints6
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints6);
@@ -270,7 +270,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints7
+class LineGaussLegendreIntegrationPoints7
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints7);
@@ -315,7 +315,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints8
+class LineGaussLegendreIntegrationPoints8
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints8);
@@ -361,7 +361,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints9
+class LineGaussLegendreIntegrationPoints9
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints9);
@@ -408,7 +408,7 @@ public:
 
 
 
-class KRATOS_API(KRATOS_CORE) LineGaussLegendreIntegrationPoints10
+class LineGaussLegendreIntegrationPoints10
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints10);

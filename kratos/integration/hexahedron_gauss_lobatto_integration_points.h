@@ -28,7 +28,7 @@ namespace Kratos
 {
 
 //TODO
-class KRATOS_API(KRATOS_CORE) HexahedronGaussLobattoIntegrationPoints1
+class HexahedronGaussLobattoIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints1);
@@ -68,7 +68,7 @@ public:
 
 }; // Class HexahedronGaussLobattoIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) HexahedronGaussLobattoIntegrationPoints2
+class HexahedronGaussLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints2);
