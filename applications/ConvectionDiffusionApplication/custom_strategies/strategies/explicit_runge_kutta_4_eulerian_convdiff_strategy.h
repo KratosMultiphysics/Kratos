@@ -222,7 +222,7 @@ protected:
         }
         // execute OSS step, if needed
         if (r_process_info[OSS_SWITCH] == 1) {
-            ExecuteOSSStep();
+            CalculateOSSNodalProjections();
         }
 
         KRATOS_CATCH("");
@@ -248,7 +248,7 @@ protected:
         }
         // execute OSS step, if needed
         if (r_process_info[OSS_SWITCH] == 1) {
-            ExecuteOSSStep();
+            CalculateOSSNodalProjections();
         }
 
         KRATOS_CATCH("");
@@ -268,53 +268,9 @@ protected:
         r_process_info.GetValue(TIME_INTEGRATION_THETA) = 0.0;
         // execute OSS step, if needed
         if (r_process_info[OSS_SWITCH] == 1) {
-            ExecuteOSSStep();
+            CalculateOSSNodalProjections();
         }
         BaseType::FinalizeSolutionStep();
-
-        KRATOS_CATCH("");
-    };
-
-    /**
-     * @brief Execute the OSS step.
-     */
-    virtual void ExecuteOSSStep()
-    {
-        KRATOS_TRY;
-
-        // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
-
-        // Get model part data
-        auto& r_model_part = BaseType::GetModelPart();
-        auto& r_process_info = r_model_part.GetProcessInfo();
-        const auto n_nodes = r_model_part.NumberOfNodes();
-        const int n_elem = r_model_part.NumberOfElements();
-
-        ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-        auto& r_settings = *p_settings;
-
-        // Initialize the projection value
-#pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(n_nodes); ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->GetValue(SCALAR_PROJECTION) = 0.0;
-        }
-
-        // Calculate the unknown projection
-        double unknown_proj;
-#pragma omp parallel for
-        for (int i_elem = 0; i_elem < static_cast<int>(n_elem); ++i_elem) {
-            auto it_elem = r_model_part.ElementsBegin() + i_elem;
-            it_elem->Calculate(SCALAR_PROJECTION, unknown_proj, r_process_info);
-        }
-#pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(n_nodes); ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            const double mass = r_lumped_mass_vector(i_node);
-            it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(SCALAR_PROJECTION) / mass;
-        }
 
         KRATOS_CATCH("");
     };
@@ -354,6 +310,44 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+    * @brief Execute the OSS calculation.
+    */
+    virtual void CalculateOSSNodalProjections()
+    {
+        KRATOS_TRY;
+
+        // Get the required data from the explicit builder and solver
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
+        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+
+        // Get model part data
+        auto& r_model_part = BaseType::GetModelPart();
+        auto& r_process_info = r_model_part.GetProcessInfo();
+
+        ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+        auto& r_settings = *p_settings;
+
+        // Initialize the projection value
+        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode){
+            rNode.GetValue(SCALAR_PROJECTION) = 0.0;
+        });
+
+        // Calculate the unknown projection
+        double unknown_proj;
+        block_for_each(r_model_part.Elements(), [&](ModelPart::ElementType& rElement){
+            rElement.Calculate(SCALAR_PROJECTION, unknown_proj, r_process_info);
+        });
+        IndexPartition<int>(r_model_part.NumberOfNodes()).for_each(
+            [&](int i_node){
+                auto it_node = r_model_part.NodesBegin() + i_node;
+                const double mass = r_lumped_mass_vector(i_node);
+                it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(SCALAR_PROJECTION) / mass;
+            }
+        );
+
+        KRATOS_CATCH("");
+    };
 
     ///@}
     ///@name Private  Access
