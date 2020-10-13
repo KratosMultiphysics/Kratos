@@ -22,7 +22,6 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
             # L2 norm
             x = node.X
-            y = node.Y
             u_analytical = x - sin(bar_simulation.time)
             u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             error += (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
@@ -44,7 +43,6 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
             # L2 norm
             x = node.X
-            y = node.Y
             u_analytical = x - sin(bar_simulation.time)
             u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             error += (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
@@ -66,7 +64,6 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
             # L2 norm
             x = node.X
-            y = node.Y
             u_analytical = x - sin(bar_simulation.time)
             u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             error += (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
@@ -88,7 +85,6 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
             # L2 norm
             x = node.X
-            y = node.Y
             u_analytical = x - sin(bar_simulation.time)
             u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             error += (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
