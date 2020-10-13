@@ -266,6 +266,11 @@ public:
      */
     void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
 
+    void Calculate(
+        const Variable< array_1d<double,3> >& rVariable,
+        array_1d<double,3>& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{

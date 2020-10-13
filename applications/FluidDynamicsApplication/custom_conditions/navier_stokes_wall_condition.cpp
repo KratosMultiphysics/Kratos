@@ -318,6 +318,59 @@ void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofLis
     }
 }
 
+template<unsigned int TDim, unsigned int TNumNodes>
+void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
+    const Variable< array_1d<double,3> >& rVariable,
+    array_1d<double,3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    rOutput = ZeroVector(3);
+
+    if (rVariable == DRAG_FORCE) {
+        const auto& r_geom = GetGeometry();
+        const auto& r_integration_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const int n_gauss = r_integration_points.size();
+        Vector det_J_vect = ZeroVector(n_gauss);
+        r_geom.DeterminantOfJacobian(det_J_vect, GeometryData::GI_GAUSS_2);
+        const auto N_container = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+        // Calculate normal
+        array_1d<double,3> normal;
+        CalculateNormal(normal);
+        normal /= norm_2(normal);
+
+        // Finding parent element to retrieve viscous stresses
+        // Note that we assume in here that the shear stress are constant inside the element
+        auto& r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+        KRATOS_ERROR_IF(r_neighbours.size() > 1) << "A condition was assigned more than one parent element." << std::endl;
+        KRATOS_ERROR_IF(r_neighbours.size() == 0) << "A condition was NOT assigned a parent element. "
+        << "This leads to errors for the slip condition [BEHR2004] "
+        << "Please execute the check_and_prepare_model_process_fluid process." << std::endl;
+
+        auto& r_parent = r_neighbours[0];
+        Vector shear_stress;
+        r_parent.Calculate(FLUID_STRESS, shear_stress, rCurrentProcessInfo);
+        // NOTE THAT THIS ONLY WORKS IN 2D!!!!!!
+        array_1d<double,3> shear_stress_n;
+        shear_stress_n[0] = shear_stress[0] * normal[0] + shear_stress[2] * normal[1];
+        shear_stress_n[1] = shear_stress[2] * normal[0] + shear_stress[1] * normal[1];
+        shear_stress_n[2] = 0.0;
+
+        // Loop the Gauss pts
+        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            const double w = det_J_vect[i_gauss] * r_integration_points[i_gauss].Weight();
+            double p = 0.0;
+            const auto& r_N = row(N_container, i_gauss);
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                p += r_N[i_node] * r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+            }
+            //rOutput += w * (p * normal - shear_stress_n);
+            rOutput += w * p * normal;
+        }
+    } else {
+        Condition::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
 
 
 template<unsigned int TDim, unsigned int TNumNodes>

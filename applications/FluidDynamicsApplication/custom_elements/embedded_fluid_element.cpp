@@ -987,14 +987,14 @@ void EmbeddedFluidElement<TBaseElement>::CalculateDragForce(
             const double p_gauss = inner_prod(rData.N, rData.Pressure);
 
             // Get the normal projection matrix in Voigt notation
-            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
-            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+            //BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+            //FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
 
             // Add the shear and pressure drag contributions
-            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (unsigned int i = 0; i < Dim ; ++i) {
-                rDragForce(i) -= shear_proj(i);
-            }
+            //const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
+            //for (unsigned int i = 0; i < Dim ; ++i) {
+            //    rDragForce(i) -= shear_proj(i);
+            //}
             rDragForce += rData.Weight * p_gauss * aux_unit_normal;
         }
     }

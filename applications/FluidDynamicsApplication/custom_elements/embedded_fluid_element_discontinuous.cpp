@@ -184,12 +184,14 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
         EmbeddedDiscontinuousElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
         this->InitializeGeometryData(data);
+        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
         // Calculate the drag force
         this->CalculateDragForce(data, rOutput);
     } else if (rVariable == DRAG_FORCE_CENTER) {
         EmbeddedDiscontinuousElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
         this->InitializeGeometryData(data);
+        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
         // Calculate the drag force location
         this->CalculateDragForceCenter(data, rOutput);
     } else {
@@ -899,18 +901,29 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
             // Get the interface Gauss pt. unit noromal
             const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
-            // Compute Gauss pt. pressure
+            // Compute Gauss pt. values
             const double p_gauss = inner_prod(rData.N, rData.Pressure);
+            const array_1d<double, Dim> v_gauss = prod(rData.N, rData.Velocity);
 
             // Get the normal projection matrix in Voigt notation
             BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
             FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+            BoundedMatrix<double, Dim, Dim> norm_proj_matrix, tang_proj_matrix;
+            FluidElementUtilities<NumNodes>::SetNormalProjectionMatrix(aux_unit_normal, norm_proj_matrix);
+            FluidElementUtilities<NumNodes>::SetTangentialProjectionMatrix(aux_unit_normal, tang_proj_matrix);
 
             // Add the shear and pressure drag contributions
-            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (unsigned int i = 0; i < Dim ; ++i){
-                rDragForce(i) -= shear_proj(i);
-            }
+            //const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
+            //const array_1d<double, Dim> shear_proj_n = prod(shear_proj, norm_proj_matrix);
+            //array_1d<double, Dim> shear_proj_t = ZeroVector(Dim);
+            //if (rData.SlipLength > 1.0e-12) {
+            //    const auto v_tan = prod(v_gauss, tang_proj_matrix);
+            //    shear_proj_t = rData.Weight * (rData.DynamicViscosity / rData.SlipLength) * v_tan;
+            //}
+            //for (unsigned int i = 0; i < Dim ; ++i){
+            //    rDragForce(i) -= shear_proj_n(i);
+            //    rDragForce(i) += shear_proj_t(i);
+            //}
             rDragForce += rData.Weight * p_gauss * aux_unit_normal;
         }
 
@@ -928,18 +941,29 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
             // Get the interface Gauss pt. unit noromal
             const auto &aux_unit_normal = rData.NegativeInterfaceUnitNormals[g];
 
-            // Compute Gauss pt. pressure
+            // Compute Gauss pt.
             const double p_gauss = inner_prod(rData.N, rData.Pressure);
+            const array_1d<double, Dim> v_gauss = prod(rData.N, rData.Velocity);
 
             // Get the normal projection matrix in Voigt notation
             BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
             FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+            BoundedMatrix<double, Dim, Dim> norm_proj_matrix, tang_proj_matrix;
+            FluidElementUtilities<NumNodes>::SetNormalProjectionMatrix(aux_unit_normal, norm_proj_matrix);
+            FluidElementUtilities<NumNodes>::SetTangentialProjectionMatrix(aux_unit_normal, tang_proj_matrix);
 
             // Add the shear and pressure drag contributions
-            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (unsigned int i = 0; i < Dim ; ++i){
-                rDragForce(i) -= shear_proj(i);
-            }
+            //const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
+            //const array_1d<double, Dim> shear_proj_n = prod(shear_proj, norm_proj_matrix);
+            //array_1d<double, Dim> shear_proj_t = ZeroVector(Dim);
+            //if (rData.SlipLength > 1.0e-12) {
+            //    const auto v_tan = prod(v_gauss, tang_proj_matrix);
+            //    shear_proj_t = rData.Weight * (rData.DynamicViscosity / rData.SlipLength) * v_tan;
+            //}
+            //for (unsigned int i = 0; i < Dim ; ++i){
+            //    rDragForce(i) -= shear_proj_n(i);
+            //    rDragForce(i) += shear_proj_t(i);
+            //}
             rDragForce += rData.Weight * p_gauss * aux_unit_normal;
         }
     }
