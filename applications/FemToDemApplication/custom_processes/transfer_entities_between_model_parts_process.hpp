@@ -1,10 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics FemDem Application
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:              August 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
+//  Main authors:    Josep Maria Carbonell
 //
 
 #if !defined(KRATOS_TRANSFER_ENTITIES_BETWEEN_MODEL_PARTS_PROCESS_H_INCLUDED)

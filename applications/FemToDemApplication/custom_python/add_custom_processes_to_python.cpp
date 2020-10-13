@@ -51,6 +51,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
     using namespace pybind11;
 
     typedef Process ProcessBaseType;
+    typedef std::vector<Flags>  FlagsContainer;
 
     // Stress extrapolation to Nodes
     class_<StressToNodesProcess, StressToNodesProcess::Pointer, Process>(m, "StressToNodesProcess")
@@ -157,8 +158,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(init<ModelPart&, ModelPart&, const std::string>())
         .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&>())
         .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
-        .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute)
-        ;
+        .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos
