@@ -259,22 +259,24 @@ protected:
     };
 
     /**
-     * @brief Finalize the Runge Kutta explicit solver step.
-     * @details Calculate the orthogonal subscale projections if required.
+     * @brief Finalize the Runge Kutta explicit solver step and
+     * calculate the orthogonal subscale projections if required.
      */
-    virtual void FinalizeSolutionStep() override
+    virtual bool SolveSolutionStep() override
     {
         KRATOS_TRY;
 
+        BaseType::SolveSolutionStep();
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        // set interpolation parameter TIME_INTEGRATION_THETA
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = 0.0;
-        // execute OSS step, if needed
-        if (r_process_info[OSS_SWITCH] == 1) {
-            CalculateOSSNodalProjections();
+        if (r_process_info.GetValue(RUNGE_KUTTA_STEP) == 4) {
+            // set interpolation parameter TIME_INTEGRATION_THETA
+            r_process_info.GetValue(TIME_INTEGRATION_THETA) = 0.0;
+            // execute OSS step, if needed
+            if (r_process_info[OSS_SWITCH] == 1) {
+                CalculateOSSNodalProjections();
+            }
         }
-        BaseType::FinalizeSolutionStep();
 
         KRATOS_CATCH("");
     };
