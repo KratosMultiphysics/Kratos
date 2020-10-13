@@ -47,7 +47,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef typename ConstantRelaxationConvergenceAcceleratorType::Pointer ConstantRelaxationConvergenceAcceleratorPointerType;
     py::class_<ConstantRelaxationConvergenceAcceleratorType, ConstantRelaxationConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "ConstantRelaxationConvergenceAccelerator")
         .def(py::init<double>())
-        .def(py::init<Parameters &>())
+        .def(py::init<Parameters>())
         .def("UpdateSolution", &ConstantRelaxationConvergenceAcceleratorType::UpdateSolution);
 
     // Aitken convergence accelerator
@@ -55,7 +55,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef typename AitkenConvergenceAcceleratorType::Pointer AitkenConvergenceAcceleratorPointerType;
     py::class_<AitkenConvergenceAcceleratorType, AitkenConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "AitkenConvergenceAccelerator")
         .def(py::init<double>())
-        .def(py::init<Parameters &>())
+        .def(py::init<Parameters>())
         .def("InitializeSolutionStep", &AitkenConvergenceAcceleratorType::InitializeSolutionStep)
         .def("UpdateSolution", &AitkenConvergenceAcceleratorType::UpdateSolution)
         .def("FinalizeNonLinearIteration", &AitkenConvergenceAcceleratorType::FinalizeNonLinearIteration)
@@ -65,7 +65,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef MVQNFullJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType> MVQNFullJacobianConvergenceAcceleratorType;
     typedef typename MVQNFullJacobianConvergenceAcceleratorType::Pointer MVQNFullJacobianConvergenceAcceleratorPointerType;
     py::class_<MVQNFullJacobianConvergenceAcceleratorType, MVQNFullJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
-        .def(py::init<Parameters &>())
+        .def(py::init<Parameters>())
         .def(py::init<double, double>())
         .def("InitializeSolutionStep", &MVQNFullJacobianConvergenceAcceleratorType::InitializeSolutionStep)
         .def("UpdateSolution", &MVQNFullJacobianConvergenceAcceleratorType::UpdateSolution)
@@ -76,7 +76,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef MVQNRecursiveJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType> MVQNRecursiveJacobianConvergenceAcceleratorType;
     typedef typename MVQNRecursiveJacobianConvergenceAcceleratorType::Pointer MVQNRecursiveJacobianConvergenceAcceleratorPointerType;
     py::class_<MVQNRecursiveJacobianConvergenceAcceleratorType, MVQNRecursiveJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNRecursiveJacobianConvergenceAccelerator")
-        .def(py::init<Parameters &>())
+        .def(py::init<Parameters>())
         .def(py::init<double, unsigned int, double>())
         .def("Initialize", &MVQNRecursiveJacobianConvergenceAcceleratorType::Initialize)
         .def("InitializeSolutionStep", &MVQNRecursiveJacobianConvergenceAcceleratorType::InitializeSolutionStep)
