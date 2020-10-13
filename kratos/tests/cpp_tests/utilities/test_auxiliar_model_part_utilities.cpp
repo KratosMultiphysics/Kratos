@@ -31,9 +31,9 @@ namespace Testing {
 /******************************************************************************************/
 
 void Initialise(ModelPart& this_model_part)
-{ 
+{
     this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    
+
     CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
 }
 
@@ -43,7 +43,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
     int i=0; //To create various values
     double disp_test_value = 1.26;
     std::vector<double> test_values;
-    
+
     switch (DataLoc)
         {
             case (DataLocation::NodeHistorical):{
@@ -51,7 +51,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 for (auto& i_node : this_model_part.Nodes())
                 {
                     for(int j=0; j<dim; j++)
-		            {   
+		            {
                         i_node.FastGetSolutionStepValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
@@ -63,13 +63,14 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 test_values.resize(this_model_part.NumberOfNodes() * dim);
                 for (auto& i_node : this_model_part.Nodes())
                 {
+                    array_1d<double, 3> test_vals; // can be done like this
 		            for(int j=0; j<dim; j++)
-		            {   
-                        i_node.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+		            {
+                        i_node.SetValue(DISPLACEMENT, test_vals);
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
                     }
-                } 
+                }
                 break;
             }
             case (DataLocation::Element):{
@@ -77,11 +78,11 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 for (auto& i_elem : this_model_part.Elements())
                 {
                     for(int j=0; j<dim; j++)
-		            {   
+		            {
                         i_elem.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
-                    }   
+                    }
                 }
                 break;
             }
@@ -90,18 +91,18 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 for (auto i_cond : this_model_part.Conditions())
                 {
                     for(int j=0; j<dim; j++)
-		            {   
+		            {
                         i_cond.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
-                    }  
+                    }
                 }
                 break;
             }
             case (DataLocation::ModelPart):{
                 test_values.resize(1 * dim);
                 for(int j=0; j<dim; j++)
-		            {   
+		            {
                         this_model_part[DISPLACEMENT][j] = static_cast<double>(disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
@@ -111,7 +112,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
             case (DataLocation::ProcessInfo):{
                 test_values.resize(1 * dim);
                 for(int j=0; j<dim; j++)
-		            {   
+		            {
                         this_model_part.GetProcessInfo()[DISPLACEMENT][j] = static_cast<double>(disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
@@ -141,7 +142,7 @@ std::vector<double> PreComputeSetData(int size, int dim)
             rData[counter++] = disp_test_value * (i+1+j);  //Addition of 1 for the case where size=1 && dim=1, to have non zero random value
         }
     }
-    
+
     return rData;
 }
 
@@ -157,7 +158,7 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
                 for (auto& i_node : this_model_part.Nodes())
                 {
                     for(int j=0; j<dim; j++)
-		            {  
+		            {
                         output_values[counter++] = i_node.FastGetSolutionStepValue(DISPLACEMENT)[j];
                     }
                 }
@@ -168,7 +169,7 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
                 for (auto& i_node : this_model_part.Nodes())
                 {
                     for(int j=0; j<dim; j++)
-		            {  
+		            {
                         output_values[counter++] = i_node.GetValue(DISPLACEMENT)[j];
                     }
                 }
@@ -179,7 +180,7 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
                 for (auto& i_elem : this_model_part.Elements())
                 {
                     for(int j=0; j<dim; j++)
-		            {  
+		            {
                         output_values[counter++] = i_elem.GetValue(DISPLACEMENT)[j];
                     }
                 }
@@ -190,7 +191,7 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
                 for (auto& i_cond : this_model_part.Conditions())
                 {
                     for(int j=0; j<dim; j++)
-		            {  
+		            {
                         output_values[counter++] = i_cond.GetValue(DISPLACEMENT)[j];
                     }
                 }
@@ -199,7 +200,7 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
             case (DataLocation::ModelPart):{
                 output_values.resize(1 * dim);
                 for(int j=0; j<dim; j++)
-		            {  
+		            {
                         output_values[counter++] = this_model_part(DISPLACEMENT)[j];
                     }
                 break;
@@ -207,7 +208,7 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
             case (DataLocation::ProcessInfo):{
                 output_values.resize(1 * dim);
                 for(int j=0; j<dim; j++)
-		            {  
+		            {
                         output_values[counter++] = this_model_part.GetProcessInfo()(DISPLACEMENT)[j];
                     }
                 break;
@@ -256,7 +257,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Element, Krat
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
-    
+
     auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Element);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
@@ -268,7 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Condition, Kr
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
-    
+
     auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Condition);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
@@ -280,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ModelPart, Kr
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
-    
+
     auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ModelPart);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
@@ -292,7 +293,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ProcessInfo, 
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
-    
+
     auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ProcessInfo);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
@@ -372,7 +373,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_ProcessInfo, 
 
 //13. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on NodeHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_historical, KratosCoreFastSuite)
-{  
+{
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
