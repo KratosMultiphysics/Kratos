@@ -39,12 +39,12 @@ namespace Kratos
 ///@{
 
 /**
- * @class AdvanceInTimeStrategyHighCycleFatigueProcess
+ * @class AdvanceInTimeHighCycleFatigueProcess
  * @ingroup StructuralMechanicsApplication
  * @brief This class determines the advance in time to be performed for a regular cyclic load for the high cycle fatigue CL
  * @author Sergio Jimenez
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)AdvanceInTimeStrategyHighCycleFatigueProcess : public Process
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)AdvanceInTimeHighCycleFatigueProcess : public Process
 {
     ///@name Type Definitions
     ///@{
@@ -61,17 +61,17 @@ public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Pointer definition of ApplyMultipointConstraintsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(AdvanceInTimeStrategyHighCycleFatigueProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(AdvanceInTimeHighCycleFatigueProcess);
 
     /**
      * @brief This is the default constructor (double)
      * @param rModelPart The model part to be used
      * @param ThisParameters The input parameters
      */
-	AdvanceInTimeStrategyHighCycleFatigueProcess(ModelPart& rModelPart, Parameters ThisParameters);
+	AdvanceInTimeHighCycleFatigueProcess(ModelPart& rModelPart, Parameters ThisParameters);
 
     // Destructor
-    ~AdvanceInTimeStrategyHighCycleFatigueProcess() override = default;
+    ~AdvanceInTimeHighCycleFatigueProcess() override = default;
 
     void Execute() override;
 
@@ -105,7 +105,7 @@ protected:
     ModelPart& mrModelPart;                     // The model part to compute
     Parameters mThisParameters;
 
-}; // Class AdvanceInTimeStrategyHighCycleFatigueProcess
+}; // Class AdvanceInTimeHighCycleFatigueProcess
 
 } // namespace Kratos
 

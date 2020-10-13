@@ -19,7 +19,7 @@ class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
         """
         while self.KeepAdvancingSolutionLoop():
             self.time = self._GetSolver().AdvanceInTime(self.time)
-            process = SMA.AdvanceInTimeStrategyHighCycleFatigueProcess(self._GetSolver().GetComputingModelPart(), self.project_parameters)
+            process = SMA.AdvanceInTimeHighCycleFatigueProcess(self._GetSolver().GetComputingModelPart(), self.project_parameters)
             if self.project_parameters["fatigue"]["advancing_strategy"].GetBool():
                 process.Execute()
                 time_incr = self._GetSolver().GetComputingModelPart().ProcessInfo[SMA.TIME_INCREMENT]
@@ -32,14 +32,8 @@ class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-    def FinalizeSolutionStep(self):
-        """This function performs all the required operations that should be executed
-        (for each step) AFTER solving the solution step.
-        """
-        self._GetSolver().FinalizeSolutionStep()
-
-        for process in self._GetListOfProcesses():
-            process.ExecuteFinalizeSolutionStep()
+    def OutputSolutionStep(self):
+        super(StructuralMechanicsHCFAnalysis, self).OutputSolutionStep()
 
         interval = 0
         if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
