@@ -121,7 +121,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 {
     // compose local element mappings
     const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
-    const bool is_precompute_mapping_matrix = mMapperSettings["is_precompute_mapping_matrix"].GetBool();
+    const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
     CouplingGeometryLocalSystem ref_projector_local_system(nullptr, true, dual_mortar);
     CouplingGeometryLocalSystem ref_slave_local_system(nullptr, false, dual_mortar);
 
@@ -186,11 +186,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     }
     else {
         MappingMatrixUtilities::InitializeSystemVector<TSparseSpace, TDenseSpace>(mpTempVector, mpInterfaceVectorContainerDestination->GetModelPart().NumberOfNodes());
-        if (is_precompute_mapping_matrix)  CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
+        if (precompute_mapping_matrix)  CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
     }
 
     // Check row sum of pre-computed mapping matrices only
-    if (is_precompute_mapping_matrix || dual_mortar) {
+    if (precompute_mapping_matrix || dual_mortar) {
         const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
         MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true);
     }
@@ -203,11 +203,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     Kratos::Flags MappingOptions)
 {
     const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
-    const bool is_precompute_mapping_matrix = mMapperSettings["is_precompute_mapping_matrix"].GetBool();
+    const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
 
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    if (dual_mortar || is_precompute_mapping_matrix) {
+    if (dual_mortar || precompute_mapping_matrix) {
         TSparseSpace::Mult(
             *mpMappingMatrix,
             mpInterfaceVectorContainerOrigin->GetVector(),
@@ -231,11 +231,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     Kratos::Flags MappingOptions)
 {
     const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
-    const bool is_precompute_mapping_matrix = mMapperSettings["is_precompute_mapping_matrix"].GetBool();
+    const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
 
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
-    if (dual_mortar || is_precompute_mapping_matrix) {
+    if (dual_mortar || precompute_mapping_matrix) {
         TSparseSpace::TransposeMult(
             *mpMappingMatrix,
             mpInterfaceVectorContainerDestination->GetVector(),

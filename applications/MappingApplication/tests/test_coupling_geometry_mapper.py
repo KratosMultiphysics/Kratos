@@ -37,7 +37,7 @@ class TestDualMortarCouplingGeometryMapper(KratosUnittest.TestCase):
         self.mapper_parameters = KM.Parameters("""{
             "mapper_type": "coupling_geometry",
             "echo_level" : 0,
-            "is_precompute_mapping_matrix" : false,
+            "precompute_mapping_matrix" : false,
 			"dual_mortar": true,
 			"consistency_scaling" : true,
 			"modeler_name" : "MappingGeometriesModeler",
@@ -68,7 +68,7 @@ class TestComputeMappingMatrixCouplingGeometryMapper(KratosUnittest.TestCase):
         self.mapper_parameters = KM.Parameters("""{
             "mapper_type": "coupling_geometry",
             "echo_level" : 0,
-            "is_precompute_mapping_matrix" : true,
+            "precompute_mapping_matrix" : true,
 			"dual_mortar": false,
 			"consistency_scaling" : true,
 			"modeler_name" : "MappingGeometriesModeler",
@@ -120,7 +120,7 @@ def SetDefaultMappingParameters(self):
     self.mapper_parameters = KM.Parameters("""{
             "mapper_type": "coupling_geometry",
             "echo_level" : 0,
-            "is_precompute_mapping_matrix" : false,
+            "precompute_mapping_matrix" : false,
 			"dual_mortar": false,
 			"consistency_scaling" : true,
 			"modeler_name" : "MappingGeometriesModeler",
