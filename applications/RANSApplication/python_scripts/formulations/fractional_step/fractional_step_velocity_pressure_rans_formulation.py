@@ -15,7 +15,7 @@ from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 
 
@@ -182,11 +182,11 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         self.solver_settings.SetEchoLevel(self.echo_level)
 
         ## Construct the linear solvers
-        linear_solver_factory = GetKratosObjectType("LinearSolverFactory")
+        linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
         pressure_linear_solver = linear_solver_factory(settings["pressure_linear_solver_settings"])
         velocity_linear_solver = linear_solver_factory(settings["velocity_linear_solver_settings"])
 
-        strategy_label_type = GetKratosObjectType("StrategyLabel")
+        strategy_label_type = GetKratosObjectPrototype("StrategyLabel")
 
         self.solver_settings.SetStrategy(
             strategy_label_type.Velocity,
@@ -199,15 +199,16 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             settings["pressure_tolerance"].GetDouble(),
             settings["maximum_pressure_iterations"].GetInt())
 
+        solver_type = GetKratosObjectPrototype("FractionalStepStrategy")
         if self.IsPeriodic():
-            self.solver = GetKratosObjectType("FractionalStepStrategy")(
+            self.solver = solver_type(
                 self.fractional_step_model_part,
                 self.solver_settings,
                 settings["predictor_corrector"].GetBool(),
                 False,
                 KratosCFD.PATCH_INDEX)
         else:
-            self.solver = GetKratosObjectType("FractionalStepStrategy")(
+            self.solver = solver_type(
                 self.fractional_step_model_part,
                 self.solver_settings,
                 settings["predictor_corrector"].GetBool(),
@@ -244,6 +245,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         if (self.IsBufferInitialized()):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
+                self.ExecuteBeforeCouplingSolveStep()
                 self.solver.Predict()
                 self.is_converged = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
@@ -326,9 +328,9 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
     def _CreateSolverSettings(self, *args):
         if (self.IsPeriodic()):
-            solver_settings_type = GetKratosObjectType("FractionalStepSettingsPeriodic")
+            solver_settings_type = GetKratosObjectPrototype("FractionalStepSettingsPeriodic")
         else:
-            solver_settings_type = GetKratosObjectType("FractionalStepSettings")
+            solver_settings_type = GetKratosObjectPrototype("FractionalStepSettings")
 
         if (IsDistributedRun()):
             return solver_settings_type(self.GetCommunicator(), *args)

@@ -14,7 +14,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBloc
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 
 class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -126,30 +126,34 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                                          self.monolithic_model_part,
                                          periodic_variables_list)
 
-        conv_criteria = GetKratosObjectType("MixedGenericCriteria")(
+        conv_criteria_type = GetKratosObjectPrototype("MixedGenericCriteria")
+        conv_criteria = conv_criteria_type(
             [(Kratos.VELOCITY, settings["relative_velocity_tolerance"].GetDouble(), settings["absolute_velocity_tolerance"].GetDouble()),
              (Kratos.PRESSURE, settings["relative_pressure_tolerance"].GetDouble(), settings["absolute_pressure_tolerance"].GetDouble())])
 
         if self.is_steady_simulation:
-            scheme = GetKratosObjectType("ResidualBasedSimpleSteadyScheme")(
+            scheme_type = GetKratosObjectPrototype("ResidualBasedSimpleSteadyScheme")
+            scheme = scheme_type(
                 settings["velocity_relaxation"].GetDouble(),
                 settings["pressure_relaxation"].GetDouble(),
                 self.GetDomainSize())
         else:
-            scheme = GetKratosObjectType("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")(
+            scheme_type = GetKratosObjectPrototype("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
+            scheme = scheme_type(
                 bossak_alpha,
                 settings["move_mesh_strategy"].GetInt(),
                 self.GetDomainSize())
 
-        linear_solver = GetKratosObjectType("LinearSolverFactory")(
-            settings["linear_solver_settings"])
+        linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
+        linear_solver = linear_solver_factory(settings["linear_solver_settings"])
 
         builder_and_solver = CreateBlockBuilderAndSolver(
             linear_solver,
             self.IsPeriodic(),
             self.GetCommunicator())
 
-        self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
+        solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
+        self.solver = solver_type(
             self.monolithic_model_part,
             scheme,
             conv_criteria,
@@ -176,6 +180,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         if (self.IsBufferInitialized()):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
+                self.ExecuteBeforeCouplingSolveStep()
                 self.solver.Predict()
                 _ = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
