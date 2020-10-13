@@ -62,18 +62,7 @@ public:
     
         typedef Variable<double> component_type;
 
-        if(KratosComponents<component_type>::Has(mvariable_name)) //case of component variable
-        {
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-
-            if( model_part.GetNodalSolutionStepVariablesList().Has( var_component.GetSourceVariable() ) == false )
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
-            }
-
-        }
-        else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
             {
@@ -112,21 +101,6 @@ public:
         }
 
         mvariable_name = rVariable.Name();
-
-        KRATOS_CATCH("");
-    }
-
-    FixScalarDofProcess(ModelPart& model_part,
-			const KratosComponents<Variable<double>>& rVariable) : Process(), mrModelPart(model_part)
-    {
-        KRATOS_TRY;
-
-        if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable.GetSourceVariable() ) == false )
-        {
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",rVariable);
-        }
-
-	mvariable_name = rVariable.Name();
 
         KRATOS_CATCH("");
     }
@@ -189,13 +163,7 @@ public:
 
         KRATOS_TRY;
 
-        if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
-        {
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-            InternalFixDof< component_type >(var_component);
-        }
-        else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             InternalFixDof<>(KratosComponents< Variable<double> >::Get(mvariable_name));
         }
@@ -344,7 +312,6 @@ private:
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-		//it->pAddDof(rVar)->FixDof();
 		it->Fix(rVar);
 
            }
