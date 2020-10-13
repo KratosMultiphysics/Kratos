@@ -39,6 +39,7 @@
 #include "custom_processes/compute_initial_volume_process.h"
 #include "custom_processes/update_pressure_volume_process.h"
 #include "custom_processes/generate_initial_skin_DEM_process.h"
+#include "custom_processes/transfer_entities_between_model_parts_process.hpp"
 
 
 namespace Kratos
@@ -152,6 +153,12 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(init<ModelPart &, ModelPart &>())
         .def("Execute", &GenerateInitialSkinDEMProcess::Execute);
 
+    class_<TransferEntitiesBetweenModelPartsProcess, TransferEntitiesBetweenModelPartsProcess::Pointer, Process>(m,"TransferEntitiesProcess")
+        .def(init<ModelPart&, ModelPart&, const std::string>())
+        .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&>())
+        .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
+        .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute)
+        ;
 }
 } // namespace Python.
 } // Namespace Kratos

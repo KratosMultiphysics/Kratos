@@ -1,7 +1,6 @@
 import os
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
 from importlib import import_module
