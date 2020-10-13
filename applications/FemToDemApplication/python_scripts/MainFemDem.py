@@ -127,7 +127,7 @@ class FEM_Solution(MainSolidFEM.Solution):
                 self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
         
         # Obtain the list of the processes to be applied
-        import KratosMultiphysics.SolidMechanicsApplication.process_handler
+        import KratosMultiphysics.FemToDemApplication.process_handler
 
         process_parameters = KratosMultiphysics.Parameters("{}") 
         process_parameters.AddValue("echo_level", self.ProjectParameters["problem_data"]["echo_level"])
