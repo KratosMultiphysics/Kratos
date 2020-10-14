@@ -311,7 +311,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
     auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
     const auto connectivities = ElementConnectivities(el_bounds);
 
-    DistributedSparseGraph Agraph(dofs_bounds, rComm);
+    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     #pragma omp parallel for
     for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
@@ -336,7 +336,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreF
     auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
     const auto connectivities = ElementConnectivities(el_bounds);
 
-    DistributedSparseGraph Agraph(dofs_bounds, rComm);
+    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     #pragma omp parallel for
     for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
@@ -393,7 +393,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
 
     rComm.Barrier(); //to ensure fair timings
     double start_graph = OpenMPUtils::GetCurrentTime();
-    DistributedSparseGraph Agraph(dofs_bounds, rComm);
+    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     #pragma omp parallel for
     for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
@@ -421,7 +421,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
     const auto connectivities = ElementConnectivities(el_bounds);
 
-    DistributedSparseGraph Agraph(dofs_bounds, rComm);
+    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     #pragma omp parallel for
     for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
@@ -479,6 +479,113 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     {
         IndexType global_i = y.GetNumbering().GlobalId(i);
         KRATOS_CHECK_NEAR(y[i] ,  reference_spmv_res[global_i] , 1e-14 );
+    }
+}
+
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCoreFastSuite)
+{
+    typedef DistributedSparseGraph::IndexType IndexType;
+    DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
+    IndexType col_divider = 3; //ratio of size between columns and row indices
+
+    //*************************************************************************
+    //compute reference solution - serial mode
+    std::vector<IndexType> all_el_bounds{0,31};
+    const auto all_connectivities = ElementConnectivities(all_el_bounds);
+    SparseContiguousRowGraph<IndexType> Agraph_serial(40);
+
+    IndexPartition<IndexType>(all_connectivities.size()).for_each([&](IndexType i)
+    {
+        std::vector<IndexType> row_ids = all_connectivities[i];
+        std::vector<IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
+
+        Agraph_serial.AddEntries(row_ids, col_ids);
+    });
+    Agraph_serial.Finalize();
+
+    CsrMatrix<double, IndexType> Aserial(Agraph_serial);
+
+    Aserial.BeginAssemble();   
+    for(const auto& c : all_connectivities){   
+        std::vector<IndexType> row_ids = c;
+        std::vector<IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
+        Matrix data(row_ids.size(),col_ids.size(),1.0);
+        Aserial.Assemble(data,row_ids, col_ids);
+    }
+    Aserial.FinalizeAssemble();
+
+    auto reference_A_map = Aserial.ToMap();
+
+    // //here we test SPMV by a vector of 1s
+    SystemVector<> yserial(Aserial.size1()); //destination vector
+    yserial.SetValue(0.0);
+
+    SystemVector<> xserial(Aserial.size2()); //origin vector
+    xserial.SetValue(1.0);
+
+    Aserial.SpMV(yserial,xserial);
+
+
+    //*************************************************************************
+    int world_size =rComm.Size();
+    int my_rank = rComm.Rank();
+
+    auto dofs_bounds = ComputeBounds<IndexType>(40, world_size, my_rank);
+    auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
+    const auto connectivities = ElementConnectivities(el_bounds);
+
+    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+
+
+    IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i)
+    {
+        std::vector<IndexType> row_ids = connectivities[i];
+        std::vector<IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
+        Agraph.AddEntries(row_ids, col_ids);
+    });
+    Agraph.Finalize();
+
+    DistributedCsrMatrix<double, IndexType> A(Agraph);
+    A.BeginAssemble();   
+    for(const auto& c : connectivities){   
+        std::vector<IndexType> row_ids = c;
+        std::vector<IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
+        Matrix data(row_ids.size(),col_ids.size(),1.0);
+        A.Assemble(data,row_ids, col_ids);
+    }
+    A.FinalizeAssemble();
+    auto Amap = A.ToMap();
+
+    //check that all "local" values in reference_A_map also appear in A_map
+    for(const auto& item : reference_A_map)
+    {
+        IndexType i = item.first.first;
+        if(A.GetRowNumbering().IsLocal(i))
+        {
+            IndexType j = item.first.second;
+            double reference_v = item.second;
+            if(Amap.find(item.first) == Amap.end())
+                KRATOS_ERROR << "entry " << i << " " << j << "not found in A_map" <<std::endl;
+
+            double v = Amap.find(item.first)->second;
+            KRATOS_CHECK_NEAR(v,reference_v,1e-14);
+        }
+    }
+
+    // //here we test SPMV by a vector of 1s
+    DistributedSystemVector<> y(Agraph); //destination vector
+    y.SetValue(0.0);
+
+    DistributedSystemVector<> x(A.GetColNumbering()); //origin vector
+    x.SetValue(1.0);
+
+    A.SpMV(y,x);
+
+    for(IndexType i_local=0; i_local<y.LocalSize(); ++i_local)
+    {
+        IndexType i_global = y.GetNumbering().GlobalId(i_local);
+        KRATOS_CHECK_NEAR(y[i_local], yserial(i_global), 1e-14);
     }
 
 }
