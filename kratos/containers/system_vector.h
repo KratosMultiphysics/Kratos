@@ -66,12 +66,14 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
     template< class TGraphType >
     SystemVector(const TGraphType& rGraph){
         mData.resize(rGraph.Size(),false);
     }
 
+    SystemVector(IndexType size){
+        mData.resize(size,false);
+    }
     /// Destructor.
     virtual ~SystemVector(){}
 
@@ -155,7 +157,9 @@ std::stringstream buffer;
     virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SystemVector";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const {
+        std::cout << mData << std::endl;
+    }
 
     ///@}
     ///@name Friends

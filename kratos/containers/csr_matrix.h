@@ -20,6 +20,7 @@
 #include "containers/system_vector.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "includes/key_hash.h"
 
 // Project includes
 #include "includes/define.h"
@@ -57,6 +58,11 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
+    typedef std::unordered_map<std::pair<IndexType, IndexType>,
+                          double,
+                          PairHasher<IndexType, IndexType>,
+                          PairComparor<IndexType, IndexType>
+                          > MatrixMapType;
 
     /// Pointer definition of CsrMatrix
     KRATOS_CLASS_POINTER_DEFINITION(CsrMatrix);
@@ -73,13 +79,9 @@ public:
     CsrMatrix(const TGraphType& rSparseGraph)
     {
         rSparseGraph.ExportCSRArrays(mRowIndices,mColIndices);
-        //mNrows = rSparseGraph.Size();
+        mNrows = size1();
 
-        //TODO: parallelize
-        IndexType max_col = 0;
-        for(IndexType i=0; i<mColIndices.size(); ++i)
-            max_col = std::max(max_col,mColIndices[i]);
-        mNcols = max_col;
+        ComputeColSize();
 
         //initialize mValuesVector to zero
         mValuesVector.resize(mColIndices.size(),false);
@@ -147,6 +149,28 @@ public:
         return mValuesVector;
     }
 
+    void SetColSize(IndexType Ncols){
+        mNcols = Ncols;
+    }
+
+    void ComputeColSize()
+    {
+        //TODO: parallelize
+        IndexType max_col = 0;
+        for(IndexType i=0; i<mColIndices.size(); ++i)
+            max_col = std::max(max_col,mColIndices[i]);
+        mNcols = max_col+1; //note that we must add 1 to the greatest column id
+    }
+
+    void CheckColSize()
+    {
+        IndexType max_col = 0;
+        for(IndexType i=0; i<mColIndices.size(); ++i)
+            max_col = std::max(max_col,mColIndices[i]);
+        if(max_col > mNcols)
+            KRATOS_ERROR << " max column index : " << max_col << " exceeds mNcols :" << mNcols << std::endl;
+    }
+
     TDataType& operator()(IndexType I, IndexType J){
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
@@ -212,6 +236,22 @@ public:
         mNrows = nrows;
     }
 
+    MatrixMapType ToMap() const
+    {
+        MatrixMapType value_map;
+        for(unsigned int i=0; i<size1(); ++i)
+        {
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType j = index2_data()[k];
+                TDataType v = value_data()[k];
+                value_map[{i,j}] = v;
+            }  
+        }
+        return value_map;
+    }
+
 
     void BeginAssemble(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
@@ -249,7 +289,7 @@ public:
             for(unsigned int j_local=1; j_local<local_size; ++j_local){
                 J = EquationId[j_local];
 
-                if(k+1<index2_data().size() && index2_data()[k+1] == J){
+                if(k+1<row_end && index2_data()[k+1] == J){
                     k = k+1;
                 }
                 else if(J > lastJ){ //note that the case k+2 >= index2_data().size() should be impossible
@@ -260,6 +300,53 @@ public:
                 }
                 //the last missing case is J == lastJ, which should never happen in FEM. If that happens we can reuse k
 
+                AtomicAdd(value_data()[k] , rMatrixInput(i_local,j_local));
+
+                lastJ = J;
+            }
+        }
+    }
+
+    template<class TMatrixType, class TIndexVectorType >
+    void Assemble(
+        const TMatrixType& rMatrixInput,
+        const TIndexVectorType& RowEquationId,
+        const TIndexVectorType& ColEquationId
+    )
+    {
+        KRATOS_DEBUG_ERROR_IF(rMatrixInput.size1() != RowEquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rMatrixInput.size2() != ColEquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
+
+        unsigned int local_size = rMatrixInput.size1();
+        unsigned int col_size = rMatrixInput.size2();
+
+        for (unsigned int i_local = 0; i_local < local_size; ++i_local)
+        {
+            const IndexType I = RowEquationId[i_local];
+            const IndexType row_begin = index1_data()[I];
+            const IndexType row_end = index1_data()[I+1];
+
+            //find first entry (note that we know it exists since local_size > 0)
+            IndexType J = ColEquationId[0];
+            IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+            IndexType lastJ = J;
+
+            AtomicAdd(value_data()[k], rMatrixInput(i_local,0));
+
+            //now find other entries. note that we assume that it is probably that next entries immediately follow in the ordering
+            for(unsigned int j_local=1; j_local<col_size; ++j_local){
+                J = ColEquationId[j_local];
+
+                if(k+1<row_end && index2_data()[k+1] == J){
+                    k = k+1;
+                }
+                else if(J > lastJ){ //note that the case k+2 >= index2_data().size() should be impossible
+                    k = BinarySearch(index2_data(), k+2, row_end, J);
+                }
+                else if(J < lastJ){
+                    k = BinarySearch(index2_data(), row_begin, k-1, J);
+                }
+                //the last case is J == lastJ, which should never happen in FEM. If that happens we can reuse k
                 AtomicAdd(value_data()[k] , rMatrixInput(i_local,j_local));
 
                 lastJ = J;

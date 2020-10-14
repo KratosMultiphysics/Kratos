@@ -67,7 +67,44 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    //constructor by local size - computes cpu bounds automatically
+    DistributedNumbering(
+        const DataCommunicator& rComm,
+        const IndexType LocalSize)
+        :
+        mrComm(rComm)
+    {
+        mCpuBounds.resize(rComm.Size()+1);
+
+        std::vector<IndexType> send_vect{LocalSize};
+        std::vector<IndexType> local_sizes = rComm.AllGather(send_vect);
+        
+        mCpuBounds[0] = 0;
+        for(unsigned int i=1; i<mCpuBounds.size(); ++i)
+            mCpuBounds[i] = mCpuBounds[i-1] + local_sizes[i-1];
+    }
+
+    //constructor by global sizes and nranks - Requires no communication
+    DistributedNumbering(
+        const DataCommunicator& rComm,
+        const IndexType TotalSize,
+        const MpiIndexType Nranks //note that we could obtain this by the rComm, but we need to distinguish this constructor from the previous
+        )
+        :
+        mrComm(rComm)
+    {
+        KRATOS_ERROR_IF(rComm.Size() != Nranks) << "We expect Nranks to be the same as rComm.size()" << std::endl;
+
+        mCpuBounds.resize(rComm.Size()+1);
+
+        const IndexType local_size = TotalSize / Nranks;
+        mCpuBounds[0] = 0;
+        mCpuBounds[Nranks] = TotalSize;
+        for (int i=1; i<Nranks; i++) {
+            mCpuBounds[i] = mCpuBounds[i-1] + local_size;
+        }
+    }    
+
     DistributedNumbering(
         const DataCommunicator& rComm,
         const std::vector<IndexType>& CpuBounds)
@@ -94,16 +131,21 @@ public:
         return mrComm;
     }
 
-    inline bool IsLocal(const IndexType I) const
-    {
-        const auto k = GetComm().Rank();
-        return (I>=mCpuBounds[k] && I<mCpuBounds[k+1]);
-    }
-
     inline IndexType LocalSize() const
     {
         const auto k = GetComm().Rank();
         return mCpuBounds[k+1]-mCpuBounds[k];
+    }
+
+    inline IndexType TotalSize() const
+    {
+        return mCpuBounds[mCpuBounds.size()-1];
+    }
+
+    inline bool IsLocal(const IndexType I) const
+    {
+        const auto k = GetComm().Rank();
+        return (I>=mCpuBounds[k] && I<mCpuBounds[k+1]);
     }
 
     inline IndexType LocalId(const IndexType rGlobalId) const

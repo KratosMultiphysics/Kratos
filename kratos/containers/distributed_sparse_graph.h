@@ -83,56 +83,19 @@ public:
     ///@{
 
     /// Default constructor.
-    DistributedSparseGraph(const std::vector<IndexType> limits,
+    DistributedSparseGraph(const IndexType LocalSize,
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
     : 
       mrComm(rComm),
-      mLocalGraph(limits[1]-limits[0])
+      mLocalGraph(LocalSize)
     {
-        std::vector<IndexType> mLocalBounds(limits);
         mNonLocalGraphs.resize(mrComm.Size(),false);
         mNonLocalLocks.resize(mrComm.Size(),false);
 
-        auto all_limits = mrComm.AllGather(mLocalBounds);
-
-        //construct and sort a list containing the limits
-        std::vector< std::array<IndexType,3> > tmp;
-        IndexType cpu_id = 0;
-        for(IndexType i=0; i<all_limits.size(); i+=2)
-        {
-            tmp.push_back({all_limits[i], all_limits[i+1], cpu_id++});
-        }
-        std::sort(tmp.begin(),
-                  tmp.end(),
-                  [](const std::array<IndexType,3>& a,
-                     const std::array<IndexType,3>& b)
-                     {return (a[0]<b[0]);}
-                );
-
-        //do consistency check
-        for(unsigned int i=0; i<tmp.size()-1; ++i)
-        {
-            //check that no gaps are present
-            if(tmp[i][1]!=tmp[i+1][0])
-                KRATOS_ERROR << "upper bound of cpu" << i << " : " << tmp[i][1] <<
-                            "is not consistent with the lower bound of cpu " <<
-                            i+1 << " : " << tmp[i+1][0] << std::endl;
-
-            //check that the first cpu has the lowest ids and progressively higher
-            if(tmp[i][2] > tmp[i+1][2])
-                KRATOS_ERROR << "cpu bounds are not ordered correctly" << std::endl;
-        }
-        std::vector<IndexType> mCpuBounds;
-        mCpuBounds.push_back(tmp[0][0]);
-        for(unsigned int i=0; i<tmp.size(); ++i)
-        {
-            //save to the final list
-            mCpuBounds.push_back(tmp[i][1]);
-        }
-
-        mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm,mCpuBounds);
+        mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm,LocalSize);
     }
 
+    
     /// Destructor.
     virtual ~DistributedSparseGraph(){}
 
@@ -146,6 +109,10 @@ public:
         return *mpRowNumbering;
     }
 
+    inline IndexType TotalSize() const{ //TODO discuss if this shall be called simply "Size"
+        return mpRowNumbering->TotalSize(); 
+    }
+
     inline IndexType LocalSize() const{
         return mpRowNumbering->LocalSize(); 
     }
@@ -155,6 +122,28 @@ public:
         return mLocalGraph.Has(GetRowNumbering().LocalId(GlobalI),GlobalJ);
     }
 
+    //this function detects the maximum and minimum globalJ found in the local graph
+    void ComputeLocalMinMaxColumnIndex(IndexType& rMinJ, IndexType& rMaxJ) const
+    {
+        rMaxJ = 0;
+        rMinJ = 0;
+        for(IndexType local_i = 0; local_i<mLocalGraph.Size();++local_i) 
+        {
+            for(auto J : mLocalGraph[local_i] ) //J here is the global index
+            {
+                rMaxJ = std::max(rMaxJ, J);
+                rMinJ = std::min(rMinJ, J);
+            }
+        }
+    }
+
+    IndexType ComputeMaxGlobalColumnIndex() const
+    {
+        IndexType MinJ, MaxJ;
+        ComputeLocalMinMaxColumnIndex(MinJ,MaxJ);
+        return GetComm().MaxAll(MaxJ);
+    }
+    
  
     ///@}
     ///@name Operators
@@ -228,6 +217,15 @@ public:
                 mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(I,owner), rIndices);;
                 mNonLocalLocks[owner].UnSetLock();
             }
+        }
+    }
+
+    template<class TContainerType>
+    void AddEntries(const TContainerType& rRowIndices, const TContainerType& rColIndices)
+    {
+        for(auto I : rRowIndices)
+        {
+            AddEntries(I, rColIndices);
         }
     }
 

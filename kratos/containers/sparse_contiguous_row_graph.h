@@ -186,6 +186,15 @@ public:
         }
     }
 
+    template<class TContainerType>
+    void AddEntries(const TContainerType& rRowIndices, const TContainerType& rColIndices)
+    {
+        for(auto I : rRowIndices){
+            AddEntries(I, rColIndices);
+        }
+    }
+
+
     void AddEntries(const SparseContiguousRowGraph& rOtherGraph)
     {
         for(IndexType i=0; i<rOtherGraph.Size(); ++i)

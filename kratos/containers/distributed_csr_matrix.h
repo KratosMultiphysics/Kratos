@@ -60,11 +60,7 @@ public:
     ///@{
     typedef TIndexType IndexType;
     typedef int MpiIndexType;
-    typedef std::unordered_map<std::pair<IndexType, IndexType>,
-                          double,
-                          PairHasher<IndexType, IndexType>,
-                          PairComparor<IndexType, IndexType>
-                          > MatrixMapType;
+    typedef typename CsrMatrix<double,IndexType>::MatrixMapType MatrixMapType;
 
     /// Pointer definition of DistributedCsrMatrix
     KRATOS_CLASS_POINTER_DEFINITION(DistributedCsrMatrix);
@@ -79,10 +75,13 @@ public:
             mrComm(rSparseGraph.GetComm())
     {
         mpRowNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rSparseGraph.GetRowNumbering());
-        mpColNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(*mpRowNumbering); //TODO compute correctly the col numbering, instead of just using the row numbering!!!
 
+        //compute the columns size
+        IndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
+        IndexType tot_col_size = max_col_index+1;
+        mpColNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm, tot_col_size, mrComm.Size()); 
 
-        mNonDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
+        mOffDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
         //count entries in diagonal and off_diag blocks
         const auto& local_graph = rSparseGraph.GetLocalGraph();
@@ -96,15 +95,25 @@ public:
                 }
                 else{
                     offdiag_nnz += 1;
-                    mNonDiagonalLocalIds[global_j] = 0;
+                    mOffDiagonalLocalIds[global_j] = 0;
                 }
             }
         }
 
         //begin by computing local Ids for non diagonal block
         IndexType counter = 0;
-        for(auto& item : mNonDiagonalLocalIds)
+        for(auto& item : mOffDiagonalLocalIds)
             item.second = counter++;
+
+        mOffDiagonalGlobalIds.resize(mOffDiagonalLocalIds.size(), false);
+        counter = 0;
+        for(auto& item : mOffDiagonalLocalIds)
+        {
+            IndexType global_i = item.first;
+            mOffDiagonalGlobalIds[counter++] = global_i;
+        }
+
+        
 
         //*******************************
         //construct diagonal block
@@ -125,7 +134,11 @@ public:
             mDiagBlock.index1_data()[counter+1] = row_begin + k;
             counter++;
         }
-
+        mDiagBlock.SetColSize(GetColNumbering().LocalSize());
+        
+#ifdef KRATOS_DEBUG
+        mDiagBlock.CheckColSize();
+#endif
 
         //ensure columns are ordered
         for(IndexType i = 0; i<nlocal_rows; ++i){
@@ -155,6 +168,11 @@ public:
             mOffDiagBlock.index1_data()[counter+1] = row_begin + k;
             counter++;
         }
+        mOffDiagBlock.SetColSize(mOffDiagonalLocalIds.size());
+
+#ifdef KRATOS_DEBUG
+        mOffDiagBlock.CheckColSize();
+#endif
 
         //ensure columns are ordered
         for(IndexType i = 0; i<nlocal_rows; ++i){
@@ -166,16 +184,8 @@ public:
         PrepareNonLocalCommunications(rSparseGraph);
 
         //mount importer for SpMV calculations
-        std::vector<IndexType> off_diag_global_ids;
-        for(auto& item : mNonDiagonalLocalIds)
-        {
-            IndexType global_i = item.first;
-            off_diag_global_ids.push_back(global_i);
-        }
 
-
-
-        auto pimporter = Kratos::make_unique<DistributedVectorImporter<double,IndexType>>(GetComm(),off_diag_global_ids, GetColNumbering()); 
+        auto pimporter = Kratos::make_unique<DistributedVectorImporter<double,IndexType>>(GetComm(),mOffDiagonalGlobalIds, GetColNumbering()); 
         mpVectorImporter.swap(pimporter);
     }
 
@@ -252,8 +262,8 @@ public:
     
 
     IndexType GetOffDiagLocalId(IndexType GlobalJ) const{
-        auto it = mNonDiagonalLocalIds.find(GlobalJ);
-        KRATOS_DEBUG_ERROR_IF( it == mNonDiagonalLocalIds.end() ) << "GlobalJ is not in the nonlocal list" << std::endl;
+        auto it = mOffDiagonalLocalIds.find(GlobalJ);
+        KRATOS_DEBUG_ERROR_IF( it == mOffDiagonalLocalIds.end() ) << "GlobalJ is not in the nonlocal list" << std::endl;
         return it->second;
     }
 
@@ -392,6 +402,69 @@ public:
 
             }
         }
+    }
+
+    template<class TMatrixType, class TIndexVectorType >
+    void Assemble(
+        const TMatrixType& rMatrixInput,
+        const TIndexVectorType& RowEquationId,
+        const TIndexVectorType& ColEquationId
+    )
+    {
+        KRATOS_DEBUG_ERROR_IF(rMatrixInput.size1() != RowEquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rMatrixInput.size2() != ColEquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
+
+        for(unsigned int i=0; i<RowEquationId.size(); ++i){
+            const IndexType global_i = RowEquationId[i];
+
+            if(GetRowNumbering().IsLocal(global_i))
+            {
+               for(unsigned int j = 0; j<ColEquationId.size(); ++j)
+                {
+                    const IndexType global_j = ColEquationId[j];
+                    TDataType& value = GetLocalDataByGlobalId(global_i,global_j);
+                    AtomicAdd(value, rMatrixInput(i,j));
+                }
+            }
+            else
+            {
+                for(unsigned int j = 0; j<ColEquationId.size(); ++j)
+                {
+                    const IndexType global_j = ColEquationId[j];
+                    TDataType& value = GetNonLocalDataByGlobalId(global_i,global_j);
+                    AtomicAdd(value, rMatrixInput(i,j));
+                }                
+
+            }
+        }
+    }
+
+    MatrixMapType ToMap() const
+    {
+        MatrixMapType value_map;
+        for(unsigned int i=0; i<local_size1(); ++i)
+        {
+            IndexType row_begin = mDiagBlock.index1_data()[i];
+            IndexType row_end   = mDiagBlock.index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType j = mDiagBlock.index2_data()[k];
+                TDataType v = mDiagBlock.value_data()[k];
+                value_map[{GetRowNumbering().GlobalId(i),GetColNumbering().GlobalId(j)}] = v;
+            }  
+        }
+
+        for(unsigned int i=0; i<local_size1(); ++i)
+        {
+            IndexType row_begin = mOffDiagBlock.index1_data()[i];
+            IndexType row_end   = mOffDiagBlock.index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType j = mOffDiagBlock.index2_data()[k];
+                TDataType v = mOffDiagBlock.value_data()[k];
+                value_map[{GetRowNumbering().GlobalId(i),mOffDiagonalGlobalIds[j]}] = v;
+            }  
+        }
+
+        return value_map;
     }
 
     //TODO
@@ -582,7 +655,8 @@ private:
     MatrixMapType mNonLocalData; //data which is assembled locally and needs to be communicated to the owner
 
     //this map tells for an index J which does not belong to the local diagonal block which is the corresponding localJ
-    std::map<IndexType, IndexType> mNonDiagonalLocalIds;
+    std::map<IndexType, IndexType> mOffDiagonalLocalIds; //usage: mOffDiagonalLocalIds[global_id] contains the local_id associated to that global_id (for a off diagonal block entry)
+    DenseVector<IndexType> mOffDiagonalGlobalIds; //usage: mOffDiagonalGlobalIds[local_id] contains the global_id associated
 
     std::vector<int> mfem_assemble_colors; //coloring of communication
     std::unordered_map< unsigned int, std::vector<TDataType*> > mPointersToRecvValues; //this contains direct pointers into the data contained in mNonLocalData, prepared so to speed up communications

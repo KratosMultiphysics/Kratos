@@ -71,7 +71,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
     DistributedSystemVector(const DistributedSparseGraph& rGraph)
             :
             mrComm(rGraph.GetComm())
@@ -120,6 +119,16 @@ public:
 
     }
 
+    DistributedSystemVector(const DistributedNumbering<IndexType>& rNumbering)
+            :
+            mrComm(rNumbering.GetComm())
+    {
+        mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rNumbering );
+
+        mLocalData.resize(rNumbering.LocalSize(),false);
+        mNonLocalData.resize(mrComm.Size());
+    }
+
     /// Destructor.
     virtual ~DistributedSystemVector(){}
 
@@ -164,49 +173,17 @@ public:
         return mLocalData[I];
     }
 
+    inline IndexType TotalSize() const{ //TODO discuss if this shall be called simply "Size"
+        return mpNumbering->TotalSize(); 
+    }
+
     inline IndexType LocalSize() const{
         return mpNumbering->LocalSize(); 
     }
 
-    // inline bool IsLocal(const IndexType rGlobalId) const
-    // {
-    //     return mpNumbering->IsLocal(rGlobalId);
-    // }
-
-    // inline IndexType LocalId(const IndexType rGlobalId) const
-    // {
-    //     return mpNumbering->LocalId(rGlobalId);
-    // }
-
-    // inline IndexType GlobalId(const IndexType rLocalId) const
-    // {
-    //     return mpNumbering->GlobalId(rLocalId);
-    // }
-
-    // inline IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
-    // {
-    //     return mpNumbering->RemoteLocalId(rGlobalId, rOwnerRank);
-    // }
-
-    // inline IndexType OwnerRank(const IndexType RowIndex) const
-    // {
-    //     return mpNumbering->OwnerRank(RowIndex);
-    // }
-
-    // IndexType RemoteGlobalId(const IndexType rRemoteLocalId, const IndexType rOwnerRank) const
-    // {
-    //     return mpNumbering->RemoteGlobalId(rRemoteLocalId, rOwnerRank);
-    // } 
-
-
-
-
-
-
     DenseVector<TDataType>& GetLocalData(){
         return mLocalData;
     }
-
 
     const DenseVector<TDataType>& GetLocalData() const{
         return mLocalData;
@@ -318,7 +295,9 @@ std::stringstream buffer;
     virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedSystemVector";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const {
+        std::cout << mLocalData << std::endl;
+    }
 
     ///@}
     ///@name Friends

@@ -164,6 +164,14 @@ public:
             mGraph[I].insert(rIndices.begin(), rIndices.end());
     }
 
+    template<class TContainerType>
+    void AddEntries(const TContainerType& rRowIndices, const TContainerType& rColIndices)
+    {
+        for(auto I : rRowIndices)
+            AddEntries(I, rColIndices);
+    }
+
+
     void AddEntries(SparseGraph& rOtherGraph)
     {
         for(const auto& item: rOtherGraph.GetGraph())

@@ -193,7 +193,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-std::stringstream buffer;
+    std::stringstream buffer;
     buffer << "DistributedVectorImporter" ;
     return buffer.str();
     }
