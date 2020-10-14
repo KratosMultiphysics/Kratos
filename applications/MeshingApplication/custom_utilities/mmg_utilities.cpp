@@ -3481,8 +3481,13 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             }
         }
 
+        mmg_mesh_info.NumberOfLines = num_lines;
+
+        KRATOS_INFO_IF("MmgUtilities", (num_lines < r_conditions_array.size()) && mEchoLevel > 0) <<
+        "Number of Conditions: " << r_conditions_array.size() << " Number of Lines: " << num_lines << std::endl;
+
         /* Elements */
-        std::size_t num_tri = 0;
+        std::size_t num_tri = 0, num_quad = 0;
         for(IndexType i = 0; i < r_elements_array.size(); ++i) {
             auto it_elem = it_elem_begin + i;
 
@@ -3490,14 +3495,22 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 for (auto& r_node : it_elem->GetGeometry())
                     remeshed_nodes.insert(r_node.Id());
                 num_tri += 1;
+            } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) { // Quadrilaterals
+                for (auto& r_node : it_elem->GetGeometry())
+                    remeshed_nodes.insert(r_node.Id());
+                num_quad += 1;
             } else {
                 it_elem->Set(OLD_ENTITY, true);
                 KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
             }
         }
 
-        mmg_mesh_info.NumberOfLines = num_lines;
         mmg_mesh_info.NumberOfTriangles = num_tri;
+        mmg_mesh_info.NumberOfQuadrilaterals = num_quad;
+
+        KRATOS_INFO_IF("MmgUtilities", ((num_tri + num_quad) < r_elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
+
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
