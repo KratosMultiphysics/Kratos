@@ -69,7 +69,7 @@ public:
      * Constructor.
      * Aitken convergence accelerator
      */
-    AitkenConvergenceAccelerator(Parameters rConvAcceleratorParameters)
+    explicit AitkenConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
         Parameters aitken_default_parameters(R"(
         {
@@ -81,6 +81,7 @@ public:
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(aitken_default_parameters);
 
+        mConvergenceAcceleratorIteration = 0;
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
     }
 

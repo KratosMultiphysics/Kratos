@@ -80,7 +80,7 @@ public:
      * MVQN convergence accelerator Json settings constructor
      * @param rConvAcceleratorParameters Json string encapsulating the settings
      */
-    MVQNFullJacobianConvergenceAccelerator(Parameters rConvAcceleratorParameters)
+    explicit MVQNFullJacobianConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
         Parameters mvqn_default_parameters(R"(
         {
@@ -92,6 +92,7 @@ public:
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
 
+        mProblemSize = 0;
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
         mAbsCutOff = rConvAcceleratorParameters["abs_cut_off_tol"].GetDouble();
         mConvergenceAcceleratorIteration = 0;
@@ -108,6 +109,7 @@ public:
         const double OmegaInitial = 0.825,
         const double AbsCutOff = 1e-8)
     {
+        mProblemSize = 0;
         mOmega_0 = OmegaInitial;
         mAbsCutOff = AbsCutOff;
         mConvergenceAcceleratorIteration = 0;
