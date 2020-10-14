@@ -276,15 +276,15 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateRightHandSideInternal(
+    void QSCalculateRightHandSideInternal(
         BoundedVector<double, TNumNodes>& rRightHandSideBoundedVector,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateOrthogonalSubgridScaleRHSInternal(
+    void QSCalculateOrthogonalSubgridScaleRHSInternal(
         BoundedVector<double, TNumNodes>& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateTau(ElementData& rData);
+    void QSCalculateTau(ElementData& rData);
 
     ///@}
     ///@name Private  Access

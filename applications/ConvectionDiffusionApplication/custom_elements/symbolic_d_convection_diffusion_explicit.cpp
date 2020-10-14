@@ -84,7 +84,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSid
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Convection-Diffusion element. Call the CalculateRightHandSideInternal() method instead.";
+    KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Convection-Diffusion element. Call the DCalculateRightHandSideInternal() method instead.";
     KRATOS_CATCH("");
 }
 
@@ -101,7 +101,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContributi
     auto& r_geometry = this->GetGeometry();
     const unsigned int local_size = r_geometry.size();
     BoundedVector<double, TNumNodes> rhs;
-    this->CalculateRightHandSideInternal(rhs,rCurrentProcessInfo);
+    this->DCalculateRightHandSideInternal(rhs,rCurrentProcessInfo);
     // Add the residual contribution
     // Note that the reaction is indeed the formulation residual
     const auto& reaction_variable = r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable();
@@ -150,7 +150,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
         // Caluclate N on the gauss point "g"
         rData.N = row(rData.N_gausspoint,g);
         // Compute tau
-        this->CalculateTau(rData);
+        this->DCalculateTau(rData);
         // Retrieve unknown belonging to subgrid scale space on gauss integration point g
         rData.unknown_subscale = mUnknownSubScale(g);
         // Update unknown belonging to subgrid scale space on gauss integration point g
@@ -177,7 +177,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
         auto& r_geometry = this->GetGeometry();
         const unsigned int local_size = r_geometry.size();
         BoundedVector<double, TNumNodes> rhs_oss;
-        this->CalculateOrthogonalSubgridScaleRHSInternal(rhs_oss,rCurrentProcessInfo);
+        this->DCalculateOrthogonalSubgridScaleRHSInternal(rhs_oss,rCurrentProcessInfo);
         for (unsigned int i_node = 0; i_node < local_size; i_node++) {
             #pragma omp atomic
             r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
@@ -194,7 +194,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
+void SymbolicDConvectionDiffusionExplicit<2,3>::DCalculateRightHandSideInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -205,7 +205,7 @@ void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rData);
+    this->DCalculateTau(rData);
 
     // Retrieve element data
     const auto& alpha = rData.diffusivity;
@@ -370,7 +370,7 @@ const double crhs124 =             DN_DX_2_0*crhs65 + DN_DX_2_1*crhs71;
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
+void SymbolicDConvectionDiffusionExplicit<3,4>::DCalculateRightHandSideInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -381,7 +381,7 @@ void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rData);
+    this->DCalculateTau(rData);
 
     // Retrieve element data
     const auto& alpha = rData.diffusivity;
@@ -654,7 +654,7 @@ const double crhs224 =             DN_DX_3_0*crhs99 + DN_DX_3_1*crhs109 + DN_DX_
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScaleRHSInternal(
+void SymbolicDConvectionDiffusionExplicit<2,3>::DCalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -665,7 +665,7 @@ void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScaleR
     this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rData);
+    this->DCalculateTau(rData);
 
     // Retrieve element data
     const auto& alpha = rData.diffusivity;
@@ -752,7 +752,7 @@ const double crhs48 =             -0.166666666666667*crhs25 + 0.166666666666667*
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScaleRHSInternal(
+void SymbolicDConvectionDiffusionExplicit<3,4>::DCalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -763,7 +763,7 @@ void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScaleR
     this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rData);
+    this->DCalculateTau(rData);
 
     // Retrieve element data
     const auto& alpha = rData.diffusivity;
@@ -989,7 +989,7 @@ void SymbolicDConvectionDiffusionExplicit<3,4>::UpdateUnknownSubgridScaleGaussPo
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
+void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::DCalculateTau(
     ElementData& rData)
 {
     KRATOS_TRY;

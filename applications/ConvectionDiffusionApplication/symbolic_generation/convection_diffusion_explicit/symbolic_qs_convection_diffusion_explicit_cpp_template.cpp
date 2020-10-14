@@ -84,7 +84,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSi
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Convection-Diffusion element. Call the CalculateRightHandSideInternal() method instead.";
+    KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Convection-Diffusion element. Call the QSCalculateRightHandSideInternal() method instead.";
     KRATOS_CATCH("");
 }
 
@@ -147,7 +147,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribut
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
     BoundedVector<double, TNumNodes> rhs;
-    this->CalculateRightHandSideInternal(rhs,rCurrentProcessInfo);
+    this->QSCalculateRightHandSideInternal(rhs,rCurrentProcessInfo);
     // Add the residual contribution
     // Note that the reaction is indeed the formulation residual
     const auto& reaction_variable = r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable();
@@ -228,7 +228,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
         auto& r_geometry = GetGeometry();
         const unsigned int local_size = r_geometry.size();
         BoundedVector<double, TNumNodes> rhs_oss;
-        this->CalculateOrthogonalSubgridScaleRHSInternal(rhs_oss,rCurrentProcessInfo);
+        this->QSCalculateOrthogonalSubgridScaleRHSInternal(rhs_oss,rCurrentProcessInfo);
         for (unsigned int i_node = 0; i_node < local_size; i_node++) {
             #pragma omp atomic
             r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
@@ -302,7 +302,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
+void SymbolicQSConvectionDiffusionExplicit<2,3>::QSCalculateRightHandSideInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -313,7 +313,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rData);
+    this->QSCalculateTau(rData);
 
     // Retrieve element data
     const auto& alpha = rData.diffusivity;
@@ -347,7 +347,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
+void SymbolicQSConvectionDiffusionExplicit<3,4>::QSCalculateRightHandSideInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -358,7 +358,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rData);
+    this->QSCalculateTau(rData);
 
     // Retrieve element data
     const auto& alpha = rData.diffusivity;
@@ -399,7 +399,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScaleRHSInternal(
+void SymbolicQSConvectionDiffusionExplicit<2,3>::QSCalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -410,7 +410,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScale
     this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rData);
+    this->QSCalculateTau(rData);
 
     // Retrieve element data
     const auto& alpha = rData.diffusivity;
@@ -442,7 +442,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScale
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScaleRHSInternal(
+void SymbolicQSConvectionDiffusionExplicit<3,4>::QSCalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -453,7 +453,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScale
     this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rData);
+    this->QSCalculateTau(rData);
 
     // Retrieve element data
     const auto& alpha = rData.diffusivity;
@@ -517,7 +517,7 @@ double SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::QSCalculateTau(
     ElementData& rData)
 {
     KRATOS_TRY;

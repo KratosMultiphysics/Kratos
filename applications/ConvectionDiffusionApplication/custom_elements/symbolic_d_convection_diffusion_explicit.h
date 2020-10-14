@@ -232,11 +232,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateRightHandSideInternal(
+    void DCalculateRightHandSideInternal(
         BoundedVector<double, TNumNodes>& rRightHandSideBoundedVector,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateOrthogonalSubgridScaleRHSInternal(
+    void DCalculateOrthogonalSubgridScaleRHSInternal(
         BoundedVector<double, TNumNodes>& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
 
@@ -244,7 +244,7 @@ private:
         ElementData& rData,
         unsigned int g);
 
-    void CalculateTau(ElementData& rData);
+    void DCalculateTau(ElementData& rData);
 
     ///@}
     ///@name Private  Access
