@@ -76,7 +76,7 @@ void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosMVQNRecursiveAccelerator;
     typedef typename TrilinosMVQNRecursiveAccelerator::Pointer TrilinosMVQNRecursiveAcceleratorPointer;
     py::class_< TrilinosMVQNRecursiveAccelerator, TrilinosMVQNRecursiveAcceleratorPointer, TrilinosBaseConvergenceAcceleratorType>(m,"TrilinosMVQNRecursiveJacobianConvergenceAccelerator")
-        .def(py::init< ModelPart&, const Epetra_MpiComm&, Parameters& >())
+        .def(py::init< ModelPart&, const Epetra_MpiComm&, Parameters >())
         .def(py::init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >())
         ;
 
