@@ -3082,7 +3082,15 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMetricScalar(
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( MMG2D_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set distance" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMG2D_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+    }
+#else
     KRATOS_ERROR_IF( MMG2D_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
@@ -3098,7 +3106,15 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricScalar(
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( MMG3D_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set distance" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMG3D_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+    }
+#else
     KRATOS_ERROR_IF( MMG3D_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
@@ -3114,7 +3130,15 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricScalar(
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( MMGS_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set distance" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMGS_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+    }
+#else
     KRATOS_ERROR_IF( MMGS_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
