@@ -1961,11 +1961,27 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // a)  Give the ouptut mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        MMG2D_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
+
+        // b) function calling
+        KRATOS_INFO_IF("MmgUtilities", MMG2D_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ SOLUTION" << std::endl;
+    } else {
+        // a)  Give the ouptut mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        MMG2D_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
+
+        // b) function calling
+        KRATOS_INFO_IF("MmgUtilities", MMG2D_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+    }
+#else
     // a)  Give the ouptut mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMG2D_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG2D_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
@@ -1981,11 +1997,27 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // a)  Give the ouptut mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        MMG3D_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
+
+        // b) function calling
+        KRATOS_INFO_IF("MmgUtilities", MMG3D_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ SOLUTION" << std::endl;
+    } else {
+        // a)  Give the ouptut mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        MMG3D_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
+
+        // b) function calling
+        KRATOS_INFO_IF("MmgUtilities", MMG3D_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+    }
+#else
     // a)  Give the ouptut mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMG3D_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG3D_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
@@ -2001,11 +2033,27 @@ void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // a)  Give the ouptut mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        MMGS_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
+
+        // b) function calling
+        KRATOS_INFO_IF("MmgUtilities", MMGS_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ SOLUTION" << std::endl;
+    } else {
+        // a)  Give the ouptut mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        MMGS_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
+
+        // b) function calling
+        KRATOS_INFO_IF("MmgUtilities", MMGS_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+    }
+#else
     // a)  Give the ouptut mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMGS_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
