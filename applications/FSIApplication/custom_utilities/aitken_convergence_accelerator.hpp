@@ -182,18 +182,6 @@ public:
         KRATOS_CATCH( "" );
     }
 
-    /**
-     * Reset the convergence accelerator iterations counter
-     */
-    void FinalizeSolutionStep() override
-    {
-        KRATOS_TRY;
-
-        mConvergenceAcceleratorIteration = 1;
-
-        KRATOS_CATCH( "" );
-    }
-
     ///@}
 
     ///@name Access
