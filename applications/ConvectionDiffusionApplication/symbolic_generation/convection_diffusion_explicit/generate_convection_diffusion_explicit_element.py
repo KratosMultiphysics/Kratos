@@ -57,7 +57,7 @@ do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 stabilization = True                # Consider ASGS or OSS stabilization. By default simple ASGS is used
 OSS_stabilization = True            # Requires stabilization to be true
-dynamic_subscales = True            # Consider subscale dynamic
+dynamic_subscales = False            # Consider subscale dynamic
 mode = "c"                          # Output mode to a c++ file
 
 if (dim_to_compute == "2D"):
@@ -69,21 +69,21 @@ elif (dim_to_compute == "Both"):
 
 # Initialize the outstring to be filled with the template .cpp file
 if dynamic_subscales:
-    template_filename = "symbolic_d_convection_diffusion_explicit_cpp_template.cpp"
+    template_filename = "d_convection_diffusion_explicit_cpp_template.cpp"
 else:
-    template_filename = "symbolic_qs_convection_diffusion_explicit_cpp_template.cpp"
+    template_filename = "qs_convection_diffusion_explicit_cpp_template.cpp"
 templatefile = open(template_filename)
 outstring = templatefile.read()
 
 # Set the output filename
-if template_filename == "symbolic_d_convection_diffusion_explicit_cpp_template.cpp":
-    output_filename = "symbolic_d_convection_diffusion_explicit.cpp"
-elif template_filename == "symbolic_qs_convection_diffusion_explicit_cpp_template.cpp":
-    output_filename = "symbolic_qs_convection_diffusion_explicit.cpp"
+if template_filename == "d_convection_diffusion_explicit_cpp_template.cpp":
+    output_filename = "d_convection_diffusion_explicit.cpp"
+elif template_filename == "qs_convection_diffusion_explicit_cpp_template.cpp":
+    output_filename = "qs_convection_diffusion_explicit.cpp"
 else:
     err_msg = "Wrong template_filename provided. Must be (template --> output):\n"
-    err_msg +=  "\t- symbolic_d_convection_diffusion_explicit_cpp_template.cpp --> symbolic_d_convection_diffusion_explicit.cpp\n"
-    err_msg +=  "\t- symbolic_qs_convection_diffusion_explicit_cpp_template.cpp --> symbolic_qs_convection_diffusion_explicit.cpp"
+    err_msg +=  "\t- d_convection_diffusion_explicit_cpp_template.cpp --> d_convection_diffusion_explicit.cpp\n"
+    err_msg +=  "\t- qs_convection_diffusion_explicit_cpp_template.cpp --> qs_convection_diffusion_explicit.cpp"
     raise Exception(err_msg)
 
 for dim in dim_vector:

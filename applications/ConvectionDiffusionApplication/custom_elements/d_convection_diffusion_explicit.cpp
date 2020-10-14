@@ -10,7 +10,7 @@
 //  Main author:     Riccardo Tosi
 //
 
-#include "symbolic_d_convection_diffusion_explicit.h"
+#include "d_convection_diffusion_explicit.h"
 
 namespace Kratos
 {
@@ -19,53 +19,53 @@ namespace Kratos
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicDConvectionDiffusionExplicit(
+DConvectionDiffusionExplicit<TDim,TNumNodes>::DConvectionDiffusionExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
-    : SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>(NewId, pGeometry) {}
+    : QSConvectionDiffusionExplicit<TDim,TNumNodes>(NewId, pGeometry) {}
 
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicDConvectionDiffusionExplicit(
+DConvectionDiffusionExplicit<TDim,TNumNodes>::DConvectionDiffusionExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
-    : SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    : QSConvectionDiffusionExplicit<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::~SymbolicDConvectionDiffusionExplicit() {}
+DConvectionDiffusionExplicit<TDim,TNumNodes>::~DConvectionDiffusionExplicit() {}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
+Element::Pointer DConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SymbolicDConvectionDiffusionExplicit>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<DConvectionDiffusionExplicit>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
+Element::Pointer DConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SymbolicDConvectionDiffusionExplicit>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<DConvectionDiffusionExplicit>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
+void DConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -79,7 +79,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
+void DConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -92,7 +92,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSid
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
+void DConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -117,7 +117,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContributi
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
+void DConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -132,7 +132,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
+void DConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -164,7 +164,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
+void DConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
     const Variable<double>& rVariable,
     double& Output,
     const ProcessInfo& rCurrentProcessInfo)
@@ -194,7 +194,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2,3>::DCalculateRightHandSideInternal(
+void DConvectionDiffusionExplicit<2,3>::DCalculateRightHandSideInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -370,7 +370,7 @@ const double crhs124 =             DN_DX_2_0*crhs65 + DN_DX_2_1*crhs71;
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3,4>::DCalculateRightHandSideInternal(
+void DConvectionDiffusionExplicit<3,4>::DCalculateRightHandSideInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -654,7 +654,7 @@ const double crhs224 =             DN_DX_3_0*crhs99 + DN_DX_3_1*crhs109 + DN_DX_
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2,3>::DCalculateOrthogonalSubgridScaleRHSInternal(
+void DConvectionDiffusionExplicit<2,3>::DCalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -752,7 +752,7 @@ const double crhs48 =             -0.166666666666667*crhs25 + 0.166666666666667*
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3,4>::DCalculateOrthogonalSubgridScaleRHSInternal(
+void DConvectionDiffusionExplicit<3,4>::DCalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -904,7 +904,7 @@ const double crhs94 =             crhs0 + crhs13 + crhs20 + crhs27 + crhs3 + crh
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2,3>::UpdateUnknownSubgridScaleGaussPoint(
+void DConvectionDiffusionExplicit<2,3>::UpdateUnknownSubgridScaleGaussPoint(
     ElementData& rData,
     unsigned int g)
 {
@@ -943,7 +943,7 @@ void SymbolicDConvectionDiffusionExplicit<2,3>::UpdateUnknownSubgridScaleGaussPo
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3,4>::UpdateUnknownSubgridScaleGaussPoint(
+void DConvectionDiffusionExplicit<3,4>::UpdateUnknownSubgridScaleGaussPoint(
     ElementData& rData,
     unsigned int g)
 {
@@ -989,7 +989,7 @@ void SymbolicDConvectionDiffusionExplicit<3,4>::UpdateUnknownSubgridScaleGaussPo
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::DCalculateTau(
+void DConvectionDiffusionExplicit<TDim,TNumNodes>::DCalculateTau(
     ElementData& rData)
 {
     KRATOS_TRY;
@@ -1027,8 +1027,8 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::DCalculateTau(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SymbolicDConvectionDiffusionExplicit<2,3>;
-template class SymbolicDConvectionDiffusionExplicit<3,4>;
+template class DConvectionDiffusionExplicit<2,3>;
+template class DConvectionDiffusionExplicit<3,4>;
 
 /***********************************************************************************/
 /***********************************************************************************/

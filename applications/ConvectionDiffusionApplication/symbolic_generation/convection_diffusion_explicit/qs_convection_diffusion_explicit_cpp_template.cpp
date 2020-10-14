@@ -10,7 +10,7 @@
 //  Main author:     Riccardo Tosi
 //
 
-#include "symbolic_qs_convection_diffusion_explicit.h"
+#include "qs_convection_diffusion_explicit.h"
 
 namespace Kratos
 {
@@ -19,7 +19,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicQSConvectionDiffusionExplicit(
+QSConvectionDiffusionExplicit<TDim,TNumNodes>::QSConvectionDiffusionExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {}
@@ -27,7 +27,7 @@ SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicQSConvectionDiffu
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicQSConvectionDiffusionExplicit(
+QSConvectionDiffusionExplicit<TDim,TNumNodes>::QSConvectionDiffusionExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
@@ -36,36 +36,36 @@ SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicQSConvectionDiffu
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::~SymbolicQSConvectionDiffusionExplicit() {}
+QSConvectionDiffusionExplicit<TDim,TNumNodes>::~QSConvectionDiffusionExplicit() {}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
+Element::Pointer QSConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SymbolicQSConvectionDiffusionExplicit>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<QSConvectionDiffusionExplicit>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
+Element::Pointer QSConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SymbolicQSConvectionDiffusionExplicit>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<QSConvectionDiffusionExplicit>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -79,7 +79,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -92,7 +92,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSi
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -115,7 +115,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -138,7 +138,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -163,7 +163,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribut
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateMassMatrix(
+void QSConvectionDiffusionExplicit<2,3>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -188,7 +188,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateMassMatrix(
+void QSConvectionDiffusionExplicit<3,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -215,7 +215,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
     const Variable<double>& rVariable,
     double& Output,
     const ProcessInfo& rCurrentProcessInfo)
@@ -245,7 +245,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianElement(
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianElement(
     ElementData& rData,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -302,7 +302,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2,3>::QSCalculateRightHandSideInternal(
+void QSConvectionDiffusionExplicit<2,3>::QSCalculateRightHandSideInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -347,7 +347,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::QSCalculateRightHandSideInterna
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3,4>::QSCalculateRightHandSideInternal(
+void QSConvectionDiffusionExplicit<3,4>::QSCalculateRightHandSideInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -399,7 +399,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::QSCalculateRightHandSideInterna
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2,3>::QSCalculateOrthogonalSubgridScaleRHSInternal(
+void QSConvectionDiffusionExplicit<2,3>::QSCalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -442,7 +442,7 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::QSCalculateOrthogonalSubgridSca
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3,4>::QSCalculateOrthogonalSubgridScaleRHSInternal(
+void QSConvectionDiffusionExplicit<3,4>::QSCalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -492,7 +492,7 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::QSCalculateOrthogonalSubgridSca
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-double SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
+double QSConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
     BoundedMatrix<double,TNumNodes,TDim >& DN_DX)
 {
     KRATOS_TRY;
@@ -517,7 +517,7 @@ double SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::QSCalculateTau(
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::QSCalculateTau(
     ElementData& rData)
 {
     KRATOS_TRY;
@@ -556,7 +556,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::QSCalculateTau(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::IntegrationMethod SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
+Element::IntegrationMethod QSConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
 }
@@ -564,8 +564,8 @@ Element::IntegrationMethod SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SymbolicQSConvectionDiffusionExplicit<2,3>;
-template class SymbolicQSConvectionDiffusionExplicit<3,4>;
+template class QSConvectionDiffusionExplicit<2,3>;
+template class QSConvectionDiffusionExplicit<3,4>;
 
 /***********************************************************************************/
 /***********************************************************************************/

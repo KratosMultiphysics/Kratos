@@ -10,8 +10,8 @@
 //  Main author:     Riccardo Tosi
 //
 
-#ifndef KRATOS_SYMBOLIC_QS_CONVECTION_DIFFUSION_EXPLICIT_H
-#define KRATOS_SYMBOLIC_QS_CONVECTION_DIFFUSION_EXPLICIT_H
+#ifndef KRATOS_D_CONVECTION_DIFFUSION_EXPLICIT_H
+#define KRATOS_D_CONVECTION_DIFFUSION_EXPLICIT_H
 
 // System includes
 
@@ -20,15 +20,7 @@
 
 
 // Project includes
-#include "includes/element.h"
-#include "includes/serializer.h"
-#include "includes/checks.h"
-#include "includes/variables.h"
-#include "includes/convection_diffusion_settings.h"
-#include "geometries/geometry.h"
-#include "utilities/geometry_utilities.h"
-#include "includes/cfd_variables.h"
-#include "convection_diffusion_application_variables.h"
+#include "qs_convection_diffusion_explicit.h"
 
 namespace Kratos
 {
@@ -53,7 +45,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class SymbolicQSConvectionDiffusionExplicit
+ * @class DConvectionDiffusionExplicit
  * @ingroup ConvectionDiffusionApplication
  * @brief This element solves the convection-diffusion equation, stabilized with
  * algebraic subgrid scale or orthogonal subgrid scale.
@@ -61,34 +53,42 @@ namespace Kratos
  * $ \frac{\partial \phi}{\partial t} + v \cdot  \nabla \phi + \phi \nabla \cdot v - \nabla \cdot alpha \nabla \phi = f $
  * where $ \phi $ is the scalar unknown, $ v $ the convective velocity, $ alpha > 0 $ the diffusivity coefficient,
  * $ f $ the forcing term.
- * Quasi-static algebraic subgrid scale and quasi-static orthogonal subgrid scale methods are exploited for stabilization.
+ * Dynamic algebraic subgrid scale and dynamic orthogonal subgrid scale methods are exploited for stabilization.
  * The element is designed to use an explicit integration method.
  * @author Riccardo Tosi
  */
 template< unsigned int TDim, unsigned int TNumNodes>
-class SymbolicQSConvectionDiffusionExplicit : public Element
+class DConvectionDiffusionExplicit : public QSConvectionDiffusionExplicit<TDim,TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-        typedef Element BaseType;
+        typedef QSConvectionDiffusionExplicit<TDim,TNumNodes> BaseType;
+        typedef typename BaseType::ElementData ElementData;
         typedef Node < 3 > NodeType;
         typedef Geometry<NodeType> GeometryType;
+        typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+        typedef Vector VectorType;
+        typedef Matrix MatrixType;
+        typedef std::size_t IndexType;
+        typedef std::vector<std::size_t> EquationIdVectorType;
+        typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+        typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Pointer definition of SymbolicQSConvectionDiffusionExplicit
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicQSConvectionDiffusionExplicit);
+    /// Pointer definition of DConvectionDiffusionExplicit
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DConvectionDiffusionExplicit);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     //Constructors.
-    SymbolicQSConvectionDiffusionExplicit(
+    DConvectionDiffusionExplicit(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    SymbolicQSConvectionDiffusionExplicit(
+    DConvectionDiffusionExplicit(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         Properties::Pointer pProperties);
@@ -96,7 +96,7 @@ public:
     /// Default constuctor.
 
     /// Destructor.
-    virtual ~SymbolicQSConvectionDiffusionExplicit();
+    virtual ~DConvectionDiffusionExplicit();
 
     ///@}
     ///@name Operators
@@ -126,19 +126,11 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo) const override;
-
     void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(
-        MatrixType &rMassMatrix,
-        const ProcessInfo &rCurrentProcessInfo) override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -156,13 +148,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "SymbolicQSConvectionDiffusionExplicitElement #";
+        return "DConvectionDiffusionExplicitElement #";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << Info() << this->Id();
     }
 
     ///@}
@@ -172,48 +164,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    struct ElementData
-    {
-        // scalars
-        double diffusivity;
-        double lumping_factor;
-        double weight;
-        double delta_time;
-        double explicit_step_coefficient;
-        double dynamic_tau;
-        double unknown_subscale;
-        double volume;
-        // arrays
-        array_1d<double,TNumNodes> tau;
-        array_1d<double,TNumNodes> forcing;
-        array_1d<double,TNumNodes> unknown;
-        array_1d<double,TNumNodes> unknown_old;
-        array_1d<double,TNumNodes> oss_projection;
-        // matrices
-        BoundedMatrix<double,TNumNodes,3> convective_velocity;
-        // auxiliary containers for the symbolically-generated matrices
-        BoundedMatrix<double,TNumNodes,TNumNodes> lhs;
-        array_1d<double,TNumNodes> rhs;
-        // auxiliary containers for the symbolically-generated data for Gauss integration
-        array_1d<double,TNumNodes> N;
-        BoundedMatrix<double,TNumNodes,TNumNodes> N_gausspoint;
-        BoundedMatrix<double,TNumNodes,TDim> DN_DX;
-    };
-
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void InitializeEulerianElement(
-        ElementData& rData,
-        const ProcessInfo& rCurrentProcessInfo);
-
-    double ComputeH(BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
 
     ///@}
     ///@name Protected  Access
@@ -224,14 +181,12 @@ protected:
     ///@name Protected Inquiry
     ///@{
 
-    IntegrationMethod GetIntegrationMethod() const override;
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
     // Protected default constructor necessary for serialization
-    SymbolicQSConvectionDiffusionExplicit() : Element()
+    DConvectionDiffusionExplicit() : QSConvectionDiffusionExplicit<TDim,TNumNodes>()
     {
     }
 
@@ -241,6 +196,8 @@ private:
 
     ///@name Static Member Variables
     ///@{
+
+    BoundedVector<double, TNumNodes> mUnknownSubScale;
 
     ///@}
     ///@name Member Variables
@@ -267,32 +224,37 @@ private:
     ///@{
 
     /// Assignment operator
-    SymbolicQSConvectionDiffusionExplicit& operator=(SymbolicQSConvectionDiffusionExplicit const& rOther) = delete;
-
+    DConvectionDiffusionExplicit& operator=(DConvectionDiffusionExplicit const& rOther) = delete;
     /// Copy constructor
-    SymbolicQSConvectionDiffusionExplicit(SymbolicQSConvectionDiffusionExplicit const& rOther) = delete;
+    DConvectionDiffusionExplicit(DConvectionDiffusionExplicit const& rOther) = delete;
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    void QSCalculateRightHandSideInternal(
+    void DCalculateRightHandSideInternal(
         BoundedVector<double, TNumNodes>& rRightHandSideBoundedVector,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void QSCalculateOrthogonalSubgridScaleRHSInternal(
+    void DCalculateOrthogonalSubgridScaleRHSInternal(
         BoundedVector<double, TNumNodes>& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void QSCalculateTau(ElementData& rData);
+    void UpdateUnknownSubgridScaleGaussPoint(
+        ElementData& rData,
+        unsigned int g);
+
+    void DCalculateTau(ElementData& rData);
 
     ///@}
     ///@name Private  Access
     ///@{
 
+
     ///@}
     ///@name Private Inquiry
     ///@{
+
 
     ///@}
     ///@name Un accessible methods
@@ -300,7 +262,7 @@ private:
 
     ///@}
 
-}; // Class SymbolicQSConvectionDiffusionExplicit
+}; // Class DConvectionDiffusionExplicit
 
 ///@}
 
@@ -317,7 +279,7 @@ private:
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 inline std::istream& operator >>(
     std::istream& rIStream,
-    SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
+    DConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -326,7 +288,7 @@ inline std::istream& operator >>(
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 inline std::ostream& operator <<(
     std::ostream& rOStream,
-    const SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
+    const DConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -340,4 +302,4 @@ inline std::ostream& operator <<(
 
 } // namespace Kratos.
 
-#endif // KRATOS_SYMBOLIC_QS_CONVECTION_DIFFUSION_EXPLICIT_H
+#endif // KRATOS_D_CONVECTION_DIFFUSION_EXPLICIT_H
