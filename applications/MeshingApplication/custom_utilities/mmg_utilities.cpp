@@ -1451,6 +1451,9 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
     mMmgMesh = nullptr;
     mMmgMet = nullptr;
     mMmgDisp = nullptr;
+#if MMG_VERSION_GE(5,5)
+    mMmgSol = nullptr;
+#endif
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
@@ -1458,7 +1461,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+    #if MMG_VERSION_GE(5,5)
+        MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
+    #else
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
+    #endif
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
@@ -1479,6 +1486,9 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
     mMmgMesh = nullptr;
     mMmgMet = nullptr;
     mMmgDisp = nullptr;
+#if MMG_VERSION_GE(5,5)
+    mMmgSol = nullptr;
+#endif
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
@@ -1486,7 +1496,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+    #if MMG_VERSION_GE(5,5)
+        MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
+    #else
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
+    #endif
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
@@ -1507,6 +1521,9 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
     mMmgMesh = nullptr;
     mMmgMet = nullptr;
     mMmgDisp = nullptr;
+#if MMG_VERSION_GE(5,5)
+    mMmgSol = nullptr;
+#endif
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
@@ -1514,7 +1531,11 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+    #if MMG_VERSION_GE(5,5)
+        MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
+    #else
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
+    #endif
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
