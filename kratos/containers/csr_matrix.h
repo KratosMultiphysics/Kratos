@@ -155,10 +155,11 @@ public:
 
     void ComputeColSize()
     {
-        //TODO: parallelize
-        IndexType max_col = 0;
-        for(IndexType i=0; i<mColIndices.size(); ++i)
-            max_col = std::max(max_col,mColIndices[i]);
+        //compute the max id 
+        IndexType max_col = IndexPartition<IndexType>(mColIndices.size()).template for_each< MaxReduction<double> >([&](IndexType i){
+                return mColIndices[i];
+            });
+
         mNcols = max_col+1; //note that we must add 1 to the greatest column id
     }
 
