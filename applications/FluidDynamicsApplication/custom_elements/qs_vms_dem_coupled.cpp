@@ -370,8 +370,10 @@ void QSVMSDEMCoupled<TElementData>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class QSVMSDEMCoupled<QSVMSDEMCoupledData< 2, 3 >>;
-template class QSVMSDEMCoupled<QSVMSDEMCoupledData< 3, 4 >>;
+template class QSVMSDEMCoupled<QSVMSDEMCoupledData<2,3> >;
+template class QSVMSDEMCoupled<QSVMSDEMCoupledData<3,4> >;
 
+template class QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> >;
+template class QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> >;
 }
 

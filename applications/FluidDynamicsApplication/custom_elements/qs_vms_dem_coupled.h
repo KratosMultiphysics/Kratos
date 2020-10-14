@@ -10,8 +10,8 @@
 //  Main authors:    Joaquin Gonzalez-Usua
 //
 
-#ifndef KRATOS_QSVMS_DEM_COUPLED_H
-#define KRATOS_QSVMS_DEM_COUPLED_H
+#ifndef KRATOS_QS_VMS_DEM_COUPLED_H
+#define KRATOS_QS_VMS_DEM_COUPLED_H
 
 // System includes
 #include <string>
@@ -371,4 +371,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_QSVMS_DEM_COUPLED_H
+#endif // KRATOS_QS_VMS_DEM_COUPLED_H
