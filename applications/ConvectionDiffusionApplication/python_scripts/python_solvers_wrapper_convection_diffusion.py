@@ -12,7 +12,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     solver_type = solver_settings["solver_type"].GetString()
-    time_integration = solver_settings["time_integration"].GetString()
+    time_integration = "implicit / not defined"
+    if solver_settings.Has("time_integration"):
+        if solver_settings["time_integration"].GetString() == "explicit":
+            time_integration = solver_settings["time_integration"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
