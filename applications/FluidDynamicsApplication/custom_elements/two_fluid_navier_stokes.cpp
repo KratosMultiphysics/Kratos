@@ -90,9 +90,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_in = 1.0e2;
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
-        const double zeta = 1.0e-2;//0.7;//
-        const double surface_tension_coefficient = 0.072;//0.0311;// //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
-        const double contact_line_coefficient = -0.4539905*surface_tension_coefficient;//0.779337965*surface_tension_coefficient;//
+        const double zeta = 0.7;//1.0e-2;//
+        const double surface_tension_coefficient = 0.0311;//0.072;// //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
+        const double contact_line_coefficient = 0.779337965*surface_tension_coefficient;//-0.4539905*surface_tension_coefficient;//
         const double micro_length_scale = 1.0e-9;
 
         this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
