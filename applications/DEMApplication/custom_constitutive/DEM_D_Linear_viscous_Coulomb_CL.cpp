@@ -172,18 +172,18 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
-    void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(ProcessInfo& r_process_info,
-                                                              const double OldLocalElasticContactForce[3],
-                                                              double LocalElasticContactForce[3],
-                                                              double LocalDeltDisp[3],
-                                                              double LocalRelVel[3],
-                                                              double indentation,
-                                                              double previous_indentation,
-                                                              double ViscoDampingLocalContactForce[3],
-                                                              double& cohesive_force,
-                                                              SphericParticle* const element,
-                                                              Condition* const wall,
-                                                              bool& sliding) {
+    void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(const ProcessInfo& r_process_info,
+                                                            const double OldLocalElasticContactForce[3],
+                                                            double LocalElasticContactForce[3],
+                                                            double LocalDeltDisp[3],
+                                                            double LocalRelVel[3],
+                                                            double indentation,
+                                                            double previous_indentation,
+                                                            double ViscoDampingLocalContactForce[3],
+                                                            double& cohesive_force,
+                                                            SphericParticle* const element,
+                                                            Condition* const wall,
+                                                            bool& sliding) {
 
         InitializeContactWithFEM(element, wall, indentation);
 

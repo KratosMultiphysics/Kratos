@@ -42,7 +42,7 @@ namespace Kratos
         virtual ~Cluster3D();
 
         using Element::Initialize;
-        virtual void Initialize(ProcessInfo& r_process_info) override;
+        void Initialize(const ProcessInfo& r_process_info) override;
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
         virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();

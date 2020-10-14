@@ -70,7 +70,7 @@ namespace Kratos
           return 0.5 * GetMass() * GetRadius() * GetRadius();
       }
 
-      void CylinderContinuumParticle::FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume){
+      void CylinderContinuumParticle::FinalizeStressTensor(const ProcessInfo& r_process_info, double& rRepresentative_Volume){
 
         KRATOS_TRY
         SphericParticle::FinalizeStressTensor(r_process_info, rRepresentative_Volume);
