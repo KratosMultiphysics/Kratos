@@ -430,7 +430,7 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    MVQNRecursiveJacobianConvergenceAccelerator( Parameters &rConvAcceleratorParameters )
+    MVQNRecursiveJacobianConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
         Parameters mvqn_recursive_default_parameters(R"(
         {

@@ -80,8 +80,7 @@ public:
      * MVQN convergence accelerator Json settings constructor
      * @param rConvAcceleratorParameters Json string encapsulating the settings
      */
-    MVQNFullJacobianConvergenceAccelerator(
-        Parameters &rConvAcceleratorParameters)
+    MVQNFullJacobianConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
         Parameters mvqn_default_parameters(R"(
         {

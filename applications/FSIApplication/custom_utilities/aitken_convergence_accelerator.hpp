@@ -69,7 +69,7 @@ public:
      * Constructor.
      * Aitken convergence accelerator
      */
-    AitkenConvergenceAccelerator(Parameters& rConvAcceleratorParameters)
+    AitkenConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
         Parameters aitken_default_parameters(R"(
         {

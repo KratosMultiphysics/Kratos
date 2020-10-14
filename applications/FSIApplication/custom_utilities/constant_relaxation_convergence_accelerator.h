@@ -97,7 +97,7 @@ public:
      * Constructor with json string settings
      * @param rConvAcceleratorParameters json string encapsulating the settings
      */
-    ConstantRelaxationConvergenceAccelerator(Parameters &rConvAcceleratorParameters)
+    ConstantRelaxationConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     : BaseType(),
       mOmega([] (Parameters x) -> double {x.ValidateAndAssignDefaults(GetDefaultParameters()); return x["w"].GetDouble();} (rConvAcceleratorParameters))
     {
