@@ -81,7 +81,6 @@ public:
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(aitken_default_parameters);
 
-        mConvergenceAcceleratorIteration = 0;
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
     }
 
@@ -222,13 +221,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    unsigned int mConvergenceAcceleratorIteration;
+    unsigned int mConvergenceAcceleratorIteration = 0;
 
     double mOmega_0;
-    double mOmega_1;
+    double mOmega_1 = 0.0;
 
-    VectorPointerType mpResidualVector_0;
-    VectorPointerType mpResidualVector_1;
+    VectorPointerType mpResidualVector_0 = nullptr;
+    VectorPointerType mpResidualVector_1 = nullptr;
 
     ///@}
 
