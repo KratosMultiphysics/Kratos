@@ -12,7 +12,7 @@
         "model_part_name" : "MainModelPart",
         "domain_size": 2,
         "echo_level": 0,
-        "analysis_type": "explicit",
+        "time_integration": "explicit",
         "solver_type": "transient",
         "model_import_settings": {
             "input_type": "mdpa",
