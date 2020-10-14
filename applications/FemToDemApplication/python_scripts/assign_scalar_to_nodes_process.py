@@ -176,9 +176,9 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                     process.Execute()
             #print(" Execute ", self.variable_name," interval ",self.interval)
             self.AssignValueProcess.Execute()
-            if( self.fix_time_integration ):
-                for node in self.model_part.Nodes:
-                    self.TimeIntegrationMethod.Assign(node)
+            # if( self.fix_time_integration ):
+            #     for node in self.model_part.Nodes:
+            #         self.TimeIntegrationMethod.Assign(node)
     #
     def ExecuteUnAssignment(self):
         if self.IsInsideInterval():
@@ -252,13 +252,13 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         if( self.value_is_numeric ):
             params.AddEmptyValue("value").SetDouble(self.value)
             params.AddEmptyValue("entity_type").SetString("NODES")
-            self.AssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+            self.AssignValueProcess = KratosFemDem.AssignScalarToEntitiesProcess(self.model_part, params)
         else:
             if( self.value_is_current_value ):
                 self.AssignValueProcess = KratosMultiphysics.Process() #void process
             else:
                 params.AddEmptyValue("entity_type").SetString("NODES")
-                self.AssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+                self.AssignValueProcess = KratosFemDem.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
 
         # in case of going to previous time step for time step reduction
@@ -268,12 +268,12 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def CreateUnAssignmentProcess(self, params):
         params["compound_assignment"].SetString(self.GetInverseAssigment(self.settings["compound_assignment"].GetString()))
         if( self.value_is_numeric ):
-            self.UnAssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+            self.UnAssignValueProcess = KratosFemDem.AssignScalarToEntitiesProcess(self.model_part, params)
         else:
             if( self.value_is_current_value ):
                 self.UnAssignValueProcess = KratosMultiphysics.Process() #void process
             else:
-                self.UnAssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+                self.UnAssignValueProcess = KratosFemDem.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
     #
     def SetCurrentTime(self):
@@ -289,13 +289,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
     #
     def IsRecoverStep(self):
-        if self.model_part.ProcessInfo.Has(KratosSolid.DELTA_TIME_CHANGED):
-            if self.model_part.ProcessInfo[KratosSolid.DELTA_TIME_CHANGED] is True:
-                return True
-            else:
-                return False
-        else:
-            return False
+        return False
 
     #
     def IsInsideInterval(self):
