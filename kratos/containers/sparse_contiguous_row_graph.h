@@ -229,10 +229,11 @@ public:
             rRowIndices[i] = 0;
         });
 
-        //count the entries TODO: do the loop in parallel if possible
-        for(IndexType i=0; i<static_cast<IndexType>(nrows); ++i)
+        //count the entries 
+        IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
             rRowIndices[i+1] = mGraph[i].size();
-
+        });
+        
         //sum entries
         for(IndexType i = 1; i<static_cast<IndexType>(rRowIndices.size()); ++i){
             rRowIndices[i] += rRowIndices[i-1];
@@ -247,7 +248,7 @@ public:
             rColIndices[i] = 0;
         });
 
-        //count the entries TODO: do the loop in parallel if possible
+        //count the entries 
         IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
 
             IndexType start = rRowIndices[i];
