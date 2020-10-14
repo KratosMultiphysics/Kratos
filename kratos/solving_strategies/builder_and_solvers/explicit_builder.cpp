@@ -33,9 +33,9 @@ typedef ExplicitBuilder<SparseSpaceType,  LocalSpaceType> ExplicitBuilderType;
 //NOTE: here we must create persisting objects for the builder and solvers
 static ExplicitBuilderType msExplicitBuilder;
 
-// template<>
-// std::vector<Internals::RegisteredPrototypeBase<ExplicitBuilderType>> ExplicitBuilderType::msPrototypes{
-//     Internals::RegisteredPrototype<ExplicitBuilderType, ExplicitBuilderType>(ExplicitBuilderType::Name(), msExplicitBuilder)};
+template<>
+std::vector<Internals::RegisteredPrototypeBase<ExplicitBuilderType>> ExplicitBuilderType::msPrototypes{
+    Internals::RegisteredPrototype<ExplicitBuilderType, ExplicitBuilderType>(ExplicitBuilderType::Name(), msExplicitBuilder)};
 
 ///@}
 
