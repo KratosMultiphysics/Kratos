@@ -33,9 +33,9 @@ typedef ExplicitSolvingStrategy<SparseSpaceType, LocalSpaceType> ExplicitSolving
 //NOTE: here we must create persisting objects for the strategies
 static ExplicitSolvingStrategyType msExplicitSolvingStrategy;
 
-template<>
-std::vector<Internals::RegisteredPrototypeBase<ExplicitSolvingStrategyType>> ExplicitSolvingStrategyType::msPrototypes{
-    Internals::RegisteredPrototype<ExplicitSolvingStrategyType, ExplicitSolvingStrategyType>(ExplicitSolvingStrategyType::Name(), msExplicitSolvingStrategy)};
+// template<>
+// std::vector<Internals::RegisteredPrototypeBase<ExplicitSolvingStrategyType>> ExplicitSolvingStrategyType::msPrototypes{
+//     Internals::RegisteredPrototype<ExplicitSolvingStrategyType, ExplicitSolvingStrategyType>(ExplicitSolvingStrategyType::Name(), msExplicitSolvingStrategy)};
 
 ///@}
 

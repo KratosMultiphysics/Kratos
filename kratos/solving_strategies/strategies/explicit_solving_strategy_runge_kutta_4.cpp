@@ -34,9 +34,9 @@ typedef ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType> Expl
 //NOTE: here we must create persisting objects for the strategies
 static ExplicitSolvingStrategyRungeKutta4Type msExplicitSolvingStrategyRungeKutta4;
 
-template<>
-std::vector<Internals::RegisteredPrototypeBase<ExplicitSolvingStrategyType>> ExplicitSolvingStrategyRungeKutta4Type::msPrototypes{
-    Internals::RegisteredPrototype<ExplicitSolvingStrategyRungeKutta4Type, ExplicitSolvingStrategyType>(ExplicitSolvingStrategyRungeKutta4Type::Name(), msExplicitSolvingStrategyRungeKutta4)};
+// template<>
+// std::vector<Internals::RegisteredPrototypeBase<ExplicitSolvingStrategyType>> ExplicitSolvingStrategyRungeKutta4Type::msPrototypes{
+//     Internals::RegisteredPrototype<ExplicitSolvingStrategyRungeKutta4Type, ExplicitSolvingStrategyType>(ExplicitSolvingStrategyRungeKutta4Type::Name(), msExplicitSolvingStrategyRungeKutta4)};
 
 ///@}
 
