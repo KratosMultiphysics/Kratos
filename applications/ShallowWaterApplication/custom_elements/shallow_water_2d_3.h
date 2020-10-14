@@ -73,6 +73,8 @@ public:
         array_1d<double, 9> unknown;
         array_1d<double, 9> prev_unk;
 
+        bool is_monotonic_calculation;
+
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
 
