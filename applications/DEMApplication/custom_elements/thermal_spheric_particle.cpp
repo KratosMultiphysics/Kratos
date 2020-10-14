@@ -43,7 +43,7 @@ namespace Kratos
     }
 
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(ProcessInfo& r_process_info)
+    void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(const ProcessInfo& r_process_info)
     {
             TBaseElement::InitializeSolutionStep(r_process_info);
             //UpdateTemperatureDependentRadius(r_process_info);
@@ -131,16 +131,16 @@ namespace Kratos
       }         //ComputeHeatFluxes
 
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::CalculateRightHandSide(ProcessInfo& r_current_process_info,
+    void ThermalSphericParticle<TBaseElement>::CalculateRightHandSide(const ProcessInfo& r_current_process_info,
                                                         double dt,
-                                                        const array_1d<double,3>& gravity, int search_control) {
-        TBaseElement::CalculateRightHandSide(r_current_process_info, dt,  gravity, search_control);
+                                                        const array_1d<double,3>& gravity) {
+        TBaseElement::CalculateRightHandSide(r_current_process_info, dt,  gravity);
         ComputeConductiveHeatFlux(r_current_process_info);
     }
 
 
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(ProcessInfo& r_process_info) {
+    void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
             TBaseElement::FinalizeSolutionStep(r_process_info);
             UpdateTemperature(r_process_info);
             mPreviousTemperature = GetTemperature();

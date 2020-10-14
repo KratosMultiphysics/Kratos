@@ -234,6 +234,12 @@ public:
     ///@name Access
     ///@{
 
+    MappingMatrixType& GetMappingMatrix() override
+    {
+        if (mMapperSettings["precompute_mapping_matrix"].GetBool() || mMapperSettings["dual_mortar"].GetBool()) return *(mpMappingMatrix.get());
+        else KRATOS_ERROR << "'precompute_mapping_matrix' or 'dual_mortar' must be 'true' in your parameters to retrieve the computed mapping matrix!" << std::endl;
+    }
+
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
@@ -329,8 +335,6 @@ private:
         const MappingMatrixType& rInterfaceMatrixSlave,
         MappingMatrixType& rInterfaceMatrixProjected,
         const double scalingLimit = 1.1);
-
-    void CheckMappingMatrixConsistency();
 
     void CreateLinearSolver();
 

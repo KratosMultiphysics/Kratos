@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "geometry",
         "parallel_type": "<PARALLEL_TYPE>",
-        "echo_level": 1,
+        "echo_level": 0,
         "start_time": 0.0,
         "end_time": 3.0
     },
