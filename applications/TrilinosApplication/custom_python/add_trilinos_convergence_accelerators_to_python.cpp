@@ -70,7 +70,7 @@ void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef typename TrilinosAitkenAccelerator::Pointer TrilinosAitkenAcceleratorPointer;
     py::class_<TrilinosAitkenAccelerator, TrilinosAitkenAcceleratorPointer, TrilinosBaseConvergenceAcceleratorType>(m,"TrilinosAitkenConvergenceAccelerator")
         .def(py::init<double>())
-        .def(py::init< Parameters& >())
+        .def(py::init< Parameters>())
         ;
 
     typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosMVQNRecursiveAccelerator;
