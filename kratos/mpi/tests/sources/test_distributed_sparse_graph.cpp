@@ -313,9 +313,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
 
     DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+    IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i){
         Agraph.AddEntries(connectivities[i]);
+    });
     Agraph.Finalize();
 
     CheckGraph(Agraph, reference_A_map);
@@ -338,9 +338,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreF
 
     DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+    IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i){
         Agraph.AddEntries(connectivities[i]);
+    });
     Agraph.Finalize();
 
     //FEM assembly
@@ -395,9 +395,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
     double start_graph = OpenMPUtils::GetCurrentTime();
     DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+    IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i){
         Agraph.AddEntries(connectivities[i]);
+    });
     Agraph.Finalize();
 
     rComm.Barrier(); //to ensure fair timings
@@ -423,9 +423,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
 
     DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+    IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i){
         Agraph.AddEntries(connectivities[i]);
+    });
     Agraph.Finalize();
 
     //FEM assembly
@@ -458,7 +458,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     KRATOS_CHECK_NEAR(x[2] ,  4 , 1e-14 );
     KRATOS_CHECK_NEAR(x[3] ,  2 , 1e-14 );
 
-    //Test SPMV - TODO: move this to a different test
+    //Test SPMV 
     DistributedCsrMatrix<double, IndexType> A(Agraph);
     A.BeginAssemble();   
     for(const auto& c : connectivities){   
@@ -495,8 +495,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
     const auto all_connectivities = ElementConnectivities(all_el_bounds);
     SparseContiguousRowGraph<IndexType> Agraph_serial(40);
 
-    IndexPartition<IndexType>(all_connectivities.size()).for_each([&](IndexType i)
-    {
+    IndexPartition<IndexType>(all_connectivities.size()).for_each([&](IndexType i)    {
         std::vector<IndexType> row_ids = all_connectivities[i];
         std::vector<IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
 
