@@ -21,7 +21,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
     def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(dy))
 
         # Here we check the vertical displacement of a node
-        tol = 1e-5
+        tol = 1e-9
         node = self.FEM_Solution.main_model_part.GetNode(54)
         dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
         if self.FEM_Solution.step == 1:
@@ -77,8 +77,6 @@ class TestAnalytics(KratosUnittest.TestCase):
     def face_load(self):
         model = KratosMultiphysics.Model()
         MainCouplingFemDemForTestingSolution(model, "small_tests/pressure_face_load/").Run()
-
-
 
 if __name__ == "__main__":
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
