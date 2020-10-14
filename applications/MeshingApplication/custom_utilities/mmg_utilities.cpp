@@ -138,7 +138,11 @@ SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
 template<>
 SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
 {
+#if MMG_VERSION_GE(5,5)
+    return NumberOfQuadrilaterals;
+#else
     return 0;
+#endif
 }
 
 /***********************************************************************************/
@@ -622,7 +626,36 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements()
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    IndexVectorMapType quadrilateral_map;
+
+    IndexVectorType ids_quadrialteral(4);
+
+    IndexVectorType elements_to_remove;
+
+    for(int i = 0; i < mMmgMesh->nquad; ++i) {
+        int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
+
+        KRATOS_ERROR_IF(MMG2D_Get_quadrilateral(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &prop_id, &is_required) != 1 ) << "Unable to get quadrilateral" << std::endl;
+
+        ids_quadrialteral[0] = vertex_0;
+        ids_quadrialteral[1] = vertex_1;
+        ids_quadrialteral[2] = vertex_2;
+        ids_quadrialteral[3] = vertex_3;
+
+        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+        std::sort(ids_quadrialteral.begin(), ids_quadrialteral.end());
+
+        auto& r_count = quadrilateral_map[ids_quadrialteral];
+        r_count += 1;
+
+        if (r_count > 1)
+            elements_to_remove.push_back(i + 1);
+    }
+#else
     IndexVectorType elements_to_remove(0);
+#endif
+
     return elements_to_remove;
 
     KRATOS_CATCH("");
@@ -3495,10 +3528,12 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 for (auto& r_node : it_elem->GetGeometry())
                     remeshed_nodes.insert(r_node.Id());
                 num_tri += 1;
+        #if MMG_VERSION_GE(5,5)
             } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) { // Quadrilaterals
                 for (auto& r_node : it_elem->GetGeometry())
                     remeshed_nodes.insert(r_node.Id());
                 num_quad += 1;
+        #endif
             } else {
                 it_elem->Set(OLD_ENTITY, true);
                 KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
@@ -3508,8 +3543,13 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         mmg_mesh_info.NumberOfTriangles = num_tri;
         mmg_mesh_info.NumberOfQuadrilaterals = num_quad;
 
+    #if MMG_VERSION_GE(5,5)
+        KRATOS_INFO_IF("MmgUtilities", (num_tri < r_elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << std::endl;
+    #else
         KRATOS_INFO_IF("MmgUtilities", ((num_tri + num_quad) < r_elements_array.size()) && mEchoLevel > 0) <<
         "Number of Elements: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
+    #endif
 
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         /* Conditions */
