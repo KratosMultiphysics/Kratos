@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from functools import reduce
 
 import math
@@ -14,10 +13,10 @@ import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_materia
 class MaterialTest(DEM_material_test_script.MaterialTest):
 
   def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-      super(MaterialTest,self).__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+      super().__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
   def Initialize(self):
-      super(MaterialTest,self).Initialize()
+      super().Initialize()
 
   def Flush(self,a):
       pass
@@ -204,15 +203,15 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
   def PrintGraph(self,step):
       if(mpi.rank == 0 ):
-          super(MaterialTest,self).PrintGraph(step)
+          super().PrintGraph(step)
 
   def PrintChart(self):
       if(mpi.rank == 0 ):
-          super(MaterialTest,self).PrintChart()
+          super().PrintChart()
 
   def FinalizeGraphs(self):
       if(mpi.rank == 0):
-          super(MaterialTest,self).FinalizeGraphs()
+          super().FinalizeGraphs()
 
   def MeasureRadialStrain(self):
 

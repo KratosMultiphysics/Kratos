@@ -22,8 +22,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
@@ -89,6 +87,8 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, RESIDUAL_NORM )
     KRATOS_DEFINE_VARIABLE( double, CONVERGENCE_RATIO )
     KRATOS_DEFINE_VARIABLE( double, BUILD_SCALE_FACTOR )
+    KRATOS_DEFINE_VARIABLE( double, CONSTRAINT_SCALE_FACTOR )
+    KRATOS_DEFINE_VARIABLE( double, AUXILIAR_CONSTRAINT_SCALE_FACTOR )
 
     KRATOS_DEFINE_VARIABLE( double, TEMPERATURE )
     KRATOS_DEFINE_VARIABLE( double, PRESSURE )

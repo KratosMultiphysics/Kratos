@@ -6,6 +6,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics import process_factory
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 import math
 import os
@@ -2060,6 +2061,258 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_X))
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Y))
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Z))
+
+    def test_FindGlobalNodalNeighboursProcess(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"), model_part)
+
+        process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part.GetCommunicator().GetDataCommunicator(), model_part)
+        process.Execute()
+
+        node_id_map = process.GetNeighbourIds(model_part.Nodes)
+
+        check_map = {
+            1: [2, 5],
+            2: [1, 3, 5, 6],
+            3: [2, 4, 6, 7],
+            4: [3, 7, 8],
+            5: [1, 2, 6, 9],
+            6: [2, 3, 5, 7, 9, 10],
+            7: [3, 4, 6, 8, 10, 11],
+            8: [4, 7, 11, 12],
+            9: [5, 6, 10, 13],
+            10: [6, 7, 9, 11, 13, 14],
+            11: [7, 8, 10, 12, 14, 15],
+            12: [8, 11, 15, 16],
+            13: [9, 10, 14],
+            14: [10, 11, 13, 15],
+            15: [11, 12, 14, 16],
+            16: [12, 15]
+        }
+
+        for node in model_part.Nodes:
+            self.assertEqual(node_id_map[node.Id], check_map[node.Id])
+
+    def test_FindGlobalNodalNeighboursForConditionsProcess(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"), model_part)
+
+        process = KratosMultiphysics.FindGlobalNodalNeighboursForConditionsProcess(model_part.GetCommunicator().GetDataCommunicator(), model_part)
+        process.Execute()
+
+        node_id_map = process.GetNeighbourIds(model_part.Nodes)
+
+        check_map = {
+            1: [2, 5],
+            2: [1, 3],
+            3: [2, 4],
+            4: [3, 8],
+            5: [1, 9],
+            6: [],
+            7: [],
+            8: [4, 12],
+            9: [5, 13],
+            10: [],
+            11: [],
+            12: [8, 16],
+            13: [9, 14],
+            14: [13, 15],
+            15: [14, 16],
+            16: [12, 15]
+        }
+
+        for node in model_part.Nodes:
+            self.assertEqual(node_id_map[node.Id], check_map[node.Id])
+
+    def testComputeNodalGradientProcess(self):
+
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("main_model_part")
+        main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
+
+        ## Add variables to the model part
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+
+        ## Serial partition of the original .mdpa file
+        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes")
+        ReadModelPart(input_filename, main_model_part)
+
+        for node in main_model_part.Nodes:
+            distance = node.X**2+node.Y**2+node.Z**2 - 1
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distance)
+            node.SetValue(KratosMultiphysics.DISTANCE,distance)
+
+        check_map = {
+            1 : [0.25,0.25,0],
+            2 : [0.41666666667,0.25,0],
+            3 : [1.125,0.25,0],
+            4 : [1.5,0.25,0],
+            5 : [0.25,0.41666666667,0],
+            6 : [0.5,0.5,0],
+            7 : [1.25,0.472222222,0],
+            8 : [1.5,0.583333333,0],
+            9 : [0.25,1.125,0],
+            10 : [0.472222222,1.25,0],
+            11 : [1.21153846,1.21153846,0],
+            12 : [1.5,1.35,0],
+            13 : [0.25,1.5,0],
+            14 : [0.583333333,1.5,0],
+            15 : [1.35,1.5,0],
+            16 : [1.5,1.5,0],
+        }
+
+        gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(main_model_part,
+        KratosMultiphysics.DISTANCE,
+        KratosMultiphysics.DISTANCE_GRADIENT,
+        KratosMultiphysics.NODAL_AREA)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+        non_historical_gradient_variable = False
+        gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(main_model_part,
+        KratosMultiphysics.DISTANCE,
+        KratosMultiphysics.DISTANCE_GRADIENT,
+        KratosMultiphysics.NODAL_AREA,
+        non_historical_gradient_variable)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+        gradient_parameters = KratosMultiphysics.Parameters(""" {
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "non_historical_origin_variable" :  false
+        }
+        """)
+        gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
+        gradient_parameters)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+        gradient_parameters = KratosMultiphysics.Parameters(""" {
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "non_historical_origin_variable" :  true
+        }
+        """)
+        gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
+        gradient_parameters)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+    def testComputeNonHistoricalNodalGradientProcess(self):
+
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("main_model_part")
+        main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
+
+        ## Add variables to the model part
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+
+        ## Serial partition of the original .mdpa file
+        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes")
+        ReadModelPart(input_filename, main_model_part)
+
+        for node in main_model_part.Nodes:
+            distance = node.X**2+node.Y**2+node.Z**2 - 1
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distance)
+            node.SetValue(KratosMultiphysics.DISTANCE,distance)
+
+        check_map = {
+            1 : [0.25,0.25,0],
+            2 : [0.41666666667,0.25,0],
+            3 : [1.125,0.25,0],
+            4 : [1.5,0.25,0],
+            5 : [0.25,0.41666666667,0],
+            6 : [0.5,0.5,0],
+            7 : [1.25,0.472222222,0],
+            8 : [1.5,0.583333333,0],
+            9 : [0.25,1.125,0],
+            10 : [0.472222222,1.25,0],
+            11 : [1.21153846,1.21153846,0],
+            12 : [1.5,1.35,0],
+            13 : [0.25,1.5,0],
+            14 : [0.583333333,1.5,0],
+            15 : [1.35,1.5,0],
+            16 : [1.5,1.5,0],
+        }
+
+        gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
+        KratosMultiphysics.DISTANCE,
+        KratosMultiphysics.DISTANCE_GRADIENT,
+        KratosMultiphysics.NODAL_AREA)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+        non_historical_gradient_variable = False
+        gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
+        KratosMultiphysics.DISTANCE,
+        KratosMultiphysics.DISTANCE_GRADIENT,
+        KratosMultiphysics.NODAL_AREA,
+        non_historical_gradient_variable)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+        gradient_parameters = KratosMultiphysics.Parameters(""" {
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "non_historical_origin_variable" :  false
+        }
+        """)
+        gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
+        gradient_parameters)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+        gradient_parameters = KratosMultiphysics.Parameters(""" {
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "non_historical_origin_variable" :  true
+        }
+        """)
+        gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
+        gradient_parameters)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
+                self.assertAlmostEqual(i_gradient, i_reference)
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]

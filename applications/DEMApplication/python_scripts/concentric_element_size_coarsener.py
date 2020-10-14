@@ -71,10 +71,10 @@ class ElementSizeModifier(DEMAnalysisStage):
         total_needed_time = self.size_modifier_parameters["initiation_time"].GetDouble() + self.size_modifier_parameters["process_duration"].GetDouble()
         if project_parameters["FinalTime"].GetDouble() < total_needed_time:
             project_parameters["FinalTime"].SetDouble(total_needed_time)
-        super(ElementSizeModifier, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
-        super(ElementSizeModifier, self).Initialize()
+        super().Initialize()
         self._SaveInitialRadiusOfAllParticles()
         self._GetDeviationFromMeanSizeOfAllParticles()
         for props in self.spheres_model_part.Properties:
@@ -88,14 +88,14 @@ class ElementSizeModifier(DEMAnalysisStage):
             props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())
 
     def InitializeSolutionStep(self):
-        super(ElementSizeModifier, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
         center = KratosMultiphysics.Array3()
         center[0] = center[1] = center[2] = 0.0 #TODO: input
         density = self.size_modifier_parameters["material_settings"]["density_for_artificial_concentric_weight"].GetDouble()
         self.PreUtilities.ApplyConcentricForceOnParticles(self.spheres_model_part, center, density)
 
     def FinalizeSolutionStep(self):
-        super(ElementSizeModifier, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         self._ModifyRadiusOfAllParticles()
         self._EraseElementsOutsideDomainAndMarkSkin()
 
@@ -107,7 +107,7 @@ class ElementSizeModifier(DEMAnalysisStage):
             props.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.list_of_young_modulus_at_start[counter])
             props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.list_of_young_modulus_at_start[counter])
             counter += 1
-        super(ElementSizeModifier, self).Finalize()
+        super().Finalize()
 
     def _GetDeviationFromMeanSizeOfAllParticles(self):
         min_radius = (self.size_modifier_parameters["max_diameter_of_particles"].GetDouble())/ 2.0

@@ -117,30 +117,33 @@ public:
             TSparseSpace, TDenseSpace, TLinearSolver, VarComponent>(
             pNewLinearSolver, MESH_DISPLACEMENT_Z));
 
-    mstrategy_x = typename BaseType::Pointer(
-        new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
-                                        TLinearSolver>(
-            *mpmesh_model_part, pscheme, pNewLinearSolver,
-            mpbuilder_and_solver_x, ComputeReactions,
-            mreform_dof_set_at_each_step, calculate_norm_dx_flag));
+    mstrategy_x = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
+        *mpmesh_model_part,
+        pscheme,
+        mpbuilder_and_solver_x,
+        ComputeReactions,
+        mreform_dof_set_at_each_step,
+        calculate_norm_dx_flag));
 
     mstrategy_x->SetEchoLevel(mecho_level);
 
-    mstrategy_y = typename BaseType::Pointer(
-        new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
-                                        TLinearSolver>(
-            *mpmesh_model_part, pscheme, pNewLinearSolver,
-            mpbuilder_and_solver_y, ComputeReactions,
-            mreform_dof_set_at_each_step, calculate_norm_dx_flag));
+    mstrategy_y = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
+        *mpmesh_model_part,
+        pscheme,
+        mpbuilder_and_solver_y,
+        ComputeReactions,
+        mreform_dof_set_at_each_step,
+        calculate_norm_dx_flag));
 
     mstrategy_y->SetEchoLevel(mecho_level);
 
-    mstrategy_z = typename BaseType::Pointer(
-        new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
-                                        TLinearSolver>(
-            *mpmesh_model_part, pscheme, pNewLinearSolver,
-            mpbuilder_and_solver_z, ComputeReactions,
-            mreform_dof_set_at_each_step, calculate_norm_dx_flag));
+    mstrategy_z = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
+        *mpmesh_model_part,
+        pscheme,
+        mpbuilder_and_solver_z,
+        ComputeReactions,
+        mreform_dof_set_at_each_step,
+        calculate_norm_dx_flag));
 
     mstrategy_z->SetEchoLevel(mecho_level);
 
