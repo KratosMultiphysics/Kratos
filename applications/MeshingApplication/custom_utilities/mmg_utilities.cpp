@@ -2348,7 +2348,15 @@ void MmgUtilities<MMGLibrary::MMG2D>::FreeAll()
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
+    #if MMG_VERSION_GE(5,5)
+        if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+            MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppLs,&mMmgSol,MMG5_ARG_end);
+        } else {
+            MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
+        }
+    #else
         MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
+    #endif
     }
 
     KRATOS_CATCH("");
@@ -2365,7 +2373,15 @@ void MmgUtilities<MMGLibrary::MMG3D>::FreeAll()
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
+    #if MMG_VERSION_GE(5,5)
+        if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+            MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppLs,&mMmgSol,MMG5_ARG_end);
+        } else {
+            MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
+        }
+    #else
         MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
+    #endif
     }
 
     KRATOS_CATCH("");
@@ -2382,7 +2398,15 @@ void MmgUtilities<MMGLibrary::MMGS>::FreeAll()
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
+    #if MMG_VERSION_GE(5,5)
+        if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+            MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppLs,&mMmgSol,MMG5_ARG_end);
+        } else {
+            MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
+        }
+    #else
         MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
+    #endif
     }
 
     KRATOS_CATCH("");
