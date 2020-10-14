@@ -359,7 +359,7 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
       {
          // check if there is an equivalent .dll file
          name.replace(found, 3, ".dll");
-         hGetProcIDDLL = LoadLibrary((name.c_str());
+         hGetProcIDDLL = LoadLibrary(name.c_str());
       }
    }
 
