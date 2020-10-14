@@ -446,6 +446,30 @@ void ShallowWater2D3::ComputeMassMatrix(
     }
 }
 
+void ShallowWater2D3::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rMassMatrix.size1() != 9)
+        rMassMatrix.resize(9, 9, false);
+
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+
+    const double lumping_factor = area / 3.0;
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t block = 3 * i;
+        rMassMatrix(block, block) += lumping_factor;
+        rMassMatrix(block+1, block+1) += lumping_factor;
+        rMassMatrix(block+2, block+2) += lumping_factor;
+
+        // TODO: add consistent mass matrix
+    }
+}
+
 void ShallowWater2D3::ComputeGradientMatrix(
     BoundedMatrix<double,9,9>& rMatrix,
     const ElementData& rData,

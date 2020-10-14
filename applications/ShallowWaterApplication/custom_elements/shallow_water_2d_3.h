@@ -236,6 +236,16 @@ public:
         ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the constitutive laws selected
      * It is designed to be called only once (or anyway, not often) typically at the beginning
