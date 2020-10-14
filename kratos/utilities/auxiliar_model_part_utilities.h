@@ -612,15 +612,19 @@ private:
     template<typename TDataType, class TContainerType>
     void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const std::vector<TDataType>& rData)
     {
-        IndexType counter = 0;
+        /* IndexType counter = 0;
         for(auto& r_entity : rContainer){
             auto& r_val = r_entity.GetValue(rVariable);
             r_val = rData[counter++];
-        }
-
-        /* IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
-            rContainer[index].GetValue(rVariable) = rData[index];
-        }); */
+        } */
+        
+        //printf("\nsize of %d\n", rContainer.size());
+        IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
+            printf("index=%d, thread number=%d, value = %f\n", index, omp_get_thread_num(), rData[index]);
+            //rContainer[index].GetValue(localvariable) = rData[index];
+            auto& r_entity = rContainer[index];
+            r_entity.SetValue(rVariable,rData[index]); 
+        }); 
                 
         /* BlockPartition<TContainerType>(rContainer).for_each([](TContainerType::value_type& rEntity){
 
