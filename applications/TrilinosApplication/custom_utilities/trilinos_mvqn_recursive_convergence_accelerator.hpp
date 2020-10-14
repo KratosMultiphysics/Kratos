@@ -480,6 +480,7 @@ public:
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
 
+        mProblemSize = 0;
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
         mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt();
         mConvergenceAcceleratorStep = 0;
@@ -496,6 +497,7 @@ public:
         mOmega_0(OmegaInitial),
         mJacobianBufferSize(JacobianBufferSize)
     {
+        mProblemSize = 0;
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;

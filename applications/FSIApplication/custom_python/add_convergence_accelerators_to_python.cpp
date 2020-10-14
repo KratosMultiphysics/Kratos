@@ -48,6 +48,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     py::class_<ConstantRelaxationConvergenceAcceleratorType, ConstantRelaxationConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "ConstantRelaxationConvergenceAccelerator")
         .def(py::init<double>())
         .def(py::init<Parameters>())
+    ;
 
     // Aitken convergence accelerator
     typedef AitkenConvergenceAccelerator<SparseSpaceType, DenseSpaceType> AitkenConvergenceAcceleratorType;
@@ -55,6 +56,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     py::class_<AitkenConvergenceAcceleratorType, AitkenConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "AitkenConvergenceAccelerator")
         .def(py::init<double>())
         .def(py::init<Parameters>())
+    ;
 
     // MVQN convergence accelerator
     typedef MVQNFullJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType> MVQNFullJacobianConvergenceAcceleratorType;
@@ -62,6 +64,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     py::class_<MVQNFullJacobianConvergenceAcceleratorType, MVQNFullJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
         .def(py::init<Parameters>())
         .def(py::init<double, double>())
+    ;
 
     // MVQN recursive convergence accelerator
     typedef MVQNRecursiveJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType> MVQNRecursiveJacobianConvergenceAcceleratorType;
@@ -69,6 +72,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     py::class_<MVQNRecursiveJacobianConvergenceAcceleratorType, MVQNRecursiveJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNRecursiveJacobianConvergenceAccelerator")
         .def(py::init<Parameters>())
         .def(py::init<double, unsigned int, double>())
+    ;
 }
 
 }  // namespace Python.
