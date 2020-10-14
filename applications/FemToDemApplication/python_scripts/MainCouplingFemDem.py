@@ -2,6 +2,7 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 
 import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
 import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
@@ -328,7 +329,7 @@ class MainCoupledFemDem_Solution:
                                                                             [node.Id],
                                                                             props)
             self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
-            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(KratosFemDem.FORCE_LOAD, [0.0,0.0,0.0])
+            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(KratosSMA.POINT_LOAD, [0.0,0.0,0.0])
 
 #FindNeighboursIfNecessary===================================================================================================================================
     def FindNeighboursIfNecessary(self):

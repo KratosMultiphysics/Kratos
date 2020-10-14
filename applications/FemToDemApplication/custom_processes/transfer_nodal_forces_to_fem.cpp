@@ -14,6 +14,7 @@
 #include "custom_processes/transfer_nodal_forces_to_fem.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos {
 
@@ -49,7 +50,7 @@ void TransferNodalForcesToFem::Execute()
                 auto& r_dem_forces_wall = r_node.FastGetSolutionStepValue(TOTAL_FORCES);
                 dem_forces = r_dem_forces_ball + r_dem_forces_wall;
             }
-            it_cond->SetValue(FORCE_LOAD, dem_forces);
+            it_cond->SetValue(POINT_LOAD, dem_forces);
         }
     }
 }
