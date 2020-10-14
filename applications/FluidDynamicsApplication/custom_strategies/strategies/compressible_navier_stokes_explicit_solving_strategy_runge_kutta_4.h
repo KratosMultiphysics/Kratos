@@ -428,6 +428,19 @@ protected:
         // }
     }
 
+
+    void FinalizeRungeKuttaLastSubStep() override
+    {
+        // Call the base RK4 finalize substep method
+        BaseType::FinalizeRungeKuttaLastSubStep();
+
+        // Apply the momentum slip condition
+        //TODO: THIS SHOULDN'T BE REQUIRED --> DOING IT AFTER THE FINAL UPDATE MUST BE ENOUGH
+        if (mApplySlipCondition) {
+            ApplySlipCondition();
+        }
+    }
+
     void InitializeRungeKuttaLastSubStep() override
     {
         // Call the base RK4 to perform the initialize intermediate RK sub step
@@ -467,6 +480,11 @@ protected:
     {
         // Call the base RK4 finalize substep method
         BaseType::FinalizeRungeKuttaIntermediateSubStep();
+
+        // Apply the momentum slip condition
+        if (mApplySlipCondition) {
+            ApplySlipCondition();
+        }
     }
 
     ///@}
