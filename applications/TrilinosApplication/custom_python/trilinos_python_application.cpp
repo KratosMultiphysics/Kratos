@@ -26,7 +26,7 @@
 #include "custom_python/add_trilinos_processes_to_python.h"
 #include "custom_python/add_trilinos_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_trilinos_convergence_acclerators_to_python.h"
+#include "custom_python/add_trilinos_convergence_accelerators_to_python.h"
 
 // Project includes
 #include "trilinos_application.h"
