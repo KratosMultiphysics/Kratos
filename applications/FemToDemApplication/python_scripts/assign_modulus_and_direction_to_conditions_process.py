@@ -221,13 +221,13 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
 
     #
     def IsRecoverStep(self):
-        if self.model_part.ProcessInfo.Has(KratosSolid.DELTA_TIME_CHANGED):
-            if self.model_part.ProcessInfo[KratosSolid.DELTA_TIME_CHANGED] is True:
-                return True
-            else:
-                return False
-        else:
-            return False
+        # if self.model_part.ProcessInfo.Has(KratosSolid.DELTA_TIME_CHANGED):
+        #     if self.model_part.ProcessInfo[KratosSolid.DELTA_TIME_CHANGED] is True:
+        #         return True
+        #     else:
+        #         return False
+        # else:
+        return False
     #
     def SetCurrentTime(self):
         self.delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
