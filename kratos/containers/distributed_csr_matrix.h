@@ -152,7 +152,7 @@ public:
         //construct offdiagonal block
         
         //store off-diagonal block
-        mOffDiagBlock.reserve(nlocal_rows, offdiag_nnz); //TODO: merge with the previous loop
+        mOffDiagBlock.reserve(nlocal_rows, offdiag_nnz); 
         counter = 0;
         for(const auto& entries : local_graph){
             unsigned int k = 0;
@@ -226,7 +226,6 @@ public:
     IndexType local_size1() const
     {
         return mDiagBlock.size1();
-        //TODO decide if we should give back the local or globale sizes
     }
 
     IndexType size2() const
@@ -337,11 +336,10 @@ public:
                 {
                     send_data[i] = *(direct_senddata_access[i]);
 
-                    //slower but more understandable version TOTO remove
+                    //slower but more understandable version TODO remove
                     // IndexType I = mIndicesToSendValues[color][i].first;
                     // IndexType J = mIndicesToSendValues[color][i].second;
                     // send_data[i] = GetNonLocalDataByGlobalId(I,J);
-                    // if(I == 33 && J == 33) std::cout << "send entry 33,33 :" << send_data[i] << std::endl;
 
 
                 }
