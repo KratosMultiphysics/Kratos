@@ -89,7 +89,7 @@ class TestConvectionDiffusionExplicitElement(KratosUnittest.TestCase):
             u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             error += (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
         error = sqrt(error)
-        self.assertAlmostEqual(error,0.17200571595025685,delta=1e-12)
+        self.assertAlmostEqual(error,0.045232415452161175,delta=1e-12)
 
 if __name__ == '__main__':
     KratosUnittest.main()

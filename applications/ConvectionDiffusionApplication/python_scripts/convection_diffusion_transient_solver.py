@@ -32,7 +32,6 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
 
     @classmethod
     def GetDefaultParameters(cls):
-
         default_settings = KratosMultiphysics.Parameters("""
         {
             "transient_parameters" : {

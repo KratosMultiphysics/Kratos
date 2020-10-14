@@ -12,31 +12,35 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     solver_type = solver_settings["solver_type"].GetString()
+    time_integration = solver_settings["time_integration"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "transient" or solver_type == "Transient"):
-            solver_module_name = "convection_diffusion_transient_solver"
-
-        elif (solver_type == "stationary" or solver_type == "Stationary"):
-            solver_module_name = "convection_diffusion_stationary_solver"
-
-        elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
-            solver_module_name = "coupled_fluid_thermal_solver"
-
-        elif (solver_type == "thermo_mechanically_coupled" or solver_type == "ThermoMechanicallyCoupled"):
-            solver_module_name = "coupled_structural_thermal_solver"
-
-        elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
-            solver_module_name = "conjugate_heat_transfer_solver"
-
-        elif solver_type == "adjoint_stationary":
-            solver_module_name = "adjoint_diffusion_solver"
-
+        if time_integration == "explicit":
+            solver_module_name = "convection_diffusion_explicit_solver"
         else:
-            err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
-            raise Exception(err_msg)
+            if (solver_type == "transient" or solver_type == "Transient"):
+                solver_module_name = "convection_diffusion_transient_solver"
+
+            elif (solver_type == "stationary" or solver_type == "Stationary"):
+                solver_module_name = "convection_diffusion_stationary_solver"
+
+            elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
+                solver_module_name = "coupled_fluid_thermal_solver"
+
+            elif (solver_type == "thermo_mechanically_coupled" or solver_type == "ThermoMechanicallyCoupled"):
+                solver_module_name = "coupled_structural_thermal_solver"
+
+            elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
+                solver_module_name = "conjugate_heat_transfer_solver"
+
+            elif solver_type == "adjoint_stationary":
+                solver_module_name = "adjoint_diffusion_solver"
+
+            else:
+                err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
+                err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
+                raise Exception(err_msg)
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):

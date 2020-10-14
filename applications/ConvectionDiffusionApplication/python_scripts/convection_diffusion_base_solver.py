@@ -98,11 +98,17 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
             self.solver_imports_model_part = True
 
-        # TODO: improve robustness of the "if" adding element names which support OSS
+        element_name = self.settings["element_replace_settings"]["element_name"].GetString()
         if (self.settings["use_orthogonal_subscales"].GetBool() is True):
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, 1)
+            if element_name in ("QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
+                self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, 1)
+            else:
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: The selected element", element_name, "does not support OSS projection. Select QSConvectionDiffusionExplicit or DConvectionDiffusionExplicit instead.")
         else:
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, 0)
+            if element_name in ("QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
+                self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, 0)
+            else:
+                pass
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
 
@@ -114,6 +120,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "domain_size" : -1,
             "echo_level": 0,
             "analysis_type": "linear",
+            "time_integration": "implicit",
             "solver_type": "convection_diffusion_base_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
@@ -572,7 +579,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return linear_solver
 
     def _create_builder_and_solver(self):
-        if self.settings["analysis_type"].GetString() == "explicit":
+        if self.settings["time_integration"].GetString() == "explicit":
             builder_and_solver = KratosMultiphysics.ExplicitBuilder()
             return builder_and_solver
         linear_solver = self.get_linear_solver()
@@ -589,6 +596,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
 
     def _create_convection_diffusion_solution_strategy(self):
+        time_integration = self.settings["time_integration"].GetString()
+        if time_integration == "explicit":
+            convection_diffusion_solution_strategy = self._create_runge_kutta_4_strategy()
+            return convection_diffusion_solution_strategy
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             convection_diffusion_solution_strategy = self._create_linear_strategy()
@@ -597,8 +608,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 convection_diffusion_solution_strategy = self._create_newton_raphson_strategy()
             else:
                 convection_diffusion_solution_strategy = self._create_line_search_strategy()
-        elif analysis_type == "explicit":
-            convection_diffusion_solution_strategy = self._create_runge_kutta_4_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
@@ -647,6 +656,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def _create_runge_kutta_4_strategy(self):
         computing_model_part = self.GetComputingModelPart()
+        convection_diffusion_scheme = self.get_solution_scheme() # to call _create_solution_scheme method of the solver class
         explicit_builder_and_solver = self.get_builder_and_solver()
         rebuild_level = 0
         return ConvectionDiffusionApplication.ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion(computing_model_part,
