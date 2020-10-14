@@ -1,0 +1,3 @@
+This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!
+
+       time           displ_x        displ_y      Reaction_x     Reaction_y    
