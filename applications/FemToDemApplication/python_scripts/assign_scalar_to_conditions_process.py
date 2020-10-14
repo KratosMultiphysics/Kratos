@@ -1,11 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 ## This proces sets the value of a scalar variable to conditions
 
-from KratosMultiphysics.SolidMechanicsApplication.assign_scalar_to_nodes_process import AssignScalarToNodesProcess
+from KratosMultiphysics.FemToDemApplication.assign_scalar_to_nodes_process import AssignScalarToNodesProcess
 
 def Factory(custom_settings, Model):
     if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
@@ -65,7 +65,7 @@ class AssignScalarToConditionsProcess(AssignScalarToNodesProcess):
             params.AddValue("variable_name", self.settings["variable_name"])
             params.AddValue("value", self.settings["value"])
             params.AddEmptyValue("entity_type").SetString("CONDITIONS")
-            self.AssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+            self.AssignValueProcess = KratosFemDem.AssignScalarToEntitiesProcess(self.model_part, params)
         else:
             #function values are assigned to a vector variable :: transformation is needed
             if( isinstance(self.var,KratosMultiphysics.DoubleVariable) ):
@@ -77,7 +77,7 @@ class AssignScalarToConditionsProcess(AssignScalarToNodesProcess):
                 params.AddValue("variable_name", self.settings["variable_name"])
 
             params.AddEmptyValue("entity_type").SetString("CONDITIONS")
-            self.AssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
+            self.AssignValueProcess = KratosFemDem.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
 
         # in case of going to previous time step for time step reduction
         self.CreateUnAssignmentProcess(params)
@@ -86,6 +86,6 @@ class AssignScalarToConditionsProcess(AssignScalarToNodesProcess):
     def CreateUnAssignmentProcess(self, params):
         params["compound_assignment"].SetString(self.GetInverseAssigment(self.settings["compound_assignment"].GetString()))
         if( self.value_is_numeric ):
-            self.UnAssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+            self.UnAssignValueProcess = KratosFemDem.AssignScalarToEntitiesProcess(self.model_part, params)
         else:
-            self.UnAssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
+            self.UnAssignValueProcess = KratosFemDem.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)

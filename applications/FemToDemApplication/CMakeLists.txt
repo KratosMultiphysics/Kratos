@@ -44,6 +44,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_sand_production.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_free_velocity_on_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/transfer_entities_between_model_parts_process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_field_to_entities_process.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_scalar_dof_process.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/free_scalar_dof_process.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_entities_process.cpp
@@ -51,6 +52,8 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/FEMDEM_coupling_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_flag_no_remesh_femdem_boundary_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_vector_variable_to_conditions_process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_vector_field_to_entities_process.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_total_lagrangian_femdem_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_total_lagrangian_mixtures_femdem_element.cpp

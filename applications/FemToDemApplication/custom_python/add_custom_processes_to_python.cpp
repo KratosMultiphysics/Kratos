@@ -43,7 +43,9 @@
 #include "custom_processes/fix_scalar_dof_process.hpp"
 #include "custom_processes/free_scalar_dof_process.hpp"
 #include "custom_processes/assign_scalar_variable_to_entities_process.hpp"
-
+#include "custom_processes/assign_vector_variable_to_conditions_process.hpp"
+#include "custom_processes/assign_vector_field_to_entities_process.hpp"
+#include "custom_processes/assign_scalar_field_to_entities_process.hpp"
 
 namespace Kratos
 {
@@ -60,6 +62,24 @@ void AddCustomProcessesToPython(pybind11::module &m)
       .def(init<ModelPart&, Parameters>())
       .def(init<ModelPart&, Parameters&>())
       .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute);
+      
+  class_<AssignScalarFieldToEntitiesProcess, AssignScalarFieldToEntitiesProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignScalarFieldToEntitiesProcess")
+      .def(init<ModelPart&, pybind11::object&, const std::string, const bool, Parameters>())
+      .def(init< ModelPart&, pybind11::object&, const std::string, const bool, Parameters& >())
+      .def("Execute", &AssignScalarFieldToEntitiesProcess::Execute);
+
+  class_<AssignVectorFieldToEntitiesProcess, AssignVectorFieldToEntitiesProcess::Pointer, AssignScalarFieldToEntitiesProcess>(m,"AssignVectorFieldToEntitiesProcess")
+      .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
+      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
+      .def("Execute", &AssignVectorFieldToEntitiesProcess::Execute);
+
+  class_<AssignVectorVariableToConditionsProcess, AssignVectorVariableToConditionsProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignVectorToConditionsProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init< ModelPart&, Parameters& >())
+      .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
+      .def("Execute", &AssignVectorVariableToConditionsProcess::Execute);
+
+
 
   class_<FixScalarDofProcess, FixScalarDofProcess::Pointer, Process>(m,"FixScalarDofProcess")
       .def(init<ModelPart&, Parameters>())

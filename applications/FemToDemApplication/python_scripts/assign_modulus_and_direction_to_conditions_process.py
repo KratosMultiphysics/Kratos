@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 ## This proces sets the value of a vector variable using a modulus and direction
 ## In this case, the fixicity is given set by deffault to false.
@@ -169,7 +169,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             for i in self.value:
                 params["value"][counter].SetDouble(i)
                 counter+=1
-            self.AssignValueProcess = KratosSolid.AssignVectorToConditionsProcess(self.model_part, params)
+            self.AssignValueProcess = KratosFemDem.AssignVectorToConditionsProcess(self.model_part, params)
         else:
             #function values are assigned to a vector variable :: transformation is needed
             if( isinstance(self.var,KratosMultiphysics.Array1DVariable3) ):
@@ -184,7 +184,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
                 params["value"][counter].SetDouble(i)
                 counter+=1
             params.AddEmptyValue("entity_type").SetString("CONDITIONS")
-            self.AssignValueProcess = KratosSolid.AssignVectorFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+            self.AssignValueProcess = KratosFemDem.AssignVectorFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
         # in case of going to previous time step for time step reduction
         self.CreateUnAssignmentProcess(params)
@@ -193,9 +193,9 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
     def CreateUnAssignmentProcess(self, params):
         params["compound_assignment"].SetString(self.GetInverseAssigment(self.settings["compound_assignment"].GetString()))
         if( self.value_is_numeric ):
-            self.UnAssignValueProcess = KratosSolid.AssignVectorToConditionsProcess(self.model_part, params)
+            self.UnAssignValueProcess = KratosFemDem.AssignVectorToConditionsProcess(self.model_part, params)
         else:
-            self.UnAssignValueProcess = KratosSolid.AssignVectorFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+            self.UnAssignValueProcess = KratosFemDem.AssignVectorFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
     #
     def ExecuteAssignment(self):
