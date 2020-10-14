@@ -27,6 +27,7 @@
             "model_import_settings":              {
                  "input_type":         "mdpa",
                  "input_filename":     "face_load",
+				 "path_to_mdpa"  :     "small_tests/pressure_face_load/",
                  "input_file_label":    0
             },
             "reform_dofs_at_each_step":              true,
@@ -88,7 +89,7 @@
             },
             "file_label":          "step",
             "output_control_type": "step",
-            "output_interval":     1,
+            "output_interval":     100,
             "body_output":          true,
             "node_output":          false,
             "skin_output":          false,
@@ -108,8 +109,8 @@
         "incremental_load":                false,
         "incremental_displacement":        false
     },
-    "list_of_nodes_displacement":  [1],
-    "list_of_nodes_reaction":      [1],
+    "list_of_nodes_displacement":  [0],
+    "list_of_nodes_reaction":      [0],
     "interval_of_watching"  :      0.0,
     "watch_nodes_list"      :      [],
     "watch_elements_list"   :      [],
