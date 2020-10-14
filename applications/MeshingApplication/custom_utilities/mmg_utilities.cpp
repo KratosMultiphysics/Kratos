@@ -2129,11 +2129,27 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        MMG2D_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
+
+        // b) Function calling
+        KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO SAVE SOLUTION" << std::endl;
+    } else {
+        // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        MMG2D_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
+
+        // b) Function calling
+        KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
+    }
+#else
     // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMG2D_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
 
     // b) Function calling
-    KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE SOL" << std::endl;
+    KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
@@ -2149,11 +2165,27 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        MMG3D_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
+
+        // b) Function calling
+        KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO SAVE SOLUTION" << std::endl;
+    } else {
+        // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        MMG3D_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
+
+        // b) Function calling
+        KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
+    }
+#else
     // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMG3D_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
 
     // b) Function calling
-    KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh,mMmgMet, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
+    KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
@@ -2169,11 +2201,27 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        MMGS_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
+
+        // b) Function calling
+        KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO SAVE SOLUTION" << std::endl;
+    } else {
+        // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        MMGS_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
+
+        // b) Function calling
+        KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
+    }
+#else
     // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMGS_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
 
     // b) Function calling
-    KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh,mMmgMet, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
+    KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
