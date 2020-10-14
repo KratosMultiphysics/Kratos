@@ -14,7 +14,7 @@
 #include "custom_processes/transfer_nodal_forces_to_fem.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
-#include "structural_mechanics_application_variables.h"
+
 
 namespace Kratos {
 
