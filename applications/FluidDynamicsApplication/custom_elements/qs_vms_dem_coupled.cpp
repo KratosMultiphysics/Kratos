@@ -10,13 +10,15 @@
 //
 
 // Project includes
-#include "qsvms_dem_coupled.h"
 #include "includes/cfd_variables.h"
 #include "includes/dem_variables.h"
 #include "includes/checks.h"
 
+// Aplication includes
+#include "qs_vms_dem_coupled.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -89,75 +91,18 @@ void QSVMSDEMCoupled<TElementData>::Calculate(
     const Variable<double>& rVariable,
     double& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
-    {
-        TElementData data;
-        data.Initialize(*this, rCurrentProcessInfo);
-
-        if (rVariable == ERROR_RATIO)
-        {
-            const double density = this->GetAtCoordinate(data.Density,data.N);
-
-            // Get Advective velocity
-            array_1d<double, 3> convective_velocity= this->GetAtCoordinate(data.Velocity, data.N) -
-            this->GetAtCoordinate(data.MeshVelocity, data.N);
-
-            // Output container
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
-
-            // Calculate stabilization parameter. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
-            double tau_one, tau_two;
-            this->CalculateTau(data, convective_velocity, tau_one, tau_two);
-
-            if ( data.UseOSS != 1 ) // ASGS
-            {
-                this->AlgebraicMomentumResidual( data, convective_velocity, ElementalMomRes);
-                ElementalMomRes *= tau_one;
-            }
-            else // OSS
-            {
-                this->OrthogonalMomentumResidual(data, convective_velocity, ElementalMomRes);
-                ElementalMomRes *= tau_one;
-            }
-
-            // Error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
-            double ErrorRatio(0.0);//, UNorm(0.0);
-
-            for (unsigned int i = 0; i < Dim; ++i)
-            {
-                ErrorRatio += ElementalMomRes[i] * ElementalMomRes[i];
-            }
-            ErrorRatio = sqrt(ErrorRatio); // / UNorm);
-            ErrorRatio /= density;
-            this->SetValue(ERROR_RATIO, ErrorRatio);
-            rOutput = ErrorRatio;
-        }
-        else{
-            QSVMS<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-        }
-
-    }
+{
+    QSVMS<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
 void QSVMSDEMCoupled<TElementData>::Calculate(
     const Variable<array_1d<double, 3>>& rVariable,
     array_1d<double, 3>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo) {
-
+    const ProcessInfo& rCurrentProcessInfo)
+{
     QSVMS<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-
 }
-
-template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::Calculate(
-    const Variable<Vector>& rVariable,
-    Vector& rOutput,
-    const ProcessInfo& rCurrentProcessInfo) {}
-
-template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::Calculate(
-    const Variable<Matrix>& rVariable,
-    Matrix& rOutput,
-    const ProcessInfo& rCurrentProcessInfo) {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -168,7 +113,6 @@ void QSVMSDEMCoupled<TElementData>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
-
     QSVMS<TElementData>::EquationIdVector(rResult, rCurrentProcessInfo);
 }
 
@@ -191,33 +135,33 @@ template<class TElementData>
 void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
-    {
+{
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
-        // Calculate this element's fluid properties
+        // Calculate this element RHS contribution
         QSVMS<TElementData>::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
         this->AddMassRHS(rRightHandSideVector, data);
-    }
+}
 
 template<class TElementData>
 void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
     TElementData& rData,
     MatrixType& rMassMatrix)
-    {
+{
 
         const double density = this->GetAtCoordinate(rData.Density, rData.N);
 
         double tau_one;
         double tau_two;
-        array_1d<double, 3> convective_velocity=
+        const array_1d<double, 3> convective_velocity=
             this->GetAtCoordinate(rData.Velocity, rData.N) -
             this->GetAtCoordinate(rData.MeshVelocity, rData.N);
 
         this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
         double K; // Temporary results
-        double weight = rData.Weight * tau_one * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
+        const double weight = rData.Weight * tau_one * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
 
         Vector AGradN;
@@ -245,19 +189,21 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
                 }
             }
         }
-    }
+}
 
 template<class TElementData>
 void QSVMSDEMCoupled<TElementData>::AddMassRHS(
     VectorType& rRightHandSideVector,
     TElementData& rData)
-    {
+{
         double fluid_fraction_rate = 0.0;
         double mass_source = 0.0;
         fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
+        const auto& r_geom = this->GetGeometry();
+
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
-            mass_source += rData.N[i] * this->GetGeometry()[i].FastGetSolutionStepValue(MASS_SOURCE);
+            mass_source += rData.N[i] * r_geom[i].FastGetSolutionStepValue(MASS_SOURCE);
         }
         // Add the results to the pressure components (Local Dofs are vx, vy, [vz,] p for each node)
         int LocalIndex = Dim;
@@ -267,7 +213,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassRHS(
             LocalIndex += Dim + 1;
         }
 
-    }
+}
 
 // Add a the contribution from a single integration point to the velocity contribution
 template< class TElementData >
@@ -281,13 +227,13 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
     // Interpolate nodal data on the integration point
     const double density = this->GetAtCoordinate(rData.Density, rData.N);
-    array_1d<double, 3> body_force = this->GetAtCoordinate(rData.BodyForce,rData.N);
-    array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection, rData.N);
+    const array_1d<double, 3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
+    const array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection, rData.N);
     double mass_projection = this->GetAtCoordinate(rData.MassProjection, rData.N);
 
     double tau_one;
     double tau_two;
-    array_1d<double, 3> convective_velocity =
+    const array_1d<double, 3> convective_velocity =
         this->GetAtCoordinate(rData.Velocity, rData.N) -
         this->GetAtCoordinate(rData.MeshVelocity, rData.N);
 
@@ -297,7 +243,6 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     this->ConvectionOperator(AGradN, convective_velocity, rData.DN_DX);
 
     // Multiplying some quantities by density to have correct units
-    body_force *= density; // Force per unit of volume
     AGradN *= density; // Convective term is always multiplied by density
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
@@ -382,7 +327,7 @@ template<class TElementData>
 void QSVMSDEMCoupled<TElementData>::MassProjTerm(
     const TElementData& rData,
     double &rMassRHS) const
-    {
+{
         const auto velocities = rData.Velocity;
 
         const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
@@ -398,7 +343,7 @@ void QSVMSDEMCoupled<TElementData>::MassProjTerm(
             }
         }
         rMassRHS -= fluid_fraction_rate;
-    }
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

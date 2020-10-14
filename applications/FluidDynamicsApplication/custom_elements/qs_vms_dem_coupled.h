@@ -17,12 +17,16 @@
 #include <string>
 #include <iostream>
 
+// External includes
+
+// Project includes
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
-
 #include "includes/cfd_variables.h"
+
+// Application includes
 #include "custom_elements/fluid_element.h"
 #include "custom_elements/qs_vms.h"
 #include "fluid_dynamics_application_variables.h"
@@ -157,9 +161,10 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            Properties::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        Properties::Pointer pProperties) const override;
 
     /// Create a new element of this type using given geometry
     /**
@@ -169,9 +174,10 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            Properties::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        Properties::Pointer pProperties) const override;
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -181,16 +187,6 @@ public:
     void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<Vector >& rVariable,
-        Vector& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<Matrix >& rVariable,
-        Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(
@@ -210,8 +206,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(
-        const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output

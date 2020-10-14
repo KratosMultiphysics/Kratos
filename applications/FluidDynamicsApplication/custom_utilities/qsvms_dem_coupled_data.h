@@ -13,15 +13,22 @@
 #if !defined(KRATOS_QSVMSDEMCOUPLED_DATA_H)
 #define KRATOS_QSVMSDEMCOUPLED_DATA_H
 
-#include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
-#include "custom_utilities/qsvms_data.h"
+// System includes
+
+// External includes
+
+// Project includes
 #include "utilities/element_size_calculator.h"
 #include "includes/checks.h"
 
+// Application includes
+#include "fluid_dynamics_application_variables.h"
+#include "custom_utilities/fluid_element_data.h"
+#include "custom_utilities/qsvms_data.h"
+
 namespace Kratos {
 
-///@addtogroup SwimmingDEMApplication
+///@addtogroup FluidDynamicsApplication
 ///@{
 
 ///@name Kratos classes
