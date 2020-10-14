@@ -463,11 +463,12 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    TrilinosMVQNRecursiveJacobianConvergenceAccelerator( ModelPart& rInterfaceModelPart,
-                                                         const Epetra_MpiComm& rEpetraCommunicator,
-                                                         Parameters &rConvAcceleratorParameters) :
-        mrInterfaceModelPart(rInterfaceModelPart),
-        mrEpetraCommunicator(rEpetraCommunicator)
+    TrilinosMVQNRecursiveJacobianConvergenceAccelerator(
+        ModelPart& rInterfaceModelPart,
+        const Epetra_MpiComm& rEpetraCommunicator,
+        Parameters rConvAcceleratorParameters)
+        : mrInterfaceModelPart(rInterfaceModelPart)
+        , mrEpetraCommunicator(rEpetraCommunicator)
     {
         Parameters mvqn_recursive_default_parameters(R"(
         {
