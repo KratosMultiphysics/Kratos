@@ -44,6 +44,8 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(MASS_SOURCE);
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION);
+    model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_RATE);
+    model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_GRADIENT);
 
     // Process info creation
     double delta_time = 0.1;
