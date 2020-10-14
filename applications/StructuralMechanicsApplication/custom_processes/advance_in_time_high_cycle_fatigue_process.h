@@ -13,10 +13,6 @@
 #if !defined(KRATOS_ADVANCE_IN_TIME_STRATEGY_HIGH_CYCLE_FATIGUE_PROCESS)
 #define KRATOS_ADVANCE_IN_TIME_STRATEGY_HIGH_CYCLE_FATIGUE_PROCESS
 
-#include "processes/process.h"
-#include "includes/model_part.h"
-#include "structural_mechanics_application_variables.h"
-
 namespace Kratos
 {
 ///@name Kratos Globals

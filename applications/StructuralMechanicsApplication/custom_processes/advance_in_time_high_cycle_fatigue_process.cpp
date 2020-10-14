@@ -10,6 +10,9 @@
 //  Main authors:    Sergio Jimenez Reyes
 //
 
+#include "processes/process.h"
+#include "includes/model_part.h"
+#include "structural_mechanics_application_variables.h"
 #include "custom_processes/advance_in_time_high_cycle_fatigue_process.h"
 #include "structural_mechanics_application_variables.h"
 
