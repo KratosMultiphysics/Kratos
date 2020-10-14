@@ -59,9 +59,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
+    using size_t = std::size_t;
 
-    typedef std::vector<Vector> ElementalValuesVectorType;
+    typedef DenseVector<Vector> ElementalValuesVectorType;
+
+    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
 
     typedef std::vector<DofsVectorType> ElementalDofsVectorType;
 
@@ -87,19 +89,15 @@ public:
     ///@name Operations
     ///@{
 
-    void SetProcessInfoHighOrderFlags();
+    int Check();
 
-    void SetProcessInfoLowOrderFlags();
+    void ExecuteInitializeLowOrderStep();
 
-    void GetElementalHighOrderValues();
+    void ExecuteFinalizeLowOrderStep();
 
-    void GetElementalLowOrderValues();
+    void ExecuteInitializeHighOrderStep();
 
-    void GetElementalPreviousValues();
-
-    void ComputeElementalAlgebraicFluxCorrections();
-
-    void AssembleCorrections();
+    void ExecuteFinalizeHighOrderStep();
 
     ///@}
     ///@name Access
@@ -189,11 +187,16 @@ private:
 
     ModelPart& mrModelPart;
     int mRebuildLevel;
+    std::string mLimitingVariableName;
     ElementalValuesVectorType mHighOrderValues;
     ElementalValuesVectorType mLowOrderValues;
     ElementalValuesVectorType mPreviousValues;
     ElementalValuesVectorType mAlgebraicFluxCorrections;
+    ElementalValuesVectorType mElementalMassMatrices;
     ElementalDofsVectorType mElementalDofs;
+    Vector mElementalLimiters;
+    Vector mNodalHighOrderValues;
+    Vector mNodalLowOrderValues;
 
     ///@}
     ///@name Private Operators
@@ -206,7 +209,29 @@ private:
 
     const Parameters GetDefaultParameters() const;
 
+    void InitializeNonhistoricalVariables();
+
+    void AssembleElementalMassMatrices();
+
     void GetElementalDofList();
+
+    void SetProcessInfoHighOrderFlags();
+
+    void SetProcessInfoLowOrderFlags();
+
+    virtual void ComputeLimitingVariables();
+
+    void GetHighOrderValues(const Variable<double>& rLimitingVariable);
+
+    void GetLowOrderValues(const Variable<double>& rLimitingVariable);
+
+    void GetElementalPreviousValues();
+
+    void ComputeElementalAlgebraicFluxCorrections();
+
+    void ComputeLimiters(const Variable<double>& rVariable);
+
+    void AssembleLimitedCorrections();
 
     ///@}
     ///@name Private  Access
