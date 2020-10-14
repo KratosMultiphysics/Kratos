@@ -359,7 +359,6 @@ namespace MPMParticleGeneratorUtility
                                 }
                             }
 
-
                             ProcessInfo process_info = ProcessInfo();
 
                             // Setting particle condition's initial condition
@@ -397,7 +396,8 @@ namespace MPMParticleGeneratorUtility
                                     p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE, { mpc_contact_force }, process_info);
                                 }
                             }
-
+                            // Mark as boundary condition
+                            p_condition->Set(BOUNDARY, true);
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                             //TODO: Test if this also works in python..
@@ -459,7 +459,8 @@ namespace MPMParticleGeneratorUtility
                                     p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE, { mpc_contact_force }, process_info);
                                 }
                             }
-
+                            // Mark as boundary condition
+                            p_condition->Set(BOUNDARY, true);
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                             //TODO: Test if this also works in python..

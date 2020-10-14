@@ -140,7 +140,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
             self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
 
     def test_ComputeNodesMeanNormalModelPart(self):
-        KratosMultiphysics.MortarUtilities.ComputeNodesMeanNormalModelPart(self.model_part, True)
+        KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(self.model_part, True)
 
         ## DEBUG
         #PostProcess(self.model_part)
@@ -152,7 +152,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
 
     def test_InvertNormal(self):
         KratosMultiphysics.MortarUtilities.InvertNormal(self.model_part.Conditions)
-        KratosMultiphysics.MortarUtilities.ComputeNodesMeanNormalModelPart(self.model_part, True)
+        KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(self.model_part, True)
 
         ## DEBUG
         #PostProcess(self.model_part)
