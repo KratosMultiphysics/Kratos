@@ -1,14 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 ## This proces sets the value of a vector variable by a direction and a modulus.
 ## In this case, the fixicity is given set by deffault to true.
 import math
 import sys
 
-from KratosMultiphysics.SolidMechanicsApplication.assign_vector_components_to_nodes_process import AssignVectorComponentsToNodesProcess
+from KratosMultiphysics.FemToDemApplication.assign_vector_components_to_nodes_process import AssignVectorComponentsToNodesProcess
 
 def Factory(custom_settings, Model):
     if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
