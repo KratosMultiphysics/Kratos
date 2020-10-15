@@ -9,7 +9,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 # Other imports
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 
-
 def Create(settings, models, solver_name):
     return FetiDynamicCoupledSolver(settings, models, solver_name)
 
@@ -32,6 +31,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         self.is_initialized = False
 
+
     def AdvanceInTime(self, current_time):
         # not all solvers provide time (e.g. external solvers or steady solvers)
         # hence we have to check first if they return time (i.e. time != 0.0)
@@ -52,10 +52,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         if self.is_initialized == False:
             self.__InitializeFetiMethod()
-
-
-    def Predict(self):
-        super().Predict()
 
 
     def SolveSolutionStep(self):
