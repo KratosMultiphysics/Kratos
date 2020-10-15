@@ -65,39 +65,6 @@ inline void AtomicSub(TDataType& target, const TDataType& value ) {
     target -= value;
 }
 
-/** @param target vector variable being atomically updated by doing target -= value
- * @param value vector value being subtracted
- * Note that the update is not really atomic, but rather is done component by component
- */
-template<class TVectorType1, class TVectorType2>
-inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSub- Sizes are: "
-        << target.size() << " for target and " << value.size() << " for value " <<std::endl;
-    for(unsigned int i=0; i<target.size(); ++i){
-       AtomicSub(target[i], value[i]);
-    }
-}
-
-/** @param target variable being atomically updated by doing target = value
- * @param value valuev to which the target is set
- * KLUDGE: might not be supported by all compilers even though the openmp standard does support it
- */
-template<class TDataType>
-inline void AtomicAssign(TDataType& target, const TDataType& value)
-{
-    // different OS support different types for atomic
-    // listing here the types that are supported everywhere
-    static_assert(
-        std::is_same<TDataType, double>::value ||
-        std::is_same<TDataType, float>::value  ||
-        std::is_same<TDataType, int>::value    ||
-        std::is_same<TDataType, unsigned int>::value
-            , "Atomic assign is not compatible with this type");
-
-    #pragma omp atomic
-    target = value;
-}
-
 }  // namespace Kratos.
 
 #endif // KRATOS_ATOMIC_UTILITIES_H_INCLUDED  defined
