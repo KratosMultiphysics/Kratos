@@ -145,7 +145,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()
 
-        self._solver.InitializeSolutionStep()
+        # self._solver.InitializeSolutionStep()
 
         # write output results GiD: (frequency writing is controlled internally)
         self.GraphicalOutputPrintOutput()
