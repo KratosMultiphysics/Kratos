@@ -7,7 +7,6 @@ import KratosMultiphysics.CoSimulationApplication as CoSim
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
 
 # Other imports
-from KratosMultiphysics import auxiliary_solver_utilities
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 
 
@@ -113,17 +112,11 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         self.modelpart_interface_destination_from_mapper = self.mapper.GetInterfaceModelPart(1)
 
         # Get time integration parameters
-        origin_newmark_beta = self.settings["origin_newmark_beta"].GetDouble()
-        origin_newmark_gamma = self.settings["origin_newmark_gamma"].GetDouble()
-        destination_newmark_beta = self.settings["destination_newmark_beta"].GetDouble()
-        destination_newmark_gamma = self.settings["destination_newmark_gamma"].GetDouble()
-
         self.is_implicit = [True, True]
+        origin_newmark_beta = self.settings["origin_newmark_beta"].GetDouble()
+        destination_newmark_beta = self.settings["destination_newmark_beta"].GetDouble()
         if origin_newmark_beta == 0.0: self.is_implicit[0] = False
         if destination_newmark_beta == 0.0: self.is_implicit[1] = False
-
-        # create the solver
-        linear_solver = self._CreateLinearSolver()
 
         # Create feti class instance
         self.feti_coupling = CoSim.FetiDynamicCouplingUtilities(
@@ -139,6 +132,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.model_part_origin_interface,
             self.model_part_destination_interface)
 
+        # create the solver
+        linear_solver = self._CreateLinearSolver()
         self.feti_coupling.SetLinearSolver(linear_solver)
 
         # set the mapper
