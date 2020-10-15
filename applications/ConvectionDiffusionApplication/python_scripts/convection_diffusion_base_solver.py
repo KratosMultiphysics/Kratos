@@ -579,7 +579,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return linear_solver
 
     def _create_builder_and_solver(self):
-        if self.settings["time_integration"].GetString() == "explicit":
+        if self.settings["time_integration_method"].GetString() == "explicit":
             builder_and_solver = KratosMultiphysics.ExplicitBuilder()
             return builder_and_solver
         linear_solver = self.get_linear_solver()
@@ -596,8 +596,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
 
     def _create_convection_diffusion_solution_strategy(self):
-        time_integration = self.settings["time_integration"].GetString()
-        if time_integration == "explicit":
+        time_integration_method = self.settings["time_integration_method"].GetString()
+        if time_integration_method == "explicit":
             convection_diffusion_solution_strategy = self._create_runge_kutta_4_strategy()
             return convection_diffusion_solution_strategy
         analysis_type = self.settings["analysis_type"].GetString()

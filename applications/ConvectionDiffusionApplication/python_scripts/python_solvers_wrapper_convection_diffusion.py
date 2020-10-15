@@ -12,14 +12,14 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     solver_type = solver_settings["solver_type"].GetString()
-    time_integration = "implicit / not defined"
-    if solver_settings.Has("time_integration"):
-        if solver_settings["time_integration"].GetString() == "explicit":
-            time_integration = solver_settings["time_integration"].GetString()
+    time_integration_method = "implicit / not defined"
+    if solver_settings.Has("time_integration_method"):
+        if solver_settings["time_integration_method"].GetString() == "explicit":
+            time_integration_method = solver_settings["time_integration_method"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if time_integration == "explicit":
+        if time_integration_method == "explicit":
             solver_module_name = "convection_diffusion_explicit_solver"
         else:
             if (solver_type == "transient" or solver_type == "Transient"):
