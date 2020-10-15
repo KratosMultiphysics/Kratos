@@ -79,7 +79,6 @@ namespace Kratos
             << "Please call 'SetLinearSolver' from python before calling 'EquilibrateDomains'.\n";
 
         const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
 
         KRATOS_ERROR_IF_NOT(mpDestinationDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension() == dim_origin)
             << "FetiDynamicCouplingUtilities::EquilibrateDomains | Origin and destination working space dimensions do not match\n";
@@ -148,8 +147,6 @@ namespace Kratos
         KRATOS_TRY
 
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        auto origin_interface_nodes = mrOriginInterfaceModelPart.NodesArray();
-        auto destination_interface_nodes = mrDestinationInterfaceModelPart.NodesArray();
         Variable< array_1d<double, 3> >& equilibrium_variable = GetEquilibriumVariable();
 
         // Get destination kinematics
@@ -335,24 +332,20 @@ namespace Kratos
         }
         else
         {
-            bool is_fem_central_difference = true;
-            if (is_fem_central_difference)
-            {
-                // FEM central difference correction:
-                // gamma = 0.5
-                // beta = 0.0
-                // deltaAccel = accel_correction
-                // deltaVelocity = 0.5 * dt * accel_correction
-                // deltaVelocityMiddle = dt * accel_correction
-                // deltaDisplacement = dt * dt * accel_correction
+            // FEM central difference correction:
+            // gamma = 0.5
+            // beta = 0.0
+            // deltaAccel = accel_correction
+            // deltaVelocity = 0.5 * dt * accel_correction
+            // deltaVelocityMiddle = dt * accel_correction
+            // deltaDisplacement = dt * dt * accel_correction
 
-                accel_corrections *= 2.0;
-                AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
+            accel_corrections *= 2.0;
+            AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
 
-                // Apply displacement correction
-                accel_corrections *= dt;
-                AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
-            }
+            // Apply displacement correction
+            accel_corrections *= dt;
+            AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
         }
 
         KRATOS_CATCH("")
@@ -577,7 +570,6 @@ namespace Kratos
         KRATOS_TRY
 
         const SizeType interface_dofs = rProjector.size1();
-        const SizeType system_dofs = rProjector.size2();
         const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
         auto domain_nodes = rDomain.NodesArray();
@@ -645,7 +637,6 @@ namespace Kratos
             double det;
             Matrix inv(pK->size1(), pK->size2());
             MathUtils<double>::InvertMatrix(*pK, inv, det);
-            Matrix ref = prod(inv, trans(rProjector));
             //end = std::chrono::system_clock::now();
             //auto elasped_invert = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
