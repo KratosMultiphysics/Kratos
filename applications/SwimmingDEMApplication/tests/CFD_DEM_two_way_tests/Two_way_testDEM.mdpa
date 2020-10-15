@@ -1,0 +1,63 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 100000.0
+    POISSON_RATIO 0.20
+    FRICTION 0.577350269189494
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    PARTICLE_SPHERICITY 1.0
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes
+  380   0.0000000000   0.0000000000   0.2500000000
+End Nodes
+
+
+Begin Nodes
+  380   0.0000000000   0.0000000000   0.2500000000
+End Nodes
+
+
+Begin Elements SphericSwimmingParticle3D// GUI group identifier: DEM_Particle
+     6399          2   380 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: DEM_Particle
+        380 0  0.0368887
+End NodalData
+
+Begin SubModelPart DEMParts_DEM_Particle // Group DEM_Particle // Subtree DEMParts
+    Begin SubModelPartNodes
+          380
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         6399
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart 1 // GUI DEM-VelocityIC - DEM-VelocityIC - group identifier: DEM_Particle
+  Begin SubModelPartData // DEM-VelocityIC. Group name: DEM_Particle
+    INITIAL_VELOCITY_X_VALUE 0.0
+    INITIAL_VELOCITY_Y_VALUE 0.0
+    INITIAL_VELOCITY_Z_VALUE -1.0
+    INITIAL_ANGULAR_VELOCITY_X_VALUE 0.0
+    INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
+    INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
+    RIGID_BODY_MOTION 0
+    FORCE_INTEGRATION_GROUP 0
+    IDENTIFIER DEM_Particle
+  End SubModelPartData
+  Begin SubModelPartNodes
+       380
+  End SubModelPartNodes
+End SubModelPart
+

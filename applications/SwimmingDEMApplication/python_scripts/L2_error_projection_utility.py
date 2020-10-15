@@ -38,23 +38,17 @@ class L2ErrorProjectionUtility:
         return self.velocity_error_projected, self.pressure_error_projected, self.error_model_part
 
     def ComputeVelocityError(self):
-        mod_error = 0
         for node in self.error_model_part.Nodes:
             vectorial_error = Vector(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) - node.GetSolutionStepValue(SDEM.EXACT_VELOCITY))
-            mod_error += np.sqrt(vectorial_error[0]**2 + vectorial_error[1]**2 + vectorial_error[2]**2)
             node.SetSolutionStepValue(SDEM.VECTORIAL_ERROR, vectorial_error)
 
-        print("av_mod_error :", mod_error / len(self.error_model_part.Elements))
-
     def ComputePressureError(self):
-        mod_error = 0
         for node in self.error_model_part.Nodes:
             scalar_error = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) - node.GetSolutionStepValue(SDEM.EXACT_PRESSURE)
             node.SetSolutionStepValue(SDEM.SCALAR_ERROR, scalar_error)
 
     def SetStrategy(self):
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-
         linear_solver = KratosMultiphysics.AMGCLSolver()
         self.l2_projector_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.error_model_part, scheme, linear_solver, False, False, False, False)
 
