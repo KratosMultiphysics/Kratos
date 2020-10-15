@@ -17,15 +17,13 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.fct_utility.ExecuteInitializeLowOrderStep()
             self.__execute_before_low_order_step()
             super().InitializeSolutionStep()
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
-            self.fct_utility.ExecuteFinalizeLowOrderStep()
-            self.fct_utility.ExecuteInitializeHighOrderStep()
+            self.__execute_after_low_order_step()
             self.__execute_before_high_order_step()
             is_converged = self.solver.SolveSolutionStep()
             return is_converged
@@ -35,7 +33,7 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             super().FinalizeSolutionStep()
-            self.fct_utility.ExecuteFinalizeHighOrderStep()
+            self.__execute_after_high_order_step()
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -52,7 +50,17 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
         dry_height = self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)
         SW.ShallowWaterUtilities().ResetDryDomain(self.main_model_part, dry_height)
         SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, dry_height)
+        self.fct_utility.ExecuteInitializeLowOrderStep()
+
+    def __execute_after_low_order_step(self):
+        SW.ShallowWaterUtilities().ComputeEnergy(self.main_model_part)
+        self.fct_utility.ExecuteFinalizeLowOrderStep()
 
     def __execute_before_high_order_step(self):
         dry_height = 10 * self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)
         SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, dry_height)
+        self.fct_utility.ExecuteInitializeHighOrderStep()
+
+    def __execute_after_high_order_step(self):
+        SW.ShallowWaterUtilities().ComputeEnergy(self.main_model_part)
+        self.fct_utility.ExecuteFinalizeHighOrderStep()
