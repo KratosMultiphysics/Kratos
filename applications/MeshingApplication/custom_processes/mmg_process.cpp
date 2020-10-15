@@ -1234,6 +1234,19 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+std::string MmgProcess<TMMGLibrary>::GetMmgVersion()
+{
+    KRATOS_TRY;
+
+    return mMmgUtilities.GetMmgVersion();
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
