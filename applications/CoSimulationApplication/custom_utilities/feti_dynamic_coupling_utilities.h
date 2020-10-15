@@ -48,7 +48,6 @@ namespace Kratos
         typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
         typedef Matrix DenseMappingMatrixType;
-        typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixSharedPointerType;
 
         typedef typename SparseSpaceType::MatrixType MappingMatrixType;
 
@@ -94,16 +93,9 @@ namespace Kratos
             if (SolverIndex == 0) mSubTimestepIndex = 1;
         };
 
-        void SetMappingMatrix(DenseMappingMatrixSharedPointerType pMappingMatrix,
-            DenseMappingMatrixSharedPointerType pMappingMatrixForce)
+        void SetMappingMatrix(CompressedMatrix& rMappingMatrix)
         {
-            mpMappingMatrix = pMappingMatrix;
-            mpMappingMatrixForce = pMappingMatrixForce;
-        };
-
-        void SetMappingMatrix(DenseMappingMatrixSharedPointerType pMappingMatrix)
-        {
-            this->SetMappingMatrix(pMappingMatrix, nullptr);
+            mpMappingMatrix = &rMappingMatrix;
         };
 
         void SetLinearSolver(LinearSolverSharedPointerType pSolver)
@@ -125,8 +117,8 @@ namespace Kratos
         SystemMatrixType* mpKOrigin = nullptr;
         SystemMatrixType* mpKDestination = nullptr;
 
-        DenseMappingMatrixSharedPointerType mpMappingMatrix = nullptr;
-        DenseMappingMatrixSharedPointerType mpMappingMatrixForce = nullptr;
+        CompressedMatrix* mpMappingMatrix = nullptr;
+        CompressedMatrix* mpMappingMatrixForce = nullptr;
 
         // Origin quantities
         Vector mInitialOriginInterfaceKinematics;

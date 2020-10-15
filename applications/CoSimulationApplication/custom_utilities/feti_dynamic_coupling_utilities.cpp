@@ -559,6 +559,7 @@ namespace Kratos
         }
         else
         {
+            KRATOS_ERROR << "Using mpMappingMatrixForce is not yet implemented!\n";
             // Force map has been specified, and we use this.
             // This corresponds to consistent mapping (energy not conserved, but proper force mapping)
             // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M

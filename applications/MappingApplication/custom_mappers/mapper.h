@@ -164,6 +164,11 @@ public:
         KRATOS_ERROR << "This mapper doesn't implement \"GetMappingMatrix\"!" << std::endl;
     }
 
+    virtual ModelPart& GetInterfaceModelPart(IndexType ModelPartIndex)
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPart\"!" << std::endl;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -202,12 +207,6 @@ public:
         } else {
             rOStream << "OpenMP";
         }
-    }
-
-    // Get values
-    virtual ModelPart& GetInterfaceModelPart(IndexType ModelPartIndex)
-    {
-        KRATOS_ERROR << "YEEEEEEEEEEEEEEEEEE";
     }
 
 }; // Class Mapper

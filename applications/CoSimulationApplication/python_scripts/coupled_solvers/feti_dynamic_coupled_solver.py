@@ -143,8 +143,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         # set the mapper
         if mapper_type == "coupling_geometry":
-            p_mapping_matrix = self.mapper.pGetDenseMappingMatrix()
-            self.feti_coupling.SetMappingMatrix(p_mapping_matrix)
+            self.feti_coupling.SetMappingMatrix(self.mapper.GetMappingMatrix())
+        else:
+            raise Exception("Dynamic coupled solver currently only compatible with the coupling_geometry mapper.")
 
         # Set origin initial velocities
         self.feti_coupling.SetOriginInitialKinematics()
@@ -175,7 +176,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "origin_newmark_beta" : -1.0,
             "origin_newmark_gamma" : -1.0,
@@ -187,6 +188,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "is_disable_coupling" : false,
             "linear_solver_settings" : {}
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
 
         return this_defaults

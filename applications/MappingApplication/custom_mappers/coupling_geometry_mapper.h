@@ -240,12 +240,6 @@ public:
         else KRATOS_ERROR << "'precompute_mapping_matrix' or 'dual_mortar' must be 'true' in your parameters to retrieve the computed mapping matrix!" << std::endl;
     }
 
-    DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix() override
-    {
-        //KRATOS_ERROR << "Not implemented!" << std::endl;
-        return mpMappingMatrix;
-    }
-
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override

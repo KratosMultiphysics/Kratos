@@ -27,8 +27,6 @@
 
 
 namespace Kratos{
-    typedef Matrix DenseMappingMatrixType;
-    typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixSharedPointerType;
 
 namespace Python{
 
@@ -47,9 +45,7 @@ namespace Python{
             .def("SetOriginInitialKinematics",
                 &FetiDynamicCouplingUtilities::SetOriginInitialKinematics)
             .def("SetMappingMatrix",
-                pybind11::overload_cast<DenseMappingMatrixSharedPointerType, DenseMappingMatrixSharedPointerType>(&FetiDynamicCouplingUtilities::SetMappingMatrix))
-            .def("SetMappingMatrix",
-                pybind11::overload_cast<DenseMappingMatrixSharedPointerType>(&FetiDynamicCouplingUtilities::SetMappingMatrix))
+                &FetiDynamicCouplingUtilities::SetMappingMatrix)
             .def("SetLinearSolver",
                 &FetiDynamicCouplingUtilities::SetLinearSolver)
             ;
