@@ -64,13 +64,13 @@ namespace Kratos
  * sparse matrix formats (particularly CSR)
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
-
+template< class TIndexType >
 class DistributedSparseGraph //: public SparseGraph
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType; //note that this could be different from the one in the basetype
+    typedef TIndexType IndexType; //note that this could be different from the one in the basetype
     typedef int MpiIndexType; 
     typedef SparseContiguousRowGraph<IndexType> LocalGraphType; //using a map since we need it ordered
     typedef SparseGraph<IndexType> NonLocalGraphType; //using a map since we need it ordered
@@ -368,7 +368,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    DistributedNumbering<IndexType>::UniquePointer mpRowNumbering = nullptr;
+    typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering = nullptr;
     DataCommunicator& mrComm;
 
     LocalGraphType mLocalGraph;
@@ -430,14 +430,16 @@ private:
 
 
 /// input stream function
+template<class TIndexType>
 inline std::istream& operator >> (std::istream& rIStream,
-                DistributedSparseGraph& rThis){
+                DistributedSparseGraph<TIndexType>& rThis){
                     return rIStream;
                 }
 
 /// output stream function
+template<class TIndexType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const DistributedSparseGraph& rThis)
+                const DistributedSparseGraph<TIndexType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

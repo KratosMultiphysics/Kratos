@@ -71,7 +71,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    DistributedSystemVector(const DistributedSparseGraph& rGraph)
+    DistributedSystemVector(const DistributedSparseGraph<IndexType>& rGraph)
             :
             mrComm(rGraph.GetComm())
     {

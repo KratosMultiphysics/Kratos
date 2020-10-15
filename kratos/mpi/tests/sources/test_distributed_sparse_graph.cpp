@@ -27,7 +27,7 @@
 namespace Kratos {
 namespace Testing {
 
-typedef DistributedSparseGraph::IndexType IndexType;
+typedef std::size_t IndexType;
 typedef std::vector<std::vector<IndexType>> ElementConnectivityType;
 typedef std::unordered_map<std::pair<IndexType, IndexType>,
                           double,
@@ -299,7 +299,7 @@ std::vector<TIndexType> ComputeBounds( TIndexType N,
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCoreFastSuite)
 {
-    typedef DistributedSparseGraph::IndexType IndexType;
+    typedef std::size_t IndexType;
 
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -311,7 +311,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
     auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
     const auto connectivities = ElementConnectivities(el_bounds);
 
-    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i){
         Agraph.AddEntries(connectivities[i]);
@@ -324,7 +324,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreFastSuite)
 {
-    typedef DistributedSparseGraph::IndexType IndexType;
+    typedef std::size_t IndexType;
 
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -336,7 +336,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreF
     auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
     const auto connectivities = ElementConnectivities(el_bounds);
 
-    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i){
         Agraph.AddEntries(connectivities[i]);
@@ -369,7 +369,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreF
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosCoreFastSuite)
 {
-    typedef DistributedSparseGraph::IndexType IndexType;
+    typedef std::size_t IndexType;
 
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -393,7 +393,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
 
     rComm.Barrier(); //to ensure fair timings
     double start_graph = OpenMPUtils::GetCurrentTime();
-    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i){
         Agraph.AddEntries(connectivities[i]);
@@ -408,7 +408,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosCoreFastSuite)
 {
-    typedef DistributedSparseGraph::IndexType IndexType;
+    typedef std::size_t IndexType;
 
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -421,7 +421,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
     const auto connectivities = ElementConnectivities(el_bounds);
 
-    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i){
         Agraph.AddEntries(connectivities[i]);
@@ -485,7 +485,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCoreFastSuite)
 {
-    typedef DistributedSparseGraph::IndexType IndexType;
+    typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     IndexType col_divider = 3; //ratio of size between columns and row indices
 
@@ -534,7 +534,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
     auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
     const auto connectivities = ElementConnectivities(el_bounds);
 
-    DistributedSparseGraph Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
 
     IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i)

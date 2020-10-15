@@ -70,7 +70,7 @@ public:
     ///@{
 
     /// Default constructor.
-    DistributedCsrMatrix(const DistributedSparseGraph& rSparseGraph)
+    DistributedCsrMatrix(const DistributedSparseGraph<IndexType>& rSparseGraph)
         :
             mrComm(rSparseGraph.GetComm())
     {
@@ -554,7 +554,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    void PrepareNonLocalCommunications(const DistributedSparseGraph& rSparseGraph)
+    void PrepareNonLocalCommunications(const DistributedSparseGraph<IndexType>& rSparseGraph)
     {        
         auto& rComm = GetComm();
 
