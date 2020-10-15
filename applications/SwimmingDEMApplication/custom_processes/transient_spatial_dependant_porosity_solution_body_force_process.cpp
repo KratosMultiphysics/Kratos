@@ -12,12 +12,12 @@
 //
 
 // System includes
-#include <math.h>
+#define _USE_MATH_DEFINES
+#include <cmath.h>
 
 // External includes
 
 // Project includes
-#include "utilities/openmp_utils.h"
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/variable_utils.h"

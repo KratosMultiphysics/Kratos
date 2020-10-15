@@ -12,12 +12,12 @@
 //
 
 // System includes
-#include <math.h>
+#define _USE_MATH_DEFINES
+#include <cmath.h>
 
 // External includes
 
 // Project includes
-#include "utilities/openmp_utils.h"
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/variable_utils.h"
@@ -153,7 +153,6 @@ void SpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyForceAndPor
     double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
 
     // BodyForce and Porosity fields at time 0.0
-    #pragma omp parallel for
     for (int i_node = 1; i_node <= static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
 
         int it_node = i_node;
@@ -242,7 +241,6 @@ void SpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndPorosityFi
     double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
 
     // Computation of the BodyForce and Porosity fields
-    #pragma omp parallel for
     for (int i_node = 1; i_node <= static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
 
         int it_node = i_node;
