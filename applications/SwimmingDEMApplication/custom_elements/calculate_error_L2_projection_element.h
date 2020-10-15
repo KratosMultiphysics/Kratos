@@ -1,8 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: gcasas $
-//   Date:                $Date: 2016-03-12
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Joaquin Gonzalez-Usua
+//
+
 
 #if !defined(KRATOS_CALCULATE_ERROR_L2_PROJECTION_ELEMENT_H_INCLUDED )
 #define  KRATOS_CALCULATE_ERROR_L2_PROJECTION_ELEMENT_H_INCLUDED
@@ -11,9 +18,7 @@
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "containers/array_1d.h"
@@ -23,9 +28,9 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/variables.h"
 
 // Application includes
-#include "includes/variables.h"
 #include "fluid_dynamics_application_variables.h"
 #include "swimming_dem_application_variables.h"
 
@@ -58,8 +63,7 @@ namespace Kratos
 /// A post-processing element to recover the Laplacian from the velocity solution.
 /**
  */
-template< unsigned int TDim,
-          unsigned int TNumNodes = TDim + 1 >
+template< unsigned int Dim, unsigned int NumNodes = Dim + 1 >
 class KRATOS_API(SWIMMING_DEM_APPLICATION) CalculateErrorL2Projection : public Element
 {
 public:
@@ -163,22 +167,27 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
         return Element::Pointer(new CalculateErrorL2Projection(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive< CalculateErrorL2Projection >(NewId, pGeom, pProperties);
     }
 
     /// Calculate the element's local contribution to the system for the current step.
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+    virtual void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Provides the global indices for each one of this element's local rows
@@ -188,28 +197,36 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo) override;
+    virtual void GetDofList(
+        DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
-        const array_1d<double,TNumNodes>& rShapeFunc,
+    void AddConsistentMassMatrixContribution(
+        MatrixType& rLHSMatrix,
+        const array_1d<double,NumNodes>& rShapeFunc,
         const double Weight);
 
-    void AddIntegrationPointRHSContribution(VectorType& F,
-                             const array_1d<double,TNumNodes>& rShapeFunc,
-                             const double Weight);
+    void AddIntegrationPointRHSContribution(
+        VectorType& rRHSVector,
+        const array_1d<double,NumNodes>& rShapeFunc,
+        const double Weight);
 
-    void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRHS(
+        VectorType& rRHSVector,
+        ProcessInfo& rCurrentProcessInfo);
     ///@}
     ///@name Access
     ///@{
@@ -217,17 +234,6 @@ public:
     ///@}
     ///@name Elemental Data
     ///@{
-
-    /// Checks the input and that all required Kratos variables have been registered.
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
-     * @return 0 if no errors were found.
-     */
-    //virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -249,7 +255,7 @@ public:
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "CalculateErrorL2Projection" << TDim << "D";
+        rOStream << "CalculateErrorL2Projection" << Dim << "D";
     }
 
 //        /// Print object's data.
@@ -278,11 +284,7 @@ protected:
 
 
     ///@}
-    ///@name Protected Operations
-    ///@{
 
-
-    ///@}
     ///@name Protected  Access
     ///@{
 
@@ -317,16 +319,8 @@ private:
     ///@name Private Operators
     ///@{
 
-    // void AddIntegrationPointRHSContribution(VectorType& F,
-    //                      const array_1d<double,TNumNodes>& rShapeFunc,
-    //                      const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
-    //                      const double Weight) override;
     ///@}
-    ///@name Private Operations
-    ///@{
 
-
-    ///@}
     ///@name Private  Access
     ///@{
 
@@ -362,17 +356,17 @@ private:
 
 
 /// input stream function
-template< unsigned int TDim >
+template< unsigned int Dim >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 CalculateErrorL2Projection<TDim>& rThis)
+                                 CalculateErrorL2Projection<Dim>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim >
+template< unsigned int Dim >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const CalculateErrorL2Projection<TDim>& rThis)
+                                 const CalculateErrorL2Projection<Dim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -382,7 +376,7 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 }
 ///@}
 
-///@} // Fluid Dynamics Application group
+///@} // Swimming DEM Application group
 
 } // namespace Kratos.
 

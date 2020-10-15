@@ -57,7 +57,6 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) SpatialDependantPorositySolutionBodyF
 public:
     ///@name Type Definitions
     ///@{
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>> > ComponentType;
 
     /// Pointer definition of SpatialDependantPorositySolutionBodyForceProcess
     KRATOS_CLASS_POINTER_DEFINITION(SpatialDependantPorositySolutionBodyForceProcess);

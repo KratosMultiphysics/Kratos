@@ -1,11 +1,21 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Joaquin Gonzalez-Usua
+//
+
 #if !defined(KRATOS_L2_ERROR_PROJECTION_UTILITY)
 #define KRATOS_L2_ERROR_PROJECTION_UTILITY
 
-// /* External includes */
-#ifdef _OPENMP
+// External includes
 #include <omp.h>
 #include <vector>
-#endif
 
 // Project includes
 #include "includes/model_part.h"
@@ -63,11 +73,11 @@ double GetL2VectorProjection(ModelPart& r_model_part)
             for (unsigned int j = 0; j < NumNodes; ++j){
                 error_x += rGeom[j].FastGetSolutionStepValue(ERROR_X) * N[j];
                 error_y += rGeom[j].FastGetSolutionStepValue(ERROR_Y) * N[j];
-                error_z += rGeom[j].FastGetSolutionStepValue(ERROR_Z) * N[j];
+                if (dim == 3) error_z += rGeom[j].FastGetSolutionStepValue(ERROR_Z) * N[j];
             }
             error.push_back(error_x);
             error.push_back(error_y);
-            error.push_back(error_z);
+            if (dim == 3) error.push_back(error_z);
             // for (unsigned int d = 0; d < dim; ++d){
             //     scalar_product[d] = error[d];
             // }
@@ -75,7 +85,7 @@ double GetL2VectorProjection(ModelPart& r_model_part)
             error.clear();
             error_x = 0.0;
             error_y = 0.0;
-            error_z = 0.0;
+            if (dim == 3) error_z = 0.0;
         }
         interpolator += result;
         result = 0.0;
@@ -89,7 +99,6 @@ double GetL2ScalarProjection(ModelPart& r_model_part)
 {
     const unsigned int n_elements = r_model_part.Elements().size();
     double interpolator = 0.0, result = 0.0, error = 0.0;
-    const unsigned int dim = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     Matrix NContainer;
     array_1d<double, 3> scalar_product;
 

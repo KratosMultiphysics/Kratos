@@ -71,7 +71,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/loth_steady_viscous_torque_law.cpp
 
     #Process
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/casas_solution_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/transient_spatial_dependant_porosity_solution_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/spatial_dependant_porosity_solution_body_force_process.cpp
 
     ## Elements
