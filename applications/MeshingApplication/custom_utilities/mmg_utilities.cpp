@@ -254,6 +254,9 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
     }
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
+    #if MMG_VERSION_GE(5,5)
+        rMMGMeshInfo.NumberOfQuadrilaterals = mMmgMesh->nquad;
+    #endif
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         rMMGMeshInfo.NumberOfTetrahedra = mMmgMesh->ne;
         rMMGMeshInfo.NumberOfPrism = mMmgMesh->nprism;
@@ -263,9 +266,15 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
 
     KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) << "\tNodes created: " << rMMGMeshInfo.NumberOfNodes << std::endl;
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+    #if MMG_VERSION_GE(5,5)
+        KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
+        "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
+        "Elements created: " << rMMGMeshInfo.NumberOfTriangles + rMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rMMGMeshInfo.NumberOfQuadrilaterals << std::endl;
+    #else
         KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTriangles << std::endl;
+    #endif
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfTriangles + rMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
