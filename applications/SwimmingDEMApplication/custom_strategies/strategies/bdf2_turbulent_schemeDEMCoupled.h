@@ -26,11 +26,11 @@
 #include "processes/process.h"
 #include "containers/pointer_vector_set.h"
 #include "utilities/coordinate_transformation_utilities.h"
-#include "../FluidDynamicsApplication/custom_strategies/schemes/bdf2_turbulent_scheme.h"
-
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+#include "../FluidDynamicsApplication/custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "swimming_dem_application_variables.h"
 
 
@@ -137,46 +137,43 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
-            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ProcessInfo CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-            BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
-            this->CalculateFluidFraction(rModelPart, CurrentProcessInfo);
+        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
+        this->CalculateFluidFraction(rModelPart, CurrentProcessInfo);
     }
 
-    void CalculateFluidFraction(ModelPart& rModelPart, ProcessInfo& CurrentProcessInfo)
+    void CalculateFluidFraction(
+        ModelPart& r_model_part,
+        ProcessInfo& r_current_process_info)
     {
+        double delta_time = r_current_process_info[DELTA_TIME];
+        double delta_time_inv = 1.0 / delta_time;
 
-            double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-            double delta_time_inv = 1.0 / DeltaTime;
-
-            //#pragma omp parallel for
-            for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
-            {
-                auto itNode = rModelPart.NodesBegin() + k;
-                const double & FluidFraction = (itNode)->FastGetSolutionStepValue(FLUID_FRACTION);
-                const double & FluidFractionRate = delta_time_inv * ((itNode)->FastGetSolutionStepValue(FLUID_FRACTION) - (itNode)->FastGetSolutionStepValue(FLUID_FRACTION_OLD));
-                (itNode)->FastGetSolutionStepValue(FLUID_FRACTION_RATE) = FluidFractionRate;
-                (itNode)->SetValue(FLUID_FRACTION, FluidFraction);
-                (itNode)->SetValue(FLUID_FRACTION_RATE, FluidFractionRate);
-
-            }
+        //for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
+        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
+        {
+            const double fluid_fraction = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
+            const double fluid_fraction_old = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
+            const double fluid_fraction_rate = delta_time_inv * (fluid_fraction - fluid_fraction_old);
+            rNode.FastGetSolutionStepValue(FLUID_FRACTION_RATE) = fluid_fraction_rate;
+        });
     }
 
     void FinalizeSolutionStep(
-        ModelPart& rModelPart,
+        ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
         KRATOS_TRY
-        #pragma omp parallel for
-        for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
+        //for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
+        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
         {
-            auto itNode = rModelPart.NodesBegin() + k;
-            (itNode)->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = (itNode)->FastGetSolutionStepValue(FLUID_FRACTION);
-        }
+            rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD) = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
+        });
 
-        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, A, Dx, b);
+        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(r_model_part, A, Dx, b);
         KRATOS_CATCH("")
     }
 
@@ -277,23 +274,9 @@ private:
 
     const Kratos::Variable<int>& mrPeriodicIdVar;
 
-//        ///@}
-//        ///@name Serialization
-//        ///@{
-//
-//        friend class Serializer;
-//
-//        virtual void save(Serializer& rSerializer) const
-//        {
-//            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
-//            rSerializer.save("mpTurbulenceModel",mpTurbulenceModel);
-//        }
-//
-//        virtual void load(Serializer& rSerializer)
-//        {
-//            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
-//            rSerializer.load("mpTurbulenceModel",mpTurbulenceModel);
-//        }
+    ///@}
+    ///@name Serialization
+    ///@{
 
     ///@}
     ///@name Private Operators
