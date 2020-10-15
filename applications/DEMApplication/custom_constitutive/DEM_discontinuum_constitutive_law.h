@@ -94,7 +94,7 @@ namespace Kratos {
                                                         SphericParticle* element2,
                                                         bool& sliding, double LocalCoordSystem[3][3]);
 
-        virtual void CalculateForcesWithFEM( ProcessInfo& r_process_info,
+        virtual void CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                             const double OldLocalContactForce[3],
                                             double LocalElasticContactForce[3],
                                             double LocalDeltDisp[3],

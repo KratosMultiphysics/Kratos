@@ -191,9 +191,9 @@ namespace Kratos {
 
             #pragma omp parallel for
             for (int k = 0; k < (int)pElements.size(); k++){
-              ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
-              T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
-              rCustomListOfParticles[k] = spheric_particle;
+                ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
+                T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
+                rCustomListOfParticles[k] = spheric_particle;
             }
             return;
             KRATOS_CATCH("")

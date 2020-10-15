@@ -3,8 +3,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 import flow_solver_test_case
 
 
-class MonolithicVelocityPressureFormulationTest(
-        flow_solver_test_case.FlowSolverTestCase):
+class MonolithicVelocityPressureFormulationTest(flow_solver_test_case.FlowSolverTestCase):
     @classmethod
     def setUpClass(cls):
         super(MonolithicVelocityPressureFormulationTest, cls).setUpCase(

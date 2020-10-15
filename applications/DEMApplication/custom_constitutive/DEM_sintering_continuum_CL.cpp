@@ -210,8 +210,6 @@ namespace Kratos {
                                                     int i_neighbour_count,
                                                     int time_steps,
                                                     bool& sliding,
-                                                    int search_control,
-                                                    DenseVector<int>& search_control_vector,
                                                     double &equiv_visco_damp_coeff_normal,
                                                     double &equiv_visco_damp_coeff_tangential,
                                                     double LocalRelVel[3],
@@ -255,31 +253,7 @@ namespace Kratos {
                                     element2,
                                     i_neighbour_count,
                                     sliding,
-                                    search_control,
-                                    search_control_vector,
                                     r_process_info);
-            /*DEM_KDEM::CalculateForces(r_process_info,
-                                        LocalElasticContactForce,
-                                        LocalDeltDisp,
-                                        kn_el,
-                                        kt_el,
-                                        contact_sigma,
-                                        contact_tau,
-                                        failure_criterion_state,
-                                        equiv_young,
-                                        indentation,
-                                        calculation_area,
-                                        acumulated_damage,
-                                        element1,
-                                        element2,
-                                        i_neighbour_count,
-                                        time_steps,
-                                        sliding,
-                                        search_control,
-                                        search_control_vector);*/
-
-            //DEM_KDEM::mContinuumConstitutiveLawArray[i]->CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, this, neighbour_iterator, kn_el, kt_el);
-            //DEM_KDEM::mContinuumConstitutiveLawArray[i]->CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, penetration, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding, failure_id);
         }
 
 

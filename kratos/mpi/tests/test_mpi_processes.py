@@ -64,6 +64,38 @@ class TestMPIProcesses(KratosUnittest.TestCase):
             for gradient_i, gradient_i_ref in zip(distance_gradient, ref_gradient):
                 self.assertAlmostEqual(gradient_i, gradient_i_ref)
 
+        gradient_parameters = KratosMultiphysics.Parameters(""" {
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "non_historical_origin_variable" :  false
+        }
+        """)
+        gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(main_model_part,
+        gradient_parameters)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            ref_gradient = reference_values[str(node.Id)]
+            for i_gradient, i_reference in zip(distance_gradient, ref_gradient):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+        gradient_parameters = KratosMultiphysics.Parameters(""" {
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "non_historical_origin_variable" :  true
+        }
+        """)
+        gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(main_model_part,
+        gradient_parameters)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            ref_gradient = reference_values[str(node.Id)]
+            for i_gradient, i_reference in zip(distance_gradient, ref_gradient):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
     def testComputeNonHistoricalNodalGradientProcess(self):
 
         current_model = KratosMultiphysics.Model()
@@ -117,6 +149,38 @@ class TestMPIProcesses(KratosUnittest.TestCase):
             ref_gradient = reference_values[str(node.Id)]
             for gradient_i, gradient_i_ref in zip(distance_gradient, ref_gradient):
                 self.assertAlmostEqual(gradient_i, gradient_i_ref)
+
+        gradient_parameters = KratosMultiphysics.Parameters(""" {
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "non_historical_origin_variable" :  false
+        }
+        """)
+        gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
+        gradient_parameters)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            ref_gradient = reference_values[str(node.Id)]
+            for i_gradient, i_reference in zip(distance_gradient, ref_gradient):
+                self.assertAlmostEqual(i_gradient, i_reference)
+
+        gradient_parameters = KratosMultiphysics.Parameters(""" {
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "non_historical_origin_variable" :  true
+        }
+        """)
+        gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(main_model_part,
+        gradient_parameters)
+        gradient_process.Execute()
+
+        for node in main_model_part.Nodes:
+            distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
+            ref_gradient = reference_values[str(node.Id)]
+            for i_gradient, i_reference in zip(distance_gradient, ref_gradient):
+                self.assertAlmostEqual(i_gradient, i_reference)
 
 if __name__ == '__main__':
     KratosUnittest.main()
