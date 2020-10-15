@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "spaces/ublas_space.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "includes/kratos_parameters.h"
@@ -901,13 +902,6 @@ private:
 ///@}
 ///@name Type Definitions
 ///@{
-
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSpaceType;
-
-typedef ExplicitBuilder<SparseSpaceType,  LocalSpaceType> ExplicitBuilderType;
-
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitBuilderType>;
 
 ///@}
 } /* namespace Kratos.*/
