@@ -26,6 +26,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/spatial_containers_configure.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -120,8 +121,9 @@ void ExplicitFixedMeshALEUtilities::SearchStructureNodes(
 
     NodeBinsType bins(r_structure_nodes.begin(), r_structure_nodes.end());
 
-    #pragma omp parallel for
-    for(int i_fl = 0; i_fl < static_cast<int>(n_virt_nodes); ++i_fl){
+    IndexPartition<size_t>( static_cast<size_t>(n_virt_nodes) ).for_each(
+    [&]( size_t index )
+    {
         // Initialize the search results variables
         std::size_t n_results = 0;
         ResultNodesContainerType i_node_results(max_number_of_nodes);
@@ -130,24 +132,25 @@ void ExplicitFixedMeshALEUtilities::SearchStructureNodes(
         auto it_results_distances = i_node_distance_results.begin();
 
         // Perform the structure nodes search
-        auto it_virt_node = r_virt_nodes.begin() + i_fl;
+        auto it_virt_node = r_virt_nodes.begin() + index;
         n_results = bins.SearchObjectsInRadiusExclusive(*it_virt_node, mSearchRadius, it_results, it_results_distances, max_number_of_nodes);
 
         // Resize and save the current virtual node results
         i_node_results.resize(n_results);
         i_node_distance_results.resize(n_results);
 
-        rSearchResults[i_fl] = i_node_results;
-        rSearchDistanceResults[i_fl] = i_node_distance_results;
-    }
+        rSearchResults[index] = i_node_results;
+        rSearchDistanceResults[index] = i_node_distance_results;
+    } );
 }
 
 void ExplicitFixedMeshALEUtilities::ComputeExplicitMeshDisplacement(
     const VectorResultNodesContainerType &rSearchResults,
     const DistanceVectorContainerType &rSearchDistanceResults)
 {
-    #pragma omp parallel for
-    for(int i_fl = 0; i_fl < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_fl){
+    IndexPartition<std::size_t>( static_cast<std::size_t>(mrVirtualModelPart.NumberOfNodes()) ).for_each(
+    [&]( std::size_t i_fl )
+    {
         // Get auxiliar current fluid node info.
         auto it_node = mrVirtualModelPart.NodesBegin() + i_fl;
         const auto i_fl_str_nodes = rSearchResults[i_fl];
@@ -201,9 +204,9 @@ void ExplicitFixedMeshALEUtilities::ComputeExplicitMeshDisplacement(
                 if (!it_node->IsFixed(MESH_DISPLACEMENT_Z)) {
                     r_mesh_disp[2] = str_disp[2];
                 }
-            }
-        }
-    }
+            } // if ( str_node_ptr )
+        } // if ( n_str_nodes != 0 )
+    } ); // IndexPartition.for_each
 }
 
 inline double ExplicitFixedMeshALEUtilities::ComputeKernelValue(const double NormalisedDistance){

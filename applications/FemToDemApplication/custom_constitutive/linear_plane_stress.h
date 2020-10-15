@@ -40,14 +40,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class LinearPlaneStress
+ * @class LinearPlaneStressFEMDEM
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane stress cases
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  */
-class LinearPlaneStress 
-    : public ElasticIsotropic3D
+class LinearPlaneStressFEMDEM 
+    : public ElasticIsotropic3DFEMDEM
 {
 public:
     ///@name Type Definitions
@@ -59,8 +59,8 @@ public:
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
     
-    /// The base class ElasticIsotropic3D type definition
-    typedef ElasticIsotropic3D      BaseType;
+    /// The base class ElasticIsotropic3DFEMDEM type definition
+    typedef ElasticIsotropic3DFEMDEM      BaseType;
 
     // Adding the respective using to avoid overload conflicts
     using BaseType::Has;
@@ -75,8 +75,8 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
     
-    /// Counted pointer of LinearPlaneStress
-    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStress );
+    /// Counted pointer of LinearPlaneStressFEMDEM
+    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStressFEMDEM );
 
     ///@name Life Cycle
     ///@{
@@ -84,20 +84,20 @@ public:
     /**
      * Default constructor.
      */
-    LinearPlaneStress();
+    LinearPlaneStressFEMDEM();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    LinearPlaneStress (const LinearPlaneStress& rOther);
+    LinearPlaneStressFEMDEM (const LinearPlaneStressFEMDEM& rOther);
 
 
     /**
      * Destructor.
      */
-    ~LinearPlaneStress() override;
+    ~LinearPlaneStressFEMDEM() override;
 
     ///@}
     ///@name Operators
@@ -233,15 +233,15 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropic3D)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropic3DFEMDEM)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropic3D)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropic3DFEMDEM)
     }
 
 
-}; // Class LinearPlaneStress
+}; // Class LinearPlaneStressFEMDEM
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED  defined
