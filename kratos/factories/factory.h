@@ -218,7 +218,7 @@ namespace Internals
         public:
         explicit RegisteredPrototype(const std::string& rName, const TClassType& rPrototype)
         {
-            KratosComponents<TBaseCategoryType>::Add(rName, rPrototype);
+            // KratosComponents<TBaseCategoryType>::Add(rName, rPrototype);
         }
     };
 

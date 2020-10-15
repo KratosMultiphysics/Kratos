@@ -865,7 +865,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    extern static KRATOS_API(KRATOS_CORE) std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
+    static std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
