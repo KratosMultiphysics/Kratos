@@ -164,6 +164,8 @@ private:
     ///@{
     void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
+    const Parameters GetDefaultParameters() const;
+
     void SetInitialBodyForceAndPorosityField();
 
     void SetBodyForceAndPorosityField();

@@ -3,15 +3,17 @@ import KratosMultiphysics
 import KratosMultiphysics.SwimmingDEMApplication as KratosSDEM
 
 from importlib import import_module
-from KratosMultiphysics.SwimmingDEMApplication.apply_custom_body_force_process import ApplyCustomBodyForceProcess
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyTransientSpatialDependantPorositySolutionBodyForceProcess(Model, settings["Parameters"])
 
+def CreateManufacturedSolution(custom_settings):
+    return ApplyTransientSpatialDependantPorositySolutionBodyForceProcess(model_part, custom_settings)
+
 ## All the processes python should be derived from "Process"
-class ApplyTransientSpatialDependantPorositySolutionBodyForceProcess(ApplyCustomBodyForceProcess):
+class ApplyTransientSpatialDependantPorositySolutionBodyForceProcess(KratosMultiphysics.Process):
     def __init__(self, model, settings ):
 
         KratosMultiphysics.Process.__init__(self)
@@ -32,9 +34,10 @@ class ApplyTransientSpatialDependantPorositySolutionBodyForceProcess(ApplyCustom
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        super(ApplyTransientSpatialDependantPorositySolutionBodyForceProcess, self).__init__(model, settings)
+        self.model_part = model[self.settings["model_part_name"].GetString()]
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        self.TransientSpatialDependantPorositySolutionBodyForceProcess = KratosSDEM.TransientSpatialDependantPorositySolutionBodyForceProcess(self.model_part, settings)
+        self.TransientSpatialDependantPorositySolutionBodyForceProcess = KratosSDEM.TransientSpatialDependantPorositySolutionBodyForceProcess(self.model_part, self.settings)
 
     def ExecuteBeforeSolutionLoop(self):
         self.TransientSpatialDependantPorositySolutionBodyForceProcess.ExecuteBeforeSolutionLoop()

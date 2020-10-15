@@ -78,7 +78,24 @@ TransientSpatialDependantPorositySolutionBodyForceProcess::TransientSpatialDepen
 
 void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
 {
-    Parameters default_parameters( R"(
+    const Parameters default_parameters = GetDefaultParameters();
+
+    rParameters.ValidateAndAssignDefaults(default_parameters);
+
+    mDensity     = rParameters["benchmark_parameters"]["density"].GetDouble();
+    mViscosity   = rParameters["benchmark_parameters"]["viscosity"].GetDouble();
+    mDeltaAlpha  = rParameters["benchmark_parameters"]["delta_alpha"].GetDouble();
+    mLength      = rParameters["benchmark_parameters"]["length"].GetDouble();
+    mOmega       = rParameters["benchmark_parameters"]["omega"].GetDouble();
+    mX1Origin    = rParameters["benchmark_parameters"]["x1_origin"].GetDouble();
+    mX2Origin    = rParameters["benchmark_parameters"]["x2_origin"].GetDouble();
+    mSqueezeAmplitude = rParameters["benchmark_parameters"]["squeeze_amplitude"].GetDouble();
+
+}
+
+const Parameters TransientSpatialDependantPorositySolutionBodyForceProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters( R"(
     {
                 "model_part_name"          : "please_specify_model_part_name",
                 "variable_name"            : "BODY_FORCE",
@@ -104,17 +121,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
                 "output_parameters"        : {}
     }  )" );
 
-    rParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mDensity     = rParameters["benchmark_parameters"]["density"].GetDouble();
-    mViscosity   = rParameters["benchmark_parameters"]["viscosity"].GetDouble();
-    mDeltaAlpha  = rParameters["benchmark_parameters"]["delta_alpha"].GetDouble();
-    mLength      = rParameters["benchmark_parameters"]["length"].GetDouble();
-    mOmega       = rParameters["benchmark_parameters"]["omega"].GetDouble();
-    mX1Origin    = rParameters["benchmark_parameters"]["x1_origin"].GetDouble();
-    mX2Origin    = rParameters["benchmark_parameters"]["x2_origin"].GetDouble();
-    mSqueezeAmplitude = rParameters["benchmark_parameters"]["squeeze_amplitude"].GetDouble();
-
+    return default_parameters;
 }
 
 void TransientSpatialDependantPorositySolutionBodyForceProcess::Execute()

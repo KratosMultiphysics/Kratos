@@ -77,7 +77,21 @@ SpatialDependantPorositySolutionBodyForceProcess::SpatialDependantPorositySoluti
 
 void SpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
 {
-    Parameters default_parameters( R"(
+
+    const Parameters default_parameters = GetDefaultParameters();
+    rParameters.ValidateAndAssignDefaults(default_parameters);
+
+    mDensity   = rParameters["benchmark_parameters"]["density"].GetDouble();
+    mViscosity = rParameters["benchmark_parameters"]["viscosity"].GetDouble();
+    mIndependentTerm = rParameters["benchmark_parameters"]["independent_term"].GetDouble();
+    mMaximumAlpha    = rParameters["benchmark_parameters"]["maximum_alpha"].GetDouble();
+    mCenterx1  = rParameters["benchmark_parameters"]["center_x1"].GetDouble();
+    mCenterx2  = rParameters["benchmark_parameters"]["center_x2"].GetDouble();
+}
+
+const Parameters SpatialDependantPorositySolutionBodyForceProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters( R"(
     {
                 "model_part_name"          : "please_specify_model_part_name",
                 "variable_name"            : "BODY_FORCE",
@@ -99,15 +113,9 @@ void SpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAndProcessSe
                 "output_parameters"        : {}
     }  )" );
 
-    rParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mDensity   = rParameters["benchmark_parameters"]["density"].GetDouble();
-    mViscosity = rParameters["benchmark_parameters"]["viscosity"].GetDouble();
-    mIndependentTerm = rParameters["benchmark_parameters"]["independent_term"].GetDouble();
-    mMaximumAlpha    = rParameters["benchmark_parameters"]["maximum_alpha"].GetDouble();
-    mCenterx1  = rParameters["benchmark_parameters"]["center_x1"].GetDouble();
-    mCenterx2  = rParameters["benchmark_parameters"]["center_x2"].GetDouble();
+    return default_parameters;
 }
+
 
 void SpatialDependantPorositySolutionBodyForceProcess::Execute()
 {
