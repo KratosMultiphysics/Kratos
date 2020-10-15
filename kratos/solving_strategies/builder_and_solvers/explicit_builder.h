@@ -902,6 +902,12 @@ private:
 ///@name Type Definitions
 ///@{
 
+typedef TUblasSparseSpace<double> SparseSpaceType;
+typedef TUblasDenseSpace<double> LocalSpaceType;
+
+typedef ExplicitBuilder<SparseSpaceType,  LocalSpaceType> ExplicitBuilderType;
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitBuilderType>;
 
 ///@}
 } /* namespace Kratos.*/
