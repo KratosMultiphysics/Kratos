@@ -120,7 +120,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "domain_size" : -1,
             "echo_level": 0,
             "analysis_type": "linear",
-            "time_integration": "implicit",
+            "time_integration_method": "implicit",
             "solver_type": "convection_diffusion_base_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
