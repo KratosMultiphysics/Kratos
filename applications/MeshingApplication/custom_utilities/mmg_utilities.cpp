@@ -185,6 +185,15 @@ MMG5_pSol  mMmgDisp; /// The displacement variable for MMG
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+std::string MmgUtilities<TMMGLibrary>::GetMmgVersion()
+{
+    return std::to_string(MMG_VERSION_MAJOR) + "." + std::to_string(MMG_VERSION_MINOR);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::SetEchoLevel(const SizeType EchoLevel)
 {
     mEchoLevel = EchoLevel;
