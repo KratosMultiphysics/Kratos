@@ -9,8 +9,8 @@ class CoSimulationConvergenceAccelerator(object):
     """Baseclass for the convergence acceleratos used for CoSimulation
     Relaxes the solution to increase the speed of convergence in a (strongly) coupled simulation
 
-    Note that the interface matches the convergence accelerators in the FSIApplication such that they can be used interchangeable
-    ("FSIApplication/custom_utilities/convergence_accelerator.hpp")
+    Note that the interface matches the convergence accelerators in the KratosCore such that they can be used interchangeable
+    ("kratos/solving_strategies/convergence_accelerators/convergence_accelerator.h")
     """
     def __init__(self, settings):
         self.settings = settings
