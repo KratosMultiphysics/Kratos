@@ -76,7 +76,6 @@ namespace Kratos {
     }
 
     void MPM_MPI_Utilities::SynchronizeActiveDofsAtInterface(ModelPart& rModelPart){
-        const unsigned int rank = rModelPart.GetCommunicator().MyPID();
         const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
 
         // Get neigbours of each rank
@@ -109,12 +108,12 @@ namespace Kratos {
         // Set recieved nodes active
         // Attention: Right now this function only requires the nodal id;
         // TODO: Only send nodal id. Keep this for a while, in case more information is required.
-        auto& r_local_nodes = rModelPart.GetCommunicator().LocalMesh().Nodes();
+        auto& r_interface_nodes = rModelPart.GetCommunicator().InterfaceMesh().Nodes();
         for( auto neighbour : neighbours_custom){
             for( auto it = recv_nodes_container[neighbour].begin(); it != recv_nodes_container[neighbour].end(); ++it){
                 const unsigned int node_id = it->Id();
-                auto found_node_it = r_local_nodes.find(node_id);
-                if( found_node_it != r_local_nodes.end() ){
+                auto found_node_it = r_interface_nodes.find(node_id);
+                if( found_node_it != r_interface_nodes.end() ){
                     found_node_it->Set(ACTIVE, true);
                 }
             }

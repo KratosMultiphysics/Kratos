@@ -36,16 +36,13 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
         rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
         for mpm in self.model_part.Elements:
             coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
-            # TODO: find better way than this:
-            Id = str(mpm.Id) + str(rank) + str(rank) + str(rank)
-            self.ID.append(Id)
-            self.mesh_file.write("{} {} {} {}\n".format( Id, coord[0], coord[1], coord[2]))
+            self.ID.append(str(mpm.Id))
+            self.mesh_file.write("{} {} {} {}\n".format( str(mpm.Id), coord[0], coord[1], coord[2]))
             self.COORD.append(coord)
         self.mesh_file.write("End Coordinates\n")
         self.mesh_file.write("Elements\n")
         for mpm in self.model_part.Elements:
-            Id = str(mpm.Id) + str(rank) + str(rank) + str(rank)
-            self.mesh_file.write("{} {}\n".format(Id, Id))
+            self.mesh_file.write("{} {}\n".format(str(mpm.Id), str(mpm.Id)))
         self.mesh_file.write("End Elements\n")
         self.mesh_file.flush()
 
@@ -56,9 +53,9 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
     def AdjustMeshFile(self):
         rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
         for mpm in self.model_part.Elements:
-            Id = str(mpm.Id) + str(rank) + str(rank) + str(rank)
-            if Id not in self.ID:
-                self.ID.append(Id)
+            Id_ = str(mpm.Id)
+            if Id_ not in self.ID:
+                self.ID.append(Id_)
                 coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
                 disp = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_DISPLACEMENT,self.model_part.ProcessInfo)[0]
                 self.COORD.append(coord-disp)
@@ -106,16 +103,16 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
                 else:
                     print_size = print_variable.Size()
                 # TODO: find better way than this:
-                Id = str(mpm.Id) + str(rank) + str(rank) + str(rank)
+                Id_ = str(mpm.Id)
                 # Write variable as formated
                 if print_size == 1:
-                    self.result_file.write("{} {}\n".format(Id, print_variable))
+                    self.result_file.write("{} {}\n".format(Id_, print_variable))
                 elif print_size == 3:
-                    self.result_file.write("{} {} {} {}\n".format(Id, print_variable[0], print_variable[1], print_variable[2]))
+                    self.result_file.write("{} {} {} {}\n".format(Id_, print_variable[0], print_variable[1], print_variable[2]))
                 elif print_size == 6:
-                    self.result_file.write("{} {} {} {} {} {} {}\n".format(Id, print_variable[0], print_variable[1], print_variable[2], print_variable[3], print_variable[4], print_variable[5]))
+                    self.result_file.write("{} {} {} {} {} {} {}\n".format(Id_, print_variable[0], print_variable[1], print_variable[2], print_variable[3], print_variable[4], print_variable[5]))
                 else:
-                    KratosMultiphysics.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable: ", var_name, "with size: ", print_size)
+                    KM.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable: ", var_name, "with size: ", print_size)
 
             self.result_file.write("End Values\n")
 
@@ -138,14 +135,6 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
         name_base = model_name
         name_ext = ".post.rest"
 
-        # if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
-        #     ext = ".post.bin"
-        # elif self.post_mode == KM.GiDPostMode.GiD_PostAscii:
-        #     ext = ".post.res"
-        # elif self.post_mode == KM.GiDPostMode.GiD_PostAsciiZipped:
-        #     ext = ".post.res"  # ??? CHECK!
-        # else:
-        #     return # No support for list_files in this format
 
         if KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank() == 0:
             if self.body_io is not None:

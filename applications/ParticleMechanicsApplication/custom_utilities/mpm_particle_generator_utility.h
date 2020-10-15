@@ -96,7 +96,7 @@ namespace MPMParticleGeneratorUtility
         if( rBackgroundGridModelPart.GetCommunicator().IsDistributed() ){
             size = rBackgroundGridModelPart.GetCommunicator().TotalProcesses();
             rank = rBackgroundGridModelPart.GetCommunicator().MyPID();
-            last_element_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().MaxAll(last_element_id) + rank;
+            last_element_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(last_element_id) + rank;
         }
         unsigned int new_element_id = last_element_id;
 
