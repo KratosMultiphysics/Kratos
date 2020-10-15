@@ -353,9 +353,9 @@ namespace Kratos
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "name"              : "algebraic_flux_correction_utility",
-            "rebuild_level"     : 0,
-            "limiting_variable" : "VARIABLE_NAME"
+            "name"               : "algebraic_flux_correction_utility",
+            "rebuild_level"      : 0,
+            "limiting_variables" : ["VARIABLE_NAME"]
         })");
         return default_parameters;
     }

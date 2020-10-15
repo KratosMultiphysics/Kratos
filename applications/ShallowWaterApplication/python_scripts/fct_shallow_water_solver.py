@@ -10,6 +10,10 @@ def CreateSolver(model, custom_settings):
 
 class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
 
+    def AddVariables(self):
+        super().AddVariables()
+        self.main_model_part.AddNodalSolutionStepVariable(KM.INTERNAL_ENERGY)
+
     def Initialize(self):
         super().Initialize()
         self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 2)
