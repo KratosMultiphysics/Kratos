@@ -307,13 +307,28 @@ public:
                 this->ForwardDifferencingWithBasis(rElement, element_matrix_derivative, basis_j, rCurrentProcessInfo);
 
         }
-        else if (mDerivativeParameter == DENSITY || mDerivativeParameter == YOUNG_MODULUS || mDerivativeParameter == POISSON_RATIO)
-        {   // Material parameter
+        else if (mDerivativeParameter == POISSON_RATIO)
+        {   // Material parameter with nonlinear dependency
             
             if (mFiniteDifferenceTypeFlag) // Central Difference
                 this->CentralDifferencingWithMaterialParameter(rElement, element_matrix_derivative, mDerivativeParameter, rCurrentProcessInfo);
             else // Forward difference
                 this->ForwardDifferencingWithMaterialParameter(rElement, element_matrix_derivative, mDerivativeParameter, rCurrentProcessInfo);
+
+        } 
+        else if (mDerivativeParameter == DENSITY || mDerivativeParameter == YOUNG_MODULUS)
+        {   // Material parameter with linear dependency
+            
+            // Get property pointer
+            Properties::Pointer p_global_properties = rElement.pGetProperties();
+            const double property_value = p_global_properties->GetValue(mDerivativeParameter);
+
+            if (mDerivativeMatrixType)
+                rElement.CalculateMassMatrix(element_matrix_derivative, rCurrentProcessInfo);
+            else
+                rElement.CalculateLeftHandSide(element_matrix_derivative, rCurrentProcessInfo);
+
+            element_matrix_derivative /= property_value;
 
         }
 
