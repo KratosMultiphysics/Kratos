@@ -197,6 +197,9 @@ private:
     Vector mElementalLimiters;
     Vector mNodalHighOrderValues;
     Vector mNodalLowOrderValues;
+    ElementalValuesVectorType mDofsLowOrderValues;
+
+    const double mEpsilon = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Private Operators
@@ -208,6 +211,8 @@ private:
     ///@{
 
     const Parameters GetDefaultParameters() const;
+
+    void ResizeNodalAndElementalVectors();
 
     void InitializeNonhistoricalVariables();
 

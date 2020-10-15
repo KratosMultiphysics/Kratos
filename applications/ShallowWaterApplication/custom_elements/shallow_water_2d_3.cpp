@@ -453,6 +453,8 @@ void ShallowWater2D3::CalculateMassMatrix(
     if(rMassMatrix.size1() != 9)
         rMassMatrix.resize(9, 9, false);
 
+    rMassMatrix = ZeroMatrix(9,9);
+
     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
     array_1d<double,3> N;            // Position of the gauss point
     double area;

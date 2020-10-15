@@ -34,16 +34,11 @@ namespace Kratos
         mRebuildLevel = ThisParameters["rebuild_level"].GetInt();
         mLimitingVariableName = ThisParameters["limiting_variable"].GetString();
 
-        size_t number_of_elements = mrModelPart.NumberOfElements();
-        mHighOrderValues.resize(number_of_elements);
-        mLowOrderValues.resize(number_of_elements);
-        mAlgebraicFluxCorrections.resize(number_of_elements);
-        mElementalMassMatrices.resize(number_of_elements);
-        mElementalDofs.resize(number_of_elements);
-
         Check();
         InitializeNonhistoricalVariables();
-        FindNodalNeighboursProcess(mrModelPart).Execute();
+        ResizeNodalAndElementalVectors();
+        const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+        FindGlobalNodalElementalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
         GetElementalDofList();
         AssembleElementalMassMatrices();
     }
@@ -51,7 +46,9 @@ namespace Kratos
     void AlgebraicFluxCorrectionUtility::ExecuteInitializeLowOrderStep()
     {
         if (mRebuildLevel > 0) {
-            FindNodalNeighboursProcess(mrModelPart).Execute();
+            ResizeNodalAndElementalVectors();
+            const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+            FindGlobalNodalElementalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
             GetElementalDofList();
             AssembleElementalMassMatrices();
         }
@@ -84,12 +81,14 @@ namespace Kratos
     {
         ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         r_process_info.GetValue(LUMPED_MASS_FACTOR) = 1.0;
+        r_process_info.GetValue(IS_MONOTONIC_CALCULATION) = false;
     }
 
     void AlgebraicFluxCorrectionUtility::SetProcessInfoLowOrderFlags()
     {
         ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         r_process_info.GetValue(LUMPED_MASS_FACTOR) = 0.0;
+        r_process_info.GetValue(IS_MONOTONIC_CALCULATION) = true;
     }
 
     void AlgebraicFluxCorrectionUtility::GetHighOrderValues(const Variable<double>& rLimitingVariable)
@@ -98,14 +97,16 @@ namespace Kratos
         #pragma omp parallel for
         for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
         {
-            (mrModelPart.ElementsBegin() + i)->GetValuesVector(*(mHighOrderValues.begin() + i), 0);
+            Vector& r_element_values_vector = *(mHighOrderValues.begin() + i);
+            (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 0);
         }
 
         // Nodal values
         #pragma omp parallel for
         for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
         {
-            *(mNodalHighOrderValues.begin() + i) = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rLimitingVariable);
+            double& r_nodal_value = *(mNodalHighOrderValues.begin() + i);
+            r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rLimitingVariable);
         }
     }
 
@@ -115,14 +116,24 @@ namespace Kratos
         #pragma omp parallel for
         for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
         {
-            (mrModelPart.ElementsBegin() + i)->GetValuesVector(*(mLowOrderValues.begin() + i), 0);
+            Vector& r_element_values_vector = *(mLowOrderValues.begin() + i);
+            (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 0);
         }
 
         // Nodal values
         #pragma omp parallel for
         for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
         {
-            *(mNodalLowOrderValues.begin() + i) = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rLimitingVariable);
+            double& r_nodal_value = *(mNodalLowOrderValues.begin() + i);
+            r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rLimitingVariable);
+
+            Vector& lo_values = *(mDofsLowOrderValues.begin() + i);
+            const auto& dofs = (mrModelPart.NodesBegin() + i)->GetDofs();
+            lo_values.resize(dofs.size(), false);
+            for (size_t d = 0; d < dofs.size(); ++d)
+            {
+                lo_values[d] = (*dofs[d])(0);
+            }
         }
     }
 
@@ -131,22 +142,24 @@ namespace Kratos
         #pragma omp parallel for
         for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
         {
-            (mrModelPart.ElementsBegin() + i)->GetValuesVector(*(mPreviousValues.begin() + i), 1);
+            Vector& r_element_values_vector = *(mPreviousValues.begin() + i);
+            (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 1);
         }
     }
 
     void AlgebraicFluxCorrectionUtility::ComputeElementalAlgebraicFluxCorrections()
     {
-        mAlgebraicFluxCorrections = mHighOrderValues - mLowOrderValues;
         #pragma omp parallel for
         for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
         {
             auto& corrections = *(mAlgebraicFluxCorrections.begin() + i);
+            auto ho_values = *(mHighOrderValues.begin() + i);
+            auto lo_values = *(mLowOrderValues.begin() + i);
             auto mass_matrix = *(mElementalMassMatrices.begin() + i);
-            auto it_corrections = mAlgebraicFluxCorrections.begin() + i;
-            for (size_t j = 0; j < corrections.size(); ++j)
+            corrections.resize(ho_values.size(), false);
+            for (size_t j = 0; j < ho_values.size(); ++j)
             {
-                corrections[j] *= mass_matrix[j];
+                corrections[j] = (ho_values[j] - lo_values[j]) * mass_matrix[j];
             }
         }
     }
@@ -162,7 +175,7 @@ namespace Kratos
         {
             auto it_elem = mrModelPart.ElementsBegin() + i;
             Matrix mass_matrix;
-            it_elem->MassMatrix(mass_matrix, r_process_info);
+            it_elem->CalculateMassMatrix(mass_matrix, r_process_info);
             const size_t local_size = mass_matrix.size1();
             const size_t number_of_nodes = it_elem->GetGeometry().PointsNumber();
             const size_t block_size = local_size / number_of_nodes;
@@ -196,7 +209,7 @@ namespace Kratos
         {
             auto it_node = mrModelPart.NodesBegin() + i;
             const double aec = *(nodal_contributions.begin() + i);
-            it_node->GetValue(ALGEBRAIC_CONTRIBUTION, aec);
+            it_node->GetValue(ALGEBRAIC_CONTRIBUTION) = aec;
             *(nodal_positive_contributions.begin() + i) = std::max(0.0, aec);
             *(nodal_negative_contributions.begin() + i) = std::min(0.0, aec);
 
@@ -208,7 +221,7 @@ namespace Kratos
             it_node->GetValue(MINIMUM_VALUE) = u_min;
         }
 
-        // second step: get the maximum and minimum increments. This requires a previous loop over eleemnts.
+        // second step: get the maximum and minimum increments. This requires a previous loop over elements.
         const size_t number_of_elements = mrModelPart.NumberOfElements();
         #pragma omp parallel for
         for (size_t i = 0; i < number_of_elements; ++i)
@@ -220,7 +233,7 @@ namespace Kratos
             for (size_t j = 1; j < geom.PointsNumber(); ++j)
             {
                 u_max = std::max(u_max, geom[j].GetValue(MAXIMUM_VALUE));
-                u_min = std::min(u_max, geom[j].GetValue(MINIMUM_VALUE));
+                u_min = std::min(u_min, geom[j].GetValue(MINIMUM_VALUE));
             }
             it_elem->GetValue(MAXIMUM_VALUE) = u_max;
             it_elem->GetValue(MINIMUM_VALUE) = u_min;
@@ -233,7 +246,7 @@ namespace Kratos
             auto neighbor_elems = it_node->GetValue(NEIGHBOUR_ELEMENTS);
             double u_max = neighbor_elems[0].GetValue(MAXIMUM_VALUE);
             double u_min = neighbor_elems[0].GetValue(MINIMUM_VALUE);
-            for (size_t j = 0; j < neighbor_elems.size(); ++j)
+            for (size_t j = 1; j < neighbor_elems.size(); ++j)
             {
                 u_max = std::max(u_max, neighbor_elems[j].GetValue(MAXIMUM_VALUE));
                 u_min = std::min(u_min, neighbor_elems[j].GetValue(MINIMUM_VALUE));
@@ -242,22 +255,22 @@ namespace Kratos
             const double nodal_max_increment = u_max - u_l;
             const double nodal_min_increment = u_min - u_l;
 
-            // using the maximum/minimum increments to compute the positive/ngative ratios
+            // using the maximum/minimum increments to compute the positive/negative ratios
             const double positive_contribution = *(nodal_positive_contributions.begin() + i);
-            if (positive_contribution > 0.0) {
+            if (positive_contribution > mEpsilon) {
                 it_node->GetValue(POSITIVE_RATIO) = std::min(1.0, nodal_max_increment / positive_contribution);
             } else {
                 it_node->GetValue(POSITIVE_RATIO) = 0.0;
             }
             const double negative_contribution = *(nodal_negative_contributions.begin() + i);
-            if (negative_contribution < 0.0) {
+            if (negative_contribution < -mEpsilon) {
                 it_node->GetValue(NEGATIVE_RATIO) = std::min(1.0, nodal_min_increment / negative_contribution);
             } else {
                 it_node->GetValue(NEGATIVE_RATIO) = 0.0;
             }
         }
 
-        // third step: get the limiter
+        // third step: get the elemental limiter
         #pragma omp parallel for
         for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
         {
@@ -273,24 +286,34 @@ namespace Kratos
                 }
             }
             *(mElementalLimiters.begin() + i) = c;
+
+            it_elem->SetValue(AUX_INDEX, c);
         }
     }
 
     void AlgebraicFluxCorrectionUtility::AssembleLimitedCorrections()
     {
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
         {
-            const Vector& lo_values = *(mLowOrderValues.begin() + i);
+            const Vector& lo_values = *(mDofsLowOrderValues.begin() + i);
+            auto& dofs = (mrModelPart.NodesBegin() + i)->GetDofs();
+            for (size_t d = 0; d < dofs.size(); ++d)
+            {
+                (*dofs[d])(0) = lo_values[d];
+            }
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
+        {
             const Vector& corrections = *(mAlgebraicFluxCorrections.begin() + i);
             double limiter = *(mElementalLimiters.begin() + i);
-            Vector high_oder_values = lo_values + limiter * corrections;
             DofsVectorType dofs = *(mElementalDofs.begin() + i);
             for (size_t d = 0; d < dofs.size(); ++d)
             {
-
                 #pragma omp atomic
-                (*dofs[d])(0) += high_oder_values[d];
+                (*dofs[d])(0) += limiter * corrections[d];
             }
         }
     }
@@ -308,6 +331,22 @@ namespace Kratos
         VariableUtils().SetNonHistoricalVariableToZero(ALGEBRAIC_CONTRIBUTION, mrModelPart.Nodes());
         VariableUtils().SetNonHistoricalVariableToZero(MAXIMUM_VALUE, mrModelPart.Elements());
         VariableUtils().SetNonHistoricalVariableToZero(MINIMUM_VALUE, mrModelPart.Elements());
+    }
+
+    void AlgebraicFluxCorrectionUtility::ResizeNodalAndElementalVectors()
+    {
+        size_t number_of_elements = mrModelPart.NumberOfElements();
+        size_t number_of_nodes = mrModelPart.NumberOfNodes();
+        mHighOrderValues.resize(number_of_elements);
+        mLowOrderValues.resize(number_of_elements);
+        mPreviousValues.resize(number_of_elements);
+        mNodalHighOrderValues.resize(number_of_nodes);
+        mNodalLowOrderValues.resize(number_of_nodes);
+        mAlgebraicFluxCorrections.resize(number_of_elements);
+        mElementalMassMatrices.resize(number_of_elements);
+        mElementalLimiters.resize(number_of_elements);
+        mElementalDofs.resize(number_of_elements);
+        mDofsLowOrderValues.resize(number_of_nodes);
     }
 
     const Parameters AlgebraicFluxCorrectionUtility::GetDefaultParameters() const
