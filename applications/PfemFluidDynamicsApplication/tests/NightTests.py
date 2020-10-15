@@ -32,7 +32,7 @@ def SetTestSuite(suites):
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            Water_Sloshing_3D_Test, Inlet_3D_Test#, Thermal_Coupling_2D_Test
+            Water_Sloshing_3D_Test, Inlet_3D_Test, Thermal_Coupling_2D_Test
         ])
     )
 
