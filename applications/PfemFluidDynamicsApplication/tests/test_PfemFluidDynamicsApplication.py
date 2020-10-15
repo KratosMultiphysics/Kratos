@@ -1,6 +1,6 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.DelaunayMeshingApplication as DelaunayMeshingApplication 
+import KratosMultiphysics.DelaunayMeshingApplication as DelaunayMeshingApplication
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluidDynamicsApplication
 
