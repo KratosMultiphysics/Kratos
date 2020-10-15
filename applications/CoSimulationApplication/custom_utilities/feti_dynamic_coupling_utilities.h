@@ -22,7 +22,6 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
-#include "includes/ublas_complex_interface.h"
 #include "co_simulation_application_variables.h"
 #include "includes/variables.h"
 
@@ -59,7 +58,7 @@ namespace Kratos
         static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
 
         FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin, ModelPart & rInterFaceDestination,
-            Parameters JsonParameters);
+            const Parameters JsonParameters);
 
         void SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart & rInterfaceOrigin,
             ModelPart & rInterFaceDestination)
@@ -79,7 +78,7 @@ namespace Kratos
                 << "\n\tDestination timestep = " << dt_destination << std::endl;
         }
 
-        void SetEffectiveStiffnessMatrix(SystemMatrixType& rK, IndexType SolverIndex)
+        void SetEffectiveStiffnessMatrix(SystemMatrixType& rK, const IndexType SolverIndex)
         {
             if (SolverIndex == 0) mpKOrigin = &rK;
             else if (SolverIndex == 1) mpKDestination = &rK;
@@ -88,7 +87,7 @@ namespace Kratos
             this->SetEffectiveStiffnessMatrix(SolverIndex);
         };
 
-        void SetEffectiveStiffnessMatrix(IndexType SolverIndex)
+        void SetEffectiveStiffnessMatrix(const IndexType SolverIndex)
         {
             if (SolverIndex == 0) mSubTimestepIndex = 1;
         };
@@ -152,7 +151,7 @@ namespace Kratos
         void ComposeProjector(CompressedMatrix& rProjector, const bool IsOrigin);
 
         void DetermineDomainUnitAccelerationResponse(SystemMatrixType* pK,
-            const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse, const bool sOrigin);
+            const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse, const bool IsOrigin);
 
         void DetermineDomainUnitAccelerationResponseExplicit(CompressedMatrix& rUnitResponse,
             const CompressedMatrix& rProjector, ModelPart& rDomain, const bool IsOrigin);

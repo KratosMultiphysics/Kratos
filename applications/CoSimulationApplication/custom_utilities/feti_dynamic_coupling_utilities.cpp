@@ -16,7 +16,6 @@
 
 // Project includes
 #include "feti_dynamic_coupling_utilities.h"
-#include "linear_solvers/skyline_lu_factorization_solver.h"
 
 
 namespace Kratos
