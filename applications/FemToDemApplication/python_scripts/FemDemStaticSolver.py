@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 # Import the mechanical solver base class

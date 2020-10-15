@@ -2,23 +2,22 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFemToDemApplication ****")
 
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/SolidMechanicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
 
 include_directories(${CMAKE_SOURCE_DIR}/kratos )
-include_directories(${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/DEMApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/MeshingApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
-#include_directories(${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+include_directories(${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 # generate variables with the sources
 set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
@@ -35,6 +34,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_pressure_id_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/expand_wet_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_initial_volume_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/transfer_entities_between_model_parts_process.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/regenerate_pfem_pressure_conditions_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/generate_dem_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/generate_initial_skin_DEM_process.cpp
@@ -43,10 +43,17 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_normalized_free_energy_on_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_sand_production.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_free_velocity_on_nodes_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/transfer_entities_between_model_parts_process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_field_to_entities_process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_scalar_dof_process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/free_scalar_dof_process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_entities_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/remove_alone_DEM_elements_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/FEMDEM_coupling_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_flag_no_remesh_femdem_boundary_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_vector_variable_to_conditions_process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_vector_field_to_entities_process.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_total_lagrangian_femdem_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_total_lagrangian_mixtures_femdem_element.cpp
@@ -61,7 +68,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFemToDemApplication MODULE ${KRATOS_FEM_TO_DEM_APPLICATION_SOURCES})
 
-target_link_libraries(KratosFemToDemApplication PRIVATE KratosSolidMechanicsCore KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore)
+target_link_libraries(KratosFemToDemApplication PRIVATE KratosStructuralMechanicsCore KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore)
 set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)

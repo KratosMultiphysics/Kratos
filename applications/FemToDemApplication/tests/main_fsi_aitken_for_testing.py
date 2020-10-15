@@ -41,28 +41,28 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
                 vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
                 ref_dx = 7.539979970827383e-06
                 ref_vx = 0.01089025506774863
-                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 3 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 5:
                 dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
                 vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
                 ref_dx = 7.605594669875214e-05
                 ref_vx = 0.05646212212293625
-                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 5 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 8:
                 dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
                 vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
                 ref_dx = 0.0001966109980103405
                 ref_vx = 0.030178525378407893
-                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 8 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 11:
                 dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
                 vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                ref_dx = 0.0002784147973531396
-                ref_vx = 0.047863965496993656
-                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                ref_dx = 0.00027841740448810456
+                ref_vx = 0.04786347688192042
+                if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 11 is not correct')
 
 
