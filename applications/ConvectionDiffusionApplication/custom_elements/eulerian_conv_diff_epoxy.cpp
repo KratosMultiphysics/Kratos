@@ -73,6 +73,33 @@ namespace Kratos
         m_degree_of_cure_vector = ZeroVector(GetGeometry().IntegrationPointsNumber());
         m_glass_transition_temperature = ZeroVector(GetGeometry().IntegrationPointsNumber());
         m_heat_of_reaction = ZeroVector(GetGeometry().IntegrationPointsNumber());
+        m_pre_strain_vector = ZeroVector(GetGeometry().IntegrationPointsNumber());
+
+        auto& r_geometry = GetGeometry();
+        auto integration_points = r_geometry.IntegrationPoints();
+        IndexType number_of_integration_points = integration_points.size();
+        Matrix Ncontainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        double specific_heat = 0;
+        for (IndexType i = 0; i < number_of_integration_points; ++i)
+        {
+            m_glass_transition_temperature[0] = ComputeGlassTransitionTemperature(
+                m_degree_of_cure_vector[0]);
+
+            double temperature = 0;
+            for (IndexType j = 0; j < TNumNodes; j++)
+            {
+                const double& temp = r_geometry[j].GetSolutionStepValue(TEMPERATURE, 0);
+                temperature += Ncontainer(i, j) * temp;
+            }
+
+            specific_heat += this->ComputeSpecificHeatCapacity(
+                temperature, m_glass_transition_temperature[i],
+                m_degree_of_cure_vector[i]);
+        }
+        specific_heat /= 4;
+        m_specific_heat_capacity = specific_heat;
+
+        m_specific_heat_capacity = 0.0;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -113,6 +140,7 @@ namespace Kratos
 
         // Getting the values of Current Process Info and computing the value of h
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
+        Variables.specific_heat = m_specific_heat_capacity;
         double h = this->ComputeH(DN_DX);
 
         //Computing the divergence
@@ -182,6 +210,8 @@ namespace Kratos
                 heat_flux_vector[i] += N[i] * heat_flux * integration_points[igauss].Weight()* Volume;
             }*/
         }
+
+        KRATOS_WATCH(Variables.specific_heat)
 
         //adding the second and third term in the formulation
         noalias(rLeftHandSideMatrix)  = (Variables.dt_inv*Variables.density*Variables.specific_heat + Variables.theta*Variables.beta*Variables.div_v)*aux1;
@@ -416,7 +446,7 @@ namespace Kratos
         {
             for (IndexType j = 0; j < TNumNodes; j++)
             {
-                r_geometry[j].GetSolutionStepValue(TEMPERATURE, 0) += m_heat_of_reaction[i] * (integration_points[i].Weight()/ number_of_integration_points);
+                r_geometry[j].GetSolutionStepValue(TEMPERATURE , 0) += m_heat_of_reaction[i] * (integration_points[i].Weight()/ number_of_integration_points);
             }
         }
         for (IndexType j = 0; j < TNumNodes; j++)
@@ -430,6 +460,31 @@ namespace Kratos
                 m_degree_of_cure_vector[i]);
             m_glass_transition_temperature[i] = glass_transition_temperature;
         }
+
+        double specific_heat = 0;
+        for (IndexType i = 0; i < number_of_integration_points; ++i)
+        {
+            double temperature = 0;
+            for (IndexType j = 0; j < TNumNodes; j++)
+            {
+                const double& temp = r_geometry[j].GetSolutionStepValue(TEMPERATURE, 0);
+
+                temperature += Ncontainer(i, j) * temp;
+            }
+
+            specific_heat += this->ComputeSpecificHeatCapacity(
+                temperature, m_glass_transition_temperature[i],
+                m_degree_of_cure_vector[i]);
+
+            double pre_strain_factor = this->ComputePreStrainFactor(
+                m_degree_of_cure_vector[i], temperature, temperature);
+            KRATOS_WATCH(temperature)
+        }
+        specific_heat /= 4;
+        KRATOS_WATCH(m_glass_transition_temperature)
+        KRATOS_WATCH(m_degree_of_cure_vector)
+        KRATOS_WATCH(specific_heat)
+        m_specific_heat_capacity = specific_heat;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -440,10 +495,10 @@ namespace Kratos
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+    void EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::CalculateOnIntegrationPoints(
+            const Variable<double>& rVariable,
+            std::vector<double>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo)
     {
         const auto& r_geometry = GetGeometry();
         auto integration_points = r_geometry.IntegrationPoints();
@@ -476,6 +531,20 @@ namespace Kratos
                 rOutput[i] = m_heat_of_reaction[i];
             }
         }
+        else if (rVariable == PRE_STRAIN_FACTOR)
+        {
+            for (IndexType i = 0; i < number_of_integration_points; ++i)
+            {
+                rOutput[i] = m_pre_strain_vector[i];
+            }
+        }
+        else if (rVariable == SPECIFIC_HEAT_CAPACITY)
+        {
+            for (IndexType i = 0; i < number_of_integration_points; ++i)
+            {
+                rOutput[i] = m_specific_heat_capacity;
+            }
+        }
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -506,6 +575,26 @@ namespace Kratos
         double glass_transition_temperature = ((Tg0 + 273.15) + (Tginf - Tg0) * ((lamda * DegreeOfCure) / (1 - (1 - lamda) * DegreeOfCure)))-273.15;
 
         return glass_transition_temperature;
+
+    }
+
+    template< unsigned int TDim, unsigned int TNumNodes >
+    double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeSpecificHeatCapacity(
+        double Temperature, double GlassTransitionTemperature, double DegreeOfCure)
+    {
+        double Crub = 2.10;
+        double Crub_alpha = 0.16;
+        double Crub_T = 0.000419;
+        double Cglass = 1.55;
+        double Cglass_T = 0.00244;
+        double Cw = 0.474;
+        double sigma = 107.6;
+        double sigma_T = -0.454;
+
+        double specific_heat_capacity = Crub + Crub_alpha * DegreeOfCure + Crub_T * Temperature + (Cglass + Cglass_T * Temperature - Crub - Crub_alpha * DegreeOfCure - Crub_T * Temperature) /
+            (1 + exp(Cw * (Temperature - GlassTransitionTemperature - sigma - sigma_T * Temperature)));
+
+        return specific_heat_capacity;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -524,6 +613,25 @@ namespace Kratos
             * total_heat_of_reaction * density * volume;
 
         return heat_flux;
+
+
+   //Calculating shrinkage and CTE effects
+    }
+
+    template< unsigned int TDim, unsigned int TNumNodes >
+    double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputePreStrainFactor(
+        double DegreeOfCureCurrent,
+        double temperature_current,
+        double temperature_previous)
+    {
+        const double CTE = 5;
+
+        if (DegreeOfCureCurrent < 0.77) {
+            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (8.233 * DegreeOfCureCurrent - 0.4199);
+            return pre_strain_factor;
+        }
+            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (18.75 * DegreeOfCureCurrent - 8.7915);
+                return pre_strain_factor;
     }
 //----------------------------------------------------------------------------------------
 

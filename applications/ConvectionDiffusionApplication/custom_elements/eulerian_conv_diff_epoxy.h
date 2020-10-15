@@ -98,8 +98,7 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -164,14 +163,25 @@ private:
 
     Vector m_heat_of_reaction;
 
+    Vector m_pre_strain_vector;
+
+    double m_specific_heat_capacity = 0.0;
+
     double ComputeDegreeOfCure(double rDegreeOfCure, double Temperature);
 
     double ComputeGlassTransitionTemperature(double DegreeOfCure);
+    
+    double ComputePreStrainFactor(double DegreeOfCure, double temperature_previous, double temperature_current);
 
     double ComputeHeatOfReaction(
         double degree_of_cure_previous,
         double degree_of_cure_current,
         double delta_time);
+
+    double ComputeSpecificHeatCapacity(
+        double Temperature,
+        double GlassTransitionTemperature,
+        double DegreeOfCure);
 
     // Serialization
 
