@@ -20,7 +20,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
 #============================================================================================================================
     def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(dy))
 
-        tol = 1e-6
+        tol = 1e-5
         # Here we check the vertical displacement of a node
         node = self.FEM_Solution.main_model_part.GetNode(39)
         dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
