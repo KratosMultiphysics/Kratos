@@ -307,6 +307,13 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
         }
     }
 
+    /* Save to file */
+    const bool save_to_file = mThisParameters["save_external_files"].GetBool();
+    if (GetMmgVersion() == "5.5" && mDiscretization == DiscretizationOption::ISOSURFACE && save_to_file) {
+        InitializeSolDataDistance();
+        SaveSolutionToFile(true);
+    }
+
     // We release the memory
     FreeMemory();
 
@@ -510,7 +517,15 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     }
 
     /* Save to file */
-    if (save_to_file) SaveSolutionToFile(true);
+    if (save_to_file) {
+        if (GetMmgVersion() == "5.5") {
+            if (mDiscretization != DiscretizationOption::ISOSURFACE) {
+                SaveSolutionToFile(true);
+            }
+        } else {
+            SaveSolutionToFile(true);
+        }
+    }
 
     // Some information
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;

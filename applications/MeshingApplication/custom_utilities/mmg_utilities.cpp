@@ -3360,7 +3360,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::GetMetricScalar(double& rMetric)
 
 #if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
+        rMetric = 0.0;
+//         KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
     }
@@ -3381,7 +3382,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::GetMetricScalar(double& rMetric)
 
 #if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( MMG3D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
+        rMetric = 0.0;
+//         KRATOS_ERROR_IF( MMG3D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG3D_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
     }
@@ -3402,7 +3404,8 @@ void MmgUtilities<MMGLibrary::MMGS>::GetMetricScalar(double& rMetric)
 
 #if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
+        rMetric = 0.0;
+//         KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
     }
