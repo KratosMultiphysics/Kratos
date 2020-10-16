@@ -30,7 +30,7 @@ namespace Kratos
 	 * constitutive tensor is not implemented.
 	 * Refer to RHTConcrete3DLaw for references.
 	 */
-	class RHTConcreteAxisym2DLaw : public RHTConcretePlaneStrain2DLaw
+	class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) RHTConcreteAxisym2DLaw : public RHTConcretePlaneStrain2DLaw
 	{
 	public:
 

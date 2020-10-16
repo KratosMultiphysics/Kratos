@@ -46,7 +46,7 @@ namespace Kratos
  *                  komplexer Last- annahmen bei hochdynamischen Einwirkungen auf Stahlbetonstrukturen.
  *                  https://www.grs.de/sites/default/files/pdf/grs-346.pdf
  */
-class RHTConcrete3DLaw : public HyperElastic3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) RHTConcrete3DLaw : public HyperElastic3DLaw
 {
 public:
 

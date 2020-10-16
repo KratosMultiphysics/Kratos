@@ -220,19 +220,19 @@ namespace Python{
 
         // RHT concrete
         py::class_< RHTConcrete3DLaw, typename RHTConcrete3DLaw::Pointer, ConstitutiveLaw >
-            (m, "RHTConcrete3DLaw")
-            .def(py::init<>())
-            ;
+        (m, "RHTConcrete3DLaw")
+        .def(py::init<>())
+        ;
 
         py::class_< RHTConcretePlaneStrain2DLaw, typename RHTConcretePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-            (m, "RHTConcretePlaneStrain2DLaw")
-            .def(py::init<>())
-            ;
+        (m, "RHTConcretePlaneStrain2DLaw")
+        .def(py::init<>())
+        ;
 
         py::class_< RHTConcreteAxisym2DLaw, typename RHTConcreteAxisym2DLaw::Pointer, ConstitutiveLaw >
-            (m, "RHTConcreteAxisym2DLaw")
-            .def(py::init<>())
-            ;
+        (m, "RHTConcreteAxisym2DLaw")
+        .def(py::init<>())
+        ;
     }
 }  // namespace Python.
 }  // namespace Kratos.
