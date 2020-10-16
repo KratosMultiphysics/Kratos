@@ -285,7 +285,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFilename)
         vtu11::write(output_file_name, vtu_mesh, point_data, cell_data, writer);
     } else if (mFileFormat == VtuOutput::FileFormat::VTU_BINARY_BASE64_APPENDED) {
         auto writer = vtu11::Base64BinaryAppendedWriter();
-        vtu11::parallel_write(output_file_name, vtu_mesh, point_data, cell_data, writer, my_pid, total_processes);
+        vtu11::parallelWrite(output_file_name, vtu_mesh, point_data, cell_data, writer, my_pid, total_processes);
     }
 
     KRATOS_CATCH("VTU PrintOutput");
@@ -312,7 +312,7 @@ std::string VtuOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
         std::string model_part_name;
 
         if (IsSubModelPart) {
-            model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
+            model_part_name = rModelPart.GetParentModelPart().Name() + "_" + rModelPart.Name();
         } else {
             model_part_name = rModelPart.Name();
         }
