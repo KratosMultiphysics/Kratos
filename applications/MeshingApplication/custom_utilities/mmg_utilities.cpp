@@ -1418,7 +1418,43 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
     bool SkipCreation
     )
 {
+#if MMG_VERSION_GE(5,5)
+    Element::Pointer p_element = nullptr;
+
+    int vertex_0, vertex_1, vertex_2, vertex_3;
+
+    KRATOS_ERROR_IF(MMG2D_Get_quadrilateral(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get quadrilateral" << std::endl;
+
+    // Sometimes MMG creates elements where there are not, then we skip
+    if (rMapPointersRefElement[Ref].get() == nullptr) {
+        if(mEchoLevel > 1) {
+            KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Element. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+        }
+        return p_element;
+    }
+
+    // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+    if (vertex_0 == 0) SkipCreation = true;
+    if (vertex_1 == 0) SkipCreation = true;
+    if (vertex_2 == 0) SkipCreation = true;
+    if (vertex_3 == 0) SkipCreation = true;
+
+    if (!SkipCreation) {
+        std::vector<NodeType::Pointer> element_nodes (4);
+        element_nodes[0] = rModelPart.pGetNode(vertex_0);
+        element_nodes[1] = rModelPart.pGetNode(vertex_1);
+        element_nodes[2] = rModelPart.pGetNode(vertex_2);
+        element_nodes[3] = rModelPart.pGetNode(vertex_3);
+
+        p_element = rMapPointersRefElement[Ref]->Create(CondId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+    } else if (mEchoLevel > 2)
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
+
+    if (p_element != nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area element" << std::endl;
+    return p_element;
+#else
     return nullptr;
+#endif
 }
 
 /***********************************************************************************/
