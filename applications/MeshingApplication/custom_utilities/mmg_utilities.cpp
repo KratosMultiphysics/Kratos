@@ -1446,7 +1446,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
         element_nodes[2] = rModelPart.pGetNode(vertex_2);
         element_nodes[3] = rModelPart.pGetNode(vertex_3);
 
-        p_element = rMapPointersRefElement[Ref]->Create(CondId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
 
