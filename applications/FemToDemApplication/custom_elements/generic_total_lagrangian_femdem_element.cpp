@@ -1716,7 +1716,7 @@ double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateCharacteri
     )
 {
     auto& r_geometry = pCurrentElement->GetGeometry();
-    const auto& r_edges = r_geometry.Edges();
+    const auto& r_edges = r_geometry.GenerateEdges();
 
     double sum_of_lengths = 0.0;
     for (IndexType i = 0; i < NumberOfEdges; ++i) {
