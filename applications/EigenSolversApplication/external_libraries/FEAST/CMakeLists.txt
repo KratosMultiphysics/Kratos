@@ -10,7 +10,7 @@ endif (OPENMP_FOUND)
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w")
 
 if(${CMAKE_COMPILER_IS_GNUG77})
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w -O3 -ffree-line-length-none -ffixed-line-length-none -cpp -fPIC -DMKL")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w -O3 -ffree-line-length-none -ffixed-line-length-none -cpp -fPIC -DMKL -std=legacy")
   message("additional default options were set for gfortran")
   message("----------------------****************---------------------- CMAKE_Fortran_FLAGS = ${CMAKE_Fortran_FLAGS}")
 else(${CMAKE_COMPILER_IS_GNUG77})

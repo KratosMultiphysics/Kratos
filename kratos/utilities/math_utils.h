@@ -480,10 +480,10 @@ public:
            KRATOS_ERROR << "Not possible to invert Matrix: " << rInputMatrix << std::endl;
        }
 
-       // Checking condition number
-       if (Tolerance > 0.0) { // Check is skipped for negative tolerances
-            CheckConditionNumber(rInputMatrix, rInvertedMatrix, Tolerance);
-       }
+    //    // Checking condition number
+    //    if (std::abs(Tolerance) > 0.0) { // Check is skipped for zero tolerances
+    //         CheckConditionNumber(rInputMatrix, rInvertedMatrix, Tolerance);
+    //    }
     }
 
     /**

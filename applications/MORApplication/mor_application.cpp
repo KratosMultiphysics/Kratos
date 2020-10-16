@@ -39,9 +39,15 @@ namespace Kratos {
 KratosMORApplication::KratosMORApplication():
     KratosApplication("MORApplication"),
       mAcousticElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mAcousticElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mAcousticElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mAcousticElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mAcousticElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mAcousticPMLElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mAcousticPMLElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mAcousticPMLElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mAcousticPMLElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mAcousticPMLElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
       // conditions
       mAcousticLoadConcition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
@@ -71,17 +77,27 @@ void KratosMORApplication::Register()
   KRATOS_REGISTER_VARIABLE( SCALAR_OUTPUT )
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( COMPONENT_OUTPUT )
 
+
+
   // complex dof variables
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( REAL_DISPLACEMENT )
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( IMAG_DISPLACEMENT )
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( PML_IMAG_DISTANCE )
+
   KRATOS_REGISTER_VARIABLE( REAL_PRESSURE )
   KRATOS_REGISTER_VARIABLE( IMAG_PRESSURE )
 
   // elements
   KRATOS_REGISTER_ELEMENT("AcousticElement2D2N", mAcousticElement2D2N)
+  KRATOS_REGISTER_ELEMENT("AcousticElement2D3N", mAcousticElement2D3N)
   KRATOS_REGISTER_ELEMENT("AcousticElement2D4N", mAcousticElement2D4N)
   KRATOS_REGISTER_ELEMENT("AcousticElement3D4N", mAcousticElement3D4N)
   KRATOS_REGISTER_ELEMENT("AcousticElement3D8N", mAcousticElement3D8N)
+  KRATOS_REGISTER_ELEMENT("AcousticPMLElement2D2N", mAcousticPMLElement2D2N)
+  KRATOS_REGISTER_ELEMENT("AcousticPMLElement2D3N", mAcousticPMLElement2D3N)
+  KRATOS_REGISTER_ELEMENT("AcousticPMLElement2D4N", mAcousticPMLElement2D4N)
+  KRATOS_REGISTER_ELEMENT("AcousticPMLElement3D4N", mAcousticPMLElement3D4N)
+  KRATOS_REGISTER_ELEMENT("AcousticPMLElement3D8N", mAcousticPMLElement3D8N)
 
   // conditions
   KRATOS_REGISTER_CONDITION("AcousticLoadCondition2D2N", mAcousticLoadConcition2D2N)

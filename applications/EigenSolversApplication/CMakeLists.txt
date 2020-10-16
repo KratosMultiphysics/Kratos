@@ -52,6 +52,7 @@ if( USE_EIGEN_MKL MATCHES ON )
 endif()
 
 if( USE_EIGEN_FEAST MATCHES ON )
+    MESSAGE("HALLO")
     if( WIN32 )
         message( FATAL_ERROR "FEAST4 is not yet supported under Windows")
     endif()

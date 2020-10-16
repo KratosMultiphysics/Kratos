@@ -129,7 +129,7 @@ void AcousticElement::EquationIdVector(EquationIdVectorType& rResult,
 void AcousticElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo)
 {
     SizeType num_nodes = GetGeometry().PointsNumber();
-    std::cout << "hello?\n";
+  //  std::cout << "hello?\n";
 
     if(rElementalDofList.size() != num_nodes)
         rElementalDofList.resize(num_nodes);	
@@ -137,7 +137,7 @@ void AcousticElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo&
     for (SizeType i_node = 0; i_node < num_nodes; i_node++)
         rElementalDofList[i_node] = GetGeometry()[i_node].pGetDof(PRESSURE);
 
-    KRATOS_WATCH(rElementalDofList)
+   // KRATOS_WATCH(rElementalDofList)
 }
 
 /***********************************************************************************/
@@ -230,56 +230,45 @@ void AcousticElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo&
 
 void AcousticElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
-        // (Matrix& rJ0,
-        // Matrix& rInvJ0,
-        // Matrix& rDN_DX,
-        // const IndexType PointNumber,
-        // IntegrationMethod ThisIntegrationMethod
-        // ) const
-
 
         const GeometryType& geom = GetGeometry();
         IntegrationMethod ThisIntegrationMethod = geom.GetDefaultIntegrationMethod();
         const SizeType number_of_nodes = geom.PointsNumber();
-        // const SizeType dimension = geom.WorkingSpaceDimension();
         const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(ThisIntegrationMethod);
+        SizeType dim1= geom.WorkingSpaceDimension();
+        SizeType dim2= geom.LocalSpaceDimension();
 
+        std::cout << "i am calculating an acoustic element\n";
 
         if( rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes )
         {
             rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
         }
+
+        noalias(rLeftHandSideMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
 
         ShapeFunctionDerivativesArrayType DN_DX;
         Vector DetJ;
 
-
         DN_DX = geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ, ThisIntegrationMethod);
 
 
-        KRATOS_WATCH(integration_points)
-        KRATOS_WATCH(integration_points.size())
+        // KRATOS_WATCH(integration_points.size())
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
         {
-            double int_weight = integration_points[point_number].Weight() * DetJ(point_number);
-            KRATOS_WATCH(DN_DX[point_number])
-            KRATOS_WATCH(prod( trans(DN_DX[point_number]), DN_DX[point_number]))
-            
+            double int_weight = integration_points[point_number].Weight() * DetJ(point_number);           
             noalias( rLeftHandSideMatrix ) += int_weight * prod( DN_DX[point_number], trans(DN_DX[point_number]));
 
         }
 
-        KRATOS_WATCH(rLeftHandSideMatrix)
-
-       // N = r_geom.ShapeFunctionsValues(this_kinematic_variables.N, r_integration_points)
 
 
 
 
 
 
-        // GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_geom.IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
+        Matrix J0;
+        GeometryUtils::JacobianOnInitialConfiguration(geom, geom.IntegrationPoints(ThisIntegrationMethod)[2], J0);
         // double detJ0;
         // MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
         // const Matrix& rDN_De =
@@ -299,19 +288,15 @@ void AcousticElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
     const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(ThisIntegrationMethod);
     IndexType NumGauss = integration_points.size();
     const Matrix& NContainer = geom.ShapeFunctionsValues(ThisIntegrationMethod);
-    double Vol = geom.Volume();
+    //const double freq2 =  std::pow(rCurrentProcessInfo[FREQUENCY], 2);
     if( rMassMatrix.size1() != number_of_nodes || rMassMatrix.size2() != number_of_nodes )
     {
         rMassMatrix.resize(number_of_nodes, number_of_nodes, false);
-        noalias(rMassMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
     }
-
-    // KRATOS_WATCH(BULK_MODULUS)
-    
+    noalias(rMassMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
+ 
     const double p = GetProperties()[DENSITY];
     const double G = GetProperties()[BULK_MODULUS];
-
-    KRATOS_WATCH(NContainer)
 
     for (IndexType i = 0; i < number_of_nodes; i++)
     {
@@ -325,7 +310,7 @@ void AcousticElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
                 }
         }        
     }
-    KRATOS_WATCH(rMassMatrix)
+
 }
 
 
@@ -337,8 +322,8 @@ void AcousticElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, Process
     if( rDampingMatrix.size1() != number_of_nodes || rDampingMatrix.size2() != number_of_nodes )
     {
         rDampingMatrix.resize(number_of_nodes, number_of_nodes, false);
-        noalias(rDampingMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
     }
+    noalias(rDampingMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
 
 }
 
