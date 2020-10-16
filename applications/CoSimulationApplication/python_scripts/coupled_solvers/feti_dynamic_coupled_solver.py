@@ -152,9 +152,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
     def __SendStiffnessMatrixToUtility(self, solverIndex):
         if self.is_implicit[solverIndex]:
                 system_matrix = self.solver_wrappers_vector[solverIndex].GetSolverStrategy().GetSystemMatrix()
-                self.feti_coupling.SetEffectiveStiffnessMatrix(system_matrix,solverIndex)
+                self.feti_coupling.SetEffectiveStiffnessMatrixImplicit(system_matrix,solverIndex)
         else:
-            self.feti_coupling.SetEffectiveStiffnessMatrix(solverIndex)
+            self.feti_coupling.SetEffectiveStiffnessMatrixExplicit(solverIndex)
 
 
     def _CreateLinearSolver(self):

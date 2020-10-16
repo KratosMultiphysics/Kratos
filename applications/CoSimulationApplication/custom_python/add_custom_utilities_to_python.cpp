@@ -23,16 +23,18 @@ namespace Kratos{
 
 namespace Python{
 
+    typedef std::size_t IndexType;
+
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         pybind11::class_< FetiDynamicCouplingUtilities>(m, "FetiDynamicCouplingUtilities")
             .def(pybind11::init<ModelPart&, ModelPart&, Parameters>())
             .def("SetOriginAndDestinationDomainsWithInterfaceModelParts",
                 &FetiDynamicCouplingUtilities::SetOriginAndDestinationDomainsWithInterfaceModelParts)
-            .def("SetEffectiveStiffnessMatrix",
-                pybind11::overload_cast<CompressedMatrix&, IndexType>(&FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrix))
-            .def("SetEffectiveStiffnessMatrix",
-                pybind11::overload_cast<IndexType>(&FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrix))
+            .def("SetEffectiveStiffnessMatrixImplicit",
+                &FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrixImplicit)
+            .def("SetEffectiveStiffnessMatrixExplicit",
+                &FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrixExplicit)
             .def("EquilibrateDomains",
                 &FetiDynamicCouplingUtilities::EquilibrateDomains)
             .def("SetOriginInitialKinematics",

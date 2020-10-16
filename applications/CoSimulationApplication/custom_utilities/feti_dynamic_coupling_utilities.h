@@ -78,16 +78,16 @@ namespace Kratos
                 << "\n\tDestination timestep = " << dt_destination << std::endl;
         }
 
-        void SetEffectiveStiffnessMatrix(SystemMatrixType& rK, const IndexType SolverIndex)
+        void SetEffectiveStiffnessMatrixImplicit(SystemMatrixType& rK, const IndexType SolverIndex)
         {
             if (SolverIndex == 0) mpKOrigin = &rK;
             else if (SolverIndex == 1) mpKDestination = &rK;
             else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, Index must be 0 or 1";
 
-            this->SetEffectiveStiffnessMatrix(SolverIndex);
+            this->SetEffectiveStiffnessMatrixExplicit(SolverIndex);
         };
 
-        void SetEffectiveStiffnessMatrix(const IndexType SolverIndex)
+        void SetEffectiveStiffnessMatrixExplicit(const IndexType SolverIndex)
         {
             if (SolverIndex == 0) mSubTimestepIndex = 1;
         };
