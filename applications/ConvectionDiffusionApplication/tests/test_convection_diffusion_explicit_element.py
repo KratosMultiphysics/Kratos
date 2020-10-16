@@ -93,3 +93,4 @@ class TestConvectionDiffusionExplicitElement(KratosUnittest.TestCase):
 
 if __name__ == '__main__':
     KratosUnittest.main()
+
