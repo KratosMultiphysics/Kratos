@@ -98,18 +98,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
             self.solver_imports_model_part = True
 
-        element_name = self.settings["element_replace_settings"]["element_name"].GetString()
-        if (self.settings["use_orthogonal_subscales"].GetBool() is True):
-            if element_name in ("QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
-                self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, 1)
-            else:
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: The selected element", element_name, "does not support OSS projection. Select QSConvectionDiffusionExplicit or DConvectionDiffusionExplicit instead.")
-        else:
-            if element_name in ("QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
-                self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, 0)
-            else:
-                pass
-
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
 
     @classmethod
@@ -174,8 +162,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "auxiliary_variables_list" : [],
-            "use_orthogonal_subscales" : false
+            "auxiliary_variables_list" : []
         }
         """)
         default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultParameters())
@@ -579,9 +566,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return linear_solver
 
     def _create_builder_and_solver(self):
-        if self.settings["time_integration_method"].GetString() == "explicit":
-            builder_and_solver = KratosMultiphysics.ExplicitBuilder()
-            return builder_and_solver
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
@@ -596,10 +580,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
 
     def _create_convection_diffusion_solution_strategy(self):
-        time_integration_method = self.settings["time_integration_method"].GetString()
-        if time_integration_method == "explicit":
-            convection_diffusion_solution_strategy = self._create_runge_kutta_4_strategy()
-            return convection_diffusion_solution_strategy
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             convection_diffusion_solution_strategy = self._create_linear_strategy()
@@ -653,13 +633,3 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                             self.settings["compute_reactions"].GetBool(),
                             self.settings["reform_dofs_at_each_step"].GetBool(),
                             self.settings["move_mesh_flag"].GetBool())
-
-    def _create_runge_kutta_4_strategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        convection_diffusion_scheme = self.get_solution_scheme() # to call _create_solution_scheme method of the solver class
-        explicit_builder_and_solver = self.get_builder_and_solver()
-        rebuild_level = 0
-        return ConvectionDiffusionApplication.ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion(computing_model_part,
-                            explicit_builder_and_solver,
-                            self.settings["move_mesh_flag"].GetBool(),
-                            rebuild_level)

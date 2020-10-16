@@ -12,16 +12,18 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     solver_type = solver_settings["solver_type"].GetString()
-    time_integration_method = "implicit / not defined"
+
     if solver_settings.Has("time_integration_method"):
-        if solver_settings["time_integration_method"].GetString() == "explicit":
-            time_integration_method = solver_settings["time_integration_method"].GetString()
+        time_integration_method = solver_settings["time_integration_method"].GetString()
+    else: # set implicit by default
+        KratosMultiphysics.Logger.PrintWarning(" ::[PythonSolversWrapperConvectionDiffusion]:: Time integration method was not provided. Setting implicit as default.")
+        solver_settings.AddEmptyValue("time_integration_method").SetString("implicit")
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if time_integration_method == "explicit":
             solver_module_name = "convection_diffusion_explicit_solver"
-        else:
+        elif time_integration_method == "implicit":
             if (solver_type == "transient" or solver_type == "Transient"):
                 solver_module_name = "convection_diffusion_transient_solver"
 
@@ -44,6 +46,11 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
                 err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
                 err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
                 raise Exception(err_msg)
+
+        else:
+            err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the Python solvers wrapper\n"
+            err_msg += "Available options are: \"explicit\", \"implicit\""
+            raise Exception(err_msg)
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
