@@ -21,9 +21,7 @@
 #include "includes/variables.h"
 #include "includes/kratos_parameters.h"
 #include "includes/ublas_interface.h"
-
-#include "../FSIApplication/custom_utilities/convergence_accelerator.hpp"
-
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 
 namespace Kratos
 {
@@ -211,8 +209,8 @@ public:
             Epetra_Map InterfaceMap(NumGlobalInterfaceDofs, NumLocalInterfaceDofs, IndexBase, mrEpetraCommunicator);
 
             // Create new vector using given map
-            VectorPointerType pY(new Epetra_FEVector(InterfaceMap));
-            VectorPointerType pW(new Epetra_FEVector(InterfaceMap));
+            auto pY(new Epetra_FEVector(InterfaceMap));
+            auto pW(new Epetra_FEVector(InterfaceMap));
 
             // Loop to store a std::vector<VectorType> type as Matrix type
             Epetra_SerialDenseMatrix Vtrans_V(previous_iterations, previous_iterations);
@@ -433,22 +431,26 @@ private:
 
 
 /** @brief MVQN (MultiVectorQuasiNewton method) acceleration scheme
+ * Recursive MultiVectorQuasiNewton convergence accelerator. This convergence accelerator
+ * is an alternative implementation of the standard MVQN that avoids the storage of the
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
  */
-template<class TSpace>
-class TrilinosMVQNRecursiveJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
+template<class TSparseSpace, class TDenseSpace>
+class TrilinosMVQNRecursiveJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosMVQNRecursiveJacobianConvergenceAccelerator );
 
-    typedef ConvergenceAccelerator<TSpace>                                             BaseType;
+    typedef ConvergenceAccelerator<TSparseSpace,TDenseSpace>                           BaseType;
     typedef typename BaseType::Pointer                                          BaseTypePointer;
 
-    typedef typename TrilinosJacobianEmulator<TSpace>::Pointer      JacobianEmulatorPointerType;
+    typedef typename TrilinosJacobianEmulator<TSparseSpace>::Pointer JacobianEmulatorPointerType;
 
-    typedef typename BaseType::VectorType                                            VectorType;
-    typedef typename BaseType::VectorPointerType                              VectorPointerType;
+    typedef typename TSparseSpace::VectorType                                        VectorType;
+    typedef typename TSparseSpace::VectorPointerType                          VectorPointerType;
 
     typedef typename BaseType::MatrixType                                            MatrixType;
     typedef typename BaseType::MatrixPointerType                              MatrixPointerType;
@@ -461,11 +463,12 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    TrilinosMVQNRecursiveJacobianConvergenceAccelerator( ModelPart& rInterfaceModelPart,
-                                                         const Epetra_MpiComm& rEpetraCommunicator,
-                                                         Parameters &rConvAcceleratorParameters) :
-        mrInterfaceModelPart(rInterfaceModelPart),
-        mrEpetraCommunicator(rEpetraCommunicator)
+    TrilinosMVQNRecursiveJacobianConvergenceAccelerator(
+        ModelPart& rInterfaceModelPart,
+        const Epetra_MpiComm& rEpetraCommunicator,
+        Parameters rConvAcceleratorParameters)
+        : mrInterfaceModelPart(rInterfaceModelPart)
+        , mrEpetraCommunicator(rEpetraCommunicator)
     {
         Parameters mvqn_recursive_default_parameters(R"(
         {
@@ -477,6 +480,7 @@ public:
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
 
+        mProblemSize = 0;
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
         mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt();
         mConvergenceAcceleratorStep = 0;
@@ -493,6 +497,7 @@ public:
         mOmega_0(OmegaInitial),
         mJacobianBufferSize(JacobianBufferSize)
     {
+        mProblemSize = 0;
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
@@ -534,8 +539,9 @@ public:
     {
         KRATOS_TRY;
 
-        mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator <TSpace> > (
-            new TrilinosJacobianEmulator<TSpace>( mrInterfaceModelPart, mrEpetraCommunicator ));
+        mpCurrentJacobianEmulatorPointer = Kratos::make_unique<TrilinosJacobianEmulator<TSparseSpace>>(
+            mrInterfaceModelPart,
+            mrEpetraCommunicator);
 
         KRATOS_CATCH( "" );
     }
@@ -554,14 +560,19 @@ public:
         if (mConvergenceAcceleratorStep <= mJacobianBufferSize)
         {
             // Construct the inverse Jacobian emulator
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator<TSpace> > (
-                new TrilinosJacobianEmulator<TSpace>( mrInterfaceModelPart, mrEpetraCommunicator, std::move(mpCurrentJacobianEmulatorPointer )));
+            mpCurrentJacobianEmulatorPointer = Kratos::make_unique< TrilinosJacobianEmulator<TSparseSpace>>(
+                mrInterfaceModelPart,
+                mrEpetraCommunicator,
+                std::move(mpCurrentJacobianEmulatorPointer));
         }
         else
         {
             // Construct the inverse Jacobian emulator considering the recursive elimination
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator<TSpace> > (
-                new TrilinosJacobianEmulator<TSpace>( mrInterfaceModelPart, mrEpetraCommunicator, std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize ));
+            mpCurrentJacobianEmulatorPointer = Kratos::make_unique<TrilinosJacobianEmulator<TSparseSpace>>(
+                mrInterfaceModelPart,
+                mrEpetraCommunicator,
+                std::move(mpCurrentJacobianEmulatorPointer),
+                mJacobianBufferSize);
         }
 
         KRATOS_CATCH( "" );
@@ -578,7 +589,7 @@ public:
     {
         KRATOS_TRY;
 
-        mProblemSize = TSpace::Size(rResidualVector);
+        mProblemSize = TSparseSpace::Size(rResidualVector);
 
         VectorPointerType pAuxResidualVector(new VectorType(rResidualVector));
         VectorPointerType pAuxIterationGuess(new VectorType(rIterationGuess));
@@ -590,7 +601,7 @@ public:
             if (mConvergenceAcceleratorFirstCorrectionPerformed == false)
             {
                 // The very first correction of the problem is done with a fixed point iteration
-                TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
+                TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
 
                 mConvergenceAcceleratorFirstCorrectionPerformed = true;
             }
@@ -601,7 +612,7 @@ public:
                 // The first correction of the current step is done with the previous step inverse Jacobian approximation
                 mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mpResidualVector_1, pInitialCorrection);
 
-                TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pInitialCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
+                TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, *pInitialCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
             }
         }
         else
@@ -610,8 +621,8 @@ public:
             VectorPointerType pNewColV(new VectorType(*mpResidualVector_1));
             VectorPointerType pNewColW(new VectorType(*mpIterationValue_1));
 
-            TSpace::UnaliasedAdd(*pNewColV, -1.0, *mpResidualVector_0); // NewColV = ResidualVector_1 - ResidualVector_0
-            TSpace::UnaliasedAdd(*pNewColW, -1.0, *mpIterationValue_0); // NewColW = IterationValue_1 - IterationValue_0
+            TSparseSpace::UnaliasedAdd(*pNewColV, -1.0, *mpResidualVector_0); // NewColV = ResidualVector_1 - ResidualVector_0
+            TSparseSpace::UnaliasedAdd(*pNewColW, -1.0, *mpIterationValue_0); // NewColW = IterationValue_1 - IterationValue_0
 
             // Observation matrices information filling
             if (mConvergenceAcceleratorIteration <= mProblemSize)
@@ -630,7 +641,7 @@ public:
             VectorPointerType pIterationCorrection(new VectorType(rResidualVector));
             mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pIterationCorrection);
 
-            TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
+            TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
         }
 
         KRATOS_CATCH( "" );

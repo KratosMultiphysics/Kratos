@@ -39,8 +39,6 @@
 #include "includes/kratos_flags.h"
 #include "includes/master_slave_constraint.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "containers/variable_data.h"
 
 namespace Kratos
@@ -385,7 +383,7 @@ public:
 
             current_part->Nodes().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
@@ -713,7 +711,7 @@ public:
 
             current_part->MasterSlaveConstraints().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
@@ -1048,19 +1046,26 @@ public:
 
             current_part->Elements().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
     }
 
-    /** Inserts an element in the current mesh.
-     */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, std::vector<IndexType> ElementNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+    /// Creates new element with a node ids list.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, std::vector<IndexType> ElementNodeIds,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /** Inserts an element in the current mesh.
-     */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+    /// Creates new element with a nodes list.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /// Creates new element with pointer to geometry.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, typename GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
@@ -1221,22 +1226,25 @@ public:
 
             current_part->Conditions().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
     }
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condition with a node ids list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, std::vector<IndexType> ConditionNodeIds,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condition with a nodes list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+            PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /// Creates new condtion with pointer to geometry.
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName,
+            IndexType Id, typename GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
@@ -1513,10 +1521,15 @@ public:
         return mSubModelParts;
     }
 
-    /** Returns a pointer to the Parent ModelPart
-     * Returns a pointer to itself if it is not a SubModelPart
+    /** Returns a reference to the Parent ModelPart
+     * Returns a reference to itself if it is not a SubModelPart
     */
-    ModelPart* GetParentModelPart() const;
+    ModelPart& GetParentModelPart();
+
+    /** Returns a reference to the Parent ModelPart (const version)
+     * Returns a reference to itself if it is not a SubModelPart
+    */
+    const ModelPart& GetParentModelPart() const;
 
     /** Returns whether this ModelPart has a SubModelPart with a given name
     */
@@ -1634,7 +1647,7 @@ public:
     {
         std::string full_name = this->Name();
         if (this->IsSubModelPart()) {
-            full_name = this->GetParentModelPart()->FullName() + "." + full_name;
+            full_name = this->GetParentModelPart().FullName() + "." + full_name;
         }
         return full_name;
     }

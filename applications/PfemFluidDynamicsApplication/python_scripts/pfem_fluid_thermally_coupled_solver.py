@@ -30,7 +30,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver_type": "coupled_pfem_fluid_thermal_solver",
             "model_part_name": "PfemFluidModelPart",
@@ -117,7 +117,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
             "coupling_settings": {}
         }""")
 
-        this_defaults.AddMissingParameters(super(CoupledPfemFluidThermalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(CoupledPfemFluidThermalSolver, cls).GetDefaultParameters())
 
         return this_defaults
 

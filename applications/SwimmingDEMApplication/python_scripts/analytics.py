@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as swimming_DEM_procedures
 import math

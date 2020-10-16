@@ -20,10 +20,44 @@
 // Project includes
 #include "vtk_output.h"
 #include "containers/model.h"
+#include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 
 namespace Kratos
 {
+
+Parameters VtkOutput::GetDefaultParameters()
+{
+    // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
+    Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                                 : "binary",
+        "output_precision"                            : 7,
+        "output_control_type"                         : "step",
+        "output_interval"                             : 1.0,
+        "output_sub_model_parts"                      : false,
+        "folder_name"                                 : "VTK_Output",
+        "custom_name_prefix"                          : "",
+        "custom_name_postfix"                         : "",
+        "save_output_files_in_folder"                 : true,
+        "write_deformed_configuration"                : false,
+        "write_ids"                                   : false,
+        "nodal_solution_step_data_variables"          : [],
+        "nodal_data_value_variables"                  : [],
+        "nodal_flags"                                 : [],
+        "element_data_value_variables"                : [],
+        "element_flags"                               : [],
+        "condition_data_value_variables"              : [],
+        "condition_flags"                             : [],
+        "gauss_point_variables_extrapolated_to_nodes" : [],
+        "gauss_point_variables_in_elements"           : []
+    })" );
+
+    return default_parameters;
+}
+
+
 VtkOutput::VtkOutput(
     ModelPart& rModelPart,
     Parameters ThisParameters
@@ -155,23 +189,16 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
 
 std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename)
 {
-    // Putting everything together
     std::string output_file_name = "";
-    if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        output_file_name = mOutputSettings["folder_name"].GetString() + "/";
-    }
 
-    if (rOutputFilename != "")
-    {
-        output_file_name += rOutputFilename + ".vtk";
-    }
-    else
-    {
+    if (rOutputFilename != "") { // user specified file name externally
+        output_file_name = rOutputFilename;
+    } else {
         const int rank = rModelPart.GetCommunicator().MyPID();
         std::string model_part_name;
 
         if (IsSubModelPart) {
-            model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
+            model_part_name = rModelPart.GetParentModelPart().Name() + "_" + rModelPart.Name();
         } else {
             model_part_name = rModelPart.Name();
         }
@@ -193,10 +220,22 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
                 << "are: \"step\", \"time\"" << std::endl;
         }
 
-
         const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
         const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
-        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
+        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label;
+    }
+
+    output_file_name += ".vtk";
+
+    if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
+        const std::string folder_name = mOutputSettings["folder_name"].GetString();
+
+        // create folder if it doesn't exist before
+        if (!Kratos::filesystem::is_directory(folder_name)) {
+            Kratos::filesystem::create_directories(folder_name);
+        }
+
+        output_file_name = Kratos::FilesystemExtensions::JoinPaths({folder_name, output_file_name});
     }
 
     return output_file_name;
@@ -1047,40 +1086,6 @@ void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const st
 
     // Deletin auxiliar modek part
     r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Parameters VtkOutput::GetDefaultParameters()
-{
-    // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "file_format"                                 : "ascii",
-        "output_precision"                            : 7,
-        "output_control_type"                         : "step",
-        "output_frequency"                            : 1.0,
-        "output_sub_model_parts"                      : false,
-        "folder_name"                                 : "VTK_Output",
-        "custom_name_prefix"                          : "",
-        "custom_name_postfix"                         : "",
-        "save_output_files_in_folder"                 : true,
-        "write_deformed_configuration"                : false,
-        "write_ids"                                   : false,
-        "nodal_solution_step_data_variables"          : [],
-        "nodal_data_value_variables"                  : [],
-        "nodal_flags"                                 : [],
-        "element_data_value_variables"                : [],
-        "element_flags"                               : [],
-        "condition_data_value_variables"              : [],
-        "condition_flags"                             : [],
-        "gauss_point_variables_extrapolated_to_nodes" : [],
-        "gauss_point_variables_in_elements"           : []
-    })" );
-
-    return default_parameters;
 }
 
 } // namespace Kratos

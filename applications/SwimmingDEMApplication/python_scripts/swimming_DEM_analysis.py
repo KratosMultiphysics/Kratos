@@ -1,7 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-#TODO: test DEM bounding box
-
 import os
 import sys
 import math
@@ -28,7 +24,7 @@ def Say(*args):
 
 import KratosMultiphysics.DEMApplication.DEM_procedures as DP
 
-class SDEMLogger(object):
+class SDEMLogger():
     def __init__(self, do_print_file=False):
         self.terminal = sys.stdout
         self.console_output_file_name = 'console_output.txt'

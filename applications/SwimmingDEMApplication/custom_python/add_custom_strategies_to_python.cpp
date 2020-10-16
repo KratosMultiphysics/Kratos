@@ -63,9 +63,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/adams_bashforth_strategy.h"
 #include "custom_strategies/strategies/residualbased_derivative_recovery_strategy.h"
 
-// convergence criteria
-#include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
-
 //schemes
 #include "../DEMApplication/custom_strategies/schemes/dem_integration_scheme.h"
 #include "solving_strategies/schemes/scheme.h"

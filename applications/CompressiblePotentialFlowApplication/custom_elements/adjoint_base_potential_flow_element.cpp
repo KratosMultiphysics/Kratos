@@ -27,13 +27,13 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::Initialize()
+    void AdjointBasePotentialFlowElement<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
-        mpPrimalElement->Initialize();
+        mpPrimalElement->Initialize(rCurrentProcessInfo);
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    void AdjointBasePotentialFlowElement<TPrimalElement>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         auto adjoint_geometry_data = this->GetGeometry().GetData();
         mpPrimalElement->GetGeometry().SetData(adjoint_geometry_data);
@@ -42,7 +42,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    void AdjointBasePotentialFlowElement<TPrimalElement>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
 
     }
@@ -50,7 +50,7 @@ namespace Kratos
     template <class TPrimalElement>
     void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo)
     {
         mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrix,
                                               rRightHandSideVector,
@@ -59,7 +59,7 @@ namespace Kratos
 
     template <class TPrimalElement>
     void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       const ProcessInfo& rCurrentProcessInfo)
     {
         MatrixType tmp;
         mpPrimalElement->CalculateLeftHandSide(tmp, rCurrentProcessInfo);
@@ -68,26 +68,26 @@ namespace Kratos
 
     template <class TPrimalElement>
     void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo)
     {
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
                                                 rCurrentProcessInfo);
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo)
     {
-        mpPrimalElement->GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+    void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
             std::vector< array_1d<double,3> >& rValues,
             const ProcessInfo& rCurrentProcessInfo)
     {
-        mpPrimalElement->GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 
     template <class TPrimalElement>
@@ -151,7 +151,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+    void AdjointBasePotentialFlowElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
     {
         const AdjointBasePotentialFlowElement& r_this = *this;
         const int wake = r_this.GetValue(WAKE);
@@ -206,7 +206,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo)
+    void AdjointBasePotentialFlowElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const
     {
         const AdjointBasePotentialFlowElement& r_this = *this;
         const int wake = r_this.GetValue(WAKE);
