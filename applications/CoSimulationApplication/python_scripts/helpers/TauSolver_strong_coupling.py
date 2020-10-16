@@ -159,7 +159,7 @@ def SolveSolutionStep(advanceTime, sub_step):
     tau_parallel_sync()
     Solver.stop()
     # Convert tau output to dat file using tau2plt
-    if tau_mpi_rank() == 0:
+    if tau_mpi_rank() == 0 and not first_iteration:
         TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh, sub_step)
     tau_parallel_sync()
 
@@ -224,13 +224,13 @@ def ExportData(conn_name, identifier):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", ouput_file_pattern, sub_step)
+            forces = 0.0*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", ouput_file_pattern, sub_step)
             with open('forces_up' + str(step) + '.dat','w') as fname:
                for i in range(len(forces)/3):
                    fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
-            forces = -TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
+            forces = 0.0*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -263,6 +263,49 @@ def ExportMesh(conn_name, identifier, sub_step):
             print "TAU SOLVER ExportMesh End"
     tau_parallel_sync()
 
+def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
+    '''
+    if not first_iteration:
+        # Read displacements
+        ImportData(connection_name, "Upper_Interface_disp", factor)
+        ImportData(connection_name, "Lower_Interface_disp", factor)
+
+        Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
+    '''
+
+    SolveSolutionStep(advanceTime, sub_step)
+
+    #if first_iteration:
+    if not coupling_interface_imported and not first_iteration:
+        advanceTime = False
+        if tau_mpi_rank() == 0:
+            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
+        tau_parallel_sync()
+        ExportMesh(connection_name, "UpperInterface", sub_step)
+        ExportMesh(connection_name, "LowerInterface", sub_step)
+        coupling_interface_imported = True
+
+    if tau_mpi_rank() == 0 and not first_iteration:
+        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
+    tau_parallel_sync()
+
+    if not first_iteration:
+        ExportData(connection_name, "Upper_Interface_force")
+        ExportData(connection_name, "Lower_Interface_force")
+
+    if not first_iteration:
+        # Read displacements
+        ImportData(connection_name, "Upper_Interface_disp", factor)
+        ImportData(connection_name, "Lower_Interface_disp", factor)
+
+        Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
+
+    if not first_iteration:
+        global step_mesh
+        step_mesh += 1
+
+    return coupling_interface_imported
+
 connection_name = "TAU"
 
 settings = {
@@ -278,51 +321,9 @@ if rank == 0:
 n_steps = int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
-first_iteration = False
+first_iteration = True
 
-def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
-    '''
-    if not first_iteration:
-        # Read displacements
-        ImportData(connection_name, "Upper_Interface_disp", factor)
-        ImportData(connection_name, "Lower_Interface_disp", factor)
-
-        Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
-    '''
-
-    SolveSolutionStep(advanceTime, sub_step)
-
-    #if first_iteration:
-    if not coupling_interface_imported:
-        advanceTime = False
-        if tau_mpi_rank() == 0:
-            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
-        tau_parallel_sync()
-        ExportMesh(connection_name, "UpperInterface", sub_step)
-        ExportMesh(connection_name, "LowerInterface", sub_step)
-        coupling_interface_imported = True
-
-    if tau_mpi_rank() == 0:
-        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
-    tau_parallel_sync()
-
-    if not first_iteration:
-        ExportData(connection_name, "Upper_Interface_force")
-        ExportData(connection_name, "Lower_Interface_force")
-
-    if not first_iteration:
-        # Read displacements
-        ImportData(connection_name, "Upper_Interface_disp", factor)
-        ImportData(connection_name, "Lower_Interface_disp", factor)
-
-        Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
-
-    global step_mesh
-    step_mesh += 1
-
-    return coupling_interface_imported
-
-factor = 1.0
+factor = 0.0
 for i in range(n_steps):
 
     sub_step = 0
@@ -342,24 +343,27 @@ for i in range(n_steps):
                 print("###   sub_step = " + str(sub_step + 1) + "   ###   ")
                 print("#################################")
             tau_parallel_sync()
-            InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor)
+            coupling_interface_imported = InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor)
             print("first_iteration ", first_iteration)
 
-            sub_step += 1
+            if not first_iteration:
+                sub_step += 1
 
             if tau_mpi_rank() == 0 and not first_iteration:
                 is_converged = CoSimIO.IsConverged(connection_name)
                 print("RECEIVING worked", is_converged)
+            if first_iteration:
+                is_converged = True
             is_converged = comm.bcast(is_converged, 0)
 
             if factor < 0.99:
-                factor += 0.1
+                factor += 0.0
 
             first_iteration = False
 
     tau_parallel_sync()
     FinalizeSolutionStep()
-    factor = 1.0
+    #factor = 1.0
 
 if rank == 0:
     CoSimIO.Disconnect(connection_name)
