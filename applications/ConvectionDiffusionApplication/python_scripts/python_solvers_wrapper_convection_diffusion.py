@@ -18,6 +18,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     else: # set implicit by default
         KratosMultiphysics.Logger.PrintWarning(" ::[PythonSolversWrapperConvectionDiffusion]:: Time integration method was not provided. Setting implicit as default.")
         solver_settings.AddEmptyValue("time_integration_method").SetString("implicit")
+        time_integration_method = solver_settings["time_integration_method"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
