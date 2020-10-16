@@ -583,10 +583,8 @@ namespace Kratos
                 if (nodal_mass > numerical_limit)
                 {
                     IndexType domain_id = domain_nodes[j]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
-                    for (size_t dof = 0; dof < dim; ++dof)
-                    {
-                        rUnitResponse(domain_id + dof, i) = rProjector(i, domain_id + dof) / nodal_mass;
-                    }
+                    #pragma omp critical
+                    for (size_t dof = 0; dof < dim; ++dof) rUnitResponse.insert_element(domain_id + dof, i, rProjector(i, domain_id + dof) / nodal_mass);
                 }
             }
         }
