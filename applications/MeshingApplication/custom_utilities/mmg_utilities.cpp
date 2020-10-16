@@ -1715,7 +1715,15 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+    }
+#else
     KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
@@ -1728,7 +1736,15 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+    }
+#else
     KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
@@ -1741,7 +1757,15 @@ void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeScalar(const SizeType NumNodes)
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+    }
+#else
     KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
