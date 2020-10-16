@@ -249,7 +249,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v1
       with:
-        python-version: '3.6'
+        python-version: '3.8'
     - name: Cache Build
       id: cache-build
       uses: actions/cache@v1
