@@ -2569,17 +2569,23 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallIsoSurface(Parameters Configurat
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    auto p_sol = mMmgSol;
+#else
+    auto p_sol = mMmgMet;
+#endif
+
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
-    KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
+    KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,p_sol,MMG2D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
 
     /** (Not mandatory): check if the number of given entities match with mesh size */
-    KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh,mMmgMet) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
+    KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh,p_sol) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
 
     /**------------------- Level set discretization ---------------------------*/
 
 //     /* Debug mode ON (default value = OFF) */
-//     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
+//     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,p_sol,MMG2D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
 #if MMG_VERSION_GE(5,5)
     const int ier = MMG2D_mmg2dls(mMmgMesh, mMmgSol, mMmgMet);
@@ -2678,43 +2684,49 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallIsoSurface(Parameters Configurat
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    auto p_sol = mMmgSol;
+#else
+    auto p_sol = mMmgMet;
+#endif
+
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
-    KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
+    KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,p_sol,MMG3D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
 
     /** (Not mandatory): check if the number of given entities match with mesh size */
-    KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh,mMmgMet) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
+    KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh,p_sol) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
 
     /**------------------- Including surface options ---------------------------*/
 
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
     if (ConfigurationParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
-        if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_hausd, ConfigurationParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
+        if ( MMG3D_Set_dparameter(mMmgMesh,p_sol,MMG3D_DPARAM_hausd, ConfigurationParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
     }
 
     // Set the gradation
     if (ConfigurationParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
-        if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
+        if ( MMG3D_Set_dparameter(mMmgMesh,p_sol,MMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set gradation" << std::endl;
     }
 
     // Minimal edge size
     if (ConfigurationParameters["force_sizes"]["force_min"].GetBool()) {
-        if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
+        if ( MMG3D_Set_dparameter(mMmgMesh,p_sol,MMG3D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
     }
 
     // Minimal edge size
     if (ConfigurationParameters["force_sizes"]["force_max"].GetBool()) {
-        if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
+        if ( MMG3D_Set_dparameter(mMmgMesh,p_sol,MMG3D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
             KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
         }
     }
 
     /**------------------- level set discretization ---------------------------*/
 //     /* Debug mode ON (default value = OFF) */
-//     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
+//     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,p_sol,MMG3D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
 #if MMG_VERSION_GE(5,5)
     const int ier = MMG3D_mmg3dls(mMmgMesh, mMmgSol, mMmgMet);
@@ -2811,16 +2823,22 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
 {
     KRATOS_TRY;
 
+#if MMG_VERSION_GE(5,5)
+    auto p_sol = mMmgSol;
+#else
+    auto p_sol = mMmgMet;
+#endif
+
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
-    KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
+    KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,p_sol,MMGS_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
 
     /** (Not mandatory): check if the number of given entities match with mesh size */
-    KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh,mMmgMet) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
+    KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh,p_sol) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
 
     /**------------------- level set discretization ---------------------------*/
 //     /* Debug mode ON (default value = OFF) */
-//     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
+//     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,p_sol,MMGS_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
 #if MMG_VERSION_GE(5,5)
     const int ier = MMGS_mmgsls(mMmgMesh, mMmgSol, mMmgMet);
