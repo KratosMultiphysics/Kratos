@@ -50,8 +50,8 @@ namespace Kratos
 
         typedef typename SparseSpaceType::MatrixType MappingMatrixType;
 
-        typedef typename UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef typename LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
         typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
 
         /// The definition of the numerical limit
