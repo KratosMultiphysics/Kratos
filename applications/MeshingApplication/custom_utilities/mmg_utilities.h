@@ -26,7 +26,7 @@
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 
-#ifndef MMG_VERSION_GE(MAJOR,MINOR)
+#ifndef MMG_VERSION_GE
     #define MMG_VERSION_GE(MAJOR,MINOR) false
 #endif
 #ifndef MMG_VERSION_MAJOR
