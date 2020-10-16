@@ -169,7 +169,7 @@ class InletMesherProcess
 
     double critical_distance = 4.0*mrRemesh.Refine->CriticalRadius;
 
-    unsigned int NodeId = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) ) + 1;
+    unsigned int NodeId = MesherUtilities::GetMaxNodeId( mrModelpart.GetParentModelPart() ) + 1;
 
     ModelPart::NodesContainerType InletNodes;
 

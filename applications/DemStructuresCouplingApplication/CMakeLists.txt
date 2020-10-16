@@ -21,6 +21,8 @@ set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_CORE
     ## CONDITIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_from_DEM_condition_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_from_DEM_condition_3d.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_fem_dem_generalized_2d_utilities.cpp
 )
 
 set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_PYTHON_INTERFACE

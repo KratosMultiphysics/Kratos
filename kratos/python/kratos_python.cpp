@@ -50,6 +50,7 @@
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
 #include "add_strategies_to_python.h"
+#include "add_convergence_accelerators_to_python.h"
 #include "add_geometrical_utilities_to_python.h"
 #include "add_other_utilities_to_python.h"
 #include "add_variable_utils_to_python.h"
@@ -73,11 +74,11 @@ namespace Kratos
 namespace Python
 {
 
-char const* greet()
+std::string Hello()
 {
     std::stringstream header;
-    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() <<" ;-)";
-    return header.str().c_str();
+    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << " ;-)";
+    return header.str();
 }
 
 PYBIND11_MODULE(Kratos, m)
@@ -106,9 +107,6 @@ PYBIND11_MODULE(Kratos, m)
     AddDeprecatedVariablesToPython(m);
     AddGlobalPointersToPython(m);
 
-//     AddQuadraturesToPython();
-//     AddIntegrationPointsToPython();
-
     AddProcessesToPython(m);
     AddIOToPython(m);
     AddModelToPython(m);
@@ -120,6 +118,7 @@ PYBIND11_MODULE(Kratos, m)
     AddFactoriesToPython(m);
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
+    AddConvergenceAcceleratorsToPython(m);
     AddGeometricalUtilitiesToPython(m);
     AddOtherUtilitiesToPython(m);
     AddVariableUtilsToPython(m);
@@ -141,7 +140,7 @@ PYBIND11_MODULE(Kratos, m)
     AddDataCommunicatorToPython(m);
     AddParallelEnvironmentToPython(m);
 
-    m.def("Hello", greet);
+    m.def("Hello", Hello);
 }
 
 

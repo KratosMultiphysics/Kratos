@@ -9,8 +9,7 @@
             "Variables"        : {
                 "DENSITY"       : 1.0e3,
                 "YOUNG_MODULUS" : 10.0,
-                "POISSON_RATIO" : 0.0,
-                "FRICTION_COEFFICIENT": 1.00
+                "POISSON_RATIO" : 0.0
             },
             "Tables"           : {}
         }
@@ -24,8 +23,7 @@
             "Variables"        : {
                 "DENSITY"       : 1.0e3,
                 "YOUNG_MODULUS" : 10.0,
-                "POISSON_RATIO" : 0.0,
-                "FRICTION_COEFFICIENT": 1.00
+                "POISSON_RATIO" : 0.0
             },
             "Tables"           : {}
         }

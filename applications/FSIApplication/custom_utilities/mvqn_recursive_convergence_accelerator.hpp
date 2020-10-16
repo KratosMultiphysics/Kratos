@@ -16,8 +16,8 @@
 /* External includes */
 
 /* Project includes */
-#include "convergence_accelerator.hpp"
 #include "includes/ublas_interface.h"
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "utilities/svd_utils.h"
 #include "utilities/qr_utility.h"
 
@@ -59,7 +59,6 @@ public:
 
     typedef typename TSpace::MatrixType                              MatrixType;
     typedef typename TSpace::MatrixPointerType                MatrixPointerType;
-
     ///@}
     ///@name Public member Variables
     ///@{
@@ -67,6 +66,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
 
     /**
      * Old Jacobian pointer constructor.
@@ -220,7 +220,7 @@ public:
         const VectorType& rNewColV,
         const VectorType& rNewColW,
         const double AbsCutOff = 1e-8)
-    {   
+    {
         // Add the provided iformation to the observation matrices
         mJacobianObsMatrixV.push_back(rNewColV);
         mJacobianObsMatrixW.push_back(rNewColW);
@@ -237,7 +237,7 @@ public:
         }
 
         // Perform the Singular Value Decomposition (SVD) of matrix trans(V)*V
-        // SVD decomposition of matrix A yields two orthogonal matrices "u_svd" 
+        // SVD decomposition of matrix A yields two orthogonal matrices "u_svd"
         // and "v_svd" as well as a diagonal matrix "w_svd" cotaining matrix
         // A eigenvalues such that A = u_svd * w_svd * v_svd
         MatrixType u_svd; // Orthogonal matrix (m x m)
@@ -247,7 +247,7 @@ public:
         const double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
         SVDUtils<double>::SingularValueDecomposition(*ptransV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
 
-        // Get the eigenvalues vector. Remember that eigenvalues 
+        // Get the eigenvalues vector. Remember that eigenvalues
         // of trans(A)*A are equal to the eigenvalues of A^2
         std::vector<double> eig_vector(data_cols);
         for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
@@ -270,7 +270,7 @@ public:
         // If its value is close to zero or out of the representativity
         // the correspondent data columns are dropped from both V and W.
         if (min_eig_V < AbsCutOff * max_eig_V){
-            KRATOS_WARNING("MVQNRecursiveJacobianConvergenceAccelerator") 
+            KRATOS_WARNING("MVQNRecursiveJacobianConvergenceAccelerator")
                 << "Dropping info for eigenvalue " << min_eig_V << " (tolerance " << AbsCutOff * max_eig_V << " )" << std::endl;
             mJacobianObsMatrixV.pop_back();
             mJacobianObsMatrixW.pop_back();
@@ -283,9 +283,9 @@ public:
 
     /**
     * Calls the AppendDataColumns() method to add the new data columns
-    * to the observation matrices (provided that the new data columns 
+    * to the observation matrices (provided that the new data columns
     * are not linear dependent to the previous data). Then, if the
-    * information has been added, the oldest column is dropped to avoid 
+    * information has been added, the oldest column is dropped to avoid
     * the number of data columns become larger than the problem size.
     * @param rNewColV new column to be appended to V observation matrix
     * @param rNewColW new column to be appended to W observation matrix
@@ -295,7 +295,7 @@ public:
         const VectorType& rNewColV,
         const VectorType& rNewColW,
         const double AbsCutOffEps = 1e-8)
-    {  
+    {
         // std::cout << "DropAndAppendDataColumns()" << std::endl;
         const bool info_added = this->AppendDataColumns(rNewColV, rNewColW, AbsCutOffEps);
 
@@ -317,7 +317,7 @@ public:
     /**
      * @brief Get the Number Of Data Cols object
      * This function returns the number of data columns stored.
-     * Since the data columns is assumed (and must be) the same in 
+     * Since the data columns is assumed (and must be) the same in
      * both observation matrices, it is computed using V matrix.
      * @return std::size_t number of data columns
      */
@@ -329,8 +329,8 @@ public:
     /**
      * @brief Get the Residual Size object
      * This function returns the interface residual size.
-     * Since the residual size is assumed (and must be) the same in 
-     * every column for both observation matrices, it is computed 
+     * Since the residual size is assumed (and must be) the same in
+     * every column for both observation matrices, it is computed
      * using the first column of V matrix.
      * @return std::size_t residual size
      */
@@ -398,19 +398,23 @@ private:
 }; /* Class JacobianEmulator */
 
 
-/** @brief MVQN (MultiVectorQuasiNewton method) acceleration scheme
+/** @brief Recursive MVQN acceleration scheme
+ * Recursive MultiVectorQuasiNewton convergence accelerator. This convergence accelerator
+ * is an alternative implementation of the standard MVQN that avoids the storage of the
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
  */
-template<class TSpace>
-class MVQNRecursiveJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSpace> {
+template<class TSparseSpace, class TDenseSpace>
+class MVQNRecursiveJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSparseSpace, TDenseSpace> {
 public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( MVQNRecursiveJacobianConvergenceAccelerator );
 
-    typedef ConvergenceAccelerator<TSpace>                                             BaseType;
+    typedef ConvergenceAccelerator<TSparseSpace, TDenseSpace>                          BaseType;
     typedef typename BaseType::Pointer                                          BaseTypePointer;
 
-    typedef typename JacobianEmulator<TSpace>::Pointer              JacobianEmulatorPointerType;
+    typedef typename JacobianEmulator<TDenseSpace>::Pointer         JacobianEmulatorPointerType;
 
     typedef typename BaseType::VectorType                                            VectorType;
     typedef typename BaseType::VectorPointerType                              VectorPointerType;
@@ -426,14 +430,14 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    MVQNRecursiveJacobianConvergenceAccelerator( Parameters &rConvAcceleratorParameters )
+    explicit MVQNRecursiveJacobianConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
         Parameters mvqn_recursive_default_parameters(R"(
         {
             "solver_type"     : "MVQN_recursive",
             "w_0"             : 0.825,
             "buffer_size"     : 10,
-            "abs_cut_off_tol" : 1e-8 
+            "abs_cut_off_tol" : 1e-8
         }
         )");
 
@@ -486,13 +490,13 @@ public:
     {
         KRATOS_TRY;
 
-        mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator <TSpace> > (new JacobianEmulator<TSpace>());
+        mpCurrentJacobianEmulatorPointer = Kratos::make_unique<JacobianEmulator<TDenseSpace>>();
 
         KRATOS_CATCH( "" );
     }
 
     /**
-     * @brief 
+     * @brief
      * This method initializes the internal counters and constructs the previous step Jacobian emulator.
      * The Jacobian emulator is recursively build at each time step according to the buffer size.
      */
@@ -505,10 +509,10 @@ public:
 
         if (mConvergenceAcceleratorStep <= mJacobianBufferSize) {
             // Construct the inverse Jacobian emulator
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer)));
+            mpCurrentJacobianEmulatorPointer = Kratos::make_unique<JacobianEmulator<TDenseSpace>>(std::move(mpCurrentJacobianEmulatorPointer));
         } else {
             // Construct the inverse Jacobian emulator considering the recursive elimination
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize));
+            mpCurrentJacobianEmulatorPointer = Kratos::make_unique<JacobianEmulator<TDenseSpace>>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize);
         }
 
         KRATOS_CATCH( "" );
@@ -526,7 +530,7 @@ public:
     {
         KRATOS_TRY;
 
-        const auto problem_size = TSpace::Size(rResidualVector);
+        const auto problem_size = TSparseSpace::Size(rResidualVector);
 
         VectorPointerType pAuxResidualVector(new VectorType(rResidualVector));
         VectorPointerType pAuxIterationGuess(new VectorType(rIterationGuess));
@@ -536,7 +540,7 @@ public:
         if (mConvergenceAcceleratorIteration == 0) {
             if (mConvergenceAcceleratorFirstCorrectionPerformed == false) {
                 // The very first correction of the problem is done with a fixed point iteration
-                TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
+                TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
 
                 mConvergenceAcceleratorFirstCorrectionPerformed = true;
             } else {
@@ -545,15 +549,15 @@ public:
                 // The first correction of the current step is done with the previous step inverse Jacobian approximation
                 mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pInitialCorrection);
 
-                TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pInitialCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
+                TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, *pInitialCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
             }
         } else {
             // Gather the new observation matrices column information
             VectorPointerType pNewColV(new VectorType(*mpResidualVector_1));
             VectorPointerType pNewColW(new VectorType(*mpIterationValue_1));
 
-            TSpace::UnaliasedAdd(*pNewColV, -1.0, *mpResidualVector_0); // NewColV = ResidualVector_1 - ResidualVector_0
-            TSpace::UnaliasedAdd(*pNewColW, -1.0, *mpIterationValue_0); // NewColW = IterationValue_1 - IterationValue_0
+            TSparseSpace::UnaliasedAdd(*pNewColV, -1.0, *mpResidualVector_0); // NewColV = ResidualVector_1 - ResidualVector_0
+            TSparseSpace::UnaliasedAdd(*pNewColW, -1.0, *mpIterationValue_0); // NewColW = IterationValue_1 - IterationValue_0
 
             // Observation matrices information filling
             bool info_added = false;
@@ -568,8 +572,8 @@ public:
             // Apply the current step inverse Jacobian emulator to the residual vector
             VectorPointerType pIterationCorrection(new VectorType(rResidualVector));
             mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pIterationCorrection);
-            
-            TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
+
+            TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
         }
 
         KRATOS_CATCH( "" );

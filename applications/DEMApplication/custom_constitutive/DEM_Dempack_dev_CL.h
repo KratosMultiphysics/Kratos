@@ -61,8 +61,6 @@ namespace Kratos {
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 bool& sliding,
-                int search_control,
-                DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
 
         void CalculateNormalForces(double LocalElasticContactForce[3],

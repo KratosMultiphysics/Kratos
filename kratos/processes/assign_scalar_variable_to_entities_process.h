@@ -50,9 +50,6 @@ public:
     /// Node type definition
     typedef Node<3> NodeType;
 
-    /// Definition of array component
-    typedef Variable<double> array_1d_component_type;
-
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
 

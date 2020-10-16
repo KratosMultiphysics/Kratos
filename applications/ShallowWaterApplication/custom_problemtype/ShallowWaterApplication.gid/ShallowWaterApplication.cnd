@@ -1,14 +1,31 @@
 BOOK: Parts
 
-CONDITION: Body_Part
+CONDITION: Computing_domain
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces elements nodes
-QUESTION: Bathymetry#CB#(From_digital_model,By_function)
+END CONDITION
+
+
+BOOK: Topographic_data
+
+CONDITION: Topography
+CONDTYPE: over groups
+CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces elements nodes
+QUESTION: Source#CB#(From_digital_model,By_function)
 VALUE: From_digital_model
 DEPENDENCIES: (From_digital_model,HIDE,Expression,#CURRENT#)(By_function,RESTORE,Expression,#CURRENT#)
 QUESTION: Expression
-VALUE: 0.0
+VALUE: 0.1*x
+END CONDITION
+
+CONDITION: Bottom_friction
+CONDTYPE: over groups
+CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces elements nodes
+QUESTION: Manning_coefficient
+VALUE: 0.004
 END CONDITION
 
 
@@ -27,11 +44,11 @@ END CONDITION
 
 BOOK: Boundary_conditions
 
-CONDITION: Slip_condition
-CONDTYPE: over groups
-CONDMESHTYPE: over face elements
-GROUPALLOW: lines faces nodes
-END CONDITION
+#CONDITION: Slip_condition
+#CONDTYPE: over groups
+#CONDMESHTYPE: over face elements
+#GROUPALLOW: lines faces nodes
+#END CONDITION
 
 CONDITION: Water_height
 CONDTYPE: over groups
@@ -52,12 +69,10 @@ VALUE: #N# 2 0.0 0.0
 HELP: If Pressure_Distribution is set to Uniform, Value means Pressure_Value. If Pressure_Distribution is Hydrostatic, Value means Reference_Coordinate.
 END CONDITION
 
-CONDITION: Imposed_flux
+CONDITION: Imposed_flow_rate
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: lines faces nodes
-QUESTION: Variable#CB#(VELOCITY,MOMENTUM)
-VALUE: VELOCITY
 QUESTION: Modulus
 VALUE: 0.0
 HELP: Units in IS: m
@@ -71,25 +86,17 @@ VALUE: false
 END CONDITION
 
 
-BOOK: Source_terms
+#BOOK: Source_terms
 
-CONDITION: Bottom_friction
-CONDTYPE: over groups
-CONDMESHTYPE: over body elements
-GROUPALLOW: surfaces elements nodes
-QUESTION: Manning_friction
-VALUE: 0.004
-END CONDITION
-
-CONDITION: Rain_load
-CONDTYPE: over groups
-CONDMESHTYPE: over body elements
-GROUPALLOW: lines surfaces faces elements nodes
-QUESTION: Rain_profile#CB#(Constant,Table_Interpolation)
-VALUE: Constant
-DEPENDENCIES: (Constant,RESTORE,Value,#CURRENT#)(Constant,HIDE,Table,#CURRENT#)(Table_Interpolation,HIDE,Value,#CURRENT#)(Table_Interpolation,RESTORE,Table,#CURRENT#)
-QUESTION: Value
-VALUE: 0.0
-QUESTION: Table(Time,Value)
-VALUE: #N# 2 0.0 0.0
-END CONDITION
+#CONDITION: Rain_load
+#CONDTYPE: over groups
+#CONDMESHTYPE: over body elements
+#GROUPALLOW: lines surfaces faces elements nodes
+#QUESTION: Rain_profile#CB#(Constant,Table_Interpolation)
+#VALUE: Constant
+#DEPENDENCIES: (Constant,RESTORE,Value,#CURRENT#)(Constant,HIDE,Table,#CURRENT#)(Table_Interpolation,HIDE,Value,#CURRENT#)(Table_Interpolation,RESTORE,Table,#CURRENT#)
+#QUESTION: Value
+#VALUE: 0.0
+#QUESTION: Table(Time,Value)
+#VALUE: #N# 2 0.0 0.0
+#END CONDITION

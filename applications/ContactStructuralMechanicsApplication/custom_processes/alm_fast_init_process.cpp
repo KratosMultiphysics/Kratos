@@ -22,7 +22,7 @@ namespace Kratos
 void ALMFastInit::Execute()
 {
     KRATOS_TRY;
-    
+
     // First we reorder the conditions ids (may methods and utilities assume that conditions are ordered)
     ConditionsArrayType& r_root_conditions_array = mrThisModelPart.GetRootModelPart().Conditions();
     const auto it_root_cond_begin = r_root_conditions_array.begin();
@@ -35,21 +35,21 @@ void ALMFastInit::Execute()
 
     // We differentiate between frictional or frictionless
     const bool is_frictional = mrThisModelPart.Is(SLIP);
-    
+
     // We initialize the penalty parameter
     const double epsilon = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
-    
+
     // Auxiliar zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    
+
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
-        
+
         const bool is_slave = it_node->IsDefined(SLAVE) ? it_node->Is(SLAVE) : true;
         if (is_slave) {
             // Weighted values
@@ -69,11 +69,11 @@ void ALMFastInit::Execute()
             }
         }
     }
-    
+
     // Now we iterate over the conditions
     ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
-    
+
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
         auto it_cond = it_cond_begin + i;
@@ -89,22 +89,35 @@ void ALMFastInit::Execute()
             it_node->SetValue(NODAL_AREA, 0.0);
         }
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = it_cond_begin + i;
+        // Iterate over submodelparts
+        for (auto& r_sub_model_part : mrThisModelPart.SubModelParts()) {
+            // Now we iterate over the conditions
+            ConditionsArrayType& r_contact_conditions_array = r_sub_model_part.Conditions();
+            const auto it_cond_contact_begin = r_contact_conditions_array.begin();
 
-            auto p_prop = it_cond->pGetProperties();
-            const double friction_coefficient = p_prop->GetValue(FRICTION_COEFFICIENT);
-            auto& r_geom = it_cond->GetGeometry();
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(r_contact_conditions_array.size()); ++i) {
+                auto it_cond = it_cond_contact_begin + i;
 
-            for (auto& r_node : r_geom) {
-                double& r_friction_coefficient = r_node.GetValue(FRICTION_COEFFICIENT);
-                #pragma omp atomic
-                r_friction_coefficient += friction_coefficient;
+                auto p_prop = it_cond->pGetProperties();
+                auto& r_geom = it_cond->GetGeometry();
 
-                double& r_nodal_area = r_node.GetValue(NODAL_AREA);
-                #pragma omp atomic
-                r_nodal_area += 1.0;
+                for (auto& r_node : r_geom) {
+                    double& r_nodal_area = r_node.GetValue(NODAL_AREA);
+                    #pragma omp atomic
+                    r_nodal_area += 1.0;
+                }
+
+                if (p_prop->Has(FRICTION_COEFFICIENT)) {
+                    const double friction_coefficient = p_prop->GetValue(FRICTION_COEFFICIENT);
+                    for (auto& r_node : r_geom) {
+                        double& r_friction_coefficient = r_node.GetValue(FRICTION_COEFFICIENT);
+                        #pragma omp atomic
+                        r_friction_coefficient += friction_coefficient;
+                    }
+                } else {
+                    KRATOS_WARNING("ALMFastInit") << "WARNING:: Friction coefficient not defined, zero will be considered" << std::endl;
+                }
             }
         }
 

@@ -45,7 +45,7 @@ namespace Kratos {
         virtual ~RigidBodyElement3D();
 
         using Element::Initialize;
-        virtual void Initialize(ProcessInfo& r_process_info);
+        void Initialize(const ProcessInfo& r_process_info) override;
         virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
         virtual void CustomInitialize(ModelPart& rigid_body_element_sub_model_part);
         virtual void SetOrientation(const Quaternion<double> Orientation);

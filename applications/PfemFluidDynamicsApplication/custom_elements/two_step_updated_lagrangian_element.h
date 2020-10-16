@@ -368,12 +368,6 @@ protected:
                                                    VectorType &rRightHandSideVector,
                                                    ProcessInfo &rCurrentProcessInfo){};
 
-  virtual void ComputeMaterialParametersGranularGas(double &Density,
-                                                    double &DeviatoricCoeff,
-                                                    double &VolumetricCoeff,
-                                                    ProcessInfo &rCurrentProcessInfo,
-                                                    ElementalVariables &rElementalVariables){};
-
   virtual double GetThetaMomentum()
   {
     std::cout << "I SHOULD NOT ENTER HERE!" << std::endl;

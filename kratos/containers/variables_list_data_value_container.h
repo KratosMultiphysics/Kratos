@@ -25,7 +25,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
 #include "containers/variables_list.h"
 #include "includes/global_variables.h"
 
@@ -88,7 +87,7 @@ public:
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(nullptr)
     {
-        if(!mpVariablesList) 
+        if(!mpVariablesList)
             return;
 
         // Allcating memory
@@ -112,7 +111,7 @@ public:
         : mQueueSize(rOther.mQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(rOther.mpVariablesList)
     {
-        if(!mpVariablesList) 
+        if(!mpVariablesList)
             return;
 
         // Allcating memory
@@ -139,7 +138,7 @@ public:
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
-        if(!mpVariablesList) 
+        if(!mpVariablesList)
             return;
 
         // Allcating memory
@@ -163,7 +162,7 @@ public:
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
-        if(!mpVariablesList) 
+        if(!mpVariablesList)
             return;
 
         // Allcating memory
@@ -225,30 +224,6 @@ public:
         return GetValue(rThisVariable, QueueIndex);
     }
 
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
 //       template<class TDataType> TDataType& operator[](const VariableData& rThisVariable)
 // 	{
 // 	  return GetValue(rThisVariable, 0);
@@ -267,16 +242,6 @@ public:
     template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue(rThisVariable);
-    }
-
-    template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), 0));
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), 0));
     }
 
     /// Assignment operator.
@@ -364,31 +329,6 @@ public:
         return *(reinterpret_cast<const TDataType*>(Position(rThisVariable, QueueIndex)) + rThisVariable.GetComponentIndex());
     }
 
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable)
     {
@@ -455,32 +395,6 @@ public:
         return *(reinterpret_cast<TDataType*>(mpCurrentPosition + ThisPosition) + rThisVariable.GetComponentIndex());
     }
 
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
-
     SizeType Size() const
     {
         if(!mpVariablesList)
@@ -510,16 +424,6 @@ public:
     template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue, SizeType QueueIndex)
     {
         GetValue(rThisVariable, QueueIndex) = rValue;
-    }
-
-    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
-    {
-        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable())) = rValue;
-    }
-
-    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue, SizeType QueueIndex)
-    {
-        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex)) = rValue;
     }
 
 //       template<class TDataType> void Erase(const Variable<TDataType>& rThisVariable)
@@ -837,19 +741,11 @@ public:
         return mpVariablesList->Has(rThisVariable);
     }
 
-    template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        if(!mpVariablesList)
-            return false;
-            
-        return mpVariablesList->Has(rThisVariable.GetSourceVariable());
-    }
-
     bool IsEmpty()
     {
         if(!mpVariablesList)
             return true;
-            
+
         return mpVariablesList->IsEmpty();
     }
 
@@ -874,7 +770,7 @@ public:
     {
         if(!mpVariablesList)
             rOStream << "No varaibles list is assigned yet." << std::endl;
-            
+
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
                 i_variable != mpVariablesList->end() ; i_variable++)
         {

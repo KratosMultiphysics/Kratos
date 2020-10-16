@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
@@ -18,7 +16,7 @@ class CreatePointLoadModelPart(CoSimulationCouplingOperation):
     """
     def __init__(self, settings, solver_wrappers, process_info):
         IssueDeprecationWarning('CreatePointLoadModelPart', 'please use CreatePointBasedEntitiesProcess" instead')
-        super(CreatePointLoadModelPart, self).__init__(settings, process_info)
+        super().__init__(settings, process_info)
         self.model = solver_wrappers[self.settings["solver"].GetString()].model
 
     def Initialize(self):
@@ -39,13 +37,13 @@ class CreatePointLoadModelPart(CoSimulationCouplingOperation):
         struct_smp.AddNodes(node_id_list)
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "sub_model_part_name" : "UNSPECIFIED",
             "computing_model_part_name" : "UNSPECIFIED"
         }""")
-        this_defaults.AddMissingParameters(super(CreatePointLoadModelPart, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
 

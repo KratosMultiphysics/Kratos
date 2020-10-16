@@ -497,19 +497,6 @@ void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<double>
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& origin_variable, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& destination_variable)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
-        ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
-        double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
-        const double origin_value = p_node->FastGetSolutionStepValue(origin_variable);
-        destination_value = origin_value;
-    }
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
 void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<array_1d<double, 3>>& origin_variable, const Variable<array_1d<double, 3>>& destination_variable)
 {
     #pragma omp parallel for

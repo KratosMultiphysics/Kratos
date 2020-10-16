@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -22,7 +21,7 @@ else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
     import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
-class Solution(object):
+class Solution():
 
     def GetParametersFileName(self):
         return "ProjectParametersDEM.json"

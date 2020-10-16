@@ -24,7 +24,6 @@
 #include "custom_utilities/omp_dem_search.h"
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/dem_fem_utilities.h"
-#include "custom_utilities/benchmark_utilities.h"
 #include "custom_utilities/inlet.h"
 #include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
@@ -33,6 +32,8 @@
 #include "custom_utilities/analytic_tools/particles_history_watcher.h"
 #include "custom_utilities/move_mesh_utility.h"
 #include "custom_utilities/stationarity_checker.h"
+#include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
+
 
 namespace Kratos {
 
@@ -318,11 +319,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
         ;
 
-    py::class_<BenchmarkUtils, BenchmarkUtils::Pointer>(m, "BenchmarkUtils")
-        .def(py::init<>())
-        .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
-        ;
-
     py::class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, ReorderConsecutiveModelPartIO>(m, "ReorderConsecutiveFromGivenIdsModelPartIO")
         .def(py::init<std::string const& >())
         .def(py::init<std::string const&, const int, const int, const int>())
@@ -363,6 +359,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<>())
         .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
         ;
+
+    py::class_<MultiaxialControlModuleGeneralized2DUtilities, MultiaxialControlModuleGeneralized2DUtilities::Pointer>(m, "MultiaxialControlModuleGeneralized2DUtilities")
+        .def(py::init<ModelPart&,ModelPart&,Parameters&>())
+        .def("ExecuteInitialize", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize)
+        .def("ExecuteInitializeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionStep)
+        .def("ExecuteFinalizeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep)
+        ;
+
     }
 
 
