@@ -31,7 +31,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
             if dy != -0.3004937948812539:
                 raise ValueError('The computed displacement at step = 50 is not correct')
         elif self.FEM_Solution.step == 90:
-            if dy != -0.977376625965171:
+            if dy != -0.9774872873082232:
                 raise ValueError('The computed displacement at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
             ref = 0.5507018756981786
@@ -46,7 +46,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
             if vy != -2.4279750000009126:
                 raise ValueError('The computed velocity at step = 50 is not correct')
         elif self.FEM_Solution.step == 90:
-            if vy != -3.2313066452534627:
+            if vy != -3.2755667736540865:
                 raise ValueError('The computed velocity at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
             ref = 5.457634130207384
