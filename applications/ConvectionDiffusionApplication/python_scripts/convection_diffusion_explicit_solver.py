@@ -72,7 +72,7 @@ class ConvectionDiffusionExplicitSolver(
     @classmethod
     def GetDefaultParameters(cls):
         default_settings = KratosMultiphysics.Parameters(
-            """
+        """
         {
             "use_orthogonal_subscales" : false,
             "explicit_parameters" : {
