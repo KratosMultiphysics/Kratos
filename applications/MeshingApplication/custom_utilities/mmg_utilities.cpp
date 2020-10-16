@@ -2150,6 +2150,15 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(const std::string& rOutputName)
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG2D_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
 
+#if MMG_VERSION_GE(5,5)
+    const std::string vtk_name = rOutputName + ".vtk";
+    const char* vtk_file = vtk_name.c_str();
+    KRATOS_INFO_IF("MmgUtilities", MMG2D_saveVtkMesh(mMmgMesh, mMmgMet,vtk_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+    const std::string vtu_name = rOutputName + ".vtu";
+    const char* vtu_file = vtu_name.c_str();
+    KRATOS_INFO_IF("MmgUtilities", MMG2D_saveVtuMesh(mMmgMesh, mMmgMet,vtu_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+#endif
+
     KRATOS_CATCH("");
 }
 
@@ -2170,6 +2179,15 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(const std::string& rOutputName)
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG3D_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
 
+#if MMG_VERSION_GE(5,5)
+    const std::string vtk_name = rOutputName + ".vtk";
+    const char* vtk_file = vtk_name.c_str();
+    KRATOS_INFO_IF("MmgUtilities", MMG3D_saveVtkMesh(mMmgMesh, mMmgMet,vtk_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+    const std::string vtu_name = rOutputName + ".vtu";
+    const char* vtu_file = vtu_name.c_str();
+    KRATOS_INFO_IF("MmgUtilities", MMG3D_saveVtuMesh(mMmgMesh, mMmgMet,vtu_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+#endif
+
     KRATOS_CATCH("");
 }
 
@@ -2189,6 +2207,15 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(const std::string& rOutputName)
 
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+
+#if MMG_VERSION_GE(5,5)
+    const std::string vtk_name = rOutputName + ".vtk";
+    const char* vtk_file = vtk_name.c_str();
+    KRATOS_INFO_IF("MmgUtilities", MMGS_saveVtkMesh(mMmgMesh, mMmgMet,vtk_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+    const std::string vtu_name = rOutputName + ".vtu";
+    const char* vtu_file = vtu_name.c_str();
+    KRATOS_INFO_IF("MmgUtilities", MMGS_saveVtuMesh(mMmgMesh, mMmgMet,vtu_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+#endif
 
     KRATOS_CATCH("");
 }
