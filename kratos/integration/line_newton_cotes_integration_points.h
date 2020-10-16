@@ -42,13 +42,14 @@ public:
         return 3;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        // This is added to solve the problem of static initialization. Pooyan.
-        msIntegrationPoints[0]=IntegrationPointType(-0.5,1.333333333333333);
-        msIntegrationPoints[1]=IntegrationPointType(0,-0.6666666666666665);
-        msIntegrationPoints[2]=IntegrationPointType(0.5,1.333333333333333);
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType(-0.5,1.333333333333333),
+            IntegrationPointType(0,-0.6666666666666665),
+            IntegrationPointType(0.5,1.333333333333333),
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -57,14 +58,8 @@ public:
         buffer << "Line Newton-Cotes quadrature 1 ";
         return buffer.str();
     }
-protected:
-
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineNewtonCotesIntegrationPoints1
-
 
 class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints2
 {
@@ -85,14 +80,16 @@ public:
         return 5;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0]=IntegrationPointType(-0.6666666666666666,1.1);
-        msIntegrationPoints[1]=IntegrationPointType(-0.3333333333333333,-1.4);
-        msIntegrationPoints[2]=IntegrationPointType(0,2.6);
-        msIntegrationPoints[3]=IntegrationPointType(0.3333333333333333,-1.4);
-        msIntegrationPoints[4]=IntegrationPointType(0.6666666666666666,1.1);
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType(-0.6666666666666666,1.1),
+            IntegrationPointType(-0.3333333333333333,-1.4),
+            IntegrationPointType(0,2.6),
+            IntegrationPointType(0.3333333333333333,-1.4),
+            IntegrationPointType(0.6666666666666666,1.1)
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -101,11 +98,7 @@ public:
         buffer << "Line Newton-Cotes quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineNewtonCotesIntegrationPoints2
 
@@ -129,16 +122,18 @@ public:
         return 7;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0]=IntegrationPointType(-0.75,0.9735449735449742);
-        msIntegrationPoints[1]=IntegrationPointType(-0.5,-2.019047619047615);
-        msIntegrationPoints[2]=IntegrationPointType(-0.25,4.647619047619042);
-        msIntegrationPoints[3]=IntegrationPointType(0,-5.204232804232804);
-        msIntegrationPoints[4]=IntegrationPointType(0.25,4.647619047619049);
-        msIntegrationPoints[5]=IntegrationPointType(0.5,-2.019047619047616);
-        msIntegrationPoints[6]=IntegrationPointType(0.75,0.9735449735449739);
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType(-0.75,0.9735449735449742),
+            IntegrationPointType(-0.5,-2.019047619047615),
+            IntegrationPointType(-0.25,4.647619047619042),
+            IntegrationPointType(0,-5.204232804232804),
+            IntegrationPointType(0.25,4.647619047619049),
+            IntegrationPointType(0.5,-2.019047619047616),
+            IntegrationPointType(0.75,0.9735449735449739)
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -147,15 +142,8 @@ public:
         buffer << "Line Newton-Cotes quadrature 3 ";
         return buffer.str();
     }
-protected:
-
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineNewtonCotesIntegrationPoints3
-
-
 
 class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints4
 {
@@ -176,18 +164,20 @@ public:
         return 9;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0]=IntegrationPointType(-0.8,0.8917548500881828);
-        msIntegrationPoints[1]=IntegrationPointType(-0.6,-2.577160493827184);
-        msIntegrationPoints[2]=IntegrationPointType(-0.4,7.350088183421553);
-        msIntegrationPoints[3]=IntegrationPointType(-0.2,-12.14065255731907);
-        msIntegrationPoints[4]=IntegrationPointType(0,14.95194003527322);
-        msIntegrationPoints[5]=IntegrationPointType(0.2,-12.14065255731914);
-        msIntegrationPoints[6]=IntegrationPointType(0.4,7.350088183421514);
-        msIntegrationPoints[7]=IntegrationPointType(0.6,-2.577160493827156);
-        msIntegrationPoints[8]=IntegrationPointType(0.8,0.8917548500881831);
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType(-0.8,0.8917548500881828),
+            IntegrationPointType(-0.6,-2.577160493827184),
+            IntegrationPointType(-0.4,7.350088183421553),
+            IntegrationPointType(-0.2,-12.14065255731907),
+            IntegrationPointType(0,14.95194003527322),
+            IntegrationPointType(0.2,-12.14065255731914),
+            IntegrationPointType(0.4,7.350088183421514),
+            IntegrationPointType(0.6,-2.577160493827156),
+            IntegrationPointType(0.8,0.8917548500881831)
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -196,15 +186,8 @@ public:
         buffer << "Line Newton-Cotes quadrature 4 ";
         return buffer.str();
     }
-protected:
-
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineNewtonCotesIntegrationPoints4
-
-
 
 class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints5
 {
@@ -225,20 +208,22 @@ public:
         return 11;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0]=IntegrationPointType(-0.8333333333333334,0.8334199134199013);
-        msIntegrationPoints[1]=IntegrationPointType(-0.6666666666666666,-3.097056277056003);
-        msIntegrationPoints[2]=IntegrationPointType(-0.5,10.65437229437228);
-        msIntegrationPoints[3]=IntegrationPointType(-0.3333333333333333,-23.0561038961028);
-        msIntegrationPoints[4]=IntegrationPointType(-0.1666666666666667,37.05246753246604);
-        msIntegrationPoints[5]=IntegrationPointType(0,-42.77419913420147);
-        msIntegrationPoints[6]=IntegrationPointType(0.1666666666666667,37.05246753246799);
-        msIntegrationPoints[7]=IntegrationPointType(0.3333333333333333,-23.05610389610366);
-        msIntegrationPoints[8]=IntegrationPointType(0.5,10.65437229437222);
-        msIntegrationPoints[9]=IntegrationPointType(0.6666666666666666,-3.097056277056263);
-        msIntegrationPoints[10]=IntegrationPointType(0.8333333333333334,0.8334199134199121);
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType(-0.8333333333333334,0.8334199134199013),
+            IntegrationPointType(-0.6666666666666666,-3.097056277056003),
+            IntegrationPointType(-0.5,10.65437229437228),
+            IntegrationPointType(-0.3333333333333333,-23.0561038961028),
+            IntegrationPointType(-0.1666666666666667,37.05246753246604),
+            IntegrationPointType(0,-42.77419913420147),
+            IntegrationPointType(0.1666666666666667,37.05246753246799),
+            IntegrationPointType(0.3333333333333333,-23.05610389610366),
+            IntegrationPointType(0.5,10.65437229437222),
+            IntegrationPointType(0.6666666666666666,-3.097056277056263),
+            IntegrationPointType(0.8333333333333334,0.8334199134199121)
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -247,11 +232,6 @@ public:
         buffer << "Line Newton-Cotes quadrature 5 ";
         return buffer.str();
     }
-protected:
-
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class LineNewtonCotesIntegrationPoints5
 
@@ -279,14 +259,11 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
-
 ///@}
-
 
 }  // namespace Kratos.
 
