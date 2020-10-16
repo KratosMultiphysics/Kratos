@@ -1905,11 +1905,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::CheckMeshData()
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+    #else
+        KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #endif
-        KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong mesh data" << std::endl;
     }
@@ -1929,11 +1929,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::CheckMeshData()
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+    #else
+        KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #endif
-        KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong mesh data" << std::endl;
     }
@@ -1953,11 +1953,11 @@ void MmgUtilities<MMGLibrary::MMGS>::CheckMeshData()
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+    #else
+        KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #endif
-        KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong mesh data" << std::endl;
     }
