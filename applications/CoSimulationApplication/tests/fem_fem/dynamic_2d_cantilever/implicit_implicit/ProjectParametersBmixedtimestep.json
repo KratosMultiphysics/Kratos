@@ -23,7 +23,7 @@
             "materials_filename" : "fem_fem/dynamic_2d_cantilever/StructuralMaterials.json"
         },
         "time_stepping"                      : {
-            "time_step" : 0.025
+            "time_step" : 0.0125
         },
         "line_search"                        : false,
         "move_mesh_flag"                     : true,
@@ -56,7 +56,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
-                "input_file_name"  : "fem_fem/dynamic_2d_cantilever/implicit_implicit/conforming_results.json",
+                "input_file_name"  : "fem_fem/dynamic_2d_cantilever/implicit_implicit/mixed_timestep_results.json",
                 "model_part_name"  : "Structure.DISPLACEMENT_left_edge",
                 "time_frequency"   : 0.00001
             }
@@ -70,7 +70,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
-            "output_file_name" : "fem_fem/dynamic_2d_cantilever/implicit_implicit/conforming_results.json",
+            "output_file_name" : "fem_fem/dynamic_2d_cantilever/implicit_implicit/mixed_timestep_results.json",
             "model_part_name"  : "Structure.DISPLACEMENT_left_edge",
             "time_frequency"   : 0.00001
         }

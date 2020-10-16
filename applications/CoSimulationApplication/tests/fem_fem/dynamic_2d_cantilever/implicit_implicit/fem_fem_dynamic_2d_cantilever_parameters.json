@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 1.0,
+        "end_time" : 0.05,
         "echo_level" : 0,
         "print_colors" : false,
         "parallel_type" : "OpenMP"
@@ -13,44 +13,13 @@
 		"origin_newmark_beta" : 0.25,
 		"origin_newmark_gamma" : 0.5,
 		"destination_newmark_beta" : 0.25,
-		"destination_newmark_gamma" : 0.5,
+        "destination_newmark_gamma" : 0.5,
+        "timestep_ratio" : 1,
+        "is_vtk_fine_timestep_output" : true,
+        "equilibrium_variable" : "VELOCITY",
+        "is_disable_coupling" : false,
         "echo_level" : 0,
-        "coupling_operations" : {
-            "coupling_output_A" : {
-                "type" : "coupling_output",
-                "solver"           : "femA",
-                "execution_point"  : "finalize_solution_step",
-                "output_format"    : "vtk",
-                "output_parameters" : {
-                    "model_part_name"                    : "Structure",
-                    "output_control_type"                : "time",
-                    "output_interval"                   : 0.001,
-                    "file_format"                        : "binary",
-                    "output_precision"                   : 7,
-                    "output_sub_model_parts"             : false,
-                    "folder_name"                        : "coupling_outputI-I",
-                    "save_output_files_in_folder"        : true,
-                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","VELOCITY","VECTOR_LAGRANGE_MULTIPLIER"]
-                }
-            },
-            "coupling_output_B" : {
-                "type" : "coupling_output",
-                "solver"           : "femB",
-                "execution_point"  : "finalize_solution_step",
-                "output_format"    : "vtk",
-                "output_parameters" : {
-                    "model_part_name"                    : "Structure",
-                    "output_control_type"                : "time",
-                    "output_interval"                   : 0.001,
-                    "file_format"                        : "binary",
-                    "output_precision"                   : 7,
-                    "output_sub_model_parts"             : false,
-                    "folder_name"                        : "coupling_outputI-I",
-                    "save_output_files_in_folder"        : true,
-                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","VELOCITY","VECTOR_LAGRANGE_MULTIPLIER"]
-                }
-            }
-        },
+        "coupling_operations" : {},
         "data_transfer_operators" : {
             "mapper" : {
                 "type" : "kratos_mapping",
@@ -59,7 +28,8 @@
 					"echo_level" : 5,
                     "dual_mortar": false,
                     "consistent_mortar": false,
-					"consistency_scaling" : true,
+                    "consistency_scaling" : true,
+                    "precompute_mapping_matrix" : true,
 					"modeler_name" : "MappingGeometriesModeler",
 					"modeler_parameters":{
 						"origin_model_part_name" : "origin",

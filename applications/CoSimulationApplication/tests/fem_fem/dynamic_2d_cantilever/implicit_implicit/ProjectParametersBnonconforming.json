@@ -49,62 +49,30 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "list_other_processes"     : [],
-        "print_output_process" : [{
-            "python_module"   : "json_output_process",
+        "list_other_processes"     : [{
+            "python_module"   : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "help"                  : "",
-            "process_name"          : "JsonOutputProcess",
+            "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION"],
-                "output_file_name" : "fem_fem/dynamic_2d_cantilever/implicit_implicit/nonconforming_kinematic_results.json",
-                "model_part_name"  : "Structure.PointLoad2D_load",
-                "time_frequency"   : 0.025
+                "check_variables"  : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
+                "input_file_name"  : "fem_fem/dynamic_2d_cantilever/implicit_implicit/nonconforming_results.json",
+                "model_part_name"  : "Structure.DISPLACEMENT_left_edge",
+                "time_frequency"   : 0.00001
             }
-        },
+        }]
+    },
+    "print_output_process" : [
         {
             "python_module"   : "json_output_process",
             "kratos_module" : "KratosMultiphysics",
             "help"                  : "",
             "process_name"          : "JsonOutputProcess",
             "Parameters"            : {
-                "output_variables" : ["VECTOR_LAGRANGE_MULTIPLIER"],
-                "output_file_name" : "fem_fem/dynamic_2d_cantilever/implicit_implicit/nonconforming_lagrange_results.json",
+                "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
+                "output_file_name" : "fem_fem/dynamic_2d_cantilever/implicit_implicit/nonconforming_results.json",
                 "model_part_name"  : "Structure.DISPLACEMENT_left_edge",
-                "time_frequency"   : 0.025
+                "time_frequency"   : 0.00001
             }
         }]
-    },
-    "output_processes" : {
-        "gid_output" : [{
-            "python_module" : "gid_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "GiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
-            "Parameters"    : {
-                "model_part_name"        : "Structure",
-                "output_name"            : "nonconforming_I-I-femB",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "step",
-                        "output_frequency"    : 0.01,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
-                        "gauss_point_results" : ["VON_MISES_STRESS"]
-                    },
-                    "point_data_configuration"  : []
-                }
-            }
-        }]
-    }
 }

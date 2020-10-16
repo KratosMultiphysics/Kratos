@@ -14,7 +14,7 @@
 		"origin_newmark_gamma" : 0.5,
 		"destination_newmark_beta" : 0.25,
         "destination_newmark_gamma" : 0.5,
-        "timestep_ratio" : 1,
+        "timestep_ratio" : 2,
         "is_vtk_fine_timestep_output" : true,
         "equilibrium_variable" : "VELOCITY",
         "is_disable_coupling" : false,
@@ -60,7 +60,7 @@
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "fem_fem/dynamic_2d_cantilever/implicit_implicit/ProjectParametersBnonconforming"
+                    "input_file"  : "fem_fem/dynamic_2d_cantilever/implicit_implicit/ProjectParametersBmixedtimestep"
                 }
             },
             "femA" :

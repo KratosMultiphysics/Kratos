@@ -75,12 +75,12 @@ def AssembleTestSuites():
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
-    nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
-    nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
+    #nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
+    #nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
+    #nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
+    #nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
 
-    nightSuite.addTests(smallSuite)
+    #nightSuite.addTests(smallSuite)
 
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate
@@ -94,7 +94,7 @@ def AssembleTestSuites():
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite) # already contains the smallSuite
-    allSuite.addTests(validationSuite)
+    #allSuite.addTests(validationSuite)
 
     return suites
 
