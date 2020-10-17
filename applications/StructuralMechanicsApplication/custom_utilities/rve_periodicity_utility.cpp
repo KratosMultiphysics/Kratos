@@ -25,7 +25,8 @@ void RVEPeriodicityUtility::AssignPeriodicity(
     ModelPart& rMasterModelPart,
     ModelPart& rSlaveModelPart,
     const Matrix& rStrainTensor,
-    const Vector& rDirection
+    const Vector& rDirection,
+    const double search_tolerance
     )
 {
     KRATOS_ERROR_IF(rMasterModelPart.NumberOfConditions() == 0) << "the master is expected to have conditions and it is empty" << std::endl;
@@ -36,7 +37,6 @@ void RVEPeriodicityUtility::AssignPeriodicity(
     bin_based_point_locator.UpdateSearchDatabase();
 
     int max_search_results = 100;
-    double search_tolerance = 1e-6;
 
     // Construct auxiliary data structure to contain the master slave relation.
     // Slave nodes must appear once, however a non-circular dependency is allowed between the masters
@@ -46,7 +46,7 @@ void RVEPeriodicityUtility::AssignPeriodicity(
 
         Condition::Pointer p_host_cond;
         Vector N;
-        array_1d<double, 3> transformed_slave_coordinates = it_node->Coordinates() - rDirection;
+        array_1d<double, 3> transformed_slave_coordinates = it_node->GetInitialPosition() - rDirection;
 
         // Finding the host element for this node
         const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(transformed_slave_coordinates, N, p_host_cond, max_search_results, search_tolerance);
@@ -73,7 +73,41 @@ void RVEPeriodicityUtility::AssignPeriodicity(
                 KRATOS_ERROR << "Attempting to add twice the slave node with Id " << it_node->Id() << std::endl;
             }
         } else {
-            KRATOS_ERROR << "Counterpart not found for slave node " << it_node->Id() << std::endl;
+
+            double node_distance = 1e50;
+            IndexType closest_node_id = 0;            
+
+            DataTupletype aux_data;
+
+            auto &T = std::get<2>(aux_data);
+            T = translation;
+
+            //brute force search amongst all nodes to find the closest
+            for(auto& rMasterNode : rMasterModelPart.Nodes())
+            {
+                array_1d<double,3> distance_vector = rMasterNode.GetInitialPosition() - transformed_slave_coordinates;
+                double d = norm_2(distance_vector);
+                if(d < node_distance)
+                {
+                    node_distance = d;
+                    closest_node_id = rMasterNode.Id();
+                }
+            }
+
+            auto& r_master_ids = std::get<0>(aux_data);
+            auto& r_weights = std::get<1>(aux_data);
+            r_master_ids.push_back(closest_node_id);
+            r_weights.push_back(1.0);
+
+            if (mAuxPairings.find(it_node->Id()) == mAuxPairings.end()) { // This slave is not already present
+                mAuxPairings[it_node->Id()] = aux_data;
+            } else {
+                KRATOS_INFO("RVEPeriodicityUtility") << "Slave model part = " << rSlaveModelPart << std::endl;
+                KRATOS_INFO("RVEPeriodicityUtility") << "Master model part = " << rMasterModelPart << std::endl;
+                KRATOS_ERROR << "Attempting to add twice the slave node with Id " << it_node->Id() << std::endl;
+            }
+
+            std::cout << "brute force search assigned by to node " << it_node->Id() << " the node " << closest_node_id << " by fallback closest node search.  Distance is " <<  node_distance << std::endl;
         }
     }
 }
