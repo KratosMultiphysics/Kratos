@@ -4,8 +4,10 @@ from KratosMultiphysics.RANSApplication import *
 
 
 def run():
-    Tester.SetVerbosity(Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
-    Tester.RunTestSuite("KratosRansFastSuite")
+    print(dir(Tester.Verbosity))
+    Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
+    Tester.RunTestCases("*TestRansKEpsilonEpsilonCWD2D3N_CalculateLocalVelocityCon*")
+
 
 
 if __name__ == '__main__':

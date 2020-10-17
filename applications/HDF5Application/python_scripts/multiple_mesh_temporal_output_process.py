@@ -33,6 +33,7 @@ def Factory(settings, Model):
     | "file_settings"                     | Parameters | "file_name": "<model_part_name>"|
     |                                     |            | "time_format": "0.4f"           |
     |                                     |            | "file_access_mode": "exclusive" |
+    |                                     |            | "max_files_to_keep": "unlimited"|
     |                                     |            | "echo_level":  0                |
     +-------------------------------------+------------+---------------------------------+
     | "output_time_settings"              | Parameters | "time_frequency": 1.0           |
