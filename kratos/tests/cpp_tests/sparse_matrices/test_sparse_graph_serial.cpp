@@ -522,7 +522,7 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
     SystemVector<double,IndexType> b(vector_size);
     b.SetValue(3.0);
 
-    auto c = a;
+    SystemVector<double,IndexType> c(a);
     c += b;
     for(unsigned int i=0; i<c.size(); ++i)
         KRATOS_CHECK_NEAR(c[i], 8.0,1e-14);

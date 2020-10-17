@@ -81,7 +81,7 @@ public:
     }
 
     /// Copy constructor.
-    SystemVector(const SystemVector<TDataType,TIndexType>& rOtherVector){
+    explicit SystemVector(const SystemVector<TDataType,TIndexType>& rOtherVector){
         mData.resize(rOtherVector.size(),false);
 
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
