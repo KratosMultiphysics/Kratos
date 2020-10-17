@@ -589,6 +589,42 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
 
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSuite)
+{
+    DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
+
+    IndexType local_size = 4;
+    DistributedNumbering<IndexType> numbering(rComm,local_size);
+
+    DistributedSystemVector<double,IndexType> a(numbering);
+    a.SetValue(5.0);
+
+    DistributedSystemVector<double,IndexType> b(numbering);
+    b.SetValue(3.0);
+
+    DistributedSystemVector<double,IndexType> c(a);
+    c += b;
+    for(unsigned int i=0; i<c.LocalSize(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 8.0,1e-14);
+
+    c -= b;
+    for(unsigned int i=0; i<c.LocalSize(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 5.0,1e-14);
+
+    c.Add(3.0,a);
+    for(unsigned int i=0; i<c.LocalSize(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 20.0,1e-14);
+
+    c*=2.0;
+    for(unsigned int i=0; i<c.LocalSize(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 40.0,1e-14);
+
+    c/=4.0;
+    for(unsigned int i=0; i<c.LocalSize(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
+}
+
+
 
 } // namespace Testing
 } // namespace Kratos

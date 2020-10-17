@@ -119,6 +119,24 @@ public:
 
     }
 
+    /// Copy constructor.
+    explicit DistributedSystemVector(DistributedSystemVector const& rOther)
+    :
+    mrComm(rOther.mrComm)
+    {
+        mpNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(rOther.GetNumbering());
+
+        //copying the data
+        mLocalData.resize(rOther.LocalSize(),false); 
+        IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
+            (mLocalData)[i] += rOther[i];
+        });
+
+        mNonLocalData = rOther.mNonLocalData;
+        mfem_assemble_colors = rOther.mfem_assemble_colors;
+        mRecvIndicesByColor = rOther.mRecvIndicesByColor;
+    }
+
     DistributedSystemVector(const DistributedNumbering<IndexType>& rNumbering)
             :
             mrComm(rNumbering.GetComm())
@@ -187,6 +205,52 @@ public:
 
     const DenseVector<TDataType>& GetLocalData() const{
         return mLocalData;
+    }
+
+    void Add(const double factor,
+             const DistributedSystemVector& rOtherVector
+            )
+    {
+        IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
+            (mLocalData)[i] += factor*rOtherVector[i];
+        });
+    }
+
+    /// Assignment operator.
+    DistributedSystemVector& operator=(DistributedSystemVector const& rOtherVector){
+        mLocalData.resize(rOtherVector.LocalSize(),false);
+        IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
+            (mLocalData)[i] = rOtherVector[i];
+        });
+    }
+
+
+    void operator+=(const DistributedSystemVector& rOtherVector)
+    {
+        IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
+            (mLocalData)[i] += rOtherVector[i];
+        });
+    }
+
+    void operator-=(const DistributedSystemVector& rOtherVector)
+    {
+        IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
+            (mLocalData)[i] -= rOtherVector[i];
+        });
+    }
+
+    void operator*=(const TDataType& multiplier_factor)
+    {
+        IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
+            (mLocalData)[i] *= multiplier_factor;
+        });
+    }
+
+    void operator/=(const TDataType& divide_factor)
+    {
+        IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
+            (mLocalData)[i] /= divide_factor;
+        });
     }
 
     ///@}
@@ -383,12 +447,7 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    DistributedSystemVector& operator=(DistributedSystemVector const& rOther){}
-
-    /// Copy constructor.
-    DistributedSystemVector(DistributedSystemVector const& rOther){}
+   
 
     ///@}
 
