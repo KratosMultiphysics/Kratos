@@ -25,6 +25,8 @@
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "containers/sparse_graph.h"
+#include "containers/sparse_contiguous_row_graph.h"
 
 namespace Kratos
 {
@@ -66,14 +68,27 @@ public:
     ///@name Life Cycle
     ///@{
 
-    template< class TGraphType >
-    SystemVector(const TGraphType& rGraph){
+    SystemVector(const SparseGraph<IndexType>& rGraph){
+        mData.resize(rGraph.Size(),false);
+    }
+
+    SystemVector(const SparseContiguousRowGraph<IndexType>& rGraph){
         mData.resize(rGraph.Size(),false);
     }
 
     SystemVector(IndexType size){
         mData.resize(size,false);
     }
+
+    /// Copy constructor.
+    SystemVector(const SystemVector<TDataType,TIndexType>& rOtherVector){
+        mData.resize(rOtherVector.size(),false);
+
+        IndexPartition<IndexType>(size()).for_each([&](IndexType i){
+            (*this)[i] = rOtherVector[i];
+        });
+    }
+
     /// Destructor.
     virtual ~SystemVector(){}
 
@@ -101,10 +116,63 @@ public:
         return mData[I];
     }
 
-
     const TDataType& operator()(IndexType I) const{
         return mData[I];
     }
+
+    TDataType& operator[](IndexType I){
+        return mData[I];
+    }
+
+    const TDataType& operator[](IndexType I) const{
+        return mData[I];
+    }
+
+    void Add(const double factor,
+             const SystemVector& rOtherVector
+            )
+    {
+        IndexPartition<IndexType>(size()).for_each([&](IndexType i){
+            (*this)[i] += factor*rOtherVector[i];
+        });
+    }
+
+    /// Assignment operator.
+    SystemVector& operator=(SystemVector const& rOtherVector){
+        IndexPartition<IndexType>(size()).for_each([&](IndexType i){
+            (*this)[i] = rOtherVector[i];
+        });
+    }
+
+
+    void operator+=(const SystemVector& rOtherVector)
+    {
+        IndexPartition<IndexType>(size()).for_each([&](IndexType i){
+            (*this)[i] += rOtherVector[i];
+        });
+    }
+
+    void operator-=(const SystemVector& rOtherVector)
+    {
+        IndexPartition<IndexType>(size()).for_each([&](IndexType i){
+            (*this)[i] -= rOtherVector[i];
+        });
+    }
+
+    void operator*=(const TDataType& multiplier_factor)
+    {
+        IndexPartition<IndexType>(size()).for_each([&](IndexType i){
+            (*this)[i] *= multiplier_factor;
+        });
+    }
+
+    void operator/=(const TDataType& divide_factor)
+    {
+        IndexPartition<IndexType>(size()).for_each([&](IndexType i){
+            (*this)[i] /= divide_factor;
+        });
+    }
+
 
     ///@}
     ///@name Operations
@@ -238,12 +306,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    SystemVector& operator=(SystemVector const& rOther){}
-
-    /// Copy constructor.
-    SystemVector(SystemVector const& rOther){}
 
     ///@}
 

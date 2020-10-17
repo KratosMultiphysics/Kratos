@@ -513,6 +513,37 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
 
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
+{
+    IndexType vector_size = 4;
+    SystemVector<double,IndexType> a(vector_size);
+    a.SetValue(5.0);
+
+    SystemVector<double,IndexType> b(vector_size);
+    b.SetValue(3.0);
+
+    auto c = a;
+    c += b;
+    for(unsigned int i=0; i<c.size(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 8.0,1e-14);
+
+    c -= b;
+    for(unsigned int i=0; i<c.size(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 5.0,1e-14);
+
+    c.Add(3.0,a);
+    for(unsigned int i=0; i<c.size(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 20.0,1e-14);
+
+    c*=2.0;
+    for(unsigned int i=0; i<c.size(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 40.0,1e-14);
+
+    c/=4.0;
+    for(unsigned int i=0; i<c.size(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
+}
+
 
 } // namespace Testing
 } // namespace Kratos
