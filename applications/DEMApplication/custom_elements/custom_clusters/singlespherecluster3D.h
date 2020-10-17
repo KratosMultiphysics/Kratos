@@ -50,7 +50,7 @@ namespace Kratos
       /// Destructor.
         virtual ~SingleSphereCluster3D();
 
-        virtual void Initialize(ProcessInfo& r_process_info) override;
+        void Initialize(const ProcessInfo& r_process_info) override;
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;
 
         double SlowGetDensity() override;

@@ -21,7 +21,7 @@
 
 
 /* Project includes */
-#include "convergence_accelerator.hpp"
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 
 
 namespace Kratos
@@ -49,10 +49,11 @@ namespace Kratos
 /**
  * @brief Constant relaxation convergence accelerator
  * This utility corrects the iteration guess with a constant relaxation factor
- * @tparam TSpace Linear algebra space type
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
  */
-template<class TSpace>
-class ConstantRelaxationConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
+template<class TSparseSpace, class TDenseSpace>
+class ConstantRelaxationConvergenceAccelerator: public ConvergenceAccelerator<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -61,7 +62,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ConstantRelaxationConvergenceAccelerator );
 
-    typedef ConvergenceAccelerator<TSpace>                                 BaseType;
+    typedef ConvergenceAccelerator<TSparseSpace, TDenseSpace>              BaseType;
 
     typedef typename BaseType::Pointer                              BaseTypePointer;
 
@@ -96,7 +97,7 @@ public:
      * Constructor with json string settings
      * @param rConvAcceleratorParameters json string encapsulating the settings
      */
-    ConstantRelaxationConvergenceAccelerator(Parameters &rConvAcceleratorParameters)
+    ConstantRelaxationConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     : BaseType(),
       mOmega([] (Parameters x) -> double {x.ValidateAndAssignDefaults(GetDefaultParameters()); return x["w"].GetDouble();} (rConvAcceleratorParameters))
     {
@@ -148,7 +149,7 @@ public:
     {
         KRATOS_TRY;
 
-        TSpace::UnaliasedAdd(rIterationGuess, mOmega, rResidualVector);
+        TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega, rResidualVector);
 
         KRATOS_CATCH("");
     }
