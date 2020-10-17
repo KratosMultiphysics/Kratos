@@ -152,9 +152,6 @@ namespace Kratos {
                 sliding = true;
             }
         }
-        double GetTgOfDynamicFrictionAngleOfElement(SphericParticle* element);
-        double GetTgOfStaticFrictionAngleOfElement(SphericParticle* element);
-        std::size_t GetElementId(SphericParticle* element);
 
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
@@ -189,6 +186,11 @@ namespace Kratos {
         void CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy,
                                                      double ViscoDampingLocalContactForce[3],
                                                      double LocalDeltDisp[3]);
+
+    protected:
+        double GetTgOfDynamicFrictionAngleOfElement(SphericParticle* element);
+        double GetTgOfStaticFrictionAngleOfElement(SphericParticle* element);
+        std::size_t GetElementId(SphericParticle* element);
 
     private:
 
