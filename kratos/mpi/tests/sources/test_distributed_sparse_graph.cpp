@@ -597,12 +597,23 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSu
     DistributedNumbering<IndexType> numbering(rComm,local_size);
 
     DistributedSystemVector<double,IndexType> a(numbering);
+    KRATOS_CHECK_EQUAL(a.LocalSize(), local_size);
     a.SetValue(5.0);
+    for(unsigned int i=0; i<a.LocalSize(); ++i)
+        KRATOS_CHECK_NEAR(a[i], 5.0,1e-14);
 
     DistributedSystemVector<double,IndexType> b(numbering);
     b.SetValue(3.0);
+    KRATOS_CHECK_EQUAL(b.LocalSize(), local_size);
+    for(unsigned int i=0; i<b.LocalSize(); ++i)
+        KRATOS_CHECK_NEAR(b[i], 3.0,1e-14);
 
     DistributedSystemVector<double,IndexType> c(a);
+    KRATOS_CHECK_EQUAL(c.LocalSize(), local_size);
+    KRATOS_CHECK_EQUAL(c.TotalSize(), local_size*rComm.Size());
+    for(unsigned int i=0; i<c.LocalSize(); ++i)
+        KRATOS_CHECK_NEAR(c[i], 5.0,1e-14);
+
     c += b;
     for(unsigned int i=0; i<c.LocalSize(); ++i)
         KRATOS_CHECK_NEAR(c[i], 8.0,1e-14);

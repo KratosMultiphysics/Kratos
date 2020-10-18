@@ -126,10 +126,13 @@ public:
     {
         mpNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(rOther.GetNumbering());
 
+        KRATOS_ERROR_IF(LocalSize() != rOther.LocalSize());
+        KRATOS_ERROR_IF(TotalSize() != rOther.TotalSize());
+
         //copying the data
         mLocalData.resize(rOther.LocalSize(),false); 
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
-            (mLocalData)[i] += rOther[i];
+            (mLocalData)[i] = rOther[i];
         });
 
         mNonLocalData = rOther.mNonLocalData;
@@ -211,31 +214,39 @@ public:
              const DistributedSystemVector& rOtherVector
             )
     {
+        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in Add Function. LocalSize is " << LocalSize() 
+                << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
+
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
-            (mLocalData)[i] += factor*rOtherVector[i];
+            (mLocalData)[i] += factor*rOtherVector.mLocalData[i];
         });
     }
 
     /// Assignment operator.
     DistributedSystemVector& operator=(DistributedSystemVector const& rOtherVector){
-        mLocalData.resize(rOtherVector.LocalSize(),false);
+        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in assinement operator. LocalSize is " << LocalSize() 
+                << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
-            (mLocalData)[i] = rOtherVector[i];
+            (mLocalData)[i] = rOtherVector.mLocalData[i];
         });
     }
 
 
     void operator+=(const DistributedSystemVector& rOtherVector)
     {
+        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in += operator. LocalSize is " << LocalSize() 
+                << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
-            (mLocalData)[i] += rOtherVector[i];
+            (mLocalData)[i] += rOtherVector.mLocalData[i];
         });
     }
 
     void operator-=(const DistributedSystemVector& rOtherVector)
     {
+        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in -= operator. LocalSize is " << LocalSize() 
+                << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
-            (mLocalData)[i] -= rOtherVector[i];
+            (mLocalData)[i] -= rOtherVector.mLocalData[i];
         });
     }
 
