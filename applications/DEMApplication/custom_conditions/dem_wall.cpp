@@ -192,7 +192,7 @@ void DEMWall::GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, in
   delta_displacement = this->GetGeometry()[inode].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
 }
 
-void DEMWall::InitializeSolutionStep(ProcessInfo& r_process_info){
+void DEMWall::InitializeSolutionStep(const ProcessInfo& r_process_info){
 }
 
 
@@ -259,7 +259,7 @@ double DEMWall::GetTgOfStaticFrictionAngle() const  { return GetProperties()[STA
 double DEMWall::GetTgOfDynamicFrictionAngle() const { return GetProperties()[DYNAMIC_FRICTION]; }
 
 
-void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)
+void DEMWall::FinalizeSolutionStep(const ProcessInfo& r_process_info)
 {
 
 }

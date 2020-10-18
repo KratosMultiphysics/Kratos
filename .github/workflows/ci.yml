@@ -51,11 +51,11 @@ jobs:
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON"
-          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Werror=comment"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Werror=comment -Werror=parentheses"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
-          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable -Werror=parentheses"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable -Werror=parentheses -Werror=pessimizing-move -Werror=c++17-extensions -Werror=logical-op-parentheses"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
@@ -198,6 +198,47 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi
 
+    - name: Running MPI Python ParticleMechanicsApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python ParticleMechanicsApplication (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 3 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python ParticleMechanicsApplication (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 4 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python MeshingApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python MeshingApplication (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe  -np 3 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python MeshingApplication (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe  -np 4 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
 
   windows:
     runs-on: windows-latest
@@ -225,54 +266,8 @@ jobs:
     - name: Build
       shell: cmd
       run: |
-        call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
-
-        set CC=cl.exe
-        set CXX=cl.exe
-
-        set KRATOS_SOURCE=%cd%
-        set KRATOS_BUILD=%cd%\build
-        set KRATOS_APP_DIR=applications
-
-        set KRATOS_APPLICATIONS=
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConvectionDiffusionApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\LinearSolversApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ChimeraApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\IgaApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ParticleMechanicsApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MappingApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CoSimulationApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StatisticsApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SwimmingDEMApplication;
-
-        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
-        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
-        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
-
-        cmake                                                ^
-          -G"Visual Studio 16 2019"                          ^
-          -H"%KRATOS_SOURCE%"                                ^
-          -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
-          -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
-          -DINSTALL_RUNKRATOS=OFF                            ^
-          -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804"            ^
-          -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
-          -DUSE_COTIRE=ON                                    || goto :error
-
-        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
-        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target zlibstatic -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
-        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
-
-        goto :EOF
-
-        :error
-        echo Failed with error #%errorlevel%.
-        exit /b %errorlevel%
+        copy .\.github\workflows\configure.cmd
+        configure.cmd
 
     - name: Running small tests
       shell: cmd

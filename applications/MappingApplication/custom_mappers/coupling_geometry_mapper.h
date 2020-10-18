@@ -28,6 +28,8 @@
 #include "custom_modelers/mapping_geometries_modeler.h"
 #include "modeler/modeler_factory.h"
 
+#include "linear_solvers/linear_solver.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -56,6 +58,11 @@ public:
         KRATOS_DEBUG_ERROR_IF_NOT(mpGeom) << "Members are not intitialized!" << std::endl;
         // return mpGeom->Center(); // check why not compiling...
         KRATOS_ERROR << "not implemented, needs checking" << std::endl;
+    }
+
+    MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
+    {
+        return Kratos::make_unique<CouplingGeometryLocalSystem>(pGeometry, mIsProjection, mIsDualMortar);
     }
 
     /// Turn back information as a string.
@@ -93,11 +100,14 @@ public:
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
-    typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
+    typedef typename BaseType::TMappingMatrixType MappingMatrixType;
+    typedef Kratos::unique_ptr<MappingMatrixType> MappingMatrixUniquePointerType;
 
-    typedef Matrix DenseMappingMatrixType;
-    typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
+    typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
+    typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
+
+    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    typedef Kratos::unique_ptr<TSystemVectorType> TSystemVectorUniquePointerType;
 
     ///@}
     ///@name Life Cycle
@@ -136,8 +146,7 @@ public:
         mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
 
-        mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
-
+        this->CreateLinearSolver();
         this->InitializeInterface();
     }
 
@@ -225,6 +234,12 @@ public:
     ///@name Access
     ///@{
 
+    MappingMatrixType& GetMappingMatrix() override
+    {
+        if (mMapperSettings["precompute_mapping_matrix"].GetBool() || mMapperSettings["dual_mortar"].GetBool()) return *(mpMappingMatrix.get());
+        else KRATOS_ERROR << "'precompute_mapping_matrix' or 'dual_mortar' must be 'true' in your parameters to retrieve the computed mapping matrix!" << std::endl;
+    }
+
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
@@ -277,12 +292,19 @@ private:
 
     MapperUniquePointerType mpInverseMapper = nullptr;
 
-    DenseMappingMatrixUniquePointerType mpMappingMatrix;
+    MappingMatrixUniquePointerType mpMappingMatrix;
+    MappingMatrixUniquePointerType mpMappingMatrixProjector;
+    MappingMatrixUniquePointerType mpMappingMatrixSlave;
 
-    MapperLocalSystemPointerVector mMapperLocalSystems;
+    TSystemVectorUniquePointerType mpTempVector;
+
+    MapperLocalSystemPointerVector mMapperLocalSystemsProjector;
+    MapperLocalSystemPointerVector mMapperLocalSystemsSlave;
 
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
+
+    LinearSolverSharedPointerType mpLinearSolver = nullptr;
 
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
@@ -309,31 +331,14 @@ private:
                               const Variable<array_1d<double, 3>>& rDestinationVariable,
                               Kratos::Flags MappingOptions);
 
-    void CreateMapperLocalSystems(
-        const Communicator& rModelPartCommunicator,
-        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
-    {
-        MapperUtilities::CreateMapperLocalSystemsFromGeometries<CouplingGeometryLocalSystem>(
-            rModelPartCommunicator,
-            rLocalSystems);
-    }
-
-    void EnforceConsistencyWithScaling(const Matrix& rInterfaceMatrixSlave,
-        Matrix& rInterfaceMatrixProjected,
+    void EnforceConsistencyWithScaling(
+        const MappingMatrixType& rInterfaceMatrixSlave,
+        MappingMatrixType& rInterfaceMatrixProjected,
         const double scalingLimit = 1.1);
 
-    void CheckMappingMatrixConsistency()
-    {
-        for (size_t row = 0; row < mpMappingMatrix->size1(); ++row) {
-            double row_sum = 0.0;
-            for (size_t col = 0; col < mpMappingMatrix->size2(); ++col) row_sum += (*mpMappingMatrix)(row, col);
-            if (std::abs(row_sum - 1.0) > 1e-12) {
-                KRATOS_WATCH(*mpMappingMatrix)
-                KRATOS_WATCH(row_sum)
-                KRATOS_ERROR << "mapping matrix is not consistent\n";
-            }
-        }
-    }
+    void CreateLinearSolver();
+
+    void CalculateMappingMatrixWithSolver(MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix);
 
     Parameters GetMapperDefaultSettings() const
     {
