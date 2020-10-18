@@ -104,7 +104,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
                            ModelPart& rSlaveModelPart,
                            const Matrix& rStrainTensor,
                            const Vector& rDirection,
-                           const double search_tolerance=1e-6
+                           const double SearchTolerance=1e-6
                            );
 
     /** this function finalizes the computation of the pairings. It can be called ONLY ONCE

@@ -26,7 +26,7 @@ void RVEPeriodicityUtility::AssignPeriodicity(
     ModelPart& rSlaveModelPart,
     const Matrix& rStrainTensor,
     const Vector& rDirection,
-    const double search_tolerance
+    const double SearchTolerance
     )
 {
     KRATOS_ERROR_IF(rMasterModelPart.NumberOfConditions() == 0) << "the master is expected to have conditions and it is empty" << std::endl;
@@ -49,7 +49,7 @@ void RVEPeriodicityUtility::AssignPeriodicity(
         array_1d<double, 3> transformed_slave_coordinates = it_node->GetInitialPosition() - rDirection;
 
         // Finding the host element for this node
-        const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(transformed_slave_coordinates, N, p_host_cond, max_search_results, search_tolerance);
+        const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(transformed_slave_coordinates, N, p_host_cond, max_search_results, SearchTolerance);
         if (is_found) {
             const auto& r_geometry = p_host_cond->GetGeometry();
 
@@ -266,5 +266,4 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
 }
 
 }  // namespace Kratos.
-
 
