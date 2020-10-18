@@ -315,6 +315,14 @@ protected:
                                                         const IndexType& PointNumber,
                                                         IntegrationMethod ThisIntegrationMethod) const;
 
+    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
+                                                        Matrix& J0,
+                                                        Matrix& InvJ0,
+                                                        Matrix& DN_DX,
+                                                        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+                                                        const IndexType& PointNumber,
+                                                        IntegrationMethod ThisIntegrationMethod) const;
+
     void CalculateJacobianOnReferenceConfiguration(const GeometryType& Geometry,
                                                    double& detJ0,
                                                    Matrix& J0,
