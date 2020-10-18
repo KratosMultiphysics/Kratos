@@ -1,6 +1,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+
+# Importing other libraries
 import math
 
 class RVEAnalysis(StructuralMechanicsAnalysis):
