@@ -29,7 +29,7 @@ void RVEPeriodicityUtility::AssignPeriodicity(
     const double SearchTolerance
     )
 {
-    KRATOS_ERROR_IF(rMasterModelPart.NumberOfConditions() == 0) << "the master is expected to have conditions and it is empty" << std::endl;
+    KRATOS_ERROR_IF(rMasterModelPart.NumberOfConditions() == 0) << "The master is expected to have conditions and it is empty" << std::endl;
 
     const Vector translation = prod(rStrainTensor, rDirection);
 
