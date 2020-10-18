@@ -64,7 +64,7 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, 
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+    //GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
@@ -182,8 +182,6 @@ protected:
 
         // needed for updated Lagrangian:
         double detJ0;
-        Matrix J0;
-        Matrix InvJ0;
 
         //Nodal variables
         Vector BodyAcceleration;
@@ -208,6 +206,7 @@ protected:
     //Geometry< Node<3> >::Pointer mpPressureGeometry;
     GeometryType::Pointer  mpPressureGeometry;
     std::vector<Vector> mStressVector;
+    std::vector<Vector> mStressVectorFinalized;
     std::vector<Vector> mStateVariablesFinalized;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -228,7 +227,7 @@ protected:
 
     void InitializeBiotCoefficients( ElementVariables& rVariables, const double &BulkModulus );
 
-    void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
+    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
     void UpdateElementalVariableStressVector(ElementVariables& rVariables, unsigned int PointNumber);
 
@@ -236,7 +235,7 @@ protected:
 
     void SetElementalVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, double detJ, double weight);
+    virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, double detJ, double weight);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -247,7 +246,6 @@ protected:
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
@@ -272,6 +270,11 @@ protected:
 
     void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
                               const Matrix &StiffnessMatrix) const;
+
+    virtual void CalculateCauchyAlmansiStrain( ElementVariables& rVariables );
+    virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
+    virtual void CalculateCauchyStrain( ElementVariables& rVariables );
+    virtual void CalculateStrain( ElementVariables& rVariables );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

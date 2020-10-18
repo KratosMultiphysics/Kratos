@@ -130,6 +130,9 @@ void UpdatedLagrangianUPwDiffOrderElement::
         // Compute element kinematics B, F, DNu_DX ...
         this->CalculateKinematics(Variables, GPoint);
 
+        //Compute strain
+        this->CalculateStrain(Variables);
+
         //set gauss points variables to constitutivelaw parameters
         this->SetElementalVariables(Variables, ConstitutiveParameters);
 
@@ -149,6 +152,8 @@ void UpdatedLagrangianUPwDiffOrderElement::
     AssignPressureToIntermediateNodes();
 
     mF0Computed = true;
+
+    mStressVectorFinalized = mStressVector;
 
     //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 
@@ -204,16 +209,14 @@ void UpdatedLagrangianUPwDiffOrderElement::
     // Computing in all integrations points
     for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint )
     {
-
         // Compute element kinematics B, F, DNu_DX ...
         this->CalculateKinematics(Variables, GPoint);
 
+        //Compute strain
+        this->CalculateStrain(Variables);
+
         //set gauss points variables to constitutivelaw parameters
         this->SetElementalVariables(Variables,ConstitutiveParameters);
-
-        // Cauchy strain: This needs to be investigated which strain measure should be used
-        // In some references, e.g. Bathe, suggested to use Almansi strain measure
-        noalias(Variables.StrainVector) = prod(Variables.B, Variables.DisplacementVector);
 
         //Compute constitutive tensor and stresses
         UpdateElementalVariableStressVector(Variables, GPoint);
@@ -236,7 +239,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
             /* Geometric stiffness matrix */
-            this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables );
+            //this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables, mStressVectorFinalized[GPoint] );
         }
 
         if (CalculateResidualVectorFlag)
@@ -254,7 +257,8 @@ void UpdatedLagrangianUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::
     CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                             ElementVariables& rVariables )
+                                             ElementVariables& rVariables,
+                                             const Vector& StressVector )
 {
     KRATOS_TRY
 
@@ -264,15 +268,23 @@ void UpdatedLagrangianUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    // KRATOS_INFO("StressVector") << StressVector << std::endl;
+    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( StressVector );
+    // KRATOS_INFO("StressTensor") << StressTensor << std::endl;
 
     Matrix ReducedKgMatrix = prod( rVariables.DNu_DX,
                                    rVariables.IntegrationCoefficient *
                                    Matrix( prod( StressTensor, trans(rVariables.DNu_DX) ) ) ); //to be optimized
 
+    // KRATOS_INFO("rVariables.DNu_DX") << rVariables.DNu_DX << std::endl;
+
+    // KRATOS_INFO("ReducedKgMatrix") << ReducedKgMatrix << std::endl;
+
     Matrix UMatrix(NumUNodes*Dim, NumUNodes*Dim);
     noalias(UMatrix) = ZeroMatrix(NumUNodes*Dim, NumUNodes*Dim);
     MathUtils<double>::ExpandAndAddReducedMatrix( UMatrix, ReducedKgMatrix, Dim );
+
+    // //KRATOS_INFO("UMatrix") << UMatrix << std::endl;
 
     //Distribute stiffness block matrix into the elemental matrix
     this->AssembleUBlockMatrix(rLeftHandSideMatrix,UMatrix);
@@ -286,68 +298,82 @@ void UpdatedLagrangianUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::
     CalculateKinematics(ElementVariables& rVariables,
-                        const SizeType GPoint)
+                        unsigned int GPoint)
 {
     KRATOS_TRY
-
     //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateKinematics()") << std::endl;
 
     //Setting the vector of shape functions and the matrix of the shape functions global gradients
     noalias(rVariables.Nu) = row(rVariables.NuContainer, GPoint);
     noalias(rVariables.Np) = row(rVariables.NpContainer, GPoint);
 
+    // calculation of derivative of shape function with respect to reference configuration
+    // derivative of shape function (displacement)
+    Matrix J0, InvJ0;
     rVariables.detJ0 =
-        this->CalculateDerivativesOnReferenceConfiguration(this->GetGeometry(),
-                                                           rVariables.J0,
-                                                           rVariables.InvJ0,
-                                                           rVariables.DNu_DX,
-                                                           GPoint,
-                                                           this->GetIntegrationMethod());
-
-    // Calculating jacobian and DNu_DX
-    Matrix J, inv_J;
-    rVariables.detJ0 =
-        this->CalculateDerivativesOnCurrentConfiguration(this->GetGeometry(),
-                                                         J,
-                                                         inv_J,
-                                                         rVariables.DNu_DX,
-                                                         GPoint,
-                                                         this->GetIntegrationMethod());
-
-    KRATOS_ERROR_IF(rVariables.detJ0 < 0.0)
-     << "ERROR:: ELEMENT ID: "
-     << this->Id()
-     << " INVERTED. DETJ0: "
-     << rVariables.detJ0
-     << std::endl;
-
-    // Deformation gradient
-    Matrix DF = prod( J, rVariables.InvJ0 );
-
-    const double detDF = MathUtils<double>::Det(DF);
-    rVariables.detF = detDF * this->ReferenceConfigurationDeformationGradientDeterminant(GPoint);
-    noalias(rVariables.F) = prod(DF, this->ReferenceConfigurationDeformationGradient(GPoint));
+        CalculateDerivativesOnReferenceConfiguration(this->GetGeometry(),
+                                                    J0,
+                                                    InvJ0,
+                                                    rVariables.DNu_DX,
+                                                    GPoint,
+                                                    this->GetIntegrationMethod());
 
     // Calculating operator B
     this->CalculateBMatrix( rVariables.B, rVariables.DNu_DX);
 
-    // Calculating jacobian and DNp_DX
-    double detJp = this->CalculateDerivativesOnCurrentConfiguration(*mpPressureGeometry,
-                                                                    J,
-                                                                    inv_J,
-                                                                    rVariables.DNp_DX,
-                                                                    GPoint,
-                                                                    this->GetIntegrationMethod());
+    // derivative of shape function (pore pressure)
+    Matrix Jp0, InvJp0;
+    double detJp0 =
+        CalculateDerivativesOnReferenceConfiguration(*mpPressureGeometry,
+                                                     Jp0,
+                                                     InvJp0,
+                                                     rVariables.DNp_DX,
+                                                     GPoint,
+                                                     this->GetIntegrationMethod());
 
-    KRATOS_ERROR_IF(detJp < 0.0)
+
+    //Calculating current jacobian in order to find deformation gradient
+    Matrix J, InvJ;
+    double detJ;
+    this->CalculateJacobianOnCurrentConfiguration(this->GetGeometry(),
+                                                  detJ,
+                                                  J,
+                                                  InvJ,
+                                                  GPoint,
+                                                  this->GetIntegrationMethod());
+
+    if (detJ < 0.0)
+    {
+        KRATOS_INFO("negative detJ")
+        << "ERROR:: ELEMENT ID: "
+        << this->Id()
+        << " INVERTED. DETJ: "
+        << detJ
+        << " nodes:" << this->GetGeometry()
+        << std::endl;
+    }
+
+    KRATOS_ERROR_IF(detJ < 0.0)
      << "ERROR:: ELEMENT ID: "
      << this->Id()
-     << " INVERTED. detJp: "
-     << detJp
+     << " INVERTED. DETJ: "
+     << detJ
      << std::endl;
 
-    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateKinematics()") << std::endl;
 
+    // Deformation gradient
+    // noalias(rVariables.F) = prod( J, InvJ0 );
+    // rVariables.detF = MathUtils<double>::Det(rVariables.F);
+
+    //Matrix DF = prod( J, InvJ0 );
+    //noalias(rVariables.F) = prod(DF, this->ReferenceConfigurationDeformationGradient(GPoint));
+    noalias(rVariables.F) = prod( J, InvJ0 );
+
+    // const double detDF = MathUtils<double>::Det(DF);
+    // rVariables.detF = detDF * this->ReferenceConfigurationDeformationGradientDeterminant(GPoint);
+    rVariables.detF = MathUtils<double>::Det(rVariables.F);
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateKinematics()") << std::endl;
     KRATOS_CATCH( "" )
 
 }
@@ -357,7 +383,7 @@ double UpdatedLagrangianUPwDiffOrderElement::
     CalculateDerivativesOnReferenceConfiguration(const GeometryType& Geometry,
                                                  Matrix& J0,
                                                  Matrix& InvJ0,
-                                                 Matrix& DNu_DX,
+                                                 Matrix& DNu_DX0,
                                                  const IndexType& GPoint,
                                                  IntegrationMethod ThisIntegrationMethod) const
 {
@@ -365,20 +391,16 @@ double UpdatedLagrangianUPwDiffOrderElement::
 
     //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
 
-    J0.clear();
-
-    double detJ0;
-
     Matrix deltaDisplacement;
     deltaDisplacement = this->CalculateDeltaDisplacement(deltaDisplacement);
 
+    // mesh move must be used!
+    double detJ0;
     J0 = Geometry.Jacobian(J0, GPoint, ThisIntegrationMethod, deltaDisplacement);
-
     const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[GPoint];
-
     MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
+    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 
-    noalias( DNu_DX ) = prod( DN_De, InvJ0);
 
     return detJ0;
 
@@ -389,12 +411,38 @@ double UpdatedLagrangianUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------
+void UpdatedLagrangianUPwDiffOrderElement::
+    CalculateJacobianOnReferenceConfiguration(const GeometryType& Geometry,
+                                              double& detJ0,
+                                              Matrix& J0,
+                                              Matrix& InvJ0,
+                                              const IndexType& GPoint,
+                                              IntegrationMethod ThisIntegrationMethod) const
+{
+    KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateJacobianOnReferenceConfiguration()") << std::endl;
+
+    Matrix deltaDisplacement;
+    deltaDisplacement = this->CalculateDeltaDisplacement(deltaDisplacement);
+
+    // mesh move must be used!
+    J0 = Geometry.Jacobian(J0, GPoint, ThisIntegrationMethod, deltaDisplacement);
+    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateJacobianOnReferenceConfiguration()") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+
+//----------------------------------------------------------------------------------------
 double UpdatedLagrangianUPwDiffOrderElement::
     CalculateDerivativesOnCurrentConfiguration( const GeometryType& Geometry,
                                                 Matrix& rJ,
                                                 Matrix& rInvJ,
                                                 Matrix& rDN_DX,
-                                                const IndexType& PointNumber,
+                                                const IndexType& GPoint,
                                                 IntegrationMethod ThisIntegrationMethod ) const
 {
     KRATOS_TRY
@@ -402,14 +450,36 @@ double UpdatedLagrangianUPwDiffOrderElement::
     //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnCurrentConfiguration()") << std::endl;
 
     double detJ;
-    rJ = Geometry.Jacobian( rJ, PointNumber, ThisIntegrationMethod );
-    const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    rJ = Geometry.Jacobian( rJ, GPoint, ThisIntegrationMethod );
+    const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[GPoint];
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
 
     //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnCurrentConfiguration()") << std::endl;
 
     return detJ;
+
+    KRATOS_CATCH( "" )
+
+}
+
+//----------------------------------------------------------------------------------------
+void UpdatedLagrangianUPwDiffOrderElement::
+    CalculateJacobianOnCurrentConfiguration(const GeometryType& Geometry,
+                                            double& detJ,
+                                            Matrix& rJ,
+                                            Matrix& rInvJ,
+                                            const IndexType& GPoint,
+                                            IntegrationMethod ThisIntegrationMethod ) const
+{
+    KRATOS_TRY
+
+    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+
+    rJ = Geometry.Jacobian( rJ, GPoint, ThisIntegrationMethod );
+    MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
+
+    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
 
     KRATOS_CATCH( "" )
 
@@ -429,7 +499,7 @@ Matrix& UpdatedLagrangianUPwDiffOrderElement::
 
     DeltaDisplacement.resize(NumUNodes , Dim, false);
 
-    for ( IndexType iNode = 0; iNode < NumUNodes; iNode++ ) {
+    for ( IndexType iNode = 0; iNode < NumUNodes; ++iNode ) {
         const array_1d<double, 3>& currentDisplacement  = GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT);
         const array_1d<double, 3>& previousDisplacement = GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);
 
@@ -448,7 +518,7 @@ Matrix& UpdatedLagrangianUPwDiffOrderElement::
 double UpdatedLagrangianUPwDiffOrderElement::
     ReferenceConfigurationDeformationGradientDeterminant(const IndexType GPoint) const
 {
-    if (mF0Computed == false)
+    if (mF0Computed == true)
         return mDetF0[GPoint];
 
     return 1.0;
@@ -458,7 +528,7 @@ double UpdatedLagrangianUPwDiffOrderElement::
 Matrix UpdatedLagrangianUPwDiffOrderElement::
     ReferenceConfigurationDeformationGradient(const IndexType GPoint) const
 {
-    if (mF0Computed == false)
+    if (mF0Computed == true)
         return mF0[GPoint];
 
     const SizeType Dim = GetGeometry().WorkingSpaceDimension();
@@ -534,6 +604,14 @@ void UpdatedLagrangianUPwDiffOrderElement::
     } else {
         SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
+}
+
+//----------------------------------------------------------------------------------------
+void UpdatedLagrangianUPwDiffOrderElement::CalculateStrain( ElementVariables& rVariables )
+{
+    //this->CalculateCauchyGreenStrain( rVariables );
+    this->CalculateCauchyStrain( rVariables );
+    //this->CalculateCauchyAlmansiStrain( rVariables );
 }
 
 

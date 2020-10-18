@@ -73,8 +73,12 @@ public:
     typedef std::size_t SizeType;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
     using SmallStrainUPwDiffOrderElement::mStressVector;
+    using SmallStrainUPwDiffOrderElement::mStressVectorFinalized;
     using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
     using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
+    using SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain;
+    using SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain;
+    using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
 
     typedef typename SmallStrainUPwDiffOrderElement::ElementVariables ElementVariables;
 
@@ -293,7 +297,7 @@ protected:
      * @param rIntegrationMethod The integration method considered
      */
     void CalculateKinematics(ElementVariables& rThisKinematicVariables,
-                             const IndexType PointNumber);
+                             unsigned int PointNumber) override;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -311,6 +315,13 @@ protected:
                                                         const IndexType& PointNumber,
                                                         IntegrationMethod ThisIntegrationMethod) const;
 
+    void CalculateJacobianOnReferenceConfiguration(const GeometryType& Geometry,
+                                                   double& detJ0,
+                                                   Matrix& J0,
+                                                   Matrix& InvJ0,
+                                                   const IndexType& GPoint,
+                                                   IntegrationMethod ThisIntegrationMethod) const;
+
     /**
      * @brief This functions calculate the derivatives in the current frame
      * @param rJ The jacobian in the current configuration
@@ -327,8 +338,18 @@ protected:
                                                       const IndexType& PointNumber,
                                                       IntegrationMethod ThisIntegrationMethod) const;
 
+    void CalculateJacobianOnCurrentConfiguration(const GeometryType& Geometry,
+                                                 double& detJ,
+                                                 Matrix& rJ,
+                                                 Matrix& rInvJ,
+                                                 const IndexType& GPoint,
+                                                 IntegrationMethod ThisIntegrationMethod ) const;
+
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                                  ElementVariables& rVariables );
+                                                  ElementVariables& rVariables,
+                                                  const Vector& StressVector );
+
+    void CalculateStrain( ElementVariables& rVariables ) override;
 
     ///@}
     ///@name Protected Operations

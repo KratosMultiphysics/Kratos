@@ -238,8 +238,11 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
        for (unsigned int i=0; i < mStressVector.size(); ++i)
        {
           mStressVector[i].resize(VoigtSize);
+          std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
        }
     }
+
+    mStressVectorFinalized = mStressVector;
 
     if ( mStateVariablesFinalized.size() != IntegrationPoints.size() )
     {
@@ -287,6 +290,9 @@ void SmallStrainUPwDiffOrderElement::
     {
         //compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables,PointNumber);
+
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetElementalVariables(Variables, ConstitutiveParameters);
@@ -456,14 +462,13 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType BlockElementSize = NumUNodes * Dim;
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
-    const SizeType NumGPoints = IntegrationPoints.size();
+
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
     Matrix M = ZeroMatrix(BlockElementSize, BlockElementSize);
 
     //Defining shape functions and the determinant of the jacobian at all integration points
-    Matrix Nucontainer = rGeom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    Vector detJcontainer = ZeroVector(NumGPoints);
-    rGeom.DeterminantOfJacobian(detJcontainer,this->GetIntegrationMethod());
 
     //Loop over integration points
     double IntegrationCoefficient;
@@ -471,26 +476,18 @@ void SmallStrainUPwDiffOrderElement::
     double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
     Matrix Nu = ZeroMatrix( Dim , NumUNodes * Dim );
 
-    for ( SizeType PointNumber = 0; PointNumber < NumGPoints; PointNumber++ )
+    for ( SizeType PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
-        SizeType Index = 0;
-
-        //Setting the shape function matrix
-        for ( SizeType i = 0; i < NumUNodes; i++ )
-        {
-            for (SizeType idim=0; idim < Dim; ++idim)
-            {
-                Nu(idim,Index++) = Nucontainer(PointNumber,i);
-            }
-        }
+        //compute element kinematics (Np, gradNpT, |J|, B)
+        this->CalculateKinematics(Variables,PointNumber);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(IntegrationCoefficient,
-                                              detJcontainer[PointNumber],
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
+                                              Variables.detJ0,
                                               IntegrationPoints[PointNumber].Weight());
 
         //Adding contribution to Mass matrix
-        noalias(M) += Density*prod(trans(Nu),Nu)*IntegrationCoefficient;
+        noalias(M) += Density*outer_prod(Variables.Nu,Variables.Nu)*IntegrationCoefficient;
 
     }
 
@@ -663,6 +660,9 @@ void SmallStrainUPwDiffOrderElement::
         //compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables,PointNumber);
 
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
+
         //set gauss points variables to constitutivelaw parameters
         this->SetElementalVariables(Variables,ConstitutiveParameters);
 
@@ -678,6 +678,8 @@ void SmallStrainUPwDiffOrderElement::
     AssignPressureToIntermediateNodes();
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
+
+    mStressVectorFinalized = mStressVector;
 
     KRATOS_CATCH( "" )
 
@@ -1053,6 +1055,9 @@ void SmallStrainUPwDiffOrderElement::
             //compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables,PointNumber);
 
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
+
             //set gauss points variables to constitutivelaw parameters
             this->SetElementalVariables(Variables,ConstitutiveParameters);
 
@@ -1174,6 +1179,9 @@ void SmallStrainUPwDiffOrderElement::
             //compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables,PointNumber);
 
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
+
             //set gauss points variables to constitutivelaw parameters
             this->SetElementalVariables(Variables,ConstitutiveParameters);
 
@@ -1199,6 +1207,9 @@ void SmallStrainUPwDiffOrderElement::
         {
             //compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables,PointNumber);
+
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
 
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
                 rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
@@ -1253,6 +1264,9 @@ void SmallStrainUPwDiffOrderElement::
         {
             //compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables,PointNumber);
+
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
 
             //set gauss points variables to constitutivelaw parameters
             this->SetElementalVariables(Variables,ConstitutiveParameters);
@@ -1431,6 +1445,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
         //compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables,PointNumber);
 
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
+
         //set gauss points variables to constitutivelaw parameters
         this->SetElementalVariables(Variables,ConstitutiveParameters);
 
@@ -1445,7 +1462,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
 
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJuContainer[PointNumber],
+                                               Variables.detJ0,
                                                IntegrationPoints[PointNumber].Weight() );
 
         //Contributions to the left hand side
@@ -1487,6 +1504,9 @@ void SmallStrainUPwDiffOrderElement::
         //compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables,PointNumber);
 
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
+
         //set gauss points variables to constitutivelaw parameters
         this->SetElementalVariables(Variables,ConstitutiveParameters);
 
@@ -1501,7 +1521,7 @@ void SmallStrainUPwDiffOrderElement::
 
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJuContainer[PointNumber],
+                                               Variables.detJ0,
                                                IntegrationPoints[PointNumber].Weight() );
 
         //Contributions of material stiffness to the left hand side
@@ -1722,11 +1742,10 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics( ElementVariables& rVar
     noalias(rVariables.DNu_DX) = rVariables.DNu_DXContainer[PointNumber];
     noalias(rVariables.DNp_DX) = rVariables.DNp_DXContainer[PointNumber];
 
+    rVariables.detJ0 = rVariables.detJuContainer[PointNumber];
+
     //Compute the deformation matrix B
     this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX);
-
-    //Compute infinitessimal strain
-    rVariables.StrainVector = prod(rVariables.B, rVariables.DisplacementVector);
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
@@ -2287,14 +2306,100 @@ void SmallStrainUPwDiffOrderElement::
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow") << std::endl;
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
-GeometryData::IntegrationMethod
-    SmallStrainUPwDiffOrderElement::GetIntegrationMethod() const
+// GeometryData::IntegrationMethod
+//     SmallStrainUPwDiffOrderElement::GetIntegrationMethod() const
+// {
+//     return GeometryData::GI_GAUSS_2;
+// }
+
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::CalculateStrain( ElementVariables& rVariables )
 {
-    return GeometryData::GI_GAUSS_2;
+    this->CalculateCauchyStrain( rVariables );
 }
+
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain( ElementVariables& rVariables )
+{
+    noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
+}
+
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain( ElementVariables& rVariables )
+{
+   // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain()") << std::endl;
+
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+
+    //-Compute total deformation gradient
+    const Matrix& F = rVariables.F;
+
+    Matrix ETensor;
+    if (Dim == 3)
+    {
+        ETensor = prod(trans(F), F);
+    }
+    else
+    {
+        Matrix F2x2(Dim,Dim);
+        for (unsigned int i = 0; i<Dim; ++i)
+            for (unsigned int j = 0; j<Dim; ++j)
+                F2x2(i, j) = F(i, j);
+
+        ETensor = prod(trans(F2x2), F2x2);
+    }
+
+    for (unsigned int i=0; i<Dim; ++i)
+        ETensor(i,i) -= 1.0;
+    ETensor *= 0.5;
+
+    noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+
+   // KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateCauchyGreenStrain()") << std::endl;
+}
+
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain(ElementVariables& rVariables )
+{
+   // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain()") << std::endl;
+
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+
+    //-Compute total deformation gradient
+    const Matrix& F = rVariables.F;
+
+    Matrix LeftCauchyGreen;
+    if (Dim == 3)
+    {
+        LeftCauchyGreen = prod(F, trans(F));
+    }
+    else
+    {
+        Matrix F2x2(Dim, Dim);
+        for (unsigned int i = 0; i<Dim; ++i)
+            for (unsigned int j = 0; j<Dim; ++j)
+                F2x2(i, j) = F(i, j);
+
+        LeftCauchyGreen = prod(F2x2, trans(F2x2));
+    }
+
+    Matrix ETensor;
+    double det;
+    MathUtils<double>::InvertMatrix(LeftCauchyGreen, ETensor, det );
+
+    for (unsigned int i=0; i<Dim; ++i)
+        ETensor(i,i) = 1.0 - ETensor(i,i);
+
+    ETensor *= 0.5;
+    noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+
+   // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain()") << std::endl;
+}
+
 
 } // Namespace Kratos
