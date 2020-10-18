@@ -83,12 +83,10 @@ void RVEPeriodicityUtility::AssignPeriodicity(
             T = translation;
 
             //brute force search amongst all nodes to find the closest
-            for(auto& rMasterNode : rMasterModelPart.Nodes())
-            {
+            for(auto& rMasterNode : rMasterModelPart.Nodes()) {
                 array_1d<double,3> distance_vector = rMasterNode.GetInitialPosition() - transformed_slave_coordinates;
                 double d = norm_2(distance_vector);
-                if(d < node_distance)
-                {
+                if(d < node_distance) {
                     node_distance = d;
                     closest_node_id = rMasterNode.Id();
                 }
@@ -266,4 +264,3 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
 }
 
 }  // namespace Kratos.
-
