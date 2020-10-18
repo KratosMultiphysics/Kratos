@@ -584,6 +584,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
+            "name"                                                 : "displacement_lagrangemultiplier_ressidual_frictional_contact_criteria",
             "ensure_contact"                                       : false,
             "pure_slip"                                            : false,
             "print_convergence_criterion"                          : false,
