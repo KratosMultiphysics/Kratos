@@ -8,7 +8,7 @@
 //
 
 
-#if !defined(KRATOS_ACOUSTIC__PML_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_ACOUSTIC_PML_ELEMENT_H_INCLUDED )
 #define  KRATOS_ACOUSTIC_PML_ELEMENT_H_INCLUDED
 
 // System includes
@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
 #include "mor_application_variables.h"
 #include "acoustic_element.h"
 #include "includes/ublas_complex_interface.h"
@@ -63,7 +62,7 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    
+
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
 
@@ -198,10 +197,10 @@ public:
     // void GetDofList(
     //     DofsVectorType& rElementalDofList,
     //     ProcessInfo& rCurrentProcessInfo) override;
-    
+
     // void Initialize() override;
- 
-    
+
+
 protected:
     // //* //@name Protected static Member Variables
     // ///@{
@@ -261,7 +260,7 @@ protected:
     // ///@{
 
     // IntegrationMethod mThisIntegrationMethod;
-    
+
     // ///@}
     // ///@name Protected Operators
     // ///@{
@@ -313,7 +312,7 @@ protected:
     // }
 
     void ComplexJacobian( ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod );
-    
+
 
     // void CalculateRightHandSide(
     //   VectorType& rRightHandSideVector,
@@ -328,7 +327,7 @@ protected:
 
     // void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     // void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
     // {
     //      mThisIntegrationMethod = ThisIntegrationMethod;
@@ -343,7 +342,7 @@ protected:
     // ///@{
 
     // IntegrationMethod mThisIntegrationMethod;
-    
+
     // ///@}
     // ///@name Protected Operators
     // ///@{
@@ -373,7 +372,7 @@ protected:
 
     // void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     // void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
     // {
     //      mThisIntegrationMethod = ThisIntegrationMethod;
@@ -385,7 +384,7 @@ protected:
     //     Matrix& rDN_DX,
     //     const IndexType PointNumber,
     //     IntegrationMethod ThisIntegrationMethod) const;
-    
+
     // void CalculateKinematicVariables(
     //     KinematicVariables& rThisKinematicVariables,
     //     const IndexType PointNumber,
@@ -429,9 +428,9 @@ protected:
     ///@{
     AcousticPMLElement(): AcousticElement()
     {
-        
+
     }
-   
+
     /// Assignment operator.
     //AcousticPMLElement& operator=(const AcousticPMLElement& rOther);
     /// Copy constructor.

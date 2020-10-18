@@ -324,12 +324,12 @@ public:
     static inline bool CheckConditionNumber(
         const TMatrix1& rInputMatrix,
         TMatrix2& rInvertedMatrix,
-        const TDataType Tolerance = std::numeric_limits<double>::epsilon(),
+        const double Tolerance = std::numeric_limits<double>::epsilon(),
         const bool ThrowError = true
         )
     {
         // We want at least 4 significant digits
-        const TDataType max_condition_number = (1.0/Tolerance) * 1.0e-4;
+        const double max_condition_number = (1.0/Tolerance) * 1.0e-4;
 
         // Find the condition number to define is inverse is OK
         const double input_matrix_norm = norm_frobenius(rInputMatrix);
@@ -426,7 +426,7 @@ public:
         const TMatrix1& rInputMatrix,
         TMatrix2& rInvertedMatrix,
         TDataType& rInputMatrixDet,
-        const TDataType Tolerance = ZeroTolerance
+        const TDataType Tolerance = GetZeroTolerance()
         )
     {
         const SizeType size = rInputMatrix.size2();
@@ -460,7 +460,7 @@ public:
 #else
 
             typedef permutation_matrix<SizeType> pmatrix;
-            Matrix A(rInputMatrix);
+            TMatrix1 A(rInputMatrix);
             pmatrix pm(A.size1());
             const int singular = lu_factorize(A,pm);
             rInvertedMatrix.assign( IdentityMatrix(A.size1()));
@@ -480,10 +480,10 @@ public:
            KRATOS_ERROR << "Not possible to invert Matrix: " << rInputMatrix << std::endl;
        }
 
-    //    // Checking condition number
-    //    if (std::abs(Tolerance) > 0.0) { // Check is skipped for zero tolerances
-    //         CheckConditionNumber(rInputMatrix, rInvertedMatrix, Tolerance);
-    //    }
+       // Checking condition number
+       if (std::abs(Tolerance) > 0.0) { // Check is skipped for zero tolerances
+            CheckConditionNumber(rInputMatrix, rInvertedMatrix, std::abs(Tolerance));
+       }
     }
 
     /**

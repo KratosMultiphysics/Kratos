@@ -121,7 +121,7 @@ AcousticPMLElement::~AcousticPMLElement()
 //     SizeType num_nodes = GetGeometry().PointsNumber();
 
 //     if(rResult.size() != num_nodes)
-//         rResult.resize(num_nodes,false);	
+//         rResult.resize(num_nodes,false);
 
 //     for (SizeType i_node = 0; i_node < num_nodes; i_node++)
 //         rResult[i_node] = GetGeometry()[i_node].GetDof(PRESSURE).EquationId();
@@ -138,7 +138,7 @@ AcousticPMLElement::~AcousticPMLElement()
 //   //  std::cout << "hello?\n";
 
 //     if(rElementalDofList.size() != num_nodes)
-//         rElementalDofList.resize(num_nodes);	
+//         rElementalDofList.resize(num_nodes);
 
 //     for (SizeType i_node = 0; i_node < num_nodes; i_node++)
 //         rElementalDofList[i_node] = GetGeometry()[i_node].pGetDof(PRESSURE);
@@ -208,7 +208,7 @@ AcousticPMLElement::~AcousticPMLElement()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AcousticPMLElement::ComplexJacobian( ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) 
+void AcousticPMLElement::ComplexJacobian( ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod)
 {
     const GeometryType& geom = GetGeometry();
     const SizeType working_space_dimension = geom.WorkingSpaceDimension();
@@ -243,13 +243,13 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
     const GeometryType::IntegrationPointsArrayType integration_points = geom.IntegrationPoints(ThisIntegrationMethod);
     SizeType working_space_dimension = geom.WorkingSpaceDimension();
     SizeType local_space_dimension = geom.LocalSpaceDimension();
-    const double freq = rCurrentProcessInfo[FREQUENCY];
+    // const double freq = rCurrentProcessInfo[FREQUENCY];
 
     if( rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes )
     {
         rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
     }
-    
+
     noalias(rLeftHandSideMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
     ComplexMatrix ComplexLeftHandSideMatrix = ComplexZeroMatrix( number_of_nodes, number_of_nodes );
 
@@ -265,28 +265,28 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
     // nodal values of imaginary coordinate
 
 
-  
-    
+
+
 
     std::complex<double> DetJ;
- 
+
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
     {
         ComplexMatrix Jac (working_space_dimension, local_space_dimension);
         ComplexMatrix Jinv (working_space_dimension, local_space_dimension);
         AcousticPMLElement::ComplexJacobian(Jac, point_number, ThisIntegrationMethod);
-        MathUtils<std::complex<double>>::InvertMatrix<ComplexMatrix, ComplexMatrix>(Jac, Jinv, DetJ);
+        MathUtils<std::complex<double>>::InvertMatrix(Jac, Jinv, DetJ);
         double weight = integration_points[point_number].Weight();
         ComplexMatrix DN_DX = prod( DN_DE[point_number], Jinv);
-        noalias( ComplexLeftHandSideMatrix ) += DetJ * weight * prod( DN_DX, trans(DN_DX));                
+        noalias( ComplexLeftHandSideMatrix ) += DetJ * weight * prod( DN_DX, trans(DN_DX));
     }
 
 
 
 
 
-    //     //     } 
-        
+    //     //     }
+
     // }
 
     // // real part
@@ -294,11 +294,11 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
     // {
     //     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
     //     {
-    //         double int_weight = integration_points[point_number].Weight() * DetJ(point_number);           
+    //         double int_weight = integration_points[point_number].Weight() * DetJ(point_number);
     //         noalias( rLeftHandSideMatrix ) += int_weight * prod( DN_DX[point_number], trans(DN_DX[point_number]));
     //     }
     // }
-        
+
     // Matrix J0;
     // GeometryUtils::JacobianOnInitialConfiguration(geom, geom.IntegrationPoints(ThisIntegrationMethod)[2], J0);
     // KRATOS_WATCH(J0)
@@ -309,7 +309,7 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
         // GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
         // return detJ0;
 }
-		
+
 // /***********************************************************************************/
 
 // /***********************************************************************************/
@@ -328,7 +328,7 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
 //         rMassMatrix.resize(number_of_nodes, number_of_nodes, false);
 //     }
 //     noalias(rMassMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
- 
+
 //     const double p = GetProperties()[DENSITY];
 //     const double G = GetProperties()[BULK_MODULUS];
 
@@ -340,7 +340,7 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
 //                     double GaussWeight = DetJ * integration_points[g].Weight();
 //                     rMassMatrix(i,j) += NContainer(g, i) * NContainer(g, j) * GaussWeight * (p/G);
 //                 }
-//         }        
+//         }
 //     }
 
 // }
@@ -363,7 +363,7 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
 
 // void AcousticElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 // {
- 	
+
 //     const GeometryType& geom = GetGeometry();
 //     const SizeType number_of_nodes = geom.PointsNumber();
 //     // Resizing as needed the RHS
@@ -373,8 +373,8 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
 
 //         rRightHandSideVector = ZeroVector( number_of_nodes ); //resetting RHS
 //     // }
-		
-		
+
+
 // }
 
 
