@@ -321,6 +321,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
+            "name"                        : "displacement_residual_contact_criteria",
             "ensure_contact"              : false,
             "print_convergence_criterion" : false,
             "residual_relative_tolerance" : 1.0e-4,
