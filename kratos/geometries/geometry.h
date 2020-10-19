@@ -1280,20 +1280,6 @@ public:
     }
 
     /**
-     * @brief It returns a vector that is normal to its corresponding geometry in a given integration method
-     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return The normal in the given integration method
-     */
-    virtual array_1d<double, 3> Normal(
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return Normal(rIntegrationPointsArray[IntegrationPointIndex].Coordinates());
-    }
-
-    /**
      * @brief It returns a vector that is normal to its corresponding geometry in the given local point
      * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
      * @return The normal in the given point
@@ -1387,20 +1373,6 @@ public:
         array_1d<double, 3> normal;
         MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
         return normal;
-    }
-
-    /**
-     * @brief It computes the unit normal of the geometry in the given integration method
-     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return The unit normal in the given integration method
-     */
-    virtual array_1d<double, 3> UnitNormal(
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return UnitNormal(rIntegrationPointsArray[IntegrationPointIndex].Coordinates());
     }
 
     /**
@@ -2125,22 +2097,6 @@ public:
         return rResult;
     }
 
-    /**
-     * @brief This method provides the global coordinates corresponding to the given integration method.
-     * @param rResult The array containing the global coordinates corresponding to the given integration method.
-     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return An array containing the global coordinates corresponding to the given integration method.
-     */
-    virtual CoordinatesArrayType& GlobalCoordinates(
-        CoordinatesArrayType& rResult,
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return GlobalCoordinates(rResult, rIntegrationPointsArray[IntegrationPointIndex].Coordinates());
-    }
-
     /** This method provides the global coordinates to
     *   the corresponding integration point
     * @param rResult The global coordinates
@@ -2559,30 +2515,6 @@ public:
         return rResult;
     }
 
-    /**
-     * @brief Jacobians for given  method.
-     * @details This method calculate jacobians matrices in all integrations points of given integration method.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return JacobiansType a Vector of jacobian matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual JacobiansType& Jacobian(
-        JacobiansType& rResult,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        const SizeType integration_points_number = rIntegrationPointsArray.size();
-        if( rResult.size() != integration_points_number )
-            rResult.resize( integration_points_number, false );
-
-        for ( IndexType i_pnt = 0; i_pnt < integration_points_number; ++i_pnt ) {
-            this->Jacobian( rResult[i_pnt], i_pnt, rIntegrationPointsArray);
-        }
-
-        return rResult;
-    }
-
     /** Jacobians for given  method. This method
     calculate jacobians matrices in all integrations points of
     given integration method.
@@ -2608,31 +2540,6 @@ public:
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             this->Jacobian( rResult[pnt], pnt, ThisMethod, DeltaPosition);
-        }
-        return rResult;
-    }
-
-    /**
-     * @brief Jacobians for given  method.
-     * @details This method calculate jacobians matrices in all integrations points of given integration method.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return JacobiansType a Vector of jacobian matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
-     * @param rDeltaPosition Matrix with the nodes position increment which describes the configuration where the jacobian has to be calculated.
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-    */
-    virtual JacobiansType& Jacobian(
-        JacobiansType& rResult,
-        const IntegrationPointsArrayType& rIntegrationPointsArray,
-        /*const*/ Matrix& rDeltaPosition
-        ) const
-    {
-        const SizeType integration_points_number = rIntegrationPointsArray.size();
-        if( rResult.size() != integration_points_number )
-            rResult.resize( integration_points_number, false );
-
-        for ( IndexType i_pnt = 0; i_pnt < integration_points_number; ++i_pnt ) {
-            this->Jacobian( rResult[i_pnt], i_pnt, rIntegrationPointsArray, rDeltaPosition);
         }
         return rResult;
     }
@@ -2698,24 +2605,6 @@ public:
         return rResult;
     }
 
-    /**
-     * @brief Jacobian in specific integration point of given integration method.
-     * @details This method calculate jacobian matrix in given integration point of given integration method.
-     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual Matrix& Jacobian(
-        Matrix& rResult,
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return Jacobian(rResult, rIntegrationPointsArray[IntegrationPointIndex].Coordinates());
-    }
-
     /** Jacobian in specific integration point of given integration
     method. This method calculate jacobian matrix in given
     integration point of given integration method.
@@ -2758,26 +2647,6 @@ public:
         }
 
         return rResult;
-    }
-
-    /**
-     * @brief Jacobian in specific integration point of given integration method.
-     * @details This method calculate jacobian matrix in given integration point of given integration method.
-     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @param rDeltaPosition Matrix with the nodes position increment which describes the configuration where the jacobian has to be calculated.
-     * @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual Matrix& Jacobian(
-        Matrix& rResult,
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray,
-        /*const*/ Matrix& rDeltaPosition
-        ) const
-    {
-        return Jacobian(rResult, rIntegrationPointsArray[IntegrationPointIndex].Coordinates(), rDeltaPosition);
     }
 
     /** Jacobian in given point. This method calculate jacobian
@@ -2898,30 +2767,6 @@ public:
         return rResult;
     }
 
-    /**
-     * @brief Determinant of jacobians for given integration method.
-     * @details This method calculate determinant of jacobian in all integrations points of given integration method.
-     * @param rResult Vector of double which is vector of determinants of jacobians
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return Vector of double which is vector of determinants of jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual Vector& DeterminantOfJacobian(
-        Vector& rResult,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        const SizeType integration_points_number = rIntegrationPointsArray.size();
-        if( rResult.size() != integration_points_number )
-            rResult.resize( integration_points_number, false );
-
-        for ( IndexType i_pnt = 0; i_pnt < integration_points_number; ++i_pnt ) {
-            rResult[i_pnt] = this->DeterminantOfJacobian(rIntegrationPointsArray[i_pnt].Coordinates());
-        }
-        return rResult;
-    }
-
     /** Determinant of jacobian in specific integration point of
     default integration method. This method just call
     DeterminantOfJacobian(IndexType IntegrationPointIndex, enum
@@ -2968,22 +2813,6 @@ public:
         return MathUtils<double>::GeneralizedDet(J);
     }
 
-    /**
-     * @brief Determinant of jacobian in specific integration point of given integration method.
-     * @details This method calculate determinant of jacobian in given integration point of given integration method.
-     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual double DeterminantOfJacobian(
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return this->DeterminantOfJacobian(rIntegrationPointsArray[IntegrationPointIndex].Coordinates());;
-    }
 
     /** Determinant of jacobian in given point. This method calculate determinant of jacobian
     matrix in given point.
@@ -3100,24 +2929,6 @@ public:
         return rResult;
     }
 
-    /**
-     * @brief Inverse of jacobian in specific integration point of given integration method.
-     * @details This method calculate Inverse of jacobian matrix in given integration point of given integration method.
-     * @param IntegrationPointIndex index of integration point which inverse of jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     */
-    virtual Matrix& InverseOfJacobian(
-        Matrix& rResult,
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return InverseOfJacobian(rResult, rIntegrationPointsArray[IntegrationPointIndex].Coordinates());
-    }
-
     /** Inverse of jacobian in given point. This method calculate inverse of jacobian
     matrix in given point.
 
@@ -3191,26 +3002,6 @@ public:
         return rResult;
     }
 
-    /**
-     * @brief This method gives all non-zero shape functions values evaluated at the rCoordinates provided
-     * @note There is no control if the return vector is empty or not!
-     * @param rResult Vector of values of shape functions
-     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return Vector of values of shape functions \f$ F_{i} \f$ where i is the shape function index (for NURBS it is the index of the local enumeration in the element).
-     * @see ShapeFunctionValue
-     * @see ShapeFunctionsLocalGradients
-     * @see ShapeFunctionLocalGradient
-     */
-    virtual Vector& ShapeFunctionsValues (
-        Vector& rResult,
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return ShapeFunctionsValues(rResult, rIntegrationPointsArray[IntegrationPointIndex].Coordinates());
-    }
-
     /** This method gives all shape functions values evaluated in all
     integration points of given integration method. There is no
     calculation and it just give it from shape functions values
@@ -3234,32 +3025,6 @@ public:
     const Matrix& ShapeFunctionsValues( IntegrationMethod ThisMethod )  const
     {
         return mpGeometryData->ShapeFunctionsValues( ThisMethod );
-    }
-
-    /**
-     * @brief This method gives all shape functions values evaluated in all integration points of given integration method.
-     * @details There is no calculation and it just give it from shape functions values container.
-     * @note There is no control if the return matrix is empty or not!
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return Matrix of values of shape functions \f$ F_{ij} \f$ where i is the integration point index and j is the shape function index. In other word component \f$ f_{ij} \f$ is value of the shape function corresponding to node j evaluated in integration point i of given integration method.
-     * @see ShapeFunctionValue
-     * @see ShapeFunctionsLocalGradients
-     * @see ShapeFunctionLocalGradient
-     */
-    Matrix ShapeFunctionsValues( const IntegrationPointsArrayType& rIntegrationPointsArray )  const
-    {
-        const SizeType points_number = PointsNumber();
-        const SizeType integration_points_number = rIntegrationPointsArray.size();
-        Matrix shape_functions(integration_points_number, points_number);
-        Vector aux_shape_frunctions(points_number);
-        for ( IndexType i_pnt = 0; i_pnt < integration_points_number; ++i_pnt ) {
-            aux_shape_frunctions = ShapeFunctionsValues(aux_shape_frunctions, i_pnt, rIntegrationPointsArray);
-            for ( IndexType j_pnt = 0; j_pnt < points_number; ++j_pnt ) {
-                shape_functions(i_pnt, j_pnt) = aux_shape_frunctions[j_pnt];
-            }
-        }
-
-        return shape_functions;
     }
 
     /** This method gives value of given shape function evaluated in
@@ -3314,25 +3079,6 @@ public:
     double ShapeFunctionValue( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, IntegrationMethod ThisMethod ) const
     {
         return mpGeometryData->ShapeFunctionValue( IntegrationPointIndex, ShapeFunctionIndex, ThisMethod );
-    }
-
-    /**
-     * @brief This method gives value of given shape function evaluated in given point.
-     * @param ShapeFunctionIndex index of node which correspounding shape function evaluated in given integration point.
-     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return Value of given shape function in given point.
-     * @see ShapeFunctionsValues
-     * @see ShapeFunctionsLocalGradients
-     * @see ShapeFunctionLocalGradient
-     */
-    virtual double ShapeFunctionValue(
-        IndexType ShapeFunctionIndex,
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return ShapeFunctionValue(ShapeFunctionIndex, rIntegrationPointsArray[IntegrationPointIndex].Coordinates());
     }
 
     /** This method gives value of given shape function evaluated in given
@@ -3468,21 +3214,6 @@ public:
         return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex, ShapeFunctionIndex, ThisMethod);
     }
 
-    /**
-     * @brief This method gives gradient of all shape functions evaluated in given point.
-     * @details There is no calculation and it just give it from shape functions values container if they are existing. Otherwise it gives you error which this value is not exist.
-     * @param rResult the given Container that will be overwritten by the solution
-     * @param rPoint the given local coordinates the gradients will be evaluated for
-     * @return a matrix of gradients for each shape function
-     */
-    virtual Matrix& ShapeFunctionsLocalGradients(
-        Matrix& rResult,
-        IndexType IntegrationPointIndex,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const
-    {
-        return ShapeFunctionsLocalGradients(rResult, rIntegrationPointsArray[IntegrationPointIndex].Coordinates());
-    }
 
     /** This method gives gradient of all shape functions evaluated
      * in given point.

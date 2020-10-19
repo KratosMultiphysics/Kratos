@@ -521,30 +521,6 @@ public:
         return rResult;
     }
 
-    /**
-     * @brief Determinant of jacobians for given integration method.
-     * @details This method calculate determinant of jacobian in all integrations points of given integration method.
-     * @param rResult Vector of double which is vector of determinants of jacobians
-     * @param rIntegrationPointsArray The integration method which jacobians has to be calculated in its integration points.
-     * @return Vector of double which is vector of determinants of jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    Vector& DeterminantOfJacobian(
-        Vector& rResult,
-        const IntegrationPointsArrayType& rIntegrationPointsArray
-        ) const override
-    {
-        const SizeType integration_points_number = rIntegrationPointsArray.size();
-        if( rResult.size() != integration_points_number )
-            rResult.resize( integration_points_number, false );
-
-        for ( IndexType i_pnt = 0; i_pnt < integration_points_number; ++i_pnt ) {
-            rResult[i_pnt] = 0.5*(this->Length());
-        }
-        return rResult;
-    }
-
     /** Determinant of jacobian in specific integration point of
     given integration method. This method calculate determinant
     of jacobian in given integration point of given integration
