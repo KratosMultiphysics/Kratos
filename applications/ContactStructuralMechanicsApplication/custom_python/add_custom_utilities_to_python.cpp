@@ -56,17 +56,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     // Contact utilities
-    py::class_<ContactUtilities, typename ContactUtilities::Pointer>(m, "ContactUtilities")
-    .def(py::init<>())
-    .def("CalculateRelativeSizeMesh",&ContactUtilities::CalculateRelativeSizeMesh)
-    .def("CalculateMaxNodalH",&ContactUtilities::CalculateMaxNodalH)
-    .def("CalculateMeanNodalH",&ContactUtilities::CalculateMeanNodalH)
-    .def("CalculateMinimalNodalH",&ContactUtilities::CalculateMinimalNodalH)
-    .def("CheckActivity",&ContactUtilities::CheckActivity)
-    .def("CleanContactModelParts",&ContactUtilities::CleanContactModelParts)
-    .def("ComputeExplicitContributionConditions",&ContactUtilities::ComputeExplicitContributionConditions)
-    .def("ActivateConditionWithActiveNodes",&ContactUtilities::ActivateConditionWithActiveNodes)
-    ;
+    auto contact_utilities = m.def_submodule("ContactUtilities");
+    contact_utilities.def("CalculateRelativeSizeMesh",&ContactUtilities::CalculateRelativeSizeMesh);
+    contact_utilities.def("CalculateMaxNodalH",&ContactUtilities::CalculateMaxNodalH);
+    contact_utilities.def("CalculateMeanNodalH",&ContactUtilities::CalculateMeanNodalH);
+    contact_utilities.def("CalculateMinimalNodalH",&ContactUtilities::CalculateMinimalNodalH);
+    contact_utilities.def("CheckActivity",&ContactUtilities::CheckActivity);
+    contact_utilities.def("CleanContactModelParts",&ContactUtilities::CleanContactModelParts);
+    contact_utilities.def("ComputeExplicitContributionConditions",&ContactUtilities::ComputeExplicitContributionConditions);
+    contact_utilities.def("ActivateConditionWithActiveNodes",&ContactUtilities::ActivateConditionWithActiveNodes);
 
     // Active set utilities
     auto active_set_utilities = m.def_submodule("ActiveSetUtilities");
