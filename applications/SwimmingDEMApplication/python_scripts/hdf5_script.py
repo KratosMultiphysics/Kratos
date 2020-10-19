@@ -3,11 +3,18 @@ import os
 
 import numpy as np
 import h5py
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.SwimmingDEMApplication as Dem
 
 class ErrorProjectionPostProcessTool(object):
     def __init__(self, test_number):
+        """
+        The default constructor of the class
 
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        test_number -- It is the number of the mesh that is computing
+        """
         self.parameters = Kratos.Parameters( """
         {
             "file_name": "sp_data.hdf5",
@@ -48,12 +55,12 @@ class ErrorProjectionPostProcessTool(object):
 
     def WriteDataToFile(self, file_or_group, names, data):
         overwrite_previous = True
-        if name in file_or_group:
+        if self.group_name in file_or_group:
             if overwrite_previous:
-                file_or_group['/'].__delitem__(name)
-                self.sub_group = file_or_group.create_group(name)
+                file_or_group['/'].__delitem__(self.group_name)
+                self.sub_group = file_or_group.create_group(self.group_name)
             else:
-                self.sub_group = file_or_group['/' + name]
+                self.sub_group = file_or_group['/' + self.group_name]
         self.sub_group.attrs['element_size'] = str(self.max_element)
         self.sub_group.attrs['n_elements'] = str(len(self.error_model_part.Elements))
         for name, datum in zip(names, data):

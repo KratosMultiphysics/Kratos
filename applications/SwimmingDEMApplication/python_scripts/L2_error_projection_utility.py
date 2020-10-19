@@ -9,6 +9,7 @@ class L2ErrorProjectionUtility:
     def __init__(self, model):
         """
         The default constructor of the class
+
         Keyword arguments:
         self -- It signifies an instance of a class.
         model -- the container of the different model parts.

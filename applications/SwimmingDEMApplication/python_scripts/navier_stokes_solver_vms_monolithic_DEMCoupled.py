@@ -15,6 +15,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
     def __init__(self, settings):
         """
         The default constructor of the class
+
         Keyword arguments:
         self -- It signifies an instance of a class.
         settings -- Kratos parameters containing the formulation used (vms, qsvms, etc).

@@ -12,6 +12,7 @@ class ApplySpatialDependantPorositySolutionBodyForceProcess(KratosMultiphysics.P
     def __init__(self, model, settings):
         """
         The default constructor of the class
+
         Keyword arguments:
         self -- It signifies an instance of a class.
         model -- the container of the fluid model part.

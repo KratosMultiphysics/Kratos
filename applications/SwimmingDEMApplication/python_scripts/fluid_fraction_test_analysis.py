@@ -15,6 +15,7 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, iteration, varying_parameters = Parameters("{}")):
         """
         The default constructor of the class
+
         Keyword arguments:
         self -- It signifies an instance of a class.
         iteration -- The number of the fluid_model_part that is running
