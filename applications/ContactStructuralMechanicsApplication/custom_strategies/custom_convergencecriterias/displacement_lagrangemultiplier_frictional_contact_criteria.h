@@ -73,6 +73,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ENSURE_CONTACT );
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( ROTATION_DOF_IS_CONSIDERED );
     KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base class definition (and it subclasses)
@@ -133,6 +134,7 @@ public:
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP, PureSlip);
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
 
         // The displacement solution
         mDispRatioTolerance = DispRatioTolerance;
@@ -597,6 +599,7 @@ protected:
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
     }
 
@@ -675,7 +678,9 @@ const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSpa
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(3));
+const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::ROTATION_DOF_IS_CONSIDERED(Kratos::Flags::Create(3));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(4));
 }
 
 #endif	/* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_FRICTIONAL_CONTACT_CRITERIA_H */

@@ -71,6 +71,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ENSURE_CONTACT );
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( ROTATION_DOF_IS_CONSIDERED );
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
 
     /// The base class definition (and it subclasses)
@@ -120,6 +121,7 @@ public:
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::ENSURE_CONTACT, EnsureContact);
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
 
         mDispRatioTolerance = DispRatioTolerance;
@@ -449,6 +451,7 @@ protected:
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
     }
 
@@ -524,7 +527,9 @@ const Kratos::Flags DisplacementLagrangeMultiplierResidualContactCriteria<TSpars
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierResidualContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierResidualContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(3));
+const Kratos::Flags DisplacementLagrangeMultiplierResidualContactCriteria<TSparseSpace, TDenseSpace>::ROTATION_DOF_IS_CONSIDERED(Kratos::Flags::Create(3));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierResidualContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(4));
 }
 
 #endif /* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_RESIDUAL_CONTACT_CRITERIA_H */

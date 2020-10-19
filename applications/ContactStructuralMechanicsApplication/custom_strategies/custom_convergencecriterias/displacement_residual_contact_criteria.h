@@ -67,6 +67,7 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( ROTATION_DOF_IS_CONSIDERED );
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
 
     /// The base class definition (and it subclasses)
@@ -109,6 +110,7 @@ public:
         // Set local flags
         mOptions.Set(DisplacementResidualContactCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
 
         mDispRatioTolerance = DispRatioTolerance;
@@ -391,6 +393,7 @@ protected:
         // Set local flags
         mOptions.Set(DisplacementResidualContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
     }
 
@@ -457,7 +460,9 @@ const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpac
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(3));
+const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::ROTATION_DOF_IS_CONSIDERED(Kratos::Flags::Create(3));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(4));
 }
 
 #endif /* KRATOS_DISPLACEMENT_RESIDUAL_CONTACT_CRITERIA_H */

@@ -73,6 +73,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ENSURE_CONTACT );
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( ROTATION_DOF_IS_CONSIDERED );
     KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_NORMAL_RESIDUAL_IS_SET );
@@ -135,6 +136,7 @@ public:
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT, EnsureContact);
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP, PureSlip);
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_NORMAL_RESIDUAL_IS_SET, false);
@@ -675,6 +677,7 @@ protected:
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_NORMAL_RESIDUAL_IS_SET, false);
@@ -768,15 +771,17 @@ const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCrite
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(3));
+const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::ROTATION_DOF_IS_CONSIDERED(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(4));
+const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(4));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_NORMAL_RESIDUAL_IS_SET(Kratos::Flags::Create(5));
+const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(5));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_STICK_RESIDUAL_IS_SET(Kratos::Flags::Create(6));
+const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_NORMAL_RESIDUAL_IS_SET(Kratos::Flags::Create(6));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_SLIP_RESIDUAL_IS_SET(Kratos::Flags::Create(7));
+const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_STICK_RESIDUAL_IS_SET(Kratos::Flags::Create(7));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_SLIP_RESIDUAL_IS_SET(Kratos::Flags::Create(8));
 }
 
 #endif /* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_RESIDUAL_FRICTIONAL_CONTACT_CRITERIA_H */

@@ -67,6 +67,7 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( ROTATION_DOF_IS_CONSIDERED );
 
     /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -108,6 +109,7 @@ public:
         // Set local flags
         mOptions.Set(DisplacementContactCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
 
         // The displacement solution
         mDispRatioTolerance = DispRatioTolerance;
@@ -359,6 +361,7 @@ protected:
         // Set local flags
         mOptions.Set(DisplacementContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
     }
 
     ///@}
@@ -421,6 +424,8 @@ template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementContactCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementContactCriteria<TSparseSpace, TDenseSpace>::ROTATION_DOF_IS_CONSIDERED(Kratos::Flags::Create(3));
 }
 
 #endif	/* KRATOS_DISPLACEMENT_CONTACT_CRITERIA_H */
