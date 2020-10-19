@@ -33,9 +33,7 @@
             "condition_name" : "ThermalFace"
         },
         "use_orthogonal_subscales": false,
-        "explicit_parameters" : {
-            "dynamic_tau": 1.0
-        }
+        "dynamic_tau": 1.0
     },
     "processes" : {
         "constraints_process_list" : [{

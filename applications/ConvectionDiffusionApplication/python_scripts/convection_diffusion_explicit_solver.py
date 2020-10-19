@@ -29,14 +29,13 @@ class ConvectionDiffusionExplicitSolver(
 
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
         if self.settings["use_orthogonal_subscales"].GetBool() is True:
-            oss_element_list = [QSConvectionDiffusionExplicit", "DConvectionDiffusionExplicit"]
+            oss_element_list = ["QSConvectionDiffusionExplicit", "DConvectionDiffusionExplicit"]
             if element_name in oss_element_list:
                 self.main_model_part.ProcessInfo.SetValue(
                     KratosMultiphysics.OSS_SWITCH, 1
                 )
             else:
-                err_msg = self.__class__.__name__
-                err_msg += (
+                err_msg = (
                     "The selected element",
                     element_name,
                     "does not support OSS projection. Select QSConvectionDiffusionExplicit or DConvectionDiffusionExplicit instead.",
@@ -50,14 +49,6 @@ class ConvectionDiffusionExplicitSolver(
                 self.main_model_part.ProcessInfo.SetValue(
                     KratosMultiphysics.OSS_SWITCH, 0
                 )
-            else:
-                err_msg = self.__class__.__name__
-                err_msg += (
-                    "The selected element",
-                    element_name,
-                    "does not support OSS projection. Select QSConvectionDiffusionExplicit or DConvectionDiffusionExplicit instead.",
-                )
-                raise Exception(err_msg)
 
         KratosMultiphysics.Logger.PrintInfo(
             self.__class__.__name__, "Construction finished"
@@ -69,9 +60,7 @@ class ConvectionDiffusionExplicitSolver(
         """
         {
             "use_orthogonal_subscales" : false,
-            "explicit_parameters" : {
-                "dynamic_tau": 1.0
-            }
+            "dynamic_tau": 1.0
         }
         """
         )
@@ -92,7 +81,7 @@ class ConvectionDiffusionExplicitSolver(
     def _create_solution_scheme(self):
         self.GetComputingModelPart().ProcessInfo[
             KratosMultiphysics.DYNAMIC_TAU
-        ] = self.settings["explicit_parameters"]["dynamic_tau"].GetDouble()
+        ] = self.settings["dynamic_tau"].GetDouble()
 
     def _create_runge_kutta_4_strategy(self):
         computing_model_part = self.GetComputingModelPart()
