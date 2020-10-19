@@ -273,18 +273,18 @@ public:
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && mOptions.IsNot(DisplacementContactCriteria::TABLE_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
-            auto& table = p_table->GetTable();
-            table.AddColumn("DP RATIO", 10);
-            table.AddColumn("EXP. RAT", 10);
-            table.AddColumn("ABS", 10);
-            table.AddColumn("EXP. ABS", 10);
+            auto& r_table = p_table->GetTable();
+            r_table.AddColumn("DP RATIO", 10);
+            r_table.AddColumn("EXP. RAT", 10);
+            r_table.AddColumn("ABS", 10);
+            r_table.AddColumn("EXP. ABS", 10);
             if (mOptions.IsNot(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
-                table.AddColumn("RT RATIO", 10);
-                table.AddColumn("EXP. RAT", 10);
-                table.AddColumn("ABS", 10);
-                table.AddColumn("EXP. ABS", 10);
+                r_table.AddColumn("RT RATIO", 10);
+                r_table.AddColumn("EXP. RAT", 10);
+                r_table.AddColumn("ABS", 10);
+                r_table.AddColumn("EXP. ABS", 10);
             }
-            table.AddColumn("CONVERGENCE", 15);
+            r_table.AddColumn("CONVERGENCE", 15);
             mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, true);
         }
     }
