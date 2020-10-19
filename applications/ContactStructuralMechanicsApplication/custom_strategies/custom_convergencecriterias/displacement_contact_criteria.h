@@ -278,6 +278,12 @@ public:
             table.AddColumn("EXP. RAT", 10);
             table.AddColumn("ABS", 10);
             table.AddColumn("EXP. ABS", 10);
+            if (mOptions.IsNot(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                table.AddColumn("RT RATIO", 10);
+                table.AddColumn("EXP. RAT", 10);
+                table.AddColumn("ABS", 10);
+                table.AddColumn("EXP. ABS", 10);
+            }
             table.AddColumn("CONVERGENCE", 15);
             mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, true);
         }
