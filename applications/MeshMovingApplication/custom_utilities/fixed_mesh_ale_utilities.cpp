@@ -25,6 +25,7 @@
 #include "includes/mesh_moving_variables.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -135,15 +136,17 @@ namespace Kratos
         auto orig_nodes_begin = mpOriginModelPart->NodesBegin();
         const unsigned int buffer_size = mpOriginModelPart->GetBufferSize();
 
-        #pragma omp parallel for firstprivate(virt_nodes_begin, orig_nodes_begin, buffer_size)
-        for (int i_node = 0; i_node < static_cast<int>(mpOriginModelPart->NumberOfNodes()); ++i_node) {
-            auto it_virt_node = virt_nodes_begin + i_node;
-            const auto it_orig_node = orig_nodes_begin + i_node;
-            for (unsigned int step = 1; step < buffer_size; ++step) {
-                it_virt_node->FastGetSolutionStepValue(PRESSURE, step) = it_orig_node->FastGetSolutionStepValue(PRESSURE, step);
-                noalias(it_virt_node->FastGetSolutionStepValue(VELOCITY, step)) = it_orig_node->FastGetSolutionStepValue(VELOCITY, step);
-            }
-        }
+        IndexPartition<std::size_t>( static_cast<int>(mpOriginModelPart->NumberOfNodes()) ).for_each(
+            [&]( std::size_t index )
+            {
+                auto it_virt_node       = virt_nodes_begin + index;
+                const auto it_orig_node = orig_nodes_begin + index;
+
+                for (unsigned int step = 1; step < buffer_size; ++step) {
+                    it_virt_node->FastGetSolutionStepValue(PRESSURE, step) = it_orig_node->FastGetSolutionStepValue(PRESSURE, step);
+                    noalias(it_virt_node->FastGetSolutionStepValue(VELOCITY, step)) = it_orig_node->FastGetSolutionStepValue(VELOCITY, step);
+                }
+            } );
     }
 
     void FixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
@@ -189,46 +192,46 @@ namespace Kratos
 
         // Search the origin model part nodes in the virtual mesh elements and
         // interpolate the values in the virtual element to the origin model part node
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < static_cast<int>(rOriginModelPart.NumberOfNodes()); ++i_node) {
-            auto it_node = rOriginModelPart.NodesBegin() + i_node;
+        block_for_each( rOriginModelPart.Nodes(),
+            [&]( Node<3>& rNode )
+            {
+                // Find the origin model part node in the virtual mesh
+                Vector aux_N;
+                Element::Pointer p_elem = nullptr;
+                const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux_N, p_elem);
 
-            // Find the origin model part node in the virtual mesh
-            Vector aux_N;
-            Element::Pointer p_elem = nullptr;
-            const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), aux_N, p_elem);
+                // Check if the node is found
+                if (is_found){
+                    // Initialize MESH_VELOCITY
+                    noalias(rNode.FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
 
-            // Check if the node is found
-            if (is_found){
-                // Initialize MESH_VELOCITY
-                noalias(it_node->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
-
-                // Initialize historical data
-                for (unsigned int i_step = 1; i_step < BufferSize; ++i_step) {
-                    it_node->FastGetSolutionStepValue(PRESSURE, i_step) = 0.0;
-                    noalias(it_node->FastGetSolutionStepValue(VELOCITY, i_step)) = ZeroVector(3);
-                }
-
-                // Interpolate the origin model part nodal values
-                const auto &r_geom = p_elem->GetGeometry();
-                for (std::size_t i_virt_node = 0; i_virt_node < r_geom.PointsNumber(); ++i_virt_node){
-                    // Project MESH_VELOCITY
-                    const auto i_virt_v_mesh = r_geom[i_virt_node].FastGetSolutionStepValue(MESH_VELOCITY);
-                    it_node->FastGetSolutionStepValue(MESH_VELOCITY) += aux_N(i_virt_node) * i_virt_v_mesh;
-
-                    // Project historical data
-                    for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
-                        const auto &i_virt_v = r_geom[i_virt_node].FastGetSolutionStepValue(VELOCITY, i_step);
-                        const double &i_virt_p = r_geom[i_virt_node].FastGetSolutionStepValue(PRESSURE, i_step);
-                        it_node->FastGetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * i_virt_p;
-                        noalias(it_node->FastGetSolutionStepValue(VELOCITY, i_step)) += aux_N(i_virt_node) * i_virt_v;
+                    // Initialize historical data
+                    for (unsigned int i_step = 1; i_step < BufferSize; ++i_step) {
+                        rNode.FastGetSolutionStepValue(PRESSURE, i_step) = 0.0;
+                        noalias(rNode.FastGetSolutionStepValue(VELOCITY, i_step)) = ZeroVector(3);
                     }
-                }
-            } else {
-                KRATOS_WARNING("FixedMeshALEUtilities")
-                    << "Origin model part node " << it_node->Id() << " has not been found in any virtual model part element. Origin node coordinates: (" << it_node->X() << " , " << it_node->Y() << " , " << it_node->Z() << ")" << std::endl;
-            }
-        }
+
+                    // Interpolate the origin model part nodal values
+                    const auto &r_geom = p_elem->GetGeometry();
+                    for (std::size_t i_virt_node = 0; i_virt_node < r_geom.PointsNumber(); ++i_virt_node){
+                        // Project MESH_VELOCITY
+                        const auto i_virt_v_mesh = r_geom[i_virt_node].FastGetSolutionStepValue(MESH_VELOCITY);
+                        rNode.FastGetSolutionStepValue(MESH_VELOCITY) += aux_N(i_virt_node) * i_virt_v_mesh;
+
+                        // Project historical data
+                        for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
+                            const auto &i_virt_v = r_geom[i_virt_node].FastGetSolutionStepValue(VELOCITY, i_step);
+                            const double &i_virt_p = r_geom[i_virt_node].FastGetSolutionStepValue(PRESSURE, i_step);
+                            rNode.FastGetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * i_virt_p;
+                            noalias(rNode.FastGetSolutionStepValue(VELOCITY, i_step)) += aux_N(i_virt_node) * i_virt_v;
+                        }
+                    }
+                } else {
+                    KRATOS_WARNING("FixedMeshALEUtilities")
+                        << "Origin model part node " << rNode.Id() << " has not been found in any virtual model part element. Origin node coordinates: (" << rNode.X() << " , " << rNode.Y() << " , " << rNode.Z() << ")" << std::endl;
+                } // else ( is_found )
+            } );
+
     }
 
     /* Protected functions *******************************************************/
@@ -321,66 +324,66 @@ namespace Kratos
         // Note that both positions of the buffer are initialized to zero. This is important
         // in case the CloneTimeStep() is done in the virtual model part, since the method
         // assumes that the mesh is in the origin position when computing the MESH_VELOCITY.
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_node) {
-            auto it_node = mrVirtualModelPart.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(MESH_VELOCITY, 0) = ZeroVector(3);
-            it_node->FastGetSolutionStepValue(MESH_VELOCITY, 1) = ZeroVector(3);
-            it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 0) = ZeroVector(3);
-            it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1) = ZeroVector(3);
-        }
+        block_for_each( mrVirtualModelPart.Nodes(),
+            []( Node<3>& rNode )
+            {
+                rNode.FastGetSolutionStepValue(MESH_VELOCITY, 0) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(MESH_VELOCITY, 1) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT, 1) = ZeroVector(3);
+            } );
     }
 
     void FixedMeshALEUtilities::InitializeMeshDisplacementFixity()
     {
-        #pragma omp parallel for
-        for(int i_fl = 0; i_fl < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_fl) {
-            // Free all the MESH_DISPLACEMENT DOFs
-            auto it_node = mrVirtualModelPart.NodesBegin() + i_fl;
-            it_node->Free(MESH_DISPLACEMENT_X);
-            it_node->Free(MESH_DISPLACEMENT_Y);
-            it_node->Free(MESH_DISPLACEMENT_Z);
-        }
+        block_for_each( mrVirtualModelPart.Nodes(),
+            []( Node<3>& rNode )
+            {
+                rNode.Free(MESH_DISPLACEMENT_X);
+                rNode.Free(MESH_DISPLACEMENT_Y);
+                rNode.Free(MESH_DISPLACEMENT_Z);
+            } );
     }
 
     void FixedMeshALEUtilities::SetMeshDisplacementFixityFromOriginModelPart()
     {
-        #pragma omp parallel for
-        for(int i_fl = 0; i_fl < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_fl) {
-            // Check origin model part mesh displacement fixity
-            auto it_node = mrVirtualModelPart.NodesBegin() + i_fl;
-            const auto it_orig_node = mpOriginModelPart->NodesBegin() + i_fl;
-            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_X)) {
-                it_node->Fix(MESH_DISPLACEMENT_X);
+        IndexPartition<std::size_t>( static_cast<size_t>(mrVirtualModelPart.NumberOfNodes()) ).for_each(
+            [this]( std::size_t index )
+            {
+                auto it_node = mrVirtualModelPart.NodesBegin() + index;
+                const auto it_orig_node = mpOriginModelPart->NodesBegin() + index;
+                if (it_orig_node->IsFixed(MESH_DISPLACEMENT_X)) {
+                    it_node->Fix(MESH_DISPLACEMENT_X);
+                }
+                if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Y)) {
+                    it_node->Fix(MESH_DISPLACEMENT_Y);
+                }
+                if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Z)) {
+                    it_node->Fix(MESH_DISPLACEMENT_Z);
+                }
             }
-            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Y)) {
-                it_node->Fix(MESH_DISPLACEMENT_Y);
-            }
-            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Z)) {
-                it_node->Fix(MESH_DISPLACEMENT_Z);
-            }
-        }
+        );
     }
 
     void FixedMeshALEUtilities::SetEmbeddedNodalMeshDisplacement()
     {
         // Initialize the DISPLACEMENT variable values
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_node) {
-            auto it_node = mrVirtualModelPart.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
-            it_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
-        }
+        block_for_each( mrVirtualModelPart.Nodes(),
+        []( Node<3>& rNode )
+        {
+            rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
+        } );
 
         // Place the structure in its previous position
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mrStructureModelPart.NumberOfNodes()); ++i_node) {
-            auto it_node = mrStructureModelPart.NodesBegin() + i_node;
-            const auto d_1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            it_node->X() = it_node->X0() + d_1[0];
-            it_node->Y() = it_node->Y0() + d_1[1];
-            it_node->Z() = it_node->Z0() + d_1[2];
-        }
+        block_for_each( mrStructureModelPart.Nodes(),
+        []( Node<3>& rNode )
+        {
+            const auto d_1 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+            rNode.X() = rNode.X0() + d_1[0];
+            rNode.Y() = rNode.Y0() + d_1[1];
+            rNode.Z() = rNode.Z0() + d_1[2];
+        } );
 
         // Compute the DISPLACEMENT increment from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
         const unsigned int buff_pos_0 = 0;
@@ -437,14 +440,14 @@ namespace Kratos
         }
 
         // Revert the structure movement to its current position
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mrStructureModelPart.NumberOfNodes()); ++i_node) {
-            auto it_node = mrStructureModelPart.NodesBegin() + i_node;
-            const auto d_0 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 0);
-            it_node->X() = it_node->X0() + d_0[0];
-            it_node->Y() = it_node->Y0() + d_0[1];
-            it_node->Z() = it_node->Z0() + d_0[2];
-        }
+        block_for_each( mrStructureModelPart.Nodes(),
+        []( Node<3>& rNode )
+        {
+            const auto d_0 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
+            rNode.X() = rNode.X0() + d_0[0];
+            rNode.Y() = rNode.Y0() + d_0[1];
+            rNode.Z() = rNode.Z0() + d_0[2];
+        } );
     }
 
     void FixedMeshALEUtilities::SolveMeshMovementStrategy(const double DeltaTime)
@@ -468,19 +471,19 @@ namespace Kratos
 
     void FixedMeshALEUtilities::RevertMeshDisplacementFixity()
     {
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_node) {
-            auto it_node = mrVirtualModelPart.NodesBegin() + i_node;
-            if (it_node->IsFixed(MESH_DISPLACEMENT_X)) {
-                it_node->Free(MESH_DISPLACEMENT_X);
+        block_for_each( mrVirtualModelPart.Nodes(),
+        []( Node<3>& rNode )
+        {
+            if (rNode.IsFixed(MESH_DISPLACEMENT_X)) {
+                rNode.Free(MESH_DISPLACEMENT_X);
             }
-            if (it_node->IsFixed(MESH_DISPLACEMENT_Y)) {
-                it_node->Free(MESH_DISPLACEMENT_Y);
+            if (rNode.IsFixed(MESH_DISPLACEMENT_Y)) {
+                rNode.Free(MESH_DISPLACEMENT_Y);
             }
-            if (it_node->IsFixed(MESH_DISPLACEMENT_Z)) {
-                it_node->Free(MESH_DISPLACEMENT_Z);
+            if (rNode.IsFixed(MESH_DISPLACEMENT_Z)) {
+                rNode.Free(MESH_DISPLACEMENT_Z);
             }
-        }
+        } );
     }
 
     /* External functions *****************************************************/

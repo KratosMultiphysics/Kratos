@@ -2,6 +2,7 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 
 import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
 import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
@@ -9,7 +10,6 @@ import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as
 import math
 import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.SolidMechanicsApplication as Solid
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 import KratosMultiphysics.DEMApplication as KratosDEM
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
@@ -329,7 +329,7 @@ class MainCoupledFemDem_Solution:
                                                                             [node.Id],
                                                                             props)
             self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
-            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(Solid.FORCE_LOAD, [0.0,0.0,0.0])
+            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(KratosSMA.POINT_LOAD, [0.0,0.0,0.0])
 
 #FindNeighboursIfNecessary===================================================================================================================================
     def FindNeighboursIfNecessary(self):
@@ -936,6 +936,8 @@ class MainCoupledFemDem_Solution:
         props = KratosMultiphysics.Properties(max_id_properties + 1)
         self.created_props_id = max_id_properties + 1
         props[KratosDEM.FRICTION] =  -0.5773502691896257
+        props[KratosDEM.STATIC_FRICTION] =  -0.5773502691896257
+        props[KratosDEM.DYNAMIC_FRICTION] =  -0.5773502691896257
         props[KratosDEM.WALL_COHESION] = 0.0
         props[KratosDEM.COMPUTE_WEAR] = False
         props[KratosDEM.SEVERITY_OF_WEAR] = 0.001

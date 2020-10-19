@@ -71,17 +71,16 @@ namespace Kratos
         virtual ~ThermalSphericParticle();
 
         void Initialize(const ProcessInfo& r_process_info) override;
-        void InitializeSolutionStep(ProcessInfo& r_process_info) override;
+        void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
         const double& GetTemperature();
         void SetTemperature(const double temperature);
         virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
         void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);
         void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
-        void CalculateRightHandSide(ProcessInfo& r_current_process_info,
+        void CalculateRightHandSide(const ProcessInfo& r_current_process_info,
                                     double dt,
-                                    const array_1d<double,3>& gravity,
-                                    int search_control) override;
-        void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+                                    const array_1d<double,3>& gravity) override;
+        void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
         void UpdateTemperature(const ProcessInfo& r_process_info);
         void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
                                                                             double DeltDisp[3],
