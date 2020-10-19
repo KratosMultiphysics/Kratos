@@ -16,10 +16,10 @@
         "solver_type": "transient",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "test_convection_diffusion_explicit_element/bar"
+            "input_filename": "test_convection_diffusion_bar/bar"
         },
         "material_import_settings"           : {
-            "materials_filename" : "test_convection_diffusion_explicit_element/materials_bar.json"
+            "materials_filename" : "test_convection_diffusion_bar/materials_bar.json"
         },
         "time_stepping" : {
             "time_step": 0.4

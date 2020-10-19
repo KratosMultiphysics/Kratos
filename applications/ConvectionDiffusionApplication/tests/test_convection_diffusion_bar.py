@@ -5,10 +5,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import *
 
-class TestConvectionDiffusionExplicitElement(KratosUnittest.TestCase):
+class TestConvectionDiffusionBar(KratosUnittest.TestCase):
 
-    def testConvectionDiffusionExplicitElementUnsteadyDOSS(self):
-        project_parameters_file_name = "test_convection_diffusion_explicit_element/project_parameters_bar_DOSS.json"
+    def testConvectionDiffusionBarExplicitElementUnsteadyDOSS(self):
+        project_parameters_file_name = "test_convection_diffusion_bar/project_parameters_bar_DOSS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
@@ -28,8 +28,8 @@ class TestConvectionDiffusionExplicitElement(KratosUnittest.TestCase):
         error = sqrt(error)
         self.assertAlmostEqual(error,0.0017678016487118946,delta=1e-12)
 
-    def testConvectionDiffusionExplicitElementUnsteadyQOSS(self):
-        project_parameters_file_name = "test_convection_diffusion_explicit_element/project_parameters_bar_QOSS.json"
+    def testConvectionDiffusionBarExplicitElementUnsteadyQOSS(self):
+        project_parameters_file_name = "test_convection_diffusion_bar/project_parameters_bar_QOSS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
@@ -49,8 +49,8 @@ class TestConvectionDiffusionExplicitElement(KratosUnittest.TestCase):
         error = sqrt(error)
         self.assertAlmostEqual(error,0.0017678016487242358,delta=1e-12)
 
-    def testConvectionDiffusionExplicitElementUnsteadyDASGS(self):
-        project_parameters_file_name = "test_convection_diffusion_explicit_element/project_parameters_bar_DASGS.json"
+    def testConvectionDiffusionBarExplicitElementUnsteadyDASGS(self):
+        project_parameters_file_name = "test_convection_diffusion_bar/project_parameters_bar_DASGS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
@@ -70,8 +70,8 @@ class TestConvectionDiffusionExplicitElement(KratosUnittest.TestCase):
         error = sqrt(error)
         self.assertAlmostEqual(error,0.04953302968545053,delta=1e-12)
 
-    def testConvectionDiffusionExplicitElementUnsteadyQASGS(self):
-        project_parameters_file_name = "test_convection_diffusion_explicit_element/project_parameters_bar_QASGS.json"
+    def testConvectionDiffusionBarExplicitElementUnsteadyQASGS(self):
+        project_parameters_file_name = "test_convection_diffusion_bar/project_parameters_bar_QASGS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
