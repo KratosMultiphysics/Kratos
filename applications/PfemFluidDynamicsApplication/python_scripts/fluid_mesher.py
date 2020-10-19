@@ -138,11 +138,10 @@ class FluidMesher(mesher.Mesher):
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         ### rebuild boundary
-        ############ choose just one of the following two options: ############        
+        ############ choose just one of the following two options: ############
         ## use this if you want conditions
         ## ATTENTION: this is slow, and must be used together with ModelMeshingWithConditionsForFluids and BuildModelPartBoundary
         #rebuild_mesh_boundary = KratosPfemFluid.GenerateNewConditionsForFluids(self.model_part, self.MeshingParameters, self.echo_level)
-        
         ## if you use the following, you will not use/build/compute conditions
         ## ATTENTION: it must be used together with ModelMeshingForFluids and BuildModelPartBoundaryForFluids
         rebuild_mesh_boundary = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, self.MeshingParameters, self.echo_level)
