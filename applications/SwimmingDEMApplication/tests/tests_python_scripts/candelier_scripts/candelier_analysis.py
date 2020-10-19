@@ -30,7 +30,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                                                                             'vorticity_induced_lift_parameters',
                                                                             condition=lambda value: not (value['name'].GetString()=='default'))
 
-        print('candelier_pp.include_lift ', candelier_pp.include_lift )
+        Kratos.Logger.PrintInfo("SwimmingDEM", 'candelier_pp.include_lift ', candelier_pp.include_lift )
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
         self.project_parameters["custom_fluid"]["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)

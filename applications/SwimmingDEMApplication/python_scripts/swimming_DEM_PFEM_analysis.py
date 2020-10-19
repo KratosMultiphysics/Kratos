@@ -65,7 +65,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
             self._GetFluidAnalysis().time = self.time
             #self._GetFluidAnalysis().step = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
             #self._GetFluidAnalysis().main_model_part.ProcessInfo[STEP] = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
-            print(" [STEP:",self.step," TIME:",self.time,"]")
+            Kratos.Logger.PrintInfo("SwimmingDEM", " [STEP:",self.step," TIME:",self.time,"]")
 
     def CloneTimeStep(self):
         self.TransferTimeToFluidSolver()
