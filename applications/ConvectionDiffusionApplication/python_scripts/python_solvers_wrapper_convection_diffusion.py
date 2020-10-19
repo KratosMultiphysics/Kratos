@@ -13,12 +13,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
 
-    if solver_settings.Has("time_integration_method"):
-        time_integration_method = solver_settings["time_integration_method"].GetString()
-    else: # set implicit by default
+    if not solver_settings.Has("time_integration_method"):
         KratosMultiphysics.Logger.PrintWarning("Time integration method was not provided. Setting \'implicit\' as default.")
         solver_settings.AddEmptyValue("time_integration_method").SetString("implicit")
-        time_integration_method = solver_settings["time_integration_method"].GetString()
+    time_integration_method = solver_settings["time_integration_method"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
@@ -44,12 +42,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
                 solver_module_name = "adjoint_diffusion_solver"
 
             else:
-                err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
+                err_msg =  "The requested solver type {} is not in the python solvers wrapper\n".format(solver_type)
                 err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
                 raise Exception(err_msg)
 
         else:
-            err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the Python solvers wrapper\n"
+            err_msg =  "The requested time integration method {} is not in the Python solvers wrapper\n".format(time_integration_method)
             err_msg += "Available options are: \"explicit\", \"implicit\""
             raise Exception(err_msg)
 
