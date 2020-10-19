@@ -19,7 +19,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/line_2d_2.h"
-#include "integration/line_newton_cotes_integration_points.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
@@ -102,21 +101,6 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
 
         KRATOS_CHECK_NEAR(geom->Length(), std::sqrt(2.0), TOLERANCE);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(LengthLine2D2NewtonCotes, KratosCoreGeometriesFastSuite) {
-        const auto geom = GeneratePointsDiagonalLine2D2();
-
-        const Line2D2<Point>::IntegrationPointsArrayType& integration_points = Quadrature<LineNewtonCotesIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
-
-        Vector temp;
-        temp = geom->DeterminantOfJacobian( temp, integration_points );
-        double length = 0.0;
-        for ( std::size_t i = 0; i < integration_points.size(); i++ ) {
-            length += temp[i] * integration_points[i].Weight();
-        }
-
-        KRATOS_CHECK_NEAR(length, std::sqrt(2.0), TOLERANCE);
     }
 
     /** Checks if the bounding box of the line is calculated correctly.
@@ -376,21 +360,6 @@ namespace Testing {
         KRATOS_CHECK_NEAR(N_values_line(0, 1), 0.211325, TOLERANCE);
         KRATOS_CHECK_NEAR(N_values_line(1, 0), 0.211325, TOLERANCE);
         KRATOS_CHECK_NEAR(N_values_line(1, 1), 0.788675, TOLERANCE);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2ShapeFunctionsValuesMatrixNewtonCotes, KratosCoreGeometriesFastSuite) {
-
-        Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine2D2();
-
-        const Line2D2<Point>::IntegrationPointsArrayType& integration_points = Quadrature<LineNewtonCotesIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
-        const Matrix N_values_geom = p_geom->ShapeFunctionsValues(integration_points);
-
-        KRATOS_CHECK_NEAR(N_values_geom(0, 0), 0.75, TOLERANCE);
-        KRATOS_CHECK_NEAR(N_values_geom(0, 1), 0.25, TOLERANCE);
-        KRATOS_CHECK_NEAR(N_values_geom(1, 0), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(N_values_geom(1, 1), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(N_values_geom(2, 0), 0.25, TOLERANCE);
-        KRATOS_CHECK_NEAR(N_values_geom(2, 1), 0.75, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Line2D2ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
