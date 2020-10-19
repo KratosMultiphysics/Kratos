@@ -306,7 +306,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
     double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
 
     // Computation of the BodyForce and Porosity fields
-    for (unsigned int i_node = 1; i_node <= static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+    for (int i_node = 1; i_node <= static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
 
         int it_node = i_node;
         const double x1 = mrModelPart.GetNode(it_node).X();
