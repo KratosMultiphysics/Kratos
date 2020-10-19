@@ -116,7 +116,10 @@ class _FilenameGetter(object):
                 pos = self.list_of_file_names.index("")
                 self.list_of_file_names[pos] = filename
             except ValueError:
-                kratos_utils.DeleteFileIfExisting(self.list_of_file_names.pop(0))
+                first_file_name = self.list_of_file_names.pop(0)
+                if hasattr(model_part, "GetCommunicator"):
+                    if (model_part.GetCommunicator().MyPID() == 0):
+                        kratos_utils.DeleteFileIfExisting(first_file_name)
                 self.list_of_file_names.append(filename)
 
         return filename
