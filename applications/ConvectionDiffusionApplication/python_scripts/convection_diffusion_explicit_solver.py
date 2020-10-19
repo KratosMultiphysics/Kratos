@@ -59,9 +59,7 @@ class ConvectionDiffusionExplicitSolver(
                 )
                 raise Exception(err_msg)
 
-        KratosMultiphysics.Logger.PrintInfo(
-            self.__class__.__name__, "Construction finished"
-        )
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls):
