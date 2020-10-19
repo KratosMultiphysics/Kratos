@@ -27,9 +27,7 @@ class ConvectionDiffusionExplicitSolver(
         # Overwrite the base solver minimum buffer size
         self.min_buffer_size = 2
 
-        element_name = self.settings["element_replace_settings"][
-            "element_name"
-        ].GetString()
+        element_name = self.settings["element_replace_settings"]["element_name"].GetString()
         if self.settings["use_orthogonal_subscales"].GetBool() is True:
             oss_element_list = [QSConvectionDiffusionExplicit", "DConvectionDiffusionExplicit"]
             if element_name in oss_element_list:
