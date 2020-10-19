@@ -98,25 +98,25 @@ public:
      * @brief This function computes the relative size of the mesh
      * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateRelativeSizeMesh(ModelPart& rModelPart);
+    static double CalculateRelativeSizeMesh(ModelPart& rModelPart);
 
     /**
      * @brief This method computes the maximal nodal H
      * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMaxNodalH(ModelPart& rModelPart);
+    static double CalculateMaxNodalH(ModelPart& rModelPart);
 
     /**
      * @brief This method computes the mean nodal H
      * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMeanNodalH(ModelPart& rModelPart);
+    static double CalculateMeanNodalH(ModelPart& rModelPart);
 
     /**
      * @brief This method computes the minimal nodal H
      * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMinimalNodalH(ModelPart& rModelPart);
+    static double CalculateMinimalNodalH(ModelPart& rModelPart);
 
     /**
      * @brief This function scales the points according to a factor (to increase the bounding box)
@@ -125,7 +125,7 @@ public:
      * @param LengthSearch The factor considered to "grow" the node
      */
     template<class TPointType>
-    static inline void ScaleNode(
+    static void ScaleNode(
         TPointType& rPointToScale,
         const array_1d<double, 3>& rNormal,
         const double LengthSearch
@@ -139,7 +139,7 @@ public:
      * @param rPointOrigin The first node
      * @param rPointDestiny The second node
      */
-    static inline double DistancePoints(
+    static double DistancePoints(
         const GeometryType::CoordinatesArrayType& rPointOrigin,
         const GeometryType::CoordinatesArrayType& rPointDestiny
         );
@@ -150,7 +150,7 @@ public:
      * @param DeltaTime The increment of time considered
      * @param HalfJump If the jumpt is just half dt
      */
-    static inline void ComputeStepJump(
+    static void ComputeStepJump(
         ModelPart& rModelPart,
         const double DeltaTime,
         const bool HalfJump = true
@@ -161,7 +161,7 @@ public:
      * @param rModelPart The modelpart to check the activity
      * @param ThrowError If an error is thrown
      */
-    static inline bool CheckActivity(
+    static bool CheckActivity(
         ModelPart& rModelPart,
         const bool ThrowError = true
         );
@@ -171,26 +171,26 @@ public:
      * @details So for example we can remove potential errors in remeshing processes
      * @param rModelPart The modelpart to clean up
      */
-    static inline void CleanContactModelParts(ModelPart& rModelPart);
+    static void CleanContactModelParts(ModelPart& rModelPart);
 
     /**
      * @brief It computes the explicit contributions of the conditions
      * @param rModelPart The modelpart to update
      */
-    static inline void ComputeExplicitContributionConditions(ModelPart& rModelPart);
+    static void ComputeExplicitContributionConditions(ModelPart& rModelPart);
 
     /**
      * @brief It activates the conditions with active nodes
      * @param rModelPart The modelpart to check
      */
-    static inline void ActivateConditionWithActiveNodes(ModelPart& rModelPart);
+    static void ActivateConditionWithActiveNodes(ModelPart& rModelPart);
 
     /**
      * @brief It calculates the center updated in u_n+1/2
      * @param rThisGeometry The geometry to calculate
      * @return point: The center in u_n+1/2 (Newmark)
      */
-    static inline array_1d<double, 3> GetHalfJumpCenter(GeometryType& rThisGeometry);
+    static array_1d<double, 3> GetHalfJumpCenter(GeometryType& rThisGeometry);
 
     /**
      * @brief It calculates the matrix containing the tangent vector of the r_gt (for frictional contact)
@@ -199,7 +199,7 @@ public:
      * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
      */
     template< std::size_t TDim, std::size_t TNumNodes>
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(
+    static BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(
         const GeometryType& rGeometry,
         const std::size_t StepSlip = 1
         )
@@ -289,7 +289,7 @@ private:
      * @param rVarName The name of the variable to calculate
      * @return var_matrix: The matrix containing the variables of the geometry
      */
-    static inline Matrix GetVariableMatrix(
+    static Matrix GetVariableMatrix(
         const GeometryType& rNodes,
         const Variable<array_1d<double,3> >& rVarName
         );

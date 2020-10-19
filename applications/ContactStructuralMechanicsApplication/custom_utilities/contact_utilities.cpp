@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-inline double ContactUtilities::CalculateRelativeSizeMesh(ModelPart& rModelPart)
+double ContactUtilities::CalculateRelativeSizeMesh(ModelPart& rModelPart)
 {
     return CalculateMaxNodalH(rModelPart)/CalculateMinimalNodalH(rModelPart);
 }
@@ -69,7 +69,7 @@ double ContactUtilities::CalculateMaxNodalH(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
+double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
 {
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
@@ -91,7 +91,7 @@ inline double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline double ContactUtilities::CalculateMinimalNodalH(ModelPart& rModelPart)
+double ContactUtilities::CalculateMinimalNodalH(ModelPart& rModelPart)
 {
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
@@ -131,7 +131,7 @@ inline double ContactUtilities::CalculateMinimalNodalH(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline double ContactUtilities::DistancePoints(
+double ContactUtilities::DistancePoints(
     const GeometryType::CoordinatesArrayType& rPointOrigin,
     const GeometryType::CoordinatesArrayType& rPointDestiny
     )
@@ -144,7 +144,7 @@ inline double ContactUtilities::DistancePoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline void ContactUtilities::ComputeStepJump(
+void ContactUtilities::ComputeStepJump(
     ModelPart& rModelPart,
     const double DeltaTime,
     const bool HalfJump
@@ -179,7 +179,7 @@ inline void ContactUtilities::ComputeStepJump(
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline bool ContactUtilities::CheckActivity(
+bool ContactUtilities::CheckActivity(
     ModelPart& rModelPart,
     const bool ThrowError
     )
@@ -212,7 +212,7 @@ inline bool ContactUtilities::CheckActivity(
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline void ContactUtilities::CleanContactModelParts(ModelPart& rModelPart)
+void ContactUtilities::CleanContactModelParts(ModelPart& rModelPart)
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
@@ -231,7 +231,7 @@ inline void ContactUtilities::CleanContactModelParts(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline void ContactUtilities::ComputeExplicitContributionConditions(ModelPart& rModelPart)
+void ContactUtilities::ComputeExplicitContributionConditions(ModelPart& rModelPart)
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
@@ -247,7 +247,7 @@ inline void ContactUtilities::ComputeExplicitContributionConditions(ModelPart& r
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline void ContactUtilities::ActivateConditionWithActiveNodes(ModelPart& rModelPart)
+void ContactUtilities::ActivateConditionWithActiveNodes(ModelPart& rModelPart)
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
@@ -275,7 +275,7 @@ inline void ContactUtilities::ActivateConditionWithActiveNodes(ModelPart& rModel
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline array_1d<double, 3> ContactUtilities::GetHalfJumpCenter(GeometryType& rThisGeometry)
+array_1d<double, 3> ContactUtilities::GetHalfJumpCenter(GeometryType& rThisGeometry)
 {
     array_1d<double, 3> center = (rThisGeometry.Center()).Coordinates();
 
@@ -300,7 +300,7 @@ inline array_1d<double, 3> ContactUtilities::GetHalfJumpCenter(GeometryType& rTh
 /***********************************************************************************/
 /***********************************************************************************/
 
-inline Matrix ContactUtilities::GetVariableMatrix(
+Matrix ContactUtilities::GetVariableMatrix(
     const GeometryType& rNodes,
     const Variable<array_1d<double,3> >& rVarName
     )
