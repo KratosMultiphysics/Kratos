@@ -66,6 +66,10 @@ class ConvectionDiffusionExplicitSolver(
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
+    def Initialize(self):
+        super().Initialize()
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["dynamic_tau"].GetDouble()
+
     #### Private functions ####
 
     def _create_builder_and_solver(self):
@@ -76,14 +80,8 @@ class ConvectionDiffusionExplicitSolver(
         convection_diffusion_solution_strategy = self._create_runge_kutta_4_strategy()
         return convection_diffusion_solution_strategy
 
-    def _create_solution_scheme(self):
-        self.GetComputingModelPart().ProcessInfo[
-            KratosMultiphysics.DYNAMIC_TAU
-        ] = self.settings["dynamic_tau"].GetDouble()
-
     def _create_runge_kutta_4_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        convection_diffusion_scheme = self.get_solution_scheme() # to call _create_solution_scheme method of the explicit solver
         explicit_builder_and_solver = self.get_builder_and_solver()
         rebuild_level = 0
         return ConvectionDiffusionApplication.ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion(
