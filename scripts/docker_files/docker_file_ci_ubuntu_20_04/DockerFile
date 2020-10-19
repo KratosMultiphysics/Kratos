@@ -58,7 +58,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     # install MMG 5.5
     git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5_1 && \
     mkdir /tmp/mmg_5_5_1/build && \
-    mkdir /external_libraries/mmg/mmg_5_5_1 && \
+    mkdir -p /external_libraries/mmg/mmg_5_5_1 && \
     cd /tmp/mmg_5_5_1/build && \
     cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_5_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make install && \
