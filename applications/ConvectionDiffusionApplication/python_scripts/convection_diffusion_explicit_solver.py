@@ -12,9 +12,7 @@ def CreateSolver(model, custom_settings):
     return ConvectionDiffusionExplicitSolver(model, custom_settings)
 
 
-class ConvectionDiffusionExplicitSolver(
-    convection_diffusion_base_solver.ConvectionDiffusionBaseSolver
-):
+class ConvectionDiffusionExplicitSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
     """
     The explicit class for convection-diffusion solvers.
     See convection_diffusion_base_solver.py for more information.
