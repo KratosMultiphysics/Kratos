@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -5,8 +6,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
-import KratosMultiphysics.DEMApplication.dem_default_input_parameters
-from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
 
 from importlib import import_module
 
@@ -52,6 +51,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     @classmethod
     def GetDefaultInputParameters(self):
+        import KratosMultiphysics.DEMApplication.dem_default_input_parameters
         return KratosMultiphysics.DEMApplication.dem_default_input_parameters.GetDefaultInputParameters()
 
     @classmethod
@@ -91,7 +91,11 @@ class DEMAnalysisStage(AnalysisStage):
         # Creating necessary directories:
         self.problem_name = self.GetProblemTypeFileName()
 
-        [self.post_path, self.data_and_results, self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)[:-1]
+        [self.post_path,
+        self.data_and_results,
+        self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path),
+                                                              str(self.problem_name),
+                                                              do_print_results=self.do_print_results_option)[:-1]
 
         # Prepare modelparts
         self.CreateModelParts()
@@ -113,7 +117,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.SetDt()
         self.SetFinalTime()
         self.AddVariables()
-        super().__init__(model, self.DEM_parameters)
+        super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
@@ -122,6 +126,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.dem_inlet_model_part = self.model.CreateModelPart("DEMInletPart")
         self.mapping_model_part = self.model.CreateModelPart("MappingPart")
         self.contact_model_part = self.model.CreateModelPart("ContactPart")
+        self.homogenization_model_part = self.model.CreateModelPart("HomogenizationModelPart")
 
         mp_list = []
         mp_list.append(self.spheres_model_part)
@@ -130,18 +135,20 @@ class DEMAnalysisStage(AnalysisStage):
         mp_list.append(self.dem_inlet_model_part)
         mp_list.append(self.mapping_model_part)
         mp_list.append(self.contact_model_part)
+        mp_list.append(self.homogenization_model_part)
 
         self.all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
 
     def IsCountStep(self):
         self.step_count += 1
         if self.step_count == self.p_count:
-            self.p_count += self.p_frequency
-            return True
+           self.p_count += self.p_frequency
+           return True
 
         return False
 
     def SetAnalyticParticleWatcher(self):
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
 
         # is this being used? TODO
@@ -236,10 +243,10 @@ class DEMAnalysisStage(AnalysisStage):
             return imported_module
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
-                                                    self.creator_destructor,
-                                                    self.dem_fem_search,
-                                                    self.DEM_parameters,
-                                                    self.procedures)
+                                                     self.creator_destructor,
+                                                     self.dem_fem_search,
+                                                     self.DEM_parameters,
+                                                     self.procedures)
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self._GetSolver(), self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
@@ -299,6 +306,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.materialTest.Initialize(self.DEM_parameters, self.procedures, self._GetSolver(), self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
+        self.HomogenizationUtilitiesInitialize()
+
         self.KratosPrintInfo("Initialization Complete")
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
@@ -309,7 +318,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self._GetSolver().dt)
 
-        super().Initialize()
+        super(DEMAnalysisStage, self).Initialize()
 
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
@@ -321,6 +330,48 @@ class DEMAnalysisStage(AnalysisStage):
 
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
+    
+    def HomogenizationUtilitiesInitialize(self):
+
+        self.lower_corner_coordinates = Array3()
+        self.higher_corner_coordinates = Array3()
+
+        print(BBM)
+        #No se si la variable BBMinX existeix només al importar DEM_procedures, o si la sintaxi
+        #DEM_procedures.ComputeAndPrintBoungBox.BBMinX seria correcte
+        #diferencia entre b_box_minX i BBMinX?
+
+        self.lower_corner_coordinates[0] = BBMaxX
+        self.lower_corner_coordinates[1] = BBMaxY
+        self.lower_corner_coordinates[2] = BBMaxZ
+        self.higher_corner_coordinates[0] = BBMinX
+        self.higher_corner_coordinates[1] = BBMinY
+        self.higher_corner_coordinates[2] = BBMinZ
+
+     """    self.element_size = input("Enter element size:")
+
+        import math
+
+        self.number_of_divisions = Array3()
+        self.number_of_divisions[0] = math.cell((self.lower_corner_coordinates[0]-self.higher_corner_coordinates[0])/element_size)
+        self.number_of_divisions[1] = math.cell((self.lower_corner_coordinates[1]-self.higher_corner_coordinates[1])/element_size)
+        self.number_of_divisions[2] = math.cell((self.lower_corner_coordinates[2]-self.higher_corner_coordinates[2])/element_size)
+        self.higher_corner_coordinates[0] = self.lower_corner_coordinates [0] + self.number_of_divisions[0] * self.element_size
+        self.higher_corner_coordinates[1] = self.lower_corner_coordinates [1] + self.number_of_divisions[1] * self.element_size
+        self.higher_corner_coordinates[2] = self.lower_corner_coordinates [2] + self.number_of_divisions[2] * self.element_size
+ """
+        #provisional fins que es fassin divisions diferents per demensio al meshing_utilities
+        self.number_of_divisions = input("Enter number of divisions:")
+
+        self.mesh = meshing_utilities.ParallelepipedRegularMesher(self.homogenization_model_part,
+                                                                    self.lower_corner_coordinates,
+                                                                    self.higher_corner_coordinates,
+                                                                    self.number_of_divisions,
+                                                                    element_name='Element3D4N',
+                                                                    condition_name='WallCondition3D')
+        #omplir homogenization model part amb una malla del tamany del bounding_box
+        #crear objecte HomogenizationUtilities, per poder cridar una funció de projecció més endavant self.homogenization_utilities
+        pass
 
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
@@ -481,7 +532,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeSolutionStep(self):
-        super().InitializeSolutionStep()
+        super(DEMAnalysisStage, self).InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -516,7 +567,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.KratosPrintInfo(stepinfo)
 
     def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
+        super(DEMAnalysisStage, self).FinalizeSolutionStep()
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
             if self.IsTimeToPrintPostProcess():
@@ -577,7 +628,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def Finalize(self):
         self.KratosPrintInfo("Finalizing execution...")
-        super().Finalize()
+        super(DEMAnalysisStage, self).Finalize()
         if self.do_print_results_option:
             self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
