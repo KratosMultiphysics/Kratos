@@ -91,7 +91,7 @@ class _FilenameGetter(object):
             else:
                 max_number_of_files_to_keep = int(max_number_of_files_to_keep)
                 if (max_number_of_files_to_keep <= 0):
-                    raise Exception("max_files_to_keep to keep should be greater than 0")
+                    raise Exception("max_files_to_keep should be greater than 0")
                 self.list_of_file_names = [""] * max_number_of_files_to_keep
 
         self.filename_parts = filename.split('<time>')
