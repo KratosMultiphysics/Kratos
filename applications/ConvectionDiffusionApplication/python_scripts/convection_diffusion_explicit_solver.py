@@ -31,10 +31,8 @@ class ConvectionDiffusionExplicitSolver(
             "element_name"
         ].GetString()
         if self.settings["use_orthogonal_subscales"].GetBool() is True:
-            if element_name in (
-                "QSConvectionDiffusionExplicit",
-                "DConvectionDiffusionExplicit",
-            ):
+            oss_element_list = [QSConvectionDiffusionExplicit", "DConvectionDiffusionExplicit"]
+            if element_name in oss_element_list:
                 self.main_model_part.ProcessInfo.SetValue(
                     KratosMultiphysics.OSS_SWITCH, 1
                 )
