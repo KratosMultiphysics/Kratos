@@ -9,13 +9,16 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyTransientSpatialDependantPorositySolutionBodyForceProcess(Model, settings["Parameters"])
 
-def CreateManufacturedSolution(custom_settings):
-    return ApplyTransientSpatialDependantPorositySolutionBodyForceProcess(model_part, custom_settings)
-
 ## All the processes python should be derived from "Process"
 class ApplyTransientSpatialDependantPorositySolutionBodyForceProcess(KratosMultiphysics.Process):
-    def __init__(self, model, settings ):
-
+    def __init__(self, model, settings):
+        """
+        The default constructor of the class
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- the container of the fluid model part.
+        settings -- Kratos parameters containing process settings.
+        """
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""

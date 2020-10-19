@@ -1,9 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SwimmingDEMApplication
-from importlib import import_module
-import math
 
 def Factory(settings, Model):
     if not isinstance(settings, Kratos.Parameters):
@@ -12,7 +9,9 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class AssignExactVariableToADOFProcess(Kratos.Process):
-    """This process sets the value of an unknown variable from another one already calculated.
+
+    """
+    This process sets the value of an unknown variable from another one already calculated.
     It is useful for cases in which the boundary conditions are known but they change at each time step.
 
     Only the member variables listed below should be accessed directly.
@@ -22,9 +21,9 @@ class AssignExactVariableToADOFProcess(Kratos.Process):
     settings -- Kratos parameters containing solver settings.
     """
 
-    def __init__(self, Model, settings ):
-        """ The default constructor of the class
-
+    def __init__(self, Model, settings):
+        """
+        The default constructor of the class
         Keyword arguments:
         self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
@@ -66,13 +65,13 @@ class AssignExactVariableToADOFProcess(Kratos.Process):
         if self.variable_type == "Array":
             self.destination_variable_name_component = []
             self.exact_variable_name_component = []
-            for i, string in enumerate(["_X", "_Y", "_Z"]):
+            for string in enumerate(["_X", "_Y", "_Z"]):
                 self.destination_variable_name_component.append(Kratos.KratosGlobals.GetVariable((self.destination_variable_name + string)))
                 self.exact_variable_name_component.append(Kratos.KratosGlobals.GetVariable((self.exact_variable_name + string)))
 
     def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed in before initialize the solution loop
-
+        """
+        This method is executed in before initialize the solution loop
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
@@ -80,8 +79,8 @@ class AssignExactVariableToADOFProcess(Kratos.Process):
 
 
     def ExecuteInitializeSolutionStep(self):
-        """ This method is executed in order to initialize the current step
-
+        """
+        This method is executed in order to initialize the current step
         Keyword arguments:
         self -- It signifies an instance of a class.
         """

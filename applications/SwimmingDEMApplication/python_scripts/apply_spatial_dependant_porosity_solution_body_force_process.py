@@ -2,9 +2,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.SwimmingDEMApplication as KratosSDEM
 
-from KratosMultiphysics import Vector
-from importlib import import_module
-
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -12,8 +9,14 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class ApplySpatialDependantPorositySolutionBodyForceProcess(KratosMultiphysics.Process):
-    def __init__(self, model, settings ):
-
+    def __init__(self, model, settings):
+        """
+        The default constructor of the class
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- the container of the fluid model part.
+        settings -- Kratos parameters containing process settings.
+        """
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""

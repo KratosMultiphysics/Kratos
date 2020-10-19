@@ -3,8 +3,6 @@ import os
 
 import numpy as np
 import h5py
-import KratosMultiphysics as Kratos
-from KratosMultiphysics import Vector
 import KratosMultiphysics.SwimmingDEMApplication as Dem
 
 class ErrorProjectionPostProcessTool(object):
@@ -49,22 +47,17 @@ class ErrorProjectionPostProcessTool(object):
                             data = [self.time, self.v_error, self.p_error, self.av_mod_error])
 
     def WriteDataToFile(self, file_or_group, names, data):
-        self.sub_group = self.CreateGroup(file_or_group, self.group_name)
-        self.sub_group.attrs['element_size'] = str(self.max_element)
-        self.sub_group.attrs['n_elements'] = str(len(self.error_model_part.Elements))
-        for name, datum in zip(names, data):
-            self.DeleteDataSet(file_or_group, name)
-        for name, datum in zip(names, data):
-            self.sub_group.create_dataset(name = name, data = datum)
-
-    def DeleteDataSet(self, file_or_group, dset_name):
-        if dset_name in file_or_group:
-            file_or_group.__delitem__(dset_name)
-
-    def CreateGroup(self, file_or_group, name, overwrite_previous = True):
+        overwrite_previous = True
         if name in file_or_group:
             if overwrite_previous:
                 file_or_group['/'].__delitem__(name)
+                self.sub_group = file_or_group.create_group(name)
             else:
-                return file_or_group['/' + name]
-        return file_or_group.create_group(name)
+                self.sub_group = file_or_group['/' + name]
+        self.sub_group.attrs['element_size'] = str(self.max_element)
+        self.sub_group.attrs['n_elements'] = str(len(self.error_model_part.Elements))
+        for name, datum in zip(names, data):
+            if name in file_or_group:
+                file_or_group.__delitem__(name)
+        for name, datum in zip(names, data):
+            self.sub_group.create_dataset(name = name, data = datum)

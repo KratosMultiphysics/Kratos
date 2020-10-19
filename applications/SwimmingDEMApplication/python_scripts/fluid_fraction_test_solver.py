@@ -1,15 +1,22 @@
 import KratosMultiphysics as Kratos
-from KratosMultiphysics import Vector
-import KratosMultiphysics.SwimmingDEMApplication
-from importlib import import_module
 import swimming_DEM_solver
 
-import numpy as np
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 import L2_error_projection_utility as error_projector
 
 class FluidFractionTestSolver(BaseSolver):
     def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
+        """
+        The default constructor of the class
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- the container of the fluid model part.
+        project_parameters -- The whole project_parameters.
+        field_utility -- The utility used (if necessary) to impose the fluid field on nodes
+        fluid_solver -- Solver used to calculate the fluid phase
+        dem_solver -- Solver used to calculate the particle phase
+        variables_manager -- The variable management used (if it is used)
+        """
         self.project_parameters = project_parameters
 
         super(FluidFractionTestSolver, self).__init__(model,

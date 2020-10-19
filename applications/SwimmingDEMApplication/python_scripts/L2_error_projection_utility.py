@@ -3,15 +3,16 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 from KratosMultiphysics import Vector
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-#from . import recoverer
-import parameters_tools as PT
-import numpy as np
-import math
-import csv
 import sys
 
 class L2ErrorProjectionUtility:
     def __init__(self, model):
+        """
+        The default constructor of the class
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- the container of the different model parts.
+        """
         self.model_part = model
         self.model = KratosMultiphysics.Model()
         self.element_name = "CalculateErrorL2Projection3D"

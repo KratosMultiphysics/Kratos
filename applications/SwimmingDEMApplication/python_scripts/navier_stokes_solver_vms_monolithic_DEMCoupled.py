@@ -4,16 +4,21 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic as NavierMonolithic
-import KratosMultiphysics.SwimmingDEMApplication as KratosSDEM
 
 # Import base class file
 from KratosMultiphysics.SwimmingDEMApplication.fluid_DEM_coupling_solver import FluidDEMSolver
 
 class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
+
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self, settings):
+        """
+        The default constructor of the class
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        settings -- Kratos parameters containing the formulation used (vms, qsvms, etc).
+        """
         super(StabilizedFormulationDEMCoupled, self).__init__(settings)
         if settings.Has("element_type"):
             formulation = settings["element_type"].GetString()
@@ -117,6 +122,13 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         return default_settings
 
     def __init__(self, model, custom_settings):
+        """
+        The default constructor of the class
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- the container of the fluid model part.
+        custom_settings -- Kratos parameters containing fluid solver settings.
+        """
         self._validate_settings_in_baseclass=True
         custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithicDEM,self).__init__(model, custom_settings)
