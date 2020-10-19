@@ -41,13 +41,14 @@ namespace Kratos
 ///@{
 
 /**
- * @namespace ContactUtilities
+ * @class ContactUtilities
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This class includes some utilities used for contact computations
  * @author Vicente Mataix Ferrandiz
  */
-namespace ContactUtilities
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ContactUtilities
 {
+public:
     ///@name Type Definitions
     ///@{
 
@@ -68,6 +69,27 @@ namespace ContactUtilities
     /// Size type definition
     typedef std::size_t                                          SizeType;
 
+    /// Pointer definition of ExactMortarIntegrationUtility
+    KRATOS_CLASS_POINTER_DEFINITION(ContactUtilities);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
+
+    /**
+     * @brief This is the default constructor
+     */
+    ContactUtilities() = default;
+
+    /// Destructor.
+    virtual ~ContactUtilities() = default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
     ///@}
     ///@name Operations
     ///@{
@@ -76,25 +98,25 @@ namespace ContactUtilities
      * @brief This function computes the relative size of the mesh
      * @param rModelPart The modelpart to compute
      */
-    double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CalculateRelativeSizeMesh(ModelPart& rModelPart);
+    static inline double CalculateRelativeSizeMesh(ModelPart& rModelPart);
 
     /**
      * @brief This method computes the maximal nodal H
      * @param rModelPart The modelpart to compute
      */
-    double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CalculateMaxNodalH(ModelPart& rModelPart);
+    static inline double CalculateMaxNodalH(ModelPart& rModelPart);
 
     /**
      * @brief This method computes the mean nodal H
      * @param rModelPart The modelpart to compute
      */
-    double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CalculateMeanNodalH(ModelPart& rModelPart);
+    static inline double CalculateMeanNodalH(ModelPart& rModelPart);
 
     /**
      * @brief This method computes the minimal nodal H
      * @param rModelPart The modelpart to compute
      */
-    double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CalculateMinimalNodalH(ModelPart& rModelPart);
+    static inline double CalculateMinimalNodalH(ModelPart& rModelPart);
 
     /**
      * @brief This function scales the points according to a factor (to increase the bounding box)
@@ -103,7 +125,7 @@ namespace ContactUtilities
      * @param LengthSearch The factor considered to "grow" the node
      */
     template<class TPointType>
-    void ScaleNode(
+    static inline void ScaleNode(
         TPointType& rPointToScale,
         const array_1d<double, 3>& rNormal,
         const double LengthSearch
@@ -117,7 +139,7 @@ namespace ContactUtilities
      * @param rPointOrigin The first node
      * @param rPointDestiny The second node
      */
-    double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) DistancePoints(
+    static inline double DistancePoints(
         const GeometryType::CoordinatesArrayType& rPointOrigin,
         const GeometryType::CoordinatesArrayType& rPointDestiny
         );
@@ -128,7 +150,7 @@ namespace ContactUtilities
      * @param DeltaTime The increment of time considered
      * @param HalfJump If the jumpt is just half dt
      */
-    void KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ComputeStepJump(
+    static inline void ComputeStepJump(
         ModelPart& rModelPart,
         const double DeltaTime,
         const bool HalfJump = true
@@ -139,7 +161,7 @@ namespace ContactUtilities
      * @param rModelPart The modelpart to check the activity
      * @param ThrowError If an error is thrown
      */
-    bool KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CheckActivity(
+    static inline bool CheckActivity(
         ModelPart& rModelPart,
         const bool ThrowError = true
         );
@@ -149,26 +171,26 @@ namespace ContactUtilities
      * @details So for example we can remove potential errors in remeshing processes
      * @param rModelPart The modelpart to clean up
      */
-    void KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CleanContactModelParts(ModelPart& rModelPart);
+    static inline void CleanContactModelParts(ModelPart& rModelPart);
 
     /**
      * @brief It computes the explicit contributions of the conditions
      * @param rModelPart The modelpart to update
      */
-    void KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ComputeExplicitContributionConditions(ModelPart& rModelPart);
+    static inline void ComputeExplicitContributionConditions(ModelPart& rModelPart);
 
     /**
      * @brief It activates the conditions with active nodes
      * @param rModelPart The modelpart to check
      */
-    void KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ActivateConditionWithActiveNodes(ModelPart& rModelPart);
+    static inline void ActivateConditionWithActiveNodes(ModelPart& rModelPart);
 
     /**
      * @brief It calculates the center updated in u_n+1/2
      * @param rThisGeometry The geometry to calculate
      * @return point: The center in u_n+1/2 (Newmark)
      */
-    array_1d<double, 3> KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) GetHalfJumpCenter(GeometryType& rThisGeometry);
+    static inline array_1d<double, 3> GetHalfJumpCenter(GeometryType& rThisGeometry);
 
     /**
      * @brief It calculates the matrix containing the tangent vector of the r_gt (for frictional contact)
@@ -177,7 +199,7 @@ namespace ContactUtilities
      * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
      */
     template< std::size_t TDim, std::size_t TNumNodes>
-    BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(
         const GeometryType& rGeometry,
         const std::size_t StepSlip = 1
         )
@@ -217,18 +239,78 @@ namespace ContactUtilities
         return tangent_matrix;
     }
 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
     /**
      * @brief It calculates the matrix of a variable of a geometry
      * @param rNodes The geometry to calculate
      * @param rVarName The name of the variable to calculate
      * @return var_matrix: The matrix containing the variables of the geometry
      */
-    Matrix KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) GetVariableMatrix(
+    static inline Matrix GetVariableMatrix(
         const GeometryType& rNodes,
         const Variable<array_1d<double,3> >& rVarName
         );
 
-};// namespace ContactUtilities
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+
+    ///@name Unaccessible methods
+    ///@{
+    ///@}
+};// class ContactUtilities
 
 }
 #endif /* KRATOS_CONTACT_UTILITIES defined */
