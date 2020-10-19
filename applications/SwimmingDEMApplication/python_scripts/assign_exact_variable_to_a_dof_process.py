@@ -62,7 +62,7 @@ class AssignExactVariableToADOFProcess(Kratos.Process):
         if self.variable_type == "Array":
             self.destination_variable_name_component = []
             self.exact_variable_name_component = []
-            for string in enumerate(["_X", "_Y", "_Z"]):
+            for string in ["_X", "_Y", "_Z"]:
                 self.destination_variable_name_component.append(Kratos.KratosGlobals.GetVariable((self.destination_variable_name + string)))
                 self.exact_variable_name_component.append(Kratos.KratosGlobals.GetVariable((self.exact_variable_name + string)))
 
