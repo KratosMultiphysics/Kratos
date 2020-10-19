@@ -198,9 +198,11 @@ namespace MPMSearchElementUtility
         KRATOS_CATCH("")
     }
 
-    inline void CheckPQMPM(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN, const DenseVector<Matrix>& rDN_De)
+    inline void CheckPQMPM(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, Matrix& rN, const DenseVector<Matrix>& rDN_De)
     {
         KRATOS_TRY
+
+            const double numerical_limit = std::numeric_limits<double>::epsilon();
 
             if (rIntergrationSubPoints.size() != rN.size1()) {
                 KRATOS_INFO("MPMSearchElementUtility::Check - ") << "Shape function rows must equal number of sub-points!";
@@ -208,7 +210,7 @@ namespace MPMSearchElementUtility
             }
 
         for (size_t i = 0; i < rIntergrationSubPoints.size(); ++i) {
-            if (rIntergrationSubPoints[i].Weight() < Tolerance) {
+            if (rIntergrationSubPoints[i].Weight() < numerical_limit) {
                 KRATOS_INFO("MPMSearchElementUtility::Check - ") << "Volume fraction of sub-points is too small!";
                 KRATOS_ERROR << "ERROR";
             }
@@ -222,7 +224,15 @@ namespace MPMSearchElementUtility
 
         for (size_t j = 0; j < rN.size2(); ++j) {
             SizeType nonzero_entries = 0;
-            for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) if (rN(i, j) > 0.0) nonzero_entries += 1;
+            for (size_t i = 0; i < rIntergrationSubPoints.size(); i++)
+            {
+                if (rN(i, j) > 0.0) nonzero_entries += 1;
+                else if (std::abs(rN(i, j)) <= Tolerance)
+                {
+                    rN(i, j) = 0.0;
+                    nonzero_entries += 1;
+                }
+            }
             if (nonzero_entries != 1) {
                 KRATOS_INFO("MPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!"
                     << "\nrN = " << rN;
@@ -850,7 +860,7 @@ namespace MPMSearchElementUtility
                     << "\t\t" << ips_active[i].Coordinates() << std::endl;
                 KRATOS_ERROR << "ERROR";
             }
-        } else CheckPQMPM(ips_active, std::numeric_limits<double>::epsilon(), N_matrix, DN_De_vector);
+        } else CheckPQMPM(ips_active, Tolerance, N_matrix, DN_De_vector);
 
         // Transfer data over
         GeometryData::IntegrationMethod ThisDefaultMethod = pQuadraturePointGeometry->GetDefaultIntegrationMethod();
