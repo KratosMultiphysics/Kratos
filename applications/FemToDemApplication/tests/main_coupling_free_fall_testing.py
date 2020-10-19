@@ -13,6 +13,11 @@ def KratosPrintInfo(message):
     KratosMultiphysics.Logger.Print(message, label="")
     KratosMultiphysics.Logger.Flush()
 
+def IsOk(value, ref, tol):
+    if abs(value - ref) / ref > tol:
+        return False
+    return True
+
 #============================================================================================================================
 class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplingFemDemForTestingSolution):
 #============================================================================================================================
@@ -20,7 +25,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
 #============================================================================================================================
     def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(dy))
 
-        tol = 1e-5
+        tol = 1e-8
         # Here we check the vertical displacement of a node
         node = self.FEM_Solution.main_model_part.GetNode(39)
         dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
@@ -33,11 +38,11 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
             if abs((dy-ref)/ref) > tol:
                 raise ValueError('The computed displacement at step = 50 is not correct')
         elif self.FEM_Solution.step == 90:
-            ref = -0.9774872873082232
+            ref = -0.9774089427741112
             if abs((dy-ref)/ref) > tol:
                 raise ValueError('The computed displacement at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
-            ref = 0.6982291423484189
+            ref = 0.48499380650524954
             if abs((dy-ref)/ref) > tol:
                 raise ValueError('The computed displacement at step = 140 is not correct')
         
@@ -51,11 +56,11 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
             if abs((vy-ref)/ref) > tol:
                 raise ValueError('The computed velocity at step = 50 is not correct')
         elif self.FEM_Solution.step == 90:
-            ref = -3.2755667736540865
+            ref = -3.2442320320451543
             if abs((vy-ref)/ref) > tol:
                 raise ValueError('The computed velocity at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
-            ref = 6.035207632016967
+            ref = 5.24417645019039
             if abs((vy-ref)/ref) > tol:
                 raise ValueError('The computed velocity at step = 140 is not correct')
 
