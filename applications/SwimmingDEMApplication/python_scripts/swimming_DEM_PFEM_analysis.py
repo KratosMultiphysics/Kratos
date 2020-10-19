@@ -8,7 +8,7 @@ BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 class SDEMPFEMAnalysis(BaseAnalysis):
 
     def SetBetaParameters(self):
-        super(SDEMPFEMAnalysis,self).SetBetaParameters()
+        super().SetBetaParameters()
         self.project_parameters["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
         self.project_parameters["material_acceleration_calculation_type"].SetInt(8)
 
@@ -24,7 +24,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
     def Initialize(self):
-        super(SDEMPFEMAnalysis,self).Initialize()
+        super().Initialize()
         self.TransferWallsFromPfemToDem()
 
     def TransferWallsFromPfemToDem(self):

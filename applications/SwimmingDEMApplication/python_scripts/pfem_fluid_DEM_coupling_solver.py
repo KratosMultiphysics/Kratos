@@ -12,7 +12,7 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
 
     def __init__(self, model, parameters):
 
-        super(PfemFluidDEMcouplingSolver, self).__init__(model, parameters)
+        super().__init__(model, parameters)
 
     def Initialize(self):
 
@@ -52,7 +52,7 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
 
     def AddVariables(self):
 
-        super(PfemFluidDEMcouplingSolver, self).AddVariables()
+        super().AddVariables()
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_OLD)

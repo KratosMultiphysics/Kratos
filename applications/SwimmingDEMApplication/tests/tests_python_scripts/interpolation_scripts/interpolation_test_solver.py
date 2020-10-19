@@ -5,7 +5,7 @@ BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 
 class InterpolationTestSolver(BaseSolver):
     def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
-        super(InterpolationTestSolver, self).__init__(model,
+        super().__init__(model,
                                                       project_parameters,
                                                       field_utility,
                                                       fluid_solver,
@@ -39,7 +39,7 @@ class InterpolationTestSolver(BaseSolver):
             node.Y = random.random()
             node.Z = random.random()
 
-        super(InterpolationTestSolver, self).SolveDEM()
+        super().SolveDEM()
 
     def SolveDEMSolutionStep(self):
         pass
