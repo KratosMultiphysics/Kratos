@@ -37,7 +37,7 @@ namespace Kratos
 ///@{
 
 ///@}
-///@name  Namespaces
+///@name Kratos Classes
 ///@{
 
 /**
