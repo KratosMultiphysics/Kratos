@@ -24,7 +24,7 @@ class ConvectionDiffusionExplicitSolver(
 
     def __init__(self, model, custom_settings):
         # Construct the base solver and validate the remaining settings in the base class
-        super(ConvectionDiffusionExplicitSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         # Overwrite the base solver minimum buffer size
         self.min_buffer_size = 2
