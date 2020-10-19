@@ -6,8 +6,7 @@ import L2_error_projection_utility as error_projector
 
 class FluidFractionTestSolver(BaseSolver):
     def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
-        """
-        The default constructor of the class
+        """The default constructor of the class
 
         Keyword arguments:
         self -- It signifies an instance of a class.

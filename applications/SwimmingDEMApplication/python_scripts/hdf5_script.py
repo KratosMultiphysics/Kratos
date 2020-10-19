@@ -8,8 +8,7 @@ import KratosMultiphysics.SwimmingDEMApplication as Dem
 
 class ErrorProjectionPostProcessTool(object):
     def __init__(self, test_number):
-        """
-        The default constructor of the class
+        """The default constructor of the class.
 
         Keyword arguments:
         self -- It signifies an instance of a class.

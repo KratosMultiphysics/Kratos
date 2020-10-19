@@ -10,8 +10,7 @@ def Factory(settings, Model):
 ## All the processes python should be derived from "Process"
 class ApplySpatialDependantPorositySolutionBodyForceProcess(KratosMultiphysics.Process):
     def __init__(self, model, settings):
-        """
-        The default constructor of the class
+        """The default constructor of the class.
 
         Keyword arguments:
         self -- It signifies an instance of a class.

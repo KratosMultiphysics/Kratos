@@ -7,8 +7,7 @@ import sys
 
 class L2ErrorProjectionUtility:
     def __init__(self, model):
-        """
-        The default constructor of the class
+        """The default constructor of the class.
 
         Keyword arguments:
         self -- It signifies an instance of a class.

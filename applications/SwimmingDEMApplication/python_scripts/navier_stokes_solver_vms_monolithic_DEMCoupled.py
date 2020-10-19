@@ -10,11 +10,8 @@ from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vms
 from KratosMultiphysics.SwimmingDEMApplication.fluid_DEM_coupling_solver import FluidDEMSolver
 
 class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
-
-    """Helper class to define stabilization-dependent parameters."""
     def __init__(self, settings):
-        """
-        The default constructor of the class
+        """The default constructor of the class.
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -123,8 +120,8 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         return default_settings
 
     def __init__(self, model, custom_settings):
-        """
-        The default constructor of the class
+        """The default constructor of the class.
+
         Keyword arguments:
         self -- It signifies an instance of a class.
         model -- the container of the fluid model part.

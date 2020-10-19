@@ -9,18 +9,9 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class AssignExactVariableToADOFProcess(Kratos.Process):
-    """
-    This process sets the value of an unknown variable from another one already calculated.
-    It is useful for cases in which the boundary conditions are known but they change at each time step.
-    Only the member variables listed below should be accessed directly.
-    Public member variables:
-    Model -- the container of the different model parts.
-    settings -- Kratos parameters containing solver settings.
-    """
-
     def __init__(self, Model, settings):
-        """
-        The default constructor of the class
+        """The default constructor of the class.
+
         Keyword arguments:
         self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
