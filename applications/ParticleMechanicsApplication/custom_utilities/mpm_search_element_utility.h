@@ -704,6 +704,14 @@ namespace MPMSearchElementUtility
     {
         KRATOS_TRY;
 
+        if (rMasterMaterialPoint.GetGeometry().Id() != pQuadraturePointGeometry->Id())
+        {
+            #pragma omp critical
+            KRATOS_ERROR << "PartitionMasterMaterialPointsIntoSubPoints | Quadrature point geometry ID from the material point and ID of the quadrature point geometry to be attached are not equal!\n";
+            GeometryType& rParentGeom1 = rMasterMaterialPoint.GetGeometry().GetGeometryParent(0);
+            (pQuadraturePointGeometry.get())->SetGeometryParent(&rParentGeom1);
+        }
+
         GeometryType& rParentGeom = pQuadraturePointGeometry->GetGeometryParent(0);
 
         // If axisymmetric make normal MP
@@ -941,10 +949,14 @@ namespace MPMSearchElementUtility
         typename GeometryType::Pointer pQuadraturePointGeometry,
         const double Tolerance)
     {
+        KRATOS_TRY;
+
         array_1d<double, 3> local_coords;
         pQuadraturePointGeometry->IsInside(rCoordinates, local_coords, Tolerance);
         PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, rCoordinates,
             local_coords, rMasterMaterialPoint, pQuadraturePointGeometry, Tolerance);
+
+        KRATOS_CATCH("");
     }
 
 
@@ -972,6 +984,7 @@ namespace MPMSearchElementUtility
                 if (is_pqmpm)
                 {
                     // Updates the quadrature point geometry.
+                    (*element_itr).GetGeometry().SetGeometryParent(&r_found_geom);
                     PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0],
                         local_coordinates, *element_itr, element_itr->pGetGeometry(), Tolerance);
                 }
@@ -1112,6 +1125,7 @@ namespace MPMSearchElementUtility
                     if (is_pqmpm)
                     {
                         // Updates the quadrature point geometry.
+                        (*element_itr).GetGeometry().SetGeometryParent((pelem->pGetGeometry().get()));
                         UpdatePartitionedQuadraturePoint(rBackgroundGridModelPart, xg[0],
                             *element_itr, pelem->pGetGeometry(), Tolerance);
                     }
