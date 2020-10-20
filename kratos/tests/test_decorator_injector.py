@@ -99,8 +99,8 @@ class TestDecoratorInjector(KratosUnittest.TestCase):
         self.assertEqual(a[0], 1)
 
     # This tests reports a sucess, but its intention is to test if we can inject the @profile UNDER the code's
-    # existing decorator, otherwhie it will profile the wrapper instead of the function ( which is essentially
-    # the current behaviour)
+    # existing decorator, otherwise it will profile the wrapper instead of the function ( which is essentially
+    # the current behaviour) AKA its failing but its reported as a success
     def test_virtual_module_profiler_decorated_injected(self):
         DecroatorInjector.InjectIntoContainer(self.virtual_module, builtins.__dict__['profile'], lambda *x: True)
 
