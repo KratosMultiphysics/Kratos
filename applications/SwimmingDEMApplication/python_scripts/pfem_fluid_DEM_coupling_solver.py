@@ -16,8 +16,6 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
 
     def Initialize(self):
 
-        print("::[Pfem Fluid Solver]:: -START-")
-
         print(self.main_model_part.SetBufferSize(self.settings["buffer_size"].GetInt()))
 
         # Get the computing model part
@@ -45,9 +43,6 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
 
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
-
-
-        print("::[Pfem Fluid Solver]:: -END- ")
 
 
     def AddVariables(self):
