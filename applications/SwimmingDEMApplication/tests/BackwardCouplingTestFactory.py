@@ -5,8 +5,8 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import tests_python_scripts.interpolation_scripts.interpolation_test_analysis as interpolation_test_analysis
-InterpolationTestAnalysis = interpolation_test_analysis.InterpolationTestAnalysis
+import tests_python_scripts.backward_coupling_scripts.backward_coupling_test_analysis as backward_coupling_test_analysis
+InterpolationTestAnalysis = backward_coupling_test_analysis.BackwardCouplingTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:

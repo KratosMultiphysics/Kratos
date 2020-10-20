@@ -7,7 +7,7 @@ import KratosMultiphysics.SwimmingDEMApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
+import BackwardCouplingTestFactory as BackwardCouplingTF
 # Importing test factories if possible
 
 try:
@@ -25,8 +25,15 @@ try:
      fluid_DEM_coupling_imports_available = True
 except ImportError:
      fluid_DEM_coupling_imports_available = False
-# List of tests that are available
-available_tests = []
+
+from KratosMultiphysics import Vector, Logger, Parameters
+
+
+def Say(*args):
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DETAIL)
+    Logger.PrintInfo("SwimmingDEM", *args)
+    Logger.Flush()
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
 if interpolation_imports_available:
      class interpolation_test_linear(InterpolationTF.TestFactory):
@@ -37,8 +44,17 @@ if interpolation_imports_available:
           file_name = "interpolation_tests/cube"
           file_parameters = "interpolation_tests/ProjectParametersCubeNonlinearTimeNoSubstepping.json"
 
-     available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
+class backward_coupling_single_particle_no_time_filter(BackwardCouplingTF.TestFactory):
+     file_name = "backward_coupling_tests/cube_single_particle"
+     file_parameters = "backward_coupling_tests/ProjectParametersCubeNoTimeFilter.json"
 
+     def test_total_volume(self):
+          spheres_mp = self.model.GetModelPart('SpheresPart')
+          Say(spheres_mp)
+          total_volume = 0.0
+          for node in spheres_mp.Nodes:
+               total_volume += node.GetSolutionStepValue(KratosMultiphysics.RADIUS)
+          Say('a'*1000,total_volume)
 
 if candelier_imports_available:
      class candelier_no_history_test(CandelierTF.TestFactory):
@@ -67,14 +83,17 @@ if candelier_imports_available:
      #      file_name = "candelier_tests/candelier"
      #      file_parameters = "candelier_tests/ProjectParametersWithHistoryNonInertial.json"
 
-     available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
 
 if fluid_DEM_coupling_imports_available:
      class fluid_dem_coupling_one_way_test(FDEMTF.TestFactory):
           file_name = "fluid_dem_tests/settling_cube"
           file_parameters = "fluid_dem_tests/ProjectParameters.json"
 
-     available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
+available_tests = []
+# available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
+available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
+# available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
+# available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 
 def SetTestSuite(suites):
     small_suite = suites['small']
@@ -91,6 +110,7 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DETAIL)
     KratosUnittest.runTests(AssembleTestSuites())
+    KratosUnittest.main()
 
