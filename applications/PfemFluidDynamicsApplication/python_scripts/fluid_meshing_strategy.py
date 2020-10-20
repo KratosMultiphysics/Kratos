@@ -20,7 +20,7 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
 
         meshers_list = []
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
-            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.fluid_pre_refining_mesher")
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.fluid_mesher")
             #mesher_list.append("fluid_post_refining_mesher")
         elif( self.settings["remesh"].GetBool() ):
             meshers_list.append("KratosMultiphysics.DelaunayMeshingApplication.reconnect_mesher")
