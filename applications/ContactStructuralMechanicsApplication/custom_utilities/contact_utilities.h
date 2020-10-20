@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "contact_structural_mechanics_application_variables.h"
 
 namespace Kratos
