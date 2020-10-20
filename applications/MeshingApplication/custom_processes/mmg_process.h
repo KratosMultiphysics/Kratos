@@ -220,6 +220,12 @@ public:
     void CleanSuperfluousNodes();
 
     /**
+     * @brief This method retrieves the current Mmg version
+     * @return The current version of Mmg (as a string)
+     */
+    std::string GetMmgVersion();
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const override;
@@ -227,7 +233,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
 
     ///@}
     ///@name Inquiry
