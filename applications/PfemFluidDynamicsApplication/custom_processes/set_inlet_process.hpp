@@ -66,7 +66,7 @@ public:
                   int EchoLevel)
       : mrModelPart(rModelPart)
   {
-    KRATOS_INFO("SetInletProcess") << " inlet_management CONSTRUCTOR ";
+    KRATOS_INFO("SetInletProcess") << " activated "<< std::endl;
 
     mEchoLevel = EchoLevel;
   }
