@@ -1,5 +1,5 @@
-//   
-//   Project Name:        ThermalD       
+//
+//   Project Name:        ThermalD
 //   Last Modified by:    $Author: Szymon Nosewicz and Miguel Angel Celigueta (maceli@cimne.upc.edu) $
 //   Date:                $Date: 2015-02-01  $
 //   Revision:            $Revision: 1.0.0.0 $
@@ -10,7 +10,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // Project includes
 #include "includes/define.h"
@@ -18,7 +18,6 @@
 #include "spheric_continuum_particle.h"
 #include "thermal_spheric_particle.h"
 #include "Particle_Contact_Element.h"
-#include "containers/vector_component_adaptor.h"
 #include "discrete_element.h"
 
 namespace Kratos {
@@ -39,7 +38,7 @@ namespace Kratos {
         typedef Geometry<Node < 3 > > GeometryType;
         typedef Properties PropertiesType;
 
-        /// Default constructor. 
+        /// Default constructor.
 
         SinteringSphericContinuumParticle() {
         };
@@ -63,10 +62,10 @@ namespace Kratos {
         };
 
         void Initialize(const ProcessInfo& r_process_info) override;
-        void InitializeSolutionStep(ProcessInfo& r_process_info) override;
-        void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) override;
-        void SetInitialSinteringSphereContacts(ProcessInfo& r_process_info);
-        void InitializeForceComputation(ProcessInfo& r_process_info) override;
+        void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
+        void UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info) override;
+        void SetInitialSinteringSphereContacts(const ProcessInfo& r_process_info);
+        void InitializeForceComputation(const ProcessInfo& r_process_info) override;
         void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) override;
         //double GetInitialDelta(int index)  override;
         void ComputeContactArea(const double rmin, double indentation, double& calculation_area) override;
@@ -78,6 +77,6 @@ namespace Kratos {
     };
 } // namespace Kratos.
 
-#endif // KRATOS_THERMAL_SPHERIC_PARTICLE_H_INCLUDED  defined 
+#endif // KRATOS_THERMAL_SPHERIC_PARTICLE_H_INCLUDED  defined
 
 

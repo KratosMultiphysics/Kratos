@@ -19,6 +19,7 @@
 #include "contact_structural_mechanics_application_variables.h"
 // #include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
+#include "utilities/normal_calculation_utils.h"
 #include "processes/simple_mortar_mapper_process.h"
 
 namespace Kratos
@@ -127,7 +128,7 @@ namespace Kratos
             master_conds.push_back(pcond2);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -282,7 +283,7 @@ namespace Kratos
             master_conds.push_back(pcond2);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -476,7 +477,7 @@ namespace Kratos
             master_conds.push_back(pcond5);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -665,7 +666,7 @@ namespace Kratos
             }
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar

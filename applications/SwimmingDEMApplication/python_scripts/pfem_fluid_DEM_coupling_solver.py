@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
@@ -16,8 +15,6 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
         super(PfemFluidDEMcouplingSolver, self).__init__(model, parameters)
 
     def Initialize(self):
-
-        print("::[Pfem Fluid Solver]:: -START-")
 
         print(self.main_model_part.SetBufferSize(self.settings["buffer_size"].GetInt()))
 
@@ -46,9 +43,6 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
 
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
-
-
-        print("::[Pfem Fluid Solver]:: -END- ")
 
 
     def AddVariables(self):
