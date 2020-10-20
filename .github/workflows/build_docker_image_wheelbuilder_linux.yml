@@ -1,10 +1,9 @@
 
 name: Build docker image wheelbuilder-linux
 
+#TODO only on push to master
 on:
   push:
-    branches:
-      - 'master'
     paths:
       - 'scripts/docker_files/docker_file_wheelbuilder_linux/*'
       - '.github/workflows/build_docker_image_wheelbuilder_linux.yml'

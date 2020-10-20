@@ -1,5 +1,7 @@
 #!/bin/bash
 
+useCotire=$2
+
 # Function to add apps
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
@@ -27,7 +29,7 @@ add_app ${KRATOS_APP_DIR}/DEMApplication
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
-add_app ${KRATOS_APP_DIR}/DamApplication;
+#add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
@@ -48,4 +50,6 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                         \
 -DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                             \
--DINSTALL_RUNKRATOS=OFF
+-DINSTALL_RUNKRATOS=OFF                                                \
+-DKRATOS_BUILD_TESTING=OFF                                             \
+-DUSE_COTIRE="$useCotire"
