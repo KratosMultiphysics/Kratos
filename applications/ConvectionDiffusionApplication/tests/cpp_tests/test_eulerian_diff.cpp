@@ -79,7 +79,7 @@ namespace Testing
         r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
-        r_test_model_part.CreateNewElement("EulerianDiffusion2D", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("EulerianDiffusion2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
 
         // Set the nodal values
         for (auto &i_node : r_test_model_part.Nodes()) {
@@ -126,7 +126,7 @@ namespace Testing
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         r_test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4};
-        r_test_model_part.CreateNewElement("EulerianDiffusion3D", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("EulerianDiffusion3D4N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
 
         // Set the nodal values
         for (auto &i_node : r_test_model_part.Nodes()) {
