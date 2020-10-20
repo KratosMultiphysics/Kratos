@@ -81,7 +81,7 @@ double GetL2VectorProjection(ModelPart& r_model_part)
             // for (unsigned int d = 0; d < dim; ++d){
             //     scalar_product[d] = error[d];
             // }
-            result += pow(SWIMMING_MODULUS_3(error),2) * DetJ[gss] * IntegrationPoints[gss].Weight();
+            result += std::pow(SWIMMING_MODULUS_3(error),2) * DetJ[gss] * IntegrationPoints[gss].Weight();
             error.clear();
             error_x = 0.0;
             error_y = 0.0;
@@ -119,7 +119,7 @@ double GetL2ScalarProjection(ModelPart& r_model_part)
             for (unsigned int j = 0; j < NumNodes; ++j){
                 error += rGeom[j].FastGetSolutionStepValue(SCALAR_ERROR) * N[j];
             }
-            result += pow(error,2) * DetJ[gss] * IntegrationPoints[gss].Weight();
+            result += std::pow(error,2) * DetJ[gss] * IntegrationPoints[gss].Weight();
             error = 0.0;
         }
         interpolator += result;

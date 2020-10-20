@@ -140,23 +140,22 @@ public:
         ProcessInfo CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
-        this->CalculateFluidFraction(rModelPart, CurrentProcessInfo);
+        this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
     }
 
-    void CalculateFluidFraction(
+    void UpdateFluidFraction(
         ModelPart& r_model_part,
         ProcessInfo& r_current_process_info)
     {
-        double delta_time = r_current_process_info[DELTA_TIME];
-        double delta_time_inv = 1.0 / delta_time;
+        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::SetTimeCoefficients(r_current_process_info);
+        const Vector& BDFcoefs = r_current_process_info[BDF_COEFFICIENTS];
 
-        //for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
         block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
         {
-            const double fluid_fraction = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
-            const double fluid_fraction_old = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
-            const double fluid_fraction_rate = delta_time_inv * (fluid_fraction - fluid_fraction_old);
-            rNode.FastGetSolutionStepValue(FLUID_FRACTION_RATE) = fluid_fraction_rate;
+            const double fluid_fraction_0 = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
+            const double fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION,1);
+            const double fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION,2);
+            rNode.FastGetSolutionStepValue(FLUID_FRACTION_RATE) = BDFcoefs[0] * fluid_fraction_0 + BDFcoefs[1] * fluid_fraction_1 + BDFcoefs[2] * fluid_fraction_2;
         });
     }
 
@@ -167,12 +166,6 @@ public:
         TSystemVectorType& b) override
     {
         KRATOS_TRY
-        //for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
-        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
-        {
-            rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD) = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
-        });
-
         BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(r_model_part, A, Dx, b);
         KRATOS_CATCH("")
     }

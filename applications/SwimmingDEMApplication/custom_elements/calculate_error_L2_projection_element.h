@@ -60,7 +60,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A post-processing element to recover the Laplacian from the velocity solution.
 /**
  */
 template< unsigned int Dim, unsigned int NumNodes = Dim + 1 >

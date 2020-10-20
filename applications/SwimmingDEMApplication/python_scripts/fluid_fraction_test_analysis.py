@@ -54,7 +54,20 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
             self.dem_volume_tool.UpdateDataAndPrint(
                 self.project_parameters["fluid_domain_volume"].GetDouble())
 
-        super(FluidFractionTestAnalysis, self).FinalizeSolutionStep()
+        if self._GetSolver().CannotIgnoreFluidNow():
+            self._GetFluidAnalysis().FinalizeSolutionStep()
+
+        self._GetDEMAnalysis().FinalizeSolutionStep()
+
+        # coupling checks (debugging)
+        if self.debug_info_counter.Tick():
+            self.dem_volume_tool.UpdateDataAndPrint(
+                self.project_parameters["fluid_domain_volume"].GetDouble())
+
+        self._GetSolver().FinalizeSolutionStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteFinalizeSolutionStep()
         self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self._GetSolver().ProjectL2Error()
         self.projector_post_process.WriteData(self.error_model_part, self.velocity_error_projected, self.pressure_error_projected)
 
