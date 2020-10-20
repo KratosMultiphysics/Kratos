@@ -14,25 +14,16 @@
 #if !defined(KRATOS_INDEXED_OBJECT_H_INCLUDED )
 #define  KRATOS_INDEXED_OBJECT_H_INCLUDED
 
-
-
 // System includes
-#include <string>
 #include <iostream>
-#include <sstream>
-#include <cstddef>
-
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 
-
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -52,9 +43,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class IndexedObject
+ * @ingroup KratosCore
+ * @brief This object defines an indexed object
+ * @details It is used as base of any class which must be indexed
+ * @author Riccardo Rossi
+ */
 class IndexedObject
 {
 public:
@@ -65,8 +60,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(IndexedObject);
 
     typedef std::size_t IndexType;
-
-    typedef std::size_t result_type;
 
     ///@}
     ///@name Life Cycle
@@ -80,7 +73,6 @@ public:
 
     /// Copy constructor.
     IndexedObject(IndexedObject const& rOther) : mId(rOther.mId) {}
-
 
     ///@}
     ///@name Operators
@@ -99,18 +91,10 @@ public:
     {
         return rThisObject.Id();
     }
-
-//       template<class TObjectType>
-// 	IndexType& operator()(TObjectType & rThisObject)
-// 	{
-// 	  return rThisObject.Id();
-// 	}
-
-
+    
     ///@}
     ///@name Operations
     ///@{
-
 
     ///@}
     ///@name Access
@@ -141,7 +125,6 @@ public:
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
@@ -166,68 +149,53 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
-
+    
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
-
+    
     ///@}
     ///@name Member Variables
     ///@{
-
-    IndexType mId;
-
-
+    
+    IndexType mId; /// The Id hold by th object
+    
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -249,23 +217,17 @@ private:
         rSerializer.load("Id",mId);
     }
 
-
-
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 
@@ -276,11 +238,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -297,7 +257,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 
