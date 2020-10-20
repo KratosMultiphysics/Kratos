@@ -165,32 +165,5 @@ class FluidMesher(mesher.Mesher):
 
     #
     def FinalizeMeshing(self):
+        pass
 
-        if(self.echo_level>0):
-            print("::[fluid_mesher]:: -START FinalizeMeshing-")
-
-        # reset execution flags: to unset the options to be executed in methods and processes
-        refining_parameters = self.MeshingParameters.GetRefiningParameters()
-        refining_options = refining_parameters.GetRefiningOptions()
-
-        execution_options = KratosMultiphysics.Flags()
-
-        # set for the post_refining process
-        if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_INSERT_NODES) ):
-            execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, False)
-            execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
-            meshing_options = self.MeshingParameters.GetOptions()
-
-            if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
-                execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
-
-
-        if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES) ):
-            execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, False)
-
-        execution_options.Set(KratosDelaunay.MesherUtilities.FINALIZE_MESHER_INPUT,  True)
-
-        execution_options.Set(KratosDelaunay.MesherUtilities.SELECT_TESSELLATION_ELEMENTS, True)
-        execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, True)
-
-        self.MeshingParameters.SetExecutionOptions(execution_options)

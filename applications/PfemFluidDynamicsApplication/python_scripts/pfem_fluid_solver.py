@@ -24,7 +24,7 @@ class PfemFluidSolver(PythonSolver):
         self.velocity_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
-        print("Construction of 2-step Pfem Fluid Solver finished.")
+
         super(PfemFluidSolver, self).__init__(model, parameters)
 
         model_part_name = self.settings["model_part_name"].GetString()
@@ -120,10 +120,6 @@ class PfemFluidSolver(PythonSolver):
 
     def Initialize(self):
 
-        print("::[Pfem Fluid Solver]:: -START-")
-
-        print(self.main_model_part.SetBufferSize(self.settings["buffer_size"].GetInt()))
-
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
@@ -148,8 +144,6 @@ class PfemFluidSolver(PythonSolver):
 
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
-        print("::[Pfem Fluid Solver]:: -END- ")
-
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
@@ -224,8 +218,6 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
 
-        print("::[PfemFluidSolver]:: Variables ADDED")
-
 
     def AddDofs(self):
 
@@ -235,7 +227,6 @@ class PfemFluidSolver(PythonSolver):
             node.AddDof(KratosMultiphysics.VELOCITY_X)
             node.AddDof(KratosMultiphysics.VELOCITY_Y)
             node.AddDof(KratosMultiphysics.VELOCITY_Z)
-        print("::[Pfem Fluid Solver]:: DOF's ADDED")
 
     def ImportModelPart(self):
 
@@ -243,8 +234,6 @@ class PfemFluidSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-
-        print("::[PfemFluidSolver]:: Model preparing started.")
 
         self.computing_model_part_name = "fluid_computing_domain"
 
@@ -285,8 +274,6 @@ class PfemFluidSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-
-        print ("::[Pfem Fluid Solver]:: Model preparing finished.")
 
 
     def CheckAndPrepareModelProcess(self, params):
