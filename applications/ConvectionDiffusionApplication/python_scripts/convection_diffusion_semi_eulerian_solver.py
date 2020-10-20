@@ -52,7 +52,7 @@ class ConvectionDiffusionSemiImplicitSolver(convection_diffusion_base_solver.Con
         self._GetBFECCConvection()
 
     def SolveSolutionStep(self):
-        # Perform convection
+        # Perform the semi-Eulerian convection
         bfecc_substepping = self.settings["bfecc_substepping"].GetInt()
         thermal_settings  = self.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
         unknown_variable = thermal_settings.GetUnknownVariable()
@@ -96,7 +96,7 @@ class ConvectionDiffusionSemiImplicitSolver(convection_diffusion_base_solver.Con
                 raise Exception(err_msg)
         else:
             if num_nodes_elements == 4:
-                self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D4N")
+                self.settings["element_replace_settings"]["element_name"].SetString("EulerianDiffusion3D4N")
             else:
                 # TODO: Check that the EulerianDiffusion3D8N works!
                 # self.settings["element_replace_settings"]["element_name"].SetString("EulerianDiffusion3D8N")
