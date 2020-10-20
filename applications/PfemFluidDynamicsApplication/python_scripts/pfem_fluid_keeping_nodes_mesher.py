@@ -1,11 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay	
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid	
-
-# Import the mesh mesher (the base class for the mesher derivation)	
-from KratosMultiphysics.PfemFluidDynamicsApplication import fluid_mesher	
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
+import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+# Import the mesh mesher (the base class for the mesher derivation)
+from KratosMultiphysics.PfemFluidDynamicsApplication import fluid_mesher
 
 def CreateMesher(main_model_part, meshing_parameters):
     return PfemFluidKeepingNodesMesher(main_model_part, meshing_parameters)
