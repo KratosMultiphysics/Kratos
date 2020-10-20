@@ -24,6 +24,7 @@
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "includes/global_pointer_variables.h"
+#include "includes/kratos_filesystem.h"
 
 //Other utilities
 #include "utilities/python_function_callback_utility.h"
@@ -513,6 +514,17 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RecoverVelocities", &CoordinateTransformationUtilsType::RecoverVelocities)
         .def("CalculateRotationOperatorPure", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPure))
         .def("CalculateRotationOperatorPureShapeSensitivities", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const std::size_t, const std::size_t, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPureShapeSensitivities))
+        ;
+
+    // add FileNameInformationCollector
+    py::class_<
+        filesystem::FileNameInformationCollector,
+        filesystem::FileNameInformationCollector::Pointer>
+        (m, "FileNameInformationCollector")
+        .def(py::init<const ModelPart&, const std::string&>())
+        .def(py::init<const ModelPart&, const std::string&, const std::string&>())
+        .def("GetFileName", &filesystem::FileNameInformationCollector::GetFileName)
+        .def("GetSortedFileNamesList", &filesystem::FileNameInformationCollector::GetSortedFileNamesList)
         ;
 }
 

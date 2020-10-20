@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-
+#include "includes/model_part.h"
 
 namespace Kratos {
 // wrapper functions for std::filesystem (part of C++17)
@@ -47,6 +47,185 @@ bool KRATOS_API(KRATOS_CORE) remove(const std::string& rPath);
 std::uintmax_t KRATOS_API(KRATOS_CORE) remove_all(const std::string& rPath);
 
 void KRATOS_API(KRATOS_CORE) rename(const std::string& rPathFrom, const std::string& rPathTo);
+
+// holder for file name data retrieved from the pattern and filename
+struct FileNameData {
+    FileNameData()
+    {
+    }
+
+    FileNameData(const int Rank, const int Step, const double TimeStep)
+    {
+        this->Rank = Rank;
+        this->Step = Step;
+        this->TimeStep = TimeStep;
+    }
+
+    std::string FileName{""};
+    int Rank{-1};
+    int Step{-1};
+    double TimeStep{-1.0};
+};
+
+class KRATOS_API(KRATOS_CORE) FileNameInformationCollector
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of Mesh
+    KRATOS_CLASS_POINTER_DEFINITION(FileNameInformationCollector);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief Construct a new File Name Information Collector object
+     *
+     * Construct an object which will handle given filename pattern. This rFileNamePattern
+     * can incldue folders, subfolders. It must include the file name. Followings are
+     * the list of flags supported.
+     *
+     * Accepted flags are:
+     *      "<rank>"                : ranks of the model part
+     *      "<step>"                : STEP value in model parts's process info
+     *      "<time>"                : TIME value in model part's process info
+     *      "<model_part_name>"     : name of the model part
+     *      "<model_part_full_name>": full name of the model part.
+     *
+     * Flags "<rank>", "<step>" and "<time>" is only allowed be in the file name only. (Those flags are not
+     * allowed to be present in file path)
+     *
+     * Example rFileNamePattern:
+     *      1. "test_cases/<model_part_name>/<model_part_full_name>-<time>.h5"
+     *      2. "test/test_1_<rank>_<time>.h5"
+     *
+     * Example rTimeStepFormat:
+     *      1. "0.4f"
+     *      2. "%0.4f"
+     *      3. "0.3e"
+     *
+     * @param rModelPart
+     * @param rFileNamePattern
+     * @param rTimeStepFormat
+     */
+
+    FileNameInformationCollector(
+        const ModelPart& rModelPart,
+        const std::string& rFileNamePattern,
+        const std::string& rTimeStepFormat = "");
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Get the File Name string
+     *
+     * This method returns the file name string according to file name pattern
+     * and time step format provided in the constructor.
+     *
+     * @return std::string
+     */
+    std::string GetFileName() const;
+
+    /**
+     * @brief Gets sorted list of files
+     *
+     * This method returns list of file names matching the pattern given in the constructor
+     * The list of file names are sorted in the flags order given in rFlagsSortingOrder.
+     *
+     * Accepted flags are:
+     *      "<rank>" : ranks of the model part
+     *      "<step>" : STEP value in model parts's process info
+     *      "<time>" : TIME value in model part's process info
+     *
+     * @param rFlagsSortingOrder            Sorting order list of strings
+     * @return std::vector<std::string>     List of sorted file names
+     */
+    std::vector<std::string> GetSortedFileNamesList(
+        const std::vector<std::string>& rFlagsSortingOrder) const;
+
+    /**
+     * @brief Get filename data.
+     *
+     * This will return FileNameData object containing rank, step, time
+     * if they are available in the given file name pattern. rFileNameWithoutPath
+     * should be only filename without the path.
+     *
+     * If the corrensponding rFileNameWithoutPath does not math the pattern given in the
+     * constructor then this returns false; otherwise true.
+     *
+     * @param rFileNameData             Data retrieved from rFileNameWithoutPath
+     * @param rFileNameWithoutPath      File name without file path
+     * @return true                     rFileNameWithoutPath matches the given pattern
+     * @return false                    rFileNameWithoutPath does not match the given pattern
+     */
+    bool RetrieveFileNameInformation(
+        FileNameData& rFileNameData,
+        const std::string& rFileNameWithoutPath) const;
+
+    /**
+     * @brief Retrieves list of file name data objects
+     *
+     * This iterates through the constructor given file name pattern path files, and
+     * returns file name data vector containing file name data for matching file names.
+     *
+     * @return std::vector<FileNameData>
+     */
+    std::vector<FileNameData> GetFileNameDataList() const;
+
+    /**
+     * @brief Sorts given list of file name data vector
+     *
+     * This method sorts given list of file name data vector
+     * according to sorting flags order given in rFlagsSortingOrder.
+     *
+     * Accepted flags are:
+     *      "<rank>" : ranks of the model part
+     *      "<step>" : STEP value in model parts's process info
+     *      "<time>" : TIME value in model part's process info
+     *
+     * @param rFileNameDataList
+     * @param rFlagsSortingOrder
+     */
+    static void SortListOfFileNameData(
+        std::vector<FileNameData>& rFileNameDataList,
+        const std::vector<std::string>& rFlagsSortingOrder);
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    enum DataType {
+        IntegerNumber,
+        FloatingPointNumber,
+        UnknownType
+    };
+
+    const ModelPart& mrModelPart;
+    std::string mTimeStepFormat;
+    std::string mPattern;
+    std::string mPatternFileName;
+    std::string mPatternPath;
+
+    ///@}
+    ///@name Private member operations
+    ///@{
+
+    static void FindAndReplace(
+        std::string& rInputString,
+        const std::string& rSearchString,
+        const std::string& rReplaceString);
+
+    static DataType GetDataType(
+        const std::string& rData);
+
+    ///@}
+};
 
 } // namespace filesystem
 
