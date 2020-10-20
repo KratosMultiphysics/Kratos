@@ -159,6 +159,8 @@ public:
         mMassOrthonormalizeFlag = InputParameters["mass_orthonormalize"].GetBool();
         if (mDerivativeParameterType == 0 || InputParameters["compute_basis_derivatives"].GetBool()) 
             mComputeBasisDerivativesFlag = true;
+        else
+            mComputeBasisDerivativesFlag = false;
 
         mNumberInitialBasis = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
 
