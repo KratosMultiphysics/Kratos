@@ -16,7 +16,6 @@
 // Project includes
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
-#include "includes/model_part.h"
 #include "custom_utilities/contact_utilities.h"
 
 namespace Kratos
