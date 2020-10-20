@@ -10,9 +10,9 @@ import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionA
 from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
 
 def CreateSolver(model, custom_settings):
-    return ConvectionDiffusionSemiEulerianSolver(model, custom_settings)
+    return ConvectionDiffusionSemiImplicitSolver(model, custom_settings)
 
-class ConvectionDiffusionSemiEulerianSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
+class ConvectionDiffusionSemiImplicitSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
     """The semi-eulerian class for convection-diffusion solvers.
 
     See convection_diffusion_base_solver.py for more information.
@@ -32,14 +32,12 @@ class ConvectionDiffusionSemiEulerianSolver(convection_diffusion_base_solver.Con
         default_settings = KratosMultiphysics.Parameters("""
         {
             "analysis_type" : "linear",
-            "time_integration_method" : "implicit",
-            "solver_type" : "convection_diffusion_semi_eulerian_solver",
+            "time_integration_method" : "semi_implicit",
+            "solver_type" : "transient",
             "element_replace_settings" : {
                 "element_name" : "EulerianDiffusion",
                 "condition_name" : "ThermalFace"
             },
-            "reform_dofs_at_each_step" : false,
-            "compute_reactions" : true,
             "pure_convection" : false,
             "bfecc_substepping": 10
         }
@@ -47,17 +45,23 @@ class ConvectionDiffusionSemiEulerianSolver(convection_diffusion_base_solver.Con
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
+    def Initialize(self):
+        super().Initialize()
+
+        # Trigger the BFECC convection to create it
+        self._GetBFECCConvection()
+
     def SolveSolutionStep(self):
         # Perform convection
         bfecc_substepping = self.settings["bfecc_substepping"].GetInt()
-        thermal_settings  = self.GetComputingModelPart().ProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)
+        thermal_settings  = self.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
         unknown_variable = thermal_settings.GetUnknownVariable()
         projection_variable = thermal_settings.GetProjectionVariable()
         velocity_variable = thermal_settings.GetVelocityVariable()
 
-        VariableUtils().CopyScalarVar(unknown_variable, projection_variable, self.GetComputingModelPart())
-        self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.GetComputingModelPart(), projection_variable)
-        self.bfecc_utility.BFECCconvect(self.GetComputingModelPart(), projection_variable, velocity_variable, bfecc_substepping)
+        KratosMultiphysics.VariableUtils().CopyVariable(unknown_variable, projection_variable, self.GetComputingModelPart().Nodes)
+        self._GetBFECCConvection().CopyScalarVarToPreviousTimeStep(self.GetComputingModelPart(), projection_variable)
+        self._GetBFECCConvection().BFECCconvect(self.GetComputingModelPart(), projection_variable, velocity_variable, bfecc_substepping)
 
         # Solve diffusion
         is_converged = True
@@ -75,12 +79,6 @@ class ConvectionDiffusionSemiEulerianSolver(convection_diffusion_base_solver.Con
             raise Exception("DOMAIN_SIZE not set")
 
         # Set pure diffusion elements
-        if self.settings["element_replace_settings"].Has("element_name"):
-            element_name = self.settings["element_replace_settings"]["element_name"].GetString()
-            warning_msg = "\'element_replace_settings\' has \'element_name\': {0}. Setting required \'EulerianDiffusion\'".format(element_name)
-            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, warning_msg)
-        self.settings["element_replace_settings"]["element_name"].SetString("EulerianDiffusion")
-
         num_nodes_elements = 0
         if (len(self.main_model_part.Elements) > 0):
             for elem in self.main_model_part.Elements:
@@ -127,33 +125,35 @@ class ConvectionDiffusionSemiEulerianSolver(convection_diffusion_base_solver.Con
 
         return self.settings["element_replace_settings"]
 
+    def _GetBFECCConvection(self):
+        if not hasattr(self, '_bfecc_convection'):
+            self._bfecc_convection = self._CreateBFECCConvection()
+        return self._bfecc_convection
+
     def _create_solution_scheme(self):
         # Create a "fake" time scheme to perform the solution update
         convection_diffusion_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return convection_diffusion_scheme
 
-    def _create_convection_diffusion_solution_strategy(self):
-        # Create the solution strategy for the diffusion problem
-        diffusion_solution_strategy = super().convection_diffusion_solution_strategy()
-
-        # TODO: Encapsulate these in auxiliary methods
+    def _CreateBFECCConvection(self):
         # Create the locator for the BFECC convector
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size == 2:
-            self.locator = BinBasedFastPointLocator2D(self.main_model_part)
+            point_locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.GetComputingModelPart())
         elif domain_size == 3:
-            self.locator = BinBasedFastPointLocator3D(self.main_model_part)
+            point_locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.GetComputingModelPart())
         else:
             err_msg = "Wrong domain size: {0}".format(domain_size)
             raise Exception(err_msg)
 
         # Initialize the locator search database
-        self.locator.UpdateSearchDatabase()
+        point_locator.UpdateSearchDatabase()
 
         # Create the BFECC convection utility
         if domain_size ==2:
-            self.bfecc_utility = BFECCConvection2D(self.locator)
+            bfecc_utility = ConvectionDiffusionApplication.BFECCConvection2D(point_locator)
         else:
-            self.bfecc_utility = BFECCConvection3D(self.locator)
+            bfecc_utility = ConvectionDiffusionApplication.BFECCConvection3D(point_locator)
 
-        return diffusion_solution_strategy
+        return bfecc_utility
+
