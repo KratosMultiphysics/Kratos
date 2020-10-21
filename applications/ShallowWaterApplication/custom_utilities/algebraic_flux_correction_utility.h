@@ -50,9 +50,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility to estimate the time step in terms of the courant number.
-/** The velocity can be the sum of the convective velocity and the wave speed
-*/
+/** 
+ * @class AlgebraicFluxCorrectionUtility
+ * @ingroup ShallowWaterApplication
+ * @brief An utility to apply the flux correction technique to two independent high order and low order solutions
+ * @details The implementation is based on:
+ *  Ortiz, Non-oscillatory continuous FEM for transport and shallow water flows, CMAME 223-224 (2012) 55-69
+ *  Lohner, Applied CFD techniques. An introduction based on FEM, Ch 9, WILEY (2008) 175-185
+ * @author Miguel Maso Sotomayor
+ */
 class KRATOS_API(SHALLOW_WATER_APPLICATION) AlgebraicFluxCorrectionUtility
 {
 public:
