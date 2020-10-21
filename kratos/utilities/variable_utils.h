@@ -87,9 +87,6 @@ public:
     /// A definition of the double variable
     typedef Variable< double > DoubleVarType;
 
-    /// A definition of the component variable
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVarType;
-
     /// A definition of the array variable
     typedef Variable< array_1d<double, 3 > > ArrayVarType;
 
@@ -1138,19 +1135,6 @@ public:
     void CopyVectorVar(
         const ArrayVarType& OriginVariable,
         const ArrayVarType& DestinationVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Takes the value of an historical component variable and sets it in other variable
-     * @param OriginVariable reference to the origin component variable
-     * @param DestinationVariable reference to the destination component variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
-    void CopyComponentVar(
-        const ComponentVarType& OriginVariable,
-        const ComponentVarType& DestinationVariable,
         NodesContainerType& rNodes
         );
 

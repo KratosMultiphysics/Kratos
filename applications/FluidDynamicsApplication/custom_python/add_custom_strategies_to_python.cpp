@@ -39,9 +39,6 @@
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
-// convergence criteria
-#include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
-
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -123,13 +120,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
 
-    // Convergence criteria
-    py::class_<
-        VelPrCriteria<SparseSpaceType, LocalSpaceType>,
-        typename VelPrCriteria<SparseSpaceType, LocalSpaceType>::Pointer,
-        ConvergenceCriteria<SparseSpaceType, LocalSpaceType>>(m, "VelPrCriteria")
-    .def(py::init<double, double, double, double>())
-    .def("SetEchoLevel", &VelPrCriteria<SparseSpaceType, LocalSpaceType>::SetEchoLevel);
 }
 
 } // namespace Python.
