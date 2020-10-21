@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/model_part_io.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
@@ -623,12 +624,16 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     std::string word;
     OutputFilesContainerType output_files;
 
+    // create folder for partitioned files
+    const std::string folder_name = mBaseFilename+"_partitioned";
+    filesystem::remove_all(folder_name); // to remove leftovers
+    filesystem::create_directory(folder_name);
+
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
-        std::stringstream buffer;
-        buffer << mBaseFilename << "_" << i << ".mdpa";
-        std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());
-        KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << buffer.str() << std::endl;
+        std::string full_file_name = FilesystemExtensions::JoinPaths({folder_name, mBaseFilename+"_"+std::to_string(i)+".mdpa"});
+        std::ofstream* p_ofstream = new std::ofstream(full_file_name);
+        KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << full_file_name << std::endl;
 
         output_files.push_back(p_ofstream);
     }
