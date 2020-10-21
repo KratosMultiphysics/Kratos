@@ -48,7 +48,8 @@ class CoupledThermoMechanicalSolver(PythonSolver):
                         "materials_filename": "ThermalMaterials.json"
                 },
                 "time_integration_method": "implicit"
-            }
+            },
+            "time_integration_method": "implicit"
         }
         """)
 
