@@ -69,6 +69,170 @@ void rename(const std::string& rPathFrom, const std::string& rPathTo)
     return ghc::filesystem::rename(rPathFrom, rPathTo);
 }
 
+FileNameInformationCollector::PatternSection::PatternSection(
+    const std::string& rPatternSection,
+    const std::string& rPatternValueFormat)
+    : mPatternSectionString(rPatternSection),
+      mPatternValueFormat(rPatternValueFormat),
+      mFlag(rPatternSection.front() == '<' && rPatternSection.back() == '>')
+{
+    if (rPatternSection == "<time>") {
+        this->mUpdateData = &PatternSection::UpdateTimeStep;
+        this->mGetValueString = &PatternSection::GetTimeStepString;
+    } else if (rPatternSection == "<step>") {
+        this->mUpdateData = &PatternSection::UpdateStep;
+        this->mGetValueString = &PatternSection::GetStepString;
+    } else if (rPatternSection == "<rank>") {
+        this->mUpdateData = &PatternSection::UpdateRank;
+        this->mGetValueString = &PatternSection::GetRankString;
+    } else {
+        this->mUpdateData = &PatternSection::UpdateString;
+        this->mGetValueString = &PatternSection::GetString;
+    }
+}
+
+std::string FileNameInformationCollector::PatternSection::GetRankString(
+    const ModelPart& rModelPart) const
+{
+    return std::to_string(rModelPart.GetCommunicator().MyPID());
+}
+
+std::string FileNameInformationCollector::PatternSection::GetStepString(
+    const ModelPart& rModelPart) const
+{
+    return std::to_string(rModelPart.GetProcessInfo()[STEP]);
+}
+
+std::string FileNameInformationCollector::PatternSection::GetTimeStepString(
+    const ModelPart& rModelPart) const
+{
+    const auto& current_time = rModelPart.GetProcessInfo()[TIME];
+    if (mPatternValueFormat == "") {
+        return std::to_string(current_time);
+    } else {
+        int length = std::snprintf(nullptr, 0, mPatternValueFormat.c_str(), current_time);
+        assert(length >= 0);
+
+        char* buf = new char[length + 1];
+        std::snprintf(buf, length + 1, mPatternValueFormat.c_str(), current_time);
+
+        std::string current_time_str(buf);
+        delete[] buf;
+
+        return current_time_str;
+    }
+}
+
+std::string FileNameInformationCollector::PatternSection::GetString(
+    const ModelPart& rModelPart) const
+{
+    return GetPatternSectionString();
+}
+
+bool FileNameInformationCollector::PatternSection::UpdateRank(
+    FileNameData& rFileNameData,
+    std::size_t& rCurrentPosition,
+    const std::string& rData) const
+{
+    std::string s_value = "";
+    for (; rCurrentPosition < rData.size(); ++rCurrentPosition) {
+        const auto& c = rData[rCurrentPosition];
+        if (std::isdigit(c)) {
+            s_value += c;
+        } else {
+            break;
+        }
+    }
+
+    if (s_value != "") {
+        rFileNameData.Rank = std::stoi(s_value);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool FileNameInformationCollector::PatternSection::UpdateStep(
+    FileNameData& rFileNameData,
+    std::size_t& rCurrentPosition,
+    const std::string& rData) const
+{
+    std::string s_value = "";
+    for (; rCurrentPosition < rData.size(); ++rCurrentPosition) {
+        const auto& c = rData[rCurrentPosition];
+        if (std::isdigit(c)) {
+            s_value += c;
+        } else {
+            break;
+        }
+    }
+
+    if (s_value != "") {
+        rFileNameData.Step = std::stoi(s_value);
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+bool FileNameInformationCollector::PatternSection::UpdateTimeStep(
+    FileNameData& rFileNameData,
+    std::size_t& rCurrentPosition,
+    const std::string& rData) const
+{
+    bool found_digit = false;
+    bool found_point = false;
+    bool found_e = false;
+
+    std::string s_value = "";
+
+    for (; rCurrentPosition < rData.size(); ++rCurrentPosition) {
+        const auto c = rData[rCurrentPosition];
+        if (isdigit(c)) {
+            found_digit = true;
+            s_value += c;
+        } else if (c == '.' && !found_point && found_digit && !found_e) {
+            found_point = true;
+            s_value += c;
+        } else if ((c == 'e' || c == 'E') && !found_e && found_digit && (rCurrentPosition + 2 < rData.size())) {
+            const auto n_c = rData[rCurrentPosition + 1];
+            const auto nn_c = rData[rCurrentPosition + 2];
+            if ((n_c == '-' || n_c == '+') && (isdigit(nn_c))) {
+                found_e = true;
+                s_value += c;
+                s_value += n_c;
+                s_value += nn_c;
+                rCurrentPosition += 2;
+            } else {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+
+    if (s_value != "") {
+        rFileNameData.TimeStep = std::stod(s_value);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool FileNameInformationCollector::PatternSection::UpdateString(
+    FileNameData& rFileNameData,
+    std::size_t& rCurrentPosition,
+    const std::string& rData) const
+{
+    if (rData.substr(rCurrentPosition, mPatternSectionString.size()) == mPatternSectionString) {
+        rCurrentPosition += mPatternSectionString.size();
+        return true;
+    } else {
+        return false;
+    }
+}
+
 FileNameInformationCollector::FileNameInformationCollector(
     const ModelPart& rModelPart,
     const std::string& rFileNamePattern,
@@ -77,45 +241,27 @@ FileNameInformationCollector::FileNameInformationCollector(
 {
     KRATOS_TRY
 
-    mTimeStepFormat = (rTimeStepFormat != "")
-                          ? (rTimeStepFormat[0] == '%')
-                                ? rTimeStepFormat
-                                : "%" + rTimeStepFormat
-                          : "";
+    const auto& overall_pattern_sections = GetPatternSections(rFileNamePattern);
 
-    // check for flags in pattern
-    std::string flag_name = "";
-    bool found_flag = false;
-    for (const auto& c : rFileNamePattern) {
-        if (c == '<') {
-            found_flag = true;
-            flag_name = "<";
-        } else if (c == '>') {
-            found_flag = false;
-            flag_name += ">";
-            KRATOS_ERROR_IF_NOT(flag_name == "<model_part_name>" ||
-                                flag_name == "<model_part_full_name>" ||
-                                flag_name == "<rank>" ||
-                                flag_name == "<time>" ||
-                                flag_name == "<step>")
-                << "Unsupported flag name found. [ flag_name = " << flag_name
+    for (const auto& r_pattern_section : overall_pattern_sections) {
+        if (r_pattern_section.front() == '<' && r_pattern_section.back() == '>') {
+            KRATOS_ERROR_IF_NOT(r_pattern_section == "<model_part_name>" ||
+                                r_pattern_section == "<model_part_full_name>" ||
+                                r_pattern_section == "<rank>" ||
+                                r_pattern_section == "<time>" || r_pattern_section == "<step>")
+                << "Unsupported flag name found. [ r_pattern_section = " << r_pattern_section
                 << " ].\n Supported flags are:"
                 << "\n\t\"<model_part_name>\""
                 << "\n\t\"<model_part_full_name>\""
                 << "\n\t\"<rank>\""
                 << "\n\t\"<time>\""
                 << "\n\t\"<step>\"\n";
-        } else {
-            if (found_flag) {
-                flag_name += c;
-            }
         }
     }
 
     auto file_name_pattern = rFileNamePattern;
     FindAndReplace(file_name_pattern, "<model_part_name>", rModelPart.Name());
     FindAndReplace(file_name_pattern, "<model_part_full_name>", rModelPart.FullName());
-    mPattern = file_name_pattern;
 
     const auto& path_file_name_pattern = ghc::filesystem::path(file_name_pattern);
     mPatternPath = path_file_name_pattern.parent_path();
@@ -135,33 +281,43 @@ FileNameInformationCollector::FileNameInformationCollector(
            "Please use it in the file name only. [ file_path = "
         << mPatternPath << " ].\n";
 
-    mPatternFileName = path_file_name_pattern.filename();
+    const auto& file_name_pattern_sections = GetPatternSections(path_file_name_pattern.filename());
+
+    for (const auto& r_pattern_section : file_name_pattern_sections) {
+        if (r_pattern_section == "<time>") {
+            mPatternFileNameSections.emplace_back(PatternSection(
+                r_pattern_section, (rTimeStepFormat != "")
+                                       ? (rTimeStepFormat[0] == '%')
+                                            ? rTimeStepFormat
+                                            : "%" + rTimeStepFormat
+                                       : ""));
+        } else {
+            mPatternFileNameSections.emplace_back(PatternSection(r_pattern_section));
+        }
+    }
+
+    // check patterns sections
+    for (std::size_t i = 1; i < mPatternFileNameSections.size(); ++i) {
+        KRATOS_ERROR_IF(mPatternFileNameSections[i].IsFlag() &&
+                        mPatternFileNameSections[i - 1].IsFlag())
+            << "Having two flags adjacent to each other is not allowed. Please "
+               "separate \""
+            << mPatternFileNameSections[i - 1].GetPatternSectionString()
+            << "\" and \"" << mPatternFileNameSections[i].GetPatternSectionString()
+            << "\". [ PatternFileName = " << rFileNamePattern << " ]\n";
+    }
 
     KRATOS_CATCH("");
 }
 
 std::string FileNameInformationCollector::GetFileName() const
 {
-    const auto& r_process_info = mrModelPart.GetProcessInfo();
-    auto file_name = mPattern;
-    FindAndReplace(file_name, "<step>", std::to_string(r_process_info[STEP]));
-    FindAndReplace(file_name, "<rank>", std::to_string(mrModelPart.GetCommunicator().MyPID()));
-
-    if (mTimeStepFormat == "") {
-        FindAndReplace(file_name, "<time>", std::to_string(r_process_info[TIME]));
-    } else {
-        int length = std::snprintf(nullptr, 0, mTimeStepFormat.c_str(),  r_process_info[TIME]);
-        assert( length >= 0 );
-
-        char* buf = new char[length + 1];
-        std::snprintf(buf, length + 1, mTimeStepFormat.c_str(), r_process_info[TIME]);
-
-        std::string current_time( buf );
-        delete[] buf;
-
-        FindAndReplace(file_name, "<time>", current_time);
+    std::string file_name = "";
+    for (const auto& r_current_pattern : mPatternFileNameSections) {
+        file_name += r_current_pattern.GetValueString(mrModelPart);
     }
-    return file_name;
+
+    return FilesystemExtensions::JoinPaths({mPatternPath, file_name});
 }
 
 bool FileNameInformationCollector::RetrieveFileNameInformation(
@@ -172,81 +328,15 @@ bool FileNameInformationCollector::RetrieveFileNameInformation(
     rFileNameData.Step = -1;
     rFileNameData.TimeStep = -1.0;
 
-    std::size_t file_name_pos = 0;
-    std::size_t file_name_pattern_pos = 0;
-    bool found_flag = false;
-    std::string flag_name = "";
-    std::string matching_string = "";
-    bool is_file_name_matching = true;
-
-    const auto& update_for_next_match = [&]() {
-        // match string until now
-        const auto& found_pos = rFileNameWithoutPath.find(matching_string, file_name_pos);
-        if (found_pos == std::string::npos) {
-            is_file_name_matching = false;
-            return;
-        } else {
-            const auto& data = rFileNameWithoutPath.substr(
-                file_name_pos, found_pos - file_name_pos);
-
-            is_file_name_matching = is_file_name_matching &&
-                ((flag_name == "" && data == "") || (flag_name != "" && data != ""));
-
-            if (data != "") {
-                switch (GetDataType(data)) {
-                    case DataType::IntegerNumber:
-                        break;
-                    case DataType::FloatingPointNumber:
-                        break;
-                    case DataType::UnknownType:
-                        is_file_name_matching = false;
-                        return;
-                };
-
-                if (flag_name == "<step>") {
-                    rFileNameData.Step = std::stoi(data);
-                } else if (flag_name == "<rank>") {
-                    rFileNameData.Rank = std::stoi(data);
-                } else if (flag_name == "<time>") {
-                    rFileNameData.TimeStep = std::stod(data);
-                } else {
-                    is_file_name_matching = false;
-                    return;
-                }
-            }
-
-            file_name_pos = found_pos + matching_string.size();
-        }
-    };
-
-    while (file_name_pattern_pos < mPatternFileName.size()) {
-        const auto& c_file_name_pattern = mPatternFileName[file_name_pattern_pos];
-        if (c_file_name_pattern == '<') {
-            update_for_next_match();
-            found_flag = true;
-            matching_string = "";
-            flag_name = "<";
-        } else if (c_file_name_pattern == '>') {
-            found_flag = false;
-            flag_name += ">";
-        } else {
-            if (!found_flag) {
-                matching_string += c_file_name_pattern;
-            } else {
-                flag_name += c_file_name_pattern;
-            }
-        }
-
-        if (!is_file_name_matching) {
+    std::size_t current_position = 0;
+    for (auto& r_current_pattern : mPatternFileNameSections) {
+        if (!r_current_pattern.UpdateFileNameData(
+                rFileNameData, current_position, rFileNameWithoutPath)) {
             return false;
         }
-
-        file_name_pattern_pos++;
     }
 
-    // check the last mathing pattern
-    update_for_next_match();
-    return is_file_name_matching && (file_name_pos == rFileNameWithoutPath.size());
+    return true;
 }
 
 std::vector<FileNameData> FileNameInformationCollector::GetFileNameDataList() const
@@ -344,43 +434,30 @@ void FileNameInformationCollector::FindAndReplace(
     }
 }
 
-FileNameInformationCollector::DataType FileNameInformationCollector::GetDataType(
-    const std::string& rData)
+std::vector<std::string> FileNameInformationCollector::GetPatternSections(const std::string& rPattern)
 {
-    std::size_t number_of_digits = 0;
-    std::size_t number_of_points = 0;
-    std::size_t number_of_scientific_notations = 0;
-    std::size_t number_of_dashes = 0;
-    std::size_t number_of_e = 0;
+    std::vector<std::string> result;
 
-    for (std::size_t i = 0; i < rData.size(); ++i) {
-        const auto& c = rData[i];
-        if (std::isdigit(c)) {
-            number_of_digits++;
-        } else if (c == '.') {
-            number_of_points++;
-        } else if (c == '-') {
-            number_of_dashes++;
-            if (i > 0) {
-                if (rData[i - 1] == 'e' || rData[i - 1] == 'E') {
-                    number_of_scientific_notations++;
-                }
-            }
-        } else if (c == 'e' || c == 'E') {
-            number_of_e++;
-        } else {
-            return DataType::UnknownType;
+    std::string current_section = "";
+    for(const auto& c : rPattern) {
+        if (c == '<') {
+            result.push_back(current_section);
+            current_section = "";
+        }
+
+        current_section += c;
+
+        if (c == '>') {
+            result.push_back(current_section);
+            current_section = "";
         }
     }
 
-    if (number_of_digits == rData.size()) {
-        return DataType::IntegerNumber;
-    } else if ((number_of_dashes == 1 && number_of_e == 1 && number_of_scientific_notations == 1) ||
-               (number_of_dashes == 0 && number_of_e == 0 && number_of_points == 1)) {
-        return DataType::FloatingPointNumber;
-    } else {
-        return DataType::UnknownType;
+    if (current_section != "") {
+        result.push_back(current_section);
     }
+
+    return result;
 }
 
 } // namespace filesystem

@@ -197,32 +197,77 @@ public:
     ///@}
 
 private:
+
+    ///@name Private classes
+    ///@{
+
+    class PatternSection
+    {
+    public:
+        PatternSection(
+            const std::string& rPatternSection,
+            const std::string& rPatternValueFormat = "");
+
+        bool UpdateFileNameData(
+            FileNameData& rFileNameData,
+            std::size_t& rCurrentPosition,
+            const std::string& rData) const
+        {
+            return (this->*mUpdateData)(rFileNameData, rCurrentPosition, rData);
+        }
+
+        std::string GetValueString(
+            const ModelPart& rModelPart) const
+        {
+            return (this->*mGetValueString)(rModelPart);
+        }
+
+        bool IsFlag() const
+        {
+            return mFlag;
+        }
+
+        std::string GetPatternSectionString() const
+        {
+            return mPatternSectionString;
+        }
+
+    private:
+        const std::string mPatternSectionString;
+        const std::string mPatternValueFormat;
+        const bool mFlag;
+        bool (PatternSection::*mUpdateData)(FileNameData& rFileNameData,  std::size_t& rCurrentPosition, const std::string& rData) const;
+        std::string (PatternSection::*mGetValueString)(const ModelPart& rModelPart) const;
+
+        bool UpdateRank(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
+        bool UpdateStep(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
+        bool UpdateTimeStep(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
+        bool UpdateString(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
+
+        std::string GetRankString(const ModelPart& rModelPart) const;
+        std::string GetStepString(const ModelPart& rModelPart) const;
+        std::string GetTimeStepString(const ModelPart& rModelPart) const;
+        std::string GetString(const ModelPart& rModelPart) const;
+    };
+
+    ///@}
     ///@name Private member variables
     ///@{
 
-    enum DataType {
-        IntegerNumber,
-        FloatingPointNumber,
-        UnknownType
-    };
-
     const ModelPart& mrModelPart;
-    std::string mTimeStepFormat;
-    std::string mPattern;
-    std::string mPatternFileName;
     std::string mPatternPath;
+    std::vector<PatternSection> mPatternFileNameSections;
 
     ///@}
     ///@name Private member operations
     ///@{
 
+    static std::vector<std::string> GetPatternSections(const std::string& rPattern);
+
     static void FindAndReplace(
         std::string& rInputString,
         const std::string& rSearchString,
         const std::string& rReplaceString);
-
-    static DataType GetDataType(
-        const std::string& rData);
 
     ///@}
 };
