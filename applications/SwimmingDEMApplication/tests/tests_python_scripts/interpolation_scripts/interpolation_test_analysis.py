@@ -25,14 +25,3 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
     def FinalizeSolutionStep(self):
         super(InterpolationTestAnalysis, self).FinalizeSolutionStep()
 
-if __name__ == "__main__":
-    # Setting parameters
-
-    with open('ProjectParameters.json','r') as parameter_file:
-        parameters = Parameters(parameter_file.read())
-
-    # Create Model
-    model = Model()
-
-    test = InterpolationTestAnalysis(model, parameters)
-    test.Run()

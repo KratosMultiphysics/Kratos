@@ -1,6 +1,6 @@
 # Definition of the classes for the SMALL TESTS
 
-#Iimport Kratos
+# Import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
@@ -26,7 +26,7 @@ try:
 except ImportError:
      fluid_DEM_coupling_imports_available = False
 
-from KratosMultiphysics import Vector, Logger, Parameters
+from KratosMultiphysics import Logger
 
 
 def Say(*args):
