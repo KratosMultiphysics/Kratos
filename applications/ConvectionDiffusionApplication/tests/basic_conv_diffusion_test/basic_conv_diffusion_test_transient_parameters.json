@@ -36,6 +36,7 @@
         "time_stepping" : {
             "time_step"       : 1.0e-2
         },
+        "time_integration_method"            : "implicit",
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "solution_relative_tolerance"        : 0.0001,
