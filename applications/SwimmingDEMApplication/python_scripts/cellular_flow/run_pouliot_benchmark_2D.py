@@ -22,7 +22,6 @@ for size in irregular_mesh_sizes.union(regular_mesh_n_points):
                 error = sys.exc_info()
                 combinations_that_failed.append({'size':size, 'type':derivatives_type})
 
-print()
 print('****************************************')
 
 if len(combinations_that_failed):
