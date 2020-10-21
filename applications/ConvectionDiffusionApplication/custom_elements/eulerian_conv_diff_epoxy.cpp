@@ -80,6 +80,7 @@ namespace Kratos
         IndexType number_of_integration_points = integration_points.size();
         Matrix Ncontainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
         double specific_heat = 0;
+        double conductivity = 0;
         for (IndexType i = 0; i < number_of_integration_points; ++i)
         {
             m_glass_transition_temperature[0] = ComputeGlassTransitionTemperature(
@@ -95,11 +96,15 @@ namespace Kratos
             specific_heat += this->ComputeSpecificHeatCapacity(
                 temperature, m_glass_transition_temperature[i],
                 m_degree_of_cure_vector[i]);
+
+            conductivity += this->ComputeThermalConductivity(
+                temperature,m_degree_of_cure_vector[i]);
         }
-        specific_heat /= 4;
+        specific_heat /= number_of_integration_points;
         m_specific_heat_capacity = specific_heat;
 
-        m_specific_heat_capacity = 0.0;
+        conductivity /= number_of_integration_points;
+        m_thermal_conductivity = conductivity;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -140,7 +145,10 @@ namespace Kratos
 
         // Getting the values of Current Process Info and computing the value of h
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
+
         Variables.specific_heat = m_specific_heat_capacity;
+        Variables.conductivity = m_thermal_conductivity;
+
         double h = this->ComputeH(DN_DX);
 
         //Computing the divergence
@@ -561,6 +569,13 @@ namespace Kratos
                 rOutput[i] = m_specific_heat_capacity;
             }
         }
+        else if (rVariable == THERMAL_CONDUCTIVITY)
+        {
+            for (IndexType i = 0; i < number_of_integration_points; ++i)
+            {
+                rOutput[i] = m_thermal_conductivity;
+            }
+        }
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -611,6 +626,20 @@ namespace Kratos
             (1 + exp(Cw * (Temperature - GlassTransitionTemperature - sigma - sigma_T * Temperature)));
 
         return specific_heat_capacity;
+    }
+
+    template< unsigned int TDim, unsigned int TNumNodes >
+    double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeThermalConductivity(
+        double Temperature, double DegreeOfCure)
+    {
+        double theta_conductivity = 0.44;
+        double beta_conductivity = -12.1;
+        double gamma_conductivity = 0.061;
+        
+
+        double thermal_conductivity = (1  + theta_conductivity * DegreeOfCure) / (beta_conductivity + gamma_conductivity * Temperature);
+
+        return thermal_conductivity;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >

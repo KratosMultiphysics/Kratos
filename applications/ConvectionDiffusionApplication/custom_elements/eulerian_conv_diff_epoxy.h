@@ -170,6 +170,8 @@ private:
 
     double m_specific_heat_capacity = 0.0;
 
+    double m_thermal_conductivity = 0.0;
+
     double ComputeDegreeOfCure(double rDegreeOfCure, double Temperature);
 
     double ComputeGlassTransitionTemperature(double DegreeOfCure);
@@ -184,6 +186,10 @@ private:
     double ComputeSpecificHeatCapacity(
         double Temperature,
         double GlassTransitionTemperature,
+        double DegreeOfCure);
+
+    double ComputeThermalConductivity(
+        double Temperature,
         double DegreeOfCure);
 
     // Serialization
