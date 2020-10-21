@@ -73,8 +73,7 @@ FileNameInformationCollector::PatternSection::PatternSection(
     const std::string& rPatternSection,
     const std::string& rPatternValueFormat)
     : mPatternSectionString(rPatternSection),
-      mPatternValueFormat(rPatternValueFormat),
-      mFlag(rPatternSection.front() == '<' && rPatternSection.back() == '>')
+      mPatternValueFormat(rPatternValueFormat)
 {
     if (rPatternSection == "<time>") {
         this->mUpdateData = &PatternSection::UpdateTimeStep;

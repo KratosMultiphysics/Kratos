@@ -201,7 +201,7 @@ private:
     ///@name Private classes
     ///@{
 
-    class PatternSection
+    class KRATOS_API(KRATOS_CORE) PatternSection
     {
     public:
         PatternSection(
@@ -224,7 +224,7 @@ private:
 
         bool IsFlag() const
         {
-            return mFlag;
+            return (mPatternSectionString.front() == '<' && mPatternSectionString.back() == '>');
         }
 
         std::string GetPatternSectionString() const
@@ -235,7 +235,6 @@ private:
     private:
         const std::string mPatternSectionString;
         const std::string mPatternValueFormat;
-        const bool mFlag;
         bool (PatternSection::*mUpdateData)(FileNameData& rFileNameData,  std::size_t& rCurrentPosition, const std::string& rData) const;
         std::string (PatternSection::*mGetValueString)(const ModelPart& rModelPart) const;
 
