@@ -117,20 +117,18 @@ public:
     /**
      * @brief Default constructor
      * @param rModelPart The model part of the problem
-     * @param p_scheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
+     * @param pScheme The integration scheme
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
      * @param CalculateReactions The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-
     ResidualBasedNewtonRaphsonContactStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer p_scheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
@@ -138,8 +136,8 @@ public:
         Parameters ThisParameters =  Parameters(R"({})"),
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, p_scheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        )
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -157,7 +155,7 @@ public:
     /**
      * @brief Default constructor
      * @param rModelPart The model part of the problem
-     * @param p_scheme The integration scheme
+     * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
@@ -165,10 +163,48 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-
     ResidualBasedNewtonRaphsonContactStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer p_scheme,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        IndexType MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false,
+        Parameters ThisParameters =  Parameters(R"({})"),
+        ProcessesListType pMyProcesses = nullptr,
+        ProcessesListType pPostProcesses = nullptr
+    )
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        mThisParameters(ThisParameters),
+        mpMyProcesses(pMyProcesses),
+        mpPostProcesses(pPostProcesses)
+    {
+        KRATOS_TRY;
+
+        mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
+
+        Parameters default_parameters = GetDefaultParameters();
+        mThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of iterations
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    ResidualBasedNewtonRaphsonContactStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
@@ -180,7 +216,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, p_scheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -198,7 +234,6 @@ public:
     /**
      * Destructor.
      */
-
     ~ResidualBasedNewtonRaphsonContactStrategy() override
     = default;
 
