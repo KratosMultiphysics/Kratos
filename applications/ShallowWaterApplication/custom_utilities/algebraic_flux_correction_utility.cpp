@@ -65,7 +65,7 @@ namespace Kratos
     {
         // Elemental values
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             Vector& r_element_values_vector = *(mHighOrderValues.begin() + i);
             (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 0);
@@ -77,7 +77,7 @@ namespace Kratos
         {
             Vector& nodal_values_vector = mLimitingNodalHighOrderValues[variable_counter++];
             #pragma omp parallel for
-            for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
+            for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
             {
                 double& r_nodal_value = *(nodal_values_vector.begin() + i);
                 r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(*p_var);
@@ -89,7 +89,7 @@ namespace Kratos
     {
         // Elemental values
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             Vector& r_element_values_vector = *(mLowOrderValues.begin() + i);
             (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 0);
@@ -97,7 +97,7 @@ namespace Kratos
 
         // Nodal values
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
         {
             Vector& lo_values = *(mDofsLowOrderValues.begin() + i);
             const auto& dofs = (mrModelPart.NodesBegin() + i)->GetDofs();
@@ -114,7 +114,7 @@ namespace Kratos
         {
             Vector& nodal_values_vector = mLimitingNodalLowOrderValues[variable_counter++];
             #pragma omp parallel for
-            for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
+            for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
             {
                 double& r_nodal_value = *(nodal_values_vector.begin() + i);
                 r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(*p_var);
@@ -125,7 +125,7 @@ namespace Kratos
     void AlgebraicFluxCorrectionUtility::ComputeElementalAlgebraicFluxCorrections()
     {
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             auto& corrections = *(mAlgebraicFluxCorrections.begin() + i);
             auto ho_values = *(mHighOrderValues.begin() + i);
@@ -146,7 +146,7 @@ namespace Kratos
         CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>(mrModelPart, domain_size).Execute();
 
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             auto it_elem = mrModelPart.ElementsBegin() + i;
             Matrix mass_matrix;
@@ -175,7 +175,7 @@ namespace Kratos
     void AlgebraicFluxCorrectionUtility::ComputeLimiters()
     {
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             *(mElementalLimiters.begin() + i) = 1.0;
         }
@@ -201,7 +201,7 @@ namespace Kratos
         Vector nodal_positive_contributions(number_of_nodes);
         Vector nodal_negative_contributions(number_of_nodes);
         #pragma omp parallel for
-        for (size_t i = 0; i < number_of_nodes; ++i)
+        for (int i = 0; i < static_cast<int>(number_of_nodes); ++i)
         {
             auto it_node = mrModelPart.NodesBegin() + i;
             const double aec = *(nodal_contributions.begin() + i);
@@ -220,7 +220,7 @@ namespace Kratos
         // second step: get the maximum and minimum increments. This requires a previous loop over elements.
         const size_t number_of_elements = mrModelPart.NumberOfElements();
         #pragma omp parallel for
-        for (size_t i = 0; i < number_of_elements; ++i)
+        for (int i = 0; i < static_cast<int>(number_of_elements); ++i)
         {
             auto it_elem = mrModelPart.ElementsBegin() + i;
             auto& geom = it_elem->GetGeometry();
@@ -236,7 +236,7 @@ namespace Kratos
         }
 
         #pragma omp parallel for
-        for (size_t i = 0; i < number_of_nodes; ++i)
+        for (int i = 0; i < static_cast<int>(number_of_nodes); ++i)
         {
             auto it_node = mrModelPart.NodesBegin() + i;
             auto neighbor_elems = it_node->GetValue(NEIGHBOUR_ELEMENTS);
@@ -268,7 +268,7 @@ namespace Kratos
 
         // third step: get the elemental limiter
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             auto it_elem = mrModelPart.ElementsBegin() + i;
             auto& geom = it_elem->GetGeometry();
@@ -385,7 +385,7 @@ namespace Kratos
     {
         const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             (mrModelPart.ElementsBegin() + i)->GetDofList(*(mElementalDofs.begin() + i), r_process_info);
         }
