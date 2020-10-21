@@ -38,7 +38,8 @@ namespace Kratos
         InitializeNonhistoricalVariables();
         ResizeNodalAndElementalVectors();
         const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
-        FindGlobalNodalElementalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
+        // FindGlobalNodalElementalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
+        FindGlobalNodalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
         GetElementalDofList();
         AssembleElementalMassMatrices();
     }
@@ -48,7 +49,8 @@ namespace Kratos
         if (mRebuildLevel > 0) {
             ResizeNodalAndElementalVectors();
             const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
-            FindGlobalNodalElementalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
+            // FindGlobalNodalElementalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
+            FindGlobalNodalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
             GetElementalDofList();
             AssembleElementalMassMatrices();
         }
@@ -217,35 +219,18 @@ namespace Kratos
             it_node->GetValue(MINIMUM_VALUE) = u_min;
         }
 
-        // second step: get the maximum and minimum increments. This requires a previous loop over elements.
-        const size_t number_of_elements = mrModelPart.NumberOfElements();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(number_of_elements); ++i)
-        {
-            auto it_elem = mrModelPart.ElementsBegin() + i;
-            auto& geom = it_elem->GetGeometry();
-            double u_max = geom[0].GetValue(MAXIMUM_VALUE);
-            double u_min = geom[0].GetValue(MINIMUM_VALUE);
-            for (size_t j = 1; j < geom.PointsNumber(); ++j)
-            {
-                u_max = std::max(u_max, geom[j].GetValue(MAXIMUM_VALUE));
-                u_min = std::min(u_min, geom[j].GetValue(MINIMUM_VALUE));
-            }
-            it_elem->GetValue(MAXIMUM_VALUE) = u_max;
-            it_elem->GetValue(MINIMUM_VALUE) = u_min;
-        }
-
+        // second step: get the maximum and minimum increments.
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(number_of_nodes); ++i)
         {
             auto it_node = mrModelPart.NodesBegin() + i;
-            auto neighbor_elems = it_node->GetValue(NEIGHBOUR_ELEMENTS);
-            double u_max = neighbor_elems[0].GetValue(MAXIMUM_VALUE);
-            double u_min = neighbor_elems[0].GetValue(MINIMUM_VALUE);
-            for (size_t j = 1; j < neighbor_elems.size(); ++j)
+            auto neighbor_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+            double u_max = it_node->GetValue(MAXIMUM_VALUE);
+            double u_min = it_node->GetValue(MINIMUM_VALUE);
+            for (size_t j = 0; j < neighbor_nodes.size(); ++j)
             {
-                u_max = std::max(u_max, neighbor_elems[j].GetValue(MAXIMUM_VALUE));
-                u_min = std::min(u_min, neighbor_elems[j].GetValue(MINIMUM_VALUE));
+                u_max = std::max(u_max, neighbor_nodes[j].GetValue(MAXIMUM_VALUE));
+                u_min = std::min(u_min, neighbor_nodes[j].GetValue(MINIMUM_VALUE));
             }
             const double u_l = *(rLowOrderValues.begin() + i);
             const double nodal_max_increment = u_max - u_l;
