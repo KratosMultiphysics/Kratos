@@ -133,28 +133,42 @@ bool PatternSection::UpdateRank(
     std::size_t& rCurrentPosition,
     const std::string& rData) const
 {
-    std::string s_value = "";
-    for (; rCurrentPosition < rData.size(); ++rCurrentPosition) {
-        const auto& c = rData[rCurrentPosition];
-        if (std::isdigit(c)) {
-            s_value += c;
-        } else {
-            break;
-        }
-    }
-
-    if (s_value != "") {
-        rFileNameData.Rank = std::stoi(s_value);
-        return true;
-    } else {
-        return false;
-    }
+    return RetrieveIntegerValue(rFileNameData.Rank, rCurrentPosition, rData);
 }
 
 bool PatternSection::UpdateStep(
     FileNameData& rFileNameData,
     std::size_t& rCurrentPosition,
     const std::string& rData) const
+{
+    return RetrieveIntegerValue(rFileNameData.Step, rCurrentPosition, rData);
+}
+
+bool PatternSection::UpdateTimeStep(
+    FileNameData& rFileNameData,
+    std::size_t& rCurrentPosition,
+    const std::string& rData) const
+{
+    return RetrieveFloatingPointValue(rFileNameData.TimeStep, rCurrentPosition, rData);
+}
+
+bool PatternSection::UpdateString(
+    FileNameData& rFileNameData,
+    std::size_t& rCurrentPosition,
+    const std::string& rData) const
+{
+    if (rData.substr(rCurrentPosition, mPatternSectionString.size()) == mPatternSectionString) {
+        rCurrentPosition += mPatternSectionString.size();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool PatternSection::RetrieveIntegerValue(
+    int& rValue,
+    std::size_t& rCurrentPosition,
+    const std::string& rData)
 {
     std::string s_value = "";
     for (; rCurrentPosition < rData.size(); ++rCurrentPosition) {
@@ -167,18 +181,17 @@ bool PatternSection::UpdateStep(
     }
 
     if (s_value != "") {
-        rFileNameData.Step = std::stoi(s_value);
+        rValue = std::stoi(s_value);
         return true;
     } else {
         return false;
     }
-
 }
 
-bool PatternSection::UpdateTimeStep(
-    FileNameData& rFileNameData,
+bool PatternSection::RetrieveFloatingPointValue(
+    double& rValue,
     std::size_t& rCurrentPosition,
-    const std::string& rData) const
+    const std::string& rData)
 {
     bool found_digit = false;
     bool found_point = false;
@@ -212,20 +225,7 @@ bool PatternSection::UpdateTimeStep(
     }
 
     if (s_value != "") {
-        rFileNameData.TimeStep = std::stod(s_value);
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool PatternSection::UpdateString(
-    FileNameData& rFileNameData,
-    std::size_t& rCurrentPosition,
-    const std::string& rData) const
-{
-    if (rData.substr(rCurrentPosition, mPatternSectionString.size()) == mPatternSectionString) {
-        rCurrentPosition += mPatternSectionString.size();
+        rValue = std::stod(s_value);
         return true;
     } else {
         return false;
@@ -301,9 +301,9 @@ FileNameInformationCollector::FileNameInformationCollector(
                         mPatternFileNameSections[i - 1].IsFlag())
             << "Having two flags adjacent to each other is not allowed. Please "
                "separate \""
-            << mPatternFileNameSections[i - 1].GetPatternSectionString()
-            << "\" and \"" << mPatternFileNameSections[i].GetPatternSectionString()
-            << "\". [ PatternFileName = " << rFileNamePattern << " ]\n";
+            << mPatternFileNameSections[i - 1].GetPatternSectionString() << "\" and \""
+            << mPatternFileNameSections[i].GetPatternSectionString() << "\" flags by a seperation character which is not a digit. [ PatternFileName = "
+            << rFileNamePattern << " ]\n";
     }
 
     KRATOS_CATCH("");
@@ -383,32 +383,37 @@ void FileNameInformationCollector::SortListOfFileNameData(
 {
     KRATOS_TRY
 
+    std::vector<std::function<double(const FileNameData&)>> comparator_value_getter_list;
+
     for (const auto& r_flag_name : rFlagsSortingOrder) {
-        KRATOS_ERROR_IF_NOT(r_flag_name == "<rank>" ||
-                            r_flag_name == "<time>" ||
-                            r_flag_name == "<step>")
-            << "Unsupported flag name found. [ r_flag_name = " << r_flag_name
-            << " ].\n Supported flags are:"
-            << "\n\t\"<rank>\""
-            << "\n\t\"<time>\""
-            << "\n\t\"<step>\"\n";
+        if (r_flag_name == "<rank>") {
+            comparator_value_getter_list.push_back([](const FileNameData& rFileNameData) -> double{
+                return rFileNameData.Rank;
+            });
+        } else if (r_flag_name == "<time>") {
+            comparator_value_getter_list.push_back([](const FileNameData& rFileNameData) -> double {
+                return rFileNameData.TimeStep;
+            });
+        } else if (r_flag_name == "<step>") {
+            comparator_value_getter_list.push_back([](const FileNameData& rFileNameData) -> double {
+                return rFileNameData.Step;
+            });
+        } else {
+            KRATOS_ERROR << "Unsupported flag name found. [ r_flag_name = " << r_flag_name
+                         << " ].\n Supported flags are:"
+                         << "\n\t\"<rank>\""
+                         << "\n\t\"<time>\""
+                         << "\n\t\"<step>\"\n";
+        }
     }
 
     std::sort(rFileNameDataList.begin(), rFileNameDataList.end(),
               [&](const FileNameData& rA, const FileNameData& rB) {
-                  for (const auto& r_flag : rFlagsSortingOrder) {
-                      if (r_flag == "<rank>") {
-                          if (rA.Rank != rB.Rank) {
-                              return rA.Rank < rB.Rank;
-                          }
-                      } else if (r_flag == "<time>") {
-                          if (rA.TimeStep != rB.TimeStep) {
-                              return rA.TimeStep < rB.TimeStep;
-                          }
-                      } else if (r_flag == "<step>") {
-                          if (rA.Step != rB.Step) {
-                              return rA.Step < rB.Step;
-                          }
+                  for (const auto& r_comparator_value_getter : comparator_value_getter_list) {
+                      const auto value_a = r_comparator_value_getter(rA);
+                      const auto value_b = r_comparator_value_getter(rB);
+                      if (value_a != value_b) {
+                          return value_a < value_b;
                       }
                   }
                   return true;

@@ -131,6 +131,16 @@ private:
     std::string GetTimeStepString(const ModelPart& rModelPart) const;
     std::string GetString(const ModelPart& rModelPart) const;
 
+    static bool RetrieveIntegerValue(
+        int& rValue,
+        std::size_t& rCurrentPosition,
+        const std::string& rData);
+
+    static bool RetrieveFloatingPointValue(
+        double& rValue,
+        std::size_t& rCurrentPosition,
+        const std::string& rData);
+
     ///@}
 };
 
