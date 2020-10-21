@@ -5,7 +5,7 @@
     },
     "time_stepping"           : {
         "automatic_time_step" : false,
-        "time_step"           : 1e-6
+        "time_step"           : 1e-5
     },
     "output_interval"         : 1e-5,
     "non_newtonian_fluid"     : {
@@ -21,7 +21,7 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 0.001
+        "end_time"      : 1e-5
     },
     "do_print_results_option" : true,
     "coupling"                : {
@@ -129,7 +129,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "FluidModelPart.fluid_computational_model_part",
-                "output_name"            : "backward_coupling_tests/cube_single_particle",
+                "output_name"            : "cube_single_particle",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"               : {

@@ -48,14 +48,6 @@ class backward_coupling_single_particle_no_time_filter(BackwardCouplingTF.TestFa
      file_name = "backward_coupling_tests/cube_single_particle"
      file_parameters = "backward_coupling_tests/ProjectParametersCubeNoTimeFilter.json"
 
-     def test_total_volume(self):
-          spheres_mp = self.model.GetModelPart('SpheresPart')
-          Say(spheres_mp)
-          total_volume = 0.0
-          for node in spheres_mp.Nodes:
-               total_volume += node.GetSolutionStepValue(KratosMultiphysics.RADIUS)
-          Say('a'*1000,total_volume)
-
 if candelier_imports_available:
      class candelier_no_history_test(CandelierTF.TestFactory):
           file_name = "candelier_tests/candelier"
@@ -90,10 +82,10 @@ if fluid_DEM_coupling_imports_available:
           file_parameters = "fluid_dem_tests/ProjectParameters.json"
 
 available_tests = []
-# available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
+available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
-# available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
-# available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
+available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
+available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 
 def SetTestSuite(suites):
     small_suite = suites['small']
@@ -110,7 +102,7 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DETAIL)
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
     KratosUnittest.main()
 

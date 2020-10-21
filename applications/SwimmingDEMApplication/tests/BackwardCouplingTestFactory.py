@@ -6,7 +6,7 @@ import KratosMultiphysics
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import tests_python_scripts.backward_coupling_scripts.backward_coupling_test_analysis as backward_coupling_test_analysis
-InterpolationTestAnalysis = backward_coupling_test_analysis.BackwardCouplingTestAnalysis
+BackwardCouplingTestAnalysis = backward_coupling_test_analysis.BackwardCouplingTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -33,7 +33,7 @@ class TestFactory(KratosUnittest.TestCase):
             # Create Model
             self.model = KratosMultiphysics.Model()
 
-            self.test = InterpolationTestAnalysis(self.model, parameters)
+            self.test = BackwardCouplingTestAnalysis(self.model, parameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
