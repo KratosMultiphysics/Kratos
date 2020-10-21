@@ -113,7 +113,8 @@ namespace Testing
         KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
 
         // Test CalculateRightHandSide
-        p_element->CalculateRightHandSide(RHS, r_test_model_part.GetProcessInfo());
+        const auto& r_process_info = r_test_model_part.GetProcessInfo();
+        p_element->CalculateRightHandSide(RHS, r_process_info);
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
     }
 
@@ -171,7 +172,8 @@ namespace Testing
         KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
 
         // Test CalculateRightHandSide
-        p_element->CalculateRightHandSide(RHS, r_test_model_part.GetProcessInfo());
+        const auto& r_process_info = r_test_model_part.GetProcessInfo();
+        p_element->CalculateRightHandSide(RHS, r_process_info);
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
     }
 
