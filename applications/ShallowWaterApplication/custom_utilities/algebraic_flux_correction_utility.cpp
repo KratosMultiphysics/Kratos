@@ -32,9 +32,9 @@ namespace Kratos
     {
         ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
         mRebuildLevel = ThisParameters["rebuild_level"].GetInt();
-        mLimitingVariableName = ThisParameters["limiting_variable"].GetString();
 
         Check();
+        GenerateVariablesList(ThisParameters["limiting_variables"].GetStringArray());
         InitializeNonhistoricalVariables();
         ResizeNodalAndElementalVectors();
         const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
@@ -57,9 +57,7 @@ namespace Kratos
 
     void AlgebraicFluxCorrectionUtility::ExecuteFinalizeLowOrderStep()
     {
-        const Variable<double>& limiting_variable = KratosComponents<Variable<double>>::Get(mLimitingVariableName);
-        ComputeLimitingVariables();
-        GetLowOrderValues(limiting_variable);
+        GetLowOrderValues();
     }
 
     void AlgebraicFluxCorrectionUtility::ExecuteInitializeHighOrderStep()
@@ -69,11 +67,9 @@ namespace Kratos
 
     void AlgebraicFluxCorrectionUtility::ExecuteFinalizeHighOrderStep()
     {
-        const Variable<double>& limiting_variable = KratosComponents<Variable<double>>::Get(mLimitingVariableName);
-        GetHighOrderValues(limiting_variable);
-        ComputeLimitingVariables();
+        GetHighOrderValues();
         ComputeElementalAlgebraicFluxCorrections();
-        ComputeLimiters(limiting_variable);
+        ComputeLimiters();
         AssembleLimitedCorrections();
     }
 
@@ -91,7 +87,7 @@ namespace Kratos
         r_process_info.GetValue(IS_MONOTONIC_CALCULATION) = true;
     }
 
-    void AlgebraicFluxCorrectionUtility::GetHighOrderValues(const Variable<double>& rLimitingVariable)
+    void AlgebraicFluxCorrectionUtility::GetHighOrderValues()
     {
         // Elemental values
         #pragma omp parallel for
@@ -101,16 +97,21 @@ namespace Kratos
             (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 0);
         }
 
-        // Nodal values
-        #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
+        // Nodal limiting values
+        size_t variable_counter = 0;
+        for (auto p_var : mLimitingVariables)
         {
-            double& r_nodal_value = *(mNodalHighOrderValues.begin() + i);
-            r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rLimitingVariable);
+            Vector& nodal_values_vector = mLimitingNodalHighOrderValues[variable_counter++];
+            #pragma omp parallel for
+            for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
+            {
+                double& r_nodal_value = *(nodal_values_vector.begin() + i);
+                r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(*p_var);
+            }
         }
     }
 
-    void AlgebraicFluxCorrectionUtility::GetLowOrderValues(const Variable<double>& rLimitingVariable)
+    void AlgebraicFluxCorrectionUtility::GetLowOrderValues()
     {
         // Elemental values
         #pragma omp parallel for
@@ -124,9 +125,6 @@ namespace Kratos
         #pragma omp parallel for
         for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
         {
-            double& r_nodal_value = *(mNodalLowOrderValues.begin() + i);
-            r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rLimitingVariable);
-
             Vector& lo_values = *(mDofsLowOrderValues.begin() + i);
             const auto& dofs = (mrModelPart.NodesBegin() + i)->GetDofs();
             lo_values.resize(dofs.size(), false);
@@ -135,15 +133,18 @@ namespace Kratos
                 lo_values[d] = (*dofs[d])(0);
             }
         }
-    }
 
-    void AlgebraicFluxCorrectionUtility::GetElementalPreviousValues()
-    {
-        #pragma omp parallel for
-        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        // Nodal limiting values
+        size_t variable_counter = 0;
+        for (auto p_var : mLimitingVariables)
         {
-            Vector& r_element_values_vector = *(mPreviousValues.begin() + i);
-            (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 1);
+            Vector& nodal_values_vector = mLimitingNodalLowOrderValues[variable_counter++];
+            #pragma omp parallel for
+            for (size_t i = 0; i < mrModelPart.NumberOfNodes(); ++i)
+            {
+                double& r_nodal_value = *(nodal_values_vector.begin() + i);
+                r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(*p_var);
+            }
         }
     }
 
@@ -197,10 +198,31 @@ namespace Kratos
         }
     }
 
-    void AlgebraicFluxCorrectionUtility::ComputeLimiters(const Variable<double>& rVariable)
+    void AlgebraicFluxCorrectionUtility::ComputeLimiters()
+    {
+        #pragma omp parallel for
+        for (size_t i = 0; i < mrModelPart.NumberOfElements(); ++i)
+        {
+            *(mElementalLimiters.begin() + i) = 1.0;
+        }
+
+        size_t variable_counter = 0;
+        for (auto p_var : mLimitingVariables)
+        {
+            const Vector& high_order_values = mLimitingNodalHighOrderValues[variable_counter];
+            const Vector& low_order_values = mLimitingNodalLowOrderValues[variable_counter];
+            ComputeLimiterSingleVariable(*p_var, high_order_values, low_order_values);
+            ++variable_counter;
+        }
+    }
+
+    void AlgebraicFluxCorrectionUtility::ComputeLimiterSingleVariable(
+        const Variable<double>& rVariable,
+        const Vector& rHighOrderValues,
+        const Vector& rLowOrderValues)
     {
         // first step: Get the nodal positive and negative contributions
-        const Vector nodal_contributions = mNodalHighOrderValues - mNodalLowOrderValues;
+        const Vector nodal_contributions = rHighOrderValues - rLowOrderValues;
         const size_t number_of_nodes = mrModelPart.NumberOfNodes();
         Vector nodal_positive_contributions(number_of_nodes);
         Vector nodal_negative_contributions(number_of_nodes);
@@ -214,7 +236,7 @@ namespace Kratos
             *(nodal_negative_contributions.begin() + i) = std::min(0.0, aec);
 
             const double u_n = it_node->FastGetSolutionStepValue(rVariable,1);
-            const double u_l = *(mNodalLowOrderValues.begin() + i);
+            const double u_l = *(rLowOrderValues.begin() + i);
             const double u_max = std::max(u_l, u_n);
             const double u_min = std::min(u_l, u_n);
             it_node->GetValue(MAXIMUM_VALUE) = u_max;
@@ -251,7 +273,7 @@ namespace Kratos
                 u_max = std::max(u_max, neighbor_elems[j].GetValue(MAXIMUM_VALUE));
                 u_min = std::min(u_min, neighbor_elems[j].GetValue(MINIMUM_VALUE));
             }
-            const double u_l = *(mNodalLowOrderValues.begin() + i);
+            const double u_l = *(rLowOrderValues.begin() + i);
             const double nodal_max_increment = u_max - u_l;
             const double nodal_min_increment = u_min - u_l;
 
@@ -276,7 +298,7 @@ namespace Kratos
         {
             auto it_elem = mrModelPart.ElementsBegin() + i;
             auto& geom = it_elem->GetGeometry();
-            double c = 1.0;
+            double& c = *(mElementalLimiters.begin() + i);
             for (auto& r_node : geom)
             {
                 if (r_node.GetValue(ALGEBRAIC_CONTRIBUTION) > 0.0){
@@ -285,7 +307,6 @@ namespace Kratos
                     c = std::min(c, r_node.GetValue(NEGATIVE_RATIO));
                 }
             }
-            *(mElementalLimiters.begin() + i) = c;
 
             it_elem->SetValue(AUX_INDEX, c);
         }
@@ -318,10 +339,6 @@ namespace Kratos
         }
     }
 
-    void AlgebraicFluxCorrectionUtility::ComputeLimitingVariables()
-    {
-    }
-
     void AlgebraicFluxCorrectionUtility::InitializeNonhistoricalVariables()
     {
         VariableUtils().SetNonHistoricalVariableToZero(MAXIMUM_VALUE, mrModelPart.Nodes());
@@ -337,16 +354,39 @@ namespace Kratos
     {
         size_t number_of_elements = mrModelPart.NumberOfElements();
         size_t number_of_nodes = mrModelPart.NumberOfNodes();
+        size_t number_of_variables = mLimitingVariables.size();
         mHighOrderValues.resize(number_of_elements);
         mLowOrderValues.resize(number_of_elements);
-        mPreviousValues.resize(number_of_elements);
-        mNodalHighOrderValues.resize(number_of_nodes);
-        mNodalLowOrderValues.resize(number_of_nodes);
         mAlgebraicFluxCorrections.resize(number_of_elements);
         mElementalMassMatrices.resize(number_of_elements);
         mElementalLimiters.resize(number_of_elements);
         mElementalDofs.resize(number_of_elements);
         mDofsLowOrderValues.resize(number_of_nodes);
+        mLimitingNodalHighOrderValues.resize(number_of_variables);
+        mLimitingNodalLowOrderValues.resize(number_of_variables);
+        for (size_t i = 0; i < number_of_variables; ++i)
+        {
+            mLimitingNodalHighOrderValues[i].resize(number_of_nodes);
+            mLimitingNodalLowOrderValues[i].resize(number_of_nodes);
+        }
+    }
+
+    void AlgebraicFluxCorrectionUtility::GenerateVariablesList(const std::vector<std::string>& rVariablesNames)
+    {
+        size_t n_variables = rVariablesNames.size();
+        mLimitingVariables.reserve(n_variables);
+
+        for (size_t v = 0; v < n_variables; ++v)
+        {
+            const std::string variable_name = rVariablesNames[v];
+
+            if(KratosComponents<Variable<double>>::Has(variable_name)){
+                const auto& r_var = KratosComponents<Variable<double>>::Get(variable_name);
+                mLimitingVariables.push_back(&r_var);
+            } else {
+                KRATOS_ERROR << "AlgebraicFluxCorrectionUtility. Only double variables are allowed in the limiting variables list." << std::endl;
+            }
+        }
     }
 
     const Parameters AlgebraicFluxCorrectionUtility::GetDefaultParameters() const

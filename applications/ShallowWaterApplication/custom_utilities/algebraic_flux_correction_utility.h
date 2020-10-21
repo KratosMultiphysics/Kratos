@@ -187,7 +187,7 @@ private:
 
     ModelPart& mrModelPart;
     int mRebuildLevel;
-    std::string mLimitingVariableName;
+    std::vector<const Variable<double>*> mLimitingVariables;
     ElementalValuesVectorType mHighOrderValues;
     ElementalValuesVectorType mLowOrderValues;
     ElementalValuesVectorType mPreviousValues;
@@ -195,8 +195,8 @@ private:
     ElementalValuesVectorType mElementalMassMatrices;
     ElementalDofsVectorType mElementalDofs;
     Vector mElementalLimiters;
-    Vector mNodalHighOrderValues;
-    Vector mNodalLowOrderValues;
+    std::vector<Vector> mLimitingNodalHighOrderValues;
+    std::vector<Vector> mLimitingNodalLowOrderValues;
     ElementalValuesVectorType mDofsLowOrderValues;
 
     const double mEpsilon = std::numeric_limits<double>::epsilon();
@@ -212,6 +212,8 @@ private:
 
     const Parameters GetDefaultParameters() const;
 
+    void GenerateVariablesList(const std::vector<std::string>& rVariablesNames);
+
     void ResizeNodalAndElementalVectors();
 
     void InitializeNonhistoricalVariables();
@@ -224,17 +226,18 @@ private:
 
     void SetProcessInfoLowOrderFlags();
 
-    virtual void ComputeLimitingVariables();
+    void GetHighOrderValues();
 
-    void GetHighOrderValues(const Variable<double>& rLimitingVariable);
-
-    void GetLowOrderValues(const Variable<double>& rLimitingVariable);
-
-    void GetElementalPreviousValues();
+    void GetLowOrderValues();
 
     void ComputeElementalAlgebraicFluxCorrections();
 
-    void ComputeLimiters(const Variable<double>& rVariable);
+    void ComputeLimiters();
+
+    void ComputeLimiterSingleVariable(
+        const Variable<double>& rVariable,
+        const Vector& rHighOrderValues,
+        const Vector& rLowOrderValues);
 
     void AssembleLimitedCorrections();
 
