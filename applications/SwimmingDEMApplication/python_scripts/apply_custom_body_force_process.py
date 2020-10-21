@@ -103,5 +103,5 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         for node in self.model_part.Nodes:
             err_sum = err_sum + node.GetValue(KratosMultiphysics.NODAL_ERROR)
         rel_err = err_sum / self.model_part.Nodes.__len__()
-        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The nodal error average is : ", rel_err)
+        KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", "Benchmark", "The nodal error average is : ", rel_err)
         return rel_err

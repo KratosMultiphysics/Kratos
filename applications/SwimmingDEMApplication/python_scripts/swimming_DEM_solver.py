@@ -189,7 +189,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.ConstructDerivativeRecoverer()
         self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
-        super(SwimmingDEMSolver, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def ConstructStationarityTool(self):
         self.stationarity = False
