@@ -70,13 +70,13 @@ namespace Kratos
     template< unsigned int TDim, unsigned int TNumNodes >
     void EulerianConvectionDiffusionEpoxyElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
-        m_degree_of_cure_vector = ZeroVector(GetGeometry().IntegrationPointsNumber());
-        m_glass_transition_temperature = ZeroVector(GetGeometry().IntegrationPointsNumber());
-        m_heat_of_reaction = ZeroVector(GetGeometry().IntegrationPointsNumber());
-        m_pre_strain_vector = ZeroVector(GetGeometry().IntegrationPointsNumber());
+        m_degree_of_cure_vector = ZeroVector(GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2));
+        m_glass_transition_temperature = ZeroVector(GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2));
+        m_heat_of_reaction = ZeroVector(GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2));
+        m_pre_strain_vector = ZeroVector(GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2));
 
         auto& r_geometry = GetGeometry();
-        auto integration_points = r_geometry.IntegrationPoints();
+        auto integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
         IndexType number_of_integration_points = integration_points.size();
         Matrix Ncontainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
         double specific_heat = 0;
@@ -211,7 +211,7 @@ namespace Kratos
             }*/
         }
 
-        KRATOS_WATCH(Variables.specific_heat)
+        //KRATOS_WATCH(Variables.specific_heat)
 
         //adding the second and third term in the formulation
         noalias(rLeftHandSideMatrix)  = (Variables.dt_inv*Variables.density*Variables.specific_heat + Variables.theta*Variables.beta*Variables.div_v)*aux1;
@@ -407,7 +407,7 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo)
     {
         auto& r_geometry = GetGeometry();
-        auto integration_points = r_geometry.IntegrationPoints();
+        auto integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
 
         IndexType number_of_integration_points = integration_points.size();
 
@@ -446,7 +446,7 @@ namespace Kratos
         {
             for (IndexType j = 0; j < TNumNodes; j++)
             {
-                r_geometry[j].GetSolutionStepValue(TEMPERATURE , 0) += m_heat_of_reaction[i] * (integration_points[i].Weight()/ number_of_integration_points);
+                //r_geometry[j].GetSolutionStepValue(TEMPERATURE , 0) += m_heat_of_reaction[i] * (integration_points[i].Weight()/ number_of_integration_points);
             }
         }
         for (IndexType j = 0; j < TNumNodes; j++)
@@ -472,18 +472,25 @@ namespace Kratos
                 temperature += Ncontainer(i, j) * temp;
             }
 
+            double previous_temperature = 0;
+            for (IndexType j = 0; j < TNumNodes; j++)
+            {
+                const double& temp = r_geometry[j].GetSolutionStepValue(TEMPERATURE, 1);
+
+                previous_temperature += Ncontainer(i, j) * temp;
+            }
+
             specific_heat += this->ComputeSpecificHeatCapacity(
                 temperature, m_glass_transition_temperature[i],
                 m_degree_of_cure_vector[i]);
-
-            double pre_strain_factor = this->ComputePreStrainFactor(
-                m_degree_of_cure_vector[i], temperature, temperature);
-            KRATOS_WATCH(temperature)
+            m_pre_strain_vector[i] = this->ComputePreStrainFactor(
+                m_degree_of_cure_vector[i], temperature, previous_temperature);
+            //KRATOS_WATCH(temperature)
         }
         specific_heat /= 4;
-        KRATOS_WATCH(m_glass_transition_temperature)
-        KRATOS_WATCH(m_degree_of_cure_vector)
-        KRATOS_WATCH(specific_heat)
+        //KRATOS_WATCH(m_glass_transition_temperature)
+        //KRATOS_WATCH(m_degree_of_cure_vector)
+        //KRATOS_WATCH(specific_heat)
         m_specific_heat_capacity = specific_heat;
     }
 
@@ -496,12 +503,21 @@ namespace Kratos
 
     template< unsigned int TDim, unsigned int TNumNodes >
     void EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::GetValueOnIntegrationPoints(
             const Variable<double>& rVariable,
             std::vector<double>& rOutput,
             const ProcessInfo& rCurrentProcessInfo)
     {
         const auto& r_geometry = GetGeometry();
-        auto integration_points = r_geometry.IntegrationPoints();
+        auto integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
 
         IndexType number_of_integration_points = integration_points.size();
 
@@ -627,10 +643,10 @@ namespace Kratos
         const double CTE = 5;
 
         if (DegreeOfCureCurrent < 0.77) {
-            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (8.233 * DegreeOfCureCurrent - 0.4199);
+            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (8.233 * DegreeOfCureCurrent - 0.4199)/100;
             return pre_strain_factor;
         }
-            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (18.75 * DegreeOfCureCurrent - 8.7915);
+            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (18.75 * DegreeOfCureCurrent - 8.7915)/100;
                 return pre_strain_factor;
     }
 //----------------------------------------------------------------------------------------
