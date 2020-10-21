@@ -153,6 +153,8 @@ public:
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+
     bool Has(const Variable<double>& rThisVariable) override;
 
     void SetValue(const Variable<double>& rVariable,
