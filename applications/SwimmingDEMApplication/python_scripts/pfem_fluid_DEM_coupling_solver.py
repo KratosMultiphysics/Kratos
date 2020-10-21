@@ -15,11 +15,8 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
         super().__init__(model, parameters)
 
     def Initialize(self):
-
-        KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", "::[Pfem Fluid Solver]:: -START-")
-
         KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", self.main_model_part.SetBufferSize(self.settings["buffer_size"].GetInt()))
-
+        
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
@@ -45,10 +42,6 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
 
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
-
-
-        KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", "::[Pfem Fluid Solver]:: -END- ")
-
 
     def AddVariables(self):
 
