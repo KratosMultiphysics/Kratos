@@ -67,6 +67,73 @@ struct FileNameData {
     double TimeStep{-1.0};
 };
 
+class KRATOS_API(KRATOS_CORE) PatternSection
+{
+public:
+
+    ///@name Life Cycle
+    ///@{
+
+    // Constructor
+    PatternSection(
+        const std::string& rPatternSection,
+        const std::string& rPatternValueFormat = "");
+
+    ///@}
+    ///@ name Public operations
+
+    bool UpdateFileNameData(
+        FileNameData& rFileNameData,
+        std::size_t& rCurrentPosition,
+        const std::string& rData) const
+    {
+        return (this->*mUpdateData)(rFileNameData, rCurrentPosition, rData);
+    }
+
+    std::string GetValueString(
+        const ModelPart& rModelPart) const
+    {
+        return (this->*mGetValueString)(rModelPart);
+    }
+
+    bool IsFlag() const
+    {
+        return (mPatternSectionString.front() == '<' && mPatternSectionString.back() == '>');
+    }
+
+    std::string GetPatternSectionString() const
+    {
+        return mPatternSectionString;
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const std::string mPatternSectionString;
+    const std::string mPatternValueFormat;
+    bool (PatternSection::*mUpdateData)(FileNameData& rFileNameData,  std::size_t& rCurrentPosition, const std::string& rData) const;
+    std::string (PatternSection::*mGetValueString)(const ModelPart& rModelPart) const;
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    bool UpdateRank(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
+    bool UpdateStep(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
+    bool UpdateTimeStep(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
+    bool UpdateString(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
+
+    std::string GetRankString(const ModelPart& rModelPart) const;
+    std::string GetStepString(const ModelPart& rModelPart) const;
+    std::string GetTimeStepString(const ModelPart& rModelPart) const;
+    std::string GetString(const ModelPart& rModelPart) const;
+
+    ///@}
+};
+
 class KRATOS_API(KRATOS_CORE) FileNameInformationCollector
 {
 public:
@@ -198,58 +265,6 @@ public:
 
 private:
 
-    ///@name Private classes
-    ///@{
-
-    class KRATOS_API(KRATOS_CORE) PatternSection
-    {
-    public:
-        PatternSection(
-            const std::string& rPatternSection,
-            const std::string& rPatternValueFormat = "");
-
-        bool UpdateFileNameData(
-            FileNameData& rFileNameData,
-            std::size_t& rCurrentPosition,
-            const std::string& rData) const
-        {
-            return (this->*mUpdateData)(rFileNameData, rCurrentPosition, rData);
-        }
-
-        std::string GetValueString(
-            const ModelPart& rModelPart) const
-        {
-            return (this->*mGetValueString)(rModelPart);
-        }
-
-        bool IsFlag() const
-        {
-            return (mPatternSectionString.front() == '<' && mPatternSectionString.back() == '>');
-        }
-
-        std::string GetPatternSectionString() const
-        {
-            return mPatternSectionString;
-        }
-
-    private:
-        const std::string mPatternSectionString;
-        const std::string mPatternValueFormat;
-        bool (PatternSection::*mUpdateData)(FileNameData& rFileNameData,  std::size_t& rCurrentPosition, const std::string& rData) const;
-        std::string (PatternSection::*mGetValueString)(const ModelPart& rModelPart) const;
-
-        bool UpdateRank(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
-        bool UpdateStep(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
-        bool UpdateTimeStep(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
-        bool UpdateString(FileNameData& rFileNameData, std::size_t& rCurrentPosition, const std::string& rData) const;
-
-        std::string GetRankString(const ModelPart& rModelPart) const;
-        std::string GetStepString(const ModelPart& rModelPart) const;
-        std::string GetTimeStepString(const ModelPart& rModelPart) const;
-        std::string GetString(const ModelPart& rModelPart) const;
-    };
-
-    ///@}
     ///@name Private member variables
     ///@{
 

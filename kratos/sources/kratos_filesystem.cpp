@@ -69,7 +69,7 @@ void rename(const std::string& rPathFrom, const std::string& rPathTo)
     return ghc::filesystem::rename(rPathFrom, rPathTo);
 }
 
-FileNameInformationCollector::PatternSection::PatternSection(
+PatternSection::PatternSection(
     const std::string& rPatternSection,
     const std::string& rPatternValueFormat)
     : mPatternSectionString(rPatternSection),
@@ -90,19 +90,19 @@ FileNameInformationCollector::PatternSection::PatternSection(
     }
 }
 
-std::string FileNameInformationCollector::PatternSection::GetRankString(
+std::string PatternSection::GetRankString(
     const ModelPart& rModelPart) const
 {
     return std::to_string(rModelPart.GetCommunicator().MyPID());
 }
 
-std::string FileNameInformationCollector::PatternSection::GetStepString(
+std::string PatternSection::GetStepString(
     const ModelPart& rModelPart) const
 {
     return std::to_string(rModelPart.GetProcessInfo()[STEP]);
 }
 
-std::string FileNameInformationCollector::PatternSection::GetTimeStepString(
+std::string PatternSection::GetTimeStepString(
     const ModelPart& rModelPart) const
 {
     const auto& current_time = rModelPart.GetProcessInfo()[TIME];
@@ -122,13 +122,13 @@ std::string FileNameInformationCollector::PatternSection::GetTimeStepString(
     }
 }
 
-std::string FileNameInformationCollector::PatternSection::GetString(
+std::string PatternSection::GetString(
     const ModelPart& rModelPart) const
 {
     return GetPatternSectionString();
 }
 
-bool FileNameInformationCollector::PatternSection::UpdateRank(
+bool PatternSection::UpdateRank(
     FileNameData& rFileNameData,
     std::size_t& rCurrentPosition,
     const std::string& rData) const
@@ -151,7 +151,7 @@ bool FileNameInformationCollector::PatternSection::UpdateRank(
     }
 }
 
-bool FileNameInformationCollector::PatternSection::UpdateStep(
+bool PatternSection::UpdateStep(
     FileNameData& rFileNameData,
     std::size_t& rCurrentPosition,
     const std::string& rData) const
@@ -175,7 +175,7 @@ bool FileNameInformationCollector::PatternSection::UpdateStep(
 
 }
 
-bool FileNameInformationCollector::PatternSection::UpdateTimeStep(
+bool PatternSection::UpdateTimeStep(
     FileNameData& rFileNameData,
     std::size_t& rCurrentPosition,
     const std::string& rData) const
@@ -219,7 +219,7 @@ bool FileNameInformationCollector::PatternSection::UpdateTimeStep(
     }
 }
 
-bool FileNameInformationCollector::PatternSection::UpdateString(
+bool PatternSection::UpdateString(
     FileNameData& rFileNameData,
     std::size_t& rCurrentPosition,
     const std::string& rData) const
