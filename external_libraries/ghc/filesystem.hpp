@@ -102,6 +102,7 @@
 #ifdef GHC_EXPAND_IMPL
 
 #ifdef GHC_OS_WINDOWS
+#define NOMINMAX
 #include <windows.h>
 // additional includes
 #include <shellapi.h>
@@ -229,7 +230,7 @@ public:
 template <typename char_type>
 constexpr char_type path_helper_base<char_type>::preferred_separator;
 #endif
-    
+
 // 30.10.8 class path
 class GHC_FS_API_CLASS path
 #if defined(GHC_OS_WINDOWS) && defined(GHC_WIN_WSTRING_STRING_TYPE)
@@ -246,7 +247,7 @@ public:
 #endif
     using string_type = std::basic_string<value_type>;
     using path_helper_base<value_type>::preferred_separator;
-    
+
     // 30.10.10.1 enumeration format
     /// The path format in wich the constructor argument is given.
     enum format {
@@ -1320,7 +1321,7 @@ GHC_INLINE std::error_code make_system_error(int err)
     return std::error_code(err ? err : errno, std::system_category());
 }
 #endif
-    
+
 #endif  // GHC_EXPAND_IMPL
 
 template <typename Enum>
@@ -1443,7 +1444,7 @@ GHC_INLINE unsigned consumeUtf8Fragment(const unsigned state, const uint8_t frag
     codepoint = (state ? (codepoint << 6) | (fragment & 0x3fu) : (0xffu >> category) & fragment);
     return state == S_RJCT ? static_cast<unsigned>(S_RJCT) : static_cast<unsigned>((utf8_state_info[category + 16] >> (state << 2)) & 0xf);
 }
-    
+
 GHC_INLINE bool validUtf8(const std::string& utf8String)
 {
     std::string::const_iterator iter = utf8String.begin();
@@ -1461,9 +1462,9 @@ GHC_INLINE bool validUtf8(const std::string& utf8String)
 }
 
 }  // namespace detail
-    
+
 #endif
-    
+
 namespace detail {
 
 template <class StringType, typename std::enable_if<(sizeof(typename StringType::value_type) == 1)>::type* = nullptr>
