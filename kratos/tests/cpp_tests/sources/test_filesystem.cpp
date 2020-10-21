@@ -15,7 +15,6 @@
 #include <fstream>
 
 // External includes
-#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 
 // Project includes
 #include "containers/model.h"
