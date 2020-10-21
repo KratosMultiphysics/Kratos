@@ -187,6 +187,7 @@ private:
 
     ModelPart& mrModelPart;
     int mRebuildLevel;
+    size_t mMaximumIterations;
     std::vector<const Variable<double>*> mLimitingVariables;
     ElementalValuesVectorType mHighOrderValues;
     ElementalValuesVectorType mLowOrderValues;
@@ -232,6 +233,8 @@ private:
         const Vector& rLowOrderValues);
 
     void AssembleLimitedCorrections();
+
+    void ComputeRejectedAlgebraicFluxCorrections();
 
     ///@}
     ///@name Private  Access

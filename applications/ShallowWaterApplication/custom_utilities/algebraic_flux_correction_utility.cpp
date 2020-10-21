@@ -20,7 +20,7 @@
 #include "algebraic_flux_correction_utility.h"
 #include "shallow_water_application_variables.h"
 #include "processes/calculate_nodal_area_process.h"
-#include "processes/find_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
@@ -31,6 +31,7 @@ namespace Kratos
         mrModelPart(rModelPart)
     {
         ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        mMaximumIterations = ThisParameters["maximum_iterations"].GetInt();
         mRebuildLevel = ThisParameters["rebuild_level"].GetInt();
 
         Check();
@@ -38,7 +39,6 @@ namespace Kratos
         InitializeNonhistoricalVariables();
         ResizeNodalAndElementalVectors();
         const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
-        // FindGlobalNodalElementalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
         FindGlobalNodalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
         GetElementalDofList();
         AssembleElementalMassMatrices();
@@ -49,7 +49,6 @@ namespace Kratos
         if (mRebuildLevel > 0) {
             ResizeNodalAndElementalVectors();
             const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
-            // FindGlobalNodalElementalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
             FindGlobalNodalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
             GetElementalDofList();
             AssembleElementalMassMatrices();
@@ -61,6 +60,16 @@ namespace Kratos
         ComputeElementalAlgebraicFluxCorrections();
         ComputeLimiters();
         AssembleLimitedCorrections();
+
+        size_t iteration = 1;
+        while (iteration < mMaximumIterations)
+        {
+            ComputeRejectedAlgebraicFluxCorrections();
+            GetLowOrderValues();
+            ComputeLimiters();
+            AssembleLimitedCorrections();
+            iteration++;
+        }
     }
 
     void AlgebraicFluxCorrectionUtility::GetHighOrderValues()
@@ -298,6 +307,17 @@ namespace Kratos
         }
     }
 
+    void AlgebraicFluxCorrectionUtility::ComputeRejectedAlgebraicFluxCorrections()
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
+        {
+            Vector& corrections = *(mAlgebraicFluxCorrections.begin() + i);
+            double limiter = *(mElementalLimiters.begin() + i);
+            corrections *= (1 - limiter);
+        }
+    }
+
     void AlgebraicFluxCorrectionUtility::InitializeNonhistoricalVariables()
     {
         VariableUtils().SetNonHistoricalVariableToZero(MAXIMUM_VALUE, mrModelPart.Nodes());
@@ -354,7 +374,8 @@ namespace Kratos
         {
             "name"               : "algebraic_flux_correction_utility",
             "rebuild_level"      : 0,
-            "limiting_variables" : ["VARIABLE_NAME"]
+            "limiting_variables" : ["VARIABLE_NAME"],
+            "maximum_iterations" : 1
         })");
         return default_parameters;
     }
