@@ -16,16 +16,14 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
 
     def SetMeshers(self):
 
-        print("::[Fluid Meshing Strategy]:: SET MESHER")
-
         meshers_list = []
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
-            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.fluid_pre_refining_mesher")
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_complete_mesher")
             #mesher_list.append("fluid_post_refining_mesher")
+        elif( self.settings["remesh"].GetBool() and self.settings["transfer"].GetBool() ):
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_none_mesher")
         elif( self.settings["remesh"].GetBool() ):
-            meshers_list.append("KratosMultiphysics.DelaunayMeshingApplication.reconnect_mesher")
-        elif( self.settings["transfer"].GetBool() ):
-            meshers_list.append("KratosMultiphysics.DelaunayMeshingApplication.transfer_mesher")
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_keeping_nodes_mesher")
 
         for mesher in meshers_list:
             full_module_name = mesher

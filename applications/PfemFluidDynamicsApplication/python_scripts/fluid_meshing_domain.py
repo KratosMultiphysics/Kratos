@@ -116,8 +116,6 @@ class FluidMeshingDomain(object):
 
     def Initialize(self):
 
-        print("::[Meshing Domain]:: -START-")
-
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # Set MeshingParameters
@@ -126,8 +124,6 @@ class FluidMeshingDomain(object):
         # Meshing Stratety
         self.MeshingStrategy.SetEchoLevel(self.echo_level)
         self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
-
-        print("::[Meshing Domain]:: -END- ")
 
     ####
 
