@@ -65,6 +65,14 @@ bool& LinearPlaneStressPreStrain::GetValue(const Variable<bool>& rThisVariable, 
     return rValue;
 }
 
+double& LinearPlaneStressPreStrain::GetValue(const Variable<double>& rThisVariable, double& rValue)
+{
+    // This Constitutive Law has been checked with Stenberg Stabilization
+    if (rThisVariable == PRE_STRAIN_FACTOR)
+        rValue = m_pre_strain_factor;
+
+    return rValue;
+}
 
 bool LinearPlaneStressPreStrain::Has(const Variable<double>& rThisVariable)
 
