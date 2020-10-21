@@ -195,7 +195,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    IndexType mId; /// The Id hold by th object
+    IndexType mId; /// The Id held by the object
 
     ///@}
     ///@name Private Operators
@@ -265,5 +265,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_INDEXED_OBJECT_H_INCLUDED  defined
-
 
