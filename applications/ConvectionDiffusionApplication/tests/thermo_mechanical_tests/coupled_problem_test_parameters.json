@@ -27,7 +27,6 @@
             "time_stepping"                   : {
                 "time_step" : 0.4
             },
-	    "time_integration_method"         : "implicit",
             "line_search"                     : false,
             "convergence_criterion"           : "residual_criterion",
             "displacement_relative_tolerance" : 0.0001,
@@ -62,7 +61,8 @@
             "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto1","HeatFlux2D_External_heat_flux_Auto1"],
             "time_stepping"                      : {
                 "time_step" : 0.4
-            }
+            },
+	    "time_integration_method"         : "implicit"
         }
     },
     "processes"        : {
