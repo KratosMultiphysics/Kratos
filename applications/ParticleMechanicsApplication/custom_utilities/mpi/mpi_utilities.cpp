@@ -13,6 +13,7 @@
 // Kratos includes
 #include "mpi_utilities.h"
 #include "particle_mechanics_application_variables.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -33,15 +34,24 @@ namespace Kratos {
         // Exchange elements
         rModelPart.GetCommunicator().TransferObjects(rSendElements, rRecvElements);
 
-        // Remove sent elements from current ModelPart
-        for( unsigned int i = 0; i < rSendElements.size(); ++i){
-            for(auto it = rSendElements[i].begin(); it != rSendElements[i].end(); ++it){
-                it->GetGeometry().clear();
-                it->Reset(ACTIVE);
-                rModelPart.RemoveElementFromAllLevels(it->Id());
-                rModelPart.GetCommunicator().LocalMesh().RemoveElement(it->Id());
-            }
+        // Attention: Loop over one element container "slot" k is only possible, 
+        // because all containers hold same elements. This might change in the future.
+        unsigned int k = 0;
+        if( size > 1 && rank == 0){
+            k = 1;
         }
+        const auto it_send_elements_begin = rSendElements[k].begin();
+        const unsigned int number_sent_elements = rSendElements[k].size();
+
+        IndexPartition<unsigned int>(number_sent_elements).for_each(
+            [it_send_elements_begin](unsigned int j){
+                auto it = it_send_elements_begin + j;
+                it->Set(TO_ERASE);
+            }
+        );
+        
+        rModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+        rModelPart.GetCommunicator().LocalMesh().Elements() = rModelPart.Elements();
 
         rSendElements.clear();
     }
@@ -63,15 +73,25 @@ namespace Kratos {
         // Exchange conditions
         rModelPart.GetCommunicator().TransferObjects(rSendConditions, rRecvConditions);
 
-        // Remove sent conditions from current ModelPart
-        for( unsigned int i = 0; i < rSendConditions.size(); ++i){
-            for(auto it = rSendConditions[i].begin(); it != rSendConditions[i].end(); ++it){
-                it->GetGeometry().clear();
-                it->Reset(ACTIVE);
-                rModelPart.RemoveConditionFromAllLevels(it->Id());
-                rModelPart.GetCommunicator().LocalMesh().RemoveCondition(it->Id());
-            }
+        // Attention: Loop over one condition container "slot" k is only possible, 
+        // because all containers hold same elements. This might change in the future.
+        unsigned int k = 0;
+        if( size > 1 && rank == 0){
+            k = 1;
         }
+        const auto it_send_econditions_begin = rSendConditions[k].begin();
+        const unsigned int number_sent_econditions = rSendConditions[k].size();
+
+        IndexPartition<unsigned int>(number_sent_econditions).for_each(
+            [it_send_econditions_begin](unsigned int j){
+                auto it = it_send_econditions_begin + j;
+                it->Set(TO_ERASE);
+            }
+        );
+
+        rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+        rModelPart.GetCommunicator().LocalMesh().Conditions() = rModelPart.Conditions();
+
         rSendConditions.clear();
     }
 
@@ -109,6 +129,7 @@ namespace Kratos {
         // Attention: Right now this function only requires the nodal id;
         // TODO: Only send nodal id. Keep this for a while, in case more information is required.
         auto& r_interface_nodes = rModelPart.GetCommunicator().InterfaceMesh().Nodes();
+        #pragma omp parallel for
         for( auto neighbour : neighbours_custom){
             for( auto it = recv_nodes_container[neighbour].begin(); it != recv_nodes_container[neighbour].end(); ++it){
                 const unsigned int node_id = it->Id();
@@ -120,6 +141,41 @@ namespace Kratos {
         }
     }
 
+    // ##############################################################################################
+    //!!!This function was only some helper function. Not used.!!!
+    // ##############################################################################################
+    void MPM_MPI_Utilities::GetAllParticleCoordinates( ModelPart& rModelPart, std::vector<int>& rParticleIDs,
+                                                                              std::vector<double>& rCoordX,
+                                                                              std::vector<double>& rCoordY,
+                                                                              std::vector<double>& rCoordZ ){
+        const unsigned int num_local_particles = rModelPart.NumberOfElements();
+        const unsigned int num_global_particles = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_local_particles);
+        std::vector<int> local_particle_ids(num_local_particles);
+        local_particle_ids.resize(num_local_particles);
+        std::vector<double> local_coord_x(num_local_particles);
+        std::vector<double> local_coord_y(num_local_particles);
+        std::vector<double> local_coord_z(num_local_particles);
+        const ProcessInfo& process_info = ProcessInfo();
+        for( auto& element : rModelPart.Elements() ){
+            local_particle_ids.push_back(element.Id());
+            std::vector<array_1d<double,3>> coord;
+            element.CalculateOnIntegrationPoints(MP_COORD, coord, process_info);
+            local_coord_x.push_back(coord[0][0]);
+            local_coord_y.push_back(coord[0][1]);
+            local_coord_z.push_back(coord[0][2]);
+        }
+        rParticleIDs.resize(num_global_particles);
+        std::vector<int> test;
+        test.resize(num_global_particles);
+        rCoordX.resize(num_global_particles);
+        rCoordY.resize(num_global_particles);
+        rCoordZ.resize(num_global_particles);
+        //rModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_particle_ids, test);
+        //rModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_coord_x, rCoordX);
+        // rModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_coord_y, rCoordY);
+        // rModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_coord_z, rCoordZ);
+
+    }
     // ##############################################################################################
     // !!!This function is no longer needed. However, function is kept for some while just in case.!!!
     // ##############################################################################################
@@ -178,8 +234,8 @@ namespace Kratos {
         rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
     }
 
-    void MPM_MPI_Utilities::SetMPICommunicator( ModelPart& SourceModelPart, ModelPart& DestModelPart){
-        DestModelPart.SetCommunicator(SourceModelPart.pGetCommunicator());
+    void MPM_MPI_Utilities::SetMPICommunicator( ModelPart& rSourceModelPart, ModelPart& rDestModelPart){
+        rDestModelPart.SetCommunicator(rSourceModelPart.pGetCommunicator());
     }
 
     void MPM_MPI_Utilities::ClearLocalElementsFromCommunicator( ModelPart& rModelPart){

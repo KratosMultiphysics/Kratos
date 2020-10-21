@@ -89,6 +89,15 @@ public:
     static void ClearLocalElementsFromCommunicator( ModelPart& rModelPart);
 
     /**
+     * @brief Provides all global particle Id's and coordinates.
+     * !!!This function was only some helper function. Not used.!!!
+     **/
+    static void GetAllParticleCoordinates( ModelPart& rModelPart, std::vector<int>& rParticleIDs,
+                                                                  std::vector<double>& rDispX,
+                                                                  std::vector<double>& rDispY,
+                                                                  std::vector<double>& rDispZ);
+    
+    /**
      * @brief Synchronize nodal displacement at interface mesh;
      * !!!This function is no longer needed. However, function is kept for some while just in case.!!!
      **/

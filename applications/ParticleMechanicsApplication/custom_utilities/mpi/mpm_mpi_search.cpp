@@ -35,7 +35,7 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementMPI(ModelPart& rBackgroundGridMode
 
         MPMSearchElementUtility::NeighbourSearchElements(r_submodel_part, rBackgroundGridModelPart, missing_elements, Tolerance);
         MPMSearchElementUtility::NeighbourSearchConditions(r_submodel_part, rBackgroundGridModelPart, missing_conditions, Tolerance);
-
+        KRATOS_INFO_ALL_RANKS("Send elements: ") << missing_elements.size() << std::endl;
         std::vector<int> element_search_results_dummy(missing_elements.size());
         std::vector<int> condition_search_results_dummy(missing_conditions.size());
         if (missing_conditions.size() > 0 || missing_elements.size() > 0)
@@ -48,6 +48,9 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementMPI(ModelPart& rBackgroundGridMode
 
     }
     MPM_MPI_Utilities::SynchronizeActiveDofsAtInterface(rMPMModelPart);
+    
+    rMPMModelPart.GetCommunicator().LocalMesh().Elements() = rMPMModelPart.Elements();
+    rMPMModelPart.GetCommunicator().LocalMesh().Conditions() = rMPMModelPart.Conditions();
     // Sync proc's
     rMPMModelPart.GetCommunicator().GetDataCommunicator().Barrier();
 }
@@ -130,20 +133,12 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
             global_condition_search_results.resize(number_sent_conditions*size);
 
             if( i != rank){ //If reciever perform search
-                missing_elements.reserve(number_sent_elements);
-                missing_conditions.reserve(number_sent_conditions);
-
                 // Prepare element and conditions containers
-                // TODO: Switch SetGeometryParent call inside BinBasedSearch to avoid this loop here!
-                for( auto it = recv_elements_container[i].begin(); it != recv_elements_container[i].end(); ++it){
-                    it->GetGeometry().SetGeometryParent( &rBackgroundGridModelPart.ElementsBegin()->GetGeometry());
-                    missing_elements.push_back(*it.base());
-                }
+                missing_elements.clear();
+                missing_conditions.clear();
+                missing_elements.insert(missing_elements.begin(), recv_elements_container[i].begin().base(), recv_elements_container[i].end().base());
+                missing_conditions.insert(missing_conditions.begin(), recv_conditions_container[i].begin().base(), recv_conditions_container[i].end().base());
 
-                for( auto it = recv_conditions_container[i].begin(); it != recv_conditions_container[i].end(); ++it){
-                    it->GetGeometry() = rBackgroundGridModelPart.ElementsBegin()->GetGeometry();
-                    missing_conditions.push_back(*it.base());
-                }
                 // Run search and fill local_search_results
                 BinBasedSearchElementsAndConditionsMPI(rMPMSubModelPart,
                             rBackgroundGridModelPart, missing_elements, local_element_search_results, missing_conditions,
@@ -169,14 +164,22 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
                 }
             }
             // Add found elements to current ModelPart
-            int j = rank*number_sent_elements;
-            for( auto it = recv_elements_container[i].begin(); it != recv_elements_container[i].end(); ++it){
-                if( global_element_search_results[j] == 1){
-                    it->Set(ACTIVE);
-                    rMPMSubModelPart.AddElement(*it.base());
-                    rMPMSubModelPart.GetCommunicator().LocalMesh().AddElement(*it.base());
+            #pragma omp parallel 
+            {
+                ModelPart::ElementsContainerType aux_elements;
+                aux_elements.reserve(number_sent_elements);
+                const unsigned int j = rank*number_sent_elements;
+                auto it_recv_element_begin = recv_elements_container[i].begin();
+                #pragma omp for
+                for( unsigned int k = 0; k < number_sent_elements; ++k){
+                    auto it = it_recv_element_begin +k;
+                    unsigned int position = j + k;
+                    if( global_element_search_results[position] == 1){
+                        aux_elements.push_back(*it.base());
+                    }
                 }
-                j++;
+                #pragma omp critical
+                rMPMSubModelPart.AddElements(aux_elements.begin(), aux_elements.end());
             }
 
             // Make sure every condition is only found ones!
@@ -193,15 +196,23 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
                 }
             }
             // Add found condition to current ModelPart
-            j = rank*number_sent_conditions;
-            for( auto it = recv_conditions_container[i].begin(); it != recv_conditions_container[i].end(); ++it){
-                if( global_condition_search_results[j] == 1){
-                    it->Set(ACTIVE);
-                    rMPMSubModelPart.AddCondition(*it.base());
-                    rMPMSubModelPart.GetCommunicator().LocalMesh().AddCondition(*it.base());
+            #pragma omp parallel
+            {
+                ModelPart::ConditionsContainerType aux_conditions;
+                aux_conditions.reserve(number_sent_conditions);
+                const unsigned int j = rank*number_sent_conditions;
+                auto it_recv_conditions_begin = recv_conditions_container[i].begin();
+                #pragma omp for
+                for( unsigned int k = 0; k < number_sent_conditions; ++k){
+                    auto it = it_recv_conditions_begin + k;
+                    unsigned int position = j + k;
+                    if( global_condition_search_results[position]== 1)
+                        aux_conditions.push_back(*it.base());
                 }
-                j++;
+                #pragma omp critical
+                rMPMSubModelPart.AddConditions(aux_conditions.begin(), aux_conditions.end());
             }
+            
         }
     }
 
