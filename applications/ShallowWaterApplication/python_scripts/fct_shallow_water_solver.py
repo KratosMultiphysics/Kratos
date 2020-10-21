@@ -51,20 +51,24 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
         return default_parameters
 
     def __execute_before_low_order_step(self):
+        self.main_model_part.ProcessInfo.SetValue(SW.LUMPED_MASS_FACTOR, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(SW.IS_MONOTONIC_CALCULATION, True)
         dry_height = self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)
         SW.ShallowWaterUtilities().ResetDryDomain(self.main_model_part, dry_height)
         SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, dry_height)
-        self.fct_utility.ExecuteInitializeLowOrderStep()
+        self.fct_utility.InitializeCorrection()
 
     def __execute_after_low_order_step(self):
         SW.ShallowWaterUtilities().ComputeEnergy(self.main_model_part)
-        self.fct_utility.ExecuteFinalizeLowOrderStep()
+        self.fct_utility.GetLowOrderValues()
 
     def __execute_before_high_order_step(self):
+        self.main_model_part.ProcessInfo.SetValue(SW.LUMPED_MASS_FACTOR, 0.0)
+        self.main_model_part.ProcessInfo.SetValue(SW.IS_MONOTONIC_CALCULATION, False)
         dry_height = 10 * self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)
         SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, dry_height)
-        self.fct_utility.ExecuteInitializeHighOrderStep()
 
     def __execute_after_high_order_step(self):
         SW.ShallowWaterUtilities().ComputeEnergy(self.main_model_part)
-        self.fct_utility.ExecuteFinalizeHighOrderStep()
+        self.fct_utility.GetHighOrderValues()
+        self.fct_utility.ApplyCorrection()

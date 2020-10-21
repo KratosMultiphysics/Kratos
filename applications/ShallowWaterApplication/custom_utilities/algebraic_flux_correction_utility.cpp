@@ -43,7 +43,7 @@ namespace Kratos
         AssembleElementalMassMatrices();
     }
 
-    void AlgebraicFluxCorrectionUtility::ExecuteInitializeLowOrderStep()
+    void AlgebraicFluxCorrectionUtility::InitializeCorrection()
     {
         if (mRebuildLevel > 0) {
             ResizeNodalAndElementalVectors();
@@ -52,39 +52,13 @@ namespace Kratos
             GetElementalDofList();
             AssembleElementalMassMatrices();
         }
-        SetProcessInfoLowOrderFlags();
     }
 
-    void AlgebraicFluxCorrectionUtility::ExecuteFinalizeLowOrderStep()
+    void AlgebraicFluxCorrectionUtility::ApplyCorrection()
     {
-        GetLowOrderValues();
-    }
-
-    void AlgebraicFluxCorrectionUtility::ExecuteInitializeHighOrderStep()
-    {
-        SetProcessInfoHighOrderFlags();
-    }
-
-    void AlgebraicFluxCorrectionUtility::ExecuteFinalizeHighOrderStep()
-    {
-        GetHighOrderValues();
         ComputeElementalAlgebraicFluxCorrections();
         ComputeLimiters();
         AssembleLimitedCorrections();
-    }
-
-    void AlgebraicFluxCorrectionUtility::SetProcessInfoHighOrderFlags()
-    {
-        ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
-        r_process_info.GetValue(LUMPED_MASS_FACTOR) = 1.0;
-        r_process_info.GetValue(IS_MONOTONIC_CALCULATION) = false;
-    }
-
-    void AlgebraicFluxCorrectionUtility::SetProcessInfoLowOrderFlags()
-    {
-        ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
-        r_process_info.GetValue(LUMPED_MASS_FACTOR) = 0.0;
-        r_process_info.GetValue(IS_MONOTONIC_CALCULATION) = true;
     }
 
     void AlgebraicFluxCorrectionUtility::GetHighOrderValues()

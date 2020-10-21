@@ -91,13 +91,13 @@ public:
 
     int Check();
 
-    void ExecuteInitializeLowOrderStep();
+    void InitializeCorrection();
 
-    void ExecuteFinalizeLowOrderStep();
+    void GetHighOrderValues();
 
-    void ExecuteInitializeHighOrderStep();
+    void GetLowOrderValues();
 
-    void ExecuteFinalizeHighOrderStep();
+    void ApplyCorrection();
 
     ///@}
     ///@name Access
@@ -221,14 +221,6 @@ private:
     void AssembleElementalMassMatrices();
 
     void GetElementalDofList();
-
-    void SetProcessInfoHighOrderFlags();
-
-    void SetProcessInfoLowOrderFlags();
-
-    void GetHighOrderValues();
-
-    void GetLowOrderValues();
 
     void ComputeElementalAlgebraicFluxCorrections();
 

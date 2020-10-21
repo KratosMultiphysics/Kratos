@@ -111,10 +111,10 @@ namespace Python
 
     py::class_<AlgebraicFluxCorrectionUtility>(m,"AlgebraicFluxCorrectionUtility")
         .def(py::init<ModelPart&, Parameters>())
-        .def("ExecuteInitializeLowOrderStep", &AlgebraicFluxCorrectionUtility::ExecuteInitializeLowOrderStep)
-        .def("ExecuteFinalizeLowOrderStep", &AlgebraicFluxCorrectionUtility::ExecuteFinalizeLowOrderStep)
-        .def("ExecuteInitializeHighOrderStep", &AlgebraicFluxCorrectionUtility::ExecuteInitializeHighOrderStep)
-        .def("ExecuteFinalizeHighOrderStep", &AlgebraicFluxCorrectionUtility::ExecuteFinalizeHighOrderStep)
+        .def("InitializeCorrection", &AlgebraicFluxCorrectionUtility::InitializeCorrection)
+        .def("GetHighOrderValues", &AlgebraicFluxCorrectionUtility::GetHighOrderValues)
+        .def("GetLowOrderValues", &AlgebraicFluxCorrectionUtility::GetLowOrderValues)
+        .def("ApplyCorrection", &AlgebraicFluxCorrectionUtility::ApplyCorrection)
         ;
   }
 
