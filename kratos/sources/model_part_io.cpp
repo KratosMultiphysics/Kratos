@@ -15,8 +15,6 @@
 #include<unordered_set>
 
 // External includes
-#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
-namespace fs = ghc::filesystem;
 
 // Project includes
 #include "includes/model_part_io.h"
@@ -24,6 +22,8 @@ namespace fs = ghc::filesystem;
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
+namespace fs = ghc::filesystem;
 
 namespace Kratos
 {
