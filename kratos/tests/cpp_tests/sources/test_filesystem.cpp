@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
     std::vector<std::string> paths_2;
     KRATOS_CHECK_STRING_EQUAL(Kratos::FilesystemExtensions::JoinPaths(paths_2), "");
 }
-    
+
 KRATOS_TEST_CASE_IN_SUITE(FileSystemParentPathFilename, KratosCoreFastSuite)
 {
     std::vector<std::string> paths_1 {"sl", "", "uom", "dssc"};
@@ -234,12 +234,12 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
     for (const auto& r_dir : list_of_dirs) {
         bool found_check_dir = false;
         for (const auto& check_dir : check_list) {
-            if (check_dir == r_dir) {
+            if (filesystem::parent_path(r_dir) == filesystem::parent_path(check_dir) &&
+                filesystem::filename(r_dir) == filesystem::filename(check_dir)) {
                 found_check_dir = true;
                 break;
             }
         }
-        KRATOS_WATCH(r_dir);
         KRATOS_CHECK(found_check_dir);
     }
 
