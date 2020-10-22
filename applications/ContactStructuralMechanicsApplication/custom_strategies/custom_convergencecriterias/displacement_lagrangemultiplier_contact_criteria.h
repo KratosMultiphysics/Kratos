@@ -129,6 +129,10 @@ public:
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
+        // The rotation solution  // TODO: Update to consistent names
+        mRotRatioTolerance = DispRatioTolerance;
+        mRotAbsTolerance = DispAbsTolerance;
+
         // The contact solution
         mLMRatioTolerance = LMRatioTolerance;
         mLMAbsTolerance = LMAbsTolerance;
@@ -152,6 +156,8 @@ public:
       ,mOptions(rOther.mOptions)
       ,mDispRatioTolerance(rOther.mDispRatioTolerance)
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
+      ,mRotRatioTolerance(rOther.mRotRatioTolerance)
+      ,mRotAbsTolerance(rOther.mRotAbsTolerance)
       ,mLMRatioTolerance(rOther.mLMRatioTolerance)
       ,mLMAbsTolerance(rOther.mLMAbsTolerance)
     {
@@ -434,6 +440,10 @@ protected:
         mDispRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
 
+        // The rotation solution // TODO: Update to consistent names
+        mRotRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
+
         // The contact solution
         mLMRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
         mLMAbsTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
@@ -470,6 +480,9 @@ private:
 
     TDataType mDispRatioTolerance; /// The ratio threshold for the norm of the displacement
     TDataType mDispAbsTolerance;   /// The absolute value threshold for the norm of the displacement
+
+    TDataType mRotRatioTolerance; /// The ratio threshold for the norm of the rotation
+    TDataType mRotAbsTolerance;   /// The absolute value threshold for the norm of the rotation
 
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM

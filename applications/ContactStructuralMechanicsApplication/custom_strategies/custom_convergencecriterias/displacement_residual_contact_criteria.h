@@ -113,8 +113,13 @@ public:
         mOptions.Set(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
 
+        // The displacement residual
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
+
+        // The rotation residual // TODO: Update to consistent names
+        mRotRatioTolerance = DispRatioTolerance;
+        mRotAbsTolerance = DispAbsTolerance;
     }
 
     /**
@@ -137,6 +142,10 @@ public:
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
       ,mDispInitialResidualNorm(rOther.mDispInitialResidualNorm)
       ,mDispCurrentResidualNorm(rOther.mDispCurrentResidualNorm)
+      ,mRotRatioTolerance(rOther.mRotRatioTolerance)
+      ,mRotAbsTolerance(rOther.mRotAbsTolerance)
+      ,mRotInitialResidualNorm(rOther.mRotInitialResidualNorm)
+      ,mRotCurrentResidualNorm(rOther.mRotCurrentResidualNorm)
     {
     }
 
@@ -399,6 +408,10 @@ protected:
         mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
 
+        // The rotation residual // TODO: Update to consistent names
+        mRotRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+
         // Set local flags
         mOptions.Set(DisplacementResidualContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED, false);
@@ -433,6 +446,11 @@ private:
     TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
     TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
     TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
+
+    TDataType mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
+    TDataType mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
+    TDataType mRotInitialResidualNorm; /// The reference norm of the rotation residual
+    TDataType mRotCurrentResidualNorm; /// The current norm of the rotation residual
 
     ///@}
     ///@name Private Operators

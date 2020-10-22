@@ -127,9 +127,15 @@ public:
         mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::ROTATION_DOF_IS_CONSIDERED, false);
         mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
 
+        // The displacement solution
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
+        // The rotation solution  // TODO: Update to consistent names
+        mRotRatioTolerance = DispRatioTolerance;
+        mRotAbsTolerance = DispAbsTolerance;
+
+        // The normal contact solution
         mLMRatioTolerance = LMRatioTolerance;
         mLMAbsTolerance = LMAbsTolerance;
     }
@@ -154,6 +160,10 @@ public:
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
       ,mDispInitialResidualNorm(rOther.mDispInitialResidualNorm)
       ,mDispCurrentResidualNorm(rOther.mDispCurrentResidualNorm)
+      ,mRotRatioTolerance(rOther.mRotRatioTolerance)
+      ,mRotAbsTolerance(rOther.mRotAbsTolerance)
+      ,mRotInitialResidualNorm(rOther.mRotInitialResidualNorm)
+      ,mRotCurrentResidualNorm(rOther.mRotCurrentResidualNorm)
       ,mLMRatioTolerance(rOther.mLMRatioTolerance)
       ,mLMAbsTolerance(rOther.mLMAbsTolerance)
     {
@@ -447,6 +457,10 @@ protected:
         mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
 
+        // The rotation solution  // TODO: Update to consistent names
+        mRotRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+
         // The contact solution
         mLMRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
         mLMAbsTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
@@ -490,6 +504,11 @@ private:
     TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
     TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
     TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
+
+    TDataType mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
+    TDataType mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
+    TDataType mRotInitialResidualNorm; /// The reference norm of the rotation residual
+    TDataType mRotCurrentResidualNorm; /// The current norm of the rotation residual
 
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM

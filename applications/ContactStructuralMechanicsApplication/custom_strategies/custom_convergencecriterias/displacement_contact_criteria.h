@@ -114,6 +114,10 @@ public:
         // The displacement solution
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
+
+        // The displacement solution // TODO: Update to consistent names
+        mRotRatioTolerance = DispRatioTolerance;
+        mRotAbsTolerance = DispAbsTolerance;
     }
 
     /**
@@ -134,6 +138,8 @@ public:
       ,mOptions(rOther.mOptions)
       ,mDispRatioTolerance(rOther.mDispRatioTolerance)
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
+      ,mRotRatioTolerance(rOther.mRotRatioTolerance)
+      ,mRotAbsTolerance(rOther.mRotAbsTolerance)
     {
     }
 
@@ -364,6 +370,10 @@ protected:
         mDispRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
 
+        // The rotation solution  // TODO: Update to consistent names
+        mRotRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
+
         // Set local flags
         mOptions.Set(DisplacementContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, false);
@@ -395,6 +405,9 @@ private:
 
     TDataType mDispRatioTolerance; /// The ratio threshold for the norm of the displacement
     TDataType mDispAbsTolerance;   /// The absolute value threshold for the norm of the displacement
+
+    TDataType mRotRatioTolerance; /// The ratio threshold for the norm of the rotation
+    TDataType mRotAbsTolerance;   /// The absolute value threshold for the norm of the rotation
 
     ///@}
     ///@name Private Operators

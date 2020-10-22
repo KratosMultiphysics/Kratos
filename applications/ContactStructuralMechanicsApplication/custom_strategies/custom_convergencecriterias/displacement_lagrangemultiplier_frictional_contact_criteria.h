@@ -140,6 +140,10 @@ public:
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
+        // The rotation solution // TODO: Update to consistent names
+        mRotRatioTolerance = DispRatioTolerance;
+        mRotAbsTolerance = DispAbsTolerance;
+
         // The normal contact solution
         mLMNormalRatioTolerance = LMNormalRatioTolerance;
         mLMNormalAbsTolerance = LMNormalAbsTolerance;
@@ -172,6 +176,8 @@ public:
       ,mOptions(rOther.mOptions)
       ,mDispRatioTolerance(rOther.mDispRatioTolerance)
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
+      ,mRotRatioTolerance(rOther.mDispRatioTolerance)
+      ,mRotAbsTolerance(rOther.mDispAbsTolerance)
       ,mLMNormalRatioTolerance(rOther.mLMNormalRatioTolerance)
       ,mLMNormalAbsTolerance(rOther.mLMNormalAbsTolerance)
       ,mLMTangentStickRatioTolerance(rOther.mLMTangentStickRatioTolerance)
@@ -591,6 +597,10 @@ protected:
         mDispRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
 
+        // The rotation solution  // TODO: Update to consistent names
+        mRotRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
+
         // The normal contact solution
         mLMNormalRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
         mLMNormalAbsTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
@@ -637,6 +647,9 @@ private:
 
     TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement
     TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement
+
+    TDataType mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation
+    TDataType mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation
 
     TDataType mLMNormalRatioTolerance;  /// The ratio threshold for the norm of the LM (normal)
     TDataType mLMNormalAbsTolerance;    /// The absolute value threshold for the norm of the LM (normal)
