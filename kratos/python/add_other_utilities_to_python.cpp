@@ -24,7 +24,6 @@
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "includes/global_pointer_variables.h"
-#include "includes/kratos_filesystem.h"
 
 //Other utilities
 #include "utilities/python_function_callback_utility.h"
@@ -49,6 +48,7 @@
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/properties_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
+#include "utilities/file_name_data_collector.h"
 
 namespace Kratos {
 namespace Python {
@@ -516,15 +516,41 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("CalculateRotationOperatorPureShapeSensitivities", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const std::size_t, const std::size_t, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPureShapeSensitivities))
         ;
 
-    // add FileNameInformationCollector
+    // add FileNameDataCollector
+    auto file_name_data_collector = py::class_<
+        FileNameDataCollector,
+        FileNameDataCollector::Pointer>
+        (m, "FileNameDataCollector")
+        .def(py::init<const ModelPart&, const std::string&, const std::unordered_map<std::string, std::string>&>())
+        .def("GetFileName", &FileNameDataCollector::GetFileName)
+        .def("GetPath", &FileNameDataCollector::GetPath)
+        .def("GetSortedFileNamesList", &FileNameDataCollector::GetSortedFileNamesList)
+        .def("RetrieveFileNameData", &FileNameDataCollector::RetrieveFileNameData)
+        .def("GetFileNameDataList", &FileNameDataCollector::GetFileNameDataList)
+        .def_static("GetSortedListOfFileNameData",
+            [](std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList, const std::vector<std::string>& rSortingFlagsOrder) {
+                FileNameDataCollector::SortListOfFileNameData(rFileNameDataList, rSortingFlagsOrder);
+                return rFileNameDataList;
+            })
+        ;
+
+    // add FileNameData holder
     py::class_<
-        filesystem::FileNameInformationCollector,
-        filesystem::FileNameInformationCollector::Pointer>
-        (m, "FileNameInformationCollector")
-        .def(py::init<const ModelPart&, const std::string&>())
-        .def(py::init<const ModelPart&, const std::string&, const std::string&>())
-        .def("GetFileName", &filesystem::FileNameInformationCollector::GetFileName)
-        .def("GetSortedFileNamesList", &filesystem::FileNameInformationCollector::GetSortedFileNamesList)
+        FileNameDataCollector::FileNameData,
+        FileNameDataCollector::FileNameData::Pointer>
+        (file_name_data_collector, "FileNameData")
+        .def(py::init<>())
+        .def(py::init<const std::string&, int, int, double>())
+        .def("SetFileName", &FileNameDataCollector::FileNameData::SetFileName)
+        .def("GetFileName", &FileNameDataCollector::FileNameData::GetFileName)
+        .def("SetRank", &FileNameDataCollector::FileNameData::SetRank)
+        .def("GetRank", &FileNameDataCollector::FileNameData::GetRank)
+        .def("SetStep", &FileNameDataCollector::FileNameData::SetStep)
+        .def("GetStep", &FileNameDataCollector::FileNameData::GetStep)
+        .def("SetTime", &FileNameDataCollector::FileNameData::SetTime)
+        .def("GetTime", &FileNameDataCollector::FileNameData::GetTime)
+        .def("Clear", &FileNameDataCollector::FileNameData::Clear)
+        .def("__eq__", &FileNameDataCollector::FileNameData::operator==)
         ;
 }
 
