@@ -204,7 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
 
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(dir_name));
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(sub_dir));
-    KRATOS_CHECK(Kratos::filesystem::create_directory(sub_dir));
+    KRATOS_CHECK(Kratos::filesystem::create_directories(sub_dir));
 
     std::ofstream output_file;
     output_file.open(file_name_1);
