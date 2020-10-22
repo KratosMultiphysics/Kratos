@@ -77,8 +77,8 @@ output_file_name = os.path.join(output_directory, "design_surface_0_5.vtk")
 reference_file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ref_design_surface_0_5.vtk")
 
 result_check_settings = KM.Parameters("""{
-        "reference_file_name"   : \""""+reference_file_name+"""\",
-        "output_file_name"      : \""""+output_file_name+"""\",
+        "reference_file_name"   : \""""+reference_file_name.replace("\\", "\\\\")+"""\",
+        "output_file_name"      : \""""+output_file_name.replace("\\", "\\\\")+"""\",
         "remove_output_file"    : false,
         "comparison_type"       : "vtk",
         "tolerance"             : 1e-6,
