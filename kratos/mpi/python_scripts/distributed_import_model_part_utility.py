@@ -3,7 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Other imports
-import os
+from pathlib import Path
 
 class DistributedImportModelPartUtility:
 
@@ -92,7 +92,12 @@ class DistributedImportModelPartUtility:
             if is_single_process_run:
                 mpi_input_filename = input_filename
             else:
-                mpi_input_filename = os.path.join(input_filename+"_partitioned", input_filename + "_" + str(self.comm.Rank()))
+                base_path = Path(input_filename)
+                raw_file_name = base_path.stem
+                folder_name = base_path.parent / Path(str(raw_file_name) + "_partitioned")
+
+                mpi_input_filename = str(folder_name / Path(str(raw_file_name) + "_"+str(self.comm.Rank())))
+
             model_part_import_settings["input_filename"].SetString(mpi_input_filename)
 
             ## Read the new generated *.mdpa files

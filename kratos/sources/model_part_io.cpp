@@ -15,6 +15,8 @@
 #include<unordered_set>
 
 // External includes
+#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
+namespace fs = ghc::filesystem;
 
 // Project includes
 #include "includes/model_part_io.h"
@@ -625,13 +627,17 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     OutputFilesContainerType output_files;
 
     // create folder for partitioned files
-    const std::string folder_name = mBaseFilename+"_partitioned";
-    filesystem::remove_all(folder_name); // to remove leftovers
-    filesystem::create_directory(folder_name);
+    const fs::path base_path(mBaseFilename);
+
+    const fs::path raw_file_name = base_path.stem();
+    const fs::path folder_name = base_path.parent_path() / raw_file_name += "_partitioned";
+
+    fs::remove_all(folder_name); // to remove leftovers
+    fs::create_directory(folder_name);
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
-        std::string full_file_name = FilesystemExtensions::JoinPaths({folder_name, mBaseFilename+"_"+std::to_string(i)+".mdpa"});
+        const fs::path full_file_name = folder_name / raw_file_name += "_"+std::to_string(i)+".mdpa";
         std::ofstream* p_ofstream = new std::ofstream(full_file_name);
         KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << full_file_name << std::endl;
 
