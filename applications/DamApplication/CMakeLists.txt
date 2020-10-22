@@ -2,6 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDamApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 

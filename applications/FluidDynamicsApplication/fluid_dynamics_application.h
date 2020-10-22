@@ -38,6 +38,7 @@
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
+#include "custom_elements/qs_vms_dem_coupled.h"
 #include "custom_elements/d_vms.h"
 #include "custom_elements/fic.h"
 #include "custom_elements/symbolic_stokes.h"
@@ -77,6 +78,7 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
@@ -257,11 +259,15 @@ private:
     const VMS<2> mVMS2D;
     /// 3D instance of the VMS element
     const VMS<3> mVMS3D;
-    /// Expermiental fluid element
+    /// Experimental fluid element
     const QSVMS< QSVMSData<2,3> > mQSVMS2D3N;
     const QSVMS< QSVMSData<3,4> > mQSVMS3D4N;
     const QSVMS< QSVMSData<2,4> > mQSVMS2D4N;
     const QSVMS< QSVMSData<3,8> > mQSVMS3D8N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mQSVMSDEMCoupled2D3N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mQSVMSDEMCoupled3D4N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;

@@ -22,8 +22,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
     def Initialize(self):
 
-        print("::[Pfem Fluid Nodal Integration Solver]:: -START-")
-
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
@@ -62,10 +60,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
-
-
-        print("::[Pfem Fluid Nodal Integration Solver]:: -END- ")
-
 
 
     def AddVariables(self):
@@ -177,8 +171,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PROPERTY_ID)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
-
-        print("::[Pfem Fluid Solver]:: Variables ADDED")
 
 
     def InitializeSolutionStep(self):

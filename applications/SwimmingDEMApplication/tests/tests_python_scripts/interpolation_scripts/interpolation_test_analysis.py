@@ -23,7 +23,7 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
                                                    self.vars_man)
 
     def FinalizeSolutionStep(self):
-        super(InterpolationTestAnalysis, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
 if __name__ == "__main__":
     # Setting parameters
