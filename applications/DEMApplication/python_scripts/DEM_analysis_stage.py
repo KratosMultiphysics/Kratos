@@ -333,49 +333,51 @@ class DEMAnalysisStage(AnalysisStage):
     
     def HomogenizationUtilitiesInitialize(self):
 
-        self.lower_corner_coordinates = Array3()
-        self.higher_corner_coordinates = Array3()
+        lower_corner_coordinates = Array3()
+        higher_corner_coordinates = Array3()
 
-        self.lower_corner_coordinates[0] = self.creator_destructor.GetLowNode()[0]
-        self.lower_corner_coordinates[1] = self.creator_destructor.GetLowNode()[1]
-        self.lower_corner_coordinates[2] = self.creator_destructor.GetLowNode()[2]
-        self.higher_corner_coordinates[0] = self.creator_destructor.GetHighNode()[0]
-        self.higher_corner_coordinates[1] = self.creator_destructor.GetHighNode()[1]
-        self.higher_corner_coordinates[2] = self.creator_destructor.GetHighNode()[2]
+        lower_corner_coordinates[0] = self.creator_destructor.GetLowNode()[0]
+        lower_corner_coordinates[1] = self.creator_destructor.GetLowNode()[1]
+        lower_corner_coordinates[2] = self.creator_destructor.GetLowNode()[2]
+        higher_corner_coordinates[0] = self.creator_destructor.GetHighNode()[0]
+        higher_corner_coordinates[1] = self.creator_destructor.GetHighNode()[1]
+        higher_corner_coordinates[2] = self.creator_destructor.GetHighNode()[2]
 
-        print(self.lower_corner_coordinates)
-        print(self.higher_corner_coordinates)
-        #self.element_size = input("Enter element size:")
+        print(lower_corner_coordinates)
+        print(higher_corner_coordinates)
+        #element_size = input("Enter element size:")
 
         #import math
 
-        #self.number_of_divisions = Array3()
-        #self.number_of_divisions[0] = math.cell((self.lower_corner_coordinates[0]-self.higher_corner_coordinates[0])/element_size)
-        #self.number_of_divisions[1] = math.cell((self.lower_corner_coordinates[1]-self.higher_corner_coordinates[1])/element_size)
-        #self.number_of_divisions[2] = math.cell((self.lower_corner_coordinates[2]-self.higher_corner_coordinates[2])/element_size)
-        #self.higher_corner_coordinates[0] = self.lower_corner_coordinates [0] + self.number_of_divisions[0] * self.element_size
-        #self.higher_corner_coordinates[1] = self.lower_corner_coordinates [1] + self.number_of_divisions[1] * self.element_size
-        #self.higher_corner_coordinates[2] = self.lower_corner_coordinates [2] + self.number_of_divisions[2] * self.element_size
+        #number_of_divisions = Array3()
+        #number_of_divisions[0] = math.cell((lower_corner_coordinates[0]-higher_corner_coordinates[0])/element_size)
+        #number_of_divisions[1] = math.cell((lower_corner_coordinates[1]-higher_corner_coordinates[1])/element_size)
+        #number_of_divisions[2] = math.cell((lower_corner_coordinates[2]-higher_corner_coordinates[2])/element_size)
+        #higher_corner_coordinates[0] = lower_corner_coordinates [0] + number_of_divisions[0] * element_size
+        #higher_corner_coordinates[1] = lower_corner_coordinates [1] + number_of_divisions[1] * element_size
+        #higher_corner_coordinates[2] = lower_corner_coordinates [2] + number_of_divisions[2] * element_size
 
         #provisional fins que es fassin divisions diferents per demensio al meshing_utilities
-        self.number_of_divisions = input("Enter number of divisions:")
+        number_of_divisions = int(input("Enter number of divisions:"))
 
         import KratosMultiphysics.DEMApplication.meshing_utilities as meshing_utilities
 
         if self.DEM_parameters["Dimension"].GetInt() == 2:
-        self.2Dmesh = meshing_utilities.RectangularRegularMesher(self.homogenization_model_part,
-                                                                self.lower_corner_coordinates,
-                                                                self.higher_corner_coordinates,
-                                                                self.number_of_divisions)
+            homogenization_mesher = meshing_utilities.RectangularRegularMesher(self.homogenization_model_part,
+                                                                                lower_corner_coordinates,
+                                                                                higher_corner_coordinates,
+                                                                                number_of_divisions)
 
         elif self.DEM_parameters["Dimension"].GetInt() == 3:
-        self.3Dmesh = meshing_utilities.ParallelepipedRegularMesher(self.homogenization_model_part,
-                                                                    self.lower_corner_coordinates,
-                                                                    self.higher_corner_coordinates,
-                                                                    self.number_of_divisions)
+            homogenization_mesher = meshing_utilities.ParallelepipedRegularMesher(self.homogenization_model_part,
+                                                                                    lower_corner_coordinates,
+                                                                                    higher_corner_coordinates,
+                                                                                    number_of_divisions)
         
         else:
             print("Please select 2D or 3D problem type")
+
+        homogenization_mesher.FillModelPartWithNewMesh()
 
         #omplir homogenization model part amb una malla del tamany del bounding_box
         #crear objecte HomogenizationUtilities, per poder cridar una funció de projecció més endavant self.homogenization_utilities
