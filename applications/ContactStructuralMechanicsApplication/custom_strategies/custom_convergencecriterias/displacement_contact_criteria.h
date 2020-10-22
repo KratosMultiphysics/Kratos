@@ -293,6 +293,9 @@ public:
             r_table.AddColumn("CONVERGENCE", 15);
             mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, true);
         }
+
+        // Check rotation dof
+        mOptions.Set(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED, ContactUtilities::CheckModelPartHasRotationDoF(rModelPart));
     }
 
     /**
