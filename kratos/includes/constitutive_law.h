@@ -25,6 +25,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
+#include "includes/mat_variables.h"
 #include "includes/node.h"
 #include "includes/properties.h"
 #include "geometries/geometry.h"
@@ -1270,8 +1271,8 @@ public:
     const Vector& GetInitialStressVector(Parameters& rParameterValues)
     {
         const auto &r_geometry = rParameterValues.GetElementGeometry();
-        if (r_geometry.Has(INITIAL_STRESS)) {
-            return r_geometry.GetValue(INITIAL_STRESS);
+        if (r_geometry.Has(INITIAL_STRESS_VECTOR)) {
+            return r_geometry.GetValue(INITIAL_STRESS_VECTOR);
         } else {
             return ZeroVector(this->GetStrainSize());
         }
@@ -1280,8 +1281,8 @@ public:
     const Vector& GetInitialStrainVector(Parameters& rParameterValues)
     {
         const auto &r_geometry = rParameterValues.GetElementGeometry();
-        if (r_geometry.Has(INITIAL_STRAIN)) {
-            return r_geometry.GetValue(INITIAL_STRAIN);
+        if (r_geometry.Has(INITIAL_STRAIN_VECTOR)) {
+            return r_geometry.GetValue(INITIAL_STRAIN_VECTOR);
         } else {
             return ZeroVector(this->GetStrainSize());
         }
