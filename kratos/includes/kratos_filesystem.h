@@ -58,7 +58,7 @@ std::string KRATOS_API(KRATOS_CORE) CurrentWorkingDirectory();
 
 std::string KRATOS_API(KRATOS_CORE) JoinPaths(const std::vector<std::string>& rPaths);
   
-std::vector<std::string> KRATOS_API(KRATOS_CORE) GetListOfDirectories(const std::string& rPath);
+std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string& rPath);
 
 } // namespace FilesystemExtensions
 } // namespace Kratos
