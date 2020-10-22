@@ -228,6 +228,7 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
                 break;
             }
         }
+        KRATOS_WATCH(r_dir);
         KRATOS_CHECK(found_check_dir);
     }
 
