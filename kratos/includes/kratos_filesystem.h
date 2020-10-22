@@ -48,6 +48,10 @@ std::uintmax_t KRATOS_API(KRATOS_CORE) remove_all(const std::string& rPath);
 
 void KRATOS_API(KRATOS_CORE) rename(const std::string& rPathFrom, const std::string& rPathTo);
 
+std::string KRATOS_API(KRATOS_CORE) parent_path(const std::string& rPath);
+
+std::string KRATOS_API(KRATOS_CORE) filename(const std::string& rPath);
+
 } // namespace filesystem
 
 

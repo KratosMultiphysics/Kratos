@@ -48,7 +48,7 @@
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
 //#include "utilities/split_triangle.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 #include "utilities/split_tetrahedra.h"
 //#include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"

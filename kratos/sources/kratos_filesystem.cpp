@@ -68,6 +68,16 @@ void rename(const std::string& rPathFrom, const std::string& rPathTo)
 {
     return ghc::filesystem::rename(rPathFrom, rPathTo);
 }
+    
+std::string parent_path(const std::string& rPath)
+{
+    return ghc::filesystem::path(rPath).parent_path();
+}
+
+std::string filename(const std::string& rPath)
+{
+    return ghc::filesystem::path(rPath).filename();
+}
 
 } // namespace filesystem
 

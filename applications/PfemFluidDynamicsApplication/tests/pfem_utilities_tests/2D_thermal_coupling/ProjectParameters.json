@@ -108,18 +108,11 @@
                 "model_part_name"      : "Fluid",
                 "python_module"        : "fluid_meshing_domain",
                 "alpha_shape"          : 1.25,
-                "offset_factor"        : 0.0,
                 "meshing_strategy"     : {
                     "python_module"                 : "fluid_meshing_strategy",
-                    "meshing_frequency"             : 0,
                     "remesh"                        : true,
                     "refine"                        : true,
-                    "reconnect"                     : false,
-                    "transfer"                      : false,
-                    "constrained"                   : false,
-                    "mesh_smoothing"                : false,
-                    "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "transfer"        		    : false,
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
@@ -137,56 +130,16 @@
                     "final_time"       : 1000.0,
                     "upper_point"      : [1.8,1.0,10],
                     "lower_point"      : [1.2,0.0,-10]
-                },
-                "refining_parameters"  : {
-                    "critical_size"       : 0.0,
-                    "threshold_variable"  : "PLASTIC_STRAIN",
-                    "reference_threshold" : 0.0,
-                    "error_variable"      : "NORM_ISOCHORIC_STRESS",
-                    "reference_error"     : 0.0,
-                    "add_nodes"           : false,
-                    "insert_nodes"        : true,
-                    "remove_nodes"        : {
-                        "apply_removal" : true,
-                        "on_distance"   : true,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "remove_boundary"     : {
-                        "apply_removal" : false,
-                        "on_distance"   : false,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "refine_elements"     : {
-                        "apply_refinement" : true,
-                        "on_distance"      : true,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refine_boundary"     : {
-                        "apply_refinement" : false,
-                        "on_distance"      : false,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    }
                 }
             },{
                 "model_part_name"      : "Rigid",
                 "python_module"        : "fluid_meshing_domain",
                 "alpha_shape"          : 1.25,
-                "offset_factor"        : 0.0,
                 "meshing_strategy"     : {
                     "python_module"                 : "fluid_meshing_strategy",
-                    "meshing_frequency"             : 0,
                     "remesh"                        : false,
                     "refine"                        : false,
-                    "reconnect"                     : false,
-                    "transfer"                      : false,
-                    "constrained"                   : false,
-                    "mesh_smoothing"                : false,
-                    "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "transfer"			    : false,
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
@@ -204,39 +157,6 @@
                     "final_time"       : 1000.0,
                     "upper_point"      : [1.8,1.0,10],
                     "lower_point"      : [1.2,0.0,-10]
-                },
-                "refining_parameters"  : {
-                    "critical_size"       : 0.0,
-                    "threshold_variable"  : "PLASTIC_STRAIN",
-                    "reference_threshold" : 0.0,
-                    "error_variable"      : "NORM_ISOCHORIC_STRESS",
-                    "reference_error"     : 0.0,
-                    "add_nodes"           : false,
-                    "insert_nodes"        : true,
-                    "remove_nodes"        : {
-                        "apply_removal" : true,
-                        "on_distance"   : true,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "remove_boundary"     : {
-                        "apply_removal" : false,
-                        "on_distance"   : false,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "refine_elements"     : {
-                        "apply_refinement" : true,
-                        "on_distance"      : true,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refine_boundary"     : {
-                        "apply_refinement" : false,
-                        "on_distance"      : false,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    }
                 }
             }]
         }
