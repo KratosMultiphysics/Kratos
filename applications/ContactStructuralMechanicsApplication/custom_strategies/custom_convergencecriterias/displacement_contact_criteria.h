@@ -171,6 +171,8 @@ public:
             // Initialize
             TDataType disp_solution_norm = 0.0, disp_increase_norm = 0.0;
             IndexType disp_dof_num(0);
+            TDataType rot_solution_norm = 0.0, rot_increase_norm = 0.0;
+            IndexType rot_dof_num(0);
 
             // First iterator
             const auto it_dof_begin = rDofSet.begin();
@@ -180,28 +182,57 @@ public:
             TDataType dof_value = 0.0, dof_incr = 0.0;
 
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_solution_norm,disp_increase_norm,disp_dof_num,dof_id,dof_value,dof_incr)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = it_dof_begin + i;
+            if (mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                #pragma omp parallel for reduction(+:disp_solution_norm,disp_increase_norm,disp_dof_num,rot_solution_norm,rot_increase_norm,rot_dof_num,dof_id,dof_value,dof_incr)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
-                    dof_value = it_dof->GetSolutionStepValue(0);
-                    dof_incr = rDx[dof_id];
+                    if (it_dof->IsFree()) {
+                        dof_id = it_dof->EquationId();
+                        dof_value = it_dof->GetSolutionStepValue(0);
+                        dof_incr = rDx[dof_id];
 
-                    const auto curr_var = it_dof->GetVariable();
-                    disp_solution_norm += dof_value * dof_value;
-                    disp_increase_norm += dof_incr * dof_incr;
-                    disp_dof_num++;
+                        const auto& r_curr_var = it_dof->GetVariable();
+                        if ((r_curr_var == DISPLACEMENT_X) || (r_curr_var == DISPLACEMENT_Y) || (r_curr_var == DISPLACEMENT_Z)) {
+                            disp_solution_norm += std::pow(dof_value, 2);
+                            disp_increase_norm += std::pow(dof_incr, 2);
+                            ++disp_dof_num;
+                        } else {
+                            rot_solution_norm += std::pow(dof_value, 2);
+                            rot_increase_norm += std::pow(dof_incr, 2);
+                            ++rot_dof_num;
+                        }
+                    }
+                }
+            } else {
+                #pragma omp parallel for reduction(+:disp_solution_norm,disp_increase_norm,disp_dof_num,dof_id,dof_value,dof_incr)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
+
+                    if (it_dof->IsFree()) {
+                        dof_id = it_dof->EquationId();
+                        dof_value = it_dof->GetSolutionStepValue(0);
+                        dof_incr = rDx[dof_id];
+
+                        disp_solution_norm += std::pow(dof_value, 2);
+                        disp_increase_norm += std::pow(dof_incr, 2);
+                        ++disp_dof_num;
+                    }
                 }
             }
 
             if(disp_increase_norm == 0.0) disp_increase_norm = 1.0;
             if(disp_solution_norm == 0.0) disp_solution_norm = 1.0;
+            if(rot_increase_norm == 0.0) rot_increase_norm = 1.0;
+            if(rot_solution_norm == 0.0) rot_solution_norm = 1.0;
 
             const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
 
             const TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
+
+            const TDataType rot_ratio = std::sqrt(rot_increase_norm/rot_solution_norm);
+
+            const TDataType rot_abs = std::sqrt(rot_increase_norm)/ static_cast<TDataType>(rot_dof_num);
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -212,21 +243,31 @@ public:
                     std::cout.precision(4);
                     TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                     auto& Table = p_table->GetTable();
-                    Table  << disp_ratio  << mDispRatioTolerance  << disp_abs  << mDispAbsTolerance;
+                    if (mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                        Table << disp_ratio << mDispRatioTolerance << disp_abs << mDispAbsTolerance << rot_ratio << mRotRatioTolerance << rot_abs << mRotAbsTolerance;
+                    } else {
+                        Table << disp_ratio << mDispRatioTolerance << disp_abs << mDispAbsTolerance;
+                    }
                 } else {
                     std::cout.precision(4);
                     if (mOptions.IsNot(DisplacementContactCriteria::PRINTING_OUTPUT)) {
                         KRATOS_INFO("DisplacementContactCriteria") << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl;
                         KRATOS_INFO("DisplacementContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementContactCriteria") << BOLDFONT("\tROTATION: RATIO = ") << rot_ratio << BOLDFONT(" EXP.RATIO = ") << mRotRatioTolerance << BOLDFONT(" ABS = ") << rot_abs << BOLDFONT(" EXP.ABS = ") << mRotAbsTolerance << std::endl;
+                        }
                     } else {
                         KRATOS_INFO("DisplacementContactCriteria") << "DoF ONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl;
                         KRATOS_INFO("DisplacementContactCriteria") << "\tDISPLACEMENT: RATIO = " << disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementContactCriteria") << "\tROTATION: RATIO = " << rot_ratio << " EXP.RATIO = " << mRotRatioTolerance << " ABS = " << rot_abs << " EXP.ABS = " << mRotAbsTolerance << std::endl;
+                        }
                     }
                 }
             }
 
             // We check if converged
-            const bool disp_converged = (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
+            const bool disp_converged = mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED) ? ((disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance) && (rot_ratio <= mRotRatioTolerance || rot_abs <= mRotAbsTolerance)) : (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
 
             if (disp_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
