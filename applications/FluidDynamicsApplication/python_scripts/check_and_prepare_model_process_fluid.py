@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
