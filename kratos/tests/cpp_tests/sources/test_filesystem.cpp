@@ -49,6 +49,14 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
     std::vector<std::string> paths_2;
     KRATOS_CHECK_STRING_EQUAL(Kratos::FilesystemExtensions::JoinPaths(paths_2), "");
 }
+    
+KRATOS_TEST_CASE_IN_SUITE(FileSystemParentPathFilename, KratosCoreFastSuite)
+{
+    std::vector<std::string> paths_1 {"sl", "", "uom", "dssc"};
+    const std::string& path = Kratos::FilesystemExtensions::JoinPaths(paths_1);
+    KRATOS_CHECK_STRING_EQUAL(Kratos::filesystem::parent_path(path), "sl/uom");
+    KRATOS_CHECK_STRING_EQUAL(Kratos::filesystem::filename(path), "dssc");
+}
 
 KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinEmptyPaths, KratosCoreFastSuite)
 {
