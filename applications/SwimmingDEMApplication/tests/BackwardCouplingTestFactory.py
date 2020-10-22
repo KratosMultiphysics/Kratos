@@ -38,11 +38,14 @@ class TestFactory(KratosUnittest.TestCase):
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Run()
-            results = self.parameters['results']
-            particles_component_volume = results['particles_component_volume'].GetDouble()
-            total_particles_volume = results['total_particles_volume'].GetDouble()
-            self.assertNotAlmostEqual(particles_component_volume, 0.0)
-            self.assertAlmostEqual(particles_component_volume, total_particles_volume)
+        self._check_results()
 
     def tearDown(self):
         pass
+
+    def _check_results(self):
+        results = self.parameters['results']
+        particles_component_volume = results['particles_component_volume'].GetDouble()
+        total_particles_volume = results['total_particles_volume'].GetDouble()
+        self.assertNotAlmostEqual(particles_component_volume, 0.0)
+        self.assertAlmostEqual(particles_component_volume, total_particles_volume)
