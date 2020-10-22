@@ -333,15 +333,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                 "loads_process_list",
                 "auxiliar_process_list"]
 
-    #### Main internal methods ####
-
-    def _import_project_parameters(self, input_file):
-        """This function reads the ProjectsParameters.json
-        """
-        from KratosMultiphysics.PfemFluidDynamicsApplication.input_manager import InputManager
-        self.input_manager = InputManager(input_file)
-        return self.input_manager.Getparameters()
-
     def KratosPrintInfo(self, message):
         """This function prints info on screen
         """
