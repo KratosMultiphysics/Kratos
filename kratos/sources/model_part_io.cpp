@@ -22,6 +22,8 @@
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+
+// this needs to be included last to avoid redefinition problems in win
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 namespace fs = ghc::filesystem;
 
