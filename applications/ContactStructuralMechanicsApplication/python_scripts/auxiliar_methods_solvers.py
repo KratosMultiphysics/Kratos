@@ -312,7 +312,7 @@ def  AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, 
                                             newton_parameters
                                             )
 
-def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
+def  AuxiliarNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
     newton_parameters.AddValue("adaptative_strategy", contact_settings["adaptative_strategy"])
     newton_parameters.AddValue("split_factor", contact_settings["split_factor"])
@@ -320,7 +320,6 @@ def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mech
     newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
     return CSMA.ResidualBasedNewtonRaphsonContactStrategy(computing_model_part,
                                                             mechanical_scheme,
-                                                            linear_solver,
                                                             mechanical_convergence_criterion,
                                                             builder_and_solver,
                                                             settings["max_iteration"].GetInt(),
@@ -332,14 +331,13 @@ def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mech
                                                             post_process
                                                             )
 
-def  AuxiliarMPCNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
+def  AuxiliarMPCNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
     newton_parameters = KM.Parameters("""{}""")
     newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
     newton_parameters.AddValue("update_each_nl_iteration", contact_settings["update_each_nl_iteration"])
     newton_parameters.AddValue("enforce_ntn", contact_settings["enforce_ntn"])
     return CSMA.ResidualBasedNewtonRaphsonMPCContactStrategy(computing_model_part,
                                                                 mechanical_scheme,
-                                                                linear_solver,
                                                                 mechanical_convergence_criterion,
                                                                 builder_and_solver,
                                                                 settings["max_iteration"].GetInt(),
