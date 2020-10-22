@@ -69,13 +69,13 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE WE REGISTER SOME COMMON METHODS
-    py::class_<FactoryMethods, FactoryMethods::Pointer >(m, "FactoryMethods")
-     .def("Has",&FactoryMethods::Has)
+    py::class_<FactoryBase, FactoryBase::Pointer >(m, "FactoryBase")
+     .def("Has",&FactoryBase::Has)
     ;
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER EXPLICIT BUILDER
-    py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, FactoryMethods>(m, "ExplicitBuilderFactory")
+    py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, FactoryBase>(m, "ExplicitBuilderFactory")
      .def( py::init< >() )
      .def("Create",[](ExplicitBuilderFactoryType& rExplicitBuilderFactory, Kratos::Parameters Settings) {return rExplicitBuilderFactory.Create(Settings);})
      .def("__str__", PrintObject<ExplicitBuilderFactoryType>)
@@ -83,7 +83,7 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER EXPLICIT STRATEGIES
-    py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, FactoryMethods>(m, "ExplicitStrategyFactory")
+    py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, FactoryBase>(m, "ExplicitStrategyFactory")
      .def( py::init< >() )
      .def("Create",[](ExplicitStrategyFactoryType& rExplicitStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rExplicitStrategyFactory.Create(rModelPart, Settings);})
      .def("__str__", PrintObject<ExplicitStrategyFactoryType>)

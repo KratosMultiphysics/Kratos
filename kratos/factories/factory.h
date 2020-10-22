@@ -33,20 +33,20 @@ namespace Kratos
 ///@{
 
 /**
- * @class FactoryMethods
+ * @class FactoryBase
  * @ingroup KratosCore
  * @brief Here we define some common methods
  * @details Defines the base class factory methods
  * @author Vicente Mataix Ferrandiz
  */
-class FactoryMethods
+class FactoryBase
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of FactoryMethods
-    KRATOS_CLASS_POINTER_DEFINITION(FactoryMethods);
+    /// Pointer definition of FactoryBase
+    KRATOS_CLASS_POINTER_DEFINITION(FactoryBase);
 
     ///@}
     ///@name Life Cycle
@@ -54,11 +54,11 @@ public:
 
     /** Constructor.
      */
-    explicit FactoryMethods(){}
+    explicit FactoryBase(){}
 
     /** Destructor.
      */
-    virtual ~FactoryMethods(){}
+    virtual ~FactoryBase(){}
 
     ///@}
     ///@name Operations
@@ -82,7 +82,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "FactoryMethods";
+        return "FactoryBase";
     }
 
     /// Print information about this object.
@@ -107,7 +107,7 @@ public:
  */
 template<typename TClass>
 class Factory
-    : public FactoryMethods
+    : public FactoryBase
 {
 public:
     ///@name Type Definitions
