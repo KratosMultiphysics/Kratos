@@ -81,6 +81,10 @@ if fluid_DEM_coupling_imports_available:
           file_name = "fluid_dem_tests/settling_cube"
           file_parameters = "fluid_dem_tests/ProjectParameters.json"
 
+     class CFD_DEM_two_way_test(FDEMTF.TestFactory):
+          file_name = "CFD_DEM_two_way_tests/Two_way_testFluid"
+          file_parameters = "CFD_DEM_two_way_tests/ProjectParameters.json"
+
 available_tests = []
 available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]

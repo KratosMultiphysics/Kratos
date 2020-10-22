@@ -87,7 +87,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.dem_inlet_model_part = self._GetDEMAnalysis().dem_inlet_model_part
         self.vars_man.ConstructListsOfVariables(self.project_parameters)
 
-        super(SwimmingDEMAnalysis, self).__init__(model, self.project_parameters)
+        super().__init__(model, self.project_parameters)
 
     def SetFluidParameters(self):
         pass
@@ -195,7 +195,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.do_solve_dem = False
 
     def Run(self):
-        super(SwimmingDEMAnalysis, self).Run()
+        super().Run()
 
         return self.GetReturnValue()
 
@@ -261,7 +261,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.AssignKinematicViscosityFromDynamicViscosity()
 
-        super(SwimmingDEMAnalysis, self).Initialize()
+        super().Initialize()
 
         # coarse-graining: applying changes to the physical properties of the model to adjust for
         # the similarity transformation if required (fluid effects only).
@@ -375,6 +375,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.FillHistoryForcePrecalculatedVectors()
 
+        import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+
+        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
+            self.project_parameters,
+            self.fluid_model_part,
+            self.custom_functions_tool)
+
         self.PerformZeroStepInitializations()
 
         if self.do_print_results:
@@ -441,7 +448,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self._GetDEMAnalysis().InitializeSolutionStep()
         if self._GetSolver().CannotIgnoreFluidNow():
             self._GetFluidAnalysis().InitializeSolutionStep()
-        super(SwimmingDEMAnalysis, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         # printing if required
@@ -460,7 +467,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.dem_volume_tool.UpdateDataAndPrint(
                 self.project_parameters["fluid_domain_volume"].GetDouble())
 
-        super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         # printing if required
@@ -469,7 +476,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.ComputePostProcessResults()
             self._Print()
 
-        super(SwimmingDEMAnalysis, self).OutputSolutionStep()
+        super().OutputSolutionStep()
 
     def _Print(self):
         os.chdir(self.post_path)
