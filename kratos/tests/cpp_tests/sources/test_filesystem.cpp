@@ -193,8 +193,8 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemRenameDirectory, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
 {
-    const std::string dir_name("GetListOfDirectories");
-    const std::string dir_name_2("GetListOfDirectoriesSub");
+    const std::string dir_name("ListDirectoryTest");
+    const std::string dir_name_2("ListDirectoryTestSub");
 
     const std::string raw_file_name_1("dummy_file_1.txt");
     const std::string raw_file_name_2("dummy_file_2.txt");
@@ -203,17 +203,13 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
     const std::string file_name_2(Kratos::FilesystemExtensions::JoinPaths({dir_name, raw_file_name_2}));
 
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(dir_name));
-    KRATOS_CHECK(Kratos::filesystem::create_directory(dir_name));
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(sub_dir));
     KRATOS_CHECK(Kratos::filesystem::create_directory(sub_dir));
 
     std::ofstream output_file;
     output_file.open(file_name_1);
-    KRATOS_CHECK(output_file.good());
     output_file.close();
-
     output_file.open(file_name_2);
-    KRATOS_CHECK(output_file.good());
     output_file.close();
 
     KRATOS_CHECK(Kratos::filesystem::exists(file_name_1));
@@ -229,6 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
         for (const auto& check_dir : check_list) {
             if (check_dir == r_dir) {
                 found_check_dir = true;
+                break;
             }
         }
         KRATOS_CHECK(found_check_dir);
