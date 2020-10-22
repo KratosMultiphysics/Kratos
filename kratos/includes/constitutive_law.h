@@ -1266,6 +1266,27 @@ public:
                                          const Vector& PK2_StressVector,
                                          const Vector& GreenLagrangeStrainVector);
 
+
+    const Vector& GetInitialStressVector(Parameters& rParameterValues)
+    {
+        const auto &r_geometry = rParameterValues.GetElementGeometry();
+        if (r_geometry.Has(INITIAL_STRESS)) {
+            return r_geometry.GetValue(INITIAL_STRESS);
+        } else {
+            return ZeroVector(this->GetStrainSize());
+        }
+    }
+
+    const Vector& GetInitialStrainVector(Parameters& rParameterValues)
+    {
+        const auto &r_geometry = rParameterValues.GetElementGeometry();
+        if (r_geometry.Has(INITIAL_STRAIN)) {
+            return r_geometry.GetValue(INITIAL_STRAIN);
+        } else {
+            return ZeroVector(this->GetStrainSize());
+        }
+    }
+
     /**
      * @brief This method is used to check that tow Constitutive Laws are the same type (references)
      * @param rLHS The first argument
