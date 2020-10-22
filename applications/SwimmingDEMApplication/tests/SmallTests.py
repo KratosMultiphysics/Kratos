@@ -1,15 +1,16 @@
 # Definition of the classes for the SMALL TESTS
 
-# Import Kratos
+# Import Kratos and necessary applications
 import KratosMultiphysics
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
+from KratosMultiphysics import Logger
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import BackwardCouplingTestFactory as BackwardCouplingTF
-# Importing test factories if possible
 
+# Importing test factories if possible
 try:
      import InterpolationTestFactory as InterpolationTF
      interpolation_imports_available = True
@@ -25,15 +26,6 @@ try:
      fluid_DEM_coupling_imports_available = True
 except ImportError:
      fluid_DEM_coupling_imports_available = False
-
-from KratosMultiphysics import Logger
-
-
-def Say(*args):
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DETAIL)
-    Logger.PrintInfo("SwimmingDEM", *args)
-    Logger.Flush()
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
 if interpolation_imports_available:
      class interpolation_test_linear(InterpolationTF.TestFactory):
@@ -86,14 +78,19 @@ if fluid_DEM_coupling_imports_available:
           file_parameters = "CFD_DEM_two_way_tests/ProjectParameters.json"
 
 available_tests = []
-available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
+if interpolation_imports_available:
+     available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
+
 available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
-available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
-available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
+
+if candelier_imports_available:
+     available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
+
+if fluid_DEM_coupling_imports_available:
+     available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 
 def SetTestSuite(suites):
     small_suite = suites['small']
-
     small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(available_tests))
 
     return small_suite
