@@ -28,14 +28,14 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "linear_solver_settings" : {
                 "solver_type" : "amesos",
                 "amesos_solver_type" : "Amesos_Klu"
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

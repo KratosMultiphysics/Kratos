@@ -18,7 +18,7 @@ def CreateSolver(model, custom_settings):
 class NavierStokesTwoFluidsSolver(FluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -72,7 +72,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "bfecc_number_substeps" : 10
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesTwoFluidsSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesTwoFluidsSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
@@ -288,10 +288,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self._bfecc_convection:
             if have_conv_diff:
                 if domain_size == 2:
-                    locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part).UpdateSearchDatabase()
+                    locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part)
+                    locator.UpdateSearchDatabase()
                     level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator)
                 else:
-                    locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part).UpdateSearchDatabase()
+                    locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part)
+                    locator.UpdateSearchDatabase()
                     level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator)
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")

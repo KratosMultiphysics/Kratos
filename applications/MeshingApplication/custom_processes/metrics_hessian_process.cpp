@@ -70,28 +70,30 @@ void ComputeHessianSolMetricProcess::Execute()
     // Computing auxiliar Hessian
     CalculateAuxiliarHessian();
 
-    // Some checks
-    NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    if (!mNonHistoricalVariable) {
-        VariableUtils().CheckVariableExists(*mrOriginVariable, r_nodes_array);
-    } else {
-        KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariable)) << "Variable " << mrOriginVariable->Name() << " not defined on non-historial database" << std::endl;
-    }
+    if (mrModelPart.NumberOfNodes() > 0) {
+        // Some checks
+        NodesArrayType& r_nodes_array = mrModelPart.Nodes();
+        if (!mNonHistoricalVariable) {
+            VariableUtils().CheckVariableExists(*mrOriginVariable, r_nodes_array);
+        } else {
+            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariable)) << "Variable " << mrOriginVariable->Name() << " not defined on non-historial database" << std::endl;
+        }
 
-    // Checking NODAL_H
-    for (const auto& r_node : r_nodes_array)
-        KRATOS_ERROR_IF_NOT(r_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
+        // Checking NODAL_H
+        for (const auto& r_node : r_nodes_array)
+            KRATOS_ERROR_IF_NOT(r_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
-    // Getting dimension
-    const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        // Getting dimension
+        const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-    // Computing metric
-    if (dimension == 2) { // 2D
-        CalculateMetric<2>();
-    } else if (dimension == 3) { // 3D
-        CalculateMetric<3>();
-    } else {
-        KRATOS_ERROR << "Dimension can be only 2D or 3D. Dimension: " << dimension << std::endl;
+        // Computing metric
+        if (dimension == 2) { // 2D
+            CalculateMetric<2>();
+        } else if (dimension == 3) { // 3D
+            CalculateMetric<3>();
+        } else {
+            KRATOS_ERROR << "Dimension can be only 2D or 3D. Dimension: " << dimension << std::endl;
+        }
     }
 }
 
@@ -320,6 +322,8 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
             }
         }
     }
+
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(AUXILIAR_HESSIAN);
 
     // We normalize the value of the NODAL_AREA
     if (normalization_method == Normalization::VALUE) {
