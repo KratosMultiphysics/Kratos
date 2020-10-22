@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "includes/mat_variables.h"
 
 namespace Kratos
 {
@@ -160,8 +161,7 @@ public:
         if (r_geometry.Has(INITIAL_STRESS_VECTOR)) {
             return r_geometry.GetValue(INITIAL_STRESS_VECTOR);
         } else {
-            const Vector& r_zero_vector = ZeroVector(this->GetStrainSize());
-            return r_zero_vector;
+            return ZeroVector(this->GetStrainSize());
         }
     }
 
@@ -174,8 +174,7 @@ public:
         if (r_geometry.Has(INITIAL_STRAIN_VECTOR)) {
             return r_geometry.GetValue(INITIAL_STRAIN_VECTOR);
         } else {
-            const Vector& r_zero_vector = ZeroVector(this->GetStrainSize());
-            return r_zero_vector;
+            return ZeroVector(this->GetStrainSize());
         }
     }
 
