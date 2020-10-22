@@ -33,7 +33,7 @@ void KRATOS_API(MESH_MOVING_APPLICATION) CheckJacobianDimension(GeometryType::Ja
 
 void KRATOS_API(MESH_MOVING_APPLICATION) MoveMesh(ModelPart::NodesContainerType &rNodes);
 
-ModelPart* KRATOS_API(MESH_MOVING_APPLICATION) GenerateMeshPart(ModelPart &rModelPart,
+ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
 void KRATOS_API(MESH_MOVING_APPLICATION) SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
