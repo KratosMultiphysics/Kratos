@@ -25,7 +25,6 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
-#include "includes/mat_variables.h"
 #include "includes/node.h"
 #include "includes/properties.h"
 #include "geometries/geometry.h"
@@ -1267,26 +1266,6 @@ public:
                                          const Vector& PK2_StressVector,
                                          const Vector& GreenLagrangeStrainVector);
 
-
-    const Vector& GetInitialStressVector(Parameters& rParameterValues)
-    {
-        const auto &r_geometry = rParameterValues.GetElementGeometry();
-        if (r_geometry.Has(INITIAL_STRESS_VECTOR)) {
-            return r_geometry.GetValue(INITIAL_STRESS_VECTOR);
-        } else {
-            return ZeroVector(this->GetStrainSize());
-        }
-    }
-
-    const Vector& GetInitialStrainVector(Parameters& rParameterValues)
-    {
-        const auto &r_geometry = rParameterValues.GetElementGeometry();
-        if (r_geometry.Has(INITIAL_STRAIN_VECTOR)) {
-            return r_geometry.GetValue(INITIAL_STRAIN_VECTOR);
-        } else {
-            return ZeroVector(this->GetStrainSize());
-        }
-    }
 
     /**
      * @brief This method is used to check that tow Constitutive Laws are the same type (references)

@@ -152,6 +152,34 @@ public:
     }
 
     /**
+     * @brief Returns the initial stress vector if it is defined in the geometry
+     */
+    const Vector GetInitialStressVector(Parameters& rParameterValues)
+    {
+        const auto &r_geometry = rParameterValues.GetElementGeometry();
+        if (r_geometry.Has(INITIAL_STRESS_VECTOR)) {
+            return r_geometry.GetValue(INITIAL_STRESS_VECTOR);
+        } else {
+            const Vector& r_zero_vector = ZeroVector(this->GetStrainSize());
+            return r_zero_vector;
+        }
+    }
+
+    /**
+     * @brief Returns the initial strain vector if it is defined in the geometry
+     */
+    const Vector GetInitialStrainVector(Parameters& rParameterValues)
+    {
+        const auto &r_geometry = rParameterValues.GetElementGeometry();
+        if (r_geometry.Has(INITIAL_STRAIN_VECTOR)) {
+            return r_geometry.GetValue(INITIAL_STRAIN_VECTOR);
+        } else {
+            const Vector& r_zero_vector = ZeroVector(this->GetStrainSize());
+            return r_zero_vector;
+        }
+    }
+
+    /**
      * @brief Computes the material response:
      * @details PK1 stresses and algorithmic ConstitutiveMatrix
      * @param rValues The internal values of the law
