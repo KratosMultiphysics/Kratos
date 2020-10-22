@@ -225,14 +225,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderIrkaRealStrategyType, typename MorSecondOrderIrkaRealStrategyType::Pointer, MorSecondOrderRealInRealOutOfflineStrategyType >(m,"MorSecondOrderRealIrkaStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexVector, size_t, double >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexLinearSolverPointer, ComplexVector, size_t, double >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexVector, complex, complex, size_t, double >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexLinearSolverPointer, ComplexVector, complex, complex, size_t, double >())
+        .def("GetSamplingPoints", &MorSecondOrderIrkaRealStrategyType::GetSamplingPoints)
         ;
 
     py::class_< MorSecondOrderIrkaComplexStrategyType, typename MorSecondOrderIrkaComplexStrategyType::Pointer, MorSecondOrderRealInComplexOutOfflineStrategyType >(m,"MorSecondOrderComplexIrkaStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double >())
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, complex, complex, size_t, double >())
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double >())
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexLinearSolverPointer, vector<std::complex<double>>, complex, complex, size_t, double >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexVector, size_t, double >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexLinearSolverPointer, ComplexVector, size_t, double >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexVector, complex, complex, size_t, double >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexLinearSolverPointer, ComplexVector, complex, complex, size_t, double >())
+        .def("GetSamplingPoints", &MorSecondOrderIrkaComplexStrategyType::GetSamplingPoints)
         ;
 
     py::class_< MorSecondOrderComplexTOARStrategyType, typename MorSecondOrderComplexTOARStrategyType::Pointer, MorSecondOrderRealInComplexOutOfflineStrategyType >(m,"MorSecondOrderComplexTOARStrategy")

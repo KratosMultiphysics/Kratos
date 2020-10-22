@@ -158,7 +158,7 @@ class MorSecondOrderIRKAStrategy
         typename TSchemeType::Pointer pScheme,
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
-        vector< std::complex<double> > SamplingPoints,
+        ComplexVector SamplingPoints,
         size_t MaxIter,
         double Tolerance)
         : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true),
@@ -183,7 +183,7 @@ class MorSecondOrderIRKAStrategy
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
         typename TLinearSolverType::Pointer pNewAdjointLinearSolver,
-        vector< std::complex<double> > SamplingPoints,
+        ComplexVector SamplingPoints,
         size_t MaxIter,
         double Tolerance)
         : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, pNewAdjointLinearSolver, true),
@@ -207,7 +207,7 @@ class MorSecondOrderIRKAStrategy
         typename TSchemeType::Pointer pScheme,
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
-        vector< std::complex<double> > SamplingPoints,
+        ComplexVector SamplingPoints,
         complex LimitLow,
         complex LimitHigh,
         size_t MaxIter,
@@ -235,7 +235,7 @@ class MorSecondOrderIRKAStrategy
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
         typename TLinearSolverType::Pointer pNewAdjointLinearSolver,
-        vector< std::complex<double> > SamplingPoints,
+        ComplexVector SamplingPoints,
         complex LimitLow,
         complex LimitHigh,
         size_t MaxIter,
@@ -383,7 +383,7 @@ class MorSecondOrderIRKAStrategy
         size_t iter = 0;
         double error = 1;
         std::vector<double> error_vec(reduced_system_size, 1);
-        vector<complex> eigenvalues;
+        ComplexVector eigenvalues;
         auto samplingPoints_old = mSamplingPoints;
         double projection_time;
         double construction_time;
@@ -473,7 +473,7 @@ class MorSecondOrderIRKAStrategy
             if( TUseModalDamping )
             {
                 // compute generalized eigenvalues
-                vector<complex> tmp_eigenvalues;
+                ComplexVector tmp_eigenvalues;
                 GeneralizedEigenvalueUtility::Compute<TReducedDenseSpace>(r_Kr, r_Mr, tmp_eigenvalues);
 
                 std::for_each(tmp_eigenvalues.begin(), tmp_eigenvalues.end(),
@@ -571,6 +571,11 @@ class MorSecondOrderIRKAStrategy
     ///@name Access
     ///@{
 
+    ComplexVector GetSamplingPoints()
+    {
+        return mSamplingPoints;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -629,7 +634,7 @@ class MorSecondOrderIRKAStrategy
     ///@name Member Variables
     ///@{
 
-    vector< complex > mSamplingPoints; //vector of currently used sampling points
+    ComplexVector mSamplingPoints; //vector of currently used sampling points
 
     bool mUseFrequencyLimits = false; //flag if the approximation should be limited to a specific frequency range
     complex mLimitLow; //lower frequency limit
@@ -649,7 +654,7 @@ class MorSecondOrderIRKAStrategy
     /**
      * @brief Initialize sampling points with complex conjugates
      */
-    void InitializeSamplingPoints(vector<complex> SamplingPoints)
+    void InitializeSamplingPoints(ComplexVector SamplingPoints)
     {
         KRATOS_TRY;
 
@@ -700,7 +705,7 @@ class MorSecondOrderIRKAStrategy
                 [&diff](std::size_t i1, std::size_t i2) {return diff[i1] < diff[i2];});
 
             // update with the first r eigenvalues inside range
-            vector<complex> tmp_ev(reduced_system_size);
+            ComplexVector tmp_ev(reduced_system_size);
             for( std::size_t i=0; i<reduced_system_size; ++i ) {
                 tmp_ev[i] = eigenvalues[idx[i]];
             }
