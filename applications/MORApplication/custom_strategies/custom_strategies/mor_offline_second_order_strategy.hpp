@@ -1033,7 +1033,6 @@ class MorOfflineSecondOrderStrategy
     TSystemMatrixPointerType mpC; /// The Damping matrix of the system of equations
     TSystemVectorPointerType mpOV; /// The output vector for single output
 
-
     // reduced matrices
     TReducedDenseVectorPointerType mpRHSr; //reduced RHS
     TReducedDenseMatrixPointerType mpKr;
@@ -1043,7 +1042,8 @@ class MorOfflineSecondOrderStrategy
     TReducedDenseMatrixPointerType mpCr;
     TReducedDenseVectorPointerType mpOVr;
 
-    vector< double > mSamplingPoints;
+    // the reduced system size
+    std::size_t mSystemSizeR;
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each

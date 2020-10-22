@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Quirin Aumann
 //
 
 #if !defined(MOR_SECOND_ORDER_KRYLOV_STRATEGY)
@@ -22,6 +22,7 @@
 #include "utilities/builtin_timer.h"
 #include "custom_strategies/custom_strategies/mor_offline_second_order_strategy.hpp"
 #include "custom_utilities/orthogonalization_utility.hpp"
+#include "custom_utilities/complex_sort_utility.hpp"
 
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
@@ -66,11 +67,15 @@ class MorSecondOrderKrylovStrategy
     // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TReducedSparseSpace, TReducedDenseSpace >
 {
+    using complex = std::complex<double>;
+
   public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(MorSecondOrderKrylovStrategy);
+
+    typedef TUblasSparseSpace<complex> ComplexSparseSpaceType;
 
     // typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TReducedSparseSpace, TReducedDenseSpace > BaseType;
@@ -113,6 +118,14 @@ class MorSecondOrderKrylovStrategy
 
     typedef typename TReducedDenseSpace::MatrixType TReducedDenseMatrixType;
 
+    typedef typename ComplexSparseSpaceType::MatrixType ComplexSparseMatrixType;
+
+    typedef typename ComplexSparseSpaceType::MatrixPointerType ComplexSparseMatrixPointerType;
+
+    typedef typename ComplexSparseSpaceType::VectorType ComplexSparseVectorType;
+
+    typedef typename ComplexSparseSpaceType::VectorPointerType ComplexSparseVectorPointerType;
+
 
     ///@}
     ///@name Life Cycle
@@ -120,21 +133,88 @@ class MorSecondOrderKrylovStrategy
     ///@{
 
     /**
-     * Default constructor for the damped case
+     * Default constructor for the damped case and no derivatives of the moments
      * @param rModelPart The model part of the problem
-     * @param pScheme The integration schemed
-     * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param pScheme The integration scheme
+     * @param pBuilderAndSolver The builder and solver
+     * @param pLinearSolver The complex linear solver to compute the basis
+     * @param samplingPoints The complex sampling points in pairs of complex conjugate values
      */
     MorSecondOrderKrylovStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
-        vector< double > samplingPoints)
+        ComplexVector samplingPoints)
         : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true),
             mSamplingPoints(samplingPoints)
     {
         KRATOS_TRY;
+
+        this->mSystemSizeR = mSamplingPoints.size();
+
+        // check, if the sampling points are ordered in complex conjugate pairs
+        ComplexSortUtility::PairComplexConjugates(mSamplingPoints);
+
+        // use only one value of each pair to build a real-valued reduction basis
+        mOrders.resize(this->mSystemSizeR);
+        std::size_t n = 1;
+        std::generate(mOrders.begin(), mOrders.end(), [&n] () { n++; return n%2; });
+
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Constructor for the damped case and the same number of derivatives for all moments
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pBuilderAndSolver The builder and solver
+     * @param pLinearSolver The complex linear solver to compute the basis
+     * @param samplingPoints The complex sampling points
+     */
+    MorSecondOrderKrylovStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename TLinearSolverType::Pointer pNewLinearSolver,
+        ComplexVector samplingPoints,
+        std::size_t order)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true),
+            mSamplingPoints(samplingPoints)
+    {
+        KRATOS_TRY;
+
+        this->mSystemSizeR = mSamplingPoints.size();
+        mOrders.resize(this->mSystemSizeR, order);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Constructor for the damped case and a defined number of derivatives for each moment
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pBuilderAndSolver The builder and solver
+     * @param pLinearSolver The complex linear solver to compute the basis
+     * @param samplingPoints The complex sampling points
+     */
+    MorSecondOrderKrylovStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename TLinearSolverType::Pointer pNewLinearSolver,
+        ComplexVector samplingPoints,
+        std::vector<std::size_t> orders)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true),
+            mSamplingPoints(samplingPoints),
+            mOrders(orders)
+    {
+        KRATOS_TRY;
+
+        KRATOS_ERROR_IF_NOT(mSamplingPoints.size() == mOrders.size()) << "The vectors for sampling points and order must have the same length" << std::endl;
+
+        this->mSystemSizeR = accumulate(mOrders.begin(), mOrders.end(), 0);
 
         KRATOS_CATCH("");
     }
@@ -161,7 +241,7 @@ class MorSecondOrderKrylovStrategy
         {
             BaseType::InitializeSolutionStep();
 
-            const std::size_t reduced_system_size = 3 * mSamplingPoints.size();
+            const std::size_t reduced_system_size = this->mSystemSizeR;
             const unsigned int system_size = this->GetBuilderAndSolver()->GetEquationSystemSize();
 
             TReducedDenseSpace::Resize(this->GetKr(), reduced_system_size, reduced_system_size);
@@ -198,50 +278,45 @@ class MorSecondOrderKrylovStrategy
         TSystemVectorType& r_RHS = this->GetSystemVector();
         TReducedDenseMatrixType& r_basis = this->GetBasis();
 
-        const size_t system_size = p_builder_and_solver->GetEquationSystemSize();
-        const size_t n_sampling_points = mSamplingPoints.size();
+        const std::size_t system_size = p_builder_and_solver->GetEquationSystemSize();
+        const std::size_t n_sampling_points = mSamplingPoints.size();
 
-        //initialize s, As, AAs vectors
-        auto s = TReducedSparseSpace::CreateEmptyVectorPointer();
-        auto& rs = *s;
-        TReducedSparseSpace::Resize(rs,system_size);
-        auto As = TReducedSparseSpace::CreateEmptyVectorPointer();
-        auto& rAs = *As;
-        TReducedSparseSpace::Resize(rAs,system_size);
-        auto AAs = TReducedSparseSpace::CreateEmptyVectorPointer();
-        auto& rAAs = *AAs;
-        TReducedSparseSpace::Resize(rAAs,system_size);
+        // copy mass matrix, damping matrix, and rhs to the complex space
+        ComplexSparseMatrixType r_M_tmp(r_M.size1(), r_M.size2());
+        noalias(r_M_tmp) = r_M;
+        ComplexSparseVectorType r_RHS_tmp = ComplexSparseVectorType(r_RHS);
 
-        auto kdyn = TReducedSparseSpace::CreateEmptyMatrixPointer();
+        // create dynamic stiffness matrix
+        auto kdyn = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_kdyn = *kdyn;
-        TReducedSparseSpace::Resize(r_kdyn, system_size, system_size);
+        ComplexSparseSpaceType::Resize(r_kdyn, system_size, system_size);
 
+        // create solution vector
+        ComplexSparseVectorPointerType dx_tmp = ComplexSparseSpaceType::CreateEmptyVectorPointer();
+        ComplexSparseVectorType& r_dx_tmp = *dx_tmp;
+        ComplexSparseSpaceType::Resize(r_dx_tmp, system_size);
 
-        TReducedSparseVectorType aux(system_size, std::complex<double>(0.0,0.0));
-        TReducedSparseVectorType tmp_rhs;
-        tmp_rhs = TReducedSparseVectorType(r_RHS);
-
+        std::size_t index = 0;
         BuiltinTimer basis_construction_time;
 
-        for( size_t i = 0; i < n_sampling_points; ++i )
-        {
+        // loop over sampling points
+        for( std::size_t i=0; i<n_sampling_points; ++i ) {
             // build dynamic stiffness matrix
             r_kdyn = r_D;
-            r_kdyn *= std::complex<double>(0.0, mSamplingPoints(i));
+            r_kdyn *= mSamplingPoints(i);
             r_kdyn += r_K;
-            r_kdyn -= std::pow(mSamplingPoints(i), 2.0) * r_M;
+            r_kdyn += std::pow(mSamplingPoints(i), 2.0) * r_M_tmp;
 
-            this->mpLinearSolver->Solve( r_kdyn, rs, tmp_rhs );
-            noalias(aux) = prod( r_M, rs );
+            ComplexSparseVectorType aux = ComplexSparseVectorType(r_RHS_tmp);
 
-            this->mpLinearSolver->Solve( r_kdyn, rAs, aux );
-            noalias(aux) = prod( r_M, rAs );
-
-            this->mpLinearSolver->Solve( r_kdyn, rAAs, aux );
-
-            column( r_basis, (i*3) ) = rs;
-            column( r_basis, (i*3)+1 ) = rAs;
-            column( r_basis, (i*3)+2 ) = rAAs;
+            // loop over orders
+            for( std::size_t j=0; j<mOrders[i]; ++j ) {
+                if( j>0 ) {
+                    noalias(aux) = prod( r_M_tmp, r_dx_tmp );
+                }
+                this->mpLinearSolver->Solve( r_kdyn, r_dx_tmp, aux );
+                UpdateBasis<typename TReducedSparseSpace::DataType>(r_dx_tmp, index);
+            }
         }
 
         KRATOS_INFO_IF("Basis Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -331,7 +406,8 @@ class MorSecondOrderKrylovStrategy
     ///@{
 
     bool mUseComplexFlag;
-    vector< double > mSamplingPoints;
+    ComplexVector mSamplingPoints;
+    std::vector<std::size_t> mOrders;
 
     ///@}
     ///@name Private Operators
@@ -340,6 +416,33 @@ class MorSecondOrderKrylovStrategy
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * Basis update for a complex basis
+     * @param r_dx the complex vector to be included in the basis
+     * @param index the column index
+     */
+    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
+    void UpdateBasis(ComplexSparseVectorType& r_dx, std::size_t& index)
+    {
+        TReducedDenseMatrixType& r_basis = this->GetBasis();
+        column( r_basis, index ) = r_dx;
+        index++;
+    }
+
+    /**
+     * Basis update for a real basis. Real and imaginary part will be placen in two consecutive columns
+     * @param r_dx the complex vector to be included in the basis
+     * @param index the column index
+     */
+    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
+    void UpdateBasis(ComplexSparseVectorType& r_dx, std::size_t& index)
+    {
+        TReducedDenseMatrixType& r_basis = this->GetBasis();
+        column( r_basis, index ) = real(r_dx);
+        column( r_basis, index+1 ) = imag(r_dx);
+        index = index + 2;
+    }
 
     ///@}
     ///@name Private  Access
