@@ -19,9 +19,9 @@ except ImportError:
 try:
      import CandelierTestFactory as CandelierTF
      candelier_imports_available = True
-except:
+except ImportError:
      candelier_imports_available = False
-     ImportWarning("Some imports necessary for the Candelier tests have not been possible.")
+     Logger.PrintWarning("SwimmingDEMTests", "Failed to import some of the modules necessary for the Candelier tests.")
 try:
      import FluidDEMTestFactory as FDEMTF
      fluid_DEM_coupling_imports_available = True

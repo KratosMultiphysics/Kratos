@@ -1,13 +1,11 @@
 import KratosMultiphysics as Kratos
-from KratosMultiphysics import Model, Parameters
+from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import os
 import math
 file_path = os.path.abspath(__file__)
 dir_path = os.path.dirname(file_path)
 from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
-
-from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import Say as Say
 
 class BackwardCouplingTestAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
