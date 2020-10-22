@@ -28,16 +28,21 @@ class TestFactory(KratosUnittest.TestCase):
             # Setting parameters
 
             with open(self.file_parameters,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+                self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             # Create Model
             self.model = KratosMultiphysics.Model()
 
-            self.test = BackwardCouplingTestAnalysis(self.model, parameters)
+            self.test = BackwardCouplingTestAnalysis(self.model, self.parameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Run()
+            results = self.parameters['results']
+            particles_component_volume = results['particles_component_volume'].GetDouble()
+            total_particles_volume = results['total_particles_volume'].GetDouble()
+            self.assertNotAlmostEqual(particles_component_volume, 0.0)
+            self.assertAlmostEqual(particles_component_volume, total_particles_volume)
 
     def tearDown(self):
         pass

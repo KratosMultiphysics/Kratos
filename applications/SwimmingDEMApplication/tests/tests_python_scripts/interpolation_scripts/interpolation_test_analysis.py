@@ -1,4 +1,4 @@
-from KratosMultiphysics import Model, Parameters
+from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import os
 file_path = os.path.abspath(__file__)

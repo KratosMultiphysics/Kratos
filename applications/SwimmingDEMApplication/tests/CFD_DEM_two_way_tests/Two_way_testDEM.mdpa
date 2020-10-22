@@ -7,7 +7,8 @@ Begin Properties 2
     PARTICLE_DENSITY 2500.0
     YOUNG_MODULUS 100000.0
     POISSON_RATIO 0.20
-    FRICTION 0.577350269189494
+    STATIC_FRICTION 0.577350269189494
+    DYNAMIC_FRICTION 0.5773502691896257
     COEFFICIENT_OF_RESTITUTION 0.2
     PARTICLE_MATERIAL 1
     ROLLING_FRICTION 0.01
@@ -27,7 +28,7 @@ End Nodes
 
 
 Begin Elements SphericSwimmingParticle3D// GUI group identifier: DEM_Particle
-     6399          2   380 
+     6399          2   380
 End Elements
 
 Begin NodalData RADIUS // GUI group identifier: DEM_Particle
