@@ -20,8 +20,8 @@ try:
      import CandelierTestFactory as CandelierTF
      candelier_imports_available = True
 except:
-     ImportWarning("Some imports necessary for the Candelier tests have not been possible.")
      candelier_imports_available = False
+     ImportWarning("Some imports necessary for the Candelier tests have not been possible.")
 try:
      import FluidDEMTestFactory as FDEMTF
      fluid_DEM_coupling_imports_available = True
@@ -40,29 +40,30 @@ class backward_coupling_single_particle_no_time_filter(BackwardCouplingTF.TestFa
      file_name = "backward_coupling_tests/cube_single_particle"
      file_parameters = "backward_coupling_tests/ProjectParametersCubeNoTimeFilter.json"
 
-class candelier_no_history_test(CandelierTF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersNoHistory.json"
-class candelier_no_history_with_lift_test(CandelierTF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersNoHistoryWithLift.json"
+if candelier_imports_available:
+     class candelier_no_history_test(CandelierTF.TestFactory):
+          file_name = "candelier_tests/candelier"
+          file_parameters = "candelier_tests/ProjectParametersNoHistory.json"
+     class candelier_no_history_with_lift_test(CandelierTF.TestFactory):
+          file_name = "candelier_tests/candelier"
+          file_parameters = "candelier_tests/ProjectParametersNoHistoryWithLift.json"
 
-class candelier_no_history_non_inertial_test(CandelierTF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersNoHistoryNonInertial.json"
-class candelier_with_history_test(CandelierTF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersWithHistory.json"
+     class candelier_no_history_non_inertial_test(CandelierTF.TestFactory):
+          file_name = "candelier_tests/candelier"
+          file_parameters = "candelier_tests/ProjectParametersNoHistoryNonInertial.json"
+     class candelier_with_history_test(CandelierTF.TestFactory):
+          file_name = "candelier_tests/candelier"
+          file_parameters = "candelier_tests/ProjectParametersWithHistory.json"
 
-class candelier_with_history_hinsberg_test(CandelierTF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersWithHistoryHinsberg.json"
+     class candelier_with_history_hinsberg_test(CandelierTF.TestFactory):
+          file_name = "candelier_tests/candelier"
+          file_parameters = "candelier_tests/ProjectParametersWithHistoryHinsberg.json"
 
-# This test is ready to run but the implementation is not complete
-# # (it is non-trivial), so the result is not correct
-# class candelier_with_history_non_inertial_test(CandelierTF.TestFactory):
-#      file_name = "candelier_tests/candelier"
-#      file_parameters = "candelier_tests/ProjectParametersWithHistoryNonInertial.json"
+     # This test is ready to run but the implementation is not complete
+     # # (it is non-trivial), so the result is not correct
+     # class candelier_with_history_non_inertial_test(CandelierTF.TestFactory):
+     #      file_name = "candelier_tests/candelier"
+     #      file_parameters = "candelier_tests/ProjectParametersWithHistoryNonInertial.json"
 
 class fluid_dem_coupling_one_way_test(FDEMTF.TestFactory):
      file_name = "fluid_dem_tests/settling_cube"
