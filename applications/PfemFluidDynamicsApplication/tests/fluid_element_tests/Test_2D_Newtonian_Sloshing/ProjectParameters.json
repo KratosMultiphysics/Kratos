@@ -81,7 +81,7 @@
                     "python_module"                 : "fluid_meshing_strategy",
                     "remesh"                        : true,
                     "refine"                        : true,
-                    "transfer"        		    : true,
+                    "transfer"        		    : false,
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
