@@ -107,6 +107,8 @@ public:
      * @brief Default constructor.
      * @param DispRatioTolerance Relative tolerance for displacement residual error
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
+     * @param RotRatioTolerance Relative tolerance for rotation residual error
+     * @param RotAbsTolerance Absolute tolerance for rotation residual error
      * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
      * @param LMAbsTolerance Absolute tolerance for lagrange multiplier residual error
      * @param NormalTangentRatio Ratio between the normal and tangent that will accepted as converged
@@ -117,6 +119,8 @@ public:
     explicit DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(
         const TDataType DispRatioTolerance,
         const TDataType DispAbsTolerance,
+        const TDataType RotRatioTolerance,
+        const TDataType RotAbsTolerance,
         const TDataType LMNormalRatioTolerance,
         const TDataType LMNormalAbsTolerance,
         const TDataType LMTangentStickRatioTolerance,
@@ -142,9 +146,9 @@ public:
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
-        // The rotation residual  // TODO: Update to consistent names
-        mRotRatioTolerance = DispRatioTolerance;
-        mRotAbsTolerance = DispAbsTolerance;
+        // The rotation residual
+        mRotRatioTolerance = RotRatioTolerance;
+        mRotAbsTolerance = RotAbsTolerance;
 
         // The normal contact residual
         mLMNormalRatioTolerance = LMNormalRatioTolerance;
@@ -539,6 +543,8 @@ public:
             "print_convergence_criterion"                              : false,
             "residual_relative_tolerance"                              : 1.0e-4,
             "residual_absolute_tolerance"                              : 1.0e-9,
+            "rotation_residual_relative_tolerance"                     : 1.0e-4,
+            "rotation_residual_absolute_tolerance"                     : 1.0e-9,
             "contact_displacement_relative_tolerance"                  : 1.0e-4,
             "contact_displacement_absolute_tolerance"                  : 1.0e-9,
             "frictional_stick_contact_displacement_relative_tolerance" : 1.0e-4,
@@ -608,9 +614,9 @@ protected:
         mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
 
-        // The rotation residual  // TODO: Update to consistent names
-        mRotRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
-        mRotAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+        // The rotation residual
+        mRotRatioTolerance = ThisParameters["rotation_residual_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["rotation_residual_absolute_tolerance"].GetDouble();
 
         // The normal contact solution
         mLMNormalRatioTolerance = ThisParameters["contact_displacement_relative_tolerance"].GetDouble();

@@ -88,7 +88,7 @@ class ContactConvergenceCriteriaFactory:
                         pure_slip = True
                     else:
                         pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FSTCD_RT, FSTCR_AT, FSLCD_RT, FSLCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(R_RT, R_AT, RTR_RT, RTR_AT, CR_RT, CR_AT, FSTCD_RT, FSTCR_AT, FSLCD_RT, FSLCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementResidualContactCriteria(R_RT, R_AT, self.print_convergence_criterion)
                 else:
