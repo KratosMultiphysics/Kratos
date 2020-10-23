@@ -1,12 +1,12 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//  License: BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:  Riccardo Rossi
+//  Main authors:    Riccardo Rossi
 //
 
 #if !defined(KRATOS_EULERIAN_DIFFUSION_ELEMENT_INCLUDED )
@@ -308,7 +308,7 @@ public:
         const double aux_1 = dt_inv * density * specific_heat * volume / static_cast<double>(TNumNodes);
         noalias(rRightHandSideVector) = aux_1 * prod(aux_NxN, phi_convected - phi);
         // Adding the diffusion
-        // Note 1: the diffusive term is computed as the average of the current and the convected one
+        // Note 1: the diffusive term is computed using a Crank-Nicholson scheme
         // Note 2: the gradients already include the corresponding Gauss point weight (no need to divide by TNumNodes)
         const double aux_2 = conductivity * 0.5 * volume;
         noalias(rRightHandSideVector) -= aux_2 * prod(prod(DN_DX, trans(DN_DX)), phi_convected + phi);
