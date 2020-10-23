@@ -397,6 +397,16 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def SolveSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "to begin SolutionStep")
 
+        # Do the necessary correction
+        for node in self.main_model_part.Nodes:
+            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if (abs(dist) < 1.0e-12):
+                auxdist = 1.0e-6*node.GetValue(KratosMultiphysics.NODAL_H)
+                if (dist > 0.0):
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,auxdist)
+                else:
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,-auxdist)
+
         # Call the base solver SolveSolutionStep()
         print("Navier-Stokes")
         print(time.time())
