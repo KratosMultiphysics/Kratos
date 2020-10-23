@@ -267,9 +267,10 @@ public:
             }
 
             // We check if converged
-            const bool disp_converged = mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED) ? ((disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance) && (rot_ratio <= mRotRatioTolerance || rot_abs <= mRotAbsTolerance)) : (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
+            const bool disp_converged = (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
+            const bool rot_converged = mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED) ? (rot_ratio <= mRotRatioTolerance || rot_abs <= mRotAbsTolerance) : true;
 
-            if (disp_converged) {
+            if (disp_converged && rot_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
