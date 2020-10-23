@@ -133,13 +133,16 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilitiesCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilities2DSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_builder.TestSensitivityBuilderTwoDimSymmetricalSquare]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_name_data_collector.TestFileNameDataCollector]))
+    smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_GetFileName'))
+    smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_RetrieveFileNameData'))
+    smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_SortListOfFileNameData'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_skin.TestCalculateDistanceToSkin]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mortar_mapper.TestMortarMapperCore]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_name_data_collector.TestFileNameDataCollector]))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
