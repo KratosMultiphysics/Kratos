@@ -68,7 +68,7 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-void ShallowWater2D3::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void ShallowWater2D3::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -87,7 +87,7 @@ void ShallowWater2D3::EquationIdVector(EquationIdVectorType& rResult, ProcessInf
     KRATOS_CATCH("")
 }
 
-void ShallowWater2D3::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+void ShallowWater2D3::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -124,7 +124,7 @@ void ShallowWater2D3::GetValuesVector(Vector& rValues, int Step) const
 void ShallowWater2D3::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and initialize the Left and Right Hand side
     if(rLeftHandSideMatrix.size1() != 9)
@@ -261,19 +261,19 @@ void ShallowWater2D3::AddLowOrderDiffusion(
 
 void ShallowWater2D3::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR << "ShallowWater2D3: CalculateLeftHandSide not implemented" << std::endl;
 }
 
 void ShallowWater2D3::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR << "ShallowWater2D3: CalculateRightHandSide not implemented" << std::endl;
 }
 
-void ShallowWater2D3::GetValueOnIntegrationPoints(
+void ShallowWater2D3::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
