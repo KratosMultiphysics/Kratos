@@ -30,8 +30,12 @@ class ContactConvergenceCriteriaFactory:
         if "contact" in self.convergence_criterion_name:
             D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
             D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
+            RT_RT = convergence_criterion_parameters["rotation_relative_tolerance"].GetDouble()
+            RT_AT = convergence_criterion_parameters["rotation_absolute_tolerance"].GetDouble()
             R_RT = convergence_criterion_parameters["residual_relative_tolerance"].GetDouble()
             R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()
+            RTR_RT = convergence_criterion_parameters["rotation_residual_relative_tolerance"].GetDouble()
+            RTR_AT = convergence_criterion_parameters["rotation_residual_absolute_tolerance"].GetDouble()
             CD_RT = convergence_criterion_parameters["contact_displacement_relative_tolerance"].GetDouble()
             CD_AT = convergence_criterion_parameters["contact_displacement_absolute_tolerance"].GetDouble()
             CR_RT = convergence_criterion_parameters["contact_residual_relative_tolerance"].GetDouble()
