@@ -122,7 +122,7 @@ class TestFileNameDataCollector(KratosUnittest.TestCase):
         check_sorted_list(["<time>", "<rank>"],           [8, 3, 1, 7, 2, 5, 4, 6, 0])
 
     def test_GetSortedFileNamesList(self):
-        dir_name = "test_GetSortedFileNamesList"
+        dir_name = "GSFNL_test_model_part"
         self.addCleanup(lambda: DeleteDirectoryIfExisting(dir_name))
         list_of_file_names = [
             os.path.join(dir_name, "test_model_part-1-4-1e-3.vtk"),     # 0
@@ -150,11 +150,11 @@ class TestFileNameDataCollector(KratosUnittest.TestCase):
             file_out.close()
             self.assertTrue(os.path.isfile(file_name))
 
-        file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, "test_GetSortedFileNamesList/<model_part_name>-<rank>-<step>-<time>.vtk", {})
+        file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, "GSFNL_<model_part_full_name>/<model_part_name>-<rank>-<step>-<time>.vtk", {})
 
         def check_sorted_list(sorting_order, sorted_indices_list):
             for index, sorted_file_name in enumerate(file_name_data_collector.GetSortedFileNamesList(sorting_order)):
-                self.assertEqual(sorted_file_name, list_of_file_names[sorted_indices_list[index]])
+                self.assertEqual(os.path.split(sorted_file_name), os.path.split(list_of_file_names[sorted_indices_list[index]]))
 
         check_sorted_list(["<rank>", "<step>"], [2, 0, 3, 4, 5, 6, 9, 8, 7])
         check_sorted_list(["<step>", "<rank>"], [2, 4, 9, 5, 8, 0, 6, 7, 3])
