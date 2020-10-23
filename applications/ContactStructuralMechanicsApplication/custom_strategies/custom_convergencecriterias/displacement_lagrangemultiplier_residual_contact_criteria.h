@@ -101,6 +101,8 @@ public:
      * @brief Default constructor (parameters)
      * @param DispRatioTolerance Relative tolerance for displacement residual error
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
+     * @param RotRatioTolerance Relative tolerance for rotation residual error
+     * @param RotAbsTolerance Absolute tolerance for rotation residual error
      * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
      * @param LMAbsTolerance Absolute tolerance for lagrange multiplier residual error
      * @param EnsureContact To check if the contact is lost
@@ -110,6 +112,8 @@ public:
     explicit DisplacementLagrangeMultiplierResidualContactCriteria(
         const TDataType DispRatioTolerance,
         const TDataType DispAbsTolerance,
+        const TDataType RotRatioTolerance,
+        const TDataType RotAbsTolerance,
         const TDataType LMRatioTolerance,
         const TDataType LMAbsTolerance,
         const bool EnsureContact = false,
@@ -128,9 +132,9 @@ public:
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
-        // The rotation residual  // TODO: Update to consistent names
-        mRotRatioTolerance = DispRatioTolerance;
-        mRotAbsTolerance = DispAbsTolerance;
+        // The rotation residual
+        mRotRatioTolerance = RotRatioTolerance;
+        mRotAbsTolerance = RotAbsTolerance;
 
         // The normal contact residual
         mLMRatioTolerance = LMRatioTolerance;
@@ -425,13 +429,15 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                                : "displacement_lagrangemultiplier_residual_contact_criteria",
-            "ensure_contact"                      : false,
-            "print_convergence_criterion"         : false,
-            "residual_relative_tolerance"         : 1.0e-4,
-            "residual_absolute_tolerance"         : 1.0e-9,
-            "contact_residual_relative_tolerance" : 1.0e-4,
-            "contact_residual_absolute_tolerance" : 1.0e-9
+            "name"                                 : "displacement_lagrangemultiplier_residual_contact_criteria",
+            "ensure_contact"                       : false,
+            "print_convergence_criterion"          : false,
+            "residual_relative_tolerance"          : 1.0e-4,
+            "residual_absolute_tolerance"          : 1.0e-9,
+            "rotation_residual_relative_tolerance" : 1.0e-4,
+            "rotation_residual_absolute_tolerance" : 1.0e-9,
+            "contact_residual_relative_tolerance"  : 1.0e-4,
+            "contact_residual_absolute_tolerance"  : 1.0e-9
         })");
 
         // Getting base class default parameters
@@ -495,8 +501,8 @@ protected:
         mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
 
         // The rotation residual
-        mRotRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
-        mRotAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+        mRotRatioTolerance = ThisParameters["rotation_residual_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["rotation_residual_absolute_tolerance"].GetDouble();
 
         // The contact residual
         mLMRatioTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
