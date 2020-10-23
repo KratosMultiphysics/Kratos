@@ -51,7 +51,11 @@ class DamChemoMechanicalAgingYoungProcess : public Process
                 "max_chemical_porosity"                            : 0.32,
                 "chemical_characteristic_aging_time"               : 100.0,
                 "max_mechanical_damage"                            : 0.32,
-                "damage_characteristic_aging_time"                 : 100.0
+                "damage_characteristic_aging_time"                 : 100.0,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -95,7 +99,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     {
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         // This model works in years so it is necessary to convert time in this unit
@@ -128,7 +132,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     {
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         // This model works in years so it is necessary to convert time in this unit

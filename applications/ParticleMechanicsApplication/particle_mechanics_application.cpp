@@ -59,7 +59,12 @@ namespace Kratos
 
     KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
         KratosApplication("ParticleMechanicsApplication"),
-        //// ELEMENTS:
+        /// Elements, using QuadraturePointGeometries:
+        mUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+
+        /// Deprecated Elements
         mUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -97,8 +102,6 @@ namespace Kratos
 
     void KratosParticleMechanicsApplication::Register()
     {
-        // Calling base class register to register Kratos components
-        KratosApplication::Register();
         KRATOS_INFO("") << "    KRATOS  ____ __   ____ _____ _  ___ _   ____\n"
                         << "           |  _ |  \\ |  _ |_   _| |/   | | | ___|\n"
                         << "           |   _| \\ \\|    | | | | |   (  |_| _|_\n"
@@ -106,6 +109,11 @@ namespace Kratos
                         << "Initializing KratosParticleMechanicsApplication..." << std::endl;
 
         // Registering elements
+        KRATOS_REGISTER_ELEMENT("UpdatedLagrangian", mUpdatedLagrangian)
+        KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUP", mUpdatedLagrangianUP)
+        KRATOS_REGISTER_ELEMENT("UpdatedLagrangianPQ", mUpdatedLagrangianPQ)
+
+        // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
@@ -142,6 +150,7 @@ namespace Kratos
         // Registering elements
         KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )
         KRATOS_REGISTER_VARIABLE( PARTICLES_PER_ELEMENT )
+        KRATOS_REGISTER_VARIABLE( MP_SUB_POINTS)
         KRATOS_REGISTER_VARIABLE( MP_MASS )
         KRATOS_REGISTER_VARIABLE( MP_DENSITY )
         KRATOS_REGISTER_VARIABLE( MP_VOLUME )
@@ -151,13 +160,17 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_TOTAL_ENERGY )
         KRATOS_REGISTER_VARIABLE( MP_PRESSURE )
         KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )
+        KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_STRESS )
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN_RATE)
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_TEMPERATURE)
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
+        KRATOS_REGISTER_VARIABLE(IS_COMPRESSIBLE)
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
@@ -172,10 +185,18 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( COHESION_RESIDUAL )
         KRATOS_REGISTER_VARIABLE( INTERNAL_DILATANCY_ANGLE_RESIDUAL )
         KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_BETA )
+        // CL: Johnson Cook
+        KRATOS_REGISTER_VARIABLE( REFERENCE_STRAIN_RATE)
+        KRATOS_REGISTER_VARIABLE( TAYLOR_QUINNEY_COEFFICIENT)
+        KRATOS_REGISTER_VARIABLE( MP_HARDENING_RATIO)
+
+        // Mesh variables
+        KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
 
         // Registering condition variables
         // Essential Boundary Conditions
-        KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, PENALTY_FACTOR )
+        KRATOS_REGISTER_VARIABLE( MPC_BOUNDARY_CONDITION_TYPE )
+        KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )
 
         // Nodal load variables
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
@@ -237,6 +258,11 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlastic3DLaw", mHenckyBorjaCamClayPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlasticPlaneStrain2DLaw", mHenckyBorjaCamClayPlasticPlaneStrain2DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlasticAxisym2DLaw", mHenckyBorjaCamClayPlasticAxisym2DLaw);
+        // CL: Johnson Cook
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
+
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
@@ -251,6 +277,23 @@ namespace Kratos
         Serializer::Register("ExponentialStrainSofteningLaw", mExponentialStrainSofteningLaw);
         Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
+        // Solver related variables
+        KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
+        KRATOS_REGISTER_VARIABLE(IS_AXISYMMETRIC);
+
+        // Explicit time integration variables
+        KRATOS_REGISTER_VARIABLE(CALCULATE_MUSL_VELOCITY_FIELD)
+        KRATOS_REGISTER_VARIABLE(IS_EXPLICIT)
+        KRATOS_REGISTER_VARIABLE(IS_EXPLICIT_CENTRAL_DIFFERENCE)
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_STRESS_UPDATE_OPTION)
+        KRATOS_REGISTER_VARIABLE(CALCULATE_EXPLICIT_MP_STRESS)
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_MAP_GRID_TO_MP)
+        KRATOS_REGISTER_VARIABLE(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)
+
+        // Partitioned Quadrature MPM variables
+        KRATOS_REGISTER_VARIABLE (IS_PQMPM)
+        KRATOS_REGISTER_VARIABLE(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS)
+        KRATOS_REGISTER_VARIABLE(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION)
     }
 
 }  // namespace Kratos.

@@ -332,6 +332,23 @@ class TestOperations(KratosUnittest.TestCase):
             self.assertEqual(p.call_count, 1)
             self.assertEqual(nodal_data_value_io.WriteNodalResults.call_count, 1)
 
+    def test_NodalFlagValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'nodal_flag_value_output'
+        nodal_flag_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(nodal_flag_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5NodalFlagValueIO', autospec=True) as p:
+            nodal_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            nodal_flag_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_flag_value_io.WriteNodalFlags.call_count, 1)
+
+
     def test_NodalDataValueInput(self):
         settings = ParametersWrapper()
         settings['operation_type'] = 'nodal_data_value_input'
@@ -347,6 +364,22 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_data_value_input(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
             self.assertEqual(nodal_data_value_io.ReadNodalResults.call_count, 1)
+
+    def test_NodalFlagValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'nodal_flag_value_input'
+        nodal_flag_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(nodal_flag_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5NodalFlagValueIO', autospec=True) as p:
+            nodal_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            nodal_flag_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_flag_value_io.ReadNodalFlags.call_count, 1)
 
     def test_ElementDataValueOutput(self):
         settings = ParametersWrapper()
@@ -364,6 +397,22 @@ class TestOperations(KratosUnittest.TestCase):
             self.assertEqual(p.call_count, 1)
             self.assertEqual(element_data_value_io.WriteElementResults.call_count, 1)
 
+    def test_ElementFlagValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'element_flag_value_output'
+        element_flag_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(element_flag_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementFlagValueIO', autospec=True) as p:
+            element_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            element_flag_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(element_flag_value_io.WriteElementFlags.call_count, 1)
+
     def test_ElementDataValueInput(self):
         settings = ParametersWrapper()
         settings['operation_type'] = 'element_data_value_input'
@@ -379,6 +428,86 @@ class TestOperations(KratosUnittest.TestCase):
             element_data_value_input(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
             self.assertEqual(element_data_value_io.ReadElementResults.call_count, 1)
+
+    def test_ElementFlagValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'element_flag_value_input'
+        element_flag_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(element_flag_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementFlagValueIO', autospec=True) as p:
+            element_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            element_flag_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(element_flag_value_io.ReadElementFlags.call_count, 1)
+
+    def test_ConditionDataValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_data_value_output'
+        condition_data_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_data_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True) as p:
+            condition_data_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_data_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_data_value_io.WriteConditionResults.call_count, 1)
+
+    def test_ConditionFlagValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_flag_value_output'
+        condition_flag_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_flag_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True) as p:
+            condition_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_flag_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_flag_value_io.WriteConditionFlags.call_count, 1)
+
+    def test_ConditionDataValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_data_value_input'
+        condition_data_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_data_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True) as p:
+            condition_data_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_data_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_data_value_io.ReadConditionResults.call_count, 1)
+
+    def test_ConditionFlagValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_flag_value_input'
+        condition_flag_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_flag_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True) as p:
+            condition_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_flag_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_flag_value_io.ReadConditionFlags.call_count, 1)
 
     def test_PrimalBossakOutput(self):
         settings = ParametersWrapper()
@@ -539,6 +668,7 @@ class TestFactory(KratosUnittest.TestCase):
                 "list_of_controllers" : []
             }
             ''')
+        settings = ParametersWrapper(settings)
         with self.assertRaisesRegex(RuntimeError, '"PLEASE_SPECIFY_MODEL_PART_NAME" was not found'):
             core.Factory(settings['list_of_controllers'], model)
 
@@ -554,6 +684,7 @@ class TestFactory(KratosUnittest.TestCase):
                 ]
             }
             ''')
+        parent_settings = ParametersWrapper(parent_settings)
         core.Factory(parent_settings['list_of_controllers'], model)
         settings = parent_settings['list_of_controllers'][0]
         self.assertTrue(settings.Has('model_part_name'))
@@ -579,6 +710,7 @@ class TestFactory(KratosUnittest.TestCase):
                 ]
             }
             ''')
+        parent_settings = ParametersWrapper(parent_settings)
         process = core.Factory(
             parent_settings['list_of_controllers'], model)
         patcher1 = patch(
@@ -700,7 +832,7 @@ class TestParametersWrapper(KratosUnittest.TestCase):
         count = 0
         for k in settings['array_of_double_values']:
             self.assertEqual(k, count)
-        count += 1
+            count += 1
 
     def test_nonarray_keys(self):
         settings = ParametersWrapper(self.get_params)

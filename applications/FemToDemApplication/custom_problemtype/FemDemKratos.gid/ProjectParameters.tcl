@@ -31,8 +31,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
     puts $FileVar "  \"pressure_load_extrapolation\":     [GiD_AccessValue get gendata Extrapolate_Pressure_Load],"
-    puts $FileVar "  \"displacement_perturbed_tangent\":  [GiD_AccessValue get gendata Displacement_Perturbed_Tangent_Computation],"
-    
+    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"create_initial_skin\":             false,"
+
+
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
@@ -155,7 +157,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \},"
     puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
     puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
-    puts $FileVar "            \"output_frequency\":     [GiD_AccessValue get gendata Output_frequency],"
+    puts $FileVar "            \"output_interval\":     [GiD_AccessValue get gendata Output_frequency],"
     puts $FileVar "            \"body_output\":          [GiD_AccessValue get gendata Body_output],"
     puts $FileVar "            \"node_output\":          [GiD_AccessValue get gendata Node_output],"
     puts $FileVar "            \"skin_output\":          [GiD_AccessValue get gendata Skin_output],"

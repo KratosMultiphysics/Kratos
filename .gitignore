@@ -1,7 +1,7 @@
 ### ATTENTION ###
 # This is the GLOBAL gitignore, please do NOT change this file,
 # unless it should be available for everyone
-# Please change the LOCAL gitignore (.git/info/exclude) to cutomize 
+# Please change the LOCAL gitignore (.git/info/exclude) to cutomize
 # exluding files/folders from being recognized by git
 
 # Recovery files
@@ -11,20 +11,15 @@
 *.pyc
 
 # Common build directory
-cmake_build/*
-!cmake_build/example_configure.bat.do_not_touch
-!cmake_build/example_configure.sh.do_not_touch
-packaging/*
-packaging_aux/KratosLoader.py
-packaging_aux/kratos.conf
-
-# Compile and install directories
-KratosMultiphysics/*
-libpython*
-libs/*
-runkratos
-runkratos.exe
-script.py
+~scripts/standard_configure_MINGW.sh
+~scripts/standard_configure_mac.sh
+~scripts/standard_configure.sh
+~scripts/standard_configure_MINGW.bat
+~scripts/standard_configure.bat
+scripts/*.sh
+scripts/*.bat
+build/*
+bin/*
 
 # Times files
 *.time
@@ -75,6 +70,3 @@ script.py
 
 # Most used editor files
 *.vscode
-
-# Auxiliar file (deprecated?)
-applications/python_scripts/beam_profiles\.csv

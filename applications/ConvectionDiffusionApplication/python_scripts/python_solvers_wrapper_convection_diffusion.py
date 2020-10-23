@@ -13,29 +13,42 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
 
+    if not solver_settings.Has("time_integration_method"):
+        KratosMultiphysics.Logger.PrintWarning("Time integration method was not provided. Setting \'implicit\' as default.")
+        solver_settings.AddEmptyValue("time_integration_method").SetString("implicit")
+    time_integration_method = solver_settings["time_integration_method"].GetString()
+
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "transient" or solver_type == "Transient"):
-            solver_module_name = "convection_diffusion_transient_solver"
+        if time_integration_method == "explicit":
+            solver_module_name = "convection_diffusion_explicit_solver"
+        elif time_integration_method == "implicit":
+            if (solver_type == "transient" or solver_type == "Transient"):
+                solver_module_name = "convection_diffusion_transient_solver"
 
-        elif (solver_type == "stationary" or solver_type == "Stationary"):
-            solver_module_name = "convection_diffusion_stationary_solver"
+            elif (solver_type == "stationary" or solver_type == "Stationary"):
+                solver_module_name = "convection_diffusion_stationary_solver"
 
-        elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
-            solver_module_name = "coupled_fluid_thermal_solver"
+            elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
+                solver_module_name = "coupled_fluid_thermal_solver"
 
-        elif (solver_type == "thermo_mechanically_coupled" or solver_type == "ThermoMechanicallyCoupled"):
-            solver_module_name = "coupled_structural_thermal_solver"
+            elif (solver_type == "thermo_mechanically_coupled" or solver_type == "ThermoMechanicallyCoupled"):
+                solver_module_name = "coupled_structural_thermal_solver"
 
-        elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
-            solver_module_name = "conjugate_heat_transfer_solver"
+            elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
+                solver_module_name = "conjugate_heat_transfer_solver"
 
-        elif solver_type == "adjoint_stationary":
-            solver_module_name = "adjoint_diffusion_solver"
+            elif solver_type == "adjoint_stationary":
+                solver_module_name = "adjoint_diffusion_solver"
+
+            else:
+                err_msg =  "The requested solver type {} is not in the python solvers wrapper\n".format(solver_type)
+                err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
+                raise Exception(err_msg)
 
         else:
-            err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
+            err_msg =  "The requested time integration method {} is not in the Python solvers wrapper\n".format(time_integration_method)
+            err_msg += "Available options are: \"explicit\", \"implicit\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
@@ -65,4 +78,3 @@ def CreateSolver(model, custom_settings):
     solver_settings = custom_settings["solver_settings"]
 
     return CreateSolverByParameters(model, solver_settings, parallelism)
-

@@ -188,7 +188,7 @@ public:
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get("Condition2D2N");
+        const Condition& rCondition = KratosComponents<Condition>::Get("LineCondition2D2N");
 
         // Required information for new conditions: Id, geometry and properties
         Condition::IndexType LinId = 1; // Id
@@ -215,7 +215,7 @@ public:
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D2N");
+        const Condition& rCondition = KratosComponents<Condition>::Get("LineCondition3D2N");
 
         // Required information for new conditions: Id, geometry and properties
         Condition::IndexType LinId = 1; // Id
@@ -242,7 +242,7 @@ public:
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D"); /* Face3D3N */
+        const Condition& rCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N"); /* Face3D3N */
 
         // Required information for new conditions: Id, geometry and properties
         Condition::IndexType TriId = 1; // Id

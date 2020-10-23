@@ -191,6 +191,7 @@ private:
     double mAngularFrequency;
     double mPhase;
     double mVerticalShift;
+    double mSmoothTime;
 
     ///@}
     ///@name Private Operators

@@ -157,8 +157,7 @@ public:
     MmgIO(
         std::string const& rFilename,
         Parameters ThisParameters = Parameters(R"({})"),
-        const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER
-        );
+        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
     /// Destructor.
     ~MmgIO() override = default;
@@ -196,6 +195,12 @@ public:
      * @brief This writes the current model part info a file
      */
     void WriteModelPart(ModelPart& rModelPart) override;
+
+    /**
+     * @brief This method retrieves the current Mmg version
+     * @return The current version of Mmg (as a string)
+     */
+    std::string GetMmgVersion();
 
     ///@}
     ///@name Access
@@ -271,7 +276,7 @@ private:
     Parameters mThisParameters;                  /// The parameters (can be used for general pourposes)
     Flags mOptions;                              /// Configuration flags
 
-    MmgUtilities<TMMGLibrary> mMmmgUtilities;    /// The MMG utilities class
+    MmgUtilities<TMMGLibrary> mMmgUtilities;     /// The MMG utilities class
 
     ///@}
     ///@name Private Operators

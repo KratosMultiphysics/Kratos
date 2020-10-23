@@ -59,7 +59,6 @@ public:
     PoromechanicsNewtonRaphsonStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters& rParameters,
@@ -67,7 +66,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-        ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
+        ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
             //only include validation with c++11 since raw_literals do not exist in c++03
@@ -294,7 +293,7 @@ private:
 
             if( KratosComponents< Variable<double> >::Has( VariableName ) )
             {
-                Variable<double> var = KratosComponents< Variable<double> >::Get( VariableName );
+                const Variable<double>& var = KratosComponents< Variable<double> >::Get( VariableName );
 
                 #pragma omp parallel
                 {
@@ -312,10 +311,10 @@ private:
             }
             else if( KratosComponents< Variable<array_1d<double,3> > >::Has(VariableName) )
             {
-                typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-                component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
-                component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
-                component_type varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
+                typedef Variable<double> component_type;
+                const component_type& varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
+                const component_type& vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
+                const component_type& varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
 
                 #pragma omp parallel
                 {
@@ -357,7 +356,7 @@ private:
 
             if( KratosComponents< Variable<double> >::Has( VariableName ) )
             {
-                Variable<double> var = KratosComponents< Variable<double> >::Get( VariableName );
+                const Variable<double>& var = KratosComponents< Variable<double> >::Get( VariableName );
 
                 #pragma omp parallel
                 {
@@ -373,10 +372,10 @@ private:
             }
             else if( KratosComponents< Variable<array_1d<double,3> > >::Has(VariableName) )
             {
-                typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-                component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
-                component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
-                component_type varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
+                typedef Variable<double> component_type;
+                const component_type& varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
+                const component_type& vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
+                const component_type& varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
 
                 #pragma omp parallel
                 {

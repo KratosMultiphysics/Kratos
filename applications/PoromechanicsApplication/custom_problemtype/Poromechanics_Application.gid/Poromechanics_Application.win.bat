@@ -8,7 +8,7 @@ rem currentdirectory = %2
 rem problemtypedirectory = %3
 
 rem Setting paths. WARNING: one should check them before running this file
-set PATH=C:\\KratosInstall;C:\\KratosInstall\\libs;%PATH%
+set PATH=C:\\KratosInstall\\bin\\Release;C:\\KratosInstall\\bin\\Release\\libs;%PATH%
 
 rem Execute the program
 C:\\KratosInstall\\runkratos MainKratos.py > %1.info 2> %1.err

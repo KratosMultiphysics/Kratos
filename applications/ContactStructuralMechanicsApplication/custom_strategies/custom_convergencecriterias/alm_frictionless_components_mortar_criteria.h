@@ -314,13 +314,8 @@ private:
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(3, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(4));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(4, false));
 
 }  // namespace Kratos
 
 #endif /* KRATOS_ALM_FRICTIONLESS_COMPONENTS_MORTAR_CRITERIA_H  defined */
-

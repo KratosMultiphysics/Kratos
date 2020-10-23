@@ -37,7 +37,7 @@
 
 #include <amgcl/mpi/make_solver.hpp>
 #include <amgcl/mpi/schur_pressure_correction.hpp>
-#include <amgcl/solver/runtime.hpp>
+#include <amgcl/mpi/solver/runtime.hpp>
 #include <amgcl/mpi/block_preconditioner.hpp>
 #include <amgcl/relaxation/as_preconditioner.hpp>
 #include <amgcl/relaxation/runtime.hpp>
@@ -214,7 +214,7 @@ public:
                     amgcl::mpi::block_preconditioner<
                         amgcl::relaxation::as_preconditioner<Backend, amgcl::runtime::relaxation::wrapper>
                         >,
-                    amgcl::runtime::solver::wrapper
+                    amgcl::runtime::mpi::solver::wrapper<Backend>
                     >,
                 amgcl::mpi::make_solver<
                     amgcl::mpi::amg<
@@ -224,10 +224,10 @@ public:
                         amgcl::runtime::mpi::direct::solver<double>,
                         amgcl::runtime::mpi::partition::wrapper<Backend>
                         >,
-                    amgcl::runtime::solver::wrapper
+                    amgcl::runtime::mpi::solver::wrapper<Backend>
                     >
                 >,
-            amgcl::runtime::solver::wrapper
+            amgcl::runtime::mpi::solver::wrapper<Backend>
             > Solver;
 
         mprm.put("precond.pmask", static_cast<void*>(&mPressureMask[0]));

@@ -179,35 +179,35 @@ public:
     {
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
     {
         rResult.resize(2);
         rResult[0] = this->GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
         rResult[1] = this->GetGeometry()[1].GetDof(DISPLACEMENT_X).EquationId();
     }
 
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override
     {
         rElementalDofList.resize(2);
         rElementalDofList[0] = this->GetGeometry()[0].pGetDof(DISPLACEMENT_X);
         rElementalDofList[1] = this->GetGeometry()[1].pGetDof(DISPLACEMENT_X);
     }
 
-    void GetValuesVector(Vector& values, int Step = 0) override
+    void GetValuesVector(Vector& values, int Step = 0) const override
     {
         values.resize(2);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
     }
 
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) override
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override
     {
         values.resize(2);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_X, Step);
     }
 
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) override
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const override
     {
         values.resize(2);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION_X, Step);
@@ -216,14 +216,14 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
+                              const ProcessInfo& rCurrentProcessInfo) override
     {
         this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
         this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
     }
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
+                               const ProcessInfo& rCurrentProcessInfo) override
     {
         rLeftHandSideMatrix.resize(2, 2, false);
         const double& x1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
@@ -235,7 +235,7 @@ public:
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         rRightHandSideVector.resize(2, false);
         const double& x1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
@@ -245,7 +245,7 @@ public:
         rRightHandSideVector(1) = -(-x1 + x2 + stiffness * x21 * x21 * x21);
     }
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         rMassMatrix.resize(2, 2, false);
         rMassMatrix(0, 0) = mass1;
@@ -254,7 +254,7 @@ public:
         rMassMatrix(1, 0) = 0.;
     }
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         rDampingMatrix.resize(2, 2, false);
         rDampingMatrix(0, 0) = 2. * damping;
@@ -364,35 +364,35 @@ public:
         SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
     {
         rResult.resize(2);
         rResult[0] = this->GetGeometry()[0].GetDof(ADJOINT_VECTOR_1_X).EquationId();
         rResult[1] = this->GetGeometry()[1].GetDof(ADJOINT_VECTOR_1_X).EquationId();
     }
 
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override
     {
         rElementalDofList.resize(2);
         rElementalDofList[0] = this->GetGeometry()[0].pGetDof(ADJOINT_VECTOR_1_X);
         rElementalDofList[1] = this->GetGeometry()[1].pGetDof(ADJOINT_VECTOR_1_X);
     }
 
-    void GetValuesVector(Vector& values, int Step = 0) override
+    void GetValuesVector(Vector& values, int Step = 0) const override
     {
         values.resize(2);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_1_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_VECTOR_1_X, Step);
     }
 
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) override
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override
     {
         values.resize(2);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_2_X, Step);
         values[1] = this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_VECTOR_2_X, Step);
     }
 
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) override
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const override
     {
         values.resize(2);
         values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_3_X, Step);
@@ -400,14 +400,14 @@ public:
     }
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
+                               const ProcessInfo& rCurrentProcessInfo) override
     {
         mPrimalElement.CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
         noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
     }
 
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
         mPrimalElement.CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -416,7 +416,7 @@ public:
     }
 
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+                                       const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
         mPrimalElement.CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -685,7 +685,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, 
     adjoint_solver.Initialize();
     SensitivityBuilder sensitivity_builder(
         Parameters{R"(
-            { 
+            {
                 "element_data_value_sensitivity_variables": ["SCALAR_SENSITIVITY"],
                 "build_mode": "integrate",
                 "nodal_solution_step_sensitivity_calculation_is_thread_safe" : true

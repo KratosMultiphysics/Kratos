@@ -24,7 +24,6 @@
 #include "includes/variables.h"
 #include "includes/dem_variables.h"  //TODO: must be removed eventually
 #include "includes/cfd_variables.h"  //TODO: must be removed eventually
-#include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 #include "custom_elements/monolithic_dem_coupled.h"
 #include "custom_elements/monolithic_dem_coupled_weak.h"
 #include "custom_elements/calculate_laplacian_simplex_element.h"
@@ -34,6 +33,7 @@
 #include "custom_elements/calculate_gradient_Pouliot_2012_edge.h"
 #include "custom_elements/calculate_velocity_laplacian_component.h"
 #include "custom_elements/calculate_velocity_laplacian.h"
+#include "custom_elements/calculate_error_L2_projection_element.h"
 #include "custom_elements/shell_rigid.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
@@ -138,6 +138,9 @@ private:
 
     const ComputeVelocityLaplacianSimplex<2> mComputeVelocityLaplacianSimplex2D;
     const ComputeVelocityLaplacianSimplex<3> mComputeVelocityLaplacianSimplex3D;
+
+    const CalculateErrorL2Projection<2> mCalculateErrorL2Projection2D;
+    const CalculateErrorL2Projection<3> mCalculateErrorL2Projection3D;
 
     const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
     const  MonolithicDEMCoupledWallCondition<3,3> mMonolithicDEMCoupledWallCondition3D;

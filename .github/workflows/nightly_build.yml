@@ -1,0 +1,85 @@
+name: Nightly Build
+
+on:
+  pull_request:
+    paths:
+    - '.github/workflows/nightly_build.yml'
+
+  schedule:
+    - cron:  '0 1 * * *'
+
+jobs:
+  ubuntu-nightly:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+    env:
+      KRATOS_BUILD_TYPE: Release
+      MKLVARS_ARCHITECTURE: intel64
+      MKLVARS_INTERFACE: lp64
+      FC: gfortran-7
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      options: --user 1001
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=gcc
+          export CXX=g++
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=clang-9
+          export CXX=clang++-9
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        . /opt/intel/mkl/bin/mklvars.sh
+        cp .github/workflows/configure.sh configure.sh # maybe use different configure script in the future
+        bash configure.sh
+
+    - name: Running tests
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
+
+
+  windows-nightly:
+    runs-on: windows-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.6'
+
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+
+    - name: Build
+      shell: cmd
+      run: |
+        copy .\.github\workflows\configure.cmd
+        configure.cmd
+
+    - name: Running nightly tests
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/run_tests.py -l nightly -c python

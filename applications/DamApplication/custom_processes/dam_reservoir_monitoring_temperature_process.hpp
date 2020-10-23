@@ -64,7 +64,11 @@ class DamReservoirMonitoringTemperatureProcess : public Process
                 "Water_temp_Table_2"                               : 0,
                 "Z_Coord_3"                                        : 0.0,
                 "Water_temp_3"                                     : 0.0,
-                "Water_temp_Table_3"                               : 0
+                "Water_temp_Table_3"                               : 0,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -137,7 +141,7 @@ class DamReservoirMonitoringTemperatureProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
 
@@ -198,7 +202,7 @@ class DamReservoirMonitoringTemperatureProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Getting the values of table in case that it exist
         if (mTableIdWater != 0)
@@ -296,7 +300,7 @@ class DamReservoirMonitoringTemperatureProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 

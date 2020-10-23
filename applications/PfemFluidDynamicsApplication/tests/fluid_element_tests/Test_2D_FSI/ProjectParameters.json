@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI",
         "start_time"      : 0.0,
-        "end_time"        : 0.005,
+        "end_time"        : 0.003,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP",
         "threads"         : 1,
@@ -14,13 +14,16 @@
         "domain_size": 2,
         "time_stepping"               : {
             "automatic_time_step" : false,
-            "time_step"           : 0.0005
+            "time_step"           : 0.001
         },
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI"
         },
-        "maximum_pressure_iterations"        : 6,
+        "material_import_settings"           : {
+            "materials_filename" : "fluid_element_tests/Test_2D_FSI/PfemFluidDynamicsMaterials.json"
+        },
+        "maximum_pressure_iterations"        : 2,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
         "echo_level"                         : 0,
@@ -69,6 +72,11 @@
             "meshing_frequency"     : 1.0,
             "write_totalVolumeBeforeMeshing" : false,
             "meshing_before_output" : true,
+            "update_conditions_on_free_surface" : {
+                "update_conditions"        : false,
+                "sub_model_part_list"      : [],
+                "reference_condition_list" : []
+            },
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",
                 "python_module"                   : "fluid_meshing_domain",
@@ -296,7 +304,7 @@
                 "check_variables"     : ["VELOCITY_X","VELOCITY_Y"],
                 "input_file_name"     : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI_results.json",
                 "model_part_name"      : "PfemFluidModelPart",
-                "time_frequency"       : 0.001
+                "time_frequency"       : 0.003
             }
         }]
     },
@@ -307,7 +315,7 @@
             "output_variables"     : ["VELOCITY_X","VELOCITY_Y"],
             "output_file_name"     : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI_results.json",
             "model_part_name"      : "PfemFluidModelPart",
-            "time_frequency"       : 0.001
+            "time_frequency"       : 0.003
         }
     }]
 }

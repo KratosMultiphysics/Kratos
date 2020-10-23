@@ -82,10 +82,14 @@ public:
     ///@{
 
     /// Constructor with filenames.
-    ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER);
+    ModelPartIO(
+        std::string const& Filename,
+        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
     /// Constructor with stream.
-    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER);
+    ModelPartIO(
+        Kratos::shared_ptr<std::iostream> Stream,
+        const Flags Options = IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
 
     /// Constructor with filenames.
@@ -453,18 +457,18 @@ private:
     void WriteNodalDataBlock(ModelPart& rThisModelPart);
 
     template<class TVariableType>
-    void ReadNodalDofVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable);
+    void ReadNodalDofVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable);
 
 
     void ReadNodalFlags(NodesContainerType& rThisNodes, Flags const& rFlags);
 
     template<class TVariableType>
-    void ReadNodalScalarVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable);
+    void ReadNodalScalarVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable);
 
 
 
     template<class TVariableType, class TDataType>
-    void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy);
+    void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable, TDataType Dummy);
 
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
     template<class TObjectsContainerType>
@@ -473,19 +477,19 @@ private:
     void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName);
 
     template<class TVariableType>
-    void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable);
+    void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable);
 
 
     template<class TVariableType, class TDataType>
-    void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy);
+    void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable, TDataType Dummy);
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
 
     template<class TVariableType>
-    void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable);
+    void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable);
 
 
     template<class TVariableType, class TDataType>
-    void ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable, TDataType Dummy);
+    void ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable, TDataType Dummy);
 
 
     SizeType ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
@@ -650,6 +654,8 @@ private:
 
     template<class TValueType>
     TValueType& ExtractValue(std::string rWord, TValueType & rValue);
+
+    bool& ExtractValue(std::string rWord, bool & rValue);
 
     void ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue);
 

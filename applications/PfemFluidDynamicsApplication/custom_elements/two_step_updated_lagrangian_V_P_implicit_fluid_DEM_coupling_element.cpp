@@ -56,67 +56,6 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Initialize
 }
 
 template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::ComputeMaterialParameters(double &Density,
-                                                                                                double &DeviatoricCoeff,
-                                                                                                double &VolumetricCoeff,
-                                                                                                ProcessInfo &currentProcessInfo,
-                                                                                                ElementalVariables &rElementalVariables)
-{
-  double FluidBulkModulus = 0;
-  double FluidYieldShear = 0;
-  double staticFrictionCoefficient = 0;
-  double regularizationCoefficient = 0;
-  // double inertialNumberThreshold=0;
-  double timeStep = currentProcessInfo[DELTA_TIME];
-
-  this->EvaluatePropertyFromANotRigidNode(Density, DENSITY);
-  this->EvaluatePropertyFromANotRigidNode(FluidBulkModulus, BULK_MODULUS);
-  this->EvaluatePropertyFromANotRigidNode(FluidYieldShear, YIELD_SHEAR);
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient, REGULARIZATION_COEFFICIENT);
-  // this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
-
-  if (FluidBulkModulus == 0)
-  {
-    FluidBulkModulus = 1000000000.0;
-  }
-  VolumetricCoeff = FluidBulkModulus * timeStep;
-
-  if (FluidYieldShear != 0)
-  {
-    // std::cout<<"For a Newtonian fluid I should not enter here"<<std::endl;
-    DeviatoricCoeff = this->ComputeNonLinearViscosity(rElementalVariables.EquivalentStrainRate);
-  }
-  else if (staticFrictionCoefficient != 0)
-  {
-    DeviatoricCoeff = this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables);
-  }
-  else
-  {
-    // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
-    this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff, DYNAMIC_VISCOSITY);
-  }
-
-  // this->ComputeMaterialParametersGranularGas(rElementalVariables,VolumetricCoeff,DeviatoricCoeff);
-  // std::cout<<"Density "<<Density<<std::endl;
-  // std::cout<<"FluidBulkModulus "<<FluidBulkModulus<<std::endl;
-  // std::cout<<"staticFrictionCoefficient "<<staticFrictionCoefficient<<std::endl;
-  // std::cout<<"DeviatoricCoeff "<<DeviatoricCoeff<<std::endl;
-
-  this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
-  this->mMaterialVolumetricCoefficient = VolumetricCoeff;
-  this->mMaterialDensity = Density;
-
-  // const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  // for (SizeType i = 0; i < NumNodes; ++i)
-  //   {
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=VolumetricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
-  //   }
-}
-
-template <unsigned int TDim>
 int TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;
@@ -632,7 +571,7 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::CalculateL
   double totalVolume = 0;
   bool computeElement = false;
   // Loop on integration points
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     totalVolume += GaussWeight;
@@ -656,7 +595,7 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::CalculateL
       }
       if (wallElement == true)
       {
-        this->EvaluatePropertyFromANotRigidNode(FluidFractionRate, FLUID_FRACTION_RATE);
+        FluidFractionRate = this->GetProperties()[FLUID_FRACTION_RATE];
       }
 
       if (std::abs(FluidFraction) < 1.0e-12)

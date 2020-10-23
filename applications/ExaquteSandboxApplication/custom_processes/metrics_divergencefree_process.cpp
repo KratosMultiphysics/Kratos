@@ -52,7 +52,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
         "minimal_size"                        : 0.01,
         "maximal_size"                        : 10.0,
         "refinement_strategy"                 : "global_tolerance_strategy",
-        "reference_variable_name"             : "DIVERGENCE_WEIGHTED",
+        "reference_variable_name"             : "AVERAGED_DIVERGENCE",
         "mean_distribution_strategy":
         {
             "target_refinement_coefficient"       : 0.9,

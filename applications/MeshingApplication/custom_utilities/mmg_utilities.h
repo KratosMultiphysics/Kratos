@@ -26,6 +26,19 @@
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 
+#ifndef MMG_VERSION_GE
+    #define MMG_VERSION_GE(MAJOR,MINOR) false
+#endif
+#ifndef MMG_VERSION_MAJOR
+    #define MMG_VERSION_MAJOR 5
+#endif
+#ifndef MMG_VERSION_MINOR
+    #define MMG_VERSION_MINOR 4
+#endif
+#ifndef MMG_VERSION_PATCH
+    #define MMG_VERSION_PATCH 0
+#endif
+
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
 **  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
@@ -98,22 +111,22 @@ struct MMGMeshInfo
     /**
      * @brief It returns the number of the first type of conditions
      */
-    const SizeType NumberFirstTypeConditions() const;
+    SizeType NumberFirstTypeConditions() const;
 
     /**
      * @brief It returns the number of the second type of conditions
      */
-    const SizeType NumberSecondTypeConditions() const;
+    SizeType NumberSecondTypeConditions() const;
 
     /**
      * @brief It returns the number of the first type of elements
      */
-    const SizeType NumberFirstTypeElements() const;
+    SizeType NumberFirstTypeElements() const;
 
     /**
      * @brief It returns the number of the second type of elements
      */
-    const SizeType NumberSecondTypeElements() const;
+    SizeType NumberSecondTypeElements() const;
 };
 
 /**
@@ -196,6 +209,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method retrieves the current Mmg version
+     * @return The current version of Mmg (as a string)
+     */
+    std::string GetMmgVersion();
 
     /**
      * @brief This method sets the echo level

@@ -5,6 +5,7 @@
 
 #include <string>
 #include <iostream>
+#include <random>
 
 #include "inlet.h"
 #include "create_and_destroy.h"
@@ -32,6 +33,10 @@ namespace Kratos {
         indentation /= radius_sum;
 
         return indentation;
+    }
+
+    bool SortSubModelPartsByName(ModelPart* A, ModelPart* B) {
+        return (A->Name() < B->Name());
     }
 
     /// Constructor
@@ -113,15 +118,22 @@ namespace Kratos {
         int smp_number = 0;
 
         for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
-            ModelPart& mp = *smp_it;
+            ModelPart* mp = &*smp_it;
+            mListOfSubModelParts.push_back(mp);
+        }
+        std::sort(mListOfSubModelParts.begin(), mListOfSubModelParts.end(), SortSubModelPartsByName);
+
+        for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+            ModelPart& mp = *mListOfSubModelParts[i];
+
 
             CheckSubModelPart(mp);
             mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
             mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
 
-            int mesh_size = smp_it->NumberOfNodes();
+            int mesh_size = mp.NumberOfNodes();
             if (!mesh_size) continue;
-            ModelPart::NodesContainerType::ContainerType& all_nodes = smp_it->NodesArray();
+            ModelPart::NodesContainerType::ContainerType& all_nodes = mp.NodesArray();
             std::string& identifier = mp[IDENTIFIER];
             mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY];    //This is the velocity of the moving injector of particles
             mp[INLET_INITIAL_PARTICLES_VELOCITY] = mp[VELOCITY]; //This is the initial velocity vector of the injected particles
@@ -171,7 +183,7 @@ namespace Kratos {
                                                              mBallsModelPartHasSphericity,
                                                              mBallsModelPartHasRotation,
                                                              true,
-                                                             smp_it->Elements());
+                                                             mp.Elements());
 
                 FixInjectorConditions(p_element);
                 max_Id++;
@@ -186,6 +198,11 @@ namespace Kratos {
     } //InitializeDEM_Inlet
 
     void DEM_Inlet::DettachElements(ModelPart& r_modelpart, unsigned int& max_Id) {
+
+        ProcessInfo& r_process_info = r_modelpart.GetProcessInfo();
+
+        ///DIMENSION
+        int dimension = r_process_info[DOMAIN_SIZE];
 
         std::vector<unsigned int> ElementPartition;
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
@@ -234,7 +251,7 @@ namespace Kratos {
 
             if (have_just_stopped_touching) {
                 if (r_node.IsNot(BLOCKED)) {//The ball must be freed
-                    RemoveInjectionConditions(spheric_particle);
+                    RemoveInjectionConditions(spheric_particle, dimension);
                     ids_to_remove_partial.push_back(spheric_particle.Id());
                     UpdateTotalThroughput(spheric_particle);
                 }
@@ -334,7 +351,7 @@ namespace Kratos {
             }
     }
 
-    void DEM_Inlet::RemoveInjectionConditions(Element& element)
+    void DEM_Inlet::RemoveInjectionConditions(Element& element, int dimension)
     {
         Node<3>& node = element.GetGeometry()[0];
         node.Set(DEMFlags::FIXED_VEL_X, false);
@@ -358,12 +375,19 @@ namespace Kratos {
         array_1d<double, 3 > ejection_velocity_copy = inlet_to_which_it_belongs[VELOCITY];
         array_1d<double, 3 >& velocity = node.FastGetSolutionStepValue(VELOCITY);
         noalias(velocity) -= ejection_velocity_copy;
+
         const double max_rand_deviation_angle = inlet_to_which_it_belongs[MAX_RAND_DEVIATION_ANGLE];
-        AddRandomPerpendicularComponentToGivenVector(ejection_velocity_copy, max_rand_deviation_angle);
+        if (dimension==2){AddRandomPerpendicularComponentToGivenVector2D(ejection_velocity_copy, max_rand_deviation_angle);}
+        else {AddRandomPerpendicularComponentToGivenVector(ejection_velocity_copy, max_rand_deviation_angle);}
         noalias(velocity) += ejection_velocity_copy;
     }
 
     void DEM_Inlet::DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id) {
+
+        ProcessInfo& r_process_info = r_clusters_modelpart.GetProcessInfo();
+
+        ///DIMENSION
+        int dimension = r_process_info[DOMAIN_SIZE];
 
         std::vector<unsigned int> ElementPartition;
         typedef ElementsArrayType::iterator ElementIterator;
@@ -400,7 +424,7 @@ namespace Kratos {
             }
 
             if (!still_touching) { //The ball must be freed
-                RemoveInjectionConditions(r_cluster);
+                RemoveInjectionConditions(r_cluster, dimension);
                 ids_to_remove_partial.push_back(r_cluster.Id());
 
                 UpdateTotalThroughput(r_cluster);
@@ -441,8 +465,8 @@ namespace Kratos {
     void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {
 
         bool is_there_any_dense_inlet = false;
-        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
-            ModelPart& mp = *smp_it;
+        for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+            ModelPart& mp = *mListOfSubModelParts[i];
             if (mp[DENSE_INLET]) {
                 is_there_any_dense_inlet = true;
                 break;
@@ -462,15 +486,15 @@ namespace Kratos {
 
         int smp_number = 0;
         int inter_smp_number = 0;
-        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
-            ModelPart& mp = *smp_it;
+        for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+            ModelPart& mp = *mListOfSubModelParts[i];
 
             const double inlet_start_time = mp[INLET_START_TIME];
             if (current_time < inlet_start_time) continue;
 
-            const int mesh_size_elements = smp_it->NumberOfElements();
+            const int mesh_size_elements = mp.NumberOfElements();
 
-            ModelPart::ElementsContainerType::ContainerType& all_elements = smp_it->ElementsArray();
+            ModelPart::ElementsContainerType::ContainerType& all_elements = mp.ElementsArray();
 
             if (current_time > mp[INLET_STOP_TIME]) {
                 if (mLayerRemoved[inter_smp_number]) continue;
@@ -528,7 +552,7 @@ namespace Kratos {
 
             if (number_of_particles_to_insert) {
                 //randomizing mesh
-                srand(/*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS]);
+                std::mt19937 random_generator(r_modelpart.GetProcessInfo()[TIME_STEPS]);
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
                 int valid_elements_length = 0;
@@ -593,7 +617,7 @@ namespace Kratos {
                         }
                     }
 
-                    int random_pos = rand() % valid_elements_length;
+                    int random_pos = random_generator() % valid_elements_length;
                     Element* p_injector_element = valid_elements[random_pos].get();
 
                     if (mp[CONTAINS_CLUSTERS] == false) {
@@ -610,9 +634,9 @@ namespace Kratos {
                                                                                     mBallsModelPartHasSphericity,
                                                                                     mBallsModelPartHasRotation,
                                                                                     false,
-                                                                                    smp_it->Elements());
+                                                                                    mp.Elements());
 
-                        mOriginInletSubmodelPartIndexes[p_spheric_particle->Id()] = smp_it->Name();
+                        mOriginInletSubmodelPartIndexes[p_spheric_particle->Id()] = mp.Name();
                         FixInjectionConditions(p_spheric_particle, p_injector_element);
                         UpdatePartialThroughput(*p_spheric_particle, smp_number);
                         max_Id++;
@@ -634,20 +658,20 @@ namespace Kratos {
                                                                                             p_fast_properties,
                                                                                             mBallsModelPartHasSphericity,
                                                                                             mBallsModelPartHasRotation,
-                                                                                            smp_it->Elements(),
+                                                                                            mp.Elements(),
                                                                                             number_of_added_spheres,
                                                                                             mStrategyForContinuum,
                                                                                             new_component_spheres);
 
                         max_Id += number_of_added_spheres;
                         if (p_cluster) {
-                            mOriginInletSubmodelPartIndexes[p_cluster->Id()] = smp_it->Name();
+                            mOriginInletSubmodelPartIndexes[p_cluster->Id()] = mp.Name();
                             UpdateInjectedParticleVelocity(*p_cluster, *p_injector_element);
                         }
 
                         else {
                             for (unsigned int i = 0; i < new_component_spheres.size(); ++i) {
-                                mOriginInletSubmodelPartIndexes[new_component_spheres[i]->Id()] = smp_it->Name();
+                                mOriginInletSubmodelPartIndexes[new_component_spheres[i]->Id()] = mp.Name();
                                 UpdateInjectedParticleVelocity(*new_component_spheres[i], *p_injector_element);
 
                             }
@@ -676,7 +700,49 @@ namespace Kratos {
 
     }    //CreateElementsFromInletMesh
 
-    void DEM_Inlet::AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees)
+
+    void DEM_Inlet::AddRandomPerpendicularComponentToGivenVector2D(array_1d<double, 3 >& vector, const double angle_in_radians)
+    {
+        KRATOS_TRY
+
+        const double vector_modulus = DEM_MODULUS_3(vector);
+        array_1d<double, 3 > unitary_vector;
+        noalias(unitary_vector) = vector / vector_modulus;
+        array_1d<double, 3 > normal_1;
+        array_1d<double, 3 > normal_2;
+
+        if (std::abs(unitary_vector[0])>=0.707) {
+            normal_1[0]= unitary_vector[1];
+            normal_1[1]= - unitary_vector[0];
+            normal_1[2]= 0.0;
+        }
+        else {
+            normal_1[0]= unitary_vector[1];
+            normal_1[1]= unitary_vector[0];
+            normal_1[2]= 0.0;
+        }
+
+        //normalize(normal_1);
+        const double distance0 = DEM_MODULUS_3(normal_1);
+        const double inv_distance0 = (distance0 != 0.0) ? 1.0 / distance0 : 0.00;
+        normal_1[0] *= inv_distance0;
+        normal_1[1] *= inv_distance0;
+
+        const double radius = tan(angle_in_radians) * vector_modulus;
+        const double radius_square = radius * radius;
+        double local_added_vector_modulus_square = radius_square + 1.0;
+        array_1d<double, 3> local_added_vector; local_added_vector[0] = local_added_vector[1] = local_added_vector[2] = 0.0;
+
+        while (local_added_vector_modulus_square > radius_square) {
+            local_added_vector[0] = 2.0*radius * (double)rand() / (double)RAND_MAX - radius;
+            local_added_vector_modulus_square = local_added_vector[0]*local_added_vector[0];
+        }
+        noalias(vector) += local_added_vector[0] * normal_1;
+        KRATOS_CATCH("")
+    }
+
+
+    void DEM_Inlet::AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_radians)
     {
         KRATOS_TRY
         const double vector_modulus = DEM_MODULUS_3(vector);
@@ -711,7 +777,6 @@ namespace Kratos {
         //CrossProduct(NormalDirection,Vector0,Vector1);
         DEM_SET_TO_CROSS_OF_FIRST_TWO_3(unitary_vector, normal_1, normal_2)
 
-        const double angle_in_radians = angle_in_degrees * Globals::Pi / 180;
         const double radius = tan(angle_in_radians) * vector_modulus;
         const double radius_square = radius * radius;
         double local_added_vector_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while

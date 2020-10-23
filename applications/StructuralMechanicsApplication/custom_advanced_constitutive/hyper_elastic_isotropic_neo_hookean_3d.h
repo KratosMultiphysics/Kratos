@@ -228,6 +228,22 @@ public:
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
      * @brief It calculates the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned

@@ -123,6 +123,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< ResidualBasedNewtonRaphsonContactStrategyType,
         typename ResidualBasedNewtonRaphsonContactStrategyType::Pointer,
         BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonContactStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
@@ -147,8 +150,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
         ;
 
-    // Residual Based Newton Raphson Contact Strategy
+    // Residual Based Newton Raphson MPC Contact Strategy
     py::class_< ResidualBasedNewtonRaphsonMPCContactStrategyType, typename ResidualBasedNewtonRaphsonMPCContactStrategyType::Pointer, BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonMPCContactStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonMPCContactStrategyType::SetMaxIterationNumber)

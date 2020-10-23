@@ -3,6 +3,7 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 
 from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_fluid_solver as BaseSolver
 
@@ -20,8 +21,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
 
     def Initialize(self):
-
-        print("::[Pfem Fluid Nodal Integration Solver]:: -START-")
 
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
@@ -63,10 +62,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.fluid_solver.Check()
 
 
-        print("::[Pfem Fluid Nodal Integration Solver]:: -END- ")
-
-
-
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
@@ -93,6 +88,10 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
 
+        #VARIABLES FOR FRICTIONAL VISCOPLASTIC MODEL
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FRICTION_ANGLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.COHESION)
+
         #VARIABLES FOR MU-I RHEOLOGY MODEL
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
@@ -115,11 +114,13 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
 
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_ERROR_XX)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_VOLUME)
@@ -156,8 +157,20 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_VOLUMETRIC_COEFFICIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_DEVIATORIC_COEFFICIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_INTERFACE_NODE)
-        
-        print("::[Pfem Fluid Solver]:: Variables ADDED")
+
+        # Pfem Extra Vars
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_NORMAL)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.OFFSET)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PROPERTY_ID)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
 
 
     def InitializeSolutionStep(self):

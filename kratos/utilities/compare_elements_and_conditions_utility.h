@@ -54,8 +54,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    static void GetRegisteredName(const Element* rElement, std::string& rName) {
-        CompareElementsAndConditionsUtility::GetRegisteredName(*rElement, rName);
+    static void GetRegisteredName(const Element* pElement, std::string& rName) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*pElement, rName);
     }
 
     static void GetRegisteredName(const Condition& rCondition, std::string& rName) {
@@ -73,8 +73,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    static void GetRegisteredName(const Condition* rCondition, std::string& rName) {
-        CompareElementsAndConditionsUtility::GetRegisteredName(*rCondition, rName);
+    static void GetRegisteredName(const Condition* pCondition, std::string& rName) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*pCondition, rName);
     }
 
     ///@}

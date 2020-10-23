@@ -153,7 +153,7 @@ public:
         return NumberOfNonzeroControlPointsU() * NumberOfNonzeroControlPointsV();
     }
 
-    std::vector<std::pair<int, int>> NumberOfNonzeroControlPointIndices() const
+    std::vector<std::pair<int, int>> NonzeroControlPointIndices() const
     {
         std::vector<std::pair<int, int>> indices(NumberOfNonzeroControlPoints());
 
@@ -172,6 +172,27 @@ public:
         return indices;
     }
 
+    std::vector<int> ControlPointIndices(
+        SizeType NumberOfControlPointsU, SizeType NumberOfControlPointsV) const
+    {
+        std::vector<int> indices(NumberOfNonzeroControlPoints());
+
+        for (IndexType i = 0; i < NumberOfNonzeroControlPointsU(); i++) {
+            for (IndexType j = 0; j < NumberOfNonzeroControlPointsV(); j++) {
+                IndexType poleIndex = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+                    NumberOfNonzeroControlPointsU(), NumberOfNonzeroControlPointsV(), i, j);
+
+                IndexType cp_index_u = GetFirstNonzeroControlPointU() + i;
+                IndexType cp_index_v = GetFirstNonzeroControlPointV() + j;
+
+                indices[poleIndex] = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+                    NumberOfControlPointsU, NumberOfControlPointsV, cp_index_u, cp_index_v);
+            }
+        }
+
+        return indices;
+    }
+
     double ShapeFunctionValue(
         const IndexType ControlPointIndexU,
         const IndexType ControlPointIndexV,
@@ -181,6 +202,11 @@ public:
             ControlPointIndexU,
             ControlPointIndexV,
             DerivativeRow);
+
+        KRATOS_DEBUG_ERROR_IF(index >= mShapeFunctionValues.size()) << "Index exceeds size of shape function values. Index: "
+            << index << ", mShapeFunctionValues.size(): " << mShapeFunctionValues.size()
+            << ", ControlPointIndexU: " << ControlPointIndexU << ", ControlPointIndexV: " << ControlPointIndexV
+            << ", DerivativeRow: " << DerivativeRow << std::endl;
 
         return mShapeFunctionValues[index];
     }
@@ -192,6 +218,10 @@ public:
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(),
             DerivativeOrder, ControlPointIndex);
+
+        KRATOS_DEBUG_ERROR_IF(index >= mShapeFunctionValues.size()) << "Index exceeds size of shape function values. Index: "
+            << index << ", mShapeFunctionValues.size(): " << mShapeFunctionValues.size()
+            << ", ControlPointIndex: " << ControlPointIndex << ", DerivativeOrder: " << DerivativeOrder << std::endl;
 
         return mShapeFunctionValues[index];
     }

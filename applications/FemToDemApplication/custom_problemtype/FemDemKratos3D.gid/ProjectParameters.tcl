@@ -30,6 +30,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
+    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"create_initial_skin\":             false,"
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
@@ -134,10 +136,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "    \"loads_process_list\": \[\{"
         # Force
         set Groups [GiD_Info conditions Force groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups POINT_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FORCE_LOAD $TableDict $NumGroups
         # Face_Load
         set Groups [GiD_Info conditions Face_Load groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups LINE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FORCE_LOAD $TableDict $NumGroups
 
         # Normal_Load
         set Groups [GiD_Info conditions Normal_Load groups]
@@ -169,7 +171,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \},"
     puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
     puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
-    puts $FileVar "            \"output_frequency\":     [GiD_AccessValue get gendata Output_frequency],"
+    puts $FileVar "            \"output_interval\":     [GiD_AccessValue get gendata Output_frequency],"
     puts $FileVar "            \"body_output\":          [GiD_AccessValue get gendata Body_output],"
     puts $FileVar "            \"node_output\":          [GiD_AccessValue get gendata Node_output],"
     puts $FileVar "            \"skin_output\":          [GiD_AccessValue get gendata Skin_output],"

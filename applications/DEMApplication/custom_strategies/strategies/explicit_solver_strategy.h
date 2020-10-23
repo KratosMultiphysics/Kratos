@@ -98,7 +98,7 @@ namespace Kratos {
         typedef PropertiesContainerType::iterator PropertiesIterator;
         typedef DiscreteParticleConfigure<3> ElementConfigureType;
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
-        typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3ul> > > ComponentOf3ComponentsVariableType;
+        typedef Variable<double> ComponentOf3ComponentsVariableType;
 
         /// Pointer definition of ExplicitSolverStrategy
         KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
@@ -191,9 +191,9 @@ namespace Kratos {
 
             #pragma omp parallel for
             for (int k = 0; k < (int)pElements.size(); k++){
-              ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
-              T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
-              rCustomListOfParticles[k] = spheric_particle;
+                ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
+                T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
+                rCustomListOfParticles[k] = spheric_particle;
             }
             return;
             KRATOS_CATCH("")

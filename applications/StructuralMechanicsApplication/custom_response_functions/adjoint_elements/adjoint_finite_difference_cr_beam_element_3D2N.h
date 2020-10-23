@@ -77,7 +77,7 @@ public:
                  std::vector< array_1d<double, 3 > >& rOutput,
                 const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 protected:
 

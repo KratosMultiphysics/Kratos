@@ -167,8 +167,6 @@ namespace Kratos {
                                 int i_neighbour_count,
                                 int time_steps,
                                 bool& sliding,
-                                int search_control,
-                                DenseVector<int>& search_control_vector,
                                 double &equiv_visco_damp_coeff_normal,
                                 double &equiv_visco_damp_coeff_tangential,
                                 double LocalRelVel[3],
@@ -203,8 +201,6 @@ namespace Kratos {
                 element2,
                 i_neighbour_count,
                 sliding,
-                search_control,
-                search_control_vector,
                 r_process_info);
 
         CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
@@ -287,8 +283,6 @@ namespace Kratos {
             SphericContinuumParticle* element2,
             int i_neighbour_count,
             bool& sliding,
-            int search_control,
-            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
@@ -324,8 +318,16 @@ namespace Kratos {
             }
         }
         else {
-            const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
-            double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+            double equiv_tg_of_static_fri_ang = 0.5 * (element1->GetTgOfStaticFrictionAngle() + element2->GetTgOfStaticFrictionAngle());
+            double equiv_tg_of_dynamic_fri_ang = 0.5 * (element1->GetTgOfDynamicFrictionAngle() + element2->GetTgOfDynamicFrictionAngle());
+
+            if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
+                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+            }
+
+            double Frictional_ShearForceMax = equiv_tg_of_static_fri_ang * LocalElasticContactForce[2];
+            if (ShearForceNow > Frictional_ShearForceMax) Frictional_ShearForceMax = equiv_tg_of_dynamic_fri_ang * LocalElasticContactForce[2];
+
 
             if (Frictional_ShearForceMax < 0.0) {
                 Frictional_ShearForceMax = 0.0;

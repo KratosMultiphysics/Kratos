@@ -40,7 +40,7 @@ class UPwSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "poromechanics_U_Pw_solver",
             "model_part_name": "PorousModelPart",
@@ -50,6 +50,9 @@ class UPwSolver(PythonSolver):
             "model_import_settings":{
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
+            },
+            "material_import_settings" :{
+                "materials_filename": ""
             },
             "buffer_size": 2,
             "echo_level": 0,
@@ -98,7 +101,7 @@ class UPwSolver(PythonSolver):
             "loads_variable_list": []
         }""")
 
-        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):
@@ -315,8 +318,23 @@ class UPwSolver(PythonSolver):
         check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
-        from KratosMultiphysics.PoromechanicsApplication import poromechanics_constitutivelaw_utility
-        poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
+        materials_imported = self.import_constitutive_laws()
+        if materials_imported:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was successfully imported via json.")
+        else:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was not successfully imported.")
+
+    def import_constitutive_laws(self):
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            # Add constitutive laws and material properties from json file to model parts.
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
 
     def _SetBufferSize(self):
         required_buffer_size = self.settings["buffer_size"].GetInt()
@@ -434,7 +452,6 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
-                                                                               self.linear_solver,
                                                                                self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -445,7 +462,6 @@ class UPwSolver(PythonSolver):
             else:
                 solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                        self.scheme,
-                                                                       self.linear_solver,
                                                                        self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,
@@ -470,7 +486,6 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solving_strategy = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
-                                                                               self.linear_solver,
                                                                                self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -481,7 +496,6 @@ class UPwSolver(PythonSolver):
             else:
                 solving_strategy = KratosPoro.PoromechanicsRammArcLengthStrategy(self.computing_model_part,
                                                                        self.scheme,
-                                                                       self.linear_solver,
                                                                        self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,

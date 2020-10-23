@@ -22,7 +22,7 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "includes/condition.h"
@@ -70,12 +70,13 @@ namespace Kratos {
         double GetTotalMassInjectedSoFar();
     protected:
         virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
+        virtual void AddRandomPerpendicularComponentToGivenVector2D(array_1d<double, 3 >& vector, const double angle_in_degrees);
 
     private:
         void UpdateInjectedParticleVelocity(Element &particle, Element &injector_element);
         virtual void FixInjectorConditions(Element* p_element);
         virtual void FixInjectionConditions(Element* p_element, Element* p_injector_element);
-        virtual void RemoveInjectionConditions(Element &element);
+        virtual void RemoveInjectionConditions(Element &element, const int dimension);
         virtual void UpdateTotalThroughput(SphericParticle& r_spheric_particle);
         virtual void UpdateTotalThroughput(Cluster3D& r_cluster);
         virtual void UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i);
@@ -111,6 +112,7 @@ namespace Kratos {
         bool mWarningTooSmallInletForMassFlow;
         void ThrowWarningTooSmallInlet(const ModelPart& mp);
         void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
+        std::vector<ModelPart*> mListOfSubModelParts;
     };
 }// namespace Kratos.
 

@@ -39,7 +39,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Dirichlet",
+            "model_part_name" : "Structure.DISPLACEMENT_Dirichlet",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -52,7 +52,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_XZ_sym",
+            "model_part_name" : "Structure.DISPLACEMENT_XZ_sym",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0],

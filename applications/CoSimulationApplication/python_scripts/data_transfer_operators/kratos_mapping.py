@@ -1,21 +1,23 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
+from KratosMultiphysics.MappingApplication import python_mapper_factory
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
+# other imports
+from time import time
+
 def Create(settings):
     return KratosMappingDataTransferOperator(settings)
 
 class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
-    """DataTransferOperator that mapps values from one interface (ModelPart) to another.
+    """DataTransferOperator that maps values from one interface (ModelPart) to another.
     The mappers of the Kratos-MappingApplication are used
     """
     # currently available mapper-flags aka transfer-options
@@ -28,15 +30,10 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     def __init__(self, settings):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
-        super(KratosMappingDataTransferOperator, self).__init__(settings)
+        super().__init__(settings)
         self.__mappers = {}
 
-    def TransferData(self, from_solver_data, to_solver_data, transfer_options):
-        # TODO check location of data => should coincide with the one for the mapper
-        # or throw if it is not in a suitable location (e.g. on the ProcessInfo)
-
-        self._CheckAvailabilityTransferOptions(transfer_options)
-
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         model_part_origin      = from_solver_data.GetModelPart()
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
@@ -48,6 +45,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
         mapper_flags = self.__GetMapperFlags(transfer_options)
+        # TODO in the future automatically add the flags if the values are non-historical
 
         identifier_tuple         = (identifier_origin, identifier_destination)
         inverse_identifier_tuple = (identifier_destination, identifier_origin)
@@ -57,30 +55,43 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         elif inverse_identifier_tuple in self.__mappers:
             self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
         else:
-            # CheckIfInterfaceDataIsSuitable() # TODO
             if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
-                mapper_create_fct = KratosMapping.MapperFactory.CreateMPIMapper
+                mapper_create_fct = python_mapper_factory.CreateMPIMapper
             else:
-                mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
+                mapper_create_fct = python_mapper_factory.CreateMapper
 
             if self.echo_level > 0:
                 info_msg  = "Creating Mapper:\n"
-                info_msg += '    Origin: ModePart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
-                info_msg += '    Destination: ModePart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
+                info_msg += '    Origin: ModelPart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
+                info_msg += '    Destination: ModelPart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
 
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
 
-            self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary here bcs settings are influenced among mappers otherwise. TODO check in the MapperFactory how to solve this better
+            mapper_creation_start_time = time()
+            self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other mappers
+
+            if self.echo_level > 2:
+                cs_tools.cs_print_info(colors.bold(self._ClassName()), "Creating Mapper took: {0:.{1}f} [s]".format(time()-mapper_creation_start_time,2))
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
 
+    def _Check(self, from_solver_data, to_solver_data):
+        def CheckData(data_to_check):
+            if data_to_check.location != "node_historical":
+                raise Exception('Currently only historical nodal values are supported by the "{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
+
+        CheckData(from_solver_data)
+        CheckData(to_solver_data)
+
+        # TODO in the future also non-historical nodal values will be supported, but this still requires some improvements in the MappingApp
+
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "mapper_settings" : {
                 "mapper_type" : "UNSPECIFIED"
             }
         }""")
-        this_defaults.AddMissingParameters(super(KratosMappingDataTransferOperator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
     @classmethod

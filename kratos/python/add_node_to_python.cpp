@@ -140,8 +140,6 @@ void  AddNodeToPython(pybind11::module& m)
     .def("__str__", PrintObject<IndexedObject>)
     ;
 
-    py::class_<Dof<double>>(m,"Dof")
-    ;
 
     typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, Flags > NodeBinderType;
     NodeBinderType node_binder(m,"Node");
@@ -155,44 +153,21 @@ void  AddNodeToPython(pybind11::module& m)
     IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 4> > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 6> > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 9> > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(node_binder);
-    IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(node_binder);
+    IndexingUtility<NodeBinderType,NodeType,Variable<Quaternion<double> > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<Vector > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<Matrix > >(node_binder);
 
     node_binder.def("GetBufferSize", &NodeType::GetBufferSize);
     node_binder.def("AddDof", NodeAddDof<Variable<double> >);
-    node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
-    node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
-    node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("AddDof", NodeAddDofwithReaction<Variable<double> >);
-    node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
-    node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
-    node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
+    node_binder.def("GetDof",
+        [](const NodeType& rNode, const Variable<double>& rVar) -> NodeType::DofType& {return *rNode.pGetDof(rVar); }
+        ,py::return_value_policy::reference_internal
+    );
     node_binder.def("Fix", NodeFix<Variable<double> >);
-    node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
-    node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
-    node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("Free", NodeFree<Variable<double> >);
-    node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
-    node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
-    node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("IsFixed", NodeIsFixed<Variable<double> >);
-    node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
-    node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
-    node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("HasDofFor", NodeHasDofFor<Variable<double> >);
-    node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
-    node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
-    node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<bool> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<int> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<double> >);
@@ -202,10 +177,6 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 9> > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<Vector> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<DenseMatrix<double> > >);
-    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
-    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
-    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("__str__", PrintObject<NodeType>);
     node_binder.def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData);
     node_binder.def_property("X0", PointGetX0, PointSetX0);
