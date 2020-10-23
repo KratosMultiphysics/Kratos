@@ -253,9 +253,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double >())
-        .def(py::init< double, double, double, double, bool >())
-        .def(py::init< double, double, double, double, bool, bool >())
+        .def(py::init< double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, double, double, bool, bool >())
         ;
 
     // Displacement and lagrange multiplier Convergence Criterion (frictional)

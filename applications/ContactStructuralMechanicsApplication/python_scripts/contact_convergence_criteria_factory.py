@@ -65,7 +65,7 @@ class ContactConvergenceCriteriaFactory:
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementContactCriteria(D_RT, D_AT, RT_RT, RT_AT, self.print_convergence_criterion)
                 else:
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, CD_RT, CD_AT, ensure_contact, self.print_convergence_criterion)
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, RT_RT, RT_AT, CD_RT, CD_AT, ensure_contact, self.print_convergence_criterion)
 
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 

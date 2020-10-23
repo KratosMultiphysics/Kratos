@@ -99,10 +99,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
     /**
+     * @brief Default Constructor.
      * @param DispRatioTolerance Relative tolerance for displacement error
      * @param DispAbsTolerance Absolute tolerance for displacement error
+     * @param RotRatioTolerance Relative tolerance for rotation error
+     * @param RotAbsTolerance Absolute tolerance for rotation error
      * @param LMRatioTolerance Relative tolerance for lagrange multiplier error
      * @param LMAbsTolerance Absolute tolerance for lagrange multiplier error
      * @param EnsureContact To check if the contact is lost
@@ -112,6 +114,8 @@ public:
     explicit DisplacementLagrangeMultiplierContactCriteria(
         const TDataType DispRatioTolerance,
         const TDataType DispAbsTolerance,
+        const TDataType RotRatioTolerance,
+        const TDataType RotAbsTolerance,
         const TDataType LMRatioTolerance,
         const TDataType LMAbsTolerance,
         const bool EnsureContact = false,
@@ -129,9 +133,9 @@ public:
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
-        // The rotation solution  // TODO: Update to consistent names
-        mRotRatioTolerance = DispRatioTolerance;
-        mRotAbsTolerance = DispAbsTolerance;
+        // The rotation solution
+        mRotRatioTolerance = RotRatioTolerance;
+        mRotAbsTolerance = RotAbsTolerance;
 
         // The contact solution
         mLMRatioTolerance = LMRatioTolerance;
@@ -402,6 +406,8 @@ public:
             "print_convergence_criterion"             : false,
             "displacement_relative_tolerance"         : 1.0e-4,
             "displacement_absolute_tolerance"         : 1.0e-9,
+            "rotation_relative_tolerance"             : 1.0e-4,
+            "rotation_absolute_tolerance"             : 1.0e-9,
             "contact_displacement_relative_tolerance" : 1.0e-4,
             "contact_displacement_absolute_tolerance" : 1.0e-9
         })");
@@ -466,9 +472,9 @@ protected:
         mDispRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
 
-        // The rotation solution // TODO: Update to consistent names
-        mRotRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
-        mRotAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
+        // The rotation solution
+        mRotRatioTolerance = ThisParameters["rotation_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["rotation_absolute_tolerance"].GetDouble();
 
         // The contact solution
         mLMRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
