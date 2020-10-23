@@ -246,12 +246,16 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     AGradN *= density; // Convective term is always multiplied by density
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-
+    const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+    const auto& r_geom = this->GetGeometry();
 
     // Temporary containers
-    double V, AA, P, GAlpha, AG, U, Q, DD, UD;
-
+    double V, AA, P, GAlpha, AG, U, Q, DD, UD, mass_source = 0.0;
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        mass_source += rData.N[i] * r_geom[i].FastGetSolutionStepValue(MASS_SOURCE);
+    }
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
     {
@@ -298,15 +302,18 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
         // RHS terms
         double QF = 0.0;
+        double GAQF = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
             rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
             rLocalRHS[row+d] += rData.Weight * tau_one * AGradN[i] * (body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * tau_one * (Density * BodyForce)
-            rLocalRHS[row+d] -= rData.Weight * tau_two * rData.DN_DX(i,d) * (mass_projection);
+            rLocalRHS[row+d] -= rData.Weight * tau_two * rData.DN_DX(i,d) * (mass_projection + mass_source - fluid_fraction_rate);
             QF += tau_one * (body_force[d] - momentum_projection[d]) * (fluid_fraction * rData.DN_DX(i,d));
-
+            for (unsigned int e = 0; e < Dim; e++){ // Stabilization: q * grad(alpha) * tau_one * f
+                    GAQF += tau_one * body_force[d] * rData.N[i] * fluid_fraction_gradient[e];
+            }
         }
-        rLocalRHS[row+Dim] += rData.Weight * (QF);
+        rLocalRHS[row+Dim] += rData.Weight * (QF + GAQF);
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
