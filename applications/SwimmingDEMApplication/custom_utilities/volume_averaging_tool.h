@@ -356,7 +356,6 @@ private:
 // 				KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
             //The interpolated node will not be inside an elemente with zero volume
             return false;
-// 				KRATOS_WATCH("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         }
         else
         {
@@ -497,7 +496,6 @@ private:
             //copying this data in the position of the vector we are interested in
 
             step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
-            // 				KRATOS_WATCH(step_data)
 
             // 			pnode->GetValue(IS_VISITED) = 1.0;
 

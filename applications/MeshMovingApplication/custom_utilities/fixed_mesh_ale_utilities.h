@@ -75,7 +75,7 @@ namespace Kratos
  * as a projection from the virtual mesh. This is required to consistently
  * initialize the historical values when nodes change its topological status.
  */
-class FixedMeshALEUtilities
+class KRATOS_API(MESH_MOVING_APPLICATION) FixedMeshALEUtilities
 {
 public:
     ///@name Type Definitions
