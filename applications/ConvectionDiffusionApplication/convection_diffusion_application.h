@@ -30,6 +30,8 @@
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/adjoint_diffusion_element.h"
+#include "custom_elements/qs_convection_diffusion_explicit.h"
+#include "custom_elements/d_convection_diffusion_explicit.h"
 
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
@@ -246,6 +248,11 @@ private:
 
     const AdjointThermalFace mAdjointThermalFace2D2N;
     const AdjointThermalFace mAdjointThermalFace3D3N;
+
+    const QSConvectionDiffusionExplicit<2,3> mQSConvectionDiffusionExplicit2D3N;
+    const QSConvectionDiffusionExplicit<3,4> mQSConvectionDiffusionExplicit3D4N;
+    const DConvectionDiffusionExplicit<2,3> mDConvectionDiffusionExplicit2D3N;
+    const DConvectionDiffusionExplicit<3,4> mDConvectionDiffusionExplicit3D4N;
 
     ///@}
     ///@name Private Operators

@@ -16,8 +16,8 @@
 /* External includes */
 
 /* Project includes */
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "utilities/math_utils.h"
-#include "convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -40,10 +40,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Aitken acceleration scheme
+/** @brief Aitken convergence accelerator
+ * Aitken formula-based
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
  */
-template<class TSpace>
-class AitkenConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
+template<class TSparseSpace, class TDenseSpace>
+class AitkenConvergenceAccelerator: public ConvergenceAccelerator<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -51,7 +54,7 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( AitkenConvergenceAccelerator );
 
-    typedef ConvergenceAccelerator<TSpace>                                 BaseType;
+    typedef ConvergenceAccelerator<TSparseSpace, TDenseSpace>              BaseType;
 
     typedef typename BaseType::Pointer                              BaseTypePointer;
 
@@ -66,13 +69,13 @@ public:
      * Constructor.
      * Aitken convergence accelerator
      */
-    AitkenConvergenceAccelerator(Parameters& rConvAcceleratorParameters)
+    explicit AitkenConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
         Parameters aitken_default_parameters(R"(
         {
             "solver_type"       : "Relaxation",
             "acceleration_type" : "Aitken",
-            "w_0"               : 0.825  
+            "w_0"               : 0.825
         }
         )");
 
@@ -146,19 +149,19 @@ public:
 
         if (mConvergenceAcceleratorIteration == 1)
         {
-            TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
+            TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
         }
         else
         {
             VectorType Aux1minus0(*mpResidualVector_1);                  // Auxiliar copy of mResidualVector_1
-            TSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
+            TSparseSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
 
-            double den = TSpace::Dot(Aux1minus0, Aux1minus0);
-            double num = TSpace::Dot(*mpResidualVector_0, Aux1minus0);
+            double den = TSparseSpace::Dot(Aux1minus0, Aux1minus0);
+            double num = TSparseSpace::Dot(*mpResidualVector_0, Aux1minus0);
 
             mOmega_1 = -mOmega_0*(num/den);
 
-            TSpace::UnaliasedAdd(rIterationGuess, mOmega_1, *mpResidualVector_1);
+            TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_1, *mpResidualVector_1);
             mOmega_0 = mOmega_1;
         }
 
@@ -175,18 +178,6 @@ public:
         // mpResidualVector_0 = mpResidualVector_1;
         std::swap(mpResidualVector_0, mpResidualVector_1);
         mConvergenceAcceleratorIteration += 1;
-
-        KRATOS_CATCH( "" );
-    }
-
-    /**
-     * Reset the convergence accelerator iterations counter
-     */
-    void FinalizeSolutionStep() override
-    {
-        KRATOS_TRY;
-
-        mConvergenceAcceleratorIteration = 1;
 
         KRATOS_CATCH( "" );
     }
@@ -218,13 +209,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    unsigned int mConvergenceAcceleratorIteration;
+    unsigned int mConvergenceAcceleratorIteration = 0;
 
     double mOmega_0;
-    double mOmega_1;
+    double mOmega_1 = 0.0;
 
-    VectorPointerType mpResidualVector_0;
-    VectorPointerType mpResidualVector_1;
+    VectorPointerType mpResidualVector_0 = nullptr;
+    VectorPointerType mpResidualVector_1 = nullptr;
 
     ///@}
 

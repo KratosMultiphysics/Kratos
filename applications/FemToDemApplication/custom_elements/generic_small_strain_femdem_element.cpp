@@ -17,7 +17,6 @@
 // Project includes
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

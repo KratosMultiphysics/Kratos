@@ -208,7 +208,10 @@ class STMonolithicSolver:
                         node.SetValue(IS_STRUCTURE, 1.0)
 
         # creating the solution strategy
-        self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol, self.rel_pres_tol, self.abs_pres_tol)
+        self.conv_criteria = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.VELOCITY, self.rel_vel_tol, self.abs_vel_tol),
+            (KratosMultiphysics.PRESSURE, self.rel_pres_tol, self.abs_pres_tol)])
+
         #self.conv_criteria = ResidualCriteria(0.0001, 0.0000001)
 
         #(self.conv_criteria).SetEchoLevel(self.echo_level)

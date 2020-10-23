@@ -155,9 +155,12 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateSolutionStrategy(
-        typename TLinearSolver::Pointer pLinearSolver,
-        BuilderSolverPointerType pBuilderAndSolver);
+    /**
+     * @brief Create a Solution Strategy object
+     * This method creates the linear solution strategy
+     * @param pBuilderAndSolver Builder and solver pointer
+     */
+    void CreateSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver);
 
     /**
      * @brief Initialize the process

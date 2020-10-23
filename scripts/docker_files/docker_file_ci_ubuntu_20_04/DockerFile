@@ -47,12 +47,24 @@ RUN apt-get update -y && apt-get upgrade -y && \
     pip3 install \
         numpy \
         scipy && \
+    # install MMG 5.4
     git clone -b 'v5.4.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg && \
     mkdir /tmp/mmg/build && \
     cd /tmp/mmg/build && \
     cmake .. -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make install && \
     rm -r /tmp/mmg && \
+    cd / && \
+    # install MMG 5.5
+    git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5_1 && \
+    mkdir /tmp/mmg_5_5_1/build && \
+    mkdir -p /external_libraries/mmg/mmg_5_5_1 && \
+    cd /tmp/mmg_5_5_1/build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_5_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
+    make install && \
+    rm -r /tmp/mmg_5_5_1 && \
+    cd / && \
+    # remove some now unnecessary packages
     apt-get -y remove \
         gnupg2 \
         software-properties-common \

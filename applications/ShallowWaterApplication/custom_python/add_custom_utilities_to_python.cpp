@@ -24,6 +24,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
+#include "custom_utilities/algebraic_flux_correction_utility.h"
 
 
 namespace Kratos
@@ -31,26 +32,6 @@ namespace Kratos
 
 namespace Python
 {
-
-  void SetOriginMeshZCoordinate1(ReplicateModelPartUtility& rReplicateModelPartUtility)
-  {
-      rReplicateModelPartUtility.SetOriginMeshZCoordinate();
-  }
-
-  void SetOriginMeshZCoordinate2(ReplicateModelPartUtility& rReplicateModelPartUtility, Variable<double>& rVariable)
-  {
-      rReplicateModelPartUtility.SetOriginMeshZCoordinate(rVariable);
-  }
-
-  void SetDestinationMeshZCoordinate1(ReplicateModelPartUtility& rReplicateModelPartUtility)
-  {
-      rReplicateModelPartUtility.SetDestinationMeshZCoordinate();
-  }
-
-  void SetDestinationMeshZCoordinate2(ReplicateModelPartUtility& rReplicateModelPartUtility, Variable<double>& rVariable)
-  {
-      rReplicateModelPartUtility.SetDestinationMeshZCoordinate(rVariable);
-  }
 
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
@@ -78,6 +59,7 @@ namespace Python
         .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
+        .def("ComputeEnergy", &ShallowWaterUtilities::ComputeEnergy)
         .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
@@ -86,12 +68,12 @@ namespace Python
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::NodesContainerType>)
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ElementsContainerType>)
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ConditionsContainerType>)
-        .def("ComputeVisualizationWaterHeight", &ShallowWaterUtilities::ComputeVisualizationWaterHeight)
-        .def("ComputeVisualizationWaterSurface", &ShallowWaterUtilities::ComputeVisualizationWaterSurface)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
+        .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
+        .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
@@ -107,10 +89,6 @@ namespace Python
         .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
-        .def("SetOriginMeshZCoordinate", SetOriginMeshZCoordinate1)
-        .def("SetOriginMeshZCoordinate", SetOriginMeshZCoordinate2)
-        .def("SetDestinationMeshZCoordinate", SetDestinationMeshZCoordinate1)
-        .def("SetDestinationMeshZCoordinate", SetDestinationMeshZCoordinate2)
         ;
 
     py::class_< PostProcessUtilities > (m, "PostProcessUtilities")
@@ -131,6 +109,13 @@ namespace Python
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;
 
+    py::class_<AlgebraicFluxCorrectionUtility>(m,"AlgebraicFluxCorrectionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("InitializeCorrection", &AlgebraicFluxCorrectionUtility::InitializeCorrection)
+        .def("GetHighOrderValues", &AlgebraicFluxCorrectionUtility::GetHighOrderValues)
+        .def("GetLowOrderValues", &AlgebraicFluxCorrectionUtility::GetLowOrderValues)
+        .def("ApplyCorrection", &AlgebraicFluxCorrectionUtility::ApplyCorrection)
+        ;
   }
 
 }  // namespace Python.

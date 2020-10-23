@@ -213,6 +213,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs curve on surface
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpCurveOnSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Set/ Get functions
     ///@{
 
@@ -237,6 +247,12 @@ public:
     const NurbsCurveOnSurfacePointerType pGetCurveOnSurface() const
     {
         return mpCurveOnSurface;
+    }
+
+    /// Returns number of points of NurbsCurveOnSurface.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpCurveOnSurface->PointsNumberInDirection(DirectionIndex);
     }
 
     ///@}
@@ -291,6 +307,24 @@ public:
     }
 
     ///@}
+    ///@name Geometrical Informations
+    ///@{
+
+    /// Computes the length of a nurbs curve
+    double Length() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = mpCurveOnSurface->DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
+        }
+        return length;
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -325,6 +359,10 @@ public:
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
     }
 
     ///@}

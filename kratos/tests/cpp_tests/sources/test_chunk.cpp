@@ -20,7 +20,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/chunk.h"
-#include "utilities/openmp_utils.h"
 
 
 
@@ -29,7 +28,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkInitialize, KratosCoreFastSuite)
 		{
-			int max_threads = LockObject::GetNumberOfThreads();
+			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
 
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
@@ -49,7 +48,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkAllocateDeallocate, KratosCoreFastSuite)
 		{
-			int max_threads = LockObject::GetNumberOfThreads();
+			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
 			std::size_t block_size_in_bytes = 5;
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
 		  std::size_t chunk_size_in_bytes =  header_size + 1024;
@@ -74,7 +73,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocate, KratosCoreFastSuite)
 		{
-			int max_threads = LockObject::GetNumberOfThreads();
+			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
 			std::size_t block_size_in_bytes = 5;
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
 		  std::size_t chunk_size_in_bytes =  header_size + 1024;
@@ -114,7 +113,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, EXCLUDED_KratosCoreFastSuite)
 		{
-			int max_threads = LockObject::GetNumberOfThreads();
+			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
 			std::size_t block_size_in_bytes = 5;
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
 		  std::size_t chunk_size_in_bytes =  header_size + 1024;

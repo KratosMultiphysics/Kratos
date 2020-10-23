@@ -40,18 +40,6 @@ const Variable<double>& OmegaElementData<TDim>::GetScalarVariable()
 }
 
 template <unsigned int TDim>
-const Variable<double>& OmegaElementData<TDim>::GetScalarRateVariable()
-{
-    return TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2;
-}
-
-template <unsigned int TDim>
-const Variable<double>& OmegaElementData<TDim>::GetScalarRelaxedRateVariable()
-{
-    return RANS_AUXILIARY_VARIABLE_2;
-}
-
-template <unsigned int TDim>
 void OmegaElementData<TDim>::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)
@@ -92,19 +80,19 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 {
     KRATOS_TRY
 
-    mTurbulentKineticEnergy = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
-    mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions, Step);
-    mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions, Step);
+    using namespace RansCalculationUtilities;
 
-    mVelocityDivergence = RansCalculationUtilities::GetDivergence(
-        this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
+    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
+                    std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+                    std::tie(mEffectiveVelocity, VELOCITY));
 
-    RansCalculationUtilities::CalculateGradient<TDim>(
-        this->mVelocityGradient, this->GetGeometry(), VELOCITY,
-        rShapeFunctionDerivatives, Step);
+    mVelocityDivergence =
+        GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
+
+    CalculateGradient<TDim>(this->mVelocityGradient, this->GetGeometry(),
+                            VELOCITY, rShapeFunctionDerivatives, Step);
 
     KRATOS_CATCH("");
 }
@@ -114,10 +102,7 @@ array_1d<double, 3> OmegaElementData<TDim>::CalculateEffectiveVelocity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
-    const array_1d<double, 3>& r_velocity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), VELOCITY, rShapeFunctions);
-
-    return r_velocity;
+    return mEffectiveVelocity;
 }
 
 template <unsigned int TDim>
