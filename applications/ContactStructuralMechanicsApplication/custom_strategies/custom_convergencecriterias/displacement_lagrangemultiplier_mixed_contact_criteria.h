@@ -195,8 +195,8 @@ public:
     {
         if (SparseSpaceType::Size(rb) != 0) { //if we are solving for something
             // Initialize
-            TDataType disp_residual_solution_norm = 0.0, lm_solution_norm = 0.0, lm_increase_norm = 0.0;
-            IndexType disp_dof_num(0),lm_dof_num(0);
+            TDataType disp_residual_solution_norm = 0.0, rot_residual_solution_norm = 0.0, lm_solution_norm = 0.0, lm_increase_norm = 0.0;
+            IndexType disp_dof_num(0),rot_dof_num(0),lm_dof_num(0);
 
             // First iterator
             const auto it_dof_begin = rDofSet.begin();
@@ -209,26 +209,57 @@ public:
             const std::size_t number_active_dofs = rb.size();
 
             // Loop over Dofs
-            #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm, lm_solution_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = it_dof_begin + i;
+            if (mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm, rot_residual_solution_norm, lm_solution_norm, lm_increase_norm, disp_dof_num, rot_dof_num, lm_dof_num)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
 
-                dof_id = it_dof->EquationId();
+                    dof_id = it_dof->EquationId();
 
-                // Check dof id is solved
-                if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id] == 1) {
-                        const auto& r_curr_var = it_dof->GetVariable();
-                        if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
-                            dof_value = it_dof->GetSolutionStepValue(0);
-                            dof_incr = rDx[dof_id];
-                            lm_solution_norm += dof_value * dof_value;
-                            lm_increase_norm += dof_incr * dof_incr;
-                            lm_dof_num++;
-                        } else {
-                            residual_dof_value = rb[dof_id];
-                            disp_residual_solution_norm += residual_dof_value * residual_dof_value;
-                            disp_dof_num++;
+                    // Check dof id is solved
+                    if (dof_id < number_active_dofs) {
+                        if (mActiveDofs[dof_id] == 1) {
+                            const auto& r_curr_var = it_dof->GetVariable();
+                            if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                                dof_value = it_dof->GetSolutionStepValue(0);
+                                dof_incr = rDx[dof_id];
+                                lm_solution_norm += std::pow(dof_value, 2);
+                                lm_increase_norm += std::pow(dof_incr, 2);
+                                ++lm_dof_num;
+                            } else if ((r_curr_var == DISPLACEMENT_X) || (r_curr_var == DISPLACEMENT_Y) || (r_curr_var == DISPLACEMENT_Z)) {
+                                residual_dof_value = rb[dof_id];
+                                disp_residual_solution_norm += std::pow(residual_dof_value, 2);
+                                ++disp_dof_num;
+                            } else { // We will assume is rotation dof
+                                residual_dof_value = rb[dof_id];
+                                rot_residual_solution_norm += std::pow(residual_dof_value, 2);
+                                ++rot_dof_num;
+                            }
+                        }
+                    }
+                }
+            } else {
+                #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm, lm_solution_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
+
+                    dof_id = it_dof->EquationId();
+
+                    // Check dof id is solved
+                    if (dof_id < number_active_dofs) {
+                        if (mActiveDofs[dof_id] == 1) {
+                            const auto& r_curr_var = it_dof->GetVariable();
+                            if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                                dof_value = it_dof->GetSolutionStepValue(0);
+                                dof_incr = rDx[dof_id];
+                                lm_solution_norm += std::pow(dof_value, 2);
+                                lm_increase_norm += std::pow(dof_incr, 2);
+                                ++lm_dof_num;
+                            } else {
+                                residual_dof_value = rb[dof_id];
+                                disp_residual_solution_norm += std::pow(residual_dof_value, 2);
+                                ++disp_dof_num;
+                            }
                         }
                     }
                 }
@@ -238,23 +269,32 @@ public:
             KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
+            mRotCurrentResidualNorm = rot_residual_solution_norm;
             const TDataType lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
             const TDataType lm_abs = std::sqrt(lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
 
-            TDataType residual_disp_ratio;
+            TDataType residual_disp_ratio, residual_rot_ratio;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
                 mDispInitialResidualNorm = (disp_residual_solution_norm < Tolerance) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
+                if (mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                    mRotInitialResidualNorm = (rot_residual_solution_norm < Tolerance) ? 1.0 : rot_residual_solution_norm;
+                    residual_rot_ratio = 1.0;
+                }
                 mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET, true);
             }
 
             // We calculate the ratio of the displacements
             residual_disp_ratio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
 
+            // We calculate the ratio of the rotations
+            residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
+
             // We calculate the absolute norms
             TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
+            TDataType residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -265,16 +305,26 @@ public:
                     std::cout.precision(4);
                     TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                     auto& r_table = p_table->GetTable();
-                    r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << lm_ratio << mLMRatioTolerance << lm_abs << mLMAbsTolerance;
+                    if (mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                        r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << residual_rot_ratio << mRotRatioTolerance << residual_rot_abs << mRotAbsTolerance << lm_ratio << mLMRatioTolerance << lm_abs << mLMAbsTolerance;
+                    } else {
+                        r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << lm_ratio << mLMRatioTolerance << lm_abs << mLMAbsTolerance;
+                    }
                 } else {
                     std::cout.precision(4);
                     if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::PRINTING_OUTPUT)) {
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedContactCriteria") << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementLagrangeMultiplierMixedContactCriteria") << BOLDFONT("\tROTATION: RATIO = ") << residual_rot_ratio << BOLDFONT(" EXP.RATIO = ") << mRotRatioTolerance << BOLDFONT(" ABS = ") << residual_rot_abs << BOLDFONT(" EXP.ABS = ") << mRotAbsTolerance << std::endl;
+                        }
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedContactCriteria") << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
                     } else {
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedContactCriteria") << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedContactCriteria") << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementLagrangeMultiplierMixedContactCriteria") << "\tROTATION: RATIO = " << residual_rot_ratio << " EXP.RATIO = " << mRotRatioTolerance << " ABS = " << residual_rot_abs << " EXP.ABS = " << mRotAbsTolerance << std::endl;
+                        }
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedContactCriteria") << "\tLAGRANGE MUL: RATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
                     }
                 }
@@ -285,9 +335,10 @@ public:
 
             // We check if converged
             const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
+            const bool rot_converged = (mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ROTATION_DOF_IS_CONSIDERED)) ? (residual_rot_ratio <= mRotRatioTolerance || residual_rot_abs <= mRotAbsTolerance) : true;
             const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
 
-            if ( disp_converged && lm_converged ) {
+            if ( disp_converged && rot_converged && lm_converged ) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
