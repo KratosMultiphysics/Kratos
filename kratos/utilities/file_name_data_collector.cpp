@@ -16,7 +16,6 @@
 #include <vector>
 
 // External includes
-#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 
 // Project includes
 #include "includes/define.h"
@@ -59,9 +58,7 @@ FileNameDataCollector::FileNameDataCollector(
     auto file_name_pattern = rFileNamePattern;
     FindAndReplace(file_name_pattern, "<model_part_name>", rModelPart.Name());
     FindAndReplace(file_name_pattern, "<model_part_full_name>", rModelPart.FullName());
-
-    const auto& path_file_name_pattern = ghc::filesystem::path(file_name_pattern);
-    mFilePath = path_file_name_pattern.parent_path();
+    mFilePath = filesystem::parent_path(file_name_pattern);
 
     KRATOS_ERROR_IF(mFilePath.find("<rank>") != std::string::npos)
         << "Flag \"<rank>\" is not allowed to be used inside the file path. "
@@ -92,8 +89,7 @@ FileNameDataCollector::FileNameDataCollector(
         }
     };
 
-    const auto& file_name_flags =
-        GetPatternFlagStrings(path_file_name_pattern.filename());
+    const auto& file_name_flags = GetPatternFlagStrings(filesystem::filename(file_name_pattern));
     for (const auto& r_flag : file_name_flags) {
         mFileNamePatternFlags.emplace_back(PatternFlag(r_flag, process_flag_formats(r_flag)));
     }
@@ -176,12 +172,13 @@ std::vector<FileNameDataCollector::FileNameData> FileNameDataCollector::GetFileN
 
     std::vector<FileNameData> result;
 
-    for (const auto& current_file : ghc::filesystem::directory_iterator(mFilePath)) {
-        const std::string& current_file_name_without_path =
-            ghc::filesystem::path(current_file).filename();
-        FileNameData file_name_data;
-        if (RetrieveFileNameData(file_name_data, current_file_name_without_path)) {
-            result.push_back(file_name_data);
+    for (const auto& current_file : FilesystemExtensions::ListDirectory(mFilePath)) {
+        if (filesystem::is_regular_file(current_file)) {
+            const auto& current_file_name_without_path = filesystem::filename(current_file);
+            FileNameData file_name_data;
+            if (RetrieveFileNameData(file_name_data, current_file_name_without_path)) {
+                result.push_back(file_name_data);
+            }
         }
     }
 

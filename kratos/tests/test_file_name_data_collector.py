@@ -1,5 +1,8 @@
+import os
+
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 
 class TestFileNameDataCollector(KratosUnittest.TestCase):
     @classmethod
@@ -117,6 +120,45 @@ class TestFileNameDataCollector(KratosUnittest.TestCase):
         check_sorted_list(["<rank>", "<step>", "<time>"], [1, 2, 0, 3, 4, 5, 6, 7, 8])
         check_sorted_list(["<step>", "<time>"],           [3, 1, 6, 7, 2, 4, 8, 5, 0])
         check_sorted_list(["<time>", "<rank>"],           [8, 3, 1, 7, 2, 5, 4, 6, 0])
+
+    def test_GetSortedFileNamesList(self):
+        dir_name = "test_GetSortedFileNamesList"
+        self.addCleanup(lambda: DeleteDirectoryIfExisting(dir_name))
+        list_of_file_names = [
+            os.path.join(dir_name, "test_model_part-1-4-1e-3.vtk"),     # 0
+            os.path.join(dir_name, "test_model_part-1-3-1e-2.h5"),      # 1
+            os.path.join(dir_name, "test_model_part-1-2-1e-1.vtk"),     # 2
+            os.path.join(dir_name, "test_model_part-1-5-1e+1.vtk"),     # 3
+            os.path.join(dir_name, "test_model_part-2-2-1e-3.vtk"),     # 4
+            os.path.join(dir_name, "test_model_part-2-3-1e-2.vtk"),     # 5
+            os.path.join(dir_name, "test_model_part-2-4-1e-1.vtk"),     # 6
+            os.path.join(dir_name, "test_model_part-3-4-1e-3.vtk"),     # 7
+            os.path.join(dir_name, "test_model_part-3-3-1e-2.vtk"),     # 8
+            os.path.join(dir_name, "test_model_part-3-2-1e-1.vtk"),     # 9
+            os.path.join(dir_name, "test_model_part-3-1e-1.vtk"),       # 10
+            os.path.join(dir_name, "test_model_part-1e-1.vtk"),         # 11
+            os.path.join(dir_name, "test_model_part-1e-1-3.vtk")        # 12
+        ]
+
+        # check and create the dir
+        self.assertFalse(os.path.isdir(dir_name))
+        os.mkdir(dir_name)
+        self.assertTrue(os.path.isdir(dir_name))
+
+        for file_name in list_of_file_names:
+            file_out = open(file_name, "w")
+            file_out.close()
+            self.assertTrue(os.path.isfile(file_name))
+
+        file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, "test_GetSortedFileNamesList/<model_part_name>-<rank>-<step>-<time>.vtk", {})
+
+        def check_sorted_list(sorting_order, sorted_indices_list):
+            for index, sorted_file_name in enumerate(file_name_data_collector.GetSortedFileNamesList(sorting_order)):
+                self.assertEqual(sorted_file_name, list_of_file_names[sorted_indices_list[index]])
+
+        check_sorted_list(["<rank>", "<step>"], [2, 0, 3, 4, 5, 6, 9, 8, 7])
+        check_sorted_list(["<step>", "<rank>"], [2, 4, 9, 5, 8, 0, 6, 7, 3])
+        check_sorted_list(["<time>", "<rank>"], [0, 4, 7, 5, 8, 2, 6, 9, 3])
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
