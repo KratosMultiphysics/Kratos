@@ -32,9 +32,9 @@ if not os.path.exists("cfd_data/test_{}/analysis_file".format(num_test)):
 if not os.path.exists("cfd_data/test_{}/mdpa_file".format(num_test)):
 	os.mkdir("cfd_data/test_{}/mdpa_file".format(num_test))
 
-#####################################################################################################
-#####									T	E	R	R	A	I	N								#####
-#####################################################################################################
+#####################
+### T E R R A I N ###
+#####################
 # import terrain
 preprocessor = GeoPreprocessor()
 importer = GeoImporter()
@@ -178,9 +178,9 @@ mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/center_model_part
 mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/center_model_part".format(num_test), "GiD_PostBinary")
 
 
-#####################################################################################################
-#####								B	U	I	L	D	I	N	G								#####
-#####################################################################################################
+#######################
+### B U I L D I N G ###
+#######################
 building = GeoBuilding()
 building.SetGeoModelPart(main_model_part)
 
@@ -325,9 +325,9 @@ mdpa_out_name = "cfd_data/test_{}/mdpa_file/11_Box_buildings_after_CleanConditio
 building.WriteMdpaOutput(mdpa_out_name)
 
 
-#####################################################################################################
-#####											C	F	D										#####
-#####################################################################################################
+#############
+### C F D ###
+#############
 main_model_part = building.GetGeoModelPart()
 
 stop_03 = time.time()
