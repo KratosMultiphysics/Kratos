@@ -66,6 +66,18 @@ void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
     }
 }
 
+void ShallowWaterUtilities::ComputeEnergy(ModelPart& rModelPart)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        const double height = it_node->FastGetSolutionStepValue(HEIGHT);
+        const double velocity = norm_2(it_node->FastGetSolutionStepValue(VELOCITY));
+        it_node->FastGetSolutionStepValue(INTERNAL_ENERGY) = height + 0.5 * std::pow(velocity, 2);
+    }
+}
+
 void ShallowWaterUtilities::ComputeAccelerations(ModelPart& rModelPart)
 {
     double dt_inv = rModelPart.GetProcessInfo()[DELTA_TIME];
@@ -208,7 +220,7 @@ void ShallowWaterUtilities::ResetDryDomain(ModelPart& rModelPart, double Thickne
         double& height = it_node->FastGetSolutionStepValue(HEIGHT);
         if (height < Thickness)
         {
-            height = 0.1 * Thickness;
+            height = 0.5 * Thickness;
             it_node->FastGetSolutionStepValue(MOMENTUM) = ZeroVector(3);
         }
     }

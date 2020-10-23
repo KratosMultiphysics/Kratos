@@ -16,6 +16,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shallow_water_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/bfecc_convection_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/replicate_model_part_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/algebraic_flux_correction_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/id_renumbering_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_perturbation_function_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_sinusoidal_function_process.cpp
