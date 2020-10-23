@@ -10,21 +10,17 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-
 #ifndef KRATOS_ALGEBRAIC_FLUX_CORRECTION_UTILITY_H_INCLUDED
 #define KRATOS_ALGEBRAIC_FLUX_CORRECTION_UTILITY_H_INCLUDED
 
-
 // System includes
-
 
 // External includes
 
-
 // Project includes
-#include "includes/model_part.h"
+#include "includes/dof.h"
+#include "includes/define.h"
 #include "includes/kratos_parameters.h"
-
 
 namespace Kratos
 {
@@ -50,7 +46,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+// Forward declaration of ModelPart to reduce includes
+class ModelPart;
+
+/**
  * @class AlgebraicFluxCorrectionUtility
  * @ingroup ShallowWaterApplication
  * @brief An utility to apply the flux correction technique to two independent high order and low order solutions
@@ -145,43 +144,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -228,6 +190,8 @@ private:
     void AssembleElementalMassMatrices();
 
     void GetElementalDofList();
+
+    void UpdateLimitingVariables();
 
     void ComputeElementalAlgebraicFluxCorrections();
 

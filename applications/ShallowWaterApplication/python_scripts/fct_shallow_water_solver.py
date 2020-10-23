@@ -42,9 +42,10 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
     @classmethod
     def GetDefaultParameters(cls):
         afc_parameters = KM.Parameters("""{
-            "name"              : "algebraic_flux_correction_utility",
-            "rebuild_level"     : 0,
-            "limiting_variable" : "VARIABLE_NAME"
+            "name"               : "algebraic_flux_correction_utility",
+            "limiting_variables" : ["VARIABLE_NAME"],
+            "maximum_iterations" : 1,
+            "rebuild_level"      : 0
         }""")
         default_parameters = super().GetDefaultParameters()
         default_parameters.AddValue("afc_parameters", afc_parameters)
@@ -59,7 +60,6 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
         self.fct_utility.InitializeCorrection()
 
     def __execute_after_low_order_step(self):
-        SW.ShallowWaterUtilities().ComputeEnergy(self.main_model_part)
         self.fct_utility.GetLowOrderValues()
 
     def __execute_before_high_order_step(self):
@@ -69,6 +69,5 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
         SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, dry_height)
 
     def __execute_after_high_order_step(self):
-        SW.ShallowWaterUtilities().ComputeEnergy(self.main_model_part)
         self.fct_utility.GetHighOrderValues()
         self.fct_utility.ApplyCorrection()

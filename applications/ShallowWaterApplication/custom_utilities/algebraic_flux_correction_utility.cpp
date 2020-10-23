@@ -22,6 +22,8 @@
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "utilities/variable_utils.h"
+#include "includes/model_part.h"
+#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -74,6 +76,9 @@ namespace Kratos
 
     void AlgebraicFluxCorrectionUtility::GetHighOrderValues()
     {
+        // Update the variables if need
+        UpdateLimitingVariables();
+
         // Elemental values
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
@@ -98,6 +103,9 @@ namespace Kratos
 
     void AlgebraicFluxCorrectionUtility::GetLowOrderValues()
     {
+        // Update the variables if need
+        UpdateLimitingVariables();
+
         // Elemental values
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
@@ -129,6 +137,21 @@ namespace Kratos
             {
                 double& r_nodal_value = *(nodal_values_vector.begin() + i);
                 r_nodal_value = (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(*p_var);
+            }
+        }
+    }
+
+    void AlgebraicFluxCorrectionUtility::UpdateLimitingVariables()
+    {
+        for (auto p_var : mLimitingVariables)
+        {
+            if (*p_var == INTERNAL_ENERGY)
+            {
+                ShallowWaterUtilities().ComputeEnergy(mrModelPart);
+            }
+            else if (*p_var == FREE_SURFACE_ELEVATION)
+            {
+                ShallowWaterUtilities().ComputeFreeSurfaceElevation(mrModelPart);
             }
         }
     }
@@ -275,8 +298,6 @@ namespace Kratos
                     c = std::min(c, r_node.GetValue(NEGATIVE_RATIO));
                 }
             }
-
-            it_elem->SetValue(AUX_INDEX, c);
         }
     }
 
@@ -373,9 +394,9 @@ namespace Kratos
         const Parameters default_parameters = Parameters(R"(
         {
             "name"               : "algebraic_flux_correction_utility",
-            "rebuild_level"      : 0,
             "limiting_variables" : ["VARIABLE_NAME"],
-            "maximum_iterations" : 1
+            "maximum_iterations" : 1,
+            "rebuild_level"      : 0
         })");
         return default_parameters;
     }
