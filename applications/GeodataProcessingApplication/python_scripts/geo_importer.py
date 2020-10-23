@@ -38,52 +38,119 @@ class GeoImporter( GeoProcessor ):
                     self.ModelPart.CreateNewElement("Element2D3N", ID_elem, [n1, n2, n3], self.ModelPart.GetProperties()[2])
                     ID_elem += 1
         
+        for node in self.ModelPart.Nodes:
+            node.Set(KratosMultiphysics.TO_ERASE,True)      # we set all nodes as TO_ERASE
+            # node.Set(KratosMultiphysics.VISITED,False)      # we set all nodes as not VISITED
+        
+        # we mark all free nodes as TO_ERASE
+        for elem in self.ModelPart.Elements:
+            for node in elem.GetNodes():
+                node.Set(KratosMultiphysics.TO_ERASE, False)
+        
+        # we erase unused nodes
+        self.ModelPart.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+
         self.HasModelPart = True
 
         #########################################################################################################
-        geom_id = 1         # a counter
-        dict_visited = []	# list with the elements in the dictionary already visited
+        # geom_id = 1         # a counter
+        # dict_visited = []	# list with the elements in the dictionary already visited
 
-        num_elem = self.ModelPart.NumberOfElements()    # key_list = list(elem_map.keys())	# it is necessary because we delete elements in the dictionary; so we can't iterate on dictionary directly
-        """for faces in key_list:"""
-        for faces in self.ModelPart.Elements:
-            if (faces.Id in dict_visited):
-                continue
-            dict_visited.append(faces.Id)
+        # num_elem = self.ModelPart.NumberOfElements()    # key_list = list(elem_map.keys())	# it is necessary because we delete elements in the dictionary; so we can't iterate on dictionary directly
+        # """for faces in key_list:"""
+        # for faces in self.ModelPart.Elements:
+        #     if (faces.Id in dict_visited):
+        #         continue
+        #     dict_visited.append(faces.Id)
 
-            next_faces = [faces.Id]	# the netx faces that will be processed
+        #     next_faces = [faces.Id]	# the next faces that will be processed
+        #     input(next_faces)
 
-            node_visited = []	# list with nodes already visited in this geometry
-            elem_visited = []	# list with elements already visited in this geometry
-            while (next_faces):	# this loop ends when next_faces is empty
-                current_face = next_faces[0]			# get the first element in next_faces up to the last element. In next operations we subtract elements in next_faces
-                """for node in elem_map[current_face]:"""
-                for node in self.ModelPart.GetElement(current_face):        # CHECK THIS IF IT IS CORRECT
-                    elem_visited.append(current_face)	# we update elem_visited
-                    dict_visited.append(current_face)
-                    if (node.Id in node_visited):
-                        continue						# we go on if the node is already visited
-                    node_visited.append(node.Id)			# we update node_visited
-                    """for id, elem in elem_map.items():"""
-                    for elem in self.ModelPart.Elements:
-                        if (node in elem):
-                            next_faces.append(id)
-                next_faces = list(set(next_faces) - set(elem_visited))	# we remove duplicates and the elements that are already visited
+        #     node_visited = []	# list with nodes already visited in this geometry
+        #     elem_visited = []	# list with elements already visited in this geometry
+        #     while (next_faces):	# this loop ends when next_faces is empty
+        #         current_face = next_faces[0]			# get the first element in next_faces up to the last element. In next operations we subtract elements in next_faces
+        #         """for node in elem_map[current_face]:"""
+        #         for node in self.ModelPart.GetElement(current_face):        # CHECK THIS IF IT IS CORRECT
+        #             elem_visited.append(current_face)	# we update elem_visited
+        #             dict_visited.append(current_face)
+        #             if (node.Id in node_visited):
+        #                 continue						# we go on if the node is already visited
+        #             node_visited.append(node.Id)			# we update node_visited
+        #             """for id, elem in elem_map.items():"""
+        #             for elem in self.ModelPart.Elements:
+        #                 if (node in elem):
+        #                     next_faces.append(id)
+        #         next_faces = list(set(next_faces) - set(elem_visited))	# we remove duplicates and the elements that are already visited
 
-                del(elem_map[current_face])			# we delete current_face in elem_map
+        #         del(elem_map[current_face])			# we delete current_face in elem_map
 
-            geometries[geom_id] = list(set(elem_visited))			# key: id geometry; value: id elements of this geometry
-            geom_id += 1
+        #     geometries[geom_id] = list(set(elem_visited))			# key: id geometry; value: id elements of this geometry
+        #     geom_id += 1
+
+        dict_Building = {}      # key: Building ids; value: element ids
+        Building_id = 0         # we initialize the Building id. It is a progressive number
+        list_visited = []       # node visited
+        for elem in self.ModelPart.Elements:
+            temp_list = []
+            new_building = True
+            for node in elem.GetNodes():
+                if not (node.Id in list_visited):
+                    temp_list.append(node.Id)
+
+            if (len(temp_list) == 3):
+                # in this case all nodes are in a different Building
+                list_visited = []       # we restore the list_visited. We will process a new Building
+            else:
+                new_building = False
+                
+            
+            # we add "temp_list" into "list_visited"
+            list_visited.extend(temp_list)
+
+            if new_building:
+                Building_id += 1
+                dict_Building[Building_id] = [elem.Id]    
+            else:
+                # we append the Element id in the dictionary
+                dict_Building[Building_id].append(elem.Id)
+
+        current_sub_model_building = self.ModelPart
+        for building_id, elem_id in dict_Building.items():
+            # we check if the sub model part already exists
+            if not self.ModelPart.HasSubModelPart("Building_{}".format(building_id)):
+                current_sub_model_building = self.ModelPart.CreateSubModelPart("Building_{}".format(building_id))
+            
+            list_nodes = []
+            for id in elem_id:
+                elem = self.ModelPart.GetElement(id)
+                for node in elem.GetNodes():
+                    list_nodes.append(node.Id)
+            
+            # we add the nodes in the sub model part
+            current_sub_model_building.AddNodes(list(set(list_nodes)))
+
+            # we add the element in the sub model part
+            current_sub_model_building.AddElements(list(elem_id))
+
+
         #########################################################################################################
 
 
 
     """ FUNCTION UNDER CONSTRUCTION """
-    def ObjImport(self, obj_file_name_input, name_model_part="ModelPart", change_coord=True):
-        # a sub_model_part is created for each Building
+    def ObjImport(self, obj_file_name_input, name_model_part="ModelPart", change_coord=True, building_groups=True):
+        "function to import the OBJ file"
+        # building_groups=True means a sub_model_part for each building
+            # PLEASE NOTE: in this case in the file there must be "o Building..." for each different Building
 
         self._InitializeModelPart(name_model_part)
         print("\n***** START ObjImport: geo_importer/ObjImport *****\n")
+
+        if building_groups:
+            bool_building = False   # boolean with value True if the geometry is a building
+        else:
+            bool_building = True    # in this case there are no groups. All Buildings are in a sub_model_part
 
         # read buildings model to extract verices and elements information
         with open (obj_file_name_input) as read_file:
@@ -91,7 +158,7 @@ class GeoImporter( GeoProcessor ):
             num_building = 1		# progressive number to count the number of buildings
             vertices_to_element = [0,0,0]
 
-            bool_building = False    # boolean with value True if the geometry is a building
+            # bool_building = False    # boolean with value True if the geometry is a building
 
             ID_vertex = 1
             ID_elem = 1
@@ -145,11 +212,18 @@ class GeoImporter( GeoProcessor ):
                             current_sub_model_building = self.ModelPart
                             bool_building = False
         
+        # we set all nodes as TO_ERASE
         for node in self.ModelPart.Nodes:
             node.Set(KratosMultiphysics.TO_ERASE,True)
         
-        for sub_model in self.ModelPart.SubModelParts:
-            for node in sub_model.Nodes:
+        # for sub_model in self.ModelPart.SubModelParts:
+        #     for node in sub_model.Nodes:
+        #         node.Set(KratosMultiphysics.TO_ERASE, False)
+        #         node.Set(KratosMultiphysics.VISITED, False)     # we set all nodes as not visited
+        
+        # we delete all free nodes
+        for elem in self.ModelPart.Elements:
+            for node in elem.GetNodes():
                 node.Set(KratosMultiphysics.TO_ERASE, False)
                 node.Set(KratosMultiphysics.VISITED, False)     # we set all nodes as not visited
 

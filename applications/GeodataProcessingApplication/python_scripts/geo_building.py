@@ -599,13 +599,15 @@ class GeoBuilding( GeoProcessor ):
 
     # def ShiftBuildingOnTerrain(self, buildings_model_part, terrain_model_part):       # OLD CODE
     def ShiftBuildingOnTerrain(self, terrain_model_part):       # [TEST] we pass the ModelPart instead of the "building_model_part"
+        "function to shift Buildings on terrain. Each Building must be in a SubModelPart"
+        
         # TODO: remove numpy
-        # TODO: we can pass buildings_model_part with "SetGeoModelPart(buildings_model_part)" in the main script instead of as a parameter
+        # TODO: [OK] we can pass buildings_model_part with "SetGeoModelPart(buildings_model_part)" in the main script instead of as a parameter
         # TODO: move only buildings with all nodes in center_model_part
         # TODO: move buildings on terrain; delete buildings that are not moved
 
-        # function to shift Buildings on terrain
         import numpy as np
+        print("CONTROLLARE SE IL MODELPART È PIENO:\n", self.ModelPart);input("ShiftBuildingOnTerrain")
 
         N = KratosMultiphysics.Vector(3)
         coords = KratosMultiphysics.Array3()
@@ -614,9 +616,7 @@ class GeoBuilding( GeoProcessor ):
         locate_on_background.UpdateSearchDatabase()
 
         already_moved = []            # list with all nodes already moved
-        # height = []
 
-        # self.ModelPart = buildings_model_part     # OLD CODE
         # KratosMultiphysics.ModelPartIO("data/building_model_part_ORG", KratosMultiphysics.IO.WRITE).WriteModelPart(self.ModelPart)
         ID_vertex = self._find_max_node_id() + 1
 
@@ -626,8 +626,10 @@ class GeoBuilding( GeoProcessor ):
 
         # for num_building in range(self.ModelPart.NumberOfSubModelParts()):
         for current_sub_model in self.ModelPart.SubModelParts:
+            # each Building is in a different sub_model_part
             
             displacement = []        # the vector where we save the Z coordinate to evaluate the minimum for each building
+            shift = 0.0
             for node_building in current_sub_model.Nodes:
                 # take only nodes with z = 0.0 which are the nodes at the base of the Building
                 if node_building.Z != 0.0:
@@ -644,8 +646,9 @@ class GeoBuilding( GeoProcessor ):
 
                 # we check if all the nodes are inside terrain_model_part. If at least one node is outside, the whole building must be outside
                 if not found:
-                    displacement.append(0.0)        # adding 0.0, the minimum of the dispacement (in this building) will be 0.0
-                    continue
+                    # displacement.append(0.0)        # adding 0.0, the minimum of the dispacement (in this building) will be 0.0
+                    # continue
+                    break
 
                 if not isinstance(pelem, KratosMultiphysics.Element):            # if "pelem" is not a "Kratos.Element", we go to the next node
                     KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "\"pelem\" is not a KratosMultiphysics Element.")
@@ -670,14 +673,13 @@ class GeoBuilding( GeoProcessor ):
                 
                 displacement.append(Psi[2])                # append just coordinate Z
 
-            # we check if "displacement" is empty
-            if displacement:
-                # the subtraction of - 1 is only for a test. CHECK IT!
-                # height.append(min(displacement) - 1)                # quantity to move the n-th Building
-                height = min(displacement)
             else:
-                # height.append(0.0)
-                height = 0.0            # if "displacement" is empty, we add the quantity 0.0
+                # we check if "displacement" is empty
+                if displacement:
+                    shift = min(displacement)
+                    # shift = max(displacement)
+                # else:
+                #     shift = 0.0            # if "displacement" is empty, we add the quantity 0.0
             
 
             # ###################################################################################################################
@@ -690,7 +692,7 @@ class GeoBuilding( GeoProcessor ):
                     
             #     else:
             #         node.Set(KratosMultiphysics.VISITED, True)
-            #         node.Z = node.Z + height    # we move current node of the quantity in "height"
+            #         node.Z = node.Z + shift    # we move current node of the quantity in "shift"
             # ###################################################################################################################
 
 
@@ -700,16 +702,13 @@ class GeoBuilding( GeoProcessor ):
             for node in current_sub_model.Nodes:
                 if node.Id in already_moved:                    # if it is one of the already moved nodes
                     print("*** node {} already visited. We will clone the node and split the geometry. ***".format(node.Id))
-                    # self.ModelPart.CreateNewNode(ID_vertex, node.X, node.Y, (node.Z + height[num_building]))    # a new node with different Id and Z coordinate moved
-                    self.ModelPart.CreateNewNode(ID_vertex, node.X, node.Y, (node.Z + height))    # a new node with different Id and Z coordinate moved
+                    self.ModelPart.CreateNewNode(ID_vertex, node.X, node.Y, (node.Z + shift))    # a new node with different Id and Z coordinate shifted
                     node_mod[node.Id] = ID_vertex                # fill the dictionary with the node to be removed (the key) and the node to be added (the value) in this current_sub_model
                     node.Id = ID_vertex                          # update the Id node of the element
                     ID_vertex += 1
                 else:
                     already_moved.append(node.Id)                # fill "already_moved" with current Id node
-                    # node.Z = node.Z + height[num_building]            # move current node of the quantity in list "height"
-                    node.Z = node.Z + height
-            
+                    node.Z = node.Z + shift
             for old_node, new_node in node_mod.items():
                 current_sub_model.AddNodes([new_node])          # add the new nodes in the current sub model part
                 current_sub_model.RemoveNode(old_node)          # remove the old nodes that are now replaced
@@ -720,7 +719,7 @@ class GeoBuilding( GeoProcessor ):
 
     # def DeleteBuildingsUnderValue(self, buildings_model_part, z_value=1e-7):      # OLD CODE
     def DeleteBuildingsUnderValue(self, z_value=1e-7):      # [TEST] we pass the ModelPart instead of the "building_model_part"
-        # this function delete the buildings that are under a certain Z value
+        "this function delete the buildings that are under a certain Z value"
 
         # self.ModelPart = buildings_model_part     # OLD CODE
         del_sub_model = []

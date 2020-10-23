@@ -472,8 +472,6 @@ class GeoMesher( GeoProcessor ):
             if dist > r_ground:
                 Z_beta = (-(dist-r_ground) / (r_boundary-r_ground))+1       # we calculate beta
                 self.ModelPart.GetNode(node.Id).Z = (node.Z - z_min) * Z_beta + z_min
-        
-        # [CHECKPOINT] IN QUESTO PUNTO NEL MODEL PART CI SONO SOLO I NODI DEL BOTTOM DEL DOMINIO CILINDRICO
 
         # a list with 360 degree (from 0 to 360)
         # theta = self._custom_range(0.0, 2*math.pi, math.pi/90)
@@ -503,8 +501,6 @@ class GeoMesher( GeoProcessor ):
 
         vertices = dict(vertices = coord_2D)
         triangle_dict_bottom = triangle.triangulate(vertices)     # triangle_dict_bottom {vertices: [...], triangles: [...], vertex_markers: [...]}
-        
-        # [CHECKPOINT] QUI HO LA MESH 2D DEL BOTTOM
 
         # TODO: CHECK IF WE CAN USE THE ELEMENTS IN MODEL PART INSTEAD OF THIS LIST
         all_facets = []		# list with all node ids of faces
@@ -698,7 +694,8 @@ class GeoMesher( GeoProcessor ):
 
             return elem_list    # JUST FOR THE CHECK
 
-        """# [NG] new code under construction
+        """
+        # [NG] new code under construction
         # we create a sub model part (if extract_center = True) and fill it with conditions that are inside r_buildings
         if extract_center:
             # we extract the center of the geometry and we add them in a sub model part
@@ -716,7 +713,8 @@ class GeoMesher( GeoProcessor ):
                 else:
                     # we get here if all nodes of the condition are inside the r_buildings
                     center_cond.AddNodes(list_nodes)
-                    center_cond.AddCondition(cond, 0)"""
+                    center_cond.AddCondition(cond, 0)
+        """
 
 
 
@@ -971,9 +969,9 @@ class GeoMesher( GeoProcessor ):
 
         # sector with all intervals
         list_sector = self._frange(0.0, 360.0, 360.0/n_sectors)
-        sects = list_sector + [360]     # this is necessary for the last sector. for example in 12 secotrs, the last one will be 330.0, 360.0
+        sects = list_sector + [360]     # this is necessary for the last sector. for example in 12 sectors, the last one will be 330.0, 360.0
         
-        # we populate a dictionary with all sectors. key: sector id; value: range of angles (first:included; second: not included)
+        # we populate a dictionary with all sectors. key: sector id; value: range of angles (first angle:included; second angle: not included)
         sect_id = 1
         dict_sects = {}
         for i in range(len(list_sector)):
@@ -1085,7 +1083,5 @@ class GeoMesher( GeoProcessor ):
             if last >= stop:
                 break
             list_range.append(last)
-        
-        print(list_range)
         
         return list_range
