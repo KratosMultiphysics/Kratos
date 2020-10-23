@@ -176,7 +176,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
   // Time integration methods for components
-  typedef VariableComponent<VectorComponentAdaptor<VectorType>>                        VariableComponentType;
+  typedef Variable<double>                                                             VariableComponentType;
   typedef TimeIntegrationMethod<VariableComponentType, double>            TimeIntegrationMethodComponentType;
 
   typedef TimeIntegrationMethodsContainer<VariableComponentType, double> ComponentTimeIntegrationContainerType;
