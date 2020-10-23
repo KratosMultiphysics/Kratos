@@ -188,36 +188,21 @@ public:
             TDataType residual_dof_value = 0.0;
 
             // Loop over Dofs
-            if (mOptions.Is(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
-                #pragma omp parallel for reduction(+:disp_residual_solution_norm,disp_dof_num,rot_residual_solution_norm,rot_dof_num,dof_id,residual_dof_value)
-                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                    auto it_dof = it_dof_begin + i;
+            #pragma omp parallel for reduction(+:disp_residual_solution_norm,disp_dof_num,rot_residual_solution_norm,rot_dof_num,dof_id,residual_dof_value)
+            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                auto it_dof = it_dof_begin + i;
 
-                    if (it_dof->IsFree()) {
-                        dof_id = it_dof->EquationId();
-                        residual_dof_value = rb[dof_id];
+                if (it_dof->IsFree()) {
+                    dof_id = it_dof->EquationId();
+                    residual_dof_value = rb[dof_id];
 
-                        const auto& r_curr_var = it_dof->GetVariable();
-                        if ((r_curr_var == DISPLACEMENT_X) || (r_curr_var == DISPLACEMENT_Y) || (r_curr_var == DISPLACEMENT_Z)) {
-                            disp_residual_solution_norm += std::pow(residual_dof_value, 2);
-                            ++disp_dof_num;
-                        } else {
-                            rot_residual_solution_norm += std::pow(residual_dof_value, 2);
-                            ++rot_dof_num;
-                        }
-                    }
-                }
-            } else {
-                #pragma omp parallel for reduction(+:disp_residual_solution_norm,disp_dof_num,dof_id,residual_dof_value)
-                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                    auto it_dof = it_dof_begin + i;
-
-                    if (it_dof->IsFree()) {
-                        dof_id = it_dof->EquationId();
-                        residual_dof_value = rb[dof_id];
-
+                    const auto& r_curr_var = it_dof->GetVariable();
+                    if ((r_curr_var == DISPLACEMENT_X) || (r_curr_var == DISPLACEMENT_Y) || (r_curr_var == DISPLACEMENT_Z)) {
                         disp_residual_solution_norm += std::pow(residual_dof_value, 2);
                         ++disp_dof_num;
+                    } else {
+                        rot_residual_solution_norm += std::pow(residual_dof_value, 2);
+                        ++rot_dof_num;
                     }
                 }
             }
