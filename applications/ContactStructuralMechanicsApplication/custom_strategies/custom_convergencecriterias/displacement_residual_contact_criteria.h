@@ -94,9 +94,11 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor (parameters)
+     * @brief Default constructor
      * @param DispRatioTolerance Relative tolerance for displacement residual error
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
+     * @param RotRatioTolerance Relative tolerance for rotation residual error
+     * @param RotAbsTolerance Absolute tolerance for rotation residual error
      * @param pTable The pointer to the output r_table
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
