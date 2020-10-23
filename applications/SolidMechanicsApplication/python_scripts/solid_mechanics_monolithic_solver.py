@@ -438,7 +438,7 @@ class MonolithicSolver(object):
             scalar_integration_methods_container.Set(dof,method)
 
 
-        component_integration_methods_container = KratosSolid.ComponentTimeIntegrationMethods()
+        component_integration_methods_container = KratosSolid.ScalarTimeIntegrationMethods()
         for dof, method in component_integration_methods.items():
             method.SetParameters(self.process_info) #set same parameters to all methods from process_info values
             component_integration_methods_container.Set(dof,method)
