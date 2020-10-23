@@ -1,4 +1,4 @@
-from KratosMultiphysics import Model, Parameters
+from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import os
 file_path = os.path.abspath(__file__)
@@ -25,14 +25,3 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
-if __name__ == "__main__":
-    # Setting parameters
-
-    with open('ProjectParameters.json','r') as parameter_file:
-        parameters = Parameters(parameter_file.read())
-
-    # Create Model
-    model = Model()
-
-    test = InterpolationTestAnalysis(model, parameters)
-    test.Run()

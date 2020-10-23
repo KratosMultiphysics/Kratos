@@ -5,8 +5,8 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import tests_python_scripts.interpolation_scripts.interpolation_test_analysis as interpolation_test_analysis
-InterpolationTestAnalysis = interpolation_test_analysis.InterpolationTestAnalysis
+import tests_python_scripts.backward_coupling_scripts.backward_coupling_test_analysis as backward_coupling_test_analysis
+BackwardCouplingTestAnalysis = backward_coupling_test_analysis.BackwardCouplingTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -28,16 +28,24 @@ class TestFactory(KratosUnittest.TestCase):
             # Setting parameters
 
             with open(self.file_parameters,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+                self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             # Create Model
             self.model = KratosMultiphysics.Model()
 
-            self.test = InterpolationTestAnalysis(self.model, parameters)
+            self.test = BackwardCouplingTestAnalysis(self.model, self.parameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Run()
+        self._check_results()
 
     def tearDown(self):
         pass
+
+    def _check_results(self):
+        results = self.parameters['results']
+        particles_component_volume = results['particles_component_volume'].GetDouble()
+        total_particles_volume = results['total_particles_volume'].GetDouble()
+        self.assertNotAlmostEqual(particles_component_volume, 0.0)
+        self.assertAlmostEqual(particles_component_volume, total_particles_volume)
