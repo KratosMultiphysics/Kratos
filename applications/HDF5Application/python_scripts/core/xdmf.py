@@ -234,7 +234,6 @@ class TopologyCellType:
         (3,1): "Polyvertex_1",
         (3,2): "Polyline_2",
         (3,3): "Triangle",
-        (3,4): "Quadrilateral",
         (3,4): "Tetrahedron",
         (3,8): "Hexahedron"
         }
