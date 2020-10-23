@@ -251,6 +251,13 @@ public:
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
 
+            // Auxiliar displacement DoF check
+            const std::function<bool(const VariableData&)> check_without_rot =
+            [](const VariableData& rCurrVar) -> bool {return true;};
+            const std::function<bool(const VariableData&)> check_with_rot =
+            [](const VariableData& rCurrVar) -> bool {return ((rCurrVar == DISPLACEMENT_X) || (rCurrVar == DISPLACEMENT_Y) || (rCurrVar == DISPLACEMENT_Z));};
+            const auto* p_check_disp = (mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED)) ? &check_with_rot : &check_without_rot;
+
             // Loop over Dofs
             #pragma omp parallel for firstprivate(dof_id,residual_dof_value) reduction(+:disp_residual_solution_norm, rot_residual_solution_norm, normal_lm_residual_solution_norm, tangent_lm_stick_residual_solution_norm, tangent_lm_slip_residual_solution_norm, disp_dof_num, rot_dof_num, lm_dof_num, lm_stick_dof_num, lm_slip_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
@@ -286,7 +293,7 @@ public:
                                 }
                             }
                             ++lm_dof_num;
-                        } else if ((r_curr_var == DISPLACEMENT_X) || (r_curr_var == DISPLACEMENT_Y) || (r_curr_var == DISPLACEMENT_Z)) {
+                        } else if ((*p_check_disp)(r_curr_var)) {
                             disp_residual_solution_norm += std::pow(residual_dof_value, 2);
                             ++disp_dof_num;
                         } else { // We will assume is rotation dof

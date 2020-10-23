@@ -181,6 +181,13 @@ public:
             std::size_t dof_id = 0;
             TDataType dof_value = 0.0, dof_incr = 0.0;
 
+            // Auxiliar displacement DoF check
+            const std::function<bool(const VariableData&)> check_without_rot =
+            [](const VariableData& rCurrVar) -> bool {return true;};
+            const std::function<bool(const VariableData&)> check_with_rot =
+            [](const VariableData& rCurrVar) -> bool {return ((rCurrVar == DISPLACEMENT_X) || (rCurrVar == DISPLACEMENT_Y) || (rCurrVar == DISPLACEMENT_Z));};
+            const auto* p_check_disp = (mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) ? &check_with_rot : &check_without_rot;
+
             // Loop over Dofs
             #pragma omp parallel for reduction(+:disp_solution_norm,disp_increase_norm,disp_dof_num,rot_solution_norm,rot_increase_norm,rot_dof_num,dof_id,dof_value,dof_incr)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
@@ -192,7 +199,7 @@ public:
                     dof_incr = rDx[dof_id];
 
                     const auto& r_curr_var = it_dof->GetVariable();
-                    if ((r_curr_var == DISPLACEMENT_X) || (r_curr_var == DISPLACEMENT_Y) || (r_curr_var == DISPLACEMENT_Z)) {
+                    if ((*p_check_disp)(r_curr_var)) {
                         disp_solution_norm += std::pow(dof_value, 2);
                         disp_increase_norm += std::pow(dof_incr, 2);
                         ++disp_dof_num;
