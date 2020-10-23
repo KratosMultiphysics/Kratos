@@ -7,17 +7,25 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-## generate variables with the sources
-set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES
+## ShapeOptimization core sources
+set( KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp
+)
+
+## ShapeOptimization python interface sources
+set( KRATOS_SHAPE_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shape_optimization_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
+add_library(KratosShapeOptimizationCore SHARED ${KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE})
+target_link_libraries(KratosShapeOptimizationCore PUBLIC KratosCore)
+set_target_properties(KratosShapeOptimizationCore PROPERTIES COMPILE_DEFINITIONS "SHAPE_OPTIMIZATION_APPLICATION=EXPORT,API")
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosShapeOptimizationApplication MODULE THIN_LTO ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
-target_link_libraries(KratosShapeOptimizationApplication PRIVATE KratosCore)
+pybind11_add_module(KratosShapeOptimizationApplication MODULE THIN_LTO ${KRATOS_SHAPE_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosShapeOptimizationApplication PRIVATE KratosShapeOptimizationCore)
 set_target_properties(KratosShapeOptimizationApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd
@@ -32,6 +40,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosShapeOptimizationCore)
     cotire(KratosShapeOptimizationApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -55,4 +64,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install(TARGETS KratosShapeOptimizationCore DESTINATION libs )
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
