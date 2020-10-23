@@ -128,7 +128,9 @@ class TestFileIO(KratosUnittest.TestCase):
         mock_class.assert_called_once_with(model_part, 'kratos.h5', {'<time>':'0.4f'})
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
-    def test_FilenameGetterWithDirectoryInitialization_WithoutDirectory(self, _):
+    def test_FilenameGetterWithDirectoryInitialization_WithoutDirectory(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = 'kratos.h5'
         settings = self._FilenameGetterSettings()
         with patch('os.makedirs', autospec=True) as p:
             obj = file_io._FilenameGetterWithDirectoryInitialization(settings)
