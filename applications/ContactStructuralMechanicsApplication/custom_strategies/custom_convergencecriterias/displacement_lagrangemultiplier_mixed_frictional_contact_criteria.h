@@ -224,8 +224,8 @@ public:
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
             // Initialize
-            TDataType disp_residual_solution_norm = 0.0, normal_lm_solution_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_stick_solution_norm = 0.0, tangent_lm_slip_solution_norm = 0.0, tangent_lm_stick_increase_norm = 0.0, tangent_lm_slip_increase_norm = 0.0;
-            IndexType disp_dof_num(0),lm_dof_num(0),lm_stick_dof_num(0),lm_slip_dof_num(0);
+            TDataType disp_residual_solution_norm = 0.0, rot_residual_solution_norm = 0.0,normal_lm_solution_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_stick_solution_norm = 0.0, tangent_lm_slip_solution_norm = 0.0, tangent_lm_stick_increase_norm = 0.0, tangent_lm_slip_increase_norm = 0.0;
+            IndexType disp_dof_num(0),rot_dof_num(0),lm_dof_num(0),lm_stick_dof_num(0),lm_slip_dof_num(0);
 
             // The nodes array
             auto& r_nodes_array = rModelPart.Nodes();
@@ -241,107 +241,103 @@ public:
             const std::size_t number_active_dofs = rb.size();
 
             // Loop over Dofs
-            #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm,normal_lm_solution_norm,normal_lm_increase_norm,disp_dof_num,lm_dof_num, lm_stick_dof_num, lm_slip_dof_num)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = it_dof_begin + i;
+            if (mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm,rot_residual_solution_norm,normal_lm_solution_norm,normal_lm_increase_norm,disp_dof_num,rot_dof_num,lm_dof_num, lm_stick_dof_num, lm_slip_dof_num)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
 
-                dof_id = it_dof->EquationId();
+                    dof_id = it_dof->EquationId();
 
-                // Check dof id is solved
-                if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id] == 1) {
-                        const auto& r_curr_var = it_dof->GetVariable();
-                        if (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
-                            // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                            const auto it_node = r_nodes_array.find(it_dof->Id());
+                    // Check dof id is solved
+                    if (dof_id < number_active_dofs) {
+                        if (mActiveDofs[dof_id] == 1) {
+                            const auto& r_curr_var = it_dof->GetVariable();
+                            if (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X || r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y || r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                                // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
+                                const auto it_node = r_nodes_array.find(it_dof->Id());
 
-                            dof_value = it_dof->GetSolutionStepValue(0);
-                            dof_incr = rDx[dof_id];
+                                dof_value = it_dof->GetSolutionStepValue(0);
+                                dof_incr = rDx[dof_id];
 
-                            const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
-                            if (mu < std::numeric_limits<double>::epsilon()) {
-                                normal_lm_solution_norm += std::pow(dof_value, 2);
-                                normal_lm_increase_norm += std::pow(dof_incr, 2);
-                            } else {
-                                const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
-                                const TDataType normal_dof_value = dof_value * normal_x;
-                                const TDataType normal_dof_incr = dof_incr * normal_x;
-
-                                normal_lm_solution_norm += std::pow(normal_dof_value, 2);
-                                normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                                if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
-                                    tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                                    tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                                    ++lm_slip_dof_num;
+                                const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                                if (mu < std::numeric_limits<double>::epsilon()) {
+                                    normal_lm_solution_norm += std::pow(dof_value, 2);
+                                    normal_lm_increase_norm += std::pow(dof_incr, 2);
                                 } else {
-                                    tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                                    tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                                    ++lm_stick_dof_num;
+                                    const double normal = it_node->FastGetSolutionStepValue(NORMAL)[r_curr_var.GetComponentIndex()];
+                                    const TDataType normal_dof_value = dof_value * normal;
+                                    const TDataType normal_dof_incr = dof_incr * normal;
+
+                                    normal_lm_solution_norm += std::pow(normal_dof_value, 2);
+                                    normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
+                                    if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                                        tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                        tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                        ++lm_slip_dof_num;
+                                    } else {
+                                        tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                        tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                        ++lm_stick_dof_num;
+                                    }
                                 }
+                                ++lm_dof_num;
+                            } else if (r_curr_var == DISPLACEMENT_X || r_curr_var == DISPLACEMENT_Y || r_curr_var == DISPLACEMENT_Z) {
+                                residual_dof_value = rb[dof_id];
+                                disp_residual_solution_norm += std::pow(residual_dof_value, 2);
+                                ++disp_dof_num;
+                            } else { // We will assume is rotation dof
+                                residual_dof_value = rb[dof_id];
+                                rot_residual_solution_norm += std::pow(residual_dof_value, 2);
+                                ++rot_dof_num;
                             }
-                            ++lm_dof_num;
-                        } else if (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) {
-                            // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                            const auto it_node = r_nodes_array.find(it_dof->Id());
+                        }
+                    }
+                }
+            } else {
+                #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm,normal_lm_solution_norm,normal_lm_increase_norm,disp_dof_num,lm_dof_num, lm_stick_dof_num, lm_slip_dof_num)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
 
-                            dof_value = it_dof->GetSolutionStepValue(0);
-                            dof_incr = rDx[dof_id];
+                    dof_id = it_dof->EquationId();
 
-                            const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
-                            if (mu < std::numeric_limits<double>::epsilon()) {
-                                normal_lm_solution_norm += std::pow(dof_value, 2);
-                                normal_lm_increase_norm += std::pow(dof_incr, 2);
-                            } else {
-                                const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
-                                const TDataType normal_dof_value = dof_value * normal_y;
-                                const TDataType normal_dof_incr = dof_incr * normal_y;
+                    // Check dof id is solved
+                    if (dof_id < number_active_dofs) {
+                        if (mActiveDofs[dof_id] == 1) {
+                            const auto& r_curr_var = it_dof->GetVariable();
+                            if (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X || r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y || r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                                // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
+                                const auto it_node = r_nodes_array.find(it_dof->Id());
 
-                                normal_lm_solution_norm += std::pow(normal_dof_value, 2);
-                                normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                                if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
-                                    tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                                    tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                                    ++lm_slip_dof_num;
+                                dof_value = it_dof->GetSolutionStepValue(0);
+                                dof_incr = rDx[dof_id];
+
+                                const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                                if (mu < std::numeric_limits<double>::epsilon()) {
+                                    normal_lm_solution_norm += std::pow(dof_value, 2);
+                                    normal_lm_increase_norm += std::pow(dof_incr, 2);
                                 } else {
-                                    tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                                    tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                                    ++lm_stick_dof_num;
+                                    const double normal = it_node->FastGetSolutionStepValue(NORMAL)[r_curr_var.GetComponentIndex()];
+                                    const TDataType normal_dof_value = dof_value * normal;
+                                    const TDataType normal_dof_incr = dof_incr * normal;
+
+                                    normal_lm_solution_norm += std::pow(normal_dof_value, 2);
+                                    normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
+                                    if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                                        tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                        tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                        ++lm_slip_dof_num;
+                                    } else {
+                                        tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                        tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                        ++lm_stick_dof_num;
+                                    }
                                 }
+                                ++lm_dof_num;
+                            } else { // We will assume is displacement dof
+                                residual_dof_value = rb[dof_id];
+                                disp_residual_solution_norm += std::pow(residual_dof_value, 2);
+                                ++disp_dof_num;
                             }
-                            ++lm_dof_num;
-                        } else if (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
-                            // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                            const auto it_node = r_nodes_array.find(it_dof->Id());
-
-                            dof_value = it_dof->GetSolutionStepValue(0);
-                            dof_incr = rDx[dof_id];
-
-                            const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
-                            if (mu < std::numeric_limits<double>::epsilon()) {
-                                normal_lm_solution_norm += std::pow(dof_value, 2);
-                                normal_lm_increase_norm += std::pow(dof_incr, 2);
-                            } else {
-                                const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
-                                const TDataType normal_dof_value = dof_value * normal_z;
-                                const TDataType normal_dof_incr = dof_incr * normal_z;
-
-                                normal_lm_solution_norm += std::pow(normal_dof_value, 2);
-                                normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                                if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
-                                    tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                                    tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                                    ++lm_slip_dof_num;
-                                } else {
-                                    tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                                    tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                                    ++lm_stick_dof_num;
-                                }
-                            }
-                            ++lm_dof_num;
-                        } else { // We will assume is displacement dof
-                            residual_dof_value = rb[dof_id];
-                            disp_residual_solution_norm += residual_dof_value * residual_dof_value;
-                            ++disp_dof_num;
                         }
                     }
                 }
@@ -353,6 +349,7 @@ public:
             KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm < Tolerance) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
+            mRotCurrentResidualNorm = rot_residual_solution_norm;
 
             const TDataType normal_lm_ratio = std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm);
             const TDataType tangent_lm_slip_ratio = tangent_lm_slip_solution_norm > Tolerance ? std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm) : 0.0;
@@ -365,20 +362,28 @@ public:
             const TDataType normal_tangent_stick_ratio = tangent_lm_stick_abs/normal_lm_abs;
             const TDataType normal_tangent_slip_ratio = tangent_lm_slip_abs/normal_lm_abs;
 
-            TDataType residual_disp_ratio;
+            TDataType residual_disp_ratio, residual_rot_ratio;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
                 mDispInitialResidualNorm = (disp_residual_solution_norm < Tolerance) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
+                if (mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                    mRotInitialResidualNorm = (rot_residual_solution_norm < Tolerance) ? 1.0 : rot_residual_solution_norm;
+                    residual_rot_ratio = 1.0;
+                }
                 mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, true);
             }
 
             // We calculate the ratio of the displacements
             residual_disp_ratio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
 
+            // We calculate the ratio of the rotations
+            residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
+
             // We calculate the absolute norms
             TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
+            TDataType residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
 
             // We print the results // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -386,22 +391,36 @@ public:
                     std::cout.precision(4);
                     TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                     auto& r_table = p_table->GetTable();
-                    if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
-                        r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_stick_ratio  << mLMTangentStickRatioTolerance  << tangent_lm_stick_abs  << mLMTangentSlipAbsTolerance << tangent_lm_slip_ratio  << mLMTangentSlipRatioTolerance  << tangent_lm_slip_abs  << mLMTangentStickAbsTolerance;
+                    if (mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                        if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                            r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << residual_rot_ratio << mRotRatioTolerance << residual_rot_abs << mRotAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_stick_ratio  << mLMTangentStickRatioTolerance  << tangent_lm_stick_abs  << mLMTangentSlipAbsTolerance << tangent_lm_slip_ratio  << mLMTangentSlipRatioTolerance  << tangent_lm_slip_abs  << mLMTangentStickAbsTolerance;
+                        } else {
+                            r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << residual_rot_ratio << mRotRatioTolerance << residual_rot_abs << mRotAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_slip_ratio  << mLMTangentSlipRatioTolerance  << tangent_lm_slip_abs  << mLMTangentSlipAbsTolerance;
+                        }
                     } else {
-                        r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_slip_ratio  << mLMTangentSlipRatioTolerance  << tangent_lm_slip_abs  << mLMTangentSlipAbsTolerance;
+                        if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                            r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_stick_ratio  << mLMTangentStickRatioTolerance  << tangent_lm_stick_abs  << mLMTangentSlipAbsTolerance << tangent_lm_slip_ratio  << mLMTangentSlipRatioTolerance  << tangent_lm_slip_abs  << mLMTangentStickAbsTolerance;
+                        } else {
+                            r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_slip_ratio  << mLMTangentSlipRatioTolerance  << tangent_lm_slip_abs  << mLMTangentSlipAbsTolerance;
+                        }
                     }
                 } else {
                     std::cout.precision(4);
                     if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PRINTING_OUTPUT)) {
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT("\tROTATION: RATIO = ") << residual_rot_ratio << BOLDFONT(" EXP.RATIO = ") << mRotRatioTolerance << BOLDFONT(" ABS = ") << residual_rot_abs << BOLDFONT(" EXP.ABS = ") << mRotAbsTolerance << std::endl;
+                        }
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT("\tNORMAL LAGRANGE MUL: RATIO = ") << normal_lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMNormalRatioTolerance << BOLDFONT(" ABS = ") << normal_lm_abs << BOLDFONT(" EXP.ABS = ") << mLMNormalAbsTolerance << std::endl;
                         KRATOS_INFO_IF("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria", mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) << BOLDFONT(" STICK LAGRANGE MUL:\tRATIO = ") << tangent_lm_stick_ratio << BOLDFONT(" EXP.RATIO = ") << mLMTangentStickRatioTolerance << BOLDFONT(" ABS = ") << tangent_lm_stick_abs << BOLDFONT(" EXP.ABS = ") << mLMTangentStickAbsTolerance << std::endl;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT(" SLIP LAGRANGE MUL:\tRATIO = ") << tangent_lm_slip_ratio << BOLDFONT(" EXP.RATIO = ") << mLMTangentSlipRatioTolerance << BOLDFONT(" ABS = ") << tangent_lm_slip_abs << BOLDFONT(" EXP.ABS = ") << mLMTangentSlipAbsTolerance << std::endl;
                     } else {
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << "\tROTATION: RATIO = " << residual_rot_ratio << " EXP.RATIO = " << mRotRatioTolerance << " ABS = " << residual_rot_abs << " EXP.ABS = " << mRotAbsTolerance << std::endl;
+                        }
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << "\tNORMAL LAGRANGE MUL: RATIO = " << normal_lm_ratio << " EXP.RATIO = " << mLMNormalRatioTolerance << " ABS = " << normal_lm_abs << " EXP.ABS = " << mLMNormalAbsTolerance << std::endl;
                         KRATOS_INFO_IF("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria", mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) << " STICK LAGRANGE MUL:\tRATIO = " << tangent_lm_stick_ratio << " EXP.RATIO = " << mLMTangentStickRatioTolerance << " ABS = " << tangent_lm_stick_abs << " EXP.ABS = " << mLMTangentStickAbsTolerance << std::endl;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << " SLIP LAGRANGE MUL:\tRATIO = " << tangent_lm_slip_ratio << " EXP.RATIO = " << mLMTangentSlipRatioTolerance << " ABS = " << tangent_lm_slip_abs << " EXP.ABS = " << mLMTangentSlipAbsTolerance << std::endl;
@@ -415,9 +434,10 @@ public:
 
             // We check if converged
             const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
+            const bool rot_converged = (mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED)) ? (residual_rot_ratio <= mRotRatioTolerance || residual_rot_abs <= mRotAbsTolerance) : true;
             const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm < Tolerance) ? true : (normal_lm_ratio <= mLMNormalRatioTolerance || normal_lm_abs <= mLMNormalAbsTolerance) && (tangent_lm_stick_ratio <= mLMTangentStickRatioTolerance || tangent_lm_stick_abs <= mLMTangentStickAbsTolerance || normal_tangent_stick_ratio <= mNormalTangentRatio) && (tangent_lm_slip_ratio <= mLMTangentSlipRatioTolerance || tangent_lm_slip_abs <= mLMTangentSlipAbsTolerance || normal_tangent_slip_ratio <= mNormalTangentRatio);
 
-            if ( disp_converged && lm_converged ) {
+            if ( disp_converged && rot_converged && lm_converged ) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
