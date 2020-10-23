@@ -193,8 +193,8 @@ private:
     //void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
     void InitializeSolutionStrategy(
-        TLinearSolver::Pointer pLinearSolver,
-        BuilderSolverPointerType pBuilderAndSolver)
+        TLinearSolver::Pointer pLinearSolver)//,
+        //BuilderSolverPointerType pBuilderAndSolver)
     {
         // Generate a linear solver strategy
         auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -206,15 +206,22 @@ private:
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
+
+        auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
+        //auto p_builder_solver = Kratos::make_unique<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
     
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_smoothing_model_part,
             p_scheme,
             pLinearSolver,
-            pBuilderAndSolver,
+            p_builder_solver, //pBuilderAndSolver,
             CalculateReactions,
             ReformDofAtEachIteration,
             CalculateNormDxFlag);
+
+        mp_solving_strategy->Initialize();
+
+        mp_solving_strategy->SetEchoLevel(0);
     
         mp_solving_strategy->Check();
     }

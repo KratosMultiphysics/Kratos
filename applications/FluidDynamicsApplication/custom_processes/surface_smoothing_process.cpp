@@ -76,10 +76,10 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     // Generate an auxilary model part and populate it by elements of type MySimpleElement
     CreateAuxModelPart();
 
-    auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
+    //auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
     //auto p_builder_solver = Kratos::make_unique<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-    InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+    InitializeSolutionStrategy(plinear_solver);//, p_builder_solver);
 }
 
 void SurfaceSmoothingProcess::CreateAuxModelPart()
