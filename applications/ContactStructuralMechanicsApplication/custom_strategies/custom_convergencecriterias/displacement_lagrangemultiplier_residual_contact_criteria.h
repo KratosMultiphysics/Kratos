@@ -233,7 +233,8 @@ public:
                         } else if ((*p_check_disp)(r_curr_var)) {
                             disp_residual_solution_norm += std::pow(residual_dof_value, 2);
                             ++disp_dof_num;
-                        } else {
+                        } else { // We will assume is rotation dof
+                            KRATOS_DEBUG_ERROR_IF_NOT((r_curr_var == ROTATION_X) || (r_curr_var == ROTATION_Y) || (r_curr_var == ROTATION_Z)) << "Variable must be a ROTATION and it is: " << r_curr_var.Name() << std::endl;
                             rot_residual_solution_norm += std::pow(residual_dof_value, 2);
                             ++rot_dof_num;
                         }
