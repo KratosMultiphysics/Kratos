@@ -155,7 +155,7 @@ public:
     /**
      * @brief Returns the initial stress vector if it is defined in the geometry
      */
-    const Vector GetInitialStressVector(Parameters& rParameterValues)
+    Vector GetInitialStressVector(Parameters& rParameterValues) const
     {
         const auto &r_geometry = rParameterValues.GetElementGeometry();
         if (r_geometry.Has(INITIAL_STRESS_VECTOR)) {
@@ -168,7 +168,7 @@ public:
     /**
      * @brief Returns the initial strain vector if it is defined in the geometry
      */
-    const Vector GetInitialStrainVector(Parameters& rParameterValues)
+    Vector GetInitialStrainVector(Parameters& rParameterValues) const
     {
         const auto &r_geometry = rParameterValues.GetElementGeometry();
         if (r_geometry.Has(INITIAL_STRAIN_VECTOR)) {
