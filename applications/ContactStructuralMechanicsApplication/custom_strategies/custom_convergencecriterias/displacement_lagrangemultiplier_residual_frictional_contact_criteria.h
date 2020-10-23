@@ -110,6 +110,8 @@ public:
      * @brief Default constructor
      * @param DispRatioTolerance Relative tolerance for displacement residual error
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
+     * @param RotRatioTolerance Relative tolerance for rotation residual error
+     * @param RotAbsTolerance Absolute tolerance for rotation residual error
      * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
      * @param LMAbsTolerance Absolute tolerance for lagrange multiplier residual error
      * @param EnsureContact To check if the contact is lost
