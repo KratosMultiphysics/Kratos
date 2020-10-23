@@ -30,6 +30,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/serializer.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos
@@ -130,43 +131,13 @@ public:
     {
         KRATOS_TRY;
 
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
-
         double CurrentDt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
-        std::vector<double> MaxCFL(NumThreads,0.0);
-
-        #pragma omp parallel shared(MaxCFL)
+        const double CurrentCFL = block_for_each<MaxReduction<double>>(mrModelPart.Elements(), GeometryDataContainer(), [&](
+            Element& rElem, GeometryDataContainer& rGeometryInfo)
         {
-            int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
-
-            GeometryDataContainer GeometryInfo;
-
-            double MaxLocalCFL = 0.0;
-
-            for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-                double ElementCFL = CalculateElementCFL(*itElem,GeometryInfo,CurrentDt);
-                if (ElementCFL > MaxLocalCFL)
-                {
-                   MaxLocalCFL = ElementCFL;
-                }
-            }
-
-            MaxCFL[k] = MaxLocalCFL;
-        }
-
-        // Reduce to maximum the thread results
-        // Note that MSVC14 does not support max reductions, which are part of OpenMP 3.1
-        double CurrentCFL = MaxCFL[0];
-        for (unsigned int k = 1; k < NumThreads; k++)
-        {
-            if (CurrentCFL > MaxCFL[k]) CurrentCFL = MaxCFL[k];
-        }
+            return CalculateElementCFL(rElem, rGeometryInfo, CurrentDt);
+        });
 
         double NewDt = 0.0;
 
