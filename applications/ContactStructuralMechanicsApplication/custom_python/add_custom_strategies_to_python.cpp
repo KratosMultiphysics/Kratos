@@ -243,8 +243,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double >())
-        .def(py::init< double, double, bool >())
+        .def(py::init< double, double, double, double >())
+        .def(py::init< double, double, double, double, bool >())
         ;
 
     // Displacement and lagrange multiplier Convergence Criterion

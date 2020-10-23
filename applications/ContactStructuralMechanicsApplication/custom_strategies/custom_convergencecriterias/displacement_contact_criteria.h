@@ -92,16 +92,20 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
     /**
+     * @brief Default constructor.
      * @param DispRatioTolerance Relative tolerance for displacement error
      * @param DispAbsTolerance Absolute tolerance for displacement error
+     * @param RotRatioTolerance Relative tolerance for rotation error
+     * @param RotAbsTolerance Absolute tolerance for rotation error
      * @param pTable The pointer to the output table
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementContactCriteria(
         const TDataType DispRatioTolerance,
         const TDataType DispAbsTolerance,
+        const TDataType RotRatioTolerance,
+        const TDataType RotAbsTolerance,
         const bool PrintingOutput = false
         )
         : BaseType()
@@ -115,9 +119,9 @@ public:
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
-        // The displacement solution // TODO: Update to consistent names
-        mRotRatioTolerance = DispRatioTolerance;
-        mRotAbsTolerance = DispAbsTolerance;
+        // The rotation solution
+        mRotRatioTolerance = RotRatioTolerance;
+        mRotAbsTolerance = RotAbsTolerance;
     }
 
     /**
@@ -342,7 +346,9 @@ public:
             "ensure_contact"                  : false,
             "print_convergence_criterion"     : false,
             "displacement_relative_tolerance" : 1.0e-4,
-            "displacement_absolute_tolerance" : 1.0e-9
+            "displacement_absolute_tolerance" : 1.0e-9,
+            "rotation_relative_tolerance"     : 1.0e-4,
+            "rotation_absolute_tolerance"     : 1.0e-9
         })");
 
         // Getting base class default parameters
@@ -405,9 +411,9 @@ protected:
         mDispRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
 
-        // The rotation solution  // TODO: Update to consistent names
-        mRotRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
-        mRotAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
+        // The rotation solution
+        mRotRatioTolerance = ThisParameters["rotation_relative_tolerance"].GetDouble();
+        mRotAbsTolerance = ThisParameters["rotation_absolute_tolerance"].GetDouble();
 
         // Set local flags
         mOptions.Set(DisplacementContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
