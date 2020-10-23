@@ -81,48 +81,35 @@ def _GetIO(io_type):
 class _FilenameGetter(object):
 
     def __init__(self, settings):
-        filename = settings['file_name']
+        self.filename = settings['file_name']
+        self.model_part = None
+        if (not self.filename.endswith(".h5")):
+            self.filename += ".h5"
 
-        self.list_of_file_names = None
-        if (settings['file_access_mode'] in ["exclusive", "truncate"] and 'max_files_to_keep' in settings.keys()):
-            max_number_of_files_to_keep = settings['max_files_to_keep']
-            if (max_number_of_files_to_keep == "unlimited"):
-                self.list_of_file_names = None
-            else:
-                max_number_of_files_to_keep = int(max_number_of_files_to_keep)
-                if (max_number_of_files_to_keep <= 0):
-                    raise Exception("max_files_to_keep should be greater than 0")
-                self.list_of_file_names = [""] * max_number_of_files_to_keep
+        self.max_files_to_keep = None
+        if ("file_access_mode" in settings.keys() and "max_files_to_keep" in settings.keys()):
+            if (settings["file_access_mode"] == "truncate" and settings["max_files_to_keep"] != "unlimited"):
+                self.max_files_to_keep = int(settings["max_files_to_keep"])
+                if (self.max_files_to_keep <= 0):
+                    raise Exception("max_files_to_keep should be greater than zero.")
 
-        self.filename_parts = filename.split('<time>')
         if settings.Has('time_format'):
             self.time_format = settings['time_format']
         else:
             self.time_format = ''
 
-    def Get(self, model_part=None):
-        if hasattr(model_part, 'ProcessInfo'):
-            time = model_part.ProcessInfo[KratosMultiphysics.TIME]
-            filename = format(time, self.time_format).join(self.filename_parts)
-        else:
-            filename = ''.join(self.filename_parts)
-        if hasattr(model_part, 'Name'):
-            filename = filename.replace('<model_part_name>', model_part.Name)
-        if not filename.endswith('.h5'):
-            filename += '.h5'
+    def Get(self, model_part):
+        if (self.model_part != model_part):
+            self.model_part = model_part
+            self.file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, self.filename, {"<time>": self.time_format})
 
-        if (not self.list_of_file_names is None):
-            try:
-                pos = self.list_of_file_names.index("")
-                self.list_of_file_names[pos] = filename
-            except ValueError:
-                first_file_name = self.list_of_file_names.pop(0)
-                if hasattr(model_part, "GetCommunicator"):
-                    if (model_part.GetCommunicator().MyPID() == 0):
-                        kratos_utils.DeleteFileIfExisting(first_file_name)
-                self.list_of_file_names.append(filename)
+        if (self.max_files_to_keep is not None):
+            list_of_file_names = self.file_name_data_collector.GetSortedFileNamesList(["<time>", "<step>", "<rank>"])
+            if (len(list_of_file_names) >= self.max_files_to_keep):
+                for file_name in list_of_file_names[:len(list_of_file_names) - self.max_files_to_keep + 1]:
+                    kratos_utils.DeleteFileIfExisting(file_name)
 
-        return filename
+        return self.file_name_data_collector.GetFileName()
 
 
 class _FilenameGetterWithDirectoryInitialization(object):
