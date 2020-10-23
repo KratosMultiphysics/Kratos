@@ -16,6 +16,7 @@ sys.path.append(fluid_ulf_var.kratos_path)
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.PFEMApplication import PfemUtils
 from KratosMultiphysics.StructuralApplication import *
 
 # defining a model part for the fluid and one for the structure
