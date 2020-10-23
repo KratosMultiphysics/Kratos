@@ -320,10 +320,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierResidualFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double, double, double, double >())
-        .def(py::init< double, double, double, double, double, double, double, double, double , bool >())
-        .def(py::init< double, double, double, double, double, double, double, double, double , bool, bool >())
-        .def(py::init< double, double, double, double, double, double, double, double, double , bool, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, double, double , bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, double, double , bool, bool, bool >())
         ;
 
     // Error mesh Convergence Criterion
