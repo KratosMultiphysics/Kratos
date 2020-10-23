@@ -177,6 +177,8 @@ public:
             // Initialize
             TDataType disp_residual_solution_norm = 0.0;
             IndexType disp_dof_num(0);
+            TDataType rot_residual_solution_norm = 0.0;
+            IndexType rot_dof_num(0);
 
             // First iterator
             const auto it_dof_begin = rDofSet.begin();
@@ -186,36 +188,64 @@ public:
             TDataType residual_dof_value = 0.0;
 
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_residual_solution_norm,disp_dof_num,dof_id,residual_dof_value)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = it_dof_begin + i;
+            if (mOptions.Is(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                #pragma omp parallel for reduction(+:disp_residual_solution_norm,disp_dof_num,rot_residual_solution_norm,rot_dof_num,dof_id,residual_dof_value)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
-                    residual_dof_value = rb[dof_id];
+                    if (it_dof->IsFree()) {
+                        dof_id = it_dof->EquationId();
+                        residual_dof_value = rb[dof_id];
 
-                    const auto curr_var = it_dof->GetVariable();
-                    disp_residual_solution_norm += residual_dof_value * residual_dof_value;
-                    disp_dof_num++;
+                        const auto& r_curr_var = it_dof->GetVariable();
+                        if ((r_curr_var == DISPLACEMENT_X) || (r_curr_var == DISPLACEMENT_Y) || (r_curr_var == DISPLACEMENT_Z)) {
+                            disp_residual_solution_norm += std::pow(residual_dof_value, 2);
+                            ++disp_dof_num;
+                        } else {
+                            rot_residual_solution_norm += std::pow(residual_dof_value, 2);
+                            ++rot_dof_num;
+                        }
+                    }
+                }
+            } else {
+                #pragma omp parallel for reduction(+:disp_residual_solution_norm,disp_dof_num,dof_id,residual_dof_value)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
+
+                    if (it_dof->IsFree()) {
+                        dof_id = it_dof->EquationId();
+                        residual_dof_value = rb[dof_id];
+
+                        disp_residual_solution_norm += std::pow(residual_dof_value, 2);
+                        ++disp_dof_num;
+                    }
                 }
             }
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
+            mRotCurrentResidualNorm = rot_residual_solution_norm;
 
             TDataType residual_disp_ratio = 1.0;
+            TDataType residual_rot_ratio = 1.0;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
                 mDispInitialResidualNorm = (disp_residual_solution_norm == 0.0) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
+                if (mOptions.Is(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                    mRotInitialResidualNorm = (rot_residual_solution_norm == 0.0) ? 1.0 : rot_residual_solution_norm;
+                    residual_rot_ratio = 1.0;
+                }
                 mOptions.Set(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, true);
             }
 
             // We calculate the ratio of the displacements
             residual_disp_ratio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
+            residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
 
             // We calculate the absolute norms
             const TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
+            const TDataType residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -226,15 +256,25 @@ public:
                     std::cout.precision(4);
                     TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                     auto& r_table = p_table->GetTable();
-                    r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance;
+                    if (mOptions.Is(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                        r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << residual_rot_ratio << mRotRatioTolerance << residual_rot_abs << mRotAbsTolerance;
+                    } else {
+                        r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance;
+                    }
                 } else {
                     std::cout.precision(4);
                     if (mOptions.IsNot(DisplacementResidualContactCriteria::PRINTING_OUTPUT)) {
                         KRATOS_INFO("DisplacementResidualContactCriteria") << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementResidualContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementResidualContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_rot_ratio << BOLDFONT(" EXP.RATIO = ") << mRotRatioTolerance << BOLDFONT(" ABS = ") << residual_rot_abs << BOLDFONT(" EXP.ABS = ") << mRotAbsTolerance << std::endl;
+                        }
                     } else {
                         KRATOS_INFO("DisplacementResidualContactCriteria") << "RESIDUAL CONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementResidualContactCriteria") << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementResidualContactCriteria") << "\tDISPLACEMENT: RATIO = " << residual_rot_ratio << " EXP.RATIO = " << mRotRatioTolerance << " ABS = " << residual_rot_abs << " EXP.ABS = " << mRotAbsTolerance << std::endl;
+                        }
                     }
                 }
             }
@@ -244,8 +284,9 @@ public:
 
             // We check if converged
             const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
+            const bool rot_converged = (mOptions.Is(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) ? (residual_rot_ratio <= mRotRatioTolerance || residual_rot_abs <= mRotAbsTolerance) : true;
 
-            if (disp_converged) {
+            if (disp_converged && rot_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
