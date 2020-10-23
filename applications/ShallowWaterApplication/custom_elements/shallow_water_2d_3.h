@@ -73,6 +73,8 @@ public:
         array_1d<double, 9> unknown;
         array_1d<double, 9> prev_unk;
 
+        bool is_monotonic_calculation;
+
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
 
@@ -196,6 +198,11 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
     /**
+     * Getting method to obtain the variable which defines the degrees of freedom
+     */
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
@@ -227,6 +234,16 @@ public:
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input
@@ -334,6 +351,14 @@ protected:
         MatrixType& rLHS,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
+
+    /*
+     * This method is adding a matrix with positive diagonal and negative
+     * off diagonal terms. The sum of the rows and the columns is zero.
+     */
+    void AddLowOrderDiffusion(
+        MatrixType& rLHS,
+        const ElementData& rData);
 
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
