@@ -189,8 +189,8 @@ public:
     {
         if (SparseSpaceType::Size(rDx) != 0) { //if we are solving for something
             // Initialize
-            TDataType disp_solution_norm = 0.0, lm_solution_norm = 0.0, disp_increase_norm = 0.0, lm_increase_norm = 0.0;
-            IndexType disp_dof_num(0),lm_dof_num(0);
+            TDataType disp_solution_norm = 0.0, rot_solution_norm = 0.0, lm_solution_norm = 0.0, disp_increase_norm = 0.0, rot_increase_norm = 0.0, lm_increase_norm = 0.0;
+            IndexType disp_dof_num(0),rot_dof_num(0),lm_dof_num(0);
 
             // First iterator
             const auto it_dof_begin = rDofSet.begin();
@@ -203,42 +203,77 @@ public:
             const std::size_t number_active_dofs = rb.size();
 
             // Loop over Dofs
-            #pragma omp parallel for firstprivate(dof_id, dof_value ,dof_incr) reduction(+:disp_solution_norm, lm_solution_norm, disp_increase_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = it_dof_begin + i;
+            if (mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                #pragma omp parallel for firstprivate(dof_id, dof_value ,dof_incr) reduction(+:disp_solution_norm, rot_solution_norm, lm_solution_norm, disp_increase_norm, rot_increase_norm, lm_increase_norm, disp_dof_num, rot_dof_num, lm_dof_num)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
 
-                dof_id = it_dof->EquationId();
+                    dof_id = it_dof->EquationId();
 
-                // Check dof id is solved
-                if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id] == 1) {
-                        dof_value = it_dof->GetSolutionStepValue(0);
-                        dof_incr = rDx[dof_id];
+                    // Check dof id is solved
+                    if (dof_id < number_active_dofs) {
+                        if (mActiveDofs[dof_id] == 1) {
+                            dof_value = it_dof->GetSolutionStepValue(0);
+                            dof_incr = rDx[dof_id];
 
-                        const auto& r_curr_var = it_dof->GetVariable();
-                        if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
-                            lm_solution_norm += dof_value * dof_value;
-                            lm_increase_norm += dof_incr * dof_incr;
-                            lm_dof_num++;
-                        } else {
-                            disp_solution_norm += dof_value * dof_value;
-                            disp_increase_norm += dof_incr * dof_incr;
-                            disp_dof_num++;
+                            const auto& r_curr_var = it_dof->GetVariable();
+                            if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                                lm_solution_norm += std::pow(dof_value, 2);
+                                lm_increase_norm += std::pow(dof_incr, 2);
+                                ++lm_dof_num;
+                            } else if ((r_curr_var == DISPLACEMENT_X) || (r_curr_var == DISPLACEMENT_Y) || (r_curr_var == DISPLACEMENT_Z)) {
+                                disp_solution_norm += std::pow(dof_value, 2);
+                                disp_increase_norm += std::pow(dof_incr, 2);
+                                ++disp_dof_num;
+                            } else { // We will assume is rotation dof
+                                rot_solution_norm += std::pow(dof_value, 2);
+                                rot_increase_norm += std::pow(dof_incr, 2);
+                                ++rot_dof_num;
+                            }
+                        }
+                    }
+                }
+            } else {
+                #pragma omp parallel for firstprivate(dof_id, dof_value ,dof_incr) reduction(+:disp_solution_norm, lm_solution_norm, disp_increase_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
+                for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                    auto it_dof = it_dof_begin + i;
+
+                    dof_id = it_dof->EquationId();
+
+                    // Check dof id is solved
+                    if (dof_id < number_active_dofs) {
+                        if (mActiveDofs[dof_id] == 1) {
+                            dof_value = it_dof->GetSolutionStepValue(0);
+                            dof_incr = rDx[dof_id];
+
+                            const auto& r_curr_var = it_dof->GetVariable();
+                            if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                                lm_solution_norm += std::pow(dof_value, 2);
+                                lm_increase_norm += std::pow(dof_incr, 2);
+                                ++lm_dof_num;
+                            } else {
+                                disp_solution_norm += std::pow(dof_value, 2);
+                                disp_increase_norm += std::pow(dof_incr, 2);
+                                ++disp_dof_num;
+                            }
                         }
                     }
                 }
             }
 
             if(disp_increase_norm < Tolerance) disp_increase_norm = 1.0;
+            if(rot_increase_norm < Tolerance) rot_increase_norm = 1.0;
             if(lm_increase_norm < Tolerance) lm_increase_norm = 1.0;
             if(disp_solution_norm < Tolerance) disp_solution_norm = 1.0;
 
             KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
+            const TDataType rot_ratio = std::sqrt(rot_increase_norm/rot_solution_norm);
             const TDataType lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
 
             const TDataType disp_abs = std::sqrt(disp_increase_norm)/static_cast<TDataType>(disp_dof_num);
+            const TDataType rot_abs = std::sqrt(rot_increase_norm)/static_cast<TDataType>(rot_dof_num);
             const TDataType lm_abs = std::sqrt(lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
 
             // The process info of the model part
@@ -250,16 +285,26 @@ public:
                     std::cout.precision(4);
                     TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                     auto& r_table = p_table->GetTable();
-                    r_table  << disp_ratio  << mDispRatioTolerance  << disp_abs  << mDispAbsTolerance  << lm_ratio  << mLMRatioTolerance  << lm_abs  << mLMAbsTolerance;
+                    if (mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                        r_table << disp_ratio << mDispRatioTolerance << disp_abs << mDispAbsTolerance << rot_ratio << mRotRatioTolerance << rot_abs << mRotAbsTolerance << lm_ratio << mLMRatioTolerance << lm_abs << mLMAbsTolerance;
+                    } else {
+                        r_table << disp_ratio << mDispRatioTolerance << disp_abs << mDispAbsTolerance << lm_ratio << mLMRatioTolerance << lm_abs << mLMAbsTolerance;
+                    }
                 } else {
                     std::cout.precision(4);
                     if (mOptions.IsNot(DisplacementLagrangeMultiplierContactCriteria::PRINTING_OUTPUT)) {
                         KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl;
                         KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT("\tROTATION: RATIO = ") << rot_ratio << BOLDFONT(" EXP.RATIO = ") << mRotRatioTolerance << BOLDFONT(" ABS = ") << rot_abs << BOLDFONT(" EXP.ABS = ") << mRotAbsTolerance << std::endl;
+                        }
                         KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT(" LAGRANGE MUL:\tRATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
                     } else {
                         KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << "DoF ONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl;
                         KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << "\tDISPLACEMENT: RATIO = " << disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        if (mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+                            KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << "\tROTATION: RATIO = " << rot_ratio << " EXP.RATIO = " << mRotRatioTolerance << " ABS = " << rot_abs << " EXP.ABS = " << mRotAbsTolerance << std::endl;
+                        }
                         KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << " LAGRANGE MUL:\tRATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
                     }
                 }
@@ -267,9 +312,10 @@ public:
 
             // We check if converged
             const bool disp_converged = (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
+            const bool rot_converged = (mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ROTATION_DOF_IS_CONSIDERED)) ? (rot_ratio <= mRotRatioTolerance || rot_abs <= mRotAbsTolerance) : true;
             const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
 
-            if (disp_converged && lm_converged) {
+            if (disp_converged && rot_converged && lm_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
