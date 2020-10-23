@@ -18,7 +18,6 @@ sys.path.append(problem_settings.kratos_path)
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
-#from KratosMultiphysics.PFEMApplication import PfemUtils
 #from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
