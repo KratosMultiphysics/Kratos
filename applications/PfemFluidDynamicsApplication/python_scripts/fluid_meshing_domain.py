@@ -26,19 +26,12 @@ class FluidMeshingDomain(object):
         {
 	    "python_module": "meshing_domain",
             "model_part_name": "model_part_name",
-            "alpha_shape": 2.4,
-            "offset_factor": 0.0,
+            "alpha_shape": 1.25,
             "meshing_strategy":{
                "python_module": "meshing_strategy",
-               "meshing_frequency": 0.0,
                "remesh": false,
                "refine": false,
-               "reconnect": false,
                "transfer": false,
-               "constrained": false,
-               "mesh_smoothing": false,
-               "variables_smoothing": false,
-               "elemental_variables_to_smooth":[],
                "reference_element_type": "Element2D3N",
                "reference_condition_type": "CompositeCondition2D2N"
             },
@@ -56,41 +49,7 @@ class FluidMeshingDomain(object):
                     "final_time"       : 1,
                     "upper_point"      : [10,10,10],
                     "lower_point"      : [-10,-10,-10]
-            },
-            "refining_parameters":{
-               "critical_size": 0.0,
-               "threshold_variable": "PLASTIC_STRAIN",
-               "reference_threshold" : 0.0,
-               "error_variable": "NORM_ISOCHORIC_STRESS",
-               "reference_error" : 0.0,
-               "add_nodes": true,
-               "insert_nodes": false,
-               "remove_nodes": {
-                   "apply_removal": false,
-                   "on_distance": false,
-                   "on_threshold": false,
-                   "on_error": false
-               },
-               "remove_boundary": {
-                   "apply_removal": false,
-                   "on_distance": false,
-                   "on_threshold": false,
-                   "on_error": false
-               },
-               "refine_elements": {
-                   "apply_refinement": false,
-                   "on_distance": false,
-                   "on_threshold": false,
-                   "on_error": false
-               },
-               "refine_boundary": {
-                   "apply_refinement": false,
-                   "on_distance": false,
-                   "on_threshold": false,
-                   "on_error": false
-               }
-            },
-            "elemental_variables_to_transfer":[]
+            }
         }
         """)
 
@@ -135,17 +94,6 @@ class FluidMeshingDomain(object):
         self.InfoParameters.Initialize()
 
     #
-    def SetTransferParameters(self):
-
-        # Create TransferParameters
-        self.TransferParameters = KratosDelaunay.TransferParameters()
-        transfer_variables = self.settings["elemental_variables_to_transfer"]
-        #for variable in transfer_variables:
-        #    self.TransferParameters.SetVariable( KratosMultiphysics.KratosGlobals.GetVariable( variable.GetString() ) )
-        for i in range(0, transfer_variables.size() ):
-            self.TransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(transfer_variables[i].GetString()))
-
-    #
     def SetRefiningParameters(self):
 
         # Create RefiningParameters
@@ -169,37 +117,31 @@ class FluidMeshingDomain(object):
         removing_options = KratosMultiphysics.Flags()
 
         #remove nodes
-        remove_nodes = self.settings["refining_parameters"]["remove_nodes"]
-        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES, remove_nodes["apply_removal"].GetBool())
-        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_DISTANCE, remove_nodes["on_distance"].GetBool())
-        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_ERROR, remove_nodes["on_error"].GetBool())
-        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_THRESHOLD, remove_nodes["on_threshold"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES, True)
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_DISTANCE, True)
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_ERROR, False)
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_THRESHOLD, False)
 
         #remove boundary
-        remove_boundary = self.settings["refining_parameters"]["remove_boundary"]
-        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES, remove_boundary["apply_removal"].GetBool())
-        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_DISTANCE, remove_boundary["on_distance"].GetBool())
-        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_ERROR, remove_boundary["on_error"].GetBool())
-        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES, False)
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_DISTANCE, False)
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_ERROR, False)
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_THRESHOLD, False)
 
         refining_options = KratosMultiphysics.Flags()
         refining_options.Set(KratosDelaunay.MesherUtilities.REFINE, self.settings["meshing_strategy"]["refine"].GetBool())
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES, self.settings["refining_parameters"]["add_nodes"].GetBool())
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_INSERT_NODES, self.settings["refining_parameters"]["insert_nodes"].GetBool())
 
         #refine elements
-        refine_elements = self.settings["refining_parameters"]["refine_elements"]
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS, refine_elements["apply_refinement"].GetBool())
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_DISTANCE, refine_elements["on_distance"].GetBool())
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_ERROR, refine_elements["on_error"].GetBool())
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_THRESHOLD, refine_elements["on_threshold"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS, False)
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_DISTANCE, False)
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_ERROR, False)
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_THRESHOLD, False)
 
         #refine boundary
-        refine_boundary = self.settings["refining_parameters"]["refine_boundary"]
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY, refine_boundary["apply_refinement"].GetBool())
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_DISTANCE, refine_boundary["on_distance"].GetBool())
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_ERROR, refine_boundary["on_error"].GetBool())
-        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_THRESHOLD, refine_boundary["on_threshold"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY, False)
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_DISTANCE, False)
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_ERROR, False)
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_THRESHOLD, False)
 
         self.RefiningParameters.SetRefiningOptions(refining_options)
         self.RefiningParameters.SetRemovingOptions(removing_options)
@@ -213,19 +155,14 @@ class FluidMeshingDomain(object):
 
         self.MeshingParameters.SetSubModelPartName(self.settings["model_part_name"].GetString())
 
-
-
         if(self.active_remeshing):
 
             self.MeshingParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
-            self.MeshingParameters.SetOffsetFactor(self.settings["offset_factor"].GetDouble())
 
             self.SetInfoParameters()
-            self.SetTransferParameters()
             self.SetRefiningParameters()
 
             self.MeshingParameters.SetInfoParameters(self.InfoParameters)
-            self.MeshingParameters.SetTransferParameters(self.TransferParameters)
             self.MeshingParameters.SetRefiningParameters(self.RefiningParameters)
 
 
@@ -247,9 +184,6 @@ class FluidMeshingDomain(object):
 
         # set mesher utilities
         self.mesher_utils = KratosDelaunay.MesherUtilities()
-
-        # set the domain labels to mesh mesher
-        critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
 
         critical_radius = self.mesher_utils.CheckCriticalRadius(self.main_model_part,critical_mesh_size)
         print(" CriticalRadius ", critical_radius)

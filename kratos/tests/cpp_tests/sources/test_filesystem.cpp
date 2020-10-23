@@ -50,6 +50,17 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(Kratos::FilesystemExtensions::JoinPaths(paths_2), "");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FileSystemParentPathFilename, KratosCoreFastSuite)
+{
+    std::vector<std::string> paths_1 {"sl", "", "uom", "dssc"};
+    const std::string& path = Kratos::FilesystemExtensions::JoinPaths(paths_1);
+    const auto& parent_path = Kratos::filesystem::parent_path(path);
+    const auto& parent_parent_path = Kratos::filesystem::parent_path(parent_path);
+    KRATOS_CHECK_STRING_EQUAL(parent_parent_path, "sl");
+    KRATOS_CHECK_STRING_EQUAL(Kratos::filesystem::filename(parent_path), "uom");
+    KRATOS_CHECK_STRING_EQUAL(Kratos::filesystem::filename(path), "dssc");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinEmptyPaths, KratosCoreFastSuite)
 {
     std::vector<std::string> paths_1 {"eee", "", "gt"};
@@ -204,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
 
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(dir_name));
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(sub_dir));
-    KRATOS_CHECK(Kratos::filesystem::create_directory(sub_dir));
+    KRATOS_CHECK(Kratos::filesystem::create_directories(sub_dir));
 
     std::ofstream output_file;
     output_file.open(file_name_1);
@@ -223,7 +234,8 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
     for (const auto& r_dir : list_of_dirs) {
         bool found_check_dir = false;
         for (const auto& check_dir : check_list) {
-            if (check_dir == r_dir) {
+            if (filesystem::parent_path(r_dir) == filesystem::parent_path(check_dir) &&
+                filesystem::filename(r_dir) == filesystem::filename(check_dir)) {
                 found_check_dir = true;
                 break;
             }
