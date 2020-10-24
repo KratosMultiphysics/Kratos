@@ -129,14 +129,14 @@ public:
      * @param rResult
      * @param rCurrentProcessInfo
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given array with containing the element's degrees of freedom
     /**
      * @param rElementalDofList
      * @param rCurrentProcessInfo
      */
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Evaluate the elemental contribution to the problem for turbulent viscosity.
     /**
@@ -144,11 +144,11 @@ public:
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

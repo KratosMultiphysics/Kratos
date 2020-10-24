@@ -24,6 +24,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
+#include "custom_utilities/algebraic_flux_correction_utility.h"
 
 
 namespace Kratos
@@ -58,6 +59,7 @@ namespace Python
         .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
+        .def("ComputeEnergy", &ShallowWaterUtilities::ComputeEnergy)
         .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
@@ -107,6 +109,13 @@ namespace Python
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;
 
+    py::class_<AlgebraicFluxCorrectionUtility>(m,"AlgebraicFluxCorrectionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("InitializeCorrection", &AlgebraicFluxCorrectionUtility::InitializeCorrection)
+        .def("GetHighOrderValues", &AlgebraicFluxCorrectionUtility::GetHighOrderValues)
+        .def("GetLowOrderValues", &AlgebraicFluxCorrectionUtility::GetLowOrderValues)
+        .def("ApplyCorrection", &AlgebraicFluxCorrectionUtility::ApplyCorrection)
+        ;
   }
 
 }  // namespace Python.

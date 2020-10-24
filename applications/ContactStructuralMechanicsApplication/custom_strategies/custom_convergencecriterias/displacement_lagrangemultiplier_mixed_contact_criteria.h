@@ -139,32 +139,9 @@ public:
     explicit DisplacementLagrangeMultiplierMixedContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
         : BaseType()
     {
-        // The default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "ensure_contact"                                     : false,
-            "print_convergence_criterion"                        : false,
-            "residual_relative_tolerance"                        : 1.0e-4,
-            "residual_absolute_tolerance"                        : 1.0e-9,
-            "contact_displacement_relative_tolerance"            : 1.0e-4,
-            "contact_displacement_absolute_tolerance"            : 1.0e-9
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        // The displacement solution
-        mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
-        mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
-
-        // The contact solution
-        mLMRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
-        mLMAbsTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
-
-        // Set local flags
-        mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
-        mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
-        mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::TABLE_IS_INITIALIZED, false);
-        mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     //* Copy constructor.
@@ -385,6 +362,39 @@ public:
         ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                    : "displacement_lagrange_multiplier_mixed_contact_criteria",
+            "ensure_contact"                          : false,
+            "print_convergence_criterion"             : false,
+            "residual_relative_tolerance"             : 1.0e-4,
+            "residual_absolute_tolerance"             : 1.0e-9,
+            "contact_displacement_relative_tolerance" : 1.0e-4,
+            "contact_displacement_absolute_tolerance" : 1.0e-9
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "displacement_lagrange_multiplier_mixed_contact_criteria";
+    }
+
+
     ///@}
     ///@name Operations
     ///@{
@@ -413,6 +423,29 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // The displacement solution
+        mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+        mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+
+        // The contact solution
+        mLMRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
+        mLMAbsTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
+
+        // Set local flags
+        mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
+        mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
+        mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+    }
 
     ///@}
     ///@name Protected Operations
