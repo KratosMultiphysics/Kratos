@@ -160,6 +160,18 @@ class TestFileNameDataCollector(KratosUnittest.TestCase):
         check_sorted_list(["<step>", "<rank>"], [2, 4, 9, 5, 8, 0, 6, 7, 3])
         check_sorted_list(["<time>", "<rank>"], [0, 4, 7, 5, 8, 2, 6, 9, 3])
 
+    def test_ExtractFileNamePattern(self):
+        extract_pattern = KratosMultiphysics.FileNameDataCollector.ExtractFileNamePattern
+
+        self.assertEqual((True, "/test/TestModelParte-<time>.h<step>"), extract_pattern("/test/TestModelParte-0.00.h5", ["<time>", "<step>"]))
+        self.assertEqual((True, "TestModelParte-<time>.h5"), extract_pattern("TestModelParte-0.00.h5", ["<time>"]))
+        self.assertEqual((True, "TestModelParte-<step>.00.h5"), extract_pattern("TestModelParte-0.00.h5", ["<step>"]))
+        self.assertEqual((True, "TestModelPart_10-<time>.h5"), extract_pattern("TestModelPart_10-0.00.h5", ["<skip_float>","<time>"]))
+        self.assertEqual((True, "TestModelPart_10.0-<time>.h5"), extract_pattern("TestModelPart_10.0-0.00.h5", ["<skip_float>","<time>"]))
+        self.assertEqual((True, "TestModelPart_10.<time>-0.00.h5"), extract_pattern("TestModelPart_10.0-0.00.h5", ["<skip_int>","<time>"]))
+        self.assertEqual((False, "TestModelPart_-0.00.vtk"), extract_pattern("TestModelPart_-0.00.vtk", ["<skip_float>", "<time>"]))
+        self.assertEqual((True, "TestModelParte-0-<time>.vtk"), extract_pattern("TestModelParte-0-1e-2.vtk", ["<skip_float>", "<time>"]))
+
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

@@ -136,6 +136,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_GetFileName'))
     smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_RetrieveFileNameData'))
     smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_SortListOfFileNameData'))
+    smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_ExtractFileNamePattern'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

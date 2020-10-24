@@ -278,6 +278,23 @@ public:
         std::vector<FileNameData>& rFileNameDataList,
         const std::vector<std::string>& rFlagsSortingOrder);
 
+    /**
+     * @brief Extracts file name pattern from a given file name
+     *
+     * This method returns the file name pattern matching given order of flags from left to right.
+     * If all the given flags are found, this returns true, otherwise false.
+     *
+     * Example patterns:
+     *      Check test_file_name_data_collector.py::test_ExtractFileNamePattern
+     *
+     * @param rFileName                         Filename with or without file path
+     * @param rFlagsList                        List of flags exists in the file name
+     * @return std::pair<bool, std::string>     bool: true if all flags are found, false otherwise; string: found pattern
+     */
+    static std::pair<bool, std::string> ExtractFileNamePattern(
+        const std::string& rFileName,
+        const std::vector<std::string>& rFlagsList);
+
     ///@}
 
 private:
@@ -369,6 +386,57 @@ private:
         }
 
         ///@}
+        ///@name Public static operations
+        ///{
+
+        /**
+         * @brief Retrieves integer value from rData
+         *
+         * This method tries to retrieve an integer value from
+         * rData starting from rCurrenPosition of rData string.
+         *
+         * Following string are recognized as integers
+         *      1. "123"
+         *      2. "   123"
+         *
+         * @param rValue                        Output integer value
+         * @param rCurrentPosition              Starting position of rData string to look for integer
+         * @param rData                         String to look for integer
+         * @return true                         If integer retrieval is successfull
+         * @return false                        If integer retrieval is not successfull
+         */
+        static bool RetrieveIntegerValue(
+            int& rValue,
+            std::size_t& rCurrentPosition,
+            const std::string& rData);
+
+        /**
+         * @brief Retrieves floating point value from rData
+         *
+         * This method tries to retrieve a floating point value from
+         * rData starting from rCurrenPosition of rData string.
+         *
+         * Followings patterns currently accepted as floating point values:
+         *      1. "10"
+         *      2. "12.2"
+         *      3. "10e-5"
+         *      4. "13e+2"
+         *      5. "1.4e-3"
+         *      6. "12.4E+10"
+         *      7. "1.4E-3"
+         *
+         * @param rValue                        Output floating value
+         * @param rCurrentPosition              Starting position of rData string to look for floating value
+         * @param rData                         String to look for floating value
+         * @return true                         If floating value retrieval is successfull
+         * @return false                        If floating value retrieval is not successfull
+         */
+        static bool RetrieveFloatingPointValue(
+            double& rValue,
+            std::size_t& rCurrentPosition,
+            const std::string& rData);
+
+        ///@}
 
     private:
         ///@name Private member variables
@@ -419,57 +487,6 @@ private:
                 return data_str;
             }
         }
-
-        ///@}
-        ///@name Private static operations
-        ///{
-
-        /**
-         * @brief Retrieves integer value from rData
-         *
-         * This method tries to retrieve an integer value from
-         * rData starting from rCurrenPosition of rData string.
-         *
-         * Following string are recognized as integers
-         *      1. "123"
-         *      2. "   123"
-         *
-         * @param rValue                        Output integer value
-         * @param rCurrentPosition              Starting position of rData string to look for integer
-         * @param rData                         String to look for integer
-         * @return true                         If integer retrieval is successfull
-         * @return false                        If integer retrieval is not successfull
-         */
-        static bool RetrieveIntegerValue(
-            int& rValue,
-            std::size_t& rCurrentPosition,
-            const std::string& rData);
-
-        /**
-         * @brief Retrieves floating point value from rData
-         *
-         * This method tries to retrieve a floating point value from
-         * rData starting from rCurrenPosition of rData string.
-         *
-         * Followings patterns currently accepted as floating point values:
-         *      1. "10"
-         *      2. "12.2"
-         *      3. "10e-5"
-         *      4. "13e+2"
-         *      5. "1.4e-3"
-         *      6. "12.4E+10"
-         *      7. "1.4E-3"
-         *
-         * @param rValue                        Output floating value
-         * @param rCurrentPosition              Starting position of rData string to look for floating value
-         * @param rData                         String to look for floating value
-         * @return true                         If floating value retrieval is successfull
-         * @return false                        If floating value retrieval is not successfull
-         */
-        static bool RetrieveFloatingPointValue(
-            double& rValue,
-            std::size_t& rCurrentPosition,
-            const std::string& rData);
 
         ///@}
     };

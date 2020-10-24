@@ -250,6 +250,78 @@ void FileNameDataCollector::SortListOfFileNameData(
     KRATOS_CATCH("");
 }
 
+std::pair<bool, std::string> FileNameDataCollector::ExtractFileNamePattern(
+    const std::string& rFileName,
+    const std::vector<std::string>& rFlagsList)
+{
+    KRATOS_TRY
+
+    int temp_int;
+    double temp_double;
+
+    std::size_t pos = 0;
+    std::size_t current_flag_index = 0;
+    std::string file_name_pattern = "";
+    while (pos < rFileName.length()) {
+        auto current_pos = pos;
+        if (current_flag_index < rFlagsList.size()) {
+            const auto& current_flag = rFlagsList[current_flag_index];
+            if (current_flag == "<time>") {
+                if (PatternFlag::RetrieveFloatingPointValue(temp_double, current_pos, rFileName)) {
+                    file_name_pattern += current_flag;
+                    current_flag_index++;
+                    pos = current_pos;
+                } else {
+                    file_name_pattern += rFileName[pos];
+                    pos++;
+                }
+            } else if (current_flag == "<step>" || current_flag == "<rank>") {
+                if (PatternFlag::RetrieveIntegerValue(temp_int, current_pos, rFileName)) {
+                    file_name_pattern += current_flag;
+                    current_flag_index++;
+                    pos = current_pos;
+                } else {
+                    file_name_pattern += rFileName[pos];
+                    pos++;
+                }
+            } else if (current_flag == "<skip_float>") {
+                if (PatternFlag::RetrieveFloatingPointValue(temp_double, current_pos, rFileName)) {
+                    file_name_pattern += rFileName.substr(pos, current_pos - pos);
+                    current_flag_index++;
+                    pos = current_pos;
+                } else {
+                    file_name_pattern += rFileName[pos];
+                    pos++;
+                }
+            } else if (current_flag == "<skip_int>") {
+                if (PatternFlag::RetrieveIntegerValue(temp_int, current_pos, rFileName)) {
+                    file_name_pattern += rFileName.substr(pos, current_pos - pos);
+                    current_flag_index++;
+                    pos = current_pos;
+                } else {
+                    file_name_pattern += rFileName[pos];
+                    pos++;
+                }
+            } else {
+                KRATOS_ERROR << "Unsupported flag name. [ flag_name = " << current_flag
+                             << " ].\n"
+                             << "Supported flags:"
+                             << "\n\t<time>"
+                             << "\n\t<rank>"
+                             << "\n\t<step"
+                             << "\n\t<skip_float>"
+                             << "\n\t<skip_int";
+            }
+        } else {
+            file_name_pattern += rFileName[pos++];
+        }
+    }
+
+    return std::make_pair(current_flag_index == rFlagsList.size(), file_name_pattern);
+
+    KRATOS_CATCH("");
+}
+
 void FileNameDataCollector::FindAndReplace(
     std::string& rInputString,
     const std::string& rSearchString,
@@ -386,7 +458,7 @@ bool FileNameDataCollector::PatternFlag::RetrieveIntegerValue(
 {
     bool found_digit = false;
     std::string s_value = "";
-    for (; rCurrentPosition < rData.size(); ++rCurrentPosition) {
+    for (; rCurrentPosition < rData.length(); ++rCurrentPosition) {
         const auto& c = rData[rCurrentPosition];
         if (std::isdigit(c)) {
             s_value += c;
@@ -415,7 +487,7 @@ bool FileNameDataCollector::PatternFlag::RetrieveFloatingPointValue(
 
     std::string s_value = "";
 
-    for (; rCurrentPosition < rData.size(); ++rCurrentPosition) {
+    for (; rCurrentPosition < rData.length(); ++rCurrentPosition) {
         const auto c = rData[rCurrentPosition];
         if (isdigit(c)) {
             found_digit = true;
@@ -423,7 +495,7 @@ bool FileNameDataCollector::PatternFlag::RetrieveFloatingPointValue(
         } else if (c == '.' && !found_point && found_digit && !found_e) {
             found_point = true;
             s_value += c;
-        } else if ((c == 'e' || c == 'E') && !found_e && found_digit && (rCurrentPosition + 2 < rData.size())) {
+        } else if ((c == 'e' || c == 'E') && !found_e && found_digit && (rCurrentPosition + 2 < rData.length())) {
             const auto n_c = rData[rCurrentPosition + 1];
             const auto nn_c = rData[rCurrentPosition + 2];
             if ((n_c == '-' || n_c == '+') && (isdigit(nn_c))) {
