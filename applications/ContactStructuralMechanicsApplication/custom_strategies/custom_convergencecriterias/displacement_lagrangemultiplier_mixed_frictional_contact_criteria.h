@@ -161,48 +161,9 @@ public:
     explicit DisplacementLagrangeMultiplierMixedFrictionalContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
         : BaseType()
     {
-        // The default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "ensure_contact"                                           : false,
-            "pure_slip"                                                : false,
-            "print_convergence_criterion"                              : false,
-            "residual_relative_tolerance"                              : 1.0e-4,
-            "residual_absolute_tolerance"                              : 1.0e-9,
-            "contact_displacement_relative_tolerance"                  : 1.0e-4,
-            "contact_displacement_absolute_tolerance"                  : 1.0e-9,
-            "frictional_stick_contact_displacement_relative_tolerance" : 1.0e-4,
-            "frictional_stick_contact_residual_relative_tolerance"     : 1.0e-9,
-            "frictional_slip_contact_displacement_relative_tolerance"  : 1.0e-4,
-            "frictional_slip_contact_residual_relative_tolerance"      : 1.0e-9,
-            "ratio_normal_tangent_threshold"                           : 1.0e-4
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        // The displacement residual
-        mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
-        mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
-
-        // The normal contact solution
-        mLMNormalRatioTolerance = ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
-        mLMNormalAbsTolerance = ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
-
-        // The tangent contact solution
-        mLMTangentStickRatioTolerance = ThisParameters["frictional_stick_contact_displacement_relative_tolerance"].GetDouble();
-        mLMTangentStickAbsTolerance = ThisParameters["frictional_stick_contact_residual_relative_tolerance"].GetDouble();
-        mLMTangentSlipRatioTolerance = ThisParameters["frictional_slip_contact_displacement_relative_tolerance"].GetDouble();
-        mLMTangentSlipAbsTolerance = ThisParameters["frictional_slip_contact_residual_relative_tolerance"].GetDouble();
-
-        // We get the  ratio between the normal and tangent that will accepted as converged
-        mNormalTangentRatio = ThisParameters["ratio_normal_tangent_threshold"].GetDouble();
-
-        // Set local flags
-        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
-        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
-        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
-        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
-        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     //* Copy constructor.
@@ -567,6 +528,44 @@ public:
         r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                                     : "displacement_lagrangemultiplier_mixed_frictional_contact_criteria",
+            "ensure_contact"                                           : false,
+            "pure_slip"                                                : false,
+            "print_convergence_criterion"                              : false,
+            "residual_relative_tolerance"                              : 1.0e-4,
+            "residual_absolute_tolerance"                              : 1.0e-9,
+            "contact_displacement_relative_tolerance"                  : 1.0e-4,
+            "contact_displacement_absolute_tolerance"                  : 1.0e-9,
+            "frictional_stick_contact_displacement_relative_tolerance" : 1.0e-4,
+            "frictional_stick_contact_residual_relative_tolerance"     : 1.0e-9,
+            "frictional_slip_contact_displacement_relative_tolerance"  : 1.0e-4,
+            "frictional_slip_contact_residual_relative_tolerance"      : 1.0e-9,
+            "ratio_normal_tangent_threshold"                           : 1.0e-4
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "displacement_lagrangemultiplier_mixed_frictional_contact_criteria";
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -599,6 +598,39 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // The displacement residual
+        mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+        mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+
+        // The normal contact solution
+        mLMNormalRatioTolerance = ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
+        mLMNormalAbsTolerance = ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
+
+        // The tangent contact solution
+        mLMTangentStickRatioTolerance = ThisParameters["frictional_stick_contact_displacement_relative_tolerance"].GetDouble();
+        mLMTangentStickAbsTolerance = ThisParameters["frictional_stick_contact_residual_relative_tolerance"].GetDouble();
+        mLMTangentSlipRatioTolerance = ThisParameters["frictional_slip_contact_displacement_relative_tolerance"].GetDouble();
+        mLMTangentSlipAbsTolerance = ThisParameters["frictional_slip_contact_residual_relative_tolerance"].GetDouble();
+
+        // We get the  ratio between the normal and tangent that will accepted as converged
+        mNormalTangentRatio = ThisParameters["ratio_normal_tangent_threshold"].GetDouble();
+
+        // Set local flags
+        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
+        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
+        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
+        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+    }
 
     ///@}
     ///@name Protected  Access
