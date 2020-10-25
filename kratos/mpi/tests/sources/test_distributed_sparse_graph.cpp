@@ -500,6 +500,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     DenseVector<IndexType> index2_data_in_global_ids(A.GetOffDiagBlock().index2_data().size());
     for(IndexType i = 0; i<index2_data_in_global_ids.size(); ++i)
         index2_data_in_global_ids[i] = A.GetOffDiaGlobalId( A.GetOffDiagBlock().index2_data()[i] );
+    
+    //check to ensure that the numbering is correct
+    for(IndexType i = 0; i<index2_data_in_global_ids.size(); ++i)
+    {
+        IndexType global_j = index2_data_in_global_ids[i];
+        IndexType local_j = A.GetOffDiagBlock().index2_data()[i];
+        KRATOS_CHECK_EQUAL(local_j, A.GetOffDiagLocalId(global_j));
+    }
+
 
     pAmgclOffDiagonalBlock->nrows = A.GetOffDiagBlock().size1();
     pAmgclOffDiagonalBlock->ncols = A.GetOffDiagBlock().size2();
