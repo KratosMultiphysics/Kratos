@@ -107,6 +107,7 @@ class AnalysisStage(object):
             self.time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 
         ## If the echo level is high enough, print the complete list of settings used to run the simualtion
         if self.echo_level > 1:
