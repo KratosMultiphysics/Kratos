@@ -266,6 +266,10 @@ public:
         return it->second;
     }
 
+    IndexType GetOffDiaGlobalId(IndexType LocalJ) const{
+        return mOffDiagonalGlobalIds[LocalJ];
+    }
+
     TDataType& GetLocalDataByGlobalId(IndexType GlobalI, IndexType GlobalJ){
         KRATOS_DEBUG_ERROR_IF(  ! GetRowNumbering().IsLocal(GlobalI) ) << "non local row access for GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << std::endl;
 
