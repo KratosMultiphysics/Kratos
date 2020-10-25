@@ -24,6 +24,10 @@
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
 
+#include "../../../../external_libraries/amgcl/backend/builtin.hpp"
+#include "../../../../external_libraries/amgcl/backend/interface.hpp"
+#include "../../../../external_libraries/amgcl/mpi/distributed_matrix.hpp"
+
 namespace Kratos {
 namespace Testing {
 
@@ -480,6 +484,55 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
         IndexType global_i = y.GetNumbering().GlobalId(i);
         KRATOS_CHECK_NEAR(y[i] ,  reference_spmv_res[global_i] , 1e-14 );
     }
+
+    //testing AMGCL interface
+    auto pAmgclDiagonalBlock = std::make_shared<amgcl::backend::crs<double>>();
+    pAmgclDiagonalBlock->nrows = A.GetDiagBlock().size1();
+    pAmgclDiagonalBlock->ncols = A.GetDiagBlock().size2();
+    pAmgclDiagonalBlock->nnz = A.GetDiagBlock().nnz();
+    pAmgclDiagonalBlock->own_data = false;
+    pAmgclDiagonalBlock->ptr = (ptrdiff_t*)&(A.GetDiagBlock().index1_data()[0]);
+    pAmgclDiagonalBlock->col = (ptrdiff_t*)&(A.GetDiagBlock().index2_data()[0]);
+    pAmgclDiagonalBlock->val = &(A.GetDiagBlock().value_data()[0]);
+
+    auto pAmgclOffDiagonalBlock = std::make_shared<amgcl::backend::crs<double>>();
+
+    DenseVector<IndexType> index2_data_in_global_ids(A.GetOffDiagBlock().index2_data().size());
+    for(IndexType i = 0; i<index2_data_in_global_ids.size(); ++i)
+        index2_data_in_global_ids[i] = A.GetOffDiaGlobalId( A.GetOffDiagBlock().index2_data()[i] );
+
+    pAmgclOffDiagonalBlock->nrows = A.GetOffDiagBlock().size1();
+    pAmgclOffDiagonalBlock->ncols = A.GetOffDiagBlock().size2();
+    pAmgclOffDiagonalBlock->nnz = A.GetOffDiagBlock().nnz();
+    pAmgclOffDiagonalBlock->own_data = false;
+    pAmgclOffDiagonalBlock->ptr = (ptrdiff_t*)&(A.GetOffDiagBlock().index1_data()[0]);
+    pAmgclOffDiagonalBlock->col = (ptrdiff_t*)&(index2_data_in_global_ids[0]);
+    pAmgclOffDiagonalBlock->val = &(A.GetOffDiagBlock().value_data()[0]);
+
+    amgcl::mpi::communicator comm;
+    KRATOS_WATCH("*pppppppppppppppppppp*")
+
+    typedef amgcl::backend::builtin<double> Backend;
+    auto pAmgclDistributedMatrix = std::make_shared<amgcl::mpi::distributed_matrix<Backend>>(comm,pAmgclDiagonalBlock,pAmgclOffDiagonalBlock);
+
+    y.SetValue(0.0);
+    b.SetValue(1.0);
+
+    //double* ybegin = &y[0];
+    //const double* bbegin = &b[0];
+    KRATOS_WATCH("******eeeee****")
+
+    //pAmgclDistributedMatrix->mul(1.0,ybegin,1.0,bbegin);
+    pAmgclDistributedMatrix->mul(1.0,y,1.0,b);
+
+    KRATOS_WATCH("********************************")
+    for(unsigned int i=0; i<y.LocalSize(); ++i)
+    {
+        IndexType global_i = y.GetNumbering().GlobalId(i);
+        KRATOS_CHECK_NEAR(y[i] ,  reference_spmv_res[global_i] , 1e-14 );
+    }
+
+
 }
 
 
