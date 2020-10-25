@@ -198,7 +198,7 @@ namespace Kratos
                 const double nodal_mass = node_it->GetValue(NODAL_MASS);
                 if (nodal_mass > numerical_limit)
                 {
-                    node_it->SetValue(EXPLICIT_DOF_X_EQUATION_ID, domain_dofs);
+                    node_it->SetValue(EXPLICIT_EQUATION_ID, domain_dofs);
                     domain_dofs += dim;
                 }
             }
@@ -217,7 +217,7 @@ namespace Kratos
             interface_equation_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
             domain_equation_id = (is_implicit)
                 ? interface_nodes[i]->GetDof(DISPLACEMENT_X).EquationId()
-                : interface_nodes[i]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
+                : interface_nodes[i]->GetValue(EXPLICIT_EQUATION_ID);
 
             for (size_t dof_dim = 0; dof_dim < dim; dof_dim++)
             {
@@ -385,7 +385,7 @@ namespace Kratos
                 const double nodal_mass = domain_nodes[i]->GetValue(NODAL_MASS);
                 if (nodal_mass > numerical_limit)
                 {
-                    IndexType equation_id = domain_nodes[i]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
+                    IndexType equation_id = domain_nodes[i]->GetValue(EXPLICIT_EQUATION_ID);
                     array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
                     for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
                     {
@@ -582,7 +582,7 @@ namespace Kratos
                 const double nodal_mass = domain_nodes[j]->GetValue(NODAL_MASS);
                 if (nodal_mass > numerical_limit)
                 {
-                    IndexType domain_id = domain_nodes[j]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
+                    IndexType domain_id = domain_nodes[j]->GetValue(EXPLICIT_EQUATION_ID);
                     #pragma omp critical
                     for (size_t dof = 0; dof < dim; ++dof) rUnitResponse.insert_element(domain_id + dof, i, rProjector(i, domain_id + dof) / nodal_mass);
                 }
