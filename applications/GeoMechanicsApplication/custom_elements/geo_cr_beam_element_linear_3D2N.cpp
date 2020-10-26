@@ -67,13 +67,9 @@ void GeoCrBeamElementLinear3D2N::CalculateLocalSystem(
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);
 
-    rRightHandSideVector = ZeroVector(msElementSize);
-
-    Vector InternalGlobalForces = ZeroVector(msElementSize);
-
-    noalias(InternalGlobalForces) = prod(rLeftHandSideMatrix, nodal_deformation);
-
-    noalias(rRightHandSideVector) -= (InternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
+    noalias(rRightHandSideVector) = ZeroVector(msElementSize);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, nodal_deformation);
+    rRightHandSideVector -= mInternalGlobalForcesFinalizedPrevious;
 
     // add bodyforces
     rRightHandSideVector += CalculateBodyForces();
@@ -84,19 +80,14 @@ void GeoCrBeamElementLinear3D2N::CalculateRightHandSide(
     VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    rRightHandSideVector = ZeroVector(msElementSize);
 
     Matrix left_hand_side_matrix = ZeroMatrix(msElementSize, msElementSize);
     CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);
-    rRightHandSideVector = ZeroVector(msElementSize);
-
-    Vector InternalGlobalForces = ZeroVector(msElementSize);
-
-    noalias(InternalGlobalForces) = prod(left_hand_side_matrix, nodal_deformation);
-
-    noalias(rRightHandSideVector) -= (InternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
+    noalias(rRightHandSideVector) = ZeroVector(msElementSize);
+    noalias(rRightHandSideVector) -= prod(left_hand_side_matrix, nodal_deformation);
+    rRightHandSideVector -= mInternalGlobalForcesFinalizedPrevious;
 
     // add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
