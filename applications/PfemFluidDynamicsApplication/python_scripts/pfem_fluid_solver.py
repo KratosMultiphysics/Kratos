@@ -315,8 +315,8 @@ class PfemFluidSolver(PythonSolver):
         pass
 
     def SolveSolutionStep(self):
-        fixed_time_step = self.fluid_solver.SolveSolutionStep()
-        return fixed_time_step
+        converged = self.fluid_solver.SolveSolutionStep()
+        return converged
         
     def FinalizeSolutionStep(self):
         #pass
