@@ -57,7 +57,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -84,7 +84,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -109,7 +109,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -137,7 +137,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void AddDampingToLHS(LocalSystemMatrixType& LHS_Contribution,LocalSystemMatrixType& C,ProcessInfo& CurrentProcessInfo)
+    void AddDampingToLHS(LocalSystemMatrixType& LHS_Contribution,LocalSystemMatrixType& C,const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
         if (C.size1() != 0)
@@ -147,7 +147,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AddDampingToRHS(Element::Pointer rCurrentElement,LocalSystemVectorType& RHS_Contribution,
-                            LocalSystemMatrixType& C,ProcessInfo& CurrentProcessInfo)
+                            LocalSystemMatrixType& C,const ProcessInfo& CurrentProcessInfo)
     {
         int thread = OpenMPUtils::ThisThread();
 
