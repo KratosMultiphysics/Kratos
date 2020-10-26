@@ -306,42 +306,27 @@ void ModelPartIO::WriteSubModelParts(ModelPart::SubModelPartsContainerType const
 
 void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart, const std::string& rPath)
 {
-    bool has_elements{false}, has_conditions{false};
-    std::vector<std::string> sub_model_part_names;
-
-    const auto& group_names = mpFile->GetGroupNames(rPath);
-    for (const auto& group_name : group_names) {
-        if (group_name == "Elements") {
-            has_elements = true;
-        } else if (group_name == "Conditions") {
-            has_conditions = true;
-        } else {
-            sub_model_part_names.push_back(group_name);
-        }
-    }
-
     auto& r_sub_model_part = rModelPart.CreateSubModelPart(rPath.substr(rPath.rfind("/") + 1));
-
     if (mpFile->HasPath(rPath + "/NodeIds")) {
         r_sub_model_part.AddNodes(ReadContainerIds(rPath + "/NodeIds"));
     }
 
-    if (has_elements) {
-        // iterate over all types of elements
-        for (const auto& element_name : mpFile->GetGroupNames(rPath + "/Elements")) {
-            r_sub_model_part.AddElements(ReadEntityIds(rPath + "/Elements/" + element_name));
+    const auto &group_names = mpFile->GetGroupNames(rPath);
+    for (const auto &group_name : group_names) {
+        const auto &current_path = rPath + "/" + group_name;
+        if (group_name == "Elements") {
+            // iterate over all types of elements
+            for (const auto &element_name : mpFile->GetGroupNames(current_path)) {
+                r_sub_model_part.AddElements(ReadEntityIds(current_path + "/" + element_name));
+            }
+        } else if (group_name == "Conditions") {
+            // iterate over all types of conditions
+            for (const auto &condition_name : mpFile->GetGroupNames(current_path)) {
+                r_sub_model_part.AddConditions(ReadEntityIds(current_path + "/" + condition_name));
+            }
+        } else {
+            ReadSubModelParts(r_sub_model_part, current_path);
         }
-    }
-
-    if (has_conditions) {
-        // iterate over all types of conditions
-        for (const auto& condition_name : mpFile->GetGroupNames(rPath + "/Conditions")) {
-            r_sub_model_part.AddConditions(ReadEntityIds(rPath + "/Conditions/" + condition_name));
-        }
-    }
-
-    for (const auto& sub_model_part_name : sub_model_part_names) {
-        ReadSubModelParts(r_sub_model_part, rPath + "/" + sub_model_part_name);
     }
 }
 
