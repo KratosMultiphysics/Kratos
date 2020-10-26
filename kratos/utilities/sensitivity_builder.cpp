@@ -119,7 +119,7 @@ struct LocalSensitivityBuilder
     {
         KRATOS_TRY;
         rElement.CalculateSensitivityMatrix(rVariable, SensitivityMatrix, rProcessInfo);
-        static_cast<const TElement&>(rElement).GetValuesVector(AdjointVector);
+        dynamic_cast<const TElement&>(rElement).GetValuesVector(AdjointVector);
         KRATOS_ERROR_IF(AdjointVector.size() != SensitivityMatrix.size2())
             << "AdjointVector.size(): " << AdjointVector.size()
             << " incompatible with SensitivityMatrix.size1(): "
