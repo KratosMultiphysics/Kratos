@@ -47,7 +47,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         # Auxiliary variables
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA) # TODO: use it as nonhistorical variable
         self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # TODO: use it as nonhistorical variable
 
     def AddDofs(self):
