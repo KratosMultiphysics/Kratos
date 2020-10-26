@@ -55,6 +55,7 @@ set( KRATOS_GEO_MECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_cr_beam_element_2D2N.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_cr_beam_element_3D2N.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_cr_beam_element_linear_2D2N.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_cr_beam_element_linear_3D2N.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_truss_element_3D2N.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_truss_element_linear_3D2N.cpp
 

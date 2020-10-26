@@ -43,8 +43,9 @@ protected:
     static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
     static constexpr unsigned int msElementSize = msLocalSize * 2;
 
-    Vector mInternalForceFinalized = ZeroVector(msLocalSize);
-    Vector mInternalForceFinalizedPrevious = ZeroVector(msLocalSize);
+    Vector mInternalGlobalForces = ZeroVector(msLocalSize);
+    Vector mInternalGlobalForcesFinalized = ZeroVector(msLocalSize);
+    Vector mInternalGlobalForcesFinalizedPrevious = ZeroVector(msLocalSize);
 
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCrBeamElement3D2N);
@@ -230,11 +231,11 @@ public:
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     /**
      * @brief This function is used to assemble single transformation matrix in the big global rotation matrix

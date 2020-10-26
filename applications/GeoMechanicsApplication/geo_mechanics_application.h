@@ -61,6 +61,7 @@
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
+#include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
 #include "custom_elements/geo_truss_element_3D2N.hpp"
 #include "custom_elements/geo_truss_element_linear_3D2N.hpp"
 #include "custom_elements/geo_cable_element_3D2N.hpp"
@@ -340,6 +341,7 @@ private:
     const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N;
     const GeoCrBeamElement2D2N mGeoCrBeamElement2D2N;
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N;
+    const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N;
     const GeoTrussElement3D2N mGeoTrussElement3D2N;
     const GeoTrussElementLinear3D2N mGeoTrussLinearElement3D2N;
     const GeoCableElement3D2N mGeoCableElement3D2N;

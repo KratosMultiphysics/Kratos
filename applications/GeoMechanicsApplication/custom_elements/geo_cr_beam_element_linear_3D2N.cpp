@@ -6,7 +6,8 @@
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
 //
-//  Main authors: Klaus B. Sautter
+//  Main authors: Klaus B. Sautter,
+//                Vahid Galavi
 //
 //
 //
@@ -17,43 +18,45 @@
 // Project includes
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
 #include "custom_utilities/static_condensation_utility.h"
-#include "structural_mechanics_application_variables.h"
+#include "geo_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/define.h"
+
 
 namespace Kratos
 {
-Geo_CrBeamElementLinear3D2N::Geo_CrBeamElementLinear3D2N(
+GeoCrBeamElementLinear3D2N::GeoCrBeamElementLinear3D2N(
     IndexType NewId, GeometryType::Pointer pGeometry)
-    : Geo_CrBeamElement3D2N(NewId, pGeometry) {}
+    : GeoCrBeamElement3D2N(NewId, pGeometry) {}
 
-Geo_CrBeamElementLinear3D2N::Geo_CrBeamElementLinear3D2N(
+GeoCrBeamElementLinear3D2N::GeoCrBeamElementLinear3D2N(
     IndexType NewId, GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
-    : Geo_CrBeamElement3D2N(NewId, pGeometry, pProperties) {}
+    : GeoCrBeamElement3D2N(NewId, pGeometry, pProperties) {}
 
 Element::Pointer
-Geo_CrBeamElementLinear3D2N::Create(IndexType NewId,
+GeoCrBeamElementLinear3D2N::Create(IndexType NewId,
                                 NodesArrayType const& rThisNodes,
                                 PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_intrusive<Geo_CrBeamElementLinear3D2N>(
+    return Kratos::make_intrusive<GeoCrBeamElementLinear3D2N>(
                NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
 Element::Pointer
-Geo_CrBeamElementLinear3D2N::Create(IndexType NewId,
+GeoCrBeamElementLinear3D2N::Create(IndexType NewId,
                                 GeometryType::Pointer pGeom,
                                 PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<Geo_CrBeamElementLinear3D2N>(
+    return Kratos::make_intrusive<GeoCrBeamElementLinear3D2N>(
                NewId, pGeom, pProperties);
 }
 
-Geo_CrBeamElementLinear3D2N::~Geo_CrBeamElementLinear3D2N() {}
+GeoCrBeamElementLinear3D2N::~GeoCrBeamElementLinear3D2N() {}
 
-void Geo_CrBeamElementLinear3D2N::CalculateLocalSystem(
+void GeoCrBeamElementLinear3D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -66,14 +69,16 @@ void Geo_CrBeamElementLinear3D2N::CalculateLocalSystem(
 
     rRightHandSideVector = ZeroVector(msElementSize);
 
-    rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
+    noalias(mInternalGlobalForces) = prod(rLeftHandSideMatrix, nodal_deformation);
+
+    noalias(rRightHandSideVector) -= (mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
 
     // add bodyforces
     rRightHandSideVector += CalculateBodyForces();
     KRATOS_CATCH("")
 }
 
-void Geo_CrBeamElementLinear3D2N::CalculateRightHandSide(
+void GeoCrBeamElementLinear3D2N::CalculateRightHandSide(
     VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -84,15 +89,17 @@ void Geo_CrBeamElementLinear3D2N::CalculateRightHandSide(
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);
     rRightHandSideVector = ZeroVector(msElementSize);
-    noalias(rRightHandSideVector) -=
-        prod(left_hand_side_matrix, nodal_deformation);
+
+    noalias(mInternalGlobalForces) = prod(left_hand_side_matrix, nodal_deformation);
+
+    noalias(rRightHandSideVector) -= (mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
 
     // add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
     KRATOS_CATCH("")
 }
 
-void Geo_CrBeamElementLinear3D2N::CalculateLeftHandSide(
+void GeoCrBeamElementLinear3D2N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 
@@ -109,7 +116,7 @@ void Geo_CrBeamElementLinear3D2N::CalculateLeftHandSide(
         for (SizeType i = 0; i < dof_list_input.size(); ++i) {
             dofList[i] = dof_list_input[i];
         }
-        StaticCondensationUtility::CondenseLeftHandSide(*this, rLeftHandSideMatrix,
+        GeoStaticCondensationUtility::CondenseLeftHandSide(*this, rLeftHandSideMatrix,
                 dofList);
     }
     //// end static condensation
@@ -123,7 +130,7 @@ void Geo_CrBeamElementLinear3D2N::CalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-void Geo_CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
+void GeoCrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
         const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -154,9 +161,9 @@ void Geo_CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 
-BoundedMatrix<double, Geo_CrBeamElement3D2N::msLocalSize,
-Geo_CrBeamElement3D2N::msLocalSize>
-Geo_CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
+BoundedMatrix<double, GeoCrBeamElement3D2N::msLocalSize,
+GeoCrBeamElement3D2N::msLocalSize>
+GeoCrBeamElementLinear3D2N::CalculateDeformationStiffness() const
 {
 
     KRATOS_TRY
@@ -165,7 +172,7 @@ Geo_CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
     const double E = GetProperties()[YOUNG_MODULUS];
     const double G = CalculateShearModulus();
     const double A = GetProperties()[CROSS_AREA];
-    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
     const double J = GetProperties()[TORSIONAL_INERTIA];
     const double Iy = GetProperties()[I22];
@@ -194,7 +201,7 @@ Geo_CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
     KRATOS_CATCH("")
 }
 
-void Geo_CrBeamElementLinear3D2N::Calculate(const Variable<Matrix>& rVariable,
+void GeoCrBeamElementLinear3D2N::Calculate(const Variable<Matrix>& rVariable,
      Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
@@ -203,12 +210,12 @@ void Geo_CrBeamElementLinear3D2N::Calculate(const Variable<Matrix>& rVariable,
         }
         noalias(rOutput) = CalculateInitialLocalCS();
     } else {
-        Geo_CrBeamElement3D2N::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+        GeoCrBeamElement3D2N::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
 
 }
 
-void Geo_CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
+void GeoCrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -240,7 +247,7 @@ void Geo_CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
             dofList[i] = dof_list_input[i];
         }
         Vector nodal_deformation_temp = nodal_deformation;
-        StaticCondensationUtility::ConvertingCondensation(
+        GeoStaticCondensationUtility::ConvertingCondensation(
             *this, nodal_deformation_temp, nodal_deformation, dofList,
             left_hand_side_matrix);
     }
@@ -280,7 +287,7 @@ void Geo_CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-void Geo_CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
+void GeoCrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -305,14 +312,14 @@ void Geo_CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
     KRATOS_CATCH("");
 }
 
-void Geo_CrBeamElementLinear3D2N::save(Serializer& rSerializer) const
+void GeoCrBeamElementLinear3D2N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Geo_CrBeamElement3D2N);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeoCrBeamElement3D2N);
 }
 
-void Geo_CrBeamElementLinear3D2N::load(Serializer& rSerializer)
+void GeoCrBeamElementLinear3D2N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Geo_CrBeamElement3D2N);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeoCrBeamElement3D2N);
 }
 
 } // namespace Kratos.

@@ -106,7 +106,7 @@ void GeoCrBeamElement3D2N::Initialize()
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void GeoCrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void GeoCrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -140,7 +140,7 @@ void GeoCrBeamElement3D2N::InitializeNonLinearIteration(const ProcessInfo& rCurr
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void GeoCrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void GeoCrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -1068,10 +1068,9 @@ void GeoCrBeamElement3D2N::
     KRATOS_TRY;
     Vector internal_forces = CalculateGlobalNodalForces();
 
-    internal_forces += mInternalForceFinalizedPrevious;
-
     rRightHandSideVector = ZeroVector(msElementSize);
-    noalias(rRightHandSideVector) -= internal_forces;
+    noalias(rRightHandSideVector) -= (internal_forces + mInternalGlobalForcesFinalizedPrevious);
+
     // add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
     KRATOS_CATCH("")
@@ -1770,17 +1769,17 @@ void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
             bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];
             if (ResetDisplacement)
             {
-                mInternalForceFinalizedPrevious = mInternalForceFinalized;
+                mInternalGlobalForcesFinalizedPrevious = mInternalGlobalForcesFinalized;
             }
             else
             {
-                mInternalForceFinalized = mInternalForceFinalizedPrevious;
+                mInternalGlobalForcesFinalized = mInternalGlobalForcesFinalizedPrevious;
             }
         }
         else
         {
-            mInternalForceFinalized = ZeroVector(msLocalSize);
-            mInternalForceFinalizedPrevious = ZeroVector(msLocalSize);
+            mInternalGlobalForcesFinalized = ZeroVector(msLocalSize);
+            mInternalGlobalForcesFinalizedPrevious = ZeroVector(msLocalSize);
         }
     }
     mIsInitialization = false;
@@ -1794,7 +1793,7 @@ void GeoCrBeamElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY;
 
-    mInternalForceFinalized = CalculateGlobalNodalForces() + mInternalForceFinalizedPrevious;
+    mInternalGlobalForcesFinalized = CalculateGlobalNodalForces() + mInternalGlobalForcesFinalizedPrevious;
 
     KRATOS_CATCH("");
 }
@@ -1815,8 +1814,8 @@ void GeoCrBeamElement3D2N::save(Serializer& rSerializer) const
     rSerializer.save("QuaternionVecB", mQuaternionVEC_B);
     rSerializer.save("QuaternionScaA", mQuaternionSCA_A);
     rSerializer.save("QuaternionScaB", mQuaternionSCA_B);
-    rSerializer.save("InternalStressesFinalized", mInternalForceFinalized);
-    rSerializer.save("InternalForceFinalizedPrevious", mInternalForceFinalizedPrevious);
+    rSerializer.save("InternalStressesFinalized", mInternalGlobalForcesFinalized);
+    rSerializer.save("InternalForceFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1829,8 +1828,8 @@ void GeoCrBeamElement3D2N::load(Serializer& rSerializer)
     rSerializer.load("QuaternionVecB", mQuaternionVEC_B);
     rSerializer.load("QuaternionScaA", mQuaternionSCA_A);
     rSerializer.load("QuaternionScaB", mQuaternionSCA_B);
-    rSerializer.load("InternalStressesFinalized", mInternalForceFinalized);
-    rSerializer.load("InternalForceFinalizedPrevious", mInternalForceFinalizedPrevious);
+    rSerializer.load("InternalStressesFinalized", mInternalGlobalForcesFinalized);
+    rSerializer.load("InternalForceFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 }
 
 } // namespace Kratos.

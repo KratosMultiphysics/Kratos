@@ -674,8 +674,17 @@ void SmallStrainUPwDiffOrderElement::
                                                            mStateVariablesFinalized[PointNumber] );
     }
 
-    //Assign pressure values to the intermediate nodes for post-processing
-    AssignPressureToIntermediateNodes();
+    bool IgnoreUndrained = false;
+    if (GetProperties().Has(IGNORE_UNDRAINED))
+    {
+        IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    }
+
+    if (!IgnoreUndrained)
+    {
+        //Assign pressure values to the intermediate nodes for post-processing
+        AssignPressureToIntermediateNodes();
+    }
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 
@@ -2309,11 +2318,11 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------
-// GeometryData::IntegrationMethod
-//     SmallStrainUPwDiffOrderElement::GetIntegrationMethod() const
-// {
-//     return GeometryData::GI_GAUSS_2;
-// }
+GeometryData::IntegrationMethod
+    SmallStrainUPwDiffOrderElement::GetIntegrationMethod() const
+{
+    return GeometryData::GI_GAUSS_2;
+}
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::CalculateStrain( ElementVariables& rVariables )

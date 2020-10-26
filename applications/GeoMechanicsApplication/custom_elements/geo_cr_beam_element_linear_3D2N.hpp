@@ -26,26 +26,26 @@
 namespace Kratos
 {
 /**
- * @class Geo_CrBeamElementLinear3D2N
+ * @class GeoCrBeamElementLinear3D2N
  *
- * @brief This is a linear 3D-2node beam element with 3 translational dofs and 3 rotational dof per node inheriting from Geo_CrBeamElement3D2N
+ * @brief This is a linear 3D-2node beam element with 3 translational dofs and 3 rotational dof per node inheriting from GeoCrBeamElement3D2N
  *
  * @author Klaus B Sautter
  */
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) Geo_CrBeamElementLinear3D2N : public Geo_CrBeamElement3D2N
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCrBeamElementLinear3D2N : public GeoCrBeamElement3D2N
 {
 
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Geo_CrBeamElementLinear3D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCrBeamElementLinear3D2N);
 
-    Geo_CrBeamElementLinear3D2N() {};
-    Geo_CrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
-    Geo_CrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
+    GeoCrBeamElementLinear3D2N() {};
+    GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
+    GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
                             PropertiesType::Pointer pProperties);
 
 
-    ~Geo_CrBeamElementLinear3D2N() override;
+    ~GeoCrBeamElementLinear3D2N() override;
 
     /**
     * @brief Creates a new element

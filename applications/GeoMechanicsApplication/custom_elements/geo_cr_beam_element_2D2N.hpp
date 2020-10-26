@@ -117,11 +117,11 @@ public:
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,

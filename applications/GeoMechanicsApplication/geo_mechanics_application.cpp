@@ -132,6 +132,7 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mGeoCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCrBeamElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCrBeamElementLinear2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoCrBeamElementLinear3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
 
     // conditions
     mUPwForceCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<NodeType >( Condition::GeometryType::PointsArrayType(1)))),
@@ -263,6 +264,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement3D2N", mGeoCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement2D2N", mGeoCrBeamElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear2D2N", mGeoCrBeamElementLinear2D2N)
+    KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
 
     //Register Conditions
     KRATOS_REGISTER_CONDITION( "UPwForceCondition2D1N", mUPwForceCondition2D1N )

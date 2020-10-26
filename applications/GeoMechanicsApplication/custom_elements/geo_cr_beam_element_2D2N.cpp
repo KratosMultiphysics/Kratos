@@ -147,7 +147,7 @@ void GeoCrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void GeoCrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void GeoCrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -168,7 +168,7 @@ void GeoCrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void GeoCrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void GeoCrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
     if (rValues.size() != msElementSize) {

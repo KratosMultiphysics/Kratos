@@ -64,7 +64,7 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, 
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
-    //GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
