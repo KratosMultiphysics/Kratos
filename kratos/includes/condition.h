@@ -278,7 +278,7 @@ public:
         //     rResult.resize(0);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void EquationIdVector(EquationIdVectorType& rResult,
                   ProcessInfo& rCurrentProcessInfo)
     {
@@ -299,7 +299,7 @@ public:
         //     rElementalDofList.resize(0);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetDofList(DofsVectorType& rConditionDofList,
                 ProcessInfo& rCurrentProcessInfo)
     {
@@ -335,7 +335,7 @@ public:
             values.resize(0, false);
         }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetValuesVector(Vector& values, int Step = 0)
     {
         const auto& r_const_this = *this;
@@ -351,7 +351,7 @@ public:
             values.resize(0, false);
         }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
     {
         const auto& r_const_this = *this;
@@ -367,7 +367,7 @@ public:
             values.resize(0, false);
         }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
     {
         const auto& r_const_this = *this;
@@ -393,7 +393,7 @@ public:
         Initialize();
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"ProcessInfo\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"ProcessInfo\"")
     virtual void Initialize()
     {
     }
@@ -429,7 +429,7 @@ public:
     {
         InitializeSolutionStep(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -441,7 +441,7 @@ public:
     {
         InitializeNonLinearIteration(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -453,7 +453,7 @@ public:
     {
         FinalizeNonLinearIteration(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -465,7 +465,7 @@ public:
     {
         FinalizeSolutionStep(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -498,7 +498,7 @@ public:
         // }
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                       VectorType& rRightHandSideVector,
                       ProcessInfo& rCurrentProcessInfo)
@@ -541,7 +541,7 @@ public:
         // }
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                        ProcessInfo& rCurrentProcessInfo)
     {
@@ -579,7 +579,7 @@ public:
         //     rRightHandSideVector.resize(0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                     ProcessInfo& rCurrentProcessInfo)
     {
@@ -634,7 +634,7 @@ public:
         //     rRightHandSideVector.resize(0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                             VectorType& rRightHandSideVector,
                             ProcessInfo& rCurrentProcessInfo)
@@ -659,7 +659,7 @@ public:
         //     rLeftHandSideMatrix.resize(0, 0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                           ProcessInfo& rCurrentProcessInfo)
     {
@@ -684,7 +684,7 @@ public:
         //     rRightHandSideVector.resize(0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
                           ProcessInfo& rCurrentProcessInfo)
     {
@@ -723,7 +723,7 @@ public:
         //     rRightHandSideVector.resize(0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                              VectorType& rRightHandSideVector,
                              ProcessInfo& rCurrentProcessInfo)
@@ -749,7 +749,7 @@ public:
         //     rLeftHandSideMatrix.resize(0, 0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                            ProcessInfo& rCurrentProcessInfo)
     {
@@ -772,7 +772,7 @@ public:
         //     rRightHandSideVector.resize(0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
                            ProcessInfo& rCurrentProcessInfo)
     {
@@ -800,7 +800,7 @@ public:
         //     rMassMatrix.resize(0, 0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
@@ -821,7 +821,7 @@ public:
         //     rDampingMatrix.resize(0, 0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
@@ -849,7 +849,7 @@ public:
     {
         AddExplicitContribution(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -871,7 +871,7 @@ public:
     {
         KRATOS_ERROR << "Base condition class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void AddExplicitContribution(
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
@@ -900,7 +900,7 @@ public:
     {
         KRATOS_ERROR << "Base condition class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void AddExplicitContribution(
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
@@ -929,7 +929,7 @@ public:
     {
         KRATOS_ERROR << "Base condition class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void AddExplicitContribution(
         const MatrixType& rLHSMatrix,
         const Variable<MatrixType>& rLHSVariable,
@@ -1080,49 +1080,49 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
                          std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
                          std::vector<int>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                          std::vector<array_1d<double, 3 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                          std::vector<array_1d<double, 6 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                          std::vector<Vector>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                          std::vector<Matrix>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
@@ -1152,7 +1152,7 @@ public:
 
         KRATOS_CATCH("")
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -1176,7 +1176,7 @@ public:
         //     rMassMatrix.resize(0, 0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
@@ -1194,7 +1194,7 @@ public:
     {
         AddMassMatrix(rLeftHandSideMatrix, coeff, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix, double coeff, ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -1212,7 +1212,7 @@ public:
         //     rDampMatrix.resize(0, 0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampMatrix.size1() != 0)
@@ -1228,7 +1228,7 @@ public:
     {
         AddInertiaForces(rRightHandSideVector, coeff, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff, ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -1248,7 +1248,7 @@ public:
         //     rDampingMatrix.resize(0, 0, false);
         // }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
