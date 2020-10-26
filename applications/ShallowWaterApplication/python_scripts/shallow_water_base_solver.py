@@ -45,7 +45,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY_GRADIENT) # TODO: use it as nonhistorical variable
         # Auxiliary variables
-        self.main_model_part.AddNodalSolutionStepVariable(KM.IS_STRUCTURE) # TODO: remove that variable from the slip process
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA) # TODO: use it as nonhistorical variable
