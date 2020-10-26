@@ -256,6 +256,103 @@ class TestCase(KratosUnittest.TestCase):
                 for j in range(read_matrix.Size2()):
                     self.assertEqual(read_matrix[i,j], write_matrix[i,j])
 
+    def test_RecursiveSubModelParts(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            model = Model()
+
+            write_model_part = model.CreateModelPart("write_model_part")
+            def create_entities(model_part, num_nodes):
+                global_number_of_nodes = write_model_part.GetCommunicator().GlobalNumberOfNodes()
+                for i in range(num_nodes):
+                    x = random.random()
+                    y = random.random()
+                    z = random.random()
+                    model_part.CreateNewNode(global_number_of_nodes + i + 1, x, y, z)
+
+                prop = prop = model_part.GetProperties()[0]
+                global_number_of_elements = write_model_part.GetCommunicator().GlobalNumberOfElements()
+                for i in range(num_nodes - 2):
+                    elem_id = global_number_of_elements + i + 1
+                    node_ids = [global_number_of_nodes + i + 1, global_number_of_nodes + i + 2, global_number_of_nodes + i + 3]
+                    model_part.CreateNewElement("Element3D3N", elem_id, node_ids, prop)
+
+                global_number_of_elements = write_model_part.GetCommunicator().GlobalNumberOfElements()
+                for i in range(num_nodes - 3):
+                    elem_id = global_number_of_elements + i + 1
+                    node_ids = [global_number_of_nodes + i + 1, global_number_of_nodes + i + 2, global_number_of_nodes + i + 3, global_number_of_nodes + i + 4]
+                    model_part.CreateNewElement("Element3D4N", elem_id, node_ids, prop)
+
+                global_number_of_conditions = write_model_part.GetCommunicator().GlobalNumberOfConditions()
+                for i in range(num_nodes - 2):
+                    cond_id = global_number_of_conditions + i + 1
+                    node_ids = [global_number_of_nodes + i + 1, global_number_of_nodes + i + 2]
+                    model_part.CreateNewCondition("LineCondition2D2N", cond_id, node_ids, prop)
+
+                global_number_of_conditions = write_model_part.GetCommunicator().GlobalNumberOfConditions()
+                for i in range(num_nodes - 3):
+                    cond_id = global_number_of_conditions + i + 1
+                    node_ids = [global_number_of_nodes + i + 1, global_number_of_nodes + i + 2, global_number_of_nodes + i + 3]
+                    model_part.CreateNewCondition("SurfaceCondition3D3N", cond_id, node_ids, prop)
+
+            create_entities(write_model_part, 3)
+            sub_model_part = write_model_part.CreateSubModelPart("sub_model_part1")
+            create_entities(sub_model_part, 5)
+            sub_sub_model_part = sub_model_part.CreateSubModelPart("section_1")
+            create_entities(sub_sub_model_part, 3)
+            sub_sub_model_part = sub_sub_model_part.CreateSubModelPart("section_2")
+            create_entities(sub_sub_model_part, 4)
+            sub_sub_model_part = sub_sub_model_part.CreateSubModelPart("section_3")
+            create_entities(sub_sub_model_part, 5)
+            sub_sub_model_part = sub_model_part.CreateSubModelPart("section_2")
+            create_entities(sub_sub_model_part, 4)
+
+            sub_model_part = write_model_part.CreateSubModelPart("sub_model_part2")
+            create_entities(sub_model_part, 3)
+            sub_sub_model_part = sub_model_part.CreateSubModelPart("section_1")
+            create_entities(sub_sub_model_part, 3)
+            sub_sub_model_part = sub_sub_model_part.CreateSubModelPart("section_2")
+            create_entities(sub_sub_model_part, 6)
+            sub_sub_model_part = sub_sub_model_part.CreateSubModelPart("section_3")
+            create_entities(sub_sub_model_part, 3)
+            sub_sub_model_part = sub_model_part.CreateSubModelPart("section_2")
+            create_entities(sub_sub_model_part, 3)
+
+            hdf5_file = self._get_file()
+            hdf5_model_part_io = self._get_model_part_io(hdf5_file)
+            hdf5_model_part_io.WriteModelPart(write_model_part)
+
+            read_model_part = model.CreateModelPart("read_model_part")
+            hdf5_model_part_io.ReadModelPart(read_model_part)
+
+            def check_model_parts(model_part1, model_part2):
+                def check_nodes(nodes_1, nodes_2):
+                    self.assertEqual(len(nodes_1), len(nodes_2))
+                    for n1, n2 in zip(nodes_1, nodes_2):
+                        self.assertEqual(n1.Id, n2.Id)
+                        self.assertEqual(n1.X, n2.X)
+                        self.assertEqual(n1.Y, n2.Y)
+                        self.assertEqual(n1.Z, n2.Z)
+
+                check_nodes(model_part1.Nodes, model_part2.Nodes)
+
+                self.assertEqual(model_part1.NumberOfElements(), model_part2.NumberOfElements())
+                for e1, e2 in zip(model_part1.Elements, model_part2.Elements):
+                    self.assertEqual(e1.Id, e2.Id)
+                    check_nodes(e1.GetNodes(), e2.GetNodes())
+
+                self.assertEqual(model_part1.NumberOfConditions(), model_part2.NumberOfConditions())
+                for c1, c2 in zip(model_part1.Conditions, model_part2.Conditions):
+                    self.assertEqual(c1.Id, c2.Id)
+                    check_nodes(c1.GetNodes(), c2.GetNodes())
+
+            check_model_parts(read_model_part, write_model_part)
+            def recursive_submodel_parts(sub_model_parts_1, sub_model_parts_2):
+                for sub_model_part_1, sub_model_part_2 in zip(sub_model_parts_1, sub_model_parts_2):
+                    self.assertEqual(sub_model_part_1.Name, sub_model_part_2.Name)
+                    check_model_parts(sub_model_part_1, sub_model_part_2)
+                    self.assertEqual(sub_model_part_1.NumberOfSubModelParts(), sub_model_part_2.NumberOfSubModelParts())
+                    recursive_submodel_parts(sub_model_part_1.SubModelParts, sub_model_part_2.SubModelParts)
+
     def test_HDF5NodalSolutionStepDataIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             model = Model()
