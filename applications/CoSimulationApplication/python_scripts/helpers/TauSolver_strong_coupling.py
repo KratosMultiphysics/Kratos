@@ -10,6 +10,8 @@ def print_on_rank_zero(*args):
         print(args)
 
 working_path = os.getcwd() + '/'
+sys.path.append(working_path)
+sys.path.append(working_path + 'Outputs')
 #path = "/work/piquee/MembraneWing/kratos_fsi_big"
 with open(working_path + 'input/tau_settings.json') as json_file:
     tau_settings = json.load(json_file)
@@ -17,7 +19,7 @@ with open(working_path + 'input/tau_settings.json') as json_file:
 start_step = tau_settings["start_step"]
 tau_path = tau_settings["tau_path"]
 rotate = tau_settings["rotate"]
-ouput_file_pattern = tau_settings["output_file_pattern"]
+output_file_pattern = tau_settings["output_file_pattern"]
 is_strong_coupling = tau_settings["strong_coupling"]
 sys.path.append(tau_settings["kratos_path"])
 sys.path.append(tau_path + "py_turb1eq/")
@@ -49,13 +51,6 @@ else:
 para_path_mod = para_path + ".mod"
 para_path_up = 'input/airfoil_Structured_up.cntl'
 para_path_down = 'input/airfoil_Structured_down.cntl'
-para_path_tip = 'input/airfoil_Structured_tip.cntl'
-para_path_le = 'input/airfoil_Structured_le.cntl'
-para_path_te = 'input/airfoil_Structured_te.cntl'
-para_path_root = 'input/airfoil_Structured_root.cntl'
-para_path_periodic_up = 'input/airfoil_Structured_periodic_up.cntl'
-para_path_periodic_down = 'input/airfoil_Structured_periodic_down.cntl'
-para_path_farfield = 'input/airfoil_Structured_farfield.cntl'
 shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
@@ -160,7 +155,7 @@ def SolveSolutionStep(advanceTime, sub_step):
     Solver.stop()
     # Convert tau output to dat file using tau2plt
     if tau_mpi_rank() == 0 and not first_iteration:
-        TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern, step_mesh, sub_step)
+        TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, output_file_pattern, step_mesh, sub_step)
     tau_parallel_sync()
 
 def FinalizeSolutionStep():
@@ -192,9 +187,9 @@ def ImportData(conn_name, identifier, factor):
         if tau_mpi_rank() == 0:
             new_displacements = factor*TauFunctions.ChangeFormatDisplacements(displacements)
             TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
-            with open('new_displacement_up' + str(step) + '.dat','w') as fname:
-               for i in range(len(new_displacements)):
-                   fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))
+            # with open('new_displacement_up' + str(step) + '.dat','w') as fname:
+            #    for i in range(len(new_displacements)):
+            #        fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))
         tau_parallel_sync()
     elif identifier == "Lower_Interface_disp":
         Para_origin_down = PyPara.Parafile(para_path_down)
@@ -224,13 +219,13 @@ def ExportData(conn_name, identifier):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = 0.0*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", ouput_file_pattern, sub_step)
-            with open('forces_up' + str(step) + '.dat','w') as fname:
-               for i in range(len(forces)/3):
-                   fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
+            forces = 0.0*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step)
+            # with open('forces_up' + str(step) + '.dat','w') as fname:
+            #    for i in range(len(forces)/3):
+            #        fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
-            forces = 0.0*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
+            forces = 0.0*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -248,9 +243,9 @@ def ExportMesh(conn_name, identifier, sub_step):
 
         # identifier is the data-name in json
         if identifier == "UpperInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", ouput_file_pattern, sub_step)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step)
         elif identifier == "LowerInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step)
             # elem_connectivities += int(30000)
             # print(elem_connectivities)
         else:
@@ -279,14 +274,14 @@ def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
     if not coupling_interface_imported and not first_iteration:
         advanceTime = False
         if tau_mpi_rank() == 0:
-            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
+            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", output_file_pattern, sub_step)
         tau_parallel_sync()
         ExportMesh(connection_name, "UpperInterface", sub_step)
         ExportMesh(connection_name, "LowerInterface", sub_step)
         coupling_interface_imported = True
 
     if tau_mpi_rank() == 0 and not first_iteration:
-        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", ouput_file_pattern, sub_step)
+        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", output_file_pattern, sub_step)
     tau_parallel_sync()
 
     if not first_iteration:
