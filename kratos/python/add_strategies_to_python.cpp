@@ -350,7 +350,6 @@ namespace Kratos
             py::class_<ResidualBasedAdjointBossakSchemeType, typename ResidualBasedAdjointBossakSchemeType::Pointer, BaseSchemeType>
             (m, "ResidualBasedAdjointBossakScheme")
             .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
-            .def(py::init<const double, AdjointResponseFunction::Pointer>())
             ;
 
             //********************************************************************

@@ -84,14 +84,6 @@ public:
         mBossak.Alpha = Settings["alpha_bossak"].GetDouble();
     }
 
-    ResidualBasedAdjointBossakScheme(
-        const double BossakAlpha,
-        AdjointResponseFunction::Pointer pResponseFunction
-        ) : mpResponseFunction(pResponseFunction)
-    {
-        mBossak.Alpha = BossakAlpha;
-    }
-
     /// Destructor.
     ~ResidualBasedAdjointBossakScheme() override
     {
