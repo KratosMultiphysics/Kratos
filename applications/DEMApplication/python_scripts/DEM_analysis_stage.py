@@ -345,20 +345,19 @@ class DEMAnalysisStage(AnalysisStage):
 
         print(lower_corner_coordinates)
         print(higher_corner_coordinates)
-        #element_size = input("Enter element size:")
+        element_size = int(input("Enter element size:"))
 
-        #import math
+        import math
 
-        #number_of_divisions = Array3()
-        #number_of_divisions[0] = math.cell((lower_corner_coordinates[0]-higher_corner_coordinates[0])/element_size)
-        #number_of_divisions[1] = math.cell((lower_corner_coordinates[1]-higher_corner_coordinates[1])/element_size)
-        #number_of_divisions[2] = math.cell((lower_corner_coordinates[2]-higher_corner_coordinates[2])/element_size)
-        #higher_corner_coordinates[0] = lower_corner_coordinates [0] + number_of_divisions[0] * element_size
-        #higher_corner_coordinates[1] = lower_corner_coordinates [1] + number_of_divisions[1] * element_size
-        #higher_corner_coordinates[2] = lower_corner_coordinates [2] + number_of_divisions[2] * element_size
-
+        number_of_divisions = Vector(3)
+        number_of_divisions[0] = math.ceil((higher_corner_coordinates[0]-lower_corner_coordinates[0])/element_size)
+        number_of_divisions[1] = math.ceil((higher_corner_coordinates[1]-lower_corner_coordinates[1])/element_size)
+        number_of_divisions[2] = math.ceil((higher_corner_coordinates[2]-lower_corner_coordinates[2])/element_size)
+        higher_corner_coordinates[0] = lower_corner_coordinates [0] + number_of_divisions[0] * element_size
+        higher_corner_coordinates[1] = lower_corner_coordinates [1] + number_of_divisions[1] * element_size
+        higher_corner_coordinates[2] = lower_corner_coordinates [2] + number_of_divisions[2] * element_size
         #provisional fins que es fassin divisions diferents per demensio al meshing_utilities
-        number_of_divisions = int(input("Enter number of divisions:"))
+        #number_of_divisions = int(input("Enter number of divisions:"))
 
         import KratosMultiphysics.DEMApplication.meshing_utilities as meshing_utilities
 

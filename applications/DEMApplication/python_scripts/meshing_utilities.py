@@ -18,9 +18,9 @@ class ParallelepipedRegularMesher: # TO-DO_ Generalize to different number of di
         parameters.AddEmptyValue("element_name").SetString(element_name)
         parameters.AddEmptyValue("condition_name").SetString(condition_name)
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
-        parameters.AddEmptyValue("number_of_divisions").SetInt(self.n_divisions)
+        parameters.AddEmptyValue("number_of_divisions").SetVector(self.n_divisions)
 
-        domain_geometry = Kratos.Hexahedra3D8(Node(1, self.hc[0], self.hc[1], self.lc[2]),
+        self.domain_geometry = Kratos.Hexahedra3D8(Node(1, self.hc[0], self.hc[1], self.lc[2]),
                                           Node(2, self.lc[0], self.hc[1], self.lc[2]),
                                           Node(3, self.lc[0], self.lc[1], self.lc[2]),
                                           Node(4, self.hc[0], self.lc[1], self.lc[2]),
@@ -29,7 +29,7 @@ class ParallelepipedRegularMesher: # TO-DO_ Generalize to different number of di
                                           Node(7, self.lc[0], self.lc[1], self.hc[2]),
                                           Node(8, self.hc[0], self.lc[1], self.hc[2]))
 
-        self.mesh_generator_process = Kratos.StructuredMeshGeneratorProcess(domain_geometry,
+        self.mesh_generator_process = Kratos.StructuredMeshGeneratorProcess(self.domain_geometry,
                                                                         self.mp,
                                                                         parameters)
     def FillModelPartWithNewMesh(self):
@@ -61,14 +61,14 @@ class RectangularRegularMesher:
         parameters.AddEmptyValue("element_name").SetString(element_name)
         parameters.AddEmptyValue("condition_name").SetString(condition_name)
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
-        parameters.AddEmptyValue("number_of_divisions").SetInt(self.n_divisions)
+        parameters.AddEmptyValue("number_of_divisions").SetVector(self.n_divisions)
 
-        domain_geometry = Kratos.Quadrilateral2D4(Node(1, self.lc[0], self.hc[1]),
+        self.domain_geometry = Kratos.Quadrilateral2D4(Node(1, self.lc[0], self.hc[1]),
                                           Node(2, self.hc[0], self.hc[1]),
                                           Node(3, self.hc[0], self.lc[1]),
                                           Node(4, self.lc[0], self.lc[1]))
 
-        self.mesh_generator_process = Kratos.StructuredMeshGeneratorProcess(domain_geometry,
+        self.mesh_generator_process = Kratos.StructuredMeshGeneratorProcess(self.domain_geometry,
                                                                         self.mp,
                                                                         parameters)
     def FillModelPartWithNewMesh(self):

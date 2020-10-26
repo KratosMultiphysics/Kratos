@@ -39,7 +39,16 @@ namespace Kratos
 		mStartElementId = TheParameters["start_element_id"].GetInt();
 		mStartConditionId = TheParameters["start_condition_id"].GetInt();
 
-        mNumberOfDivisions = TheParameters["number_of_divisions"].GetInt();
+		if TheParameters["number_of_divisions"].IsInt()
+			std::vector<std::size_t, 3> mNumberOfDivisions = {0, 0, 0};
+			for (std::size_t i = 0, i = mrGeometry.LocalSpaceDimension()) {
+        	mNumberOfDivisions[i] = TheParameters["number_of_divisions"].GetInt();
+			}
+		else if TheParameters["number_of_divisions"].IsVector()
+			mNumberOfDivisions = TheParameters["number_of_divisions"].GetVector();
+		else
+			KRATOS_ERROR << "Not supported geometry is given" << std::endl;
+
 		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
 		mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
 		mElementName = TheParameters["element_name"].GetString();
@@ -73,7 +82,7 @@ namespace Kratos
             "start_node_id":1,
             "start_element_id":1,
             "start_condition_id":1,
-            "number_of_divisions":1,
+            "number_of_divisions": {0, 0, 0},
             "elements_properties_id":0,
             "conditions_properties_id":0,
             "element_name": "PLEASE SPECIFY IT",
@@ -116,19 +125,20 @@ namespace Kratos
 
 	void StructuredMeshGeneratorProcess::GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint) {
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
-		local_element_size /= mNumberOfDivisions;
+		local_element_size[0] /= mNumberOfDivisions[0];
+		local_element_size[1] /= mNumberOfDivisions[1];
 		//const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Point local_coordinates = rMinPoint;
 		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
-		for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
-			for (std::size_t i = 0; i <= mNumberOfDivisions; i++) {
+		for (std::size_t j = 0; j <= mNumberOfDivisions[1]; j++) {
+			for (std::size_t i = 0; i <= mNumberOfDivisions[0]; i++) {
 				local_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
 				local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 				mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
 				if (mCreateSkinSubModelPart && (
-                    (i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions)))  // Is on skin
+                    (i == 0) || (i == mNumberOfDivisions[0]) || (j == 0) || (j == mNumberOfDivisions[1])))  // Is on skin
 					mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
                                                                                        global_coordinates[1],
                                                                                        global_coordinates[2]);
@@ -142,21 +152,23 @@ namespace Kratos
 
 	void StructuredMeshGeneratorProcess::GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint) {
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
-		local_element_size /= mNumberOfDivisions;
+		local_element_size[0] /= mNumberOfDivisions[0];
+		local_element_size[1] /= mNumberOfDivisions[1];
+		local_element_size[2] /= mNumberOfDivisions[2];
 		Point local_coordinates = rMinPoint;
 		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
-		for (std::size_t k = 0; k <= mNumberOfDivisions; k++) {
-			for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
-				for (std::size_t i = 0; i <= mNumberOfDivisions; i++) {
+		for (std::size_t k = 0; k <= mNumberOfDivisions[2]; k++) {
+			for (std::size_t j = 0; j <= mNumberOfDivisions[1]; j++) {
+				for (std::size_t i = 0; i <= mNumberOfDivisions[0]; i++) {
 					local_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
 					local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 					local_coordinates[2] = rMinPoint[2] + (k * local_element_size[2]);
 					mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
 					if (mCreateSkinSubModelPart && (
-                        (i == 0) || (i == mNumberOfDivisions) || (j == 0) ||
-                        (j == mNumberOfDivisions) || (k == 0) || (k == mNumberOfDivisions)))  // Is on skin
+                        (i == 0) || (i == mNumberOfDivisions[0]) || (j == 0) ||
+                        (j == mNumberOfDivisions[1]) || (k == 0) || (k == mNumberOfDivisions[2])))  // Is on skin
 						mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
                                                                                            global_coordinates[1],
                                                                                            global_coordinates[2]);
@@ -175,8 +187,8 @@ namespace Kratos
 		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 		std::vector<ModelPart::IndexType> element_connectivity(3);
 
-		for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
-			for (std::size_t i = 0; i < mNumberOfDivisions; i++) {
+		for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+			for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
 				element_connectivity = { GetNodeId(i,j,0), GetNodeId(i + 1,j + 1,0), GetNodeId(i + 1,j,0) };
 				mrOutputModelPart.CreateNewElement(mElementName, element_id++, element_connectivity, p_properties);
 
@@ -189,9 +201,9 @@ namespace Kratos
 	void StructuredMeshGeneratorProcess::GenerateTetrahedraElements() {
 		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 
-		for (std::size_t k = 0; k < mNumberOfDivisions; k++) {
-			for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
-				for (std::size_t i = 0; i < mNumberOfDivisions; i++) {
+		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
 					CreateCellTetrahedra(i, j, k, p_properties);
 				}
 			}
@@ -221,7 +233,7 @@ namespace Kratos
 	}
 
 	std::size_t StructuredMeshGeneratorProcess::GetNodeId(std::size_t I, std::size_t J, std::size_t K) {
-		return mStartNodeId + (K * (mNumberOfDivisions + 1) * (mNumberOfDivisions + 1)) + (J * (mNumberOfDivisions + 1)) + I;
+		return mStartNodeId + (K * (mNumberOfDivisions[2] + 1) * (mNumberOfDivisions[1] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I;
 	}
 
     void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint) {
@@ -250,7 +262,10 @@ namespace Kratos
             (mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8))
             KRATOS_ERROR << "An unsupported geometry was given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << mrGeometry << std::endl;
 
-        KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions, 0);
+        KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[0], 0);
+		KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[1], 0);
+		if mrGeometry.LocalSpaceDimension() == 3
+			KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[2], 0);
 
         return 0;
 
