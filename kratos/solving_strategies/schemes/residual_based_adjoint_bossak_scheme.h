@@ -101,17 +101,17 @@ public:
     {
         KRATOS_TRY
 
-        auto lambda2_vars = GatherVariables(
+        std::vector<const VariableData*> lambda2_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
                 rExtensions.GetFirstDerivativesVariables(rVec);
             });
-        auto lambda3_vars = GatherVariables(
+        std::vector<const VariableData*> lambda3_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
                 return rExtensions.GetSecondDerivativesVariables(rVec);
             });
-        auto auxiliary_vars = GatherVariables(
+        std::vector<const VariableData*> auxiliary_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
                 return rExtensions.GetAuxiliaryVariables(rVec);
@@ -828,17 +828,17 @@ private:
     void UpdateTimeSchemeAdjoints(ModelPart& rModelPart)
     {
         KRATOS_TRY;
-        auto lambda2_vars = GatherVariables(
+        std::vector<const VariableData*> lambda2_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
                 rExtensions.GetFirstDerivativesVariables(rVec);
             });
-        auto lambda3_vars = GatherVariables(
+        std::vector<const VariableData*> lambda3_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
                 return rExtensions.GetSecondDerivativesVariables(rVec);
             });
-        auto auxiliary_vars = GatherVariables(
+        std::vector<const VariableData*> auxiliary_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
                 return rExtensions.GetAuxiliaryVariables(rVec);
@@ -974,7 +974,7 @@ private:
     void UpdateAuxiliaryVariable(ModelPart& rModelPart)
     {
         KRATOS_TRY;
-        auto aux_vars = GatherVariables(
+        std::vector<const VariableData*> aux_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rOut) {
                 return rExtensions.GetAuxiliaryVariables(rOut);
