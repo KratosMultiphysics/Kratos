@@ -1,12 +1,9 @@
 {
     "problem_data"         : {
-        "problem_name"         : "lagrangian_swe",
-        "domain_size"          : 2,
         "echo_level"           : 0,
         "start_time"           : 0.0,
         "end_time"             : 0.5,
-        "parallel_type"        : "OpenMP",
-        "number_of_threads"    : 1
+        "parallel_type"        : "OpenMP"
     },
     "solver_settings"      : {
         "solver_type"              : "lagrangian_shallow_water_solver",
@@ -31,7 +28,7 @@
         },
         "time_stepping"            : {
             "automatic_time_step"      : false,
-            "time_step"                : 0.01
+            "time_step"                : 0.1
         }
     },
     "_output_processes" : {
@@ -113,8 +110,9 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "check_variables"  : ["HEIGHT"],
-                "input_file_name"  : "swe_reference.json",
-                "time_frequency"   : 0.5
+                "input_file_name"  : "lagrangian_swe_reference.json",
+                "time_frequency"   : 0.49,
+                "tolerance"        : 1e-5
             }
         }]
     },
@@ -126,7 +124,7 @@
                 "model_part_name"  : "main_model_part",
                 "output_variables" : ["HEIGHT"],
                 "output_file_name" : "lagrangian_swe_reference.json",
-                "time_frequency"   : 0.5
+                "time_frequency"   : 0.49
             }
         },{
             "kratos_module"   : "KratosMultiphysics",
@@ -135,7 +133,8 @@
                 "model_part_name"  : "main_model_part",
                 "check_variables"  : ["HEIGHT"],
                 "input_file_name"  : "lagrangian_swe_reference.json",
-                "time_frequency"   : 0.5
+                "time_frequency"   : 0.49,
+                "tolerance"        : 1e-5
             }
         }]
     }
