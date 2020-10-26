@@ -13,15 +13,15 @@ class ShallowWaterTestFactory(KratosUnittest.TestCase):
             test.Run()
 
 class TestLagrangianShallowWaterElement(ShallowWaterTestFactory):
-    execution_directory = "element_tests"
+    execution_directory = "elements_tests"
     execution_file = "lagrangian_swe"
 
 class TestShallowWaterElement(ShallowWaterTestFactory):
-    execution_directory = "element_tests"
+    execution_directory = "elements_tests"
     execution_file = "swe"
 
 class TestShallowWater2D3NElement(ShallowWaterTestFactory):
-    execution_directory = "element_tests"
+    execution_directory = "elements_tests"
     execution_file = "shallow_water_2d_3n"
 
 class TestSetTopographyProcess(ShallowWaterTestFactory):
