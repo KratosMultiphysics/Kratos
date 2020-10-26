@@ -11,9 +11,10 @@
 //
 
 // Project includes
-#include "mpm_mpi_search.h"
-#include "mpi_utilities.h"
+#include "mpi/utilities/model_part_communicator_utilities.h"
 #include "custom_utilities/mpm_search_element_utility.h"
+#include "mpi_utilities.h"
+#include "mpm_mpi_search.h"
 
 namespace Kratos {
 
@@ -30,12 +31,12 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementMPI(ModelPart& rBackgroundGridMode
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
 
-        // Make sure elements/conditions are added to the rMPMModelPart Communicator (and not to the r_submodel_part-communicator).
-        MPM_MPI_Utilities::SetMPICommunicator(rMPMModelPart, r_submodel_part);
+        // Set mpi-communicator
+        ModelPartCommunicatorUtilities::SetMPICommunicator(r_submodel_part);
 
         MPMSearchElementUtility::NeighbourSearchElements(r_submodel_part, rBackgroundGridModelPart, missing_elements, Tolerance);
         MPMSearchElementUtility::NeighbourSearchConditions(r_submodel_part, rBackgroundGridModelPart, missing_conditions, Tolerance);
-        KRATOS_INFO_ALL_RANKS("Send elements: ") << missing_elements.size() << std::endl;
+
         std::vector<int> element_search_results_dummy(missing_elements.size());
         std::vector<int> condition_search_results_dummy(missing_conditions.size());
         if (missing_conditions.size() > 0 || missing_elements.size() > 0)
@@ -47,10 +48,15 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementMPI(ModelPart& rBackgroundGridMode
             missing_conditions, MaxNumberOfResults, Tolerance);
 
     }
+    // Make sure that also all active ghost nodes are set to actice in their home partition.
     MPM_MPI_Utilities::SynchronizeActiveDofsAtInterface(rMPMModelPart);
     
+    // Update Communicator
+    rMPMModelPart.GetCommunicator().LocalMesh().Nodes() = rMPMModelPart.Nodes();
+    rMPMModelPart.GetCommunicator().LocalMesh().Properties() = rMPMModelPart.rProperties();
     rMPMModelPart.GetCommunicator().LocalMesh().Elements() = rMPMModelPart.Elements();
     rMPMModelPart.GetCommunicator().LocalMesh().Conditions() = rMPMModelPart.Conditions();
+    
     // Sync proc's
     rMPMModelPart.GetCommunicator().GetDataCommunicator().Barrier();
 }
@@ -151,7 +157,6 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
             // Gather all local_condition_search_results
             rMPMSubModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_condition_search_results, global_condition_search_results);
 
-
             // Make sure every element is only found ones!
             std::vector<int> global_element_search_results_combined(number_sent_elements);
             std::fill(global_element_search_results_combined.begin(), global_element_search_results_combined.end(), 0);
@@ -212,12 +217,11 @@ void MPM_MPI_SEARCH<TDimension>::SearchElementsInOtherPartitions(ModelPart& rMPM
                 #pragma omp critical
                 rMPMSubModelPart.AddConditions(aux_conditions.begin(), aux_conditions.end());
             }
-            
         }
     }
 
-    // TODO: If everything works, change the comparison "!=" to "<". This will than indicate that not all elements/conditions were found
-    //       and hence left the global domain (global backgroundgrid)
+    // TODO: If everything works, change the comparison "!=" to "<" and throw a warning. This will than indicate that not all elements/conditions were found
+    //       and hence (at leasat most likely) left the global domain (global backgroundgrid)
     local_number_of_conditions = rMPMSubModelPart.NumberOfConditions();
     const unsigned int global_number_of_conditions_end = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_conditions);
     KRATOS_ERROR_IF(global_number_of_conditions_begin != global_number_of_conditions_end) << "MPM_MPI_SEARCH::SearchElements: "

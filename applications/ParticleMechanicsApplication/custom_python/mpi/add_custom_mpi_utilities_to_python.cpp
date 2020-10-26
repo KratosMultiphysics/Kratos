@@ -45,7 +45,8 @@ namespace Python{
             .def_static("TransferElements", &MPM_MPI_Utilities::TransferElements)
             .def_static("TransferConditions", &MPM_MPI_Utilities::TransferConditions)
             .def_static("SetMPICommunicator",&MPM_MPI_Utilities::SetMPICommunicator)
-            .def_static("ClearLocalElementsFromCommunicator", &MPM_MPI_Utilities::ClearLocalElementsFromCommunicator);
+            .def_static("ClearLocalElementsFromCommunicator", &MPM_MPI_Utilities::ClearLocalElementsFromCommunicator)
+            .def_static("WriteGlobalParticlesToFile", &MPM_MPI_Utilities::WriteGlobalParticlesToFile );
     }
 
  }  // namespace Python.

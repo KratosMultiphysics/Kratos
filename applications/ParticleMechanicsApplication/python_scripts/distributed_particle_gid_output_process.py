@@ -28,57 +28,15 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
 
     def ExecuteBeforeSolutionLoop(self):
         # Initiate Output Mesh
-        self.mesh_file = open(self.base_file_name + ".post.msh",'w')
-        self.mesh_file.write("MESH \"")
-        self.mesh_file.write("outmesh")
-        self.mesh_file.write("\" dimension 3 ElemType Point Nnode 1\n")
-        self.mesh_file.write("Coordinates\n")
-        rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
-        for mpm in self.model_part.Elements:
-            coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
-            self.ID.append(str(mpm.Id))
-            self.mesh_file.write("{} {} {} {}\n".format( str(mpm.Id), coord[0], coord[1], coord[2]))
-            self.COORD.append(coord)
-        self.mesh_file.write("End Coordinates\n")
-        self.mesh_file.write("Elements\n")
-        for mpm in self.model_part.Elements:
-            self.mesh_file.write("{} {}\n".format(str(mpm.Id), str(mpm.Id)))
-        self.mesh_file.write("End Elements\n")
-        self.mesh_file.flush()
-
+        self.mesh_file_name = self.base_file_name + ".post.msh"
+        # Write initial mesh to file
+        KratosParticle.MPM_MPI_Utilities.WriteGlobalParticlesToFile(self.model_part, self.mesh_file_name ) 
         # Initiate Output File
         self.result_file = open(self.base_file_name + ".post.res",'w')
         self.result_file.write("GiD Post Results File 1.0\n")
 
-    def AdjustMeshFile(self):
-        rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
-        for mpm in self.model_part.Elements:
-            Id_ = str(mpm.Id)
-            if Id_ not in self.ID:
-                self.ID.append(Id_)
-                coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
-                disp = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_DISPLACEMENT,self.model_part.ProcessInfo)[0]
-                self.COORD.append(coord-disp)
-        self.mesh_file = open(self.base_file_name + ".post.msh",'w')
-        self.mesh_file.write("MESH \"")
-        self.mesh_file.write("outmesh")
-        self.mesh_file.write("\" dimension 3 ElemType Point Nnode 1\n")
-        self.mesh_file.write("Coordinates\n")
-        rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
-        for id_, coord in zip(self.ID,self.COORD):
-            self.mesh_file.write("{} {} {} {}\n".format( id_, coord[0], coord[1], coord[2]))
-        self.mesh_file.write("End Coordinates\n")
-        self.mesh_file.write("Elements\n")
-        for id_ in self.ID:
-            self.mesh_file.write("{} {}\n".format(id_, id_))
-        self.mesh_file.write("End Elements\n")
-        self.mesh_file.flush()
-
-
     def _write_mp_results(self, step_label=None):
         clock_time = self._start_time_measure()
-        rank = str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank())
-        self.AdjustMeshFile()
         for i in range(self.variable_name_list.size()):
             var_name = self.variable_name_list[i].GetString()
             variable = self.variable_list[i]
@@ -102,15 +60,14 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
                     print_size = 1
                 else:
                     print_size = print_variable.Size()
-                # TODO: find better way than this:
-                Id_ = str(mpm.Id)
+
                 # Write variable as formated
                 if print_size == 1:
-                    self.result_file.write("{} {}\n".format(Id_, print_variable))
+                    self.result_file.write("{} {}\n".format(mpm.Id, print_variable))
                 elif print_size == 3:
-                    self.result_file.write("{} {} {} {}\n".format(Id_, print_variable[0], print_variable[1], print_variable[2]))
+                    self.result_file.write("{} {} {} {}\n".format(mpm.Id, print_variable[0], print_variable[1], print_variable[2]))
                 elif print_size == 6:
-                    self.result_file.write("{} {} {} {} {} {} {}\n".format(Id_, print_variable[0], print_variable[1], print_variable[2], print_variable[3], print_variable[4], print_variable[5]))
+                    self.result_file.write("{} {} {} {} {} {} {}\n".format(mpm.Id, print_variable[0], print_variable[1], print_variable[2], print_variable[3], print_variable[4], print_variable[5]))
                 else:
                     KM.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable: ", var_name, "with size: ", print_size)
 

@@ -89,13 +89,12 @@ public:
     static void ClearLocalElementsFromCommunicator( ModelPart& rModelPart);
 
     /**
-     * @brief Provides all global particle Id's and coordinates.
-     * !!!This function was only some helper function. Not used.!!!
+     * @brief Writes all particles into a mesh.post file.
+     * @details Gathers all particles and outputs id and coordinates.
+     * @todo It might be enough to write the mesh only to a single file and not for all proc`s
+     *       seperately as it is done now. Check GiD.
      **/
-    static void GetAllParticleCoordinates( ModelPart& rModelPart, std::vector<int>& rParticleIDs,
-                                                                  std::vector<double>& rDispX,
-                                                                  std::vector<double>& rDispY,
-                                                                  std::vector<double>& rDispZ);
+    static void WriteGlobalParticlesToFile( ModelPart& rModelPart, const char* OutputFileName);
     
     /**
      * @brief Synchronize nodal displacement at interface mesh;

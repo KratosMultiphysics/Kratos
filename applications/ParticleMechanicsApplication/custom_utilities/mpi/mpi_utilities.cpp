@@ -51,7 +51,7 @@ namespace Kratos {
         );
         
         rModelPart.RemoveElementsFromAllLevels(TO_ERASE);
-        rModelPart.GetCommunicator().LocalMesh().Elements() = rModelPart.Elements();
+        //rModelPart.GetCommunicator().LocalMesh().Elements() = rModelPart.Elements();
 
         rSendElements.clear();
     }
@@ -90,7 +90,7 @@ namespace Kratos {
         );
 
         rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
-        rModelPart.GetCommunicator().LocalMesh().Conditions() = rModelPart.Conditions();
+        //rModelPart.GetCommunicator().LocalMesh().Conditions() = rModelPart.Conditions();
 
         rSendConditions.clear();
     }
@@ -141,40 +141,72 @@ namespace Kratos {
         }
     }
 
-    // ##############################################################################################
-    //!!!This function was only some helper function. Not used.!!!
-    // ##############################################################################################
-    void MPM_MPI_Utilities::GetAllParticleCoordinates( ModelPart& rModelPart, std::vector<int>& rParticleIDs,
-                                                                              std::vector<double>& rCoordX,
-                                                                              std::vector<double>& rCoordY,
-                                                                              std::vector<double>& rCoordZ ){
-        const unsigned int num_local_particles = rModelPart.NumberOfElements();
-        const unsigned int num_global_particles = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_local_particles);
-        std::vector<int> local_particle_ids(num_local_particles);
-        local_particle_ids.resize(num_local_particles);
-        std::vector<double> local_coord_x(num_local_particles);
-        std::vector<double> local_coord_y(num_local_particles);
-        std::vector<double> local_coord_z(num_local_particles);
-        const ProcessInfo& process_info = ProcessInfo();
-        for( auto& element : rModelPart.Elements() ){
-            local_particle_ids.push_back(element.Id());
-            std::vector<array_1d<double,3>> coord;
-            element.CalculateOnIntegrationPoints(MP_COORD, coord, process_info);
-            local_coord_x.push_back(coord[0][0]);
-            local_coord_y.push_back(coord[0][1]);
-            local_coord_z.push_back(coord[0][2]);
-        }
-        rParticleIDs.resize(num_global_particles);
-        std::vector<int> test;
-        test.resize(num_global_particles);
-        rCoordX.resize(num_global_particles);
-        rCoordY.resize(num_global_particles);
-        rCoordZ.resize(num_global_particles);
-        //rModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_particle_ids, test);
-        //rModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_coord_x, rCoordX);
-        // rModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_coord_y, rCoordY);
-        // rModelPart.GetCommunicator().GetDataCommunicator().AllGather(local_coord_z, rCoordZ);
+    void MPM_MPI_Utilities::WriteGlobalParticlesToFile( ModelPart& rModelPart , const char* OutputFileName){
+        const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
+        const unsigned int rank = rModelPart.GetCommunicator().MyPID();
+        // Construct element containers
+        std::vector<ElementsContainerType> send_elements_container(size);
+        ElementsContainerType send_elements;
 
+        // Fill element and condition containers
+        send_elements = rModelPart.Elements();
+        for( std::size_t i = 0; i < size; ++i){
+            if( i != rank){
+                send_elements_container[i] = send_elements;
+            }
+        }
+
+        std::vector<ElementsContainerType> recv_elements_container(size);
+        rModelPart.GetCommunicator().TransferObjects(send_elements_container, recv_elements_container);
+        // Add own elements to container
+        recv_elements_container[rank] = send_elements;
+        
+        // Write output file
+        FILE *file = fopen(OutputFileName, "w");
+        
+        fprintf(file, "MESH \"outmesh\" dimension 3 ElemType Point Nnode 1\n");
+        fprintf(file, "Coordinates \n");
+        const Kratos::ProcessInfo process_info;
+        for( int i = 0; i < size; ++i){
+            const auto it_elements_begin = recv_elements_container[i].begin();
+            const unsigned int number_elements = recv_elements_container[i].size();
+            for( int j = 0; j < number_elements; ++j){
+                auto it_element = it_elements_begin + j;
+                std::vector<array_1d<double, 3>> coordinates;
+                it_element->CalculateOnIntegrationPoints(MP_COORD, coordinates, process_info);
+                fprintf(file, "%li %f %f %f\n", it_element->Id(), coordinates[0][0], coordinates[0][1], coordinates[0][2]);
+            }
+        }  
+        fprintf(file, "End Coordinates \n");
+        fprintf(file, "Elements \n");
+        for( int i = 0; i < size; ++i){
+            const auto it_elements_begin = recv_elements_container[i].begin();
+            const unsigned int number_elements = recv_elements_container[i].size();
+            for( int j = 0; j < number_elements; ++j){
+                auto it_element = it_elements_begin + j;
+                fprintf(file, "%li %li \n", it_element->Id(), it_element->Id());
+            }
+        }
+        fprintf(file, "End Elements \n");
+        fflush(file);
+        fclose(file);
+    }
+
+    void MPM_MPI_Utilities::SetMPICommunicator( ModelPart& rSourceModelPart, ModelPart& rDestModelPart){
+        rDestModelPart.SetCommunicator(rSourceModelPart.pGetCommunicator());
+    }
+
+    void MPM_MPI_Utilities::ClearLocalElementsFromCommunicator( ModelPart& rModelPart){
+        rModelPart.GetCommunicator().LocalMesh().Elements().clear();
+        // Remove non-grid conditions
+        const auto condition_it_begin = rModelPart.ConditionsBegin();
+        const unsigned int number_of_conditions = rModelPart.NumberOfConditions();
+        for( unsigned int i = 0; i < number_of_conditions; ++i){
+            auto condition_it = condition_it_begin + i;
+            if( condition_it->Is(BOUNDARY) ){
+                rModelPart.GetCommunicator().LocalMesh().RemoveCondition(&*condition_it);
+            }
+        }
     }
     // ##############################################################################################
     // !!!This function is no longer needed. However, function is kept for some while just in case.!!!
@@ -233,22 +265,4 @@ namespace Kratos {
         }
         rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
     }
-
-    void MPM_MPI_Utilities::SetMPICommunicator( ModelPart& rSourceModelPart, ModelPart& rDestModelPart){
-        rDestModelPart.SetCommunicator(rSourceModelPart.pGetCommunicator());
-    }
-
-    void MPM_MPI_Utilities::ClearLocalElementsFromCommunicator( ModelPart& rModelPart){
-        rModelPart.GetCommunicator().LocalMesh().Elements().clear();
-        // Remove non-grid conditions
-        const auto condition_it_begin = rModelPart.ConditionsBegin();
-        const unsigned int number_of_conditions = rModelPart.NumberOfConditions();
-        for( unsigned int i = 0; i < number_of_conditions; ++i){
-            auto condition_it = condition_it_begin + i;
-            if( condition_it->Is(BOUNDARY) ){
-                rModelPart.GetCommunicator().LocalMesh().RemoveCondition(&*condition_it);
-            }
-        }
-    }
-
 } // end namespace Kratos
