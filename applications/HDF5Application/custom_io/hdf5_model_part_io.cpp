@@ -300,7 +300,6 @@ void ModelPartIO::WriteSubModelParts(ModelPart::SubModelPartsContainerType const
             current_model_part_io.WriteConditions(r_sub_model_part.Conditions());
         }
 
-        // const ModelPart::SubModelPartsContainerType& r_sub_model_parts =
         WriteSubModelParts(r_sub_model_part.SubModelParts(), sub_model_part_path);
     }
 }
@@ -328,6 +327,7 @@ void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart, const std::string& rP
     }
 
     if (has_elements) {
+        // iterate over all types of elements
         for (const auto& element_name : mpFile->GetGroupNames(rPath + "/Elements")) {
             r_sub_model_part.AddElements(ReadEntityIds(rPath + "/Elements/" + element_name));
         }
