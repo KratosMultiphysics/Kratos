@@ -224,7 +224,9 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
     Internals::ReadAndAssignVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
-    ReadSubModelParts(rModelPart, mPrefix + "/SubModelParts");
+    for (const auto& r_sub_model_part_name : mpFile->GetGroupNames(mPrefix + "/SubModelParts")) {
+        ReadSubModelParts(rModelPart, mPrefix + "/SubModelParts/" + r_sub_model_part_name);
+    }
 
     KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
         << "Time to read model part \"" << rModelPart.Name()
@@ -319,31 +321,27 @@ void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart, const std::string& rP
         }
     }
 
-    // found current leaf path as a model part. so create it
+    auto& r_sub_model_part = rModelPart.CreateSubModelPart(rPath.substr(rPath.rfind("/") + 1));
+
     if (mpFile->HasPath(rPath + "/NodeIds")) {
-        auto& r_sub_model_part = rModelPart.CreateSubModelPart(rPath.substr(rPath.rfind("/") + 1));
         r_sub_model_part.AddNodes(ReadContainerIds(rPath + "/NodeIds"));
-        if (has_elements) {
-            // iterate over all types of elements
-            for (const auto& element_name : mpFile->GetGroupNames(rPath + "/Elements")) {
-                r_sub_model_part.AddElements(ReadEntityIds(rPath + "/Elements/" + element_name));
-            }
-        }
+    }
 
-        if (has_conditions) {
-            // iterate over all types of conditions
-            for (const auto& condition_name : mpFile->GetGroupNames(rPath + "/Conditions")) {
-                r_sub_model_part.AddConditions(ReadEntityIds(rPath + "/Conditions/" + condition_name));
-            }
+    if (has_elements) {
+        for (const auto& element_name : mpFile->GetGroupNames(rPath + "/Elements")) {
+            r_sub_model_part.AddElements(ReadEntityIds(rPath + "/Elements/" + element_name));
         }
+    }
 
-        for (const auto& sub_model_part_name : sub_model_part_names) {
-            ReadSubModelParts(r_sub_model_part, rPath + "/" + sub_model_part_name);
+    if (has_conditions) {
+        // iterate over all types of conditions
+        for (const auto& condition_name : mpFile->GetGroupNames(rPath + "/Conditions")) {
+            r_sub_model_part.AddConditions(ReadEntityIds(rPath + "/Conditions/" + condition_name));
         }
-    } else { // current leaf path is not a submodel part, so don't create any new model part. Iterate on submodel parts only
-        for (const auto& sub_model_part_name : sub_model_part_names) {
-            ReadSubModelParts(rModelPart, rPath + "/" + sub_model_part_name);
-        }
+    }
+
+    for (const auto& sub_model_part_name : sub_model_part_names) {
+        ReadSubModelParts(r_sub_model_part, rPath + "/" + sub_model_part_name);
     }
 }
 
