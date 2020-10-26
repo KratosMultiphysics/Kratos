@@ -119,7 +119,7 @@ void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, dou
         }
         else
         {
-            auto topography_gradient = it_node->FastGetSolutionStepValue(TOPOGRAPHY_GRADIENT);
+            auto topography_gradient = it_node->GetValue(TOPOGRAPHY_GRADIENT);
             auto normal = it_node->FastGetSolutionStepValue(NORMAL);
             double sign = inner_prod(normal, topography_gradient);
             // NOTE: Normal is positive outwards
