@@ -2155,6 +2155,11 @@ CONDMESHTYPE: over body elements
 GROUPALLOW: lines
 QUESTION: Constitutive_Law#CB#(BeamConstitutiveLaw)
 VALUE: BeamConstitutiveLaw
+QUESTION: Dimension#CB#(2D,3D)
+VALUE: 2D
+HELP: 2D or 3D beam elements
+DEPENDENCIES: (2D,HIDE,   I22,#CURRENT#,HIDE,   Torsional_Inertial,#CURRENT#)
+DEPENDENCIES: (3D,RESTORE,I22,#CURRENT#,RESTORE,Torsional_Inertial,#CURRENT#)
 QUESTION: Young_Modulus
 VALUE: 2069.0e8
 HELP: Units in IS: N/m2
@@ -2166,7 +2171,13 @@ HELP: Units in IS: Kg/m3
 QUESTION: Cross_Area
 VALUE: 1.0
 HELP: Units in IS: m2
+QUESTION: I22
+VALUE: 1.0
+HELP: Units in IS: m4
 QUESTION: I33
+VALUE: 1.0
+HELP: Units in IS: m4
+QUESTION: Torsional_Inertial
 VALUE: 1.0
 HELP: Units in IS: m4
 END CONDITION
