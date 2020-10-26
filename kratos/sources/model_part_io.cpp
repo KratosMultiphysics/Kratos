@@ -3601,16 +3601,27 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
 
         ExtractValue(word, id);
 
-        if(ReorderedNodeId(id) > EntitiesPartitions.size())
+        SizeType index = 0;
+        if (BlockName == "NodalData"){
+            index = ReorderedNodeId(id);
+        } else if (BlockName == "ElementalData"){
+            index = ReorderedElementId(id);
+        } else if (BlockName == "ConditionalData"){
+            index = ReorderedConditionId(id);
+        } else{
+            KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
+        }
+
+        if(index > EntitiesPartitions.size())
         {
             std::stringstream buffer;
-            buffer << "Invalid node id : " << id;
+            buffer << "Invalid id : " << id;
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;;
         }
 
         std::stringstream entity_data;
-        entity_data << ReorderedNodeId(id) << '\t'; // id
+        entity_data << index << '\t'; // id
 
         if(BlockName == "NodalData")
         {
@@ -3630,14 +3641,14 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
         Vector temp_vector;
         ReadVectorialValue(temp_vector);
 
-        for(SizeType i = 0 ; i < EntitiesPartitions[ReorderedNodeId(id)-1].size() ; i++)
+        for(SizeType i = 0 ; i < EntitiesPartitions[index-1].size() ; i++)
         {
-            SizeType partition_id = EntitiesPartitions[ReorderedNodeId(id)-1][i];
+            SizeType partition_id = EntitiesPartitions[index-1][i];
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
                 buffer << "Invalid prtition id : " << partition_id;
-                buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+                buffer << " for entity " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
 
