@@ -69,9 +69,11 @@ void GeoCrBeamElementLinear3D2N::CalculateLocalSystem(
 
     rRightHandSideVector = ZeroVector(msElementSize);
 
-    noalias(mInternalGlobalForces) = prod(rLeftHandSideMatrix, nodal_deformation);
+    Vector InternalGlobalForces = ZeroVector(msElementSize);
 
-    noalias(rRightHandSideVector) -= (mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
+    noalias(InternalGlobalForces) = prod(rLeftHandSideMatrix, nodal_deformation);
+
+    noalias(rRightHandSideVector) -= (InternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
 
     // add bodyforces
     rRightHandSideVector += CalculateBodyForces();
@@ -90,9 +92,11 @@ void GeoCrBeamElementLinear3D2N::CalculateRightHandSide(
     GetValuesVector(nodal_deformation);
     rRightHandSideVector = ZeroVector(msElementSize);
 
-    noalias(mInternalGlobalForces) = prod(left_hand_side_matrix, nodal_deformation);
+    Vector InternalGlobalForces = ZeroVector(msElementSize);
 
-    noalias(rRightHandSideVector) -= (mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
+    noalias(InternalGlobalForces) = prod(left_hand_side_matrix, nodal_deformation);
+
+    noalias(rRightHandSideVector) -= (InternalGlobalForces + mInternalGlobalForcesFinalizedPrevious);
 
     // add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();

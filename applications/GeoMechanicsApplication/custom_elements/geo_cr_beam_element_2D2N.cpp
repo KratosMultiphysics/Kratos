@@ -94,21 +94,15 @@ void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     {
         if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
         {
-            bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];
-
-            if (ResetDisplacement)
-            {
-                mInternalGlobalForcesFinalizedPrevious = mInternalGlobalForcesFinalized;
-            }
+            if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
+                noalias(mInternalGlobalForcesFinalizedPrevious) = mInternalGlobalForcesFinalized;
             else
-            {
-                mInternalGlobalForcesFinalized = mInternalGlobalForcesFinalizedPrevious;
-            }
+                noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForcesFinalizedPrevious;
         }
         else
         {
-            mInternalGlobalForcesFinalized = ZeroVector(msLocalSize);
-            mInternalGlobalForcesFinalizedPrevious = ZeroVector(msLocalSize);
+            noalias(mInternalGlobalForcesFinalized) = ZeroVector(msElementSize);
+            noalias(mInternalGlobalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }
     }
 

@@ -165,7 +165,7 @@ void GeoCrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) 
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void GeoCrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step)
+void GeoCrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
     if (rValues.size() != msElementSize) {
@@ -1069,7 +1069,8 @@ void GeoCrBeamElement3D2N::
     Vector internal_forces = CalculateGlobalNodalForces();
 
     rRightHandSideVector = ZeroVector(msElementSize);
-    noalias(rRightHandSideVector) -= (internal_forces + mInternalGlobalForcesFinalizedPrevious);
+    noalias(rRightHandSideVector) -= internal_forces;
+    noalias(rRightHandSideVector) -= mInternalGlobalForcesFinalizedPrevious;
 
     // add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
@@ -1277,7 +1278,7 @@ void GeoCrBeamElement3D2N::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::
-    AssembleSmallInBigMatrix( Matrix SmallMatrix,
+    AssembleSmallInBigMatrix( const Matrix& SmallMatrix,
                               BoundedMatrix<double, GeoCrBeamElement3D2N::msElementSize,
                               GeoCrBeamElement3D2N::msElementSize>& BigMatrix) const
 {
@@ -1542,7 +1543,7 @@ GeoCrBeamElement3D2N::GetIntegrationMethod() const
 void GeoCrBeamElement3D2N::
     AddExplicitContribution( const VectorType& rRHSVector,
                              const Variable<VectorType>& rRHSVariable,
-                             Variable<array_1d<double, 3>>& rDestinationVariable,
+                             const Variable<array_1d<double, 3>>& rDestinationVariable,
                              const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
@@ -1555,7 +1556,7 @@ void GeoCrBeamElement3D2N::
         Vector current_nodal_velocities = ZeroVector(msElementSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
-        const ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
         CalculateDampingMatrix(damping_matrix, temp_process_information);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
@@ -1593,7 +1594,7 @@ void GeoCrBeamElement3D2N::
 
     if (rDestinationVariable == NODAL_INERTIA) {
         Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-        const ProcessInfo temp_info; // Dummy
+        ProcessInfo temp_info; // Dummy
         CalculateMassMatrix(element_mass_matrix, temp_info);
 
         for (IndexType i = 0; i < msNumberOfNodes; ++i) {
@@ -1766,20 +1767,15 @@ void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     {
         if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
         {
-            bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];
-            if (ResetDisplacement)
-            {
-                mInternalGlobalForcesFinalizedPrevious = mInternalGlobalForcesFinalized;
-            }
+            if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
+                noalias(mInternalGlobalForcesFinalizedPrevious) = mInternalGlobalForcesFinalized;
             else
-            {
-                mInternalGlobalForcesFinalized = mInternalGlobalForcesFinalizedPrevious;
-            }
+                noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForcesFinalizedPrevious;
         }
         else
         {
-            mInternalGlobalForcesFinalized = ZeroVector(msLocalSize);
-            mInternalGlobalForcesFinalizedPrevious = ZeroVector(msLocalSize);
+            noalias(mInternalGlobalForcesFinalized) = ZeroVector(msElementSize);
+            noalias(mInternalGlobalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }
     }
     mIsInitialization = false;
@@ -1793,7 +1789,7 @@ void GeoCrBeamElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY;
 
-    mInternalGlobalForcesFinalized = CalculateGlobalNodalForces() + mInternalGlobalForcesFinalizedPrevious;
+    noalias(mInternalGlobalForcesFinalized) = CalculateGlobalNodalForces() + mInternalGlobalForcesFinalizedPrevious;
 
     KRATOS_CATCH("");
 }

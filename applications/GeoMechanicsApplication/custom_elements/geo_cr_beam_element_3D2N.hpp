@@ -43,9 +43,8 @@ protected:
     static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
     static constexpr unsigned int msElementSize = msLocalSize * 2;
 
-    Vector mInternalGlobalForces = ZeroVector(msLocalSize);
-    Vector mInternalGlobalForcesFinalized = ZeroVector(msLocalSize);
-    Vector mInternalGlobalForcesFinalizedPrevious = ZeroVector(msLocalSize);
+    Vector mInternalGlobalForcesFinalized = ZeroVector(msElementSize);
+    Vector mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);
 
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCrBeamElement3D2N);
@@ -222,12 +221,12 @@ public:
 
     void AddExplicitContribution(const VectorType& rRHSVector,
                                  const Variable<VectorType>& rRHSVariable,
-                                 Variable<array_1d<double, 3> >& rDestinationVariable,
+                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
@@ -242,7 +241,7 @@ public:
      * @param SmallMatrix The local transformation matrix
      * @param BigMatrix The total global rotation matrix
      */
-    void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
+    void AssembleSmallInBigMatrix(const Matrix& SmallMatrix, BoundedMatrix<double,
                                   msElementSize,msElementSize>& BigMatrix) const;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
