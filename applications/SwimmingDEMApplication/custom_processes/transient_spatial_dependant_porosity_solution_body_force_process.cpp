@@ -284,6 +284,9 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
+
+        mrModelPart.GetNode(it_node).FastGetSolutionStepValue(VELOCITY_X) = r_u1;
+        mrModelPart.GetNode(it_node).FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
         }
 
 }

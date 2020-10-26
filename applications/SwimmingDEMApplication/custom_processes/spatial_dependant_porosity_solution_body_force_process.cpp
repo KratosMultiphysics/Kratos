@@ -220,6 +220,9 @@ void SpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyForceAndPor
         r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
         r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
 
+        mrModelPart.GetNode(it_node).FastGetSolutionStepValue(VELOCITY_X) = r_u1;
+        mrModelPart.GetNode(it_node).FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
+
         }
 
 }
