@@ -95,7 +95,7 @@ ConstitutiveLaw::Pointer ConstitutiveLaw::Create(Kratos::Parameters NewParameter
  * @return a Pointer to the new constitutive law
  */
 ConstitutiveLaw::Pointer ConstitutiveLaw::Create(
-    Kratos::Parameters NewParameters, 
+    Kratos::Parameters NewParameters,
     const Properties& rProperties
     ) const
 {
@@ -501,68 +501,6 @@ void ConstitutiveLaw::InitializeMaterial(const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues)
 {
-}
-
-/**
- * to be called at the beginning of each solution step
- * (e.g. from Element::InitializeSolutionStep)
- * @param rMaterialProperties the Properties instance of the current element
- * @param rElementGeometry the geometry of the current element
- * @param rShapeFunctionsValues the shape functions values in the current integration point
- * @param the current ProcessInfo instance
- */
-void ConstitutiveLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-/**
- * to be called at the end of each solution step
- * (e.g. from Element::FinalizeSolutionStep)
- * @param rMaterialProperties the Properties instance of the current element
- * @param rElementGeometry the geometry of the current element
- * @param rShapeFunctionsValues the shape functions values in the current integration point
- * @param the current ProcessInfo instance
- */
-void ConstitutiveLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-/**
- * to be called at the beginning of each step iteration
- * (e.g. from Element::InitializeNonLinearIteration)
- * @param rMaterialProperties the Properties instance of the current element
- * @param rElementGeometry the geometry of the current element
- * @param rShapeFunctionsValues the shape functions values in the current integration point
- * @param the current ProcessInfo instance
- */
-void ConstitutiveLaw::InitializeNonLinearIteration(const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-/**
- * to be called at the end of each step iteration
- * (e.g. from Element::FinalizeNonLinearIteration)
- * @param rMaterialProperties the Properties instance of the current element
- * @param rElementGeometry the geometry of the current element
- * @param rShapeFunctionsValues the shape functions values in the current integration point
- * @param the current ProcessInfo instance
- */
-void ConstitutiveLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
 }
 
 /**
@@ -1623,96 +1561,6 @@ double& ConstitutiveLaw::GetConstitutiveComponent(double & rCabcd,
 
     return rCabcd;
 }
-
-//*** OUTDATED METHODS: ***//
-
-
-
-/**
- * Computes the material response in terms of stresses and algorithmic tangent
- * @param StrainVector the current strains (total strains, input)
- * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear strain measure is used)
- * @param StressVector the computed stresses (output)
- * @param algorithmicTangent the material tangent matrix (output)
- * @param rCurrentProcessInfo current ProcessInfo instance
- * @param rMaterialProperties the material's Properties object
- * @param rElementGeometry the element's geometry
- * @param rShapeFunctionsValues the shape functions values in the current integration pointer
- * @param CalculateStresses flag whether or not to compute the stress response
- * @param CalculateTangent flag to determine if to compute the material tangent
- * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
- * @param SaveInternalVariables flag whether or not to store internal (history) variables
- */
-void ConstitutiveLaw::CalculateMaterialResponse(const Vector& StrainVector,
-        const Matrix& DeformationGradient,
-        Vector& StressVector,
-        Matrix& AlgorithmicTangent,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        bool CalculateStresses,
-        int CalculateTangent,
-        bool SaveInternalVariables)
-{
-    KRATOS_ERROR <<  "Calling virtual function for CalculateMaterialResponse"<< std::endl;;
-}
-
-/**
- * Computes the volumetric part of the material response in terms of stresses and algorithmic tangent
- * @param StrainVector the current strains (total strains, input)
- * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
- * @param StressVector the computed stresses (output)
- * @param algorithmicTangent the material tangent matrix (output)
- * @param rCurrentProcessInfo current ProcessInfo instance
- * @param rMaterialProperties the material's Properties object
- * @param rElementGeometry the element's geometry
- * @param rShapeFunctionsValues the shape functions values in the current integration pointer
- * @param CalculateStresses flag whether or not to compute the stress response
- * @param CalculateTangent flag to determine if to compute the material tangent
- * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
- * @param SaveInternalVariables flag whether or not to store internal (history) variables
- */
-void ConstitutiveLaw::CalculateVolumetricResponse(const double VolumetricStrain,
-        const Matrix& DeformationGradient,
-        double& VolumetricStress,
-        double& AlgorithmicBulk,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        bool CalculateStresses,
-        int CalculateTangent,
-        bool SaveInternalVariables)
-{
-    KRATOS_ERROR <<  "Calling virtual function for CalculateVolumetricResponse"<< std::endl;;
-}
-
-/**
- * Computes the deviatoric part of the material response in terms of stresses and algorithmic tangent
- * @param StrainVector the current strains (total strains, input)
- * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
- * @param StressVector the computed stresses (output)
- * @param algorithmicTangent the material tangent matrix (output)
- * @param rCurrentProcessInfo current ProcessInfo instance
- * @param rMaterialProperties the material's Properties object
- * TODO: add proper definition for algorithmic tangent
- */
-void ConstitutiveLaw::CalculateDeviatoricResponse(const Vector& StrainVector,
-        const Matrix& DeformationGradient,
-        Vector& StressVector,
-        Matrix& AlgorithmicTangent,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        bool CalculateStresses,
-        int CalculateTangent,
-        bool SaveInternalVariables)
-{
-    KRATOS_ERROR <<  "Calling virtual function for CalculateDeviatoricResponse"<< std::endl;;
-}
-
 
 // VM
 void ConstitutiveLaw::CalculateCauchyStresses(Vector& Cauchy_StressVector,
