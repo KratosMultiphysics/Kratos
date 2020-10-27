@@ -13,7 +13,7 @@ class SwimmingStrategy(BaseStrategy):
 
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, parameters, procedures):
         self.project_parameters = parameters
-        super(SwimmingStrategy, self).__init__(all_model_parts, creator_destructor, dem_fem_search, parameters['dem_parameters'], procedures)
+        super().__init__(all_model_parts, creator_destructor, dem_fem_search, parameters['dem_parameters'], procedures)
 
     def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = BaseStrategy.TranslationalIntegrationSchemeTranslator(self, name)
@@ -60,14 +60,14 @@ class SwimmingStrategy(BaseStrategy):
 
     def GetTranslationalSchemeInstance(self, class_name):
         try:
-            translational_scheme = super(SwimmingStrategy, self).GetTranslationalSchemeInstance(class_name)
+            translational_scheme = super().GetTranslationalSchemeInstance(class_name)
         except Exception:
             translational_scheme = SwimmingStrategy.SDEMEvaluateString(class_name)()
         return translational_scheme
 
     def GetRotationalSchemeInstance(self, class_name):
         try:
-            rotational_scheme = super(SwimmingStrategy, self).GetRotationalSchemeInstance(class_name)
+            rotational_scheme = super().GetRotationalSchemeInstance(class_name)
         except Exception:
             rotational_scheme = SwimmingStrategy.SDEMEvaluateString(class_name)()
         return rotational_scheme
@@ -138,7 +138,7 @@ class SwimmingStrategy(BaseStrategy):
 
     def ModifyProperties(self, properties, param = 0):
 
-        super(SwimmingStrategy, self).ModifyProperties(properties, param)
+        super().ModifyProperties(properties, param)
 
         hydrodynamic_law_parameters = self.GetHydrodynamicLawParametersIfItExists(properties)
         if hydrodynamic_law_parameters:

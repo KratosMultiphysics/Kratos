@@ -138,10 +138,6 @@ class PfemFluidSolver(PythonSolver):
         # Set echo_level
         self.fluid_solver.SetEchoLevel(echo_level)
 
-        # Set initialize flag
-        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
-            self.mechanical_solver.SetInitializePerformedFlag(True)
-
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
 
@@ -290,12 +286,6 @@ class PfemFluidSolver(PythonSolver):
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
 
-    def Solve(self):
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-
-        self.fluid_solver.Solve()
-
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
         new_time = current_time + dt
@@ -325,10 +315,9 @@ class PfemFluidSolver(PythonSolver):
         pass
 
     def SolveSolutionStep(self):
-        is_converged = True
-        self.fluid_solver.Solve()
-        return is_converged
-
+        converged = self.fluid_solver.SolveSolutionStep()
+        return converged
+        
     def FinalizeSolutionStep(self):
         #pass
         self.fluid_solver.FinalizeSolutionStep()
