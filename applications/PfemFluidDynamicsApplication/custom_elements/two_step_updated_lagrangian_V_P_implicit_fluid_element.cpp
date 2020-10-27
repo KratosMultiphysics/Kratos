@@ -1207,6 +1207,28 @@ namespace Kratos
         rElementalVariables.UpdatedDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
     rElementalVariables.UpdatedTotalCauchyStress[2] = rElementalVariables.UpdatedDeviatoricCauchyStress[2];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
+    if (this->GetProperties()[YIELD_SHEAR] > 0)
+    {
+      double TauNorm = sqrt(0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
+                            0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
+                            rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2]);
+
+      if (TauNorm > this->GetProperties()[YIELD_SHEAR])
+      {
+        this->SetValue(YIELDED, true);
+      }
+      else
+      {
+        this->SetValue(YIELDED, false);
+      }
+    }
+    else
+    {
+      this->SetValue(YIELDED, false);
+    }
+
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
     const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
@@ -1255,6 +1277,32 @@ namespace Kratos
     rElementalVariables.UpdatedTotalCauchyStress[3] = rElementalVariables.UpdatedDeviatoricCauchyStress[3];
     rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.UpdatedDeviatoricCauchyStress[4];
     rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.UpdatedDeviatoricCauchyStress[5];
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+    
+    if (this->GetProperties()[YIELD_SHEAR] > 0)
+    {
+
+      double TauNorm = sqrt(2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
+                            2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
+                            2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2] +
+                            4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.UpdatedDeviatoricCauchyStress[3] +
+                            4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.UpdatedDeviatoricCauchyStress[4] +
+                            4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.UpdatedDeviatoricCauchyStress[5]);
+
+      if (TauNorm > this->GetProperties()[YIELD_SHEAR])
+      {
+        this->SetValue(YIELDED, true);
+      }
+      else
+      {
+        this->SetValue(YIELDED, false);
+      }
+    }
+    else
+    {
+      this->SetValue(YIELDED, false);
+    }
 
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
