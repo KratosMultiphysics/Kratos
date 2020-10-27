@@ -298,7 +298,7 @@ protected:
 
     array_1d<double, 3> m_xg;
     array_1d<double, 3> m_acceleration;
-    array_1d<double, 3> m_velocity;    
+    array_1d<double, 3> m_velocity;
     array_1d<double, 3> m_normal;
     double m_area;
 
@@ -391,11 +391,22 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        rSerializer.save("xg",m_xg);
+        rSerializer.save("acceleration",m_acceleration);
+        rSerializer.save("velocity",m_velocity);
+        rSerializer.save("normal",m_normal);
+        rSerializer.save("area",m_area);
+
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        rSerializer.load("xg",m_xg);
+        rSerializer.load("acceleration",m_acceleration);
+        rSerializer.load("velocity",m_velocity);
+        rSerializer.load("normal",m_normal);
+        rSerializer.load("area",m_area);
     }
 
 }; // class MPMParticleBaseCondition.

@@ -15,7 +15,7 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class DEM3D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM3D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -25,40 +25,19 @@ class DEM3D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(DEM3D_ContactTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1.001
         for node in self.rigid_face_model_part.Nodes:
             dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
             contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Z)
             if node.Id == 9:
                 if self.time > 0.35:
-                    expected_value = 1621
-                    self.CheckPressure(dem_pressure, expected_value, tolerance)
-                    expected_value = -6484
-                    self.CheckContactF(contact_force, expected_value, tolerance)
+                    self.assertAlmostEqual(dem_pressure, 1621, delta=tolerance)
+                    self.assertAlmostEqual(contact_force, -6484, delta=tolerance)
             if node.Id == 13:
                 if self.time > 0.35:
-                    expected_value = 841
-                    self.CheckPressure(dem_pressure, expected_value, tolerance)
-                    expected_value = -3366
-                    self.CheckContactF(contact_force, expected_value, tolerance)
-
-
-
-    @classmethod
-    def CheckPressure(self, dem_pressure, expected_value, tolerance):
-        if expected_value > dem_pressure*tolerance or expected_value < dem_pressure/tolerance:
-            raise ValueError('Incorrect value for DEM_PRESSURE: expected value was '+ str(expected_value) + ' but received ' + str(dem_pressure))
-
-    @classmethod
-    def CheckContactF(self, contact_force, expected_value, tolerance):
-        if abs(expected_value) > abs(contact_force*tolerance) or abs(expected_value) < abs(contact_force/tolerance):
-            raise ValueError('Incorrect value for CONTACT_FORCES_X: expected value was '+ str(expected_value) + ' but received ' + str(contact_force))
-
-    def Finalize(self):
-        super(DEM3D_ContactTestSolution, self).Finalize()
-
-
+                    self.assertAlmostEqual(dem_pressure, 841, delta=tolerance)
+                    self.assertAlmostEqual(contact_force, -3366, delta=tolerance)
 
 class TestDEM3DContact(KratosUnittest.TestCase):
 

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
@@ -13,14 +12,11 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
 
     def __init__(self, model, parameters):
 
-        super(PfemFluidDEMcouplingSolver, self).__init__(model, parameters)
+        super().__init__(model, parameters)
 
     def Initialize(self):
-
-        print("::[Pfem Fluid Solver]:: -START-")
-
-        print(self.main_model_part.SetBufferSize(self.settings["buffer_size"].GetInt()))
-
+        KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", self.main_model_part.SetBufferSize(self.settings["buffer_size"].GetInt()))
+        
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
@@ -39,21 +35,12 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
         # Set echo_level
         self.fluid_solver.SetEchoLevel(echo_level)
 
-        # Set initialize flag
-        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
-            self.mechanical_solver.SetInitializePerformedFlag(True)
-
-
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
 
-
-        print("::[Pfem Fluid Solver]:: -END- ")
-
-
     def AddVariables(self):
 
-        super(PfemFluidDEMcouplingSolver, self).AddVariables()
+        super().AddVariables()
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_OLD)

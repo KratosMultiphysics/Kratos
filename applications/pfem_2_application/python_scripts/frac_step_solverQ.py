@@ -4,7 +4,6 @@ from KratosMultiphysics import *
 #from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEM2Application import *
 from KratosMultiphysics.MeshingApplication import *
-#from KratosMultiphysics.PFEMApplication import *
 #from KratosMultiphysics.ConvectionDiffusionApplication import *
 #from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *

@@ -10,6 +10,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 from shallow_water_test_factory import TestShallowWaterElement
 from shallow_water_test_factory import TestLagrangianShallowWaterElement
+from shallow_water_test_factory import TestShallowWater2D3NElement
+from shallow_water_test_factory import TestSetTopographyProcess
+from shallow_water_test_factory import TestVisualizationMeshProcess
 from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
 
 ## VALIDATION TESTS
@@ -32,6 +35,9 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(TestShallowWaterElement('test_execution'))
     smallSuite.addTest(TestLagrangianShallowWaterElement('test_execution'))
+    smallSuite.addTest(TestShallowWater2D3NElement('test_execution'))
+    smallSuite.addTest(TestSetTopographyProcess('test_execution'))
+    smallSuite.addTest(TestVisualizationMeshProcess('test_execution'))
     smallSuite.addTest(TestConvergenceOutputProcess('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
