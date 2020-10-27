@@ -99,8 +99,6 @@ namespace Kratos
             inertial_number = equivalent_strain_rate * grain_diameter / std::sqrt(std::fabs(mean_pressure) / grain_density);
         }
 
-        double exponent = 0;
-
         if (inertial_number > inertial_number_one)
         {
             const double first_viscous_term = static_friction;
@@ -111,7 +109,7 @@ namespace Kratos
         {
             const double denominator = static_friction * inertial_number_zero + dynamic_friction * inertial_number_one +
                                        infinite_friction_coeff * std::pow(inertial_number_one, 2);
-            exponent = alpha_parameter * (inertial_number_zero + inertial_number_one) *
+            const double exponent = alpha_parameter * (inertial_number_zero + inertial_number_one) *
                        (inertial_number_zero + inertial_number_one) / std::pow(denominator, 2);
             const double firstAconstant = inertial_number_one * std::exp(exponent);
             effective_dynamic_viscosity = std::sqrt(alpha_parameter / std::log(firstAconstant / inertial_number));
@@ -119,7 +117,7 @@ namespace Kratos
 
         if (equivalent_strain_rate != 0 && std::fabs(mean_pressure) != 0)
         {
-            exponent = -equivalent_strain_rate / regularization_coeff;
+            const double exponent = -equivalent_strain_rate / regularization_coeff;
             effective_dynamic_viscosity *= std::fabs(mean_pressure) * (1.0 - std::exp(exponent)) / equivalent_strain_rate;
         }
         else
