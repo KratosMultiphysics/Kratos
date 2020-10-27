@@ -288,7 +288,7 @@ public:
     template<typename TDataType>
     std::vector<TDataType> GetScalarData(
         const Variable<TDataType>& rVariable,
-        const DataLocation DataLoc) 
+        const DataLocation DataLoc)
     {
         std::vector<TDataType> data;
 
@@ -341,7 +341,7 @@ public:
     template<class TDataType>
     std::vector<double> GetVectorData(
         const Variable<TDataType>& rVariable,
-        const DataLocation DataLoc) 
+        const DataLocation DataLoc)
     {
         std::vector<double> data;
 
@@ -350,9 +350,9 @@ public:
         case (DataLocation::NodeHistorical):{
             const std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
             data.resize(mrModelPart.NumberOfNodes()*TSize);
-            
+
             IndexType counter = 0;
-    
+
             for(const auto& r_node : mrModelPart.Nodes()){
                 const auto& r_val = r_node.FastGetSolutionStepValue(rVariable);
                 for(int dim = 0 ; dim < TSize ; dim++){
@@ -594,7 +594,7 @@ private:
         IndexType counter = 0;
         for(const auto& r_entity : rContainer){
             data[counter++] = r_entity.GetValue(rVariable);
-        } 
+        }
     }
 
     template<typename TDataType, class TContainerType>
@@ -617,15 +617,15 @@ private:
             auto& r_val = r_entity.GetValue(rVariable);
             r_val = rData[counter++];
         } */
-        
+
         //printf("\nsize of %d\n", rContainer.size());
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
-            printf("index=%d, thread number=%d, value = %f\n", index, omp_get_thread_num(), rData[index]);
+            //printf("index=%d, thread number=%d, value = %f\n", index, omp_get_thread_num(), rData[index]);
             //rContainer[index].GetValue(localvariable) = rData[index];
-            auto& r_entity = rContainer[index];
-            r_entity.SetValue(rVariable,rData[index]); 
-        }); 
-                
+            auto& r_entity = *(rContainer.begin() + index);
+            r_entity.SetValue(rVariable,rData[index]);
+        });
+
         /* BlockPartition<TContainerType>(rContainer).for_each([](TContainerType::value_type& rEntity){
 
         })
@@ -659,7 +659,7 @@ private:
     // Only for SetScalarData()
     void ImportDataSizeCheck(int rContainer_size, int rSize){
         KRATOS_DEBUG_ERROR_IF(rContainer_size != rSize) << "mismatch in size!" << std::endl;
-    } 
+    }
 
 
     ///@}
