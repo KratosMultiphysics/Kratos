@@ -87,14 +87,14 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
 
         # Required variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KINEMATIC_VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_CAPACITY_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA) # TODO: CHECK WHY THIS IS NEEDED? SLIP CONDITIONS?
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
         # Post-process variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)
@@ -114,24 +114,6 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
 
     def Initialize(self):
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            # TODO: CHECK WHY THIS THROWS AN ERROR IN ELISA'S SOLVER
-            raise Exception("ERROR: _GetAutomaticTimeSteppingUtility out of date")
-            # self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
-
-        # Set the time discretization utility to compute the BDF coefficients
-        time_order = self.settings["time_order"].GetInt()
-        if time_order == 2:
-            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
-        else:
-            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
-
-        # TODO: SLIP BCs REMAIN AS A FUTURE TODO
-        # domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        # rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP)
-        # time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
-
         #TODO: PROPERLY IMPLEMENT THIS
         if self.settings["use_oss"].GetBool():
             self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = 1
