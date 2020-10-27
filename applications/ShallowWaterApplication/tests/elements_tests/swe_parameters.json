@@ -1,15 +1,12 @@
 {
     "problem_data"         : {
-        "problem_name"         : "lagrangian_swe",
-        "domain_size"          : 2,
         "echo_level"           : 0,
         "start_time"           : 0.0,
         "end_time"             : 0.5,
-        "parallel_type"        : "OpenMP",
-        "number_of_threads"    : 1
+        "parallel_type"        : "OpenMP"
     },
     "solver_settings"      : {
-        "solver_type"              : "lagrangian_shallow_water_solver",
+        "solver_type"              : "free_surface_shallow_water_solver",
         "model_part_name"          : "main_model_part",
         "domain_size"              : 2,
         "gravity"                  : 9.81,
@@ -19,7 +16,7 @@
         },
         "echo_level"               : 0,
         "buffer_size"              : 2,
-        "stabilization_factor"     : 0.005,
+        "stabilization_factor"     : 0.01,
         "relative_tolerance"       : 1.0E-6,
         "absolute_tolerance"       : 1.0E-9,
         "maximum_iterations"       : 20,
@@ -31,7 +28,7 @@
         },
         "time_stepping"            : {
             "automatic_time_step"      : false,
-            "time_step"                : 0.01
+            "time_step"                : 0.1
         }
     },
     "_output_processes" : {
@@ -41,7 +38,7 @@
             "process_name"         : "GidOutputProcess",
             "Parameters"           : {
                 "model_part_name"        : "main_model_part",
-                "output_name"            : "lagrangian_swe",
+                "output_name"            : "swe",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"         : {
@@ -114,7 +111,8 @@
                 "model_part_name"  : "main_model_part",
                 "check_variables"  : ["HEIGHT"],
                 "input_file_name"  : "swe_reference.json",
-                "time_frequency"   : 0.5
+                "time_frequency"   : 0.49,
+                "tolerance"        : 1e-5
             }
         }]
     },
@@ -125,8 +123,8 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "output_variables" : ["HEIGHT"],
-                "output_file_name" : "lagrangian_swe_reference.json",
-                "time_frequency"   : 0.5
+                "output_file_name" : "swe_reference.json",
+                "time_frequency"   : 0.49
             }
         },{
             "kratos_module"   : "KratosMultiphysics",
@@ -134,8 +132,9 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "check_variables"  : ["HEIGHT"],
-                "input_file_name"  : "lagrangian_swe_reference.json",
-                "time_frequency"   : 0.5
+                "input_file_name"  : "swe_reference.json",
+                "time_frequency"   : 0.49,
+                "tolerance"        : 1e-5
             }
         }]
     }
