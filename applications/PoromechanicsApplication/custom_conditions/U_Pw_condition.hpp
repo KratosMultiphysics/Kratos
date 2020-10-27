@@ -59,7 +59,7 @@ public:
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
 
-    void GetDofList(DofsVectorType& rConditionDofList,const ProcessInfo& rCurrentProcessInfo ) override;
+    void GetDofList(DofsVectorType& rConditionDofList,const ProcessInfo& rCurrentProcessInfo ) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo ) override;
+    void EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo ) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -80,7 +80,7 @@ void GeneralUPwDiffOrderCondition::Initialize()
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -194,7 +194,7 @@ void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHan
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

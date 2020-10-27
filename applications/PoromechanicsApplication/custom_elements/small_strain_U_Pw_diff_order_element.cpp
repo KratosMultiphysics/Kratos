@@ -193,7 +193,7 @@ void SmallStrainUPwDiffOrderElement::Initialize()
 
 //----------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -388,7 +388,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix( MatrixType& rMassMatri
 
 //----------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

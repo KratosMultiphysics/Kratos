@@ -335,7 +335,7 @@ public:
 // Note: this is in a parallel loop
 
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
@@ -343,9 +343,9 @@ public:
     {
         KRATOS_TRY
 
-        (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -354,8 +354,8 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
@@ -363,9 +363,9 @@ public:
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -374,17 +374,17 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -393,36 +393,17 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
-
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void Calculate_LHS_Contribution(
-        Element::Pointer rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        (rCurrentElement) -> CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
-
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -431,17 +412,36 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Condition_Calculate_LHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Note: this is in a parallel loop
+
+    void CalculateLHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        rCurrentCondition.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }

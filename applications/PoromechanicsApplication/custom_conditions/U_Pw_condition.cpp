@@ -26,11 +26,11 @@ Condition::Pointer UPwCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArr
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<2,1>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<2,1>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     const unsigned int condition_size = 2 + 1;
     unsigned int index = 0;
 
@@ -47,11 +47,11 @@ void UPwCondition<2,1>::GetDofList(DofsVectorType& rConditionDofList, const Proc
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<2,2>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<2,2>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     const unsigned int condition_size = 2 * (2 + 1);
     unsigned int index = 0;
 
@@ -71,11 +71,11 @@ void UPwCondition<2,2>::GetDofList(DofsVectorType& rConditionDofList, const Proc
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,1>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,1>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     const unsigned int condition_size = 3 + 1;
     unsigned int index = 0;
 
@@ -93,11 +93,11 @@ void UPwCondition<3,1>::GetDofList(DofsVectorType& rConditionDofList, const Proc
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,3>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,3>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 3 * (3 + 1);
     unsigned int index = 0;
 
@@ -118,11 +118,11 @@ void UPwCondition<3,3>::GetDofList(DofsVectorType& rConditionDofList, const Proc
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,4>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,4>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 4 * (3 + 1);
     unsigned int index = 0;
 
@@ -198,11 +198,11 @@ void UPwCondition<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHan
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<2,1>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<2,1>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 2 + 1;
     unsigned int index = 0;
 
@@ -219,11 +219,11 @@ void UPwCondition<2,1>::EquationIdVector(EquationIdVectorType& rResult,const Pro
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 2 * (2 + 1);
     unsigned int index = 0;
 
@@ -243,11 +243,11 @@ void UPwCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,const Pro
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,1>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,1>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 3 + 1;
     unsigned int index = 0;
 
@@ -265,11 +265,11 @@ void UPwCondition<3,1>::EquationIdVector(EquationIdVectorType& rResult,const Pro
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 3 * (3 + 1);
     unsigned int index = 0;
 
@@ -290,11 +290,11 @@ void UPwCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,const Pro
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 4 * (3 + 1);
     unsigned int index = 0;
 
