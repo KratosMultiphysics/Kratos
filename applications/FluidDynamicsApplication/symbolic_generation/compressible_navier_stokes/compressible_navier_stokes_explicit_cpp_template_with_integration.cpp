@@ -219,7 +219,27 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
         rOutput.resize( r_integration_points.size() );
     }
 
-    if (rVariable == SHOCK_CAPTURING_VISCOSITY) {
+    if (rVariable == SHOCK_SENSOR) {
+        const double sc = this->GetValue(SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == DENSITY_SHOCK_SENSOR) {
+        const double sc = this->GetValue(DENSITY_SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == MOMENTUM_SHOCK_SENSOR) {
+        const double sc = this->GetValue(MOMENTUM_SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == TOTAL_ENERGY_SHOCK_SENSOR) {
+        const double sc = this->GetValue(TOTAL_ENERGY_SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == SHOCK_CAPTURING_VISCOSITY) {
         const double nu_sc = this->GetValue(SHOCK_CAPTURING_VISCOSITY);
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = nu_sc;
@@ -250,6 +270,16 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
         const auto& tot_ener_grad = this->GetValue(TOTAL_ENERGY_GRADIENT);
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = tot_ener_grad;
+        }
+    } else if (rVariable == DENSITY_GRADIENT) {
+        const auto& rho_grad = this->GetValue(DENSITY_GRADIENT);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = rho_grad;
+        }
+    } else if (rVariable == PRESSURE_GRADIENT) {
+        const auto& pres_grad = this->GetValue(PRESSURE_GRADIENT);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = pres_grad;
         }
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
@@ -294,7 +324,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::FillElementD
     Properties &r_properties = this->GetProperties();
     rData.mu = r_properties.GetValue(DYNAMIC_VISCOSITY);
     rData.lambda = r_properties.GetValue(CONDUCTIVITY);
-    rData.c_v = r_properties.GetValue(SPECIFIC_HEAT);
+    rData.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
     rData.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
 
     rData.UseOSS = rCurrentProcessInfo[OSS_SWITCH];
@@ -963,8 +993,9 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
         const double tot_ener_avg = (U_0_3 + U_1_3 + U_2_3) / 3.0;
         const double c_avg = gamma * (gamma - 1.0) * ((tot_ener_avg / rho_avg) - 0.5 * std::pow(v_avg_norm, 2));
 
+        const double alpha = lambda / (rho_avg * gamma * c_v);
         const double tau_m_avg = 1.0 / ((4.0 * stab_c1 * mu / 3.0 / rho_avg / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
-        const double tau_et_avg = 1.0 / ((stab_c1 * lambda / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
+        const double tau_et_avg = 1.0 / ((stab_c1 * alpha / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
 
         nu_st = std::max(0.0, nu_sc - tau_m_avg * std::pow(v_avg_norm, 2));
         k_st = std::max(0.0, k_sc - tau_et_avg * std::pow(v_avg_norm, 2));
@@ -1103,8 +1134,9 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
         const double tot_ener_avg = (U_0_4 + U_1_4 + U_2_4 + U_3_4) / 4.0;
         const double c_avg = gamma * (gamma - 1.0) * ((tot_ener_avg / rho_avg) - 0.5 * std::pow(v_avg_norm, 2));
 
+        const double alpha = lambda / (rho_avg * gamma * c_v);
         const double tau_m_avg = 1.0 / ((4.0 * stab_c1 * mu / 3.0 / rho_avg / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
-        const double tau_et_avg = 1.0 / ((stab_c1 * lambda / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
+        const double tau_et_avg = 1.0 / ((stab_c1 * alpha / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
 
         nu_st = std::max(0.0, nu_sc - tau_m_avg * std::pow(v_avg_norm, 2));
         k_st = std::max(0.0, k_sc - tau_et_avg * std::pow(v_avg_norm, 2));

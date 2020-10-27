@@ -128,13 +128,11 @@ for dim in dim_vector:
         bdf0 = Symbol('bdf0')
         bdf1 = Symbol('bdf1')
         bdf2 = Symbol('bdf2')
-    k_sc = Symbol('k_sc', positive = True) # Shock capturing conductivity
-    nu_sc = Symbol('nu_sc', positive = True) # Shock capturing viscosity
-    k_st = Symbol('k_st', positive = True) # Stabilization conductivity approximation
-    nu_st = Symbol('nu_st', positive = True) # Stabilization viscosity approximation
-    lin_m = DefineVector('lin_m', dim) # Linearized momentum used in the anisotropic shock capturing matrices calculation
-    lin_m_norm = Symbol('lin_m_norm', positive = True) # Linearized momentum norm. This has to be defined as a separated symbol to check it is non-zero.
-
+    k_sc = Symbol('k_sc', positive = True) # Shock capturing thermal diffusivity (TODO: Change to alpha)
+    nu_sc = Symbol('nu_sc', positive = True) # Shock capturing kinematic viscosity
+    k_st = Symbol('k_st', positive = True) # Stabilization thermal diffusivity approximation (TODO: Change to alpha)
+    nu_st = Symbol('nu_st', positive = True) # Stabilization kinematic viscosity approximation
+    
     ### Construction of the variational equation
     Ug = DefineVector('Ug',block_size) # Dofs vector
     H = DefineMatrix('H',block_size,dim) # Gradient of U
@@ -153,6 +151,8 @@ for dim in dim_vector:
     if shock_capturing == "Isotropic":
         G = generate_diffusive_flux.ComputeDiffusiveFluxIsotropicShockCapturing(Ug, H, params, nu_sc, k_sc)
     elif shock_capturing == "Anisotropic":
+        lin_m = DefineVector('lin_m', dim) # Linearized momentum used in the anisotropic shock capturing matrices calculation
+        lin_m_norm = Symbol('lin_m_norm', positive = True) # Linearized momentum norm. This has to be defined as a separated symbol to check it is non-zero.
         G = generate_diffusive_flux.ComputeDiffusiveFluxAnisotropicShockCapturing(Ug, H, params, nu_sc, k_sc, nu_st, k_st, lin_m, lin_m_norm)
     else:
         raise Exception("Wrong shock capturing method: \'" + shock_capturing + "\'. Available options are: \'Isotropic\' and \'Anisotropic\'")
@@ -173,19 +173,10 @@ for dim in dim_vector:
 
     ## FE residuals definition
     # Note that we include the DOF time derivatives in both the implicit and the explicit cases
+    # It is required to include it in both cases to calculate the subscale inertial component
     # In the implicit case it is computed with the BDF formulas
     # In the explicit case it is linearised by using the values already stored in the database
-    # In the explicit case it is required to add it to calculate the subscale intertial terms
     res = - acc - L
-
-    # ## Isotropic Residual Based Shock Capturing
-    # # Momentum residual
-    # res_m = Matrix(zeros(dim,1))
-    # for i in range(0,dim):
-    #     res_m[i,0] = res[i+1,0]
-    # # Energy residual
-    # res_e = Matrix(zeros(1,1))
-    # res_e[0,0] = res[dim+1]
 
     ## Non-linear adjoint operator definition
     print("\nCompute Non-linear Adjoint operator\n")
@@ -221,19 +212,16 @@ for dim in dim_vector:
     n2 = - V.transpose() * conv_flux
 
     # Diffusive term - FE scale
-    diff_flux = 0.0
     n3 = Matrix(zeros(1,1))
     for j in range(dim):
         for k in range(block_size):
-            diff_flux -= Q[k,j] * G[k,j]
-    n3[0,0] = - diff_flux
+            n3[0,0] += Q[k,j] * G[k,j]
 
     # Source term - FE scale
     n4 = V.transpose() * (S * Ug)
 
     # VMS_adjoint - Subscales
     subscales = DefineVector('subscales',block_size)
-    # subscales = Tau * res
     n5 = L_adj.transpose() * subscales
 
     # Variational formulation (Galerkin functional)
@@ -241,7 +229,7 @@ for dim in dim_vector:
     if not is_explicit:
         rv = n1 + n2 + n3 + n4 + n5 # Implicit case (includes the inertial term n1)
     else:
-        rv = n2 + n3 + n4 + n5 		# Explicit case
+        rv = n2 + n3 + n4 + n5 		# Explicit case (without inertial term n1)
 
     #### OSS Residual projections calculation ####
     # Calculate the residuals projection
@@ -313,9 +301,7 @@ for dim in dim_vector:
                 asgs_subscales = Tau * res
                 SubstituteMatrixValue(rv_gauss, subscales, asgs_subscales)
             elif subscales_type == "OSS":
-                # oss_subscales = Tau * (res)
                 oss_subscales = Tau * (res - res_proj)
-                # oss_subscales = Tau * (res + res_proj)
                 SubstituteMatrixValue(rv_gauss, subscales, oss_subscales)
             else:
                 raise Exception("Wrong subscales type!")
@@ -339,6 +325,7 @@ for dim in dim_vector:
             r_gauss = (r.transpose()*N)[0]
 
             ## Gauss pt. stabilization matrix calculation
+            #TODO: SHOULD WE ADD THE SC MAGNITUDES IN HERE?????
             tau_gauss = generate_stabilization_matrix.computeTauOnGaussPoint(params, U_gauss)
 
             ## If OSS, residual projections interpolation
