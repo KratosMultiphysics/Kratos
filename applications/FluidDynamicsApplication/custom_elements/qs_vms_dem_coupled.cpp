@@ -141,7 +141,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
 
         // Calculate this element RHS contribution
         QSVMS<TElementData>::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-        this->AddMassRHS(rRightHandSideVector, data);
+        //this->AddMassRHS(rRightHandSideVector, data);
 }
 
 template<class TElementData>
@@ -184,7 +184,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
                 for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
                 {
                     rMassMatrix(row+d, col+d) += K;
-                    rMassMatrix(row+Dim,col+d) += weight * rData.DN_DX(i,d) * rData.N[j];
+                    rMassMatrix(row+Dim,col+d) += weight * (rData.DN_DX(i,d) * rData.N[j] + fluid_fraction * rData.DN_DX(i,d) * rData.N[j] + rData.N[i] * fluid_fraction_gradient[d] * rData.N[j]);
                 }
             }
         }
@@ -199,7 +199,6 @@ void QSVMSDEMCoupled<TElementData>::AddMassRHS(
         double mass_source = 0.0;
         mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
         fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
-        const auto& r_geom = this->GetGeometry();
 
         // Add the results to the pressure components (Local Dofs are vx, vy, [vz,] p for each node)
         int LocalIndex = Dim;
@@ -297,18 +296,14 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
         // RHS terms
         double QF = 0.0;
-        double GAQF = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
             rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
             rLocalRHS[row+d] += rData.Weight * tau_one * AGradN[i] * (body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * tau_one * (Density * BodyForce)
             rLocalRHS[row+d] -= rData.Weight * tau_two * rData.DN_DX(i,d) * (mass_projection + mass_source - fluid_fraction_rate);
-            QF += tau_one * (body_force[d] - momentum_projection[d]) * (fluid_fraction * rData.DN_DX(i,d));
-            for (unsigned int e = 0; e < Dim; e++){ // Stabilization: q * grad(alpha) * tau_one * f
-                    GAQF += tau_one * body_force[d] * rData.N[i] * fluid_fraction_gradient[e];
-            }
+            QF += tau_one * (body_force[d] - momentum_projection[d]) * (fluid_fraction * rData.DN_DX(i,d) + rData.N[i] * fluid_fraction_gradient[d]);
         }
-        rLocalRHS[row+Dim] += rData.Weight * (QF + GAQF);
+        rLocalRHS[row+Dim] += rData.Weight * (QF + rData.N[i] * (mass_source - fluid_fraction_rate));
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
@@ -333,7 +328,7 @@ void QSVMSDEMCoupled<TElementData>::MassProjTerm(
         const auto velocities = rData.Velocity;
 
         const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-        const auto fluid_fraction_gradient = rData.FluidFractionGradient;
+        const auto fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
         const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
         const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
 
@@ -341,7 +336,7 @@ void QSVMSDEMCoupled<TElementData>::MassProjTerm(
         for (unsigned int i = 0; i < NumNodes; i++) {
             for (unsigned int d = 0; d < Dim; ++d)
             {
-                rMassRHS -= (fluid_fraction * rData.DN_DX(i, d) * velocities(i, d)) + fluid_fraction_gradient(i,d) * rData.N[i] * velocities(i, d);
+                rMassRHS -= (fluid_fraction * rData.DN_DX(i, d) * velocities(i, d)) + fluid_fraction_gradient[d] * rData.N[i] * velocities(i, d);
             }
         }
         rMassRHS += mass_source - fluid_fraction_rate;
