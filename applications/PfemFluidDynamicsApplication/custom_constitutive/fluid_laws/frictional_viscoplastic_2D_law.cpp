@@ -84,17 +84,17 @@ namespace Kratos
                       4.0 * r_strain_vector[2] * r_strain_vector[2]);
 
         // Ensuring that the case of equivalent_strain_rate = 0 is not problematic
-        const double tolerance=1e-12;
+        const double tolerance = 1e-12;
         if (equivalent_strain_rate < tolerance)
         {
             effective_dynamic_viscosity = dynamic_viscosity;
         }
         else
         {
-            const double friction_angle_rad= friction_angle*Globals::Pi/180.0;
-            const double tanFi=std::tan(friction_angle_rad);
+            const double friction_angle_rad = friction_angle * Globals::Pi / 180.0;
+            const double tanFi = std::tan(friction_angle_rad);
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity + regularization * (cohesion + tanFi * fabs(mean_pressure) / equivalent_strain_rate); 
+            effective_dynamic_viscosity = dynamic_viscosity + regularization * (cohesion + tanFi * fabs(mean_pressure) / equivalent_strain_rate);
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1];
@@ -108,7 +108,7 @@ namespace Kratos
             this->EffectiveViscousConstitutiveMatrix2D(effective_dynamic_viscosity, rValues.GetConstitutiveMatrix());
         }
     }
-    
+
     std::string FrictionalViscoplastic2DLaw::Info() const { return "FrictionalViscoplastic2DLaw"; }
 
     //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW******************
