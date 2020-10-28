@@ -124,7 +124,7 @@ namespace Kratos
             unbalanced_interface_free_kinematics.clear();
             CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics, true);
             const double equilibrium_norm = norm_2(unbalanced_interface_free_kinematics);
-            KRATOS_ERROR_IF(equilibrium_norm > numerical_limit)
+            KRATOS_ERROR_IF(equilibrium_norm > 1e-12)
                 << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
                 << "Equilibrium norm = " << equilibrium_norm << "\nUnbalanced interface vel = \n"
                 << unbalanced_interface_free_kinematics << "\n";
