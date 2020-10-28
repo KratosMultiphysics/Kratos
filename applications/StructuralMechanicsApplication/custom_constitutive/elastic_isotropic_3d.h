@@ -155,27 +155,23 @@ public:
     /**
      * @brief Returns the initial stress vector if it is defined in the geometry
      */
-    Vector GetInitialStressVector(Parameters& rParameterValues) 
+    const void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
     {
         const auto &r_geometry = rParameterValues.GetElementGeometry();
         if (r_geometry.Has(INITIAL_STRESS_VECTOR)) {
-            return r_geometry.GetValue(INITIAL_STRESS_VECTOR);
-        } else {
-            return ZeroVector(this->GetStrainSize());
+            noalias(rStressVector) += r_geometry.GetValue(INITIAL_STRESS_VECTOR);
         }
     }
 
     /**
      * @brief Returns the initial strain vector if it is defined in the geometry
      */
-    Vector GetInitialStrainVector(Parameters& rParameterValues)
+    const void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
     {
         const auto &r_geometry = rParameterValues.GetElementGeometry();
         if (r_geometry.Has(INITIAL_STRAIN_VECTOR)) {
-            return r_geometry.GetValue(INITIAL_STRAIN_VECTOR);
-        } else {
-            return ZeroVector(this->GetStrainSize());
-        }
+            noalias(rStrainVector) += r_geometry.GetValue(INITIAL_STRAIN_VECTOR);
+        } 
     }
 
     /**
@@ -339,6 +335,7 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
+    // static const Vector v6( ZeroVector(6) );
 
     ///@}
     ///@name Protected member Variables
