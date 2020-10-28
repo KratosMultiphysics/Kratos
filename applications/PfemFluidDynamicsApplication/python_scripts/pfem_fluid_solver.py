@@ -274,8 +274,8 @@ class PfemFluidSolver(PythonSolver):
 
     def CheckAndPrepareModelProcess(self, params):
         # CheckAndPrepareModelProcess creates the fluid_computational model part
-        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_check_and_prepare_model_process_fluid
-        pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_check_and_prepare_fluid_model_process
+        pfem_check_and_prepare_fluid_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
     def _ComputeDeltaTime(self):
 
