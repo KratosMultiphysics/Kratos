@@ -47,6 +47,8 @@ class KratosSolverWrapper(sw.SolverWrapper):
     """
 
     # TODO: solverWrapperIndex will be removed from here and will have an indicator about the level we are at and not which algorithm we are using
+    # TODO: are both outputBatchSize and outputBatchSize needed? Probably not.
+    # TODO: integrate MultiXMomentEstimators with ensemble average.
     def __init__(self,**keywordArgs):
         super().__init__(**keywordArgs)
         self.analysis = SimulationScenario
@@ -68,7 +70,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.outputDimension = keywordArgs.get('outputDimension',None)
         # If not given, compute from self.outputBatchSize for backward compatibility
         if self.outputDimension is None:
-            outputNb = self.number_qoi + self.number_combined_qoi
+            outputNb = self._numberOfScalarOutputs()
             # Total number of output splits, including (possibly) a last one of smaller size
             batchNb = int(math.ceil(outputNb/self.outputBatchSize))
             # Assemble the list of sizes of each split
@@ -166,19 +168,23 @@ class KratosSolverWrapper(sw.SolverWrapper):
 
             # postprocess components
             if self.number_contributions_per_instance > 1:
-                unm = mdu.UnfolderManager(self.numberOfOutputs(),self.outputBatchSize)
-                if (self.numberOfOutputs() == self.outputBatchSize):
+                unm = mdu.UnfolderManager(self._numberOfScalarOutputs(),self.outputBatchSize)
+                if (self._numberOfScalarOutputs() == self.outputBatchSize): # no-split solver
                     qoi_list = [unm.PostprocessContributionsPerInstance(aux_qoi_array,self.number_qoi,self.number_combined_qoi)]
-                else:
+                elif (self._numberOfScalarOutputs() > self.outputBatchSize): # split solver
                     qoi_list = unm.PostprocessContributionsPerInstance(aux_qoi_array,self.number_qoi,self.number_combined_qoi)
+                else:
+                    raise Exception("_numberOfScalarOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
                 delete_object(unm)
             else:
                 # unfold qoi into its components of fixed size
-                unm = mdu.UnfolderManager(self.numberOfOutputs(), self.outputBatchSize)
-                if (self.numberOfOutputs() == self.outputBatchSize):
+                unm = mdu.UnfolderManager(self._numberOfScalarOutputs(), self.outputBatchSize)
+                if (self._numberOfScalarOutputs() == self.outputBatchSize): # no-split solver
                     qoi_list = [unm.UnfoldNValues_Task(aux_qoi_array[0])]
-                else:
+                elif (self._numberOfScalarOutputs() > self.outputBatchSize): # split solver
                     qoi_list = unm.UnfoldNValues_Task(aux_qoi_array[0])
+                else:
+                    raise Exception("_numberOfScalarOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
                 # delete COMPSs future objects no longer needed
                 delete_object(unm)
 
@@ -189,13 +195,15 @@ class KratosSolverWrapper(sw.SolverWrapper):
             del(aux_qoi_array)
 
         else:
-            qoi,time_for_qoi = mds.returnZeroQoiAndTime_Task(self.numberOfOutputs())
+            qoi,time_for_qoi = mds.returnZeroQoiAndTime_Task(self._numberOfScalarOutputs())
             # unfold qoi into its components of fixed size
-            unm = mdu.UnfolderManager(self.numberOfOutputs(), self.outputBatchSize)
-            if (self.numberOfOutputs() == self.outputBatchSize):
+            unm = mdu.UnfolderManager(self._numberOfScalarOutputs(), self.outputBatchSize)
+            if (self._numberOfScalarOutputs() == self.outputBatchSize): # no-split solver
                 qoi_list = [unm.UnfoldNValues_Task(qoi)]
-            else:
+            elif (self._numberOfScalarOutputs() > self.outputBatchSize): # split solver
                 qoi_list = unm.UnfoldNValues_Task(qoi)
+            else:
+                raise Exception("_numberOfScalarOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
             # delete COMPSs future objects no longer needed
             delete_object(unm)
 
@@ -531,16 +539,12 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.mesh_sizes.append(h_current_level)
         self.mesh_parameters.append(mesh_parameter_current_level)
 
-
-    def numberOfOutputs(self):
+    def _numberOfScalarOutputs(self):
         """
-        Method returning the total number of scalar outputs.
+        Internal method returning the total number of scalar outputs, regardless of how
+        they may be separated into vector quantities of interest.
 
         Inputs:
         - self: an instance of the class.
         """
-
-        if isinstance(self.outputDimension,int):
-            return self.outputDimension
-        else: # is a list of integers
-            return sum(self.outputDimension)
+        return self.number_qoi + self.number_combined_qoi
