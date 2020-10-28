@@ -184,7 +184,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
                 for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
                 {
                     rMassMatrix(row+d, col+d) += K;
-                    rMassMatrix(row+Dim,col+d) += weight * (rData.DN_DX(i,d) * rData.N[j] + fluid_fraction * rData.DN_DX(i,d) * rData.N[j] + rData.N[i] * fluid_fraction_gradient[d] * rData.N[j]);
+                    rMassMatrix(row+Dim,col+d) += weight * (fluid_fraction * rData.DN_DX(i,d) * rData.N[j] + rData.N[i] * fluid_fraction_gradient[d] * rData.N[j]);
                 }
             }
         }
@@ -244,7 +244,6 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
-    const auto& r_geom = this->GetGeometry();
 
     // Temporary containers
     double V, AA, P, GAlpha, AG, U, Q, DD, UD, QGAU;
@@ -278,10 +277,10 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 QGAU = fluid_fraction_gradient[d] * rData.N[i] * tau_one * AGradN[j];
                 Q = fluid_fraction * rData.DN_DX(j,d) * rData.N[i];
 
-                LHS(row+d,col+Dim) += rData.Weight * (AG - P + QGAU);
-                LHS(row+Dim,col+d) += rData.Weight * (GAlpha + U + Q);
+                LHS(row+d,col+Dim) += rData.Weight * (AG - P);
+                LHS(row+Dim,col+d) += rData.Weight * (GAlpha + U + Q + QGAU);
 
-                G += tau_one * fluid_fraction * rData.DN_DX(j,d) * rData.DN_DX(i,d);
+                G += tau_one * (fluid_fraction * rData.DN_DX(j,d) * rData.DN_DX(i,d));
 
                 for (unsigned int e = 0; e < Dim; e++){ // Stabilization: Div(v) * tau_two * Div(u)
                     DD = tau_two * (rData.DN_DX(i,d) * fluid_fraction * rData.DN_DX(j,e));
