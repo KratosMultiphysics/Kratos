@@ -15,7 +15,6 @@
 		"destination_newmark_beta" : 0.0,
         "destination_newmark_gamma" : 0.5,
         "timestep_ratio" : 2,
-        "is_vtk_fine_timestep_output" : true,
         "equilibrium_variable" : "VELOCITY",
         "is_disable_coupling" : false,
         "echo_level" : 0,

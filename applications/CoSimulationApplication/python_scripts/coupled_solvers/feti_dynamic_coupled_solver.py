@@ -55,8 +55,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
 
     def SolveSolutionStep(self):
-        is_vtk_fine_timestep_output = self.settings["is_vtk_fine_timestep_output"].GetBool()
-
         # solve domain A
         self.solver_wrappers_vector[0].SolveSolutionStep()
         self.__SendStiffnessMatrixToUtility(0)
@@ -68,9 +66,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             if sub_timestep > 1:
                 self.solverB_time = solverB.AdvanceInTime(self.solverB_time)
                 solverB.InitializeSolutionStep()
-                if is_vtk_fine_timestep_output:
-                    if len(self.vtk_output_wrappers_vector) == 2:
-                        self.vtk_output_wrappers_vector[1].InitializeSolutionStep()
+                if len(self.vtk_output_wrappers_vector) == 2:
+                    self.vtk_output_wrappers_vector[1].InitializeSolutionStep()
                 solverB.Predict()
 
             solverB.SolveSolutionStep()
@@ -81,9 +78,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
             if sub_timestep != self.timestep_ratio:
                 solverB.FinalizeSolutionStep()
-                if is_vtk_fine_timestep_output:
-                    if len(self.vtk_output_wrappers_vector) == 2:
-                        self.vtk_output_wrappers_vector[1].FinalizeSolutionStep()
+                if len(self.vtk_output_wrappers_vector) == 2:
+                    self.vtk_output_wrappers_vector[1].FinalizeSolutionStep()
                 solverB.OutputSolutionStep()
 
         return True
@@ -176,7 +172,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "destination_newmark_beta" : -1.0,
             "destination_newmark_gamma" : -1.0,
             "timestep_ratio" : 1.0,
-            "is_vtk_fine_timestep_output" : true,
             "equilibrium_variable" : "VELOCITY",
             "is_disable_coupling" : false,
             "linear_solver_settings" : {}
