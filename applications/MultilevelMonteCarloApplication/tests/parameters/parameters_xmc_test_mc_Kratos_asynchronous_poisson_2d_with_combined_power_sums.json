@@ -49,7 +49,7 @@
     "combinedEstimatorInputDictionary": {
         "indexSetDimension": 0,
         "order": 1,
-        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0",
+        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updateCombinedPowerSums.updatePowerSumsOrder2Dimension0",
         "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
 "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
     },
@@ -74,13 +74,13 @@
         "parameters": null,
         "printToFile": false,
         "problemId": "poisson_2d",
-        "projectParametersPath": "poisson_square_2d_xmc/problem_settings/parameters_poisson_square_2d_finer.json",
+        "projectParametersPath": "poisson_square_2d_xmc/problem_settings/parameters_finer.json",
         "refinementParametersPath": "poisson_square_2d_xmc/problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",
         "outputBatchSize" : 2,
         "taskAllAtOnce": true
     },
-    "monoCriteriaInpuctDict" :{
+    "monoCriteriaInpuctDictionary" :{
         "statisticalError": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
             "tolerance": [0.15],
