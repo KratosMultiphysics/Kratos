@@ -42,20 +42,6 @@ typedef std::size_t SizeType;
 /***********************************************************************************/
 /* Functions for internal use in this file */
 /***********************************************************************************/
-void InitializeSystemVector(Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
-                            const SizeType VectorSize)
-{
-    // The vectors dont have graphs, that why we don't always have to reinitialize them
-    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
-        Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename SparseSpaceType::VectorType>(VectorSize);
-        rpVector.swap(p_new_vector);
-
-        // TODO do I also have to set to zero the contents?
-    }
-    else {
-        SparseSpaceType::SetToZero(*rpVector);
-    }
-}
 
 void ConstructMatrixStructure(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo,
                               std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
@@ -150,7 +136,15 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
     }
 }
 
-void CheckRowSum(const SparseSpaceType::MatrixType& rM, const std::string& rBaseFileName)
+
+
+}
+
+template<>
+void CheckRowSum<SparseSpaceType, DenseSpaceType>(
+    const typename SparseSpaceType::MatrixType& rM,
+    const std::string& rBaseFileName,
+    const bool ThrowError)
 {
     SparseSpaceType::VectorType unit_vector(SparseSpaceType::Size2(rM));
     SparseSpaceType::Set(unit_vector, 1.0);
@@ -160,7 +154,7 @@ void CheckRowSum(const SparseSpaceType::MatrixType& rM, const std::string& rBase
     SparseSpaceType::Mult(rM, unit_vector, row_sums_vector);
 
     bool write_mm_file = false;
-    for (std::size_t i=0; i<SparseSpaceType::Size(row_sums_vector); ++i) {
+    for (std::size_t i = 0; i < SparseSpaceType::Size(row_sums_vector); ++i) {
         if (std::abs(row_sums_vector[i] - 1.0) > 1e-15) {
             KRATOS_WARNING("MappingMatrixAssembly") << "The row sum in row " << i << " is unequal 1.0: " << row_sums_vector[i] << std::endl;
             write_mm_file = true;
@@ -168,10 +162,26 @@ void CheckRowSum(const SparseSpaceType::MatrixType& rM, const std::string& rBase
     }
 
     if (write_mm_file) {
-        SparseSpaceType::WriteMatrixMarketVector(("RowSumVector_"+rBaseFileName).c_str(), row_sums_vector);
+        SparseSpaceType::WriteMatrixMarketVector(("RowSumVector_" + rBaseFileName).c_str(), row_sums_vector);
+        KRATOS_ERROR_IF(ThrowError) << "Mapping matrix does not sum to unity. Please check file " << rBaseFileName << " in your project directory for row sums\n";
     }
 }
 
+template<>
+void InitializeSystemVector<SparseSpaceType, DenseSpaceType>(
+    Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
+    const std::size_t VectorSize)
+{
+    // The vectors dont have graphs, that why we don't always have to reinitialize them
+    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
+        Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename SparseSpaceType::VectorType>(VectorSize);
+        rpVector.swap(p_new_vector);
+
+        // TODO do I also have to set to zero the contents?
+    }
+    else {
+        SparseSpaceType::SetToZero(*rpVector);
+    }
 }
 
 template<>
@@ -198,14 +208,15 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
 
     BuildMatrix(rpMappingMatrix, rMapperLocalSystems);
 
-    if (EchoLevel > 2) {
-        const std::string base_file_name = "O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
-        SparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_"+base_file_name).c_str(), *rpMappingMatrix, false);
-        CheckRowSum(*rpMappingMatrix, base_file_name);
-    }
+    // refactor to be used from the mapper directly
+    // if (EchoLevel > 2) {
+    //     const std::string base_file_name = "O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
+    //     SparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_"+base_file_name).c_str(), *rpMappingMatrix, false);
+    //     CheckRowSum<SparseSpaceType, DenseSpaceType>(*rpMappingMatrix, base_file_name);
+    // }
 
-    InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
-    InitializeSystemVector(rpInterfaceVectorDestination, num_nodes_destination);
+    InitializeSystemVector<SparseSpaceType, DenseSpaceType>(rpInterfaceVectorOrigin, num_nodes_origin);
+    InitializeSystemVector<SparseSpaceType, DenseSpaceType>(rpInterfaceVectorDestination, num_nodes_destination);
 
     KRATOS_CATCH("")
 }

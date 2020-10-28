@@ -36,18 +36,6 @@ const Variable<double>& EpsilonElementData<TDim>::GetScalarVariable()
 }
 
 template <unsigned int TDim>
-const Variable<double>& EpsilonElementData<TDim>::GetScalarRateVariable()
-{
-    return TURBULENT_ENERGY_DISSIPATION_RATE_2;
-}
-
-template <unsigned int TDim>
-const Variable<double>& EpsilonElementData<TDim>::GetScalarRelaxedRateVariable()
-{
-    return RANS_AUXILIARY_VARIABLE_2;
-}
-
-template <unsigned int TDim>
 void EpsilonElementData<TDim>::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)

@@ -51,7 +51,7 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
-    void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+    void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
     void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode) override;
 
 protected:

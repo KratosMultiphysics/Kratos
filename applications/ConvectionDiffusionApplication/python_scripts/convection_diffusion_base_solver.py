@@ -46,11 +46,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass = True
         super(ConvectionDiffusionBaseSolver, self).__init__(model, custom_settings)
 
         # Adding warnings
-        default_settings = self.GetDefaultSettings()
+        default_settings = self.GetDefaultParameters()
         if not custom_settings.Has("convection_diffusion_variables"):
             KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: CONVECTION DIFFUSION  VARIABLES NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"])
         else:
@@ -102,13 +101,14 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "ThermalModelPart",
             "domain_size" : -1,
             "echo_level": 0,
             "analysis_type": "linear",
+            "time_integration_method": "implicit",
             "solver_type": "convection_diffusion_base_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
@@ -165,7 +165,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "auxiliary_variables_list" : []
         }
         """)
-        default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultParameters())
         return default_settings
 
     def AddVariables(self, target_model_part=None):
@@ -520,7 +520,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement"):
+        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 

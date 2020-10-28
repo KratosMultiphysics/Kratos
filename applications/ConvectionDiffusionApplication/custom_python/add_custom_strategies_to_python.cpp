@@ -26,6 +26,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "custom_strategies/strategies/residualbased_eulerian_convdiff_strategy.h"
 #include "custom_strategies/strategies/residualbased_semi_eulerian_convdiff_strategy.h"
+#include "custom_strategies/strategies/explicit_runge_kutta_4_eulerian_convdiff_strategy.h"
 
 
 //convergence criterias
@@ -49,6 +50,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
+    typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 //     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
     //********************************************************************
@@ -87,6 +90,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             .def(py::init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() )
             .def("Clear",&ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;
+
+    typedef ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4ConvectionDiffusionType;
+    py::class_<ExplicitSolvingStrategyRungeKutta4ConvectionDiffusionType, typename ExplicitSolvingStrategyRungeKutta4ConvectionDiffusionType::Pointer, ExplicitSolvingStrategyRungeKutta4Type>(m, "ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion")
+        .def(py::init<ModelPart &, bool, int>())
+        .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+        ;
 }
 
 }  // namespace Python.

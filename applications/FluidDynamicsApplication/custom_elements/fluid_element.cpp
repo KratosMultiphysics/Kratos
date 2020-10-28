@@ -16,6 +16,7 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
@@ -894,6 +895,12 @@ template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
+
+template class FluidElement< QSVMSDEMCoupledData<2,3> >;
+template class FluidElement< QSVMSDEMCoupledData<3,4> >;
+
+template class FluidElement< QSVMSDEMCoupledData<2,4> >;
+template class FluidElement< QSVMSDEMCoupledData<3,8> >;
 
 template class FluidElement< FICData<2,3> >;
 template class FluidElement< FICData<3,4> >;
