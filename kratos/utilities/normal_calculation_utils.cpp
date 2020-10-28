@@ -123,7 +123,6 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>
     if (use_simplex) {
         CalculateOnSimplex(rModelPart, dimension);
     } else {
-    {
         CalculateNormalsUsingGenericAlgorithm<ModelPart::ConditionsContainerType>(rModelPart, ConsiderUnitNormal);
     }
 }
