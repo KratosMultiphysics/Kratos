@@ -35,7 +35,7 @@ SampleArray = List[List[List[float]]]
 HStatistics = Union[float, List[float]]
 
 
-class MomentEstimatorTest(unittest.TestCase):
+class TestMomentEstimator(unittest.TestCase):
     def test_update(self):
         # dimension = 0
         list_values = [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0]]
@@ -120,7 +120,7 @@ class MomentEstimatorTest(unittest.TestCase):
         # (according to unittest docs)
 
 
-class CombinedMomentEstimatorTest(unittest.TestCase):
+class TestCombinedMomentEstimator(unittest.TestCase):
     def test_update(self):
         # dimension = 0
         Q = 2.0
@@ -295,7 +295,7 @@ class CombinedMomentEstimatorTest(unittest.TestCase):
         self.assertEqual(xmc_error_order_1, true_error_order_1)
 
 
-class MultiMomentEstimatorTest(unittest.TestCase):
+class TestMultiMomentEstimator(unittest.TestCase):
     """
     Class to test the class MultiMomentEstimator.
 
@@ -570,7 +570,7 @@ class MultiMomentEstimatorTest(unittest.TestCase):
         return samples.tolist()
 
 
-class MultiCombinedMomentEstimatorTest(unittest.TestCase):
+class TestMultiCombinedMomentEstimator(unittest.TestCase):
     """
     Test case for the class MultiCombinedMomentEstimator.
     """
