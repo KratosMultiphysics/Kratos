@@ -48,26 +48,10 @@ namespace Kratos
 		}
 
 		/// Copy constructor.
-		LockObject(LockObject const& rOther) noexcept
-#ifdef KRATOS_SMP_OPENMP
-			: mLock(rOther.mLock)
-#endif
-		{
-#ifdef KRATOS_SMP_OPENMP
-			omp_init_lock(&mLock);
-#endif
-		}
+		LockObject(LockObject const& rOther) = delete;
 
 		/// Move constructor.
-		LockObject(LockObject&& rOther) noexcept
-#ifdef KRATOS_SMP_OPENMP
-			: mLock(rOther.mLock)
-#endif
-		{
-#ifdef KRATOS_SMP_OPENMP
-			omp_init_lock(&mLock);
-#endif
-		}
+		LockObject(LockObject&& rOther) = delete;
 
 		/// Destructor.
 		virtual ~LockObject() noexcept {
@@ -81,12 +65,7 @@ namespace Kratos
       ///@{
 
 	  /// Assignment operator.
-		LockObject& operator=(LockObject const& rOther) {
-#ifdef KRATOS_SMP_OPENMP
-			mLock = rOther.mLock;
-#endif
-			return *this;
-		}
+		LockObject& operator=(LockObject const& rOther) = delete;
 
       ///@}
       ///@name Operations
