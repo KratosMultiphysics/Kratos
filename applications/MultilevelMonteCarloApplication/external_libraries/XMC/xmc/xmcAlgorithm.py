@@ -5,11 +5,12 @@ import pathlib as pl
 from xmc.tools import dynamicImport
 from xmc.tools import splitOneListIntoTwo
 
-from xmc.distributedEnvironmentFramework import *
+from xmc.distributedEnvironmentFramework import get_value_from_remote
 
 
 class XMCAlgorithm:
-    """This top-level class handles the overall algorithm: initialisation as well as everything
+    """
+    This top-level class handles the overall algorithm: initialisation as well as everything
     related to error, tolerance and iterations. It also possesses the necessary methods and
     attributes to create new types of algorithms. However, the export of results is to be
     handled outside.

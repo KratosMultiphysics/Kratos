@@ -1,5 +1,4 @@
 import importlib
-import warnings
 from operator import mul
 from functools import reduce
 from math import sqrt, log, factorial
@@ -280,7 +279,8 @@ def binomial(n, k):
     """
     Returns binomial coefficient (n,k) or 'n choose k' with n ≥ k.
     """
-    assert n >= k, "First argument must be greater than second."
+    if n < k:
+        raise ValueError("First argument must be greater than second.")
     return factorial(n) // (factorial(k) * factorial(n - k))
 
 

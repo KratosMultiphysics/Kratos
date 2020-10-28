@@ -13,6 +13,7 @@ def hStatistics(
 ) -> HStatistics:
     """
     This is the generic function to compute h-statistics using the hStatistics module.
+
     It extracts the relevant power sums for the selected component(s), and calls the right
     function for the requested h-statistics. It abides by the specifications laid out in the
     documentation of xmc.momentEstimator.MultiMomentEstimator.
@@ -22,13 +23,11 @@ def hStatistics(
     indexSetDimension = int(ceil(log2(len(next(iter(powerSums))))))
     # Check that request can be fulfilled
     if indexSetDimension > 1 or order > 4:
-        raise (
-            ValueError,
-            (
-                f"Moments of order {order} are not supported "
-                f"for a Monte Carlo index set of dimension {indexSetDimension}."
-            ),
+        raise ValueError(
+            f"Moments of order {order} are not supported "
+            f"for a Monte Carlo index set of dimension {indexSetDimension}."
         )
+
     #
     # Prepare power sums
     if component != slice(None, None):
@@ -94,12 +93,12 @@ def hStatisticsMonoPowerSums(
         return hStatistics(component, powerSums, numberOfSamples, order, isError, isCentral)
 
     # The code below is for differences of h-statistics
-    assert not isError, ValueError(
-        (
+    if isError:
+        raise ValueError(
             "Error estimation is not implemented for differences of h-statistics "
             "computed from monovariate power sums."
         )
-    )
+
     hUpper = hStatistics(
         component, powerSums["upper"], numberOfSamples, order, isError, isCentral
     )

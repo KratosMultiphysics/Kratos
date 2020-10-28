@@ -9,20 +9,21 @@ import os
 # Import xmc classes
 import xmc
 
-from xmc.distributedEnvironmentFramework import *
+from xmc.distributedEnvironmentFramework import get_value_from_remote
+
+
+def kratosFound():
+    try:
+        import KratosMultiphysics
+
+        return True
+    except ImportError:
+        return False
 
 
 class TestXMCAlgorithm(unittest.TestCase):
-    def kratosFound(self):
-        try:
-            import KratosMultiphysics
-
-            return True
-        except ImportError:
-            return False
-
     def test_mc_Kratos(self):
-        if not self.kratosFound():
+        if not kratosFound():
             self.skipTest("Missing dependency: KratosMultiphysics")
 
         # read parameters
@@ -147,7 +148,7 @@ class TestXMCAlgorithm(unittest.TestCase):
             self.assertEqual(algo.hierarchy()[0][1], 15)
 
     def test_mlmc_Kratos(self):
-        if not self.kratosFound():
+        if not kratosFound():
             self.skipTest("Missing dependency: KratosMultiphysics")
 
         # read parameters

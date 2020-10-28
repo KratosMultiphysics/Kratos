@@ -61,9 +61,10 @@ class HierarchyOptimiser:
     def toleranceSplitting(self, inputDict):
         # TODO THE FOLLOWING HOLDS GOOD ONLY FOR ONE TOLERANCE AND ONE SPLITTING PARAMETER
         # DO NOT USE if more are needed
-        assert (
-            len(inputDict["tolerances"]) <= 1
-        ), "toleranceSplitting() cannot handle more than one tolerance for now"
+        if len(inputDict["tolerances"]) > 1:
+            raise ValueError(
+                "toleranceSplitting() cannot handle more than one tolerance for now"
+            )
 
         if self.toleranceSplittingBounds[0] == self.toleranceSplittingBounds[1]:
             inputDict["splittingParameter"] = self.toleranceSplittingBounds[0]

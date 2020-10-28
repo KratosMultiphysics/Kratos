@@ -1,6 +1,5 @@
-import warnings
 from itertools import product as itproduct
-from numpy import ceil, log2, inf, zeros, float64
+from numpy import ceil, log2, zeros, float64
 
 # Import xmc classes
 from xmc.statisticalEstimator import StatisticalEstimator
@@ -296,7 +295,8 @@ class CombinedMomentEstimator(MomentEstimator):
 
 
 class MultiMomentEstimator(StatisticalEstimator):
-    """This class estimates statistical moments of multi-valued real random variables, from
+    """
+    This class estimates statistical moments of multi-valued real random variables, from
     independent realisations. It inherits from StatisticalEstimator; the description below
     describes only its differences with it.
 
@@ -502,9 +502,8 @@ class MultiMomentEstimator(StatisticalEstimator):
         """
         if singleSample is not None:
             # This list should contain sublists of length equal to the variable dimension
-            assert isinstance(singleSample, list) and isinstance(
-                singleSample[0], list
-            ), TypeError("Expected a list of lists; received a {type(singleSample)}.")
+            if not isinstance(singleSample, list) or not isinstance(singleSample[0], list):
+                raise TypeError("Expected a list of lists; received a {type(singleSample)}.")
             return len(singleSample[0])
         if self._powerSums is not None:
             # Get any key (first, here)
@@ -526,9 +525,8 @@ class MultiMomentEstimator(StatisticalEstimator):
         if not self._isUpdateParallel:
             samples = get_value_from_remote(samples)
         # Check proper format
-        assert isinstance(samples, list) and isinstance(
-            samples[0], list
-        ), "Input argument is expected to be a list of lists"
+        if not isinstance(samples, list) or not isinstance(samples[0], list):
+            raise TypeError("Input argument is expected to be a list of lists")
         # At first update, initialise if necessary
         if self.sampleNumber() < 1:
             # Guess missing information from sample set

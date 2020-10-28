@@ -19,8 +19,9 @@ from typing import Union
 
 def updatedPowerSums(powerSums: PowerSumsDict, samples: SampleArray) -> PowerSumsDict:
     """
-    Increments power sums from an array of samples for a Monte Carlo index set of dimension 0
-    or 1. Supports multi-valued random variables.
+    Increments power sums from an array of samples.
+
+    Supports multi-valued random variables, and Monte Carlo index sets of dimension up to 1.
 
     Input arguments:
     - powerSums: dictionary following the format of MomentEstimator._powerSums
@@ -57,7 +58,8 @@ def updatedPowerSums(powerSums: PowerSumsDict, samples: SampleArray) -> PowerSum
     elif len(samples.shape) < 3:
         # This should not happen
         raise ValueError(
-            f"Input argument has {len(samples.shape)} dimensions, whereas I expected at least 3."
+            f"Input argument has {len(samples.shape)} dimensions, "
+            "whereas I expected at least 3."
         )
     # Proper format has been ensured.
     # Now check the dimension of the Monte Carlo index set
@@ -119,12 +121,11 @@ def addPowerSumsAndCounter(
         # So we recurse over each sub-dictionary
         #
         # First, check that we have the expected keys
-        assert sorted(psDict.keys()) == sorted(("lower", "upper")), ValueError(
-            (
+        if sorted(psDict.keys()) != sorted(("lower", "upper")):
+            raise ValueError(
                 "Expected the dictionary of power sums to have keys ('upper', 'lower'). "
                 f"Found {tuple(psDict.keys())} instead."
             )
-        )
         # Get samples for upper level only (first element along second axis)
         psArrayUpper = [[oneEvent[0]] for oneEvent in psArray]
         # Update power sums for upper level by recursion
@@ -141,12 +142,11 @@ def addPowerSumsAndCounter(
         # its counter is expected to be None and a warning has been issue (see below).
         # This case will removed onced this workaround is not supported any more.
         is_lower_dummy = counterLower is None
-        assert counterUpper == counterLower or is_lower_dummy, ValueError(
-            (
+        if not (counterUpper == counterLower or is_lower_dummy):
+            raise ValueError(
                 "Expected upper and lower levels to have equal sample count. "
                 f"Received {counterUpper-counter} and {counterLower-counter}, respectively."
             )
-        )
         return psDict, counterUpper
     #
     # Code below is for index set of dimension 0
@@ -178,10 +178,11 @@ def addPowerSumsAndCounter(
         # We substract 1 because of the counter
         keyOrder = tuple(str(i + 1) for i in range(len(psArray[0][0][0]) - 1))
     # Check that all keys exist
-    assert sorted(keyOrder) == sorted(psDict.keys()), ValueError(
-        "Failed to match keys of new power sums and existing ones: "
-        f"{sorted(keyOrder)} versus {sorted(psDict.keys())}."
-    )
+    if sorted(keyOrder) != sorted(psDict.keys()):
+        raise ValueError(
+            "Failed to match keys of new power sums and existing ones: "
+            f"{sorted(keyOrder)} versus {sorted(psDict.keys())}."
+        )
     # Let's reformat psArray
     # Collapse 'solver' (i.e. second) axis, since its length is 1
     psArray = [oneEvent[0] for oneEvent in psArray]

@@ -37,7 +37,6 @@ HStatistics = Union[float, List[float]]
 
 class TestMomentEstimator(unittest.TestCase):
     def test_update(self):
-        # dimension = 0
         list_values = [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0]]
         true_power_sums = [
             [21.0],
@@ -68,8 +67,8 @@ class TestMomentEstimator(unittest.TestCase):
             test_me = MomentEstimator(**parameters["momentEstimatorInpuctDict"])
 
             # update power sums
-            for i in range(len(list_values)):
-                test_me.update([list_values[i]])
+            for value in list_values:
+                test_me.update([value])
 
             # test update sample number
             self.assertEqual(test_me._sampleCounter, len(list_values))
@@ -79,7 +78,6 @@ class TestMomentEstimator(unittest.TestCase):
                 self.assertEqual(test_me.powerSums[i], true_power_sums[i])
 
     def test_value(self):
-        # dimension = 0
         list_values = [[1.0], [2.0], [3.0], [4.0], [5.0]]
         true_estimation_order_1 = 3.0
         true_estimation_order_2 = 2.5
@@ -122,7 +120,6 @@ class TestMomentEstimator(unittest.TestCase):
 
 class TestCombinedMomentEstimator(unittest.TestCase):
     def test_update(self):
-        # dimension = 0
         Q = 2.0
         list_values = [
             [
@@ -230,8 +227,8 @@ class TestCombinedMomentEstimator(unittest.TestCase):
             test_me = CombinedMomentEstimator(**parameters["momentEstimatorInpuctDict"])
 
             # update power sums
-            for i in range(len(list_values)):
-                test_me.update([[list_values[i]]])
+            for value in list_values:
+                test_me.update([[value]])
 
             # test update sample number
             self.assertEqual(test_me._sampleCounter, 60)
@@ -251,8 +248,6 @@ class TestCombinedMomentEstimator(unittest.TestCase):
             self.assertEqual(h2, 0.0)
 
     def test_value(self):
-        # dimension = 0
-        dimension = 0  # len(samples) = 2**dimension
         Q = 2.0
         list_values = [
             [[10 * Q], [10 * Q * Q], 10],
