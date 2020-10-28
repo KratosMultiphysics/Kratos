@@ -79,6 +79,7 @@ public:
     using SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
+    using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
 
     typedef typename SmallStrainUPwDiffOrderElement::ElementVariables ElementVariables;
 
@@ -312,14 +313,6 @@ protected:
                                                         Matrix& J0,
                                                         Matrix& InvJ0,
                                                         Matrix& DN_DX,
-                                                        const IndexType& PointNumber,
-                                                        IntegrationMethod ThisIntegrationMethod) const;
-
-    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
-                                                        Matrix& J0,
-                                                        Matrix& InvJ0,
-                                                        Matrix& DN_DX,
-                                                        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                                         const IndexType& PointNumber,
                                                         IntegrationMethod ThisIntegrationMethod) const;
 

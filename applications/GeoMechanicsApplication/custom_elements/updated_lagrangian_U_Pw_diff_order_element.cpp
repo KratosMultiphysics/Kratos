@@ -245,15 +245,11 @@ void UpdatedLagrangianUPwDiffOrderElement::
         if (CalculateResidualVectorFlag)
         {
             //Contributions to the right hand side
-            Matrix J0, InvJ0;
             Variables.detJ0 =
                 CalculateDerivativesOnInitialConfiguration(this->GetGeometry(),
-                                                            J0,
-                                                            InvJ0,
-                                                            Variables.DNu_DX,
-                                                            IntegrationPoints,
-                                                            GPoint,
-                                                            this->GetIntegrationMethod());
+                                                           Variables.DNu_DX,
+                                                           GPoint,
+                                                           this->GetIntegrationMethod());
 
             // Calculating operator B
             this->CalculateBMatrix( Variables.B, Variables.DNu_DX);
@@ -416,35 +412,6 @@ double UpdatedLagrangianUPwDiffOrderElement::
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 
     //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
-
-    return detJ0;
-
-    KRATOS_CATCH( "" )
-
-}
-
-//----------------------------------------------------------------------------------------
-double UpdatedLagrangianUPwDiffOrderElement::
-    CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
-                                               Matrix& J0,
-                                               Matrix& InvJ0,
-                                               Matrix& DNu_DX0,
-                                               const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                               const IndexType& GPoint,
-                                               IntegrationMethod ThisIntegrationMethod) const
-{
-    KRATOS_TRY
-
-    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
-
-    // mesh move must be used!
-    double detJ0;
-    GeometryUtils::JacobianOnInitialConfiguration(Geometry, IntegrationPoints[GPoint], J0);
-    const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[GPoint];
-    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
-
-    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
 
     return detJ0;
 

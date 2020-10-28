@@ -229,6 +229,13 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
+    virtual void CalculateKinematicsOnInitialConfiguration(ElementVariables& rVariables, unsigned int PointNumber);
+
+    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
+                                                      Matrix& DN_DX,
+                                                      const IndexType& PointNumber,
+                                                      IntegrationMethod ThisIntegrationMethod) const;
+
     void UpdateElementalVariableStressVector(ElementVariables& rVariables, unsigned int PointNumber);
 
     void UpdateStressVector(const ElementVariables& rVariables, unsigned int PointNumber);

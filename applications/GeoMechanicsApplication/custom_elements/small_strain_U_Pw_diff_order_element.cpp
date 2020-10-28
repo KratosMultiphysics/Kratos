@@ -479,7 +479,7 @@ void SmallStrainUPwDiffOrderElement::
     for ( SizeType PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
         //compute element kinematics (Np, gradNpT, |J|, B)
-        this->CalculateKinematics(Variables,PointNumber);
+        this->CalculateKinematicsOnInitialConfiguration(Variables,PointNumber);
 
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
@@ -1757,6 +1757,67 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics( ElementVariables& rVar
     this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX);
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    CalculateKinematicsOnInitialConfiguration( ElementVariables& rVariables,
+                                                unsigned int PointNumber )
+
+{
+    KRATOS_TRY
+    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateKinematicsOnInitialConfiguration") << std::endl;
+
+    //Setting the vector of shape functions and the matrix of the shape functions global gradients
+    noalias(rVariables.Nu) = row(rVariables.NuContainer, PointNumber);
+    noalias(rVariables.Np) = row(rVariables.NpContainer, PointNumber);
+
+    rVariables.detJ0 =
+        CalculateDerivativesOnInitialConfiguration(this->GetGeometry(),
+                                                   rVariables.DNu_DX,
+                                                   PointNumber,
+                                                   this->GetIntegrationMethod());
+
+    // Calculating operator B
+    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX);
+
+    double detJp0 =
+        CalculateDerivativesOnInitialConfiguration(*mpPressureGeometry,
+                                                   rVariables.DNp_DX,
+                                                   PointNumber,
+                                                   this->GetIntegrationMethod());
+
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematicsOnInitialConfiguration") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+double SmallStrainUPwDiffOrderElement::
+    CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
+                                               Matrix& DNu_DX0,
+                                               const IndexType& GPoint,
+                                               IntegrationMethod ThisIntegrationMethod) const
+{
+    KRATOS_TRY
+
+    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
+
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+    Matrix J0, InvJ0;
+    double detJ0;
+    GeometryUtils::JacobianOnInitialConfiguration(Geometry, IntegrationPoints[GPoint], J0);
+    const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[GPoint];
+    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
+    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
+
+    return detJ0;
 
     KRATOS_CATCH( "" )
 }
