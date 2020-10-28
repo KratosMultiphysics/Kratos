@@ -161,7 +161,7 @@ int CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Check(const P
         KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(MOMENTUM)) << "Missing MOMENTUM variable on solution step data for node " << this->GetGeometry()[i].Id();
         KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY variable on solution step data for node " << this->GetGeometry()[i].Id();
         KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE)) << "Missing BODY_FORCE variable on solution step data for node " << this->GetGeometry()[i].Id();
-        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_PRESSURE)) << "Missing EXTERNAL_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(HEAT_SOURCE)) << "Missing HEAT_SOURCE variable on solution step data for node " << this->GetGeometry()[i].Id();
 
         // Activate as soon as we start using the explicit DOF based strategy
         KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing DENSITY DOF in node ", this->GetGeometry()[i].Id();
@@ -350,7 +350,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::FillElementD
             rData.dUdt(i, 0) = r_node.GetValue(DENSITY_TIME_DERIVATIVE);
             rData.U(i, TDim + 1) = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
             rData.dUdt(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_TIME_DERIVATIVE);
-            rData.r(i) = r_node.FastGetSolutionStepValue(EXTERNAL_PRESSURE);
+            rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
             rData.ResProj(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_PROJECTION);
         }
     } else {
@@ -369,7 +369,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::FillElementD
             rData.dUdt(i, 0) = r_node.GetValue(DENSITY_TIME_DERIVATIVE);
             rData.U(i, TDim + 1) = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
             rData.dUdt(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_TIME_DERIVATIVE);
-            rData.r(i) = r_node.FastGetSolutionStepValue(EXTERNAL_PRESSURE);
+            rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
         }
 
     }
@@ -583,7 +583,7 @@ void CompressibleNavierStokesExplicit<2>::CalculateDensityProjection(const Proce
 
     // Substitute the formulation symbols by the data structure values
     const double h = data.h;
-    const array_1d<double, n_nodes> &r = data.r;
+    const array_1d<double, n_nodes> &r_ext = data.r_ext;
     const BoundedMatrix<double, n_nodes, 2> &f_ext = data.f_ext;
     const double mu = data.mu;
     const double lambda = data.lambda;
@@ -660,7 +660,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateDensityProjection(const Proce
 
     // Substitute the formulation symbols by the data structure values
     const double h = data.h;
-    const array_1d<double, n_nodes> &r = data.r;
+    const array_1d<double, n_nodes> &r_ext = data.r_ext;
     const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
     const double mu = data.mu;
     const double lambda = data.lambda;
@@ -758,7 +758,7 @@ void CompressibleNavierStokesExplicit<2>::CalculateTotalEnergyProjection(const P
 
     // Substitute the formulation symbols by the data structure values
     const double h = data.h;
-    const array_1d<double, n_nodes> &r = data.r;
+    const array_1d<double, n_nodes> &r_ext = data.r_ext;
     const BoundedMatrix<double, n_nodes, 2> &f_ext = data.f_ext;
     const double mu = data.mu;
     const double lambda = data.lambda;
@@ -834,7 +834,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateTotalEnergyProjection(const P
 
     // Substitute the formulation symbols by the data structure values
     const double h = data.h;
-    const array_1d<double, n_nodes> &r = data.r;
+    const array_1d<double, n_nodes> &r_ext = data.r_ext;
     const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
     const double mu = data.mu;
     const double lambda = data.lambda;
@@ -934,7 +934,7 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
 
     // Substitute the formulation symbols by the data structure values
     const double h = data.h;
-    const array_1d<double, n_nodes> &r = data.r;
+    const array_1d<double, n_nodes> &r_ext = data.r_ext;
     const BoundedMatrix<double, n_nodes, 2> &f_ext = data.f_ext;
     const double mu = data.mu;
     const double lambda = data.lambda;
@@ -944,6 +944,7 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
     // Stabilization parameters
     const double stab_c1 = 12.0;
     const double stab_c2 = 2.0;
+    const double stab_c3 = 1.0;
 
     // Solution vector values and time derivatives from nodal data
     // This is intentionally done in this way to limit the matrix acceses
@@ -993,9 +994,24 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
         const double tot_ener_avg = (U_0_3 + U_1_3 + U_2_3) / 3.0;
         const double c_avg = gamma * (gamma - 1.0) * ((tot_ener_avg / rho_avg) - 0.5 * std::pow(v_avg_norm, 2));
 
+        // Source terms midpoint values
+        double r_ext_avg = 0.0;
+        array_1d<double, 2> f_ext_avg = ZeroVector(2);
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            f_ext_avg[0] += f_ext(i_node, 0);
+            f_ext_avg[1] += f_ext(i_node, 1);
+            r_ext_avg += r_ext[i_node];
+        }
+        f_ext_avg /= n_nodes;
+        r_ext_avg /= n_nodes;
+        const double f_ext_avg_norm = norm_2(f_ext_avg);
+
         const double alpha = lambda / (rho_avg * gamma * c_v);
-        const double tau_m_avg = 1.0 / ((4.0 * stab_c1 * mu / 3.0 / rho_avg / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
-        const double tau_et_avg = 1.0 / ((stab_c1 * alpha / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
+        const double aux_1 = std::pow(r_ext_avg, 2) + 2.0 * std::pow(c_avg, 2) * std::pow(f_ext_avg_norm, 2) + std::sqrt(std::pow(r_ext_avg, 4) + 4.0 * std::pow(c_avg, 2) * std::pow(f_ext_avg_norm, 2) * std::pow(r_ext_avg, 2));
+        const double aux_2 = 2.0 * std::pow(c_avg, 4);
+        const double tau_rho = (stab_c2 * (v_avg_norm + c_avg)/ h) + (stab_c3 * std::sqrt(aux_1 / aux_2));
+        const double tau_m_avg = 1.0 / ((4.0 * stab_c1 * mu / 3.0 / rho_avg / std::pow(h, 2)) + tau_rho);
+        const double tau_et_avg = 1.0 / ((stab_c1 * alpha / std::pow(h, 2)) + tau_rho);
 
         nu_st = std::max(0.0, nu_sc - tau_m_avg * std::pow(v_avg_norm, 2));
         k_st = std::max(0.0, k_sc - tau_et_avg * std::pow(v_avg_norm, 2));
@@ -1058,7 +1074,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
 
     // Substitute the formulation symbols by the data structure values
     const double h = data.h;
-    const array_1d<double, n_nodes> &r = data.r;
+    const array_1d<double, n_nodes> &r_ext = data.r_ext;
     const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
     const double mu = data.mu;
     const double lambda = data.lambda;
@@ -1068,6 +1084,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
     // Stabilization parameters
     const double stab_c1 = 12.0;
     const double stab_c2 = 2.0;
+    const double stab_c3 = 1.0;
 
     // Solution vector values and time derivatives from nodal data
     // This is intentionally done in this way to limit the matrix acceses
@@ -1134,9 +1151,25 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
         const double tot_ener_avg = (U_0_4 + U_1_4 + U_2_4 + U_3_4) / 4.0;
         const double c_avg = gamma * (gamma - 1.0) * ((tot_ener_avg / rho_avg) - 0.5 * std::pow(v_avg_norm, 2));
 
+        // Source terms midpoint values
+        double r_ext_avg = 0.0;
+        array_1d<double, 3> f_ext_avg = ZeroVector(3);
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            f_ext_avg[0] += f_ext(i_node, 0);
+            f_ext_avg[1] += f_ext(i_node, 1);
+            f_ext_avg[2] += f_ext(i_node, 2);
+            r_ext_avg += r_ext[i_node];
+        }
+        f_ext_avg /= n_nodes;
+        r_ext_avg /= n_nodes;
+        const double f_ext_avg_norm = norm_2(f_ext_avg);
+
         const double alpha = lambda / (rho_avg * gamma * c_v);
-        const double tau_m_avg = 1.0 / ((4.0 * stab_c1 * mu / 3.0 / rho_avg / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
-        const double tau_et_avg = 1.0 / ((stab_c1 * alpha / std::pow(h, 2)) + (stab_c2 * (v_avg_norm + c_avg)/ h));
+        const double aux_1 = std::pow(r_ext_avg, 2) + 2.0 * std::pow(c_avg, 2) * std::pow(f_ext_avg_norm, 2) + std::sqrt(std::pow(r_ext_avg, 4) + 4.0 * std::pow(c_avg, 2) * std::pow(f_ext_avg_norm, 2) * std::pow(r_ext_avg, 2));
+        const double aux_2 = 2.0 * std::pow(c_avg, 4);
+        const double tau_rho = (stab_c2 * (v_avg_norm + c_avg)/ h) + (stab_c3 * std::sqrt(aux_1 / aux_2));
+        const double tau_m_avg = 1.0 / ((4.0 * stab_c1 * mu / 3.0 / rho_avg / std::pow(h, 2)) + tau_rho);
+        const double tau_et_avg = 1.0 / ((stab_c1 * alpha / std::pow(h, 2)) + tau_rho);
 
         nu_st = std::max(0.0, nu_sc - tau_m_avg * std::pow(v_avg_norm, 2));
         k_st = std::max(0.0, k_sc - tau_et_avg * std::pow(v_avg_norm, 2));

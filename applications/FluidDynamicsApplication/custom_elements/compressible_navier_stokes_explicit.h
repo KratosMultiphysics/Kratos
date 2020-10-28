@@ -8,7 +8,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla (based on Elisa Magliozzi previous work)
+//  Main authors:    Ruben Zorrilla
 //
 
 #if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_H_INCLUDED)
@@ -77,10 +77,7 @@ public:
         BoundedMatrix<double, TNumNodes, TBlockSize> dUdt;
         BoundedMatrix<double, TNumNodes, TBlockSize> ResProj;
         BoundedMatrix<double, TNumNodes, TDim> f_ext;
-        array_1d<double, TNumNodes> r; // At the moment considering all parameters as constant in the domain (mu, nu, etc...)
-        // array_1d<double, TNumNodes> nu_sc; // Kinematic viscosity nodal values (shock capturing)
-        array_1d<double, TDim> f_gauss;
-        double r_gauss;
+        array_1d<double, TNumNodes> r_ext;
 
         array_1d<double, TNumNodes > N;
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;

@@ -15,19 +15,21 @@ def computeTau(params):
 
     Tau[0,0] = tau1
     for i in range (0,dim):
-        Tau[i+1,i+1] = tau2
-    Tau[dim+1,dim+1] = tau3
+        Tau[i + 1, i + 1] = tau2
+    Tau[dim + 1, dim + 1] = tau3
     return(Tau)
 
-def computeTauOnGaussPoint(params, U_gauss):
+def computeTauOnGaussPoint(params, U_gauss, f_gauss, r_gauss):
     print("\t- Compute Stabilization Matrix on Gauss pt.")
 
     # Calculate auxiliary values
     rho_g = U_gauss[0]
     e_t_g = U_gauss[params["dim"] + 1]
     norm_v_squared = 0.0
+    norm_f_squared = 0.0
     for d in range(params["dim"]):
         norm_v_squared += (U_gauss[d + 1] * U_gauss[d + 1]) / (rho_g * rho_g)
+        norm_f_squared += f_gauss[d] * f_gauss[d]
     norm_v = sqrt(norm_v_squared)
     nu = params["mu"] / rho_g
     alpha = params["lambda"] / (rho_g * params["gamma"] * params["c_v"])
@@ -37,6 +39,7 @@ def computeTauOnGaussPoint(params, U_gauss):
 
     # Calculate stabilization constants
     tau1_inv = (params["stab_c2"] * (norm_v + c)) / params["h"]
+    tau1_inv += params["stab_c3"] * sqrt((r_gauss**2 + 2.0 * c**2 * norm_f_squared + sqrt(r_gauss**4 + 4.0 * c**2 * norm_f_squared *r_gauss**2)) / (2.0 * c**4))
     tau2_inv = ((params["stab_c1"] * 4.0 * nu) / (3 * params["h"]**2)) + tau1_inv
     tau3_inv = (params["stab_c1"] * alpha / params["h"]**2) + tau1_inv
 

@@ -60,7 +60,6 @@ def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
 
     return mat_N
 
-# dim = params["dim"]         # Define Dimension in params.py
 do_simplifications = False
 mode = "c"                  # Output mode to a c++ file
 is_explicit = True          # Explicit or implicit time integration
@@ -114,13 +113,13 @@ for dim in dim_vector:
         Unn = DefineMatrix('Unn',n_nodes,block_size)    # Vector of Unknowns two steps back
     else:
         dUdt = DefineMatrix('dUdt',n_nodes,block_size)  # Vector of Unknowns time derivatives (Density, Velocity[dim], Total Energy)
-    r = DefineVector('r',n_nodes)                   # Sink term
 
     # Test functions defintiion
     w = DefineMatrix('w',n_nodes,block_size)	 # Variables field test
 
     # External terms definition
-    f_ext = DefineMatrix('f_ext',n_nodes,dim)    # Forcing term #COMMENT for manufactured solution
+    r_ext = DefineVector('r_ext',n_nodes)        # Thermal sink/source term
+    f_ext = DefineMatrix('f_ext',n_nodes,dim)    # Forcing term 
 
     # Definition of other symbols
     if not is_explicit:
@@ -137,7 +136,7 @@ for dim in dim_vector:
     Ug = DefineVector('Ug',block_size) # Dofs vector
     H = DefineMatrix('H',block_size,dim) # Gradient of U
     f = DefineVector('f',dim) # Body force vector
-    rg = Symbol('rg', positive = True) # Source/Sink term
+    rg = Symbol('rg') # Thermal source/sink term
     V = DefineVector('V',block_size) # Test function
     Q = DefineMatrix('Q',block_size,dim) # Gradient of V
     acc = DefineVector('acc',block_size) # Derivative of Dofs/Time
@@ -249,6 +248,7 @@ for dim in dim_vector:
         ## Data interpolation at the gauss point
         U_gauss = U.transpose() * N
         f_gauss = f_ext.transpose() * N
+        r_gauss = (r_ext.transpose()*N)[0]
         if not is_explicit:
             # In the implicit case, calculate the time derivatives with the BDF2 formula
             acc_gauss = (bdf0 * U + bdf1 * Un + bdf2 * Unn).transpose()*N
@@ -256,7 +256,6 @@ for dim in dim_vector:
             # In the explicit case, the acceleration is linearised taking the previous step one
             # Note that in the explicit case this acceleration is only used in the calculation of the stabilization terms
             acc_gauss = dUdt.transpose()*N
-        r_gauss = (r.transpose()*N)[0]
 
         ## Gradients computation
         grad_U = DfjDxi(DN,U).transpose()
@@ -315,6 +314,7 @@ for dim in dim_vector:
             U_gauss = U.transpose() * N
             w_gauss = w.transpose() * N
             f_gauss = f_ext.transpose() * N
+            r_gauss = (r_ext.transpose()*N)[0]
             if not is_explicit:
                 # In the implicit case, calculate the time derivatives with the BDF2 formula
                 acc_gauss = (bdf0 * U + bdf1 * Un + bdf2 * Unn).transpose()*N
@@ -322,11 +322,10 @@ for dim in dim_vector:
                 # In the explicit case, the acceleration is linearised taking the previous step one
                 # Note that in the explicit case this acceleration is only used in the calculation of the stabilization terms
                 acc_gauss = dUdt.transpose()*N
-            r_gauss = (r.transpose()*N)[0]
 
             ## Gauss pt. stabilization matrix calculation
             #TODO: SHOULD WE ADD THE SC MAGNITUDES IN HERE?????
-            tau_gauss = generate_stabilization_matrix.computeTauOnGaussPoint(params, U_gauss)
+            tau_gauss = generate_stabilization_matrix.computeTauOnGaussPoint(params, U_gauss, f_gauss, r_gauss)
 
             ## If OSS, residual projections interpolation
             if subscales_type == "OSS":
