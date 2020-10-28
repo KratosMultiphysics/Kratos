@@ -43,13 +43,9 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY_GRADIENT) # TODO: use it as nonhistorical variable
         # Auxiliary variables
-        self.main_model_part.AddNodalSolutionStepVariable(KM.IS_STRUCTURE) # TODO: remove that variable from the slip process
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA) # TODO: use it as nonhistorical variable
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # TODO: use it as nonhistorical variable
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -90,7 +86,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         KM.Logger.PrintInfo(self.__class__.__name__, "Initialization finished")
 
     def AdvanceInTime(self, current_time):
-        current_time += self._GetEstimateDeltaTimeUtility().EstimateDt()
+        current_time += self._GetEstimateDeltaTimeUtility().Execute()
         self.main_model_part.CloneTimeStep(current_time)
         self.main_model_part.ProcessInfo[KM.STEP] += 1
         return current_time
@@ -134,8 +130,8 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self._delta_time_utility
 
     def _CreateEstimateDeltaTimeUtility(self):
-        KM.FindNodalHProcess(self.GetComputingModelPart()).Execute()
-        return SW.EstimateDtShallow(self.GetComputingModelPart(), self.settings["time_stepping"])
+        # The c++ utility manages all the time step settings
+        return SW.EstimateTimeStepUtility(self.GetComputingModelPart(), self.settings["time_stepping"])
 
     @classmethod
     def GetDefaultParameters(cls):

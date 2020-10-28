@@ -14,7 +14,6 @@ class EmptySolverForTesting(PythonSolver):
 
         This class can be used to test the processes.
         """
-        self._validate_settings_in_baseclass = True
         super().__init__(model, settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
@@ -25,6 +24,7 @@ class EmptySolverForTesting(PythonSolver):
 
         self.model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.settings["domain_size"].GetInt())
         self.model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
+        self.EstimateDeltaTimeUtility = SW.EstimateTimeStepUtility(self.GetComputingModelPart(), self.settings["time_stepping"])
 
     def ImportModelPart(self):
         self._ImportModelPart(self.model_part,self.settings["model_import_settings"])
@@ -37,7 +37,6 @@ class EmptySolverForTesting(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
         self.model_part.AddNodalSolutionStepVariable(SW.BATHYMETRY)
         self.model_part.AddNodalSolutionStepVariable(SW.MANNING)
-        self.model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
 
     def GetMinimumBufferSize(self):
         return 2
@@ -45,17 +44,10 @@ class EmptySolverForTesting(PythonSolver):
     def GetComputingModelPart(self):
         return self.model_part
 
-    def Initialize(self):
-        # The time step utility needs the NODAL_H
-        KM.FindNodalHProcess(self.GetComputingModelPart()).Execute()
-        self.EstimateDeltaTimeUtility = SW.EstimateDtShallow(self.GetComputingModelPart(), self.settings["time_stepping"])
-
     def AdvanceInTime(self, current_time):
-        dt = self.EstimateDeltaTimeUtility.EstimateDt()
-        new_time = current_time + dt
+        new_time = current_time + self.EstimateDeltaTimeUtility.Execute()
         self.model_part.CloneTimeStep(new_time)
         self.model_part.ProcessInfo[KM.STEP] += 1
-        self.model_part.ProcessInfo[KM.DELTA_TIME] = dt
         return new_time
 
     @classmethod
