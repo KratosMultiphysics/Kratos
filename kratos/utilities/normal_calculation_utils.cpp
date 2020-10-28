@@ -107,7 +107,6 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>
     auto& r_conditions_array = rModelPart.Conditions();
     bool use_simplex = false;
     if (r_conditions_array.size() != 0) {
-    {
         const auto it_cond_begin = r_conditions_array.begin();
 
         // Checking if we can compute with simplex
