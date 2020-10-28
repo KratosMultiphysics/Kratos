@@ -34,6 +34,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     """The class of the CheckAndPrepareModelProcess class
     """
     def __init__(self, main_model_part, Parameters ):
+        KratosMultiphysics.Process.__init__(self)
         """The constructor of the CheckAndPrepareModelProcess-Object.
 
         It is intended to be called from the constructor
