@@ -69,10 +69,10 @@ void GeoCrBeamElementLinear3D2N::CalculateLocalSystem(
 
     noalias(rRightHandSideVector) = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, nodal_deformation);
-    rRightHandSideVector -= mInternalGlobalForcesFinalizedPrevious;
+    noalias(rRightHandSideVector) -= mInternalGlobalForcesFinalizedPrevious;
 
     // add bodyforces
-    rRightHandSideVector += CalculateBodyForces();
+    noalias(rRightHandSideVector) += CalculateBodyForces();
     KRATOS_CATCH("")
 }
 
@@ -87,7 +87,7 @@ void GeoCrBeamElementLinear3D2N::CalculateRightHandSide(
     GetValuesVector(nodal_deformation);
     noalias(rRightHandSideVector) = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= prod(left_hand_side_matrix, nodal_deformation);
-    rRightHandSideVector -= mInternalGlobalForcesFinalizedPrevious;
+    noalias(rRightHandSideVector) -= mInternalGlobalForcesFinalizedPrevious;
 
     // add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();

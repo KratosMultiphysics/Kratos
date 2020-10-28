@@ -1037,8 +1037,7 @@ int GeoCrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 
 void GeoCrBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
-    mInternalGlobalForcesFinalized = mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious;
-    // KRATOS_INFO("FinalizeSolutionStep: mInternalGlobalForcesFinalized") << mInternalGlobalForcesFinalized << std::endl;
+    noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious;
 
 }
 
