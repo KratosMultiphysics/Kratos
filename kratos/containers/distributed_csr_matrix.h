@@ -289,6 +289,24 @@ public:
         return it->second;
     }
 
+    DenseVector<IndexType> GetDiagonalIndex2DataInGlobalNumbering() const
+    {
+        DenseVector<IndexType> tmp(GetDiagBlock().index2_data().size());
+        IndexPartition<IndexType>(tmp.size()).for_each([&](IndexType i){
+            tmp[i] = GetColNumbering().GlobalId(   GetDiagBlock().index2_data()[i]  );
+        });
+        return tmp;
+    }
+
+    DenseVector<IndexType> GetOffDiagonalIndex2DataInGlobalNumbering() const
+    {
+        DenseVector<IndexType> tmp(GetOffDiagBlock().index2_data().size());
+        IndexPartition<IndexType>(tmp.size()).for_each([&](IndexType i){
+            tmp[i] = GetOffDiaGlobalId(   GetOffDiagBlock().index2_data()[i]  );
+        });
+        return tmp;
+    }
+
 
     // TDataType& operator()(IndexType I, IndexType J){
     // }
@@ -506,7 +524,21 @@ public:
     virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedCsrMatrix";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const {
+
+
+        std::cout << "--- Diagonal Block: ---" << std::endl;
+        std::cout << "index1_data : " << GetDiagBlock().index1_data() << std::endl;
+        std::cout << "index2_data in global numbering: " << GetDiagonalIndex2DataInGlobalNumbering() << std::endl;
+        std::cout << "value_data  : " << GetDiagBlock().value_data() << std::endl;
+        std::cout << std::endl;
+        std::cout << "--- OffDiagonal Block: ---" << std::endl;
+        std::cout << "index1_data : " << GetOffDiagBlock().index1_data() << std::endl;
+        std::cout << "index2_data in global numbering: " << GetOffDiagonalIndex2DataInGlobalNumbering() << std::endl;
+        std::cout << "value_data  : " << GetOffDiagBlock().value_data() << std::endl;
+
+
+    }
 
     ///@}
     ///@name Friends
