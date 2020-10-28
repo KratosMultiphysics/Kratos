@@ -106,7 +106,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>
     // Sum all the nodes normals
     auto& r_conditions_array = rModelPart.Conditions();
     bool use_simplex = false;
-    if (r_conditions_array.size() != 0)
+    if (r_conditions_array.size() != 0) {
     {
         const auto it_cond_begin = r_conditions_array.begin();
 
