@@ -9,7 +9,8 @@ Tester.RunTestCases("TestSystemVectorAssembly")
 Tester.RunTestCases("TestCSRConstruction")
 
 Tester.RunTestCases("TestSpMV")
-
+Tester.RunTestCases("TestSystemVectorOperations")
+Tester.RunTestCases("TestToAMGCLMatrix")
 
 #Tester.RunTestCases("TestPerformanceBenchmarkSparseGraph")
 #Tester.RunTestCases("TestPerformanceBenchmarkSparseContiguousRowGraph")
