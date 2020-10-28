@@ -20,6 +20,8 @@
 #include "containers/system_vector.h"
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/csr_conversion_utilities.h"
+
 
 namespace Kratos {
 namespace Testing {
@@ -500,10 +502,12 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
 
     A.SpMV(x,y); //x += A*y
 
-    double sum = 0.0; //for this test the final value is 124
+
+    double sum = 0.0; //for this test the final value is 496
     for(IndexType i=0; i!=x.size(); ++i){
         sum += x(i);
     }
+std::cout << " **********************" << sum << std::endl;
 
     double reference_sum = 0.0;
     for(auto& item : reference_A_map)
@@ -544,6 +548,43 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
         KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
+{
+    const auto connectivities = ElementConnectivities();
+    auto reference_A_map = GetReferenceMatrixAsMap();
+
+    SparseContiguousRowGraph<> Agraph(40);
+    for(const auto& c : connectivities)
+        Agraph.AddEntries(c);
+    Agraph.Finalize();
+
+    CsrMatrix<double> A(Agraph);
+
+    A.BeginAssemble();   
+    for(const auto& c : connectivities){   
+        Matrix data(c.size(),c.size(),1.0);
+        A.Assemble(data,c);
+    }
+    A.FinalizeAssemble();
+
+    auto pAmgcl = CSRConversionUtilities::ConvertToAmgcl(A);
+
+    std::vector<double> x(A.size1());
+    for(auto& item : x)
+       item = 1.0;
+
+    std::vector<double> y(A.size1());
+    for(auto& item : y)
+       item = 0.0;
+
+    amgcl::backend::spmv(1.0,*pAmgcl, x, 1.0, y);
+
+    double sum=0;
+    for(auto& item : y)
+       sum += item;
+
+    KRATOS_CHECK_EQUAL(sum,496);
+}
 
 } // namespace Testing
 } // namespace Kratos

@@ -21,12 +21,11 @@
 #include "containers/distributed_system_vector.h"
 #include "containers/distributed_vector_importer.h"
 
+
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
 
-#include "../../../../external_libraries/amgcl/backend/builtin.hpp"
-#include "../../../../external_libraries/amgcl/backend/interface.hpp"
-#include "../../../../external_libraries/amgcl/mpi/distributed_matrix.hpp"
+#include "mpi/utilities/distributed_csr_conversion_utilities.h"
 
 namespace Kratos {
 namespace Testing {
@@ -486,55 +485,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     }
 
     //testing AMGCL interface
-    auto pAmgclDiagonalBlock = std::make_shared<amgcl::backend::crs<double>>();
-    pAmgclDiagonalBlock->nrows = A.GetDiagBlock().size1();
-    pAmgclDiagonalBlock->ncols = A.GetDiagBlock().size2();
-    pAmgclDiagonalBlock->nnz = A.GetDiagBlock().nnz();
-    pAmgclDiagonalBlock->own_data = false;
-    pAmgclDiagonalBlock->ptr = (ptrdiff_t*)&(A.GetDiagBlock().index1_data()[0]);
-    pAmgclDiagonalBlock->col = (ptrdiff_t*)&(A.GetDiagBlock().index2_data()[0]);
-    pAmgclDiagonalBlock->val = &(A.GetDiagBlock().value_data()[0]);
-
-    auto pAmgclOffDiagonalBlock = std::make_shared<amgcl::backend::crs<double>>();
-
-    DenseVector<IndexType> index2_data_in_global_ids(A.GetOffDiagBlock().index2_data().size());
-    for(IndexType i = 0; i<index2_data_in_global_ids.size(); ++i)
-        index2_data_in_global_ids[i] = A.GetOffDiaGlobalId( A.GetOffDiagBlock().index2_data()[i] );
+    auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
+    auto pAmgcl = DistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
     
-    //check to ensure that the numbering is correct
-    for(IndexType i = 0; i<index2_data_in_global_ids.size(); ++i)
-    {
-        IndexType global_j = index2_data_in_global_ids[i];
-        IndexType local_j = A.GetOffDiagBlock().index2_data()[i];
-        KRATOS_CHECK_EQUAL(local_j, A.GetOffDiagLocalId(global_j));
-    }
-
-
-    pAmgclOffDiagonalBlock->nrows = A.GetOffDiagBlock().size1();
-    pAmgclOffDiagonalBlock->ncols = A.GetOffDiagBlock().size2();
-    pAmgclOffDiagonalBlock->nnz = A.GetOffDiagBlock().nnz();
-    pAmgclOffDiagonalBlock->own_data = false;
-    pAmgclOffDiagonalBlock->ptr = (ptrdiff_t*)&(A.GetOffDiagBlock().index1_data()[0]);
-    pAmgclOffDiagonalBlock->col = (ptrdiff_t*)&(index2_data_in_global_ids[0]);
-    pAmgclOffDiagonalBlock->val = &(A.GetOffDiagBlock().value_data()[0]);
-
-    amgcl::mpi::communicator comm;
-    KRATOS_WATCH("*pppppppppppppppppppp*")
-
-    typedef amgcl::backend::builtin<double> Backend;
-    auto pAmgclDistributedMatrix = std::make_shared<amgcl::mpi::distributed_matrix<Backend>>(comm,pAmgclDiagonalBlock,pAmgclOffDiagonalBlock);
-
     y.SetValue(0.0);
     b.SetValue(1.0);
+    pAmgcl->mul(1.0,b,1.0,y);
 
-    //double* ybegin = &y[0];
-    //const double* bbegin = &b[0];
-    KRATOS_WATCH("******eeeee****")
-
-    //pAmgclDistributedMatrix->mul(1.0,ybegin,1.0,bbegin);
-    pAmgclDistributedMatrix->mul(1.0,y,1.0,b);
-
-    KRATOS_WATCH("********************************")
     for(unsigned int i=0; i<y.LocalSize(); ++i)
     {
         IndexType global_i = y.GetNumbering().GlobalId(i);
@@ -695,6 +652,54 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSu
     c/=4.0;
     for(unsigned int i=0; i<c.LocalSize(); ++i)
         KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
+}
+
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosCoreFastSuite)
+{
+    typedef std::size_t IndexType;
+
+    DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
+    int world_size =rComm.Size();
+    int my_rank = rComm.Rank();
+
+    IndexType max_size = 3;
+    auto dofs_bounds = ComputeBounds<IndexType>(max_size, world_size, my_rank);
+
+    Matrix local_matrix(2,2); //we will assemble a 1D laplacian
+    local_matrix(0,0) = 1.0;  local_matrix(0,1) = -1.0; 
+    local_matrix(1,0) = -1.0; local_matrix(1,1) = 1.0; 
+
+    DenseVector<IndexType> connectivities(2);
+
+    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
+    {
+        if(i+1<max_size)
+        {
+            connectivities[0] = i;
+            connectivities[1] = i+1;
+            Agraph.AddEntries(connectivities);
+        }
+    }
+    Agraph.Finalize();
+
+    //Test SPMV 
+    DistributedCsrMatrix<double, IndexType> A(Agraph);
+    A.BeginAssemble();   
+    for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
+    {
+        if(i+1<max_size)
+        {
+            connectivities[0] = i;
+            connectivities[1] = i+1;       
+            A.Assemble(local_matrix,connectivities);
+        }
+    }
+    A.FinalizeAssemble();
+
+    auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
+    auto pAmgcl = DistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
 }
 
 
