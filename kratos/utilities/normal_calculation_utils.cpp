@@ -120,7 +120,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>
                       : geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3;
     }
     use_simplex = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(use_simplex);
-    if (use_simplex)
+    if (use_simplex) {
     {
         CalculateOnSimplex(rModelPart, dimension);
     }
