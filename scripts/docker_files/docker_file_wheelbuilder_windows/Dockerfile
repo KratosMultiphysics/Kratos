@@ -86,6 +86,15 @@ RUN powershell.exe -Command \
     c:\python\38\python.exe -m pip install --upgrade pip; \
     c:\python\38\python.exe -m pip install --upgrade setuptools wheel
 
+#Install python 3.9
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe -OutFile c:\temp\python39.exe; \
+    mkdir c:\python\39; \
+    Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
+    c:\python\39\python.exe -m pip install --upgrade pip; \
+    c:\python\39\python.exe -m pip install --upgrade setuptools wheel
+
 #Downloand blas/lapack
 RUN powershell.exe -Command \
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \

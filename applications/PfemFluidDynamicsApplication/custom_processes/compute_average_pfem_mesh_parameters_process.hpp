@@ -71,7 +71,7 @@ public:
       : mrModelPart(rModelPart),
         mrRemesh(rRemeshingParameters)
   {
-    KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " inlet_management CONSTRUCTOR ";
+    KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " activated "<< std::endl;
 
     mEchoLevel = EchoLevel;
   }

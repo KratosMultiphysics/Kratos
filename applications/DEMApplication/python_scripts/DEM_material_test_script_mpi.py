@@ -132,7 +132,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
       if(math.fabs(self.total_check)!=2):
 
-        print(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
+        Logger.PrintInfo(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
 
   def MeasureForcesAndPressure(self):
 
