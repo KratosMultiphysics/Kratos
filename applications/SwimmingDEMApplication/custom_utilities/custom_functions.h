@@ -161,7 +161,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
         }
 
         else {
-            KRATOS_THROW_ERROR(std::runtime_error, "Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)","");
+            KRATOS_ERROR << "Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)" << std::endl;
         }
 
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
@@ -628,7 +628,7 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
     }
 
     if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
+        KRATOS_ERROR << "Element with zero area found with the current geometry "<< geom << std::endl;
     }
 
     return vol;
@@ -659,9 +659,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(vol == 0.0) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -702,9 +700,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(vol == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -745,9 +741,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMas
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(vol == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);

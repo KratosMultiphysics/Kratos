@@ -151,12 +151,8 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
     if(ErrorCode != 0) return ErrorCode;
 
-    if(this->GetGeometry().size() != TNumNodes)
-        KRATOS_THROW_ERROR(std::invalid_argument, "wrong number of nodes for element",this->Id());
-
-    if(VELOCITY_COMPONENT_GRADIENT.Key() == 0)
-
-        KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY_COMPONENT_GRADIENT Key is 0. Check if the application was correctly registered.","");
+    KRATOS_ERROR_IF(this->GetGeometry().size() != TNumNodes)<< "Wrong number of nodes for element" << this->Id() << std::endl;
+    KRATOS_ERROR_IF(VELOCITY_COMPONENT_GRADIENT.Key() == 0)<< "VELOCITY_COMPONENT_GRADIENT Key is 0. Check if the application was correctly registered." << std::endl;
 
     // Checks on nodes
 
@@ -169,8 +165,7 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
         if (TDim == 3){
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_Z,rNode);
         }
-        if(rNode.SolutionStepsDataHas(VELOCITY_COMPONENT_GRADIENT) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY_COMPONENT_GRADIENT variable on solution step data for node ",this->GetGeometry()[i].Id());
+        KRATOS_ERROR_IF(rNode.SolutionStepsDataHas(VELOCITY_COMPONENT_GRADIENT) == false) << "Missing VELOCITY_COMPONENT_GRADIENT variable on solution step data for node " << this->GetGeometry()[i].Id() << std::endl;
     }
 
     return 0;
