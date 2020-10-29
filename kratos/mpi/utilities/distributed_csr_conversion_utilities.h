@@ -15,10 +15,10 @@
 #define  KRATOS_DISTRIBUTED_CSR_CONVERSION_UTILITIES_H_INCLUDED
 
 #include "containers/distributed_csr_matrix.h"
-#include "../../../external_libraries/amgcl/backend/builtin.hpp"
-#include "../../../external_libraries/amgcl/backend/interface.hpp"
-#include "../../../external_libraries/amgcl/mpi/distributed_matrix.hpp"
-#include "../../../external_libraries/amgcl/adapter/zero_copy.hpp"
+#include "amgcl/backend/builtin.hpp"
+#include "amgcl/backend/interface.hpp"
+#include "amgcl/mpi/distributed_matrix.hpp"
+#include "amgcl/adapter/zero_copy.hpp"
 
 namespace Kratos
 {
