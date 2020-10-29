@@ -20,7 +20,7 @@ from  KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_ana
 import KratosMultiphysics.MappingApplication
 import KratosMultiphysics.ExaquteSandboxApplication
 
-from GenerateCN import GenerateCN
+from KratosMultiphysics.ExaquteSandboxApplication.GenerateCN import GenerateCN
 
 def isclose(a, b, rel_tol=1e-9, abs_tol=0.):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
@@ -191,7 +191,6 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
         super(ImposePerturbedInitialConditionAnalysisStage,self).__init__(input_model,input_parameters)
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN) # for storing \nabla TEMPERATURE
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN_RATE) # for storing P(u_{cn})
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ExaquteSandboxApplication.DIVERGENCE) # for storing DIVERGENCE
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X_GRADIENT) # for storing VELOCITY_X gradient
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y_GRADIENT) # for storing VELOCITY_Y gradient
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z_GRADIENT) # for storing VELOCITY_Z gradient
@@ -248,6 +247,7 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN, -1*node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN_RATE)) # recall VELOCITY_LAPLACIAN_RATE is P(u_{cn}) (without penalty coefficient)
 
     def FinalizeSolutionStep(self):
+        super(ImposePerturbedInitialConditionAnalysisStage,self).FinalizeSolutionStep()
         KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.TEMPERATURE,KratosMultiphysics.VELOCITY_LAPLACIAN).Execute()
         self.RestoreBoundaryValues()
         # save new velocity
@@ -256,17 +256,6 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
             velocity_field_loaded_and_correlated_noise = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) # u_T + c*P(u_{cn})
             gradient_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN) # no-boundary: \nabla T ; boundary: - \nabla T
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,velocity_field_loaded_and_correlated_noise + penalty_coeff*gradient_solution)
-
-        # check new velocity field is divergence free
-        self.ComputeVelocityGradients()
-        main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        for node in self.model.GetModelPart(main_model_part_name).Nodes:
-            divergence = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X_GRADIENT)[0] + \
-                node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y_GRADIENT)[1] + \
-                node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z_GRADIENT)[2]
-            node.SetSolutionStepValue(KratosMultiphysics.ExaquteSandboxApplication.DIVERGENCE,divergence)
-
-        super(ImposePerturbedInitialConditionAnalysisStage,self).FinalizeSolutionStep()
 
 
 """
@@ -293,6 +282,7 @@ class ImposePerturbedInitialConditionProcess(KratosMultiphysics.Process):
         return self.model_part.Nodes
 
     def __init__(self,model,settings):
+        super().__init__()
         for name, value in settings.items():
             setattr(self, name, value)
         self.model = model
