@@ -202,8 +202,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         mpb.reset();
 
         Clear();
-
-        mpDEMStrategy->~ExplicitSolverStrategy();
     }
 
     /**

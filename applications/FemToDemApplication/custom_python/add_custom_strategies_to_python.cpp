@@ -50,7 +50,7 @@ namespace Python
         // Base types
         typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
         typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-		typedef BaseSolvingStrategyType::TBuilderAndSolverType BuilderAndSolverType;
+        typedef BaseSolvingStrategyType::TBuilderAndSolverType BuilderAndSolverType;
         typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
         typedef ResidualBasedDEMCoupledNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedDEMCoupledNewtonRaphsonStrategy;
 
