@@ -10,6 +10,8 @@ from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_compressible_solv
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
+from Kratos import *
+
 def CreateSolver(model, custom_settings):
     return NavierStokesBiphaseCompressibleExplicitSolver(model, custom_settings)
 
@@ -81,7 +83,6 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
         print("Construction of NavierStokesBiphaseCompressibleExplicitSolver finished.")
 
     def AddVariables(self):     ## Che cosa fa questa funzione? Devono esistere da qualche parte le variabili che aggiungo?
-        print("\n\nHere I am - AddVariables \n\n")
         
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RK4)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RHS)
@@ -94,7 +95,7 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.TOTAL_ENERGY_RHS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.TOTAL_ENERGY_RK4)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-        
+                
         
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_SOLID)
@@ -167,6 +168,9 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
 
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+
+        neighbour_finder = FindNodalNeighboursProcess(self.computing_model_part,6, 6)
+        neighbour_finder.Execute() ##at wish ... when it is needed
 
 #        self.solver = KratosFluid.RungeKuttaStrategy(
 #            self.GetComputingModelPart(),

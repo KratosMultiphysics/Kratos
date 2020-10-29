@@ -28,7 +28,8 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
 #include "includes/cfd_variables.h"                     
-#include "fluid_dynamics_application_variables.h"       
+#include "fluid_dynamics_application_variables.h"    
+#include "processes/find_nodal_neighbours_process.h"   
 
 
 
@@ -133,13 +134,14 @@ public:
      */
     virtual void Initialize() override
     {
+        
         if (!(this->mReformDofSetAtEachStep)){
              ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
              ComputeNodalArea();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
         }
         // InitializeDirichletBoundaryConditions();
         // InitializeSlipBoundaryConditions();
-
+ 
     }
 
     /**
@@ -246,7 +248,7 @@ public:
         double cp       = gamma*c_v;
         double R        = cp - c_v;
 
-        double N1 = 0, N2 = 0, N3 = 0;
+        double N1 = 0, N3 = 0;
 
         double M1 = 0, M3 = 4;
 
@@ -261,7 +263,6 @@ public:
             for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
             {   
                 auto it_node    = r_model_part.NodesBegin() + i;
-
 
                 double denS     = it_node->FastGetSolutionStepValue(DENSITY_SOLID);
                 
@@ -294,12 +295,192 @@ public:
             printf("M3 = %.3e \n", M3);
 
         }
+/*
+        const double h2 = 50;
+        const double alpha = 0.00;
+        
+        if (alpha > 0.0){
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {   
+                auto it_node    = r_model_part.NodesBegin() + i;
 
+                double posXi     = it_node->X();
+                double posYi     = it_node->Y();
+
+                it_node->FastGetSolutionStepValue(DENSITY_RK4)  = it_node->FastGetSolutionStepValue(DENSITY);
+                it_node->FastGetSolutionStepValue(DENSITY_SOLID_RK4) = it_node->FastGetSolutionStepValue(DENSITY_SOLID);
+                it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4) = it_node->FastGetSolutionStepValue(TOTAL_ENERGY); 
+
+                double Ai = it_node->FastGetSolutionStepValue(NODAL_AREA);
+
+                double denTjo;
+                double denSjo;
+                double enejo;
+
+                it_node->FastGetSolutionStepValue(DENSITY_RHS) = 0.0;
+                it_node->FastGetSolutionStepValue(DENSITY_SOLID_RHS) = 0.0;
+                it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS) = 0.0;;
+                
+                double denTav = 0.0;
+                double denSav = 0.0;
+                double eneav = 0.0;
+
+                for (int j = 0; j < static_cast<int>(r_model_part.NumberOfNodes()); ++j)
+                {      
+                    auto jt_node    = r_model_part.NodesBegin() + j;
+                    double posXj     = jt_node->X();
+                    double posYj     = jt_node->Y();
+
+                    double dist2 = (posXj - posXi)*(posXj - posXi) + (posYj - posYi)*(posYj - posYi);
+
+                    double Aj = jt_node->FastGetSolutionStepValue(NODAL_AREA);
+
+                    if (dist2 < h2){
+
+                        denTjo     = jt_node->FastGetSolutionStepValue(DENSITY);
+                        denSjo     = jt_node->FastGetSolutionStepValue(DENSITY_SOLID);
+                        enejo      = jt_node->FastGetSolutionStepValue(TOTAL_ENERGY); 
+                        
+                        denTav += denTjo*Aj/Ai;
+                        denSav += denSjo*Aj/Ai;
+                        eneav += enejo*Aj/Ai;
+
+                    }
+
+                }
+
+                for (int j = 0; j < static_cast<int>(r_model_part.NumberOfNodes()); ++j)
+                {      
+                    auto jt_node    = r_model_part.NodesBegin() + j;
+                    
+                    double posXj     = jt_node->X();
+                    double posYj     = jt_node->Y();
+
+                    double dist2 = (posXj - posXi)*(posXj - posXi) + (posYj - posYi)*(posYj - posYi);
+                    double Aj = jt_node->FastGetSolutionStepValue(NODAL_AREA);
+
+                    if (dist2 < h2){
+
+                        denTjo     = jt_node->FastGetSolutionStepValue(DENSITY);
+                        denSjo     = jt_node->FastGetSolutionStepValue(DENSITY_SOLID);
+                        enejo      = jt_node->FastGetSolutionStepValue(TOTAL_ENERGY); 
+
+                        it_node->FastGetSolutionStepValue(DENSITY_RHS) += alpha*(denTav - denTjo)*Aj/Ai;
+                        it_node->FastGetSolutionStepValue(DENSITY_SOLID_RHS) += alpha*(denSav - denSjo)*Aj/Ai;;
+                        it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS) += alpha*(eneav - enejo)*Aj/Ai;;
+
+                    }
+
+                }
+
+                it_node->FastGetSolutionStepValue(DENSITY_RK4) += it_node->FastGetSolutionStepValue(DENSITY_RHS);
+                it_node->FastGetSolutionStepValue(DENSITY_SOLID_RK4) += it_node->FastGetSolutionStepValue(DENSITY_SOLID_RHS);
+                it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4) += it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS);
+
+            }
+
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {
+                auto it_node    = r_model_part.NodesBegin() + i;
+
+                it_node->FastGetSolutionStepValue(DENSITY) = it_node->FastGetSolutionStepValue(DENSITY_RK4);
+                it_node->FastGetSolutionStepValue(DENSITY_SOLID)  = it_node->FastGetSolutionStepValue(DENSITY_SOLID_RK4);
+                it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4);    
+            }
+        }
+
+*/      
+        
+/*      
+        double  alpha_c = 1e-4;
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
         {
             auto it_node    = r_model_part.NodesBegin() + i;
+
+            double ene_av = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+            double iArea  = it_node->FastGetSolutionStepValue(NODAL_AREA);
+
+            ene_av *= iArea;
+
+            GlobalPointersVector< Node<3> >& rneigh = it_node->GetValue(NEIGHBOUR_NODES);
+            for( GlobalPointersVector<Node<3> >::iterator jt_node = rneigh.begin(); jt_node!=rneigh.end(); jt_node++){
+                
+                double jArea  = jt_node->FastGetSolutionStepValue(NODAL_AREA);
+                
+                iArea += jArea;
+
+                ene_av += (jt_node->FastGetSolutionStepValue(TOTAL_ENERGY))*jArea;
+            }
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4) = ene_av/iArea;
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        {
+            auto it_node    = r_model_part.NodesBegin() + i;
+
+            double ene_av = it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4);
+            double ene_i  = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+            double iArea  = it_node->FastGetSolutionStepValue(NODAL_AREA);
+            double ene_corr = ene_av*iArea - ene_i*iArea;
+            double iAreaTot = iArea;
+
+            GlobalPointersVector< Node<3> >& rneigh = it_node->GetValue(NEIGHBOUR_NODES);
+            for( GlobalPointersVector<Node<3> >::iterator jt_node = rneigh.begin(); jt_node!=rneigh.end(); jt_node++){
+                
+                double jArea  = jt_node->FastGetSolutionStepValue(NODAL_AREA);
+                double ene_j  = jt_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+
+                iAreaTot += jArea;
+
+                ene_corr += (ene_av*iArea - ene_j*jArea);
+
+            }
+
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS) = ene_i + alpha_c*ene_corr/iAreaTot;
+
+        }
+
+*/
+        double  alpha_c = 5e-4;
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        {
+            auto it_node    = r_model_part.NodesBegin() + i;
+
+            double ene_i = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+            double iArea     = it_node->FastGetSolutionStepValue(NODAL_AREA);
+            double iAreaTOT  = iArea;
+            double ene_corr = 0.0;
+
+
+            GlobalPointersVector< Node<3> >& rneigh = it_node->GetValue(NEIGHBOUR_NODES);
+            for( GlobalPointersVector<Node<3> >::iterator jt_node = rneigh.begin(); jt_node!=rneigh.end(); jt_node++){
+                
+                double jArea    = jt_node->FastGetSolutionStepValue(NODAL_AREA);
+                double ene_j    = jt_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+
+
+                iAreaTOT += 0.5*(jArea + iArea);
+
+                ene_corr += (ene_i - ene_j)*(jArea + iArea)*0.5;
+            }
+
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS) = ene_i - alpha_c*ene_corr/iAreaTOT; 
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        {
+            auto it_node    = r_model_part.NodesBegin() + i;
+
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS);
 
             double denT     = it_node->FastGetSolutionStepValue(DENSITY);
             double denS     = it_node->FastGetSolutionStepValue(DENSITY_SOLID);

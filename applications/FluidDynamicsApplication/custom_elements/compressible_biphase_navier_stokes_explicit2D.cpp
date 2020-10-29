@@ -152,7 +152,8 @@ void ShockCapturing2(const double mu,
     const int SpaceDimension  = 2;
 	
     double alpha  	  = 2.0;
-	double alpha_dc   = 2.0;
+	double alpha_dc   = 4.5;
+	double alpha_de	  = 3.0;
 	const double tol  = 1e-32;
     const double tol2 = 1e-32;                               
 
@@ -206,7 +207,7 @@ void ShockCapturing2(const double mu,
     
     norm_grade = sqrt(norm_grade);
     
-	if (norm_grade > tol)         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
+	if (norm_grade > tol)         k_sc = 0.5*h*alpha_de*(norm_res_e/norm_grade);
 	
 	if (normgraddt > tol) 		  a_dt = 0.0*h*alpha_dc*norm_res_dt; 
 	if (normgradds > tol) 		  a_ds = 0.5*h*alpha_dc*norm_res_ds;
