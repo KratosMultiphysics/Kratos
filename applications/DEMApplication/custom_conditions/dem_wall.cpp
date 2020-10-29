@@ -60,7 +60,7 @@ DEMWall::~DEMWall()
 
 void DEMWall::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::Initialize) shouldn't be accessed, use derived class instead", 0);
+    KRATOS_ERROR << "This function (DEMWall::Initialize) shouldn't be accessed, use derived class instead"<<std::endl;
 }
 
 //***********************************************************************************
@@ -198,7 +198,7 @@ void DEMWall::InitializeSolutionStep(const ProcessInfo& r_process_info){
 
 void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
 
-   KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::CalculateNormal) shouldn't be accessed, use derived class instead", "");
+  KRATOS_ERROR << "This function (DEMWall::CalculateNormal) shouldn't be accessed, use derived class instead"<<std::endl;
 }
 
  void DEMWall::AddExplicitContribution(const VectorType& rRHS,

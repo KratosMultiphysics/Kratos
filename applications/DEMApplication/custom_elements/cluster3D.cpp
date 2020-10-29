@@ -136,7 +136,7 @@ namespace Kratos {
         else if (contact_info_element) ElementNameString= "ContactInfoSphericParticle3D";
         else ElementNameString= "SphericParticle3D";
 
-        if (!continuum_strategy && breakable) KRATOS_THROW_ERROR(std::runtime_error,"Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop.","")
+        KRATOS_ERROR_IF(!continuum_strategy && breakable) << "Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop." << std::endl;
 
         //We now create a spheric particle and keep it as a reference to an Element
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);

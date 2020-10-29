@@ -79,19 +79,14 @@ class SphericElementGlobalPhysicsCalculator
       //***************************************************************************************************************
       // Returns the minimum value of a double variable in the model part.
 
-      double CalculateMaxNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable)
-      {
+    double CalculateMaxNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable) {
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        if (pElements.size() == 0){
-            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable ", r_variable);
-          }
+        KRATOS_ERROR_IF(pElements.size() == 0) << "Cannot compute maximum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable " << r_variable << std::endl;
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
-        if (!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)){
-            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing nodal variable ", r_variable);
-          }
+        KRATOS_ERROR_IF(!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)) << "Cannot compute maximum of the required nodal variable. Missing nodal variable " << r_variable << std::endl;
 
         std::vector<double> max_values;
         double max_val = - std::numeric_limits<double>::max();
@@ -99,7 +94,7 @@ class SphericElementGlobalPhysicsCalculator
 
         for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             max_values[k] = max_val;
-          }
+        }
 
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), mElementsPartition);
 
@@ -112,36 +107,28 @@ class SphericElementGlobalPhysicsCalculator
             for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                 max_values[k] = std::max(max_values[k], (it)->GetGeometry()[0].FastGetSolutionStepValue(r_variable));
                 elem_counter++;
-
-              }
-
-          }
+            }
+        }
 
         // getting the maximum between threads:
-
         for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             max_val = std::max(max_val, max_values[k]);
-          }
+        }
 
         return max_val;
-      }
+    }
 
       //***************************************************************************************************************
       //***************************************************************************************************************
 
-      double CalculateMinNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable)
-      {
+    double CalculateMinNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable) {
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        if (pElements.size() == 0){
-            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable ", r_variable);
-          }
+        KRATOS_ERROR_IF(pElements.size() == 0) << "Cannot compute minimum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable " << r_variable << std::endl;
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
-        if (!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)){
-            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Missing variable ", r_variable);
-          }
+        KRATOS_ERROR_IF(!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)) << "Cannot compute minimum of the required nodal variable. Missing variable " << r_variable << std::endl;
 
         std::vector<double> min_values;
         double min_val = std::numeric_limits<double>::max();
@@ -149,7 +136,7 @@ class SphericElementGlobalPhysicsCalculator
 
         for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             min_values[k] = min_val;
-          }
+        }
 
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), mElementsPartition);
 
@@ -162,19 +149,16 @@ class SphericElementGlobalPhysicsCalculator
             for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                 min_values[k] = std::min(min_values[k], (it)->GetGeometry()[0].FastGetSolutionStepValue(r_variable));
                 elem_counter++;
-
-              }
-
-          }
+            }
+        }
 
         // getting the minimum between threads:
-
         for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             min_val = std::min(min_val, min_values[k]);
-          }
+        }
 
         return min_val;
-      }
+    }
 
       //***************************************************************************************************************
       //***************************************************************************************************************
