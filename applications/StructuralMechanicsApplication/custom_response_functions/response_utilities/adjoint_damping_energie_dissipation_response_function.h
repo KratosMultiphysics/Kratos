@@ -45,8 +45,8 @@ namespace Kratos
 
 /** \brief AdjointDampingEnergieDissipationResponseFunction
 *
-* This is a response function which traces the radicand of the root mean square of a chosen displacement or rotation of a single
-* node as response. It is designed to be used in dynamic adjoint sensitivity analysis.
+* This is a response function which traces the dissipation work by dampers $ W_c = - \int_{0}^{T} v*C*v dt $ in a chosen submodel part
+* as response. It is designed to be used in dynamic adjoint sensitivity analysis.
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointDampingEnergieDissipationResponseFunction : public AdjointStructuralResponseFunction
 {
@@ -192,7 +192,6 @@ private:
     ///@{
 
     std::string mResponsePartName;
-    std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
 
     ///@}
     ///@name Private Operators
@@ -201,8 +200,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void ComputeNeighboringElementNodeMap();
 
     ///@}
     ///@name Private  Access

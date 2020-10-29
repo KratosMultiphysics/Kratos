@@ -22,26 +22,8 @@ namespace Kratos
     AdjointDampingEnergieDissipationResponseFunction::AdjointDampingEnergieDissipationResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     { 
-        mTimeDomain = ResponseSettings["time_domain"].GetDouble();
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
-        mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
 
-        // Check if variable for traced dof is valid
-        KRATOS_ERROR_IF_NOT( KratosComponents<Variable<double>>::Has(mTracedDofLabel) )
-            << "AdjointNodalDisplacementResponseFunction: Specified traced DOF is not available. Specified DOF: " << mTracedDofLabel << std::endl;
-
-        // Check if variable for traced adjoint dof is valid
-        KRATOS_ERROR_IF_NOT( KratosComponents<Variable<double>>::Has(std::string("ADJOINT_") + mTracedDofLabel) )
-            << "AdjointNodalDisplacementResponseFunction: Specified traced adjoint DOF is not available." << mTracedDofLabel << std::endl;
-
-        ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
-        const Variable<double>* r_traced_dof = &KratosComponents<Variable<double>>::Get(mTracedDofLabel);
-        for(auto& node_i : response_part.Nodes()){
-            KRATOS_ERROR_IF_NOT( node_i.SolutionStepsDataHas(*r_traced_dof) )
-                << "AdjointNodalDisplacementResponseFunction: Specified DOF is not available at traced node." << std::endl;
-        }
-
-        this->ComputeNeighboringElementNodeMap();
     }
 
     AdjointDampingEnergieDissipationResponseFunction::~AdjointDampingEnergieDissipationResponseFunction(){}
@@ -52,29 +34,7 @@ namespace Kratos
                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-
-        if (rResponseGradient.size() != rResidualGradient.size1())
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-
-        rResponseGradient.clear();
-        const Variable<double>* p_traced_dof = &KratosComponents<Variable<double>>::Get(mTracedDofLabel);
-        const Variable<double>* p_traced_adjoint_dof = &KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofLabel);
-        DofsVectorType dofs_of_element;
-        
-        auto it_map = mElementNodeMap.find(rAdjointElement.Id());
-        if (it_map != mElementNodeMap.end()) {
-            rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
-            for(auto const& node_id: it_map->second) {
-                for(IndexType i = 0; i < dofs_of_element.size(); ++i) {
-                    if (dofs_of_element[i]->Id() == node_id &&
-                        dofs_of_element[i]->GetVariable() == *p_traced_adjoint_dof) {
-                        rResponseGradient[i]   = 2 / mTimeDomain * mrModelPart.GetNode(node_id).FastGetSolutionStepValue(*p_traced_dof, 0);
-                        break;
-                    }
-                }
-            }
-        }
-
+        rResponseGradient = ZeroVector(rResidualGradient.size1());
         KRATOS_CATCH("");
     }
 
@@ -85,7 +45,31 @@ namespace Kratos
         const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-        rResponseGradient = ZeroVector(rResidualGradient.size1());
+        
+        if (rResponseGradient.size() != rResidualGradient.size1())
+            rResponseGradient.resize(rResidualGradient.size1(), false);
+
+        rResponseGradient.clear();
+        
+        ModelPart& response_part = mrModelPart.GetSubModelPart(mResponsePartName);
+        const ProcessInfo &r_current_process_info = response_part.GetProcessInfo();
+        Matrix damping_matrix;
+        Vector velocity_vector;
+        
+        // Check if there are at primal elements, because the primal state is required
+        KRATOS_ERROR_IF( r_current_process_info.Has(IS_ADJOINT) && r_current_process_info[IS_ADJOINT] )
+             << "Calculate first derivatives gradient for damped dissipation energy response is only available when using primal elements" << std::endl;
+
+        for (auto& element_i : response_part.Elements())
+        {
+            if(element_i.Id() == rAdjointElement.Id()){
+                element_i.GetFirstDerivativesVector(velocity_vector, 0);
+                element_i.CalculateDampingMatrix(damping_matrix, r_current_process_info);
+                rResponseGradient = 2*prod(damping_matrix, velocity_vector);
+                break;
+            }
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -151,7 +135,48 @@ namespace Kratos
                                              const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
+        
+        rSensitivityGradient.clear();
+
+        if (rVariable == NODAL_ROTATIONAL_DAMPING_RATIO || rVariable == NODAL_DAMPING_RATIO){
+            // get response model part
+            ModelPart& response_part = mrModelPart.GetSubModelPart(mResponsePartName);
+            for (auto& element_i : response_part.Elements()){
+                if(element_i.Id() == rAdjointElement.Id()){
+                    // get process info of response model part
+                    const ProcessInfo& r_current_process_info = response_part.GetProcessInfo();
+
+                    // save original damping parameters
+                    const auto variable_value = element_i.GetValue(rVariable);
+
+                    // reset original damping parameters before computing the derivatives
+                    element_i.SetValue(rVariable, rVariable.Zero());
+
+                    // allocate derivative component 
+                    Matrix damping_matrix_deriv;
+
+                    // get velocity vector
+                    Vector velocity_vector;
+                    element_i.GetFirstDerivativesVector(velocity_vector, 0);
+
+                    // compute partial derivative
+                    // The following approach assumes a linear dependency between damping matrix and damping ratio
+                    for (IndexType dir_i = 0; dir_i < 3; ++dir_i){
+                        array_1d<double, 3> perturbed_nodal_damping = ZeroVector(3);
+                        perturbed_nodal_damping[dir_i] = 1.0;
+                        element_i.SetValue(rVariable, perturbed_nodal_damping);
+                        element_i.CalculateDampingMatrix(damping_matrix_deriv,r_current_process_info);
+
+                        rSensitivityGradient[dir_i] = -inner_prod(velocity_vector, prod(damping_matrix_deriv, velocity_vector));
+                    }
+                    break;
+                }
+            }
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -170,47 +195,25 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const Variable<double>* p_traced_dof = &KratosComponents<Variable<double>>::Get(mTracedDofLabel);
         ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
+        const ProcessInfo &r_current_process_info = response_part.GetProcessInfo();
 
-        double value = 0;
-        double x_i;
-        for(auto& node_i : response_part.Nodes()){
-            x_i = rModelPart.GetNode(node_i.Id()).FastGetSolutionStepValue(*p_traced_dof , 0);
-            value += x_i * x_i * 1/ mTimeDomain;
+        double response_value = 0.0;
+        Matrix damping_matrix;
+        Vector velocity_vector;
+
+        for(auto& element_i : response_part.Elements())
+        {
+            element_i.GetValuesVector(velocity_vector, 0);
+            element_i.CalculateDampingMatrix(damping_matrix, r_current_process_info);
+            // Compute the dissipation work integrand -v*C*v
+            response_value -= inner_prod(velocity_vector, prod(damping_matrix, velocity_vector)); 
         }
 
-        return value;
+        return response_value;
 
         KRATOS_CATCH("");
     }
-
-    /// Find one element which is bounded by the traced node. The element is needed for assembling the adjoint load.
-    void AdjointDampingEnergieDissipationResponseFunction::ComputeNeighboringElementNodeMap()
-    {
-        KRATOS_TRY;
-
-        ModelPart& response_part = mrModelPart.GetSubModelPart(mResponsePartName);
-        FindElementalNeighboursProcess neighbour_elements_finder(mrModelPart, 10, 10);
-        neighbour_elements_finder.Execute();
-
-        for(auto& node_i : response_part.Nodes()) {
-            auto const& r_neighbours = node_i.GetValue(NEIGHBOUR_ELEMENTS);
-            KRATOS_ERROR_IF(r_neighbours.size() == 0) << "AdjointNodalDisplacementResponseFunction: Node " << node_i.Id() << " has no neighbouring element" << std::endl;
-            // take the first element since only one neighbour element is required
-            auto it_map = mElementNodeMap.find(r_neighbours[0].Id());
-            if (it_map == mElementNodeMap.end()) {
-                std::vector<IndexType> node_ids = {node_i.Id()};
-                mElementNodeMap[r_neighbours[0].Id()] = node_ids;
-            }
-            else {
-                (it_map->second).push_back(node_i.Id());
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
     
 } // namespace Kratos.
 
