@@ -26,7 +26,7 @@ namespace Kratos
 /**
 Utilities to convert the distributed_csr matrix to other libraries
  */
-class DistributedCSRConversionUtilities
+class AmgclDistributedCSRConversionUtilities
 {
 
 public:
@@ -52,7 +52,8 @@ public:
 			&rA.GetOffDiagBlock().value_data()[0]
 		);
 
-		amgcl::mpi::communicator comm(MPI_COMM_WORLD);
+		auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator( rA.GetComm());
+		amgcl::mpi::communicator comm(raw_mpi_comm);
 		auto pAmgcl = Kratos::make_shared<amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>>(comm, loc_a, rem_a);
 		pAmgcl->move_to_backend();
 		return pAmgcl;

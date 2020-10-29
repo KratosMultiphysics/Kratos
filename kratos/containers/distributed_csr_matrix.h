@@ -238,7 +238,7 @@ public:
         return mDiagBlock.nnz();
     }
 
-    const DataCommunicator& GetComm(){
+    const DataCommunicator& GetComm() const {
         return mrComm;
     }
 

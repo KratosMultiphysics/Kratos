@@ -486,7 +486,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
 
     //testing AMGCL interface
     auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
-    auto pAmgcl = DistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
+    auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
     
     y.SetValue(0.0);
     b.SetValue(1.0);
@@ -699,7 +699,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosC
     A.FinalizeAssemble();
 
     auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
-    auto pAmgcl = DistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
+    auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
 }
 
 

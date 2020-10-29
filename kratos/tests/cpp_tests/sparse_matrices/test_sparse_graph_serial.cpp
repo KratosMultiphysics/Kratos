@@ -567,7 +567,7 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
     }
     A.FinalizeAssemble();
 
-    auto pAmgcl = CSRConversionUtilities::ConvertToAmgcl(A);
+    auto pAmgcl = AmgclCSRConversionUtilities::ConvertToAmgcl(A);
 
     std::vector<double> x(A.size1());
     for(auto& item : x)
