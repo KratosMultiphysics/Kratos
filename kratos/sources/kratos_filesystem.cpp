@@ -111,6 +111,15 @@ std::string JoinPaths(const std::vector<std::string>& rPaths)
 
     return full_path;
 }
+    
+std::vector<std::string> ListDirectory(const std::string& rPath)
+{
+    std::vector<std::string> result;
+    for (const auto& current_directory : ghc::filesystem::directory_iterator(rPath)) {
+        result.push_back(current_directory.path());
+    }
+    return result;
+}
 
 } // namespace FilesystemExtensions
 } // namespace Kratos
