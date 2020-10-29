@@ -9,8 +9,8 @@
 //  Main authors:    
 //
 
-#ifndef ADJOINT_NODAL_DISPLACEMENT_ROOT_MEAN_SQUARE_RESPONSE_FUNCTION_H
-#define ADJOINT_NODAL_DISPLACEMENT_ROOT_MEAN_SQUARE_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_DAMPING_ENERGIE_DISSIPATION_RESPONSE_FUNCTION_H
+#define ADJOINT_DAMPING_ENERGIE_DISSIPATION_RESPONSE_FUNCTION_H
 
 
 // System includes
@@ -43,12 +43,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointNodalDisplacementRootMeanSquareResponseFunction
+/** \brief AdjointDampingEnergieDissipationResponseFunction
 *
 * This is a response function which traces the radicand of the root mean square of a chosen displacement or rotation of a single
 * node as response. It is designed to be used in dynamic adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointNodalDisplacementRootMeanSquareResponseFunction : public AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointDampingEnergieDissipationResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -59,18 +59,18 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of AdjointNodalDisplacementRootMeanSquareResponseFunction
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointNodalDisplacementRootMeanSquareResponseFunction);
+    /// Pointer definition of AdjointDampingEnergieDissipationResponseFunction
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointDampingEnergieDissipationResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdjointNodalDisplacementRootMeanSquareResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointDampingEnergieDissipationResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-    ~AdjointNodalDisplacementRootMeanSquareResponseFunction() override;
+    ~AdjointDampingEnergieDissipationResponseFunction() override;
 
     ///@}
     ///@name Operators
@@ -191,8 +191,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mTimeDomain;
-    std::string mTracedDofLabel;
     std::string mResponsePartName;
     std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
 
@@ -220,7 +218,7 @@ private:
 
     ///@}
 
-}; // Class AdjointNodalDisplacementRootMeanSquareResponseFunction
+}; // Class AdjointDampingEnergieDissipationResponseFunction
 
 ///@}
 

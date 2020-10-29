@@ -14,12 +14,12 @@
 // External includes
 
 // Project includes
-#include "adjoint_nodal_displacement_root_mean_square_response_function.h"
+#include "adjoint_damping_energie_dissipation_response_function.h"
 #include "processes/find_elements_neighbours_process.h"
 
 namespace Kratos
 {
-    AdjointNodalDisplacementRootMeanSquareResponseFunction::AdjointNodalDisplacementRootMeanSquareResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    AdjointDampingEnergieDissipationResponseFunction::AdjointDampingEnergieDissipationResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     { 
         mTimeDomain = ResponseSettings["time_domain"].GetDouble();
@@ -44,9 +44,9 @@ namespace Kratos
         this->ComputeNeighboringElementNodeMap();
     }
 
-    AdjointNodalDisplacementRootMeanSquareResponseFunction::~AdjointNodalDisplacementRootMeanSquareResponseFunction(){}
+    AdjointDampingEnergieDissipationResponseFunction::~AdjointDampingEnergieDissipationResponseFunction(){}
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculateGradient(const Element& rAdjointElement,
+    void AdjointDampingEnergieDissipationResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo)
@@ -78,7 +78,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculateFirstDerivativesGradient(
+    void AdjointDampingEnergieDissipationResponseFunction::CalculateFirstDerivativesGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
@@ -89,7 +89,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculateFirstDerivativesGradient(
+    void AdjointDampingEnergieDissipationResponseFunction::CalculateFirstDerivativesGradient(
         const Condition& rAdjointCondition,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
@@ -100,7 +100,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculateSecondDerivativesGradient(
+    void AdjointDampingEnergieDissipationResponseFunction::CalculateSecondDerivativesGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
@@ -111,7 +111,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculateSecondDerivativesGradient(
+    void AdjointDampingEnergieDissipationResponseFunction::CalculateSecondDerivativesGradient(
         const Condition& rAdjointCondition,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
@@ -122,7 +122,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+    void AdjointDampingEnergieDissipationResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -133,7 +133,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+    void AdjointDampingEnergieDissipationResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -144,7 +144,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+    void AdjointDampingEnergieDissipationResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -155,7 +155,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+    void AdjointDampingEnergieDissipationResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -166,7 +166,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    double AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointDampingEnergieDissipationResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -186,7 +186,7 @@ namespace Kratos
     }
 
     /// Find one element which is bounded by the traced node. The element is needed for assembling the adjoint load.
-    void AdjointNodalDisplacementRootMeanSquareResponseFunction::ComputeNeighboringElementNodeMap()
+    void AdjointDampingEnergieDissipationResponseFunction::ComputeNeighboringElementNodeMap()
     {
         KRATOS_TRY;
 
