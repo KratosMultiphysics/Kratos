@@ -300,7 +300,7 @@ std::vector<TIndexType> ComputeBounds( TIndexType N,
     return bounds;
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
 
@@ -325,7 +325,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
 
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
 
@@ -370,7 +370,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreF
 }
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
 
@@ -409,7 +409,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
 
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
 
@@ -502,7 +502,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
 }
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
@@ -608,7 +608,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
 
@@ -655,7 +655,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSu
 }
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
 
@@ -663,43 +663,47 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosC
     int world_size =rComm.Size();
     int my_rank = rComm.Rank();
 
-    IndexType max_size = 3;
-    auto dofs_bounds = ComputeBounds<IndexType>(max_size, world_size, my_rank);
-
-    Matrix local_matrix(2,2); //we will assemble a 1D laplacian
-    local_matrix(0,0) = 1.0;  local_matrix(0,1) = -1.0; 
-    local_matrix(1,0) = -1.0; local_matrix(1,1) = 1.0; 
-
-    DenseVector<IndexType> connectivities(2);
-
-    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
-    for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
+    if(world_size <= 3) //the size of problem is 3, so it cannot work when world_size > 3
     {
-        if(i+1<max_size)
-        {
-            connectivities[0] = i;
-            connectivities[1] = i+1;
-            Agraph.AddEntries(connectivities);
-        }
-    }
-    Agraph.Finalize();
 
-    //Test SPMV 
-    DistributedCsrMatrix<double, IndexType> A(Agraph);
-    A.BeginAssemble();   
-    for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
-    {
-        if(i+1<max_size)
-        {
-            connectivities[0] = i;
-            connectivities[1] = i+1;       
-            A.Assemble(local_matrix,connectivities);
-        }
-    }
-    A.FinalizeAssemble();
+        IndexType max_size = 3;
+        auto dofs_bounds = ComputeBounds<IndexType>(max_size, world_size, my_rank);
 
-    auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
-    auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
+        Matrix local_matrix(2,2); //we will assemble a 1D laplacian
+        local_matrix(0,0) = 1.0;  local_matrix(0,1) = -1.0; 
+        local_matrix(1,0) = -1.0; local_matrix(1,1) = 1.0; 
+
+        DenseVector<IndexType> connectivities(2);
+
+        DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+        for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
+        {
+            if(i+1<max_size)
+            {
+                connectivities[0] = i;
+                connectivities[1] = i+1;
+                Agraph.AddEntries(connectivities);
+            }
+        }
+        Agraph.Finalize();
+
+        //Test SPMV 
+        DistributedCsrMatrix<double, IndexType> A(Agraph);
+        A.BeginAssemble();   
+        for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
+        {
+            if(i+1<max_size)
+            {
+                connectivities[0] = i;
+                connectivities[1] = i+1;       
+                A.Assemble(local_matrix,connectivities);
+            }
+        }
+        A.FinalizeAssemble();
+
+        auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
+        auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
+    }
 }
 
 
