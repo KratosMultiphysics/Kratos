@@ -229,6 +229,7 @@ namespace Kratos
         noalias(rLeftHandSideMatrix)  += (Variables.conductivity * Variables.theta * prod(DN_DX, trans(DN_DX)))*static_cast<double>(TNumNodes);
         noalias(rRightHandSideVector) -= prod((Variables.conductivity * (1.0-Variables.theta) * prod(DN_DX, trans(DN_DX))),Variables.phi_old)*static_cast<double>(TNumNodes) ;
 
+
         //terms in aux2
         noalias(rLeftHandSideMatrix) += Variables.density*Variables.specific_heat*Variables.theta*aux2;
         noalias(rRightHandSideVector) -= Variables.density*Variables.specific_heat*(1.0-Variables.theta)*prod(aux2,Variables.phi_old);
@@ -454,7 +455,8 @@ namespace Kratos
         {
             for (IndexType j = 0; j < TNumNodes; j++)
             {
-                //r_geometry[j].GetSolutionStepValue(TEMPERATURE , 0) += m_heat_of_reaction[i] * (integration_points[i].Weight()/ number_of_integration_points);
+                #pragma omp critical
+                r_geometry[j].GetSolutionStepValue(TEMPERATURE , 0) += (m_heat_of_reaction[i] * (integration_points[i].Weight()/ number_of_integration_points))/m_specific_heat_capacity;
             }
         }
         for (IndexType j = 0; j < TNumNodes; j++)
@@ -470,6 +472,7 @@ namespace Kratos
         }
 
         double specific_heat = 0;
+        double conductivity = 0;
         for (IndexType i = 0; i < number_of_integration_points; ++i)
         {
             double temperature = 0;
@@ -493,13 +496,18 @@ namespace Kratos
                 m_degree_of_cure_vector[i]);
             m_pre_strain_vector[i] = this->ComputePreStrainFactor(
                 m_degree_of_cure_vector[i], temperature, previous_temperature);
+
+            conductivity += this->ComputeThermalConductivity(
+                temperature, m_degree_of_cure_vector[i]);
             //KRATOS_WATCH(temperature)
         }
-        specific_heat /= 4;
+        specific_heat /= number_of_integration_points;
+        conductivity /= number_of_integration_points;
         //KRATOS_WATCH(m_glass_transition_temperature)
         //KRATOS_WATCH(m_degree_of_cure_vector)
         //KRATOS_WATCH(specific_heat)
         m_specific_heat_capacity = specific_heat;
+        m_thermal_conductivity = conductivity;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -576,6 +584,13 @@ namespace Kratos
                 rOutput[i] = m_thermal_conductivity;
             }
         }
+        else if (rVariable == CONDUCTIVITY)
+        {
+            for (IndexType i = 0; i < number_of_integration_points; ++i)
+            {
+                rOutput[i] = GetProperties()[CONDUCTIVITY];
+            }
+        }
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -648,9 +663,9 @@ namespace Kratos
         double degree_of_cure_current,
         double delta_time)
     {
-        double total_heat_of_reaction = 117;
+        double total_heat_of_reaction = 117/1000;
 
-        const double density = 1.0;// GetProperties()[DENSITY];
+        const double density = GetProperties()[DENSITY];
         const double volume = GetGeometry().DomainSize();
         const double specific_heat = GetProperties()[SPECIFIC_HEAT];
 
