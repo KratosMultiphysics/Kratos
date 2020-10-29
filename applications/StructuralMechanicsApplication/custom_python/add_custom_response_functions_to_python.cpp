@@ -89,6 +89,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         (m, "AdjointNodalDisplacementRootMeanSquareResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
+    py::class_<AdjointDampingEnergyDissipationResponseFunction, AdjointDampingEnergyDissipationResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointDampingEnergyDissipationResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+
     py::class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointLinearStrainEnergyResponseFunction")
         .def(py::init<ModelPart&, Parameters>());

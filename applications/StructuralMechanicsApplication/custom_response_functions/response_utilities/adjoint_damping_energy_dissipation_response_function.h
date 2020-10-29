@@ -9,8 +9,8 @@
 //  Main authors:    
 //
 
-#ifndef ADJOINT_DAMPING_ENERGIE_DISSIPATION_RESPONSE_FUNCTION_H
-#define ADJOINT_DAMPING_ENERGIE_DISSIPATION_RESPONSE_FUNCTION_H
+#ifndef adjoint_damping_energy_dissipation_response_function_H
+#define adjoint_damping_energy_dissipation_response_function_H
 
 
 // System includes
