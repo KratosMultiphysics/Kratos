@@ -50,7 +50,7 @@ virtual ~L2ErrorProjection(){}
 double GetL2VectorProjection(ModelPart& r_model_part)
 {
     const unsigned int n_elements = r_model_part.Elements().size();
-    double interpolator = 0.0, result = 0.0, error_x = 0.0, error_y = 0.0, error_z = 0.0;
+    double interpolator = 0.0, result = 0.0, error_x = 0.0, error_y = 0.0, error_z = 0.0, area = 0.0;
     const unsigned int dim = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     Matrix NContainer;
     array_1d<double, 3> scalar_product;
@@ -64,6 +64,11 @@ double GetL2VectorProjection(ModelPart& r_model_part)
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = ielem->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
         NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
         const SizeType& NumGauss = NContainer.size1();
+
+        for (unsigned int k = 0; k < NumNodes; ++k)
+        {
+            area += ielem->GetGeometry()[k].FastGetSolutionStepValue(NODAL_AREA);
+        }
 
         for (SizeType gss = 0; gss < NumGauss; ++gss){
             array_1d<double, 4> N;
@@ -91,14 +96,14 @@ double GetL2VectorProjection(ModelPart& r_model_part)
         result = 0.0;
     }
 
-    return std::sqrt(interpolator);
+    return std::sqrt(interpolator/area);
 }
 
 
 double GetL2ScalarProjection(ModelPart& r_model_part)
 {
     const unsigned int n_elements = r_model_part.Elements().size();
-    double interpolator = 0.0, result = 0.0, error = 0.0;
+    double interpolator = 0.0, result = 0.0, error = 0.0, area = 0.0;
     Matrix NContainer;
     array_1d<double, 3> scalar_product;
 
@@ -110,6 +115,11 @@ double GetL2ScalarProjection(ModelPart& r_model_part)
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = ielem->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
         NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
         const SizeType& NumGauss = NContainer.size1();
+
+        for (unsigned int k = 0; k < NumNodes; ++k)
+        {
+            area += ielem->GetGeometry()[k].FastGetSolutionStepValue(NODAL_AREA);
+        }
 
         for (SizeType gss = 0; gss < NumGauss; ++gss){
             array_1d<double, 4> N;
@@ -126,7 +136,7 @@ double GetL2ScalarProjection(ModelPart& r_model_part)
         result = 0.0;
     }
 
-    return std::sqrt(interpolator);
+    return std::sqrt(interpolator/area);
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
