@@ -10,8 +10,8 @@ from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kr
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidChimeraAnalysis
 
-def Create(cosim_solver_settings, level):
-    return ChimeraFsiFluidDynamicsWrapper(cosim_solver_settings, level)
+def Create(settings, model, solver_name):
+    return ChimeraFsiFluidDynamicsWrapper(settings, model, solver_name)
 
 class ChimeraFsiFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def _CreateAnalysisStage(self):
