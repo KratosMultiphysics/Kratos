@@ -27,10 +27,10 @@ void ModifyViscosityLikeLiu(double & viscosity, const double solid_fraction)
 /**
   * @param r_fluid_model_part: the origin model part from which to project
   * @param r_dem_model_part: the destination model part of which we want to interpolate its nodal values
-  * @param bin_of_objects_fluid: pre-assembled bin of objects (elelments of the fluid mesh). It is to be constructed separately
+  * @param bin_of_objects_fluid: pre-assembled bin of objects (elements of the fluid mesh). It is to be constructed separately
   * @see binbased_nodes_in_element_locator
 */
-// data_to_project to DEM mesh = alpha * new_data + (1 - alpha) * old_data
+// data_to_project (to DEM mesh) = alpha * new_data + (1 - alpha) * old_data
 
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateFromFluidMesh(
