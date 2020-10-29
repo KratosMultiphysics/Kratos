@@ -25,7 +25,7 @@ namespace Kratos
 /**
 Utilities to convert the distributed_csr matrix to other libraries
  */
-class CSRConversionUtilities
+class AmgclCSRConversionUtilities
 {
 
 public:
