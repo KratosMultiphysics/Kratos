@@ -187,7 +187,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-		    ProcessInfo& rCurrentProcessInfo) override;
+		   const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
