@@ -22,7 +22,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
-#include "DEMApplication/custom_strategies/strategies/explicit_solver_strategy.h"
+#include "custom_strategies/strategies/explicit_solver_strategy.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -69,6 +69,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     ///@{
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
 
+    typedef ExplicitSolverStrategy ExplicitSolverStrategyType;
+
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedDEMCoupledNewtonRaphsonStrategy);
 
@@ -112,105 +114,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     }
 
     /**
-     * @brief Default constructor. (with parameters)
-     * @param rModelPart The model part of the problem
-     * @param ThisParameters The configuration parameters
-     */
-    explicit ResidualBasedDEMCoupledNewtonRaphsonStrategy(ModelPart& rModelPart)
-        : ResidualBasedDEMCoupledNewtonRaphsonStrategy(rModelPart, ResidualBasedDEMCoupledNewtonRaphsonStrategy::GetDefaultParameters())
-    {
-    }
-
-    /**
-     * @brief Default constructor. (with parameters)
-     * @param rModelPart The model part of the problem
-     * @param ThisParameters The configuration parameters
-     */
-    explicit ResidualBasedDEMCoupledNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart),
-          mSolutionStepIsInitialized(false),
-          mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
-    {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
-
-        // Getting builder and solver
-        auto p_builder_and_solver = GetBuilderAndSolver();
-        if (p_builder_and_solver != nullptr) {
-            // Tells to the builder and solver if the reactions have to be Calculated or not
-            p_builder_and_solver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-            // Tells to the Builder And Solver if the system matrix and vectors need to
-            // be reshaped at each step or not
-            p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-        } else {
-            KRATOS_WARNING("ResidualBasedDEMCoupledNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
-        }
-
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
-    }
-
-    /**
-     * Default constructor
-     * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
-     * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
-     * @param CalculateReactions The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
-     * @param MoveMeshFlag The flag that allows to move the mesh
-     */
-    explicit ResidualBasedDEMCoupledNewtonRaphsonStrategy(
-        ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        int MaxIterations = 30,
-        bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false)
-        : BaseType(rModelPart, MoveMeshFlag),
-          mpScheme(pScheme),
-          mpConvergenceCriteria(pNewConvergenceCriteria),
-          mReformDofSetAtEachStep(ReformDofSetAtEachStep),
-          mCalculateReactionsFlag(CalculateReactions),
-          mSolutionStepIsInitialized(false),
-          mMaxIterationNumber(MaxIterations),
-          mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
-    {
-        KRATOS_TRY;
-
-        // Setting up the default builder and solver
-        mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
-
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        mpBuilderAndSolver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        // be reshaped at each step or not
-        mpBuilderAndSolver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-        // Set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
-
-        // By default the matrices are rebuilt at each iteration
-        this->SetRebuildLevel(2);
-
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
-
-        KRATOS_CATCH("");
-    }
-
-    /**
      * @brief Constructor specifying the builder and solver
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
@@ -223,6 +126,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
      */
     explicit ResidualBasedDEMCoupledNewtonRaphsonStrategy(
         ModelPart& rModelPart,
+        ExplicitSolverStrategyType::Pointer pDEMStrategy,
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
@@ -230,7 +134,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart, MoveMeshFlag),
+        : BaseType(rModelPart),
+          mpDEMStrategy(pDEMStrategy),
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
@@ -266,174 +171,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief Constructor specifying the builder and solver
-     * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
-     * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param pNewBuilderAndSolver The builder and solver employed
-     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
-     * @param CalculateReactions The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
-     * @param MoveMeshFlag The flag that allows to move the mesh
-     */
-    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
-    explicit ResidualBasedDEMCoupledNewtonRaphsonStrategy(
-        ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        int MaxIterations = 30,
-        bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false)
-        : ResidualBasedDEMCoupledNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
-    {
-        KRATOS_TRY
-
-        KRATOS_WARNING("ResidualBasedDEMCoupledNewtonRaphsonStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
-
-        // Getting builder and solver
-        auto p_builder_and_solver = GetBuilderAndSolver();
-
-        // We check if the linear solver considered for the builder and solver is consistent
-        auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
-        KRATOS_ERROR_IF(p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * Constructor with Parameters
-     * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
-     * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param Settings Settings used in the strategy
-     */
-    ResidualBasedDEMCoupledNewtonRaphsonStrategy(
-        ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        Parameters Settings)
-        : BaseType(rModelPart),
-          mpScheme(pScheme),
-          mpConvergenceCriteria(pNewConvergenceCriteria),
-          mSolutionStepIsInitialized(false),
-          mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
-    {
-        KRATOS_TRY;
-
-        // Setting up the default builder and solver
-        mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
-
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        mpBuilderAndSolver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        // be reshaped at each step or not
-        mpBuilderAndSolver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-        // Set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
-
-        // By default the matrices are rebuilt at each iteration
-        this->SetRebuildLevel(2);
-
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Constructor specifying the builder and solver and using Parameters
-     * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
-     * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param pNewBuilderAndSolver The builder and solver employed
-     * @param Settings Settings used in the strategy
-     */
-    ResidualBasedDEMCoupledNewtonRaphsonStrategy(
-        ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters Settings)
-        : BaseType(rModelPart),
-          mpScheme(pScheme),
-          mpBuilderAndSolver(pNewBuilderAndSolver),
-          mpConvergenceCriteria(pNewConvergenceCriteria),
-          mSolutionStepIsInitialized(false),
-          mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
-    {
-        KRATOS_TRY
-        // Validate and assign defaults
-        Settings = this->ValidateAndAssignParameters(Settings, this->GetDefaultParameters());
-        this->AssignSettings(Settings);
-        // Getting builder and solver
-        auto p_builder_and_solver = GetBuilderAndSolver();
-
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        p_builder_and_solver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        //be reshaped at each step or not
-        p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-        // Set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
-
-        // By default the matrices are rebuilt at each iteration
-        this->SetRebuildLevel(2);
-
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Constructor specifying the builder and solver and using Parameters
-     * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
-     * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param pNewBuilderAndSolver The builder and solver employed
-     * @param Parameters Settings used in the strategy
-     */
-    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
-    ResidualBasedDEMCoupledNewtonRaphsonStrategy(
-        ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters Settings)
-        : ResidualBasedDEMCoupledNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, Settings)
-    {
-        KRATOS_TRY
-
-        KRATOS_WARNING("ResidualBasedDEMCoupledNewtonRaphsonStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
-
-        // Getting builder and solver
-        auto p_builder_and_solver = GetBuilderAndSolver();
-
-        // We check if the linear solver considered for the builder and solver is consistent
-        auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
-        KRATOS_ERROR_IF(p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
-
-        KRATOS_CATCH("")
-    }
 
     /**
      * @brief Destructor.
@@ -610,73 +347,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT: **/
 
-    /**
-     * @brief Create method
-     * @param rModelPart The model part of the problem
-     * @param ThisParameters The configuration parameters
-     */
-    typename BaseType::Pointer Create(
-        ModelPart& rModelPart,
-        Parameters ThisParameters
-        ) const override
-    {
-        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
-    }
-
-    /**
-     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
-     */
-    void Predict() override
-    {
-        KRATOS_TRY
-        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
-        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        //if the operations needed were already performed this does nothing
-        if (mInitializeWasPerformed == false)
-            Initialize();
-
-        //initialize solution step
-        if (mSolutionStepIsInitialized == false)
-            InitializeSolutionStep();
-
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
-
-        DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
-
-        GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-
-        // Applying constraints if needed
-        auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
-        const int local_number_of_constraints = r_constraints_array.size();
-        const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
-        if(global_number_of_constraints != 0) {
-            const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-
-            const auto it_const_begin = r_constraints_array.begin();
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                (it_const_begin + i)->ResetSlaveDofs(r_process_info);
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                 (it_const_begin + i)->Apply(r_process_info);
-
-            // The following is needed since we need to eventually compute time derivatives after applying
-            // Master slave relations
-            TSparseSpace::SetToZero(rDx);
-            this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-        }
-
-        // Move the mesh if needed
-        if (this->MoveMeshFlag() == true)
-            BaseType::MoveMesh();
-
-        KRATOS_CATCH("")
-    }
 
     /**
      * @brief Initialization of member variables and prior operations
@@ -711,80 +381,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         }
 
         KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Clears the internal storage
-     */
-    void Clear() override
-    {
-        KRATOS_TRY;
-
-        // Setting to zero the internal flag to ensure that the dof sets are recalculated. Also clear the linear solver stored in the B&S
-        auto p_builder_and_solver = GetBuilderAndSolver();
-        if (p_builder_and_solver != nullptr) {
-            p_builder_and_solver->SetDofSetIsInitializedFlag(false);
-            p_builder_and_solver->Clear();
-        }
-
-        // Clearing the system of equations
-        if (mpA != nullptr)
-            SparseSpaceType::Clear(mpA);
-        if (mpDx != nullptr)
-            SparseSpaceType::Clear(mpDx);
-        if (mpb != nullptr)
-            SparseSpaceType::Clear(mpb);
-
-        // Clearing scheme
-        auto p_scheme = GetScheme();
-        if (p_scheme != nullptr) {
-            GetScheme()->Clear();
-        }
-
-        mInitializeWasPerformed = false;
-        mSolutionStepIsInitialized = false;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This should be considered as a "post solution" convergence check which is useful for coupled analysis - the convergence criteria used is the one used inside the "solve" step
-     */
-    bool IsConverged() override
-    {
-        KRATOS_TRY;
-
-        TSystemMatrixType& rA = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
-
-        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-        {
-            TSparseSpace::SetToZero(rb);
-            GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), rb);
-        }
-
-        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This operations should be called before printing the results when non trivial results
-     * (e.g. stresses)
-     * Need to be calculated given the solution of the step
-     * @details This operations should be called only when needed, before printing as it can involve a non
-     * negligible cost
-     */
-    void CalculateOutputData() override
-    {
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
-
-        GetScheme()->CalculateOutputData(BaseType::GetModelPart(),
-                                         GetBuilderAndSolver()->GetDofSet(),
-                                         rA, rDx, rb);
     }
 
     /**

@@ -22,7 +22,8 @@
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_strategies/residualbased_DEM_coupled_newton_raphson_strategy.h"
 #include "custom_strategies/femdem_residual_criteria.h"
 
@@ -45,16 +46,18 @@ namespace Python
         typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
         typedef FemDemResidualCriteria< SparseSpaceType,  LocalSpaceType > FemDemResidualCriteriaType;
 
+
         // Base types
         typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-        typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+        typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+		typedef BaseSolvingStrategyType::TBuilderAndSolverType BuilderAndSolverType;
         typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-        // typedef HexahedraNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HexahedraNewtonRaphsonStrategyType;
+        typedef ResidualBasedDEMCoupledNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedDEMCoupledNewtonRaphsonStrategy;
 
         class_< ResidualBasedDEMCoupledNewtonRaphsonStrategy,
                 typename ResidualBasedDEMCoupledNewtonRaphsonStrategy::Pointer,
                 BaseSolvingStrategyType  >  (m, "ResidualBasedDEMCoupledNewtonRaphsonStrategy")
-                .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+                .def(init <ModelPart& , ExplicitSolverStrategy::Pointer,  BaseSchemeType::Pointer , ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer , int  , bool , bool , bool  >())
                 ;
     
         class_<FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >,
