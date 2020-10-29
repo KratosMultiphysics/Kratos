@@ -378,6 +378,8 @@ namespace Kratos
     rElementalVariables.UpdatedTotalCauchyStress[2] =
         2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[2] + rElementalVariables.CurrentTotalCauchyStress[2];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
   }
@@ -428,6 +430,8 @@ namespace Kratos
     rElementalVariables.UpdatedDeviatoricCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
     rElementalVariables.UpdatedDeviatoricCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
     rElementalVariables.UpdatedDeviatoricCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
 
     rElementalVariables.UpdatedTotalCauchyStress[0] = +current_first_lame * rElementalVariables.VolumetricDefRate +
                                                       2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[0] +

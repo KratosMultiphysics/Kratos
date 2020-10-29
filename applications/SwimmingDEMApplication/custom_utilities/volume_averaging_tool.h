@@ -24,7 +24,6 @@
 
 // #include "geometries/tetrahedra_3d_4.h"
 
-//#include "PFEM_application.h"
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
