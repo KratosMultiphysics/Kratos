@@ -680,60 +680,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         return is_converged;
     }
 
-    /**
-     * @brief Function to perform expensive checks.
-     * @details It is designed to be called ONCE to verify that the input is correct.
-     */
-    int Check() override
-    {
-        KRATOS_TRY
-
-        BaseType::Check();
-
-        GetBuilderAndSolver()->Check(BaseType::GetModelPart());
-
-        GetScheme()->Check(BaseType::GetModelPart());
-
-        mpConvergenceCriteria->Check(BaseType::GetModelPart());
-
-        return 0;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                                : "newton_raphson_strategy",
-            "use_old_stiffness_in_first_iteration": false,
-            "max_iteration"                       : 10,
-            "reform_dofs_at_each_step"            : false,
-            "compute_reactions"                   : false,
-            "builder_and_solver_settings"         : {},
-            "convergence_criteria_settings"       : {},
-            "linear_solver_settings"              : {},
-            "scheme_settings"                     : {}
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
-    }
-
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        return "newton_raphson_strategy";
-    }
 
     ///@}
     ///@name Operators
@@ -749,57 +695,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
 
     ///@{
 
-    /**
-     * @brief This method returns the LHS matrix
-     * @return The LHS matrix
-     */
-    TSystemMatrixType &GetSystemMatrix() override
-    {
-        TSystemMatrixType &mA = *mpA;
-
-        return mA;
-    }
-
-    /**
-     * @brief This method returns the RHS vector
-     * @return The RHS vector
-     */
-    TSystemVectorType& GetSystemVector() override
-    {
-        TSystemVectorType& mb = *mpb;
-
-        return mb;
-    }
-
-    /**
-     * @brief This method returns the solution vector
-     * @return The Dx vector
-     */
-    TSystemVectorType& GetSolutionVector() override
-    {
-        TSystemVectorType& mDx = *mpDx;
-
-        return mDx;
-    }
-
-
-    /**
-     * @brief Set method for the flag mKeepSystemConstantDuringIterations
-     * @param Value If we consider constant the system of equations during the iterations
-     */
-    void SetKeepSystemConstantDuringIterations(bool Value)
-    {
-        mKeepSystemConstantDuringIterations = Value;
-    }
-
-    /**
-     * @brief Get method for the flag mKeepSystemConstantDuringIterations
-     * @return True if we consider constant the system of equations during the iterations, false otherwise
-     */
-    bool GetKeepSystemConstantDuringIterations()
-    {
-        return mKeepSystemConstantDuringIterations;
-    }
 
     ///@}
     ///@name Inquiry
