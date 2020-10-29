@@ -19,16 +19,16 @@
 
 namespace Kratos
 {
-    AdjointDampingEnergieDissipationResponseFunction::AdjointDampingEnergieDissipationResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    AdjointDampingEnergyDissipationResponseFunction::AdjointDampingEnergyDissipationResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     { 
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
 
     }
 
-    AdjointDampingEnergieDissipationResponseFunction::~AdjointDampingEnergieDissipationResponseFunction(){}
+    AdjointDampingEnergyDissipationResponseFunction::~AdjointDampingEnergyDissipationResponseFunction(){}
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculateGradient(const Element& rAdjointElement,
+    void AdjointDampingEnergyDissipationResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo)
@@ -38,7 +38,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculateFirstDerivativesGradient(
+    void AdjointDampingEnergyDissipationResponseFunction::CalculateFirstDerivativesGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
@@ -73,7 +73,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculateFirstDerivativesGradient(
+    void AdjointDampingEnergyDissipationResponseFunction::CalculateFirstDerivativesGradient(
         const Condition& rAdjointCondition,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
@@ -84,7 +84,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculateSecondDerivativesGradient(
+    void AdjointDampingEnergyDissipationResponseFunction::CalculateSecondDerivativesGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
@@ -95,7 +95,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculateSecondDerivativesGradient(
+    void AdjointDampingEnergyDissipationResponseFunction::CalculateSecondDerivativesGradient(
         const Condition& rAdjointCondition,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
@@ -106,7 +106,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+    void AdjointDampingEnergyDissipationResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -117,7 +117,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+    void AdjointDampingEnergyDissipationResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -128,7 +128,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+    void AdjointDampingEnergyDissipationResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -180,7 +180,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointDampingEnergieDissipationResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+    void AdjointDampingEnergyDissipationResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -191,7 +191,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    double AdjointDampingEnergieDissipationResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointDampingEnergyDissipationResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 

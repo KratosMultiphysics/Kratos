@@ -43,12 +43,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointDampingEnergieDissipationResponseFunction
+/** \brief AdjointDampingEnergyDissipationResponseFunction
 *
 * This is a response function which traces the dissipation work by dampers $ W_c = - \int_{0}^{T} v*C*v dt $ in a chosen submodel part
 * as response. It is designed to be used in dynamic adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointDampingEnergieDissipationResponseFunction : public AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointDampingEnergyDissipationResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -59,18 +59,18 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of AdjointDampingEnergieDissipationResponseFunction
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointDampingEnergieDissipationResponseFunction);
+    /// Pointer definition of AdjointDampingEnergyDissipationResponseFunction
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointDampingEnergyDissipationResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdjointDampingEnergieDissipationResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointDampingEnergyDissipationResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-    ~AdjointDampingEnergieDissipationResponseFunction() override;
+    ~AdjointDampingEnergyDissipationResponseFunction() override;
 
     ///@}
     ///@name Operators
@@ -215,7 +215,7 @@ private:
 
     ///@}
 
-}; // Class AdjointDampingEnergieDissipationResponseFunction
+}; // Class AdjointDampingEnergyDissipationResponseFunction
 
 ///@}
 
