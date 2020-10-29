@@ -38,16 +38,18 @@ namespace Kratos
 		mStartNodeId = TheParameters["start_node_id"].GetInt();
 		mStartElementId = TheParameters["start_element_id"].GetInt();
 		mStartConditionId = TheParameters["start_condition_id"].GetInt();
-
-		if TheParameters["number_of_divisions"].IsInt()
-			std::vector<std::size_t, 3> mNumberOfDivisions = {0, 0, 0};
-			for (std::size_t i = 0, i = mrGeometry.LocalSpaceDimension()) {
-        	mNumberOfDivisions[i] = TheParameters["number_of_divisions"].GetInt();
-			}
-		else if TheParameters["number_of_divisions"].IsVector()
-			mNumberOfDivisions = TheParameters["number_of_divisions"].GetVector();
-		else
-			KRATOS_ERROR << "Not supported geometry is given" << std::endl;
+		
+		mCheckTypeOfDivisions = TheParameters["number_of_divisions"].IsVector();
+		
+		if (mCheckTypeOfDivisions.compare(false) == 0){
+			std::vector<int> mNumberOfDivisions(mrGeometry.LocalSpaceDimension(),0);
+			vector<int>::iterator it;
+				for (int it = mNumberOfDivisions.begin(); it <= mNumberOfDivisions.end(); it++) {
+        			mNumberOfDivisions.at(i) = TheParameters["number_of_divisions"].GetInt();
+				}
+		} else{
+				mNumberOfDivisions = TheParameters["number_of_divisions"].GetVector();
+		}
 
 		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
 		mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();

@@ -131,7 +131,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
           const GeometryType& mrGeometry;
-		  std::size_t mNumberOfDivisions;
+      std::vector<int> mNumberOfDivisions;
 		  std::size_t mStartNodeId;
 		  std::size_t mStartElementId;
 		  std::size_t mStartConditionId;
@@ -139,6 +139,7 @@ namespace Kratos
 		  std::size_t mConditiongPropertiesId;
 		  std::string mElementName;
 		  std::string mConditionName;
+      std::string mCheckTypeOfDivisions;
           bool mCreateSkinSubModelPart;
 		  ModelPart& mrOutputModelPart;
 
