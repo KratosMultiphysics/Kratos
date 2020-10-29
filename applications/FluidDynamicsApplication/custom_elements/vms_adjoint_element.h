@@ -238,7 +238,7 @@ public:
      *
      * @return 0 after successful completion.
      */
-    int Check(const ProcessInfo &/*rCurrentProcessInfo*/) override
+    int Check(const ProcessInfo &/*rCurrentProcessInfo*/) const override
     {
         KRATOS_TRY
 

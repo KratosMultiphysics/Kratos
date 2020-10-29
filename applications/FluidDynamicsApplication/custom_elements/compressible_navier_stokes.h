@@ -245,7 +245,7 @@ public:
      * @return 0 if no errors were found.
      */
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
