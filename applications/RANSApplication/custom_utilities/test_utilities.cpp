@@ -71,7 +71,7 @@ ModelPart& CreateTestModelPart(
     const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
     const int BufferSize)
 {
-    auto& r_model_part = rModel.CreateModelPart("test", BufferSize);
+    auto& r_model_part = rModel.CreateModelPart("test" + std::to_string(rModel.GetModelPartNames().size()), BufferSize);
     rAddNodalSolutionStepVariablesFuncion(r_model_part);
 
     r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -110,7 +110,7 @@ ModelPart& CreateScalarVariableTestModelPart(
 {
     auto& r_model_part = CreateTestModelPart(
         rModel, rElementName, rConditionName, rAddNodalSolutionStepVariablesFuncion,
-        [rDofVariable](ModelPart::NodeType& rNode) {
+        [&rDofVariable](ModelPart::NodeType& rNode) {
             rNode.AddDof(rDofVariable).SetEquationId(rNode.Id());
         },
         BufferSize);
