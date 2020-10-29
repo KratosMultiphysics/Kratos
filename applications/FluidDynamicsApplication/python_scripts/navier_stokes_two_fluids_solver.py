@@ -217,7 +217,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #(self.hyperbolic_distance_reinitialization).Execute()
 
         self.parallel_distance_process = self._set_parallel_distance_process()
-        #layers = int(1000/100000*self.main_model_part.NumberOfElements())
+        #layers = int(2000/100000*self.main_model_part.NumberOfElements())
         #(self.parallel_distance_process).CalculateDistances(
         #            self.main_model_part,
         #            KratosMultiphysics.DISTANCE,
@@ -325,13 +325,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
                 #(self.hyperbolic_distance_reinitialization).Execute()
 
-                layers = int(500/100000*self.main_model_part.NumberOfElements())
+                layers = int(1000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosCFD.AREA_VARIABLE_AUX,
                     layers,
-                    8.0e-3)#,
+                    1.0e0)#,
                 #    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
                 print(time.time())
@@ -401,7 +401,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         for node in self.main_model_part.Nodes:
             dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             if (abs(dist) < 1.0e-12):
-                auxdist = 1.0e-6*node.GetValue(KratosMultiphysics.NODAL_H)
+                print("Solver: do the correction")
+                auxdist = 1.0e-5*node.GetValue(KratosMultiphysics.NODAL_H)
+                print(auxdist)
                 if (dist > 0.0):
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,auxdist)
                 else:
