@@ -70,7 +70,7 @@ void LineOutputProcessUtilities::VariableDataCollector<double>::AddNamesToVector
 }
 
 template <>
-int LineOutputProcessUtilities::VariableDataCollector<double>::GetVariableDataLength(
+std::size_t LineOutputProcessUtilities::VariableDataCollector<double>::GetVariableDataLength(
     const double&)
 {
     return 1;
@@ -121,7 +121,7 @@ void LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::Add
 }
 
 template <>
-int LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::GetVariableDataLength(
+std::size_t LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::GetVariableDataLength(
     const array_1d<double, 3>&)
 {
     return 3;
@@ -184,7 +184,7 @@ void LineOutputProcessUtilities::VariableDataCollector<Matrix>::AddNamesToVector
 }
 
 template <>
-int LineOutputProcessUtilities::VariableDataCollector<Matrix>::GetVariableDataLength(
+std::size_t LineOutputProcessUtilities::VariableDataCollector<Matrix>::GetVariableDataLength(
     const Matrix& rValue)
 {
     return rValue.size1() * rValue.size2();
