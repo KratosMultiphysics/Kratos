@@ -20,7 +20,7 @@
 #include "containers/system_vector.h"
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/csr_conversion_utilities.h"
+#include "utilities/amgcl_csr_conversion_utilities.h"
 
 
 namespace Kratos {

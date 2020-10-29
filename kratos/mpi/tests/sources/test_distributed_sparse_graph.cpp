@@ -25,7 +25,7 @@
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
 
-#include "mpi/utilities/distributed_csr_conversion_utilities.h"
+#include "mpi/utilities/amgcl_distributed_csr_conversion_utilities.h"
 
 namespace Kratos {
 namespace Testing {
