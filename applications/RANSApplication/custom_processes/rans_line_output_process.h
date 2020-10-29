@@ -34,7 +34,7 @@ namespace LineOutputProcessUtilities
 
 using NodeType = ModelPart::NodeType;
 using GeometryType = ModelPart::ElementType::GeometryType;
-using SizeType = std::size_t;
+using SizeType = int;
 using IndicesVector = std::vector<SizeType>;
 
 ///@}
@@ -349,7 +349,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RansLineOutputProcess);
 
     using NodeType = ModelPart::NodeType;
-    using SizeType = std::size_t;
+    using SizeType = int;
     using IndicesVector = std::vector<SizeType>;
 
     ///@}
