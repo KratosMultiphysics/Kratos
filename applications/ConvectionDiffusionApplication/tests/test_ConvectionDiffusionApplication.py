@@ -60,6 +60,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TBasicConvectionDiffusionTransientSemiImplicitTest('test_execution'))
     smallSuite.addTest(TBasicDiffusionStationaryTest('test_execution'))
     smallSuite.addTest(TSimpleThermoMechanicalTest('test_execution'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarSemiImplicit'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDOSS'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQOSS'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDASGS'))
