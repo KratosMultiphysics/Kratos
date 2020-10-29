@@ -26,32 +26,32 @@ class DistributedImportModelPartUtility(object):
         is_single_process_run = (self.comm.Size() == 1)
 
         if input_type == "mdpa":
+            default_settings = KratosMultiphysics.Parameters("""{
+                "input_filename"                             : "",
+                "skip_timer"                                 : true,
+                "ignore_variables_not_in_solution_step_data" : false,
+                "perform_partitioning"                       : true,
+                "partition_in_memory"                        : false
+            }""")
+
+            # cannot validate as this might contain other settings too
+            model_part_import_settings.AddMissingParameters(default_settings)
+
             input_filename = model_part_import_settings["input_filename"].GetString()
 
-            # Unless otherwise stated, always perform the Metis partitioning
-            if not model_part_import_settings.Has("perform_partitioning"):
-                model_part_import_settings.AddEmptyValue("perform_partitioning")
-                model_part_import_settings["perform_partitioning"].SetBool(True)
-
             perform_partitioning = model_part_import_settings["perform_partitioning"].GetBool()
+            partition_in_memory = model_part_import_settings["partition_in_memory"].GetBool()
 
             # Setting some mdpa-import-related flags
             import_flags = KratosMultiphysics.ModelPartIO.READ
-            if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
-                if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
-                    import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
-            skip_timer = True
-            if model_part_import_settings.Has("skip_timer"):
-                skip_timer = model_part_import_settings["skip_timer"].GetBool()
-            if skip_timer:
+
+            if model_part_import_settings["skip_timer"].GetBool():
                 import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
 
-            # Select the partitioning method (File by default)
-            partition_in_memory = False
-            if model_part_import_settings.Has("partition_in_memory"):
-                partition_in_memory = model_part_import_settings["partition_in_memory"].GetBool()
+            if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
+                import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
 
-            if not is_single_process_run and perform_partitioning == True:
+            if not is_single_process_run and perform_partitioning:
                 import KratosMultiphysics.MetisApplication as KratosMetis
 
                 # Partition of the original .mdpa file

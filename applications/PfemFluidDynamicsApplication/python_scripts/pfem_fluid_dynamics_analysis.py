@@ -6,7 +6,6 @@ from importlib import import_module
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 
@@ -28,7 +27,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # Time control starts
         self.KratosPrintInfo(timer.ctime())
         # Measure process time
-        self.t0p = timer.clock()
+        self.t0p = timer.process_time()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####
@@ -89,11 +88,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self._solver.PrepareModelPart()
 
         # Add dofs (always after importing the model part)
-        if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-                self._solver.AddDofs()
-        else:
-            self._solver.AddDofs()
+        self._solver.AddDofs()
 
         #print model_part and properties
         if (self.echo_level>1):
@@ -145,6 +140,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             process.ExecuteBeforeSolutionLoop()
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        self.GraphicalOutputPrintOutput()
 
         # Set time settings
         self.step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
@@ -224,7 +222,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### END SOLUTION ####
 
         # Measure process time
-        tfp = timer.clock()
+        tfp = timer.process_time()
         # Measure wall time
         tfw = timer.time()
 
@@ -255,10 +253,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         """This function performs the ExecuteBeforeSolutionLoop
         of the graphical_output
         """
-        # writing a initial state results file or single file (if no restart)
-        if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-                self.graphical_output.ExecuteBeforeSolutionLoop()
+        # writing a initial state results file or single file
+        self.graphical_output.ExecuteBeforeSolutionLoop()
 
     def GraphicalOutputExecuteInitializeSolutionStep(self):
         """This function performs the ExecuteInitializeSolutionStep
@@ -311,14 +307,14 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         """This function starts time calculation
         """
         # Measure process time
-        time_ip = timer.clock()
+        time_ip = timer.process_time()
         return time_ip
 
     def StopTimeMeasuring(self, time_ip, process, report):
         """This function ends time calculation
         """
         # Measure process time
-        time_fp = timer.clock()
+        time_fp = timer.process_time()
         if report:
             used_time = time_fp - time_ip
             print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
@@ -330,15 +326,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         return ["constraints_process_list",
                 "loads_process_list",
                 "auxiliar_process_list"]
-
-    #### Main internal methods ####
-
-    def _import_project_parameters(self, input_file):
-        """This function reads the ProjectsParameters.json
-        """
-        from KratosMultiphysics.PfemFluidDynamicsApplication.input_manager import InputManager
-        self.input_manager = InputManager(input_file)
-        return self.input_manager.Getparameters()
 
     def KratosPrintInfo(self, message):
         """This function prints info on screen

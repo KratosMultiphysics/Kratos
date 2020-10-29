@@ -171,6 +171,10 @@ public:
     typedef BoundedMatrix<double, TNumNodes, TDim>
     ShapeFunctionDerivativesType;
 
+    using Element::CalculateFirstDerivativesLHS;
+
+    using Element::CalculateSecondDerivativesLHS;
+
     ///@}
     ///@name Life Cycle
     ///@{

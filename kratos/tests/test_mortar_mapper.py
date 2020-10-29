@@ -18,7 +18,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous, origin_are_conditions, destination_are_conditions):
+    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous, origin_are_conditions, destination_are_conditions, consider_tessellation):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         self.model = KratosMultiphysics.Model()
 
@@ -55,6 +55,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         map_parameters = KratosMultiphysics.Parameters("""
         {
             "echo_level"                       : 0,
+            "consider_tessellation"            : false,
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
@@ -68,6 +69,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         map_parameters["discontinuous_interface"].SetBool(discontinuous)
         map_parameters["origin_are_conditions"].SetBool(origin_are_conditions)
         map_parameters["destination_are_conditions"].SetBool(destination_are_conditions)
+        map_parameters["consider_tessellation"].SetBool(consider_tessellation)
 
         if pure_implicit:
             #linear_solver = ExternalSolversApplication.SuperLUSolver()
@@ -79,9 +81,9 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         map_parameters["origin_variable"].SetString("DISPLACEMENT")
         self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess(self.model_part_master, self.model_part_slave, map_parameters, linear_solver)
 
-    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False, discontinuous = False, origin_are_conditions = True, destination_are_conditions = True):
+    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False, discontinuous = False, origin_are_conditions = True, destination_are_conditions = True, consider_tessellation = False, tolerance_factor = 1.0):
 
-        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous, origin_are_conditions, destination_are_conditions)
+        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous, origin_are_conditions, destination_are_conditions, consider_tessellation)
 
         self.mortar_mapping_double.Execute()
         self.mortar_mapping_vector.Execute()
@@ -94,9 +96,13 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             "check_variables"      : ["TEMPERATURE","DISPLACEMENT"],
             "input_file_name"      : "",
             "model_part_name"      : "Main",
-            "sub_model_part_name"  : "Parts_Parts_Auto1"
+            "sub_model_part_name"  : "Parts_Parts_Auto1",
+            "tolerance"            : 1e-3,
+            "relative_tolerance"   : 1e-6
         }
         """)
+        check_parameters["tolerance"].SetDouble(tolerance_factor * check_parameters["tolerance"].GetDouble())
+        check_parameters["relative_tolerance"].SetDouble(tolerance_factor * check_parameters["relative_tolerance"].GetDouble())
 
         if inverted:
             check_parameters["input_file_name"].SetString(input_filename+"_inverted.json")
@@ -132,35 +138,43 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
     def test_less_basic_mortar_mapping_triangle_pure_implicit(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_integration_several_triangles"
-        self._mapper_tests(input_filename, 3, 3, True)
+        self._mapper_tests(input_filename, 3, 3, True, False, False, True, True, False)
+        self._mapper_tests(input_filename, 3, 3, True, False, False, True, True, True)
 
     def test_less_basic_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_integration_several_triangles"
-        self._mapper_tests(input_filename, 3, 3)
+        self._mapper_tests(input_filename, 3, 3, False, False, False, True, True, False)
+        self._mapper_tests(input_filename, 3, 3, False, False, False, True, True, True)
 
     def test_simple_curvature_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_simple_curvature"
-        self._mapper_tests(input_filename, 3, 3)
+        self._mapper_tests(input_filename, 3, 3, False, False, False, True, True, False)
+        self._mapper_tests(input_filename, 3, 3, False, False, False, True, True, True)
 
     def test_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle"
-        self._mapper_tests(input_filename, 3, 3)
+        self._mapper_tests(input_filename, 3, 3, False, False, False, True, True, False)
+        self._mapper_tests(input_filename, 3, 3, False, False, False, True, True, True)
 
     def test_mortar_mapping_triangle_discontinous_interface(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_discontinous_interface"
-        self._mapper_tests(input_filename, 3, 3, False, False, True)
+        self._mapper_tests(input_filename, 3, 3, False, False, True, True, True, False)
+        self._mapper_tests(input_filename, 3, 3, False, False, True, True, True, True)
 
     def test_mortar_mapping_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_quadrilateral"
-        self._mapper_tests(input_filename, 4, 4)
+        self._mapper_tests(input_filename, 4, 4, False, False, False, True, True, False)
+        self._mapper_tests(input_filename, 4, 4, False, False, False, True, True, True, 15.0)
 
     def test_mortar_mapping_quad_tri(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
-        self._mapper_tests(input_filename, 4, 3, False, False, False, False, True)
+        self._mapper_tests(input_filename, 4, 3, False, False, False, False, True, False)
+        self._mapper_tests(input_filename, 4, 3, False, False, False, False, True, True, 10.0)
 
     def test_mortar_mapping_tri_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
-        self._mapper_tests(input_filename, 3, 4, False, True, False, True, False)
+        self._mapper_tests(input_filename, 3, 4, False, True, False, True, False, False)
+        self._mapper_tests(input_filename, 3, 4, False, True, False, True, False, True)
 
     def __post_process(self, debug = "GiD"):
 

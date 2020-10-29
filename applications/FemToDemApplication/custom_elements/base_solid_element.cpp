@@ -20,7 +20,6 @@
 #include "custom_elements/base_solid_element.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {
@@ -1130,7 +1129,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<bool>& rVariable,
     std::vector<bool>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1148,7 +1147,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1166,7 +1165,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1184,7 +1183,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1202,7 +1201,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1219,7 +1218,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > > rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1237,7 +1236,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 6 > >& rVariable,
     std::vector<array_1d<double, 6 > > rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1255,7 +1254,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo

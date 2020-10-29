@@ -196,6 +196,12 @@ public:
      */
     void WriteModelPart(ModelPart& rModelPart) override;
 
+    /**
+     * @brief This method retrieves the current Mmg version
+     * @return The current version of Mmg (as a string)
+     */
+    std::string GetMmgVersion();
+
     ///@}
     ///@name Access
     ///@{
@@ -270,7 +276,7 @@ private:
     Parameters mThisParameters;                  /// The parameters (can be used for general pourposes)
     Flags mOptions;                              /// Configuration flags
 
-    MmgUtilities<TMMGLibrary> mMmmgUtilities;    /// The MMG utilities class
+    MmgUtilities<TMMGLibrary> mMmgUtilities;     /// The MMG utilities class
 
     ///@}
     ///@name Private Operators

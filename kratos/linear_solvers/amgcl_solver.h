@@ -132,8 +132,8 @@ public:
     /// DofArray type
     typedef ModelPart::DofsArrayType DofsArrayType;
 
-    /// The index type definition
-    typedef std::size_t IndexType;
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
 
     /// The size type definition
     typedef std::size_t SizeType;
@@ -489,7 +489,7 @@ public:
      * @brief This method returns the current iteration number
      * @return mIterationsNumber The current iteration number
      */
-    virtual IndexType GetIterationsNumber()
+    IndexType GetIterationsNumber() override
     {
         return mIterationsNumber;
     }
@@ -543,38 +543,69 @@ public:
         ) override
     {
         int old_ndof = -1;
-        unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
         int ndof=0;
-        for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
-            if(it->EquationId() < TSparseSpaceType::Size1(rA) ) {
-                IndexType id = it->Id();
-                if(id != old_node_id) {
-                    old_node_id = id;
-                    if(old_ndof == -1) old_ndof = ndof;
-                    else if(old_ndof != ndof) { //if it is different than the block size is 1
-                        old_ndof = -1;
-                        break;
-                    }
 
-                    ndof=1;
-                } else {
-                    ndof++;
+        if (!rModelPart.IsDistributed())
+        {
+            unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
+            for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
+                if(it->EquationId() < TSparseSpaceType::Size1(rA) ) {
+                    IndexType id = it->Id();
+                    if(id != old_node_id) {
+                        old_node_id = id;
+                        if(old_ndof == -1) old_ndof = ndof;
+                        else if(old_ndof != ndof) { //if it is different than the block size is 1
+                            old_ndof = -1;
+                            break;
+                        }
+
+                        ndof=1;
+                    } else {
+                        ndof++;
+                    }
                 }
             }
+
+            if(old_ndof == -1)
+                mBlockSize = 1;
+            else
+                mBlockSize = ndof;
+
         }
+        else //distribute
+        {
+            const std::size_t system_size = TSparseSpaceType::Size1(rA);
+            int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
+            unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
+            for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
+                if(it->EquationId() < system_size  && it->GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
+                    IndexType id = it->Id();
+                    if(id != old_node_id) {
+                        old_node_id = id;
+                        if(old_ndof == -1) old_ndof = ndof;
+                        else if(old_ndof != ndof) { //if it is different than the block size is 1
+                            old_ndof = -1;
+                            break;
+                        }
 
-        if(old_ndof == -1)
-            mBlockSize = 1;
-        else
-            mBlockSize = ndof;
+                        ndof=1;
+                    } else {
+                        ndof++;
+                    }
+                }
+            }
 
-        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
+            if(old_ndof != -1)
+                mBlockSize = ndof;
+            
+            int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
 
-        if(mBlockSize == 0) {
-            mBlockSize = max_block_size;
+            if( old_ndof == -1) {
+                mBlockSize = max_block_size;
+            }
+
+            KRATOS_ERROR_IF(mBlockSize != max_block_size) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << max_block_size << std::endl;
         }
-
-        KRATOS_ERROR_IF(mBlockSize != max_block_size) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << max_block_size << std::endl;
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 

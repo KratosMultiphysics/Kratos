@@ -8,17 +8,17 @@ import numpy as np
 
 class TestConvectionDiffusionTransientROM(ConvectionDiffusionAnalysisROM):
 
-    def __init__(self,model,project_parameters):        
+    def __init__(self,model,project_parameters):
         super(TestConvectionDiffusionTransientROM,self).__init__(model,project_parameters)
         self.selected_time_step_solution_container = []
-    
+
     def FinalizeSolutionStep(self):
-        super(TestConvectionDiffusionTransientROM,self).FinalizeSolutionStep()        
-        ArrayOfTemperatures = []        
+        super(TestConvectionDiffusionTransientROM,self).FinalizeSolutionStep()
+        ArrayOfTemperatures = []
         if self.time==500 or self.time==1200 or self.time==2500 or self.time==3000 or self.time==3600:
-            for node in self._solver.GetComputingModelPart().Nodes:       
+            for node in self._solver.GetComputingModelPart().Nodes:
                 ArrayOfTemperatures.append(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-            self.selected_time_step_solution_container.append(ArrayOfTemperatures)  
+            self.selected_time_step_solution_container.append(ArrayOfTemperatures)
 
     def EvaluateQuantityOfInterest(self):
        ################################################################################################
@@ -35,7 +35,7 @@ class TestConvectionDiffusionTransientROM(ConvectionDiffusionAnalysisROM):
         computing_model_part = self.model["ThermalModelPart"]
         dimension = self._GetSolver().settings["domain_size"].GetInt()
         area_calculator = KratosMultiphysics.CalculateNodalAreaProcess(computing_model_part , dimension)
-        area_calculator.Execute()        
+        area_calculator.Execute()
 
         ArrayOfAreas = []
         for node in self._GetSolver().GetComputingModelPart().Nodes:
@@ -46,7 +46,7 @@ class TestConvectionDiffusionTransientROM(ConvectionDiffusionAnalysisROM):
 
 if __name__ == "__main__":
 
-    with open("ProjectParametersROM.json",'r') as parameter_file:
+    with open("ProjectParameters.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()

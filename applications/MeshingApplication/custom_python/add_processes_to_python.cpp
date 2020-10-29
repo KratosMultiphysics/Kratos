@@ -39,8 +39,6 @@ namespace Python
 {
 namespace py = pybind11;
 
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 void  AddProcessesToPython(pybind11::module& m)
 {
     // The process to interpolate nodal values
@@ -87,8 +85,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&>())
     .def(py::init<ModelPart&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ComponentType&>())
-    .def(py::init<ModelPart&, ComponentType&, Parameters>())
     ;
 
     m.attr("ComputeHessianSolMetricProcess2D") = m.attr("ComputeHessianSolMetricProcess");
@@ -126,10 +122,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,6>>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,9>>>)
     .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<Variable<double>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,4>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,6>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,9>>>>)
     .def("GetCoarseModelPart", &MultiscaleRefiningProcess::GetCoarseModelPart)
     .def("GetRefinedModelPart", &MultiscaleRefiningProcess::GetRefinedModelPart)
     .def("GetVisualizationModelPart", &MultiscaleRefiningProcess::GetVisualizationModelPart)
@@ -143,6 +135,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG2D>::OutputMdpa)
     .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMG2D>::CleanSuperfluousNodes)
+    .def("GetMmgVersion", &MmgProcess<MMGLibrary::MMG2D>::GetMmgVersion)
     ;
 
     // 3D
@@ -151,6 +144,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG3D>::OutputMdpa)
     .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMG3D>::CleanSuperfluousNodes)
+    .def("GetMmgVersion", &MmgProcess<MMGLibrary::MMG3D>::GetMmgVersion)
     ;
 
     // 3D surfaces
@@ -159,6 +153,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     .def("OutputMdpa", &MmgProcess<MMGLibrary::MMGS>::OutputMdpa)
     .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMGS>::CleanSuperfluousNodes)
+    .def("GetMmgVersion", &MmgProcess<MMGLibrary::MMGS>::GetMmgVersion)
     ;
 #endif
 }

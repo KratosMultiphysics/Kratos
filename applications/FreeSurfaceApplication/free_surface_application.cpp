@@ -29,8 +29,6 @@ KratosFreeSurfaceApplication::KratosFreeSurfaceApplication():
     {}
 
 void KratosFreeSurfaceApplication::Register() {
- 	// calling base class register to register Kratos components
- 	KratosApplication::Register();
  	std::cout << "Initializing KratosFreeSurfaceApplication... " << std::endl;
 
 

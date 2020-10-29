@@ -51,7 +51,7 @@ Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Clon
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const EmbeddedIncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -65,7 +65,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
 
     if (is_embedded && wake == 0 && kutta == 0) {
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-        if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
+        if (std::abs(rCurrentProcessInfo[STABILIZATION_FACTOR]) > std::numeric_limits<double>::epsilon()) {
             AddPotentialGradientStabilizationTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
         }
     }
@@ -77,7 +77,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -115,7 +115,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGradientStabilizationTerm(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     array_1d<double, NumNodes> potential;
     potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
@@ -124,57 +124,61 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
     for(std::size_t i_node=0; i_node<NumNodes; ++i_node) {
         auto& nodal_gradient = nodal_gradient_vector[i_node];
         nodal_gradient.clear();
-        double neighbour_elements_total_area = 0.0;
-        auto neighbour_elem = this->GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
-		KRATOS_ERROR_IF(neighbour_elem.size() == 0) << this->Info() << " neighbour elements were not computed\n";
+        if (this->GetGeometry()[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE) > 0.0) {
+            double neighbour_elements_total_area = 0.0;
+            auto neighbour_elem = this->GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
+            KRATOS_ERROR_IF(neighbour_elem.size() == 0) << this->Info() << " neighbour elements were not computed\n";
 
-        for (const auto r_elem : neighbour_elem){
+            for (const auto r_elem : neighbour_elem){
 
-            BoundedVector<double,NumNodes> neighbour_distances;
-            for(unsigned int i = 0; i<NumNodes; i++){
-                neighbour_distances[i] = r_elem.GetGeometry()[i].GetSolutionStepValue(GEOMETRY_DISTANCE);
-            }
-            const bool is_neighbour_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(neighbour_distances);
-            if(!is_neighbour_embedded && r_elem.Is(ACTIVE)) {
-                auto r_geometry = r_elem.GetGeometry();
-                const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
-                const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
-                Vector detJ0;
-                PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
-
-                GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
-                neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
-                r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
-
-                const int is_neighbour_wake = r_elem.GetValue(WAKE);
-                Vector neighbour_elemental_gradient;
-                if (is_neighbour_wake == 0) {
-                    neighbour_elemental_gradient = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(r_elem);
+                BoundedVector<double,NumNodes> neighbour_distances;
+                for(unsigned int i = 0; i<NumNodes; i++){
+                    neighbour_distances[i] = r_elem.GetGeometry()[i].GetSolutionStepValue(GEOMETRY_DISTANCE);
                 }
-                else {
-                    neighbour_elemental_gradient = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(r_elem);
-                }
+                const bool is_neighbour_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(neighbour_distances);
+                if(!is_neighbour_embedded && r_elem.Is(ACTIVE)) {
+                    auto r_geometry = r_elem.GetGeometry();
+                    const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
+                    const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
+                    Vector detJ0;
+                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
 
-                for (IndexType i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss){
-                    const double gauss_point_volume = r_integration_points[i_gauss].Weight() * detJ0[i_gauss];
-                    IndexType neighbour_node_id = -1;
-                    for(std::size_t j=0; j<NumNodes; ++j) {
-                        if (this->GetGeometry()[i_node].Id() == r_elem.GetGeometry()[j].Id()){
-                            neighbour_node_id = j;
-                            break;
+                    GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
+                    neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
+                    r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
+
+                    const int is_neighbour_wake = r_elem.GetValue(WAKE);
+                    Vector neighbour_elemental_gradient;
+                    if (is_neighbour_wake == 0) {
+                        neighbour_elemental_gradient = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(r_elem);
+                    }
+                    else {
+                        neighbour_elemental_gradient = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(r_elem);
+                    }
+
+                    for (IndexType i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss){
+                        const double gauss_point_volume = r_integration_points[i_gauss].Weight() * detJ0[i_gauss];
+                        IndexType neighbour_node_id = -1;
+                        for(std::size_t j=0; j<NumNodes; ++j) {
+                            if (this->GetGeometry()[i_node].Id() == r_elem.GetGeometry()[j].Id()){
+                                neighbour_node_id = j;
+                                break;
+                            }
                         }
-                    }
 
-                    KRATOS_ERROR_IF(neighbour_node_id<0)<<"No neighbour node was found for neighbour element " << r_elem.Id() << " and element " << this-> Id() <<std::endl;
+                        KRATOS_ERROR_IF(neighbour_node_id<0)<<"No neighbour node was found for neighbour element " << r_elem.Id() << " and element " << this-> Id() <<std::endl;
 
-                    for(std::size_t k=0; k<Dim; ++k) {
-                        nodal_gradient[k] += neighbour_data.N[neighbour_node_id] * gauss_point_volume * neighbour_elemental_gradient[k];
+                        for(std::size_t k=0; k<Dim; ++k) {
+                            nodal_gradient[k] += neighbour_data.N[neighbour_node_id] * gauss_point_volume * neighbour_elemental_gradient[k];
+                        }
+                        neighbour_elements_total_area += neighbour_data.N[neighbour_node_id] * gauss_point_volume;
                     }
-                    neighbour_elements_total_area += neighbour_data.N[neighbour_node_id] * gauss_point_volume;
                 }
+            }
+            if (neighbour_elements_total_area > std::numeric_limits<double>::epsilon()) {
+                nodal_gradient = nodal_gradient/neighbour_elements_total_area;
             }
         }
-        nodal_gradient = nodal_gradient/neighbour_elements_total_area;
     }
 
     array_1d<double,Dim> averaged_nodal_gradient;
@@ -192,12 +196,12 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
     PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    auto penalty_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
-    auto penalty_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
-    auto penalty_coefficient = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    auto stabilization_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
+    auto stabilization_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
+    auto stabilization_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
 
-    noalias(rLeftHandSideMatrix) +=  penalty_coefficient*penalty_term_potential;
-    noalias(rRightHandSideVector) += penalty_coefficient*(penalty_term_nodal_gradient-prod(penalty_term_potential, potential));
+    noalias(rLeftHandSideMatrix) +=  stabilization_factor*stabilization_term_potential;
+    noalias(rRightHandSideVector) += stabilization_factor*(stabilization_term_nodal_gradient-prod(stabilization_term_potential, potential));
 }
 
 template <>

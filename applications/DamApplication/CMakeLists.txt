@@ -2,13 +2,17 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDamApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DamApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/DamApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_DAM_APPLICATION_CORE_SOURCES
@@ -46,6 +50,10 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_cohesion_driven_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_cohesion_driven_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_stress_driven_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_stress_driven_2D_law.cpp
 
     # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_thermo_mechanic_element.cpp
@@ -63,7 +71,7 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
 
 if(${USE_DAM_MPI} MATCHES ON)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
+    include_directories( ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(${TRILINOS_INCLUDE_DIR})
 
     ## Define python interface sources

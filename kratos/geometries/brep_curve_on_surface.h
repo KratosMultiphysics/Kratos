@@ -70,6 +70,7 @@ public:
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -212,6 +213,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs curve on surface
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpCurveOnSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Set/ Get functions
     ///@{
 
@@ -236,6 +247,27 @@ public:
     const NurbsCurveOnSurfacePointerType pGetCurveOnSurface() const
     {
         return mpCurveOnSurface;
+    }
+
+    /// Returns number of points of NurbsCurveOnSurface.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpCurveOnSurface->PointsNumberInDirection(DirectionIndex);
+    }
+
+    ///@}
+    ///@name Curve Properties
+    ///@{
+
+    /* @brief Provides intersections of the nurbs curve with the knots of the surface,
+     *         using the interval of this curve.
+     * @param vector of span intervals.
+     * @param index of chosen direction, for curves always 0.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    {
+        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
     ///@}
@@ -274,6 +306,66 @@ public:
         KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
     }
 
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
+
+    /// Computes the length of a nurbs curve
+    double Length() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = mpCurveOnSurface->DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
+        }
+        return length;
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the nurbs surface of this geometry.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief creates a list of quadrature point geometries
+     *        from a list of integration points on the
+     *        curve on surface of this geometry.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of provided integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives) override
+    {
+        mpCurveOnSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
+    }
+
+    ///@}
     ///@name Shape Function
     ///@{
 

@@ -58,7 +58,7 @@ namespace Kratos {
         }
     }
 
-    void RigidBodyElement3D::Initialize(ProcessInfo& r_process_info) {
+    void RigidBodyElement3D::Initialize(const ProcessInfo& r_process_info) {
 
         if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);

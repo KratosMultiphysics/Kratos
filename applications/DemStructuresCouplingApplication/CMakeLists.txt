@@ -8,9 +8,9 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsAppli
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  ")
 
@@ -19,7 +19,10 @@ set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/dem_structures_coupling_application.cpp
 
     ## CONDITIONS
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_from_DEM_condition_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_from_DEM_condition_3d.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_fem_dem_generalized_2d_utilities.cpp
 )
 
 set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_PYTHON_INTERFACE

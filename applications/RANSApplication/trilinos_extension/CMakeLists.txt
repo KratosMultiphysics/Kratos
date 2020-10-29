@@ -1,9 +1,9 @@
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/TrilinosApplication)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/kratos
-  ${CMAKE_SOURCE_DIR}/applications/RANSApplication
-  ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication
+  ${KRATOS_SOURCE_DIR}/kratos
+  ${KRATOS_SOURCE_DIR}/applications/RANSApplication
+  ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication
 )
 
 if (NOT TRILINOS_FOUND)
@@ -15,6 +15,7 @@ include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 file(
   GLOB_RECURSE
   KRATOS_RANS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )

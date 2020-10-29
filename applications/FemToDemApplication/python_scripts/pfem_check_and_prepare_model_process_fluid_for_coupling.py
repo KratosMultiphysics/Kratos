@@ -1,9 +1,7 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.PfemFluidDynamicsApplication.pfem_check_and_prepare_model_process_fluid as pfem_check_and_prepare_model_process_fluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import time as timer
 
 def Wait():
@@ -56,6 +54,9 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
         if Parameters.Has("bodies_list"):
             self.bodies_list = True
             self.bodies_parts_list = Parameters["bodies_list"]
+
+        if Parameters.Has("material_import_settings"):
+            self.material_import_settings = Parameters["material_import_settings"]
 
 #============================================================================================================================
     def Execute(self):
