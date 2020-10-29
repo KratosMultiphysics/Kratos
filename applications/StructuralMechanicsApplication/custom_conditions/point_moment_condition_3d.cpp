@@ -85,7 +85,7 @@ PointMomentCondition3D::~PointMomentCondition3D()
 
 void PointMomentCondition3D::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -101,8 +101,8 @@ void PointMomentCondition3D::EquationIdVector(
 //***********************************************************************
 void PointMomentCondition3D::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -122,7 +122,7 @@ void PointMomentCondition3D::GetDofList(
 void PointMomentCondition3D::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const array_1d<double, 3 > & r_rotation = GetGeometry()[0].FastGetSolutionStepValue(ROTATION, Step);
 
@@ -138,7 +138,7 @@ void PointMomentCondition3D::GetValuesVector(
 void PointMomentCondition3D::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const array_1d<double, 3 > & r_angular_vel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
 
@@ -154,7 +154,7 @@ void PointMomentCondition3D::GetFirstDerivativesVector(
 void PointMomentCondition3D::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const array_1d<double, 3 > & r_angular_acc = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
 
@@ -234,7 +234,7 @@ double PointMomentCondition3D::GetPointMomentIntegrationWeight() const
 //***********************************************************************
 //***********************************************************************
 
-int PointMomentCondition3D::Check( const ProcessInfo& rCurrentProcessInfo )
+int PointMomentCondition3D::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
 

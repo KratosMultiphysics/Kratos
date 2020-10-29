@@ -33,6 +33,7 @@
                     "echo_level"           : 1,
                     "primal_settings"      : "primal_parameters.json",
                     "adjoint_settings"     : "auto",
+                    "primal_data_transfer_with_python": true,
                     "sensitivity_settings" : {
                         "sensitivity_model_part_name"                : "Parts_structure",
                         "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
@@ -61,6 +62,7 @@
                         "echo_level"           : 1,
                         "primal_settings"      : "primal_parameters.json",
                         "adjoint_settings"     : "auto",
+                        "primal_data_transfer_with_python": true,
                         "sensitivity_settings" : {
                             "sensitivity_model_part_name"                : "Parts_structure",
                             "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
@@ -84,6 +86,7 @@
                         "echo_level"           : 1,
                         "primal_settings"      : "primal_parameters.json",
                         "adjoint_settings"     : "auto",
+                        "primal_data_transfer_with_python": true,
                         "sensitivity_settings" : {
                             "sensitivity_model_part_name"                : "Parts_structure",
                             "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
@@ -117,7 +120,7 @@
             }
         },
         "output" : {
-            "design_output_mode" : "WriteOptimizationModelPart",
+            "design_output_mode" : "none",
             "nodal_results"      : [ "SHAPE_CHANGE", "DF1DX" ],
             "output_format" : {
                 "name": "gid"

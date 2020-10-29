@@ -1,0 +1,39 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Beam",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "BeamConstitutiveLaw"
+            },
+            "Variables"        : {
+                "DENSITY"           : 7850.0,
+                "YOUNG_MODULUS"     : 210000000000.0,
+                "POISSON_RATIO"     : 0.25,
+                "CROSS_AREA"        : 0.149225651,
+                "TORSIONAL_INERTIA" : 0.0337623035,
+                "I22"               : 0.0168811518,
+                "I33"               : 0.02,
+                "USE_CONSISTENT_MASS_MATRIX" : true
+            },
+            "Tables"           : {}
+        }
+    },
+    {
+        "model_part_name" : "Structure.Truss",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "DENSITY"             : 7850.0,
+                "YOUNG_MODULUS"       : 210000000000.0,
+                "POISSON_RATIO"       : 0.3,
+                "CROSS_AREA"          : 0.005,
+                "TRUSS_PRESTRESS_PK2" : 250000000.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}

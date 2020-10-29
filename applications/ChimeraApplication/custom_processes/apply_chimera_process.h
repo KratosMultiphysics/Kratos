@@ -24,7 +24,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/linear_master_slave_constraint.h"
+#include "constraints/linear_master_slave_constraint.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "utilities/binbased_fast_point_locator.h"
@@ -61,7 +61,7 @@ namespace Kratos {
  * @ingroup ChimeraApplication
  *
  * @brief This class contains methods applies the continuity between the patch and background using linear master-slave constraints.
- * @details This serves as a base class for monolithic and fractional step processes which choose who and where the constraints created are stored. for example velocity and pressure constraints are to be saved seperately for fractional step. 
+ * @details This serves as a base class for monolithic and fractional step processes which choose who and where the constraints created are stored. for example velocity and pressure constraints are to be saved seperately for fractional step.
  *
 */
 
@@ -73,7 +73,6 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
     typedef ModelPart::IndexType IndexType;
     typedef ModelPart::NodeType NodeType;
     typedef Kratos::Variable<double> VariableType;

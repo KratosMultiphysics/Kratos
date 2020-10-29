@@ -361,7 +361,7 @@ class ULF_FSISolver:
             if (node.GetSolutionStepValue(FLAG_VARIABLE)==1.0 and node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0):
                 node.SetSolutionStepValue(EXTERNAL_PRESSURE,0, self.blow_pressure)
         #FOR PFEM
-        NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part.Conditions, self.domain_size)
+        NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part, self.domain_size)
 
         for node in self.fluid_model_part.Nodes:
           if (node.GetSolutionStepValue(FLAG_VARIABLE)!=1.0):

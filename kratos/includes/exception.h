@@ -11,152 +11,158 @@
 //
 //
 
-
 #if !defined(KRATOS_EXCEPTION_H_INCLUDED )
 #define  KRATOS_EXCEPTION_H_INCLUDED
 
+// System includes
 #include <stdexcept>
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <vector>
 
+// External includes
+
 // Project includes
 #include "includes/kratos_export_api.h"
 #include "includes/code_location.h"
 #include "utilities/stl_vector_io.h"
 
-
 namespace Kratos
 {
-  ///@addtogroup KratosCore
-  ///@{
+///@addtogroup KratosCore
+///@{
 
-  ///@name Kratos Classes
-  ///@{
+///@name Kratos Classes
+///@{
 
-  /// Extends the std::exception class with more information about error location
-  /** This class extends the std::exception providing the where method which gives the location of the error.
-	  In order to have such information it is recommended to use it via KRATOS_ERROR macro.
-  */
-  class KRATOS_API(KRATOS_CORE) Exception : public std::exception
+/**
+ * @class Exception
+ * @ingroup KratosCore
+ * @brief Extends the std::exception class with more information about error location
+ * @details This class extends the std::exception providing the where method which gives the location of the error.
+    In order to have such information it is recommended to use it via KRATOS_ERROR macro.
+ * @author Pooyan Dadvand
+*/
+class KRATOS_API(KRATOS_CORE) Exception
+    : public std::exception
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Exception();
+
+    explicit Exception(const std::string& rWhat );
+
+    Exception(const std::string& rWhat, const CodeLocation& Location);
+
+    /// Copy constructor.
+    Exception(Exception const& Other);
+
+    /// Destructor.
+    ~Exception() noexcept override;
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator is deleted.
+    Exception& operator=(Exception const& rOther) = delete;
+
+    /// Code Location stream function to add callers to call stack
+    Exception& operator << (CodeLocation const& TheLocation);
+
+    /// string stream function
+    template<class StreamValueType>
+    Exception& operator << (StreamValueType const& rValue)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
+        std::stringstream buffer;
+        buffer << rValue;
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+        append_message(buffer.str());
 
-      /// Default constructor.
-	    Exception();
+        return *this;
+    }
 
-	    explicit Exception(const std::string& rWhat );
+    /// Manipulator stream function
+    Exception& operator << (std::ostream& (*pf)(std::ostream&));
+    /// char stream function
+    Exception& operator << (const char * rString);
 
-      Exception(const std::string& rWhat, const CodeLocation& Location);
+    ///@}
+    ///@name Operations
+    ///@{
 
-	    /// Copy constructor.
-      Exception(Exception const& Other);
+    void append_message(std::string const& rMessage);
 
-      /// Destructor.
-      ~Exception() noexcept override;
-
-
-      ///@}
-      ///@name Operators
-      ///@{
-
-      /// Assignment operator is deleted.
-      Exception& operator=(Exception const& rOther) = delete;
-
-	    /// Code Location stream function to add callers to call stack
-	    Exception& operator << (CodeLocation const& TheLocation);
-
-      /// string stream function
-      template<class StreamValueType>
-      Exception& operator << (StreamValueType const& rValue)
-      {
-          std::stringstream buffer;
-          buffer << rValue;
-
-          append_message(buffer.str());
-
-          return *this;
-      }
-
-      /// Manipulator stream function
-      Exception& operator << (std::ostream& (*pf)(std::ostream&));
-      /// char stream function
-      Exception& operator << (const char * rString);
-
-      ///@}
-      ///@name Operations
-      ///@{
-
-	    void append_message(std::string const& rMessage);
-
-	    void add_to_call_stack(CodeLocation const& TheLocation);
+    void add_to_call_stack(CodeLocation const& TheLocation);
 
 
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
-      /// The overide of the base class what method
-      /** This method returns the entire message with where information
-      */
+    /// The overide of the base class what method
+    /** This method returns the entire message with where information
+    */
 
-      const char* what() const noexcept override;
+    const char* what() const noexcept override;
 
-      const std::string& message() const;
+    const std::string& message() const;
 
-      const CodeLocation where() const;
+    const CodeLocation where() const;
 
-      ///@}
-      ///@name Input and output
-      ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const;
+    /// Turn back information as a string.
+    virtual std::string Info() const;
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
-
-
-      ///@}
-
-    private:
-      ///@name Member Variables
-      ///@{
-
-  		std::string mMessage;
-      std::string mWhat;
-  		std::vector<CodeLocation> mCallStack;
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
 
 
-      ///@}
-      ///@name private operations
-      ///@{
+    ///@}
 
-      void update_what();
-      ///@}
+private:
+    ///@name Member Variables
+    ///@{
 
-    }; // Class Exception
+    std::string mMessage;
+    std::string mWhat;
+    std::vector<CodeLocation> mCallStack;
 
-  ///@}
+    ///@}
+    ///@name private operations
+    ///@{
 
-  ///@name Kratos Macros
-  ///@{
+    void update_what();
 
-#define KRATOS_ERROR throw Exception("Error: ", KRATOS_CODE_LOCATION)
+    ///@}
 
-#define KRATOS_ERROR_IF(conditional) if(conditional) throw Exception("Error: ", KRATOS_CODE_LOCATION)
+}; // Class Exception
 
-#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Exception("Error: ", KRATOS_CODE_LOCATION)
+///@}
+
+///@name Kratos Macros
+///@{
+
+#define KRATOS_ERROR throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
+
+#define KRATOS_ERROR_IF(conditional) if(conditional) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
+
+#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
 
 #ifdef KRATOS_DEBUG
 #define KRATOS_DEBUG_ERROR KRATOS_ERROR
@@ -167,22 +173,22 @@ namespace Kratos
 #define KRATOS_DEBUG_ERROR_IF(conditional)  if(false) KRATOS_ERROR_IF(conditional)
 #define KRATOS_DEBUG_ERROR_IF_NOT(conditional)   if(false) KRATOS_ERROR_IF_NOT(conditional)
 #endif
-  ///@}
-  ///@name Input and output
-  ///@{
+///@}
+///@name Input and output
+///@{
 
 
-  /// input stream function
-  std::istream& operator >> (std::istream& rIStream,
-  				    Exception& rThis);
+/// input stream function
+std::istream& operator >> (std::istream& rIStream,
+                Exception& rThis);
 
-  /// output stream function
-  KRATOS_API(KRATOS_CORE) std::ostream& operator << (std::ostream& rOStream, const Exception& rThis);
+/// output stream function
+KRATOS_API(KRATOS_CORE) std::ostream& operator << (std::ostream& rOStream, const Exception& rThis);
 
 
-  ///@}
+///@}
 
-  ///@} addtogroup block
+///@} addtogroup block
 
 }  // namespace Kratos.
 

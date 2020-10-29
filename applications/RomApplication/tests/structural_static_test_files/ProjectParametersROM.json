@@ -17,17 +17,10 @@
             "input_filename": "Structure_Static_2D"
         },
         "material_import_settings": {
-            "materials_filename": "StructuralMaterials.json"
+            "materials_filename": "StructuralMaterialsROM.json"
         },
         "time_stepping": {
             "time_step": 1.1
-        },
-        "rom_settings": {
-            "nodal_unknowns": [
-                "DISPLACEMENT",
-                "2"
-            ],
-            "number_of_rom_dofs": 3
         },
         "line_search": false,
         "convergence_criterion": "residual_criterion",
@@ -36,8 +29,6 @@
         "residual_relative_tolerance": 0.0001,
         "residual_absolute_tolerance": 1e-9,
         "max_iteration": 10,
-        "problem_domain_sub_model_part_list": ["Parts_Structure"],
-        "processes_sub_model_part_list": ["DISPLACEMENT_Ground","PointLoad2D_Load_on_points_Auto1","LineLoad2D_InterfaceStructure","LineLoad2D_Load_on_lines_Auto1"],
         "rotation_dofs": false
     },
     "processes": {

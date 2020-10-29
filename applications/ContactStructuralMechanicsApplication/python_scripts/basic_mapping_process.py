@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -41,6 +40,7 @@ class BasicMappingProcess(KratosMultiphysics.Process):
             "destination_model_part_name"      : "please_specify_model_part_name",
             "interval"                         : [0.0, 1e30],
             "echo_level"                       : 0,
+            "consider_tessellation"            : false,
             "using_average_nodal_normal"       : true,
             "discontinuous_interface"          : false,
             "discontinous_interface_factor"    : 1.0e-4,

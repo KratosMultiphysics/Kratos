@@ -40,7 +40,6 @@ void ReplaceEntities(
         if (rSetOfIds.find(it_entity->Id()) != rSetOfIds.end()) {
             auto p_new_entity = rReferenceEntity.Create(it_entity->Id(), it_entity->pGetGeometry(), it_entity->pGetProperties());
             // Deep copy data and flags
-            p_new_entity->Data() = it_entity->Data();
             p_new_entity->Set(Flags(*it_entity));
 
             (*it_entity.base()) = p_new_entity;

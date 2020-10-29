@@ -53,11 +53,6 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLocalSy
         }
         rRightHandSideVector(i) *= volume_inv;
     }
-
-    if (this->Id() == 1000){
-        KRATOS_WATCH(rLeftHandSideMatrix)
-        KRATOS_WATCH(rRightHandSideVector)
-    }
 }
 
 //template <unsigned int TDim, unsigned int TNumNodes>
@@ -85,9 +80,6 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::EquationIdVector
 
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
         rResult[iNode] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z).EquationId();
-
-        if (this->Id()==1000)
-        KRATOS_WATCH(rResult[iNode] )
     }
 
 }

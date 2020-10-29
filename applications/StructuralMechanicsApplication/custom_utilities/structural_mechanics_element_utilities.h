@@ -56,7 +56,7 @@ typedef Geometry<NodeType> GeometryType;
 int SolidElementCheck(
     const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo,
-    std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
     );
 
 /**
@@ -209,7 +209,7 @@ double GetDensityForMassMatrixComputation(const Element& rElement);
 void CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
-    /*const*/ ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize);
 
 /**

@@ -122,45 +122,36 @@ public:
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
-    ///@name Access
+    ///@name Access Get Values
     ///@{
 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
-    ///@name Inquiry
+    ///@name Access Set Values
     ///@{
 
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
+    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
+    array_1d<double, 3> m_unit_normal;
 
     ///@}
     ///@name Protected Operators
@@ -213,6 +204,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    double m_penalty = 0.0;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -240,11 +233,15 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
+        rSerializer.save("unit_normal", m_unit_normal);
+        rSerializer.save("penalty", m_penalty);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
+        rSerializer.load("unit_normal", m_unit_normal);
+        rSerializer.load("penalty", m_penalty);
     }
 
 

@@ -52,7 +52,7 @@ TrussElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 TrussElement3D2N::~TrussElement3D2N() {}
 
 void TrussElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rResult.size() != msLocalSize) {
@@ -69,7 +69,7 @@ void TrussElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
     }
 }
 void TrussElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msLocalSize) {
@@ -101,7 +101,7 @@ void TrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 BoundedMatrix<double, TrussElement3D2N::msLocalSize,
 TrussElement3D2N::msLocalSize>
 TrussElement3D2N::CreateElementStiffnessMatrix(
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -121,7 +121,7 @@ TrussElement3D2N::CreateElementStiffnessMatrix(
 }
 
 void TrussElement3D2N::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -132,7 +132,7 @@ void TrussElement3D2N::CalculateDampingMatrix(
 
 void TrussElement3D2N::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
 )
 {
     KRATOS_TRY
@@ -191,7 +191,7 @@ TrussElement3D2N::CalculateBodyForces()
     KRATOS_CATCH("")
 }
 
-void TrussElement3D2N::GetValuesVector(Vector& rValues, int Step)
+void TrussElement3D2N::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -211,7 +211,7 @@ void TrussElement3D2N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void TrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void TrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -231,7 +231,7 @@ void TrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void TrussElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void TrussElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -254,7 +254,7 @@ void TrussElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
 
 void TrussElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -263,7 +263,7 @@ void TrussElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 }
 
 void TrussElement3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -282,7 +282,7 @@ void TrussElement3D2N::CalculateRightHandSide(
 }
 
 void TrussElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -435,34 +435,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     }
 }
 
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -485,7 +458,7 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        NodeType& rnode = GetGeometry()[i];
+        const NodeType& rnode = GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, rnode);
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode);
@@ -499,11 +472,6 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
                      << std::endl;
     }
 
-    if (GetProperties().Has(YOUNG_MODULUS) == false ||
-            GetProperties()[YOUNG_MODULUS] < 0.0) {
-        KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << Id()
-                     << std::endl;
-    }
     if (GetProperties().Has(DENSITY) == false) {
         KRATOS_ERROR << "DENSITY not provided for this element" << Id()
                      << std::endl;
@@ -667,7 +635,7 @@ void TrussElement3D2N::WriteTransformationCoordinates(
 void TrussElement3D2N::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
@@ -693,7 +661,7 @@ void TrussElement3D2N::AddExplicitContribution(
 
 void TrussElement3D2N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
@@ -745,7 +713,7 @@ void TrussElement3D2N::AddExplicitContribution(
 void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
     BoundedMatrix<double, TrussElement3D2N::msLocalSize,
     TrussElement3D2N::msLocalSize>& rGeometricStiffnessMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -842,7 +810,7 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
 void TrussElement3D2N::CalculateElasticStiffnessMatrix(
     BoundedMatrix<double, TrussElement3D2N::msLocalSize,
     TrussElement3D2N::msLocalSize>& rElasticStiffnessMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -916,7 +884,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
     KRATOS_CATCH("")
 }
 
-void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void TrussElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     ProcessInfo temp_process_information;
@@ -985,7 +953,7 @@ void TrussElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
 }
 
 
-double TrussElement3D2N::ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo)
+double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     double tangent_modulus(0.00);

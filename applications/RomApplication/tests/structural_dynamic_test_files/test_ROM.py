@@ -14,9 +14,9 @@ class ROMDynamicStruct(KratosUnittest.TestCase):
     def test_Struct_Dynamic_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
-            with open("ProjectParametersROM.json",'r') as parameter_file:
+            with open("ProjectParameters.json",'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            model = KratosMultiphysics.Model()      
+            model = KratosMultiphysics.Model()
             Simulation = TestStructuralMechanicsDynamicROM(model,parameters)
             Simulation.Run()
             ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
@@ -24,13 +24,10 @@ class ROMDynamicStruct(KratosUnittest.TestCase):
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
 
             for i in range (np.shape(ObtainedOutput)[1]):
-                UP=0
-                DOWN=0
-                for j in range((np.shape(ObtainedOutput)[0])):
-                    UP += (NodalArea[j]*(    (ExpectedOutput[j,i] - ObtainedOutput[j,i]   )**2)  )
-                    DOWN +=  NodalArea[j]
+                UP = sum((ExpectedOutput[:,i] - ObtainedOutput[:,i])**2)
+                DOWN = sum((ExpectedOutput[:,i])**2)
                 L2 = np.sqrt(UP/DOWN)
-                self.assertLess(L2, 1.0e-4)
+                self.assertLess(L2, 1e-10)
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 

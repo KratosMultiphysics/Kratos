@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -24,17 +22,18 @@ class PrebucklingSolver(MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
-        super(PrebucklingSolver, self).__init__(main_model_part, custom_settings)
+        super().__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[PrebucklingSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "buckling_settings"     : {
                 "initial_load_increment"    : 1.0,
                 "small_load_increment"      : 0.0005,
                 "path_following_step"       : 0.5,
-                "convergence_ratio"         : 0.05
+                "convergence_ratio"         : 0.05,
+                "make_matrices_symmetric"   : true
             },
             "eigensolver_settings" : {
                 "solver_type"           : "eigen_eigensystem",
@@ -44,7 +43,7 @@ class PrebucklingSolver(MechanicalSolver):
                 "echo_level"            : 1
             }
         }""")
-        this_defaults.AddMissingParameters(super(PrebucklingSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####
@@ -81,9 +80,9 @@ class PrebucklingSolver(MechanicalSolver):
     # Builder and Solver Static
     def _create_builder_and_solver(self):
         """This method is overridden to make sure it always uses ResidualBasedEliminationBuilderAndSolver"""
-        if self.settings["block_builder"].GetBool():
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             warn_msg = '"Elimination Builder is required. \n'
-            warn_msg += '"block_builder" specification will be ignored'
+            warn_msg += '"use_block_builder" specification will be ignored'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)
         linear_solver = self.get_linear_solver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
@@ -116,7 +115,4 @@ class PrebucklingSolver(MechanicalSolver):
                                                                   builder_and_solver,
                                                                   convergence_criteria,
                                                                   self.settings["max_iteration"].GetInt(),
-                                                                  buckling_settings["initial_load_increment"].GetDouble(),
-                                                                  buckling_settings["small_load_increment"].GetDouble(),
-                                                                  buckling_settings["path_following_step"].GetDouble(),
-                                                                  buckling_settings["convergence_ratio"].GetDouble() )
+                                                                  buckling_settings )

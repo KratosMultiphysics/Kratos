@@ -68,7 +68,7 @@ PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
-void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -85,7 +85,7 @@ template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNu
 void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double>& rDestinationVariable,
+    const Variable<double>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -103,7 +103,7 @@ template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNu
 void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -28118,8 +28118,8 @@ void PenaltyMethodFrictionlessMortarContactCondition<3, 4, true, 3>::CalculateLo
 template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
 void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& CurrentProcessInfo
-    )
+    const ProcessInfo& CurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -28129,12 +28129,12 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
     IndexType index = 0;
 
     /* ORDER - [ MASTER, SLAVE ] */
-    GeometryType& r_slave_geometry = this->GetParentGeometry();
-    GeometryType& r_master_geometry = this->GetPairedGeometry();
+    const GeometryType& r_slave_geometry = this->GetParentGeometry();
+    const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        NodeType& r_master_node = r_master_geometry[i_master];
+        const NodeType& r_master_node = r_master_geometry[i_master];
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -28142,7 +28142,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& r_slave_node = r_slave_geometry[i_slave];
+        const NodeType& r_slave_node = r_slave_geometry[i_slave];
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -28157,8 +28157,8 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
 void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -28168,12 +28168,12 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
     IndexType index = 0;
 
     /* ORDER - [ MASTER, SLAVE ] */
-    GeometryType& r_slave_geometry = this->GetParentGeometry();
-    GeometryType& r_master_geometry = this->GetPairedGeometry();
+    const GeometryType& r_slave_geometry = this->GetParentGeometry();
+    const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        NodeType& r_master_node = r_master_geometry[i_master];
+        const NodeType& r_master_node = r_master_geometry[i_master];
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
@@ -28181,7 +28181,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& r_slave_node = r_slave_geometry[i_slave];
+        const NodeType& r_slave_node = r_slave_geometry[i_slave];
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
@@ -28194,23 +28194,12 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
-int PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::Check( const ProcessInfo& rCurrentProcessInfo )
+int PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     // Base class checks for positive Jacobian and Id > 0
-    int ierr = BaseType::Check(rCurrentProcessInfo);
-    if(ierr != 0) return ierr;
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(NORMAL)
-
-    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    GeometryType& r_slave_geometry = this->GetParentGeometry();
-    for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        NodeType& r_node = r_slave_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
-    }
+    const int ierr = BaseType::Check(rCurrentProcessInfo);
 
     return ierr;
 

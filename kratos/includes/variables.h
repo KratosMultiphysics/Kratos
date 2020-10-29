@@ -22,8 +22,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
@@ -74,7 +72,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( int, STEP )
     KRATOS_DEFINE_VARIABLE( int, PRINTED_STEP )
     KRATOS_DEFINE_VARIABLE( int, PRINTED_RESTART_STEP )
-
+    KRATOS_DEFINE_VARIABLE( int, RUNGE_KUTTA_STEP )
 
     //doubles
 
@@ -88,6 +86,9 @@ namespace Kratos
 
     KRATOS_DEFINE_VARIABLE( double, RESIDUAL_NORM )
     KRATOS_DEFINE_VARIABLE( double, CONVERGENCE_RATIO )
+    KRATOS_DEFINE_VARIABLE( double, BUILD_SCALE_FACTOR )
+    KRATOS_DEFINE_VARIABLE( double, CONSTRAINT_SCALE_FACTOR )
+    KRATOS_DEFINE_VARIABLE( double, AUXILIAR_CONSTRAINT_SCALE_FACTOR )
 
     KRATOS_DEFINE_VARIABLE( double, TEMPERATURE )
     KRATOS_DEFINE_VARIABLE( double, PRESSURE )
@@ -123,6 +124,8 @@ namespace Kratos
 
     KRATOS_DEFINE_VARIABLE( double, GRADIENT_PENALTY_COEFFICIENT )
 
+    KRATOS_DEFINE_VARIABLE( double, TIME_INTEGRATION_THETA )
+
     //sheme info :: pass to elements
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_BETA )
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_GAMMA )
@@ -141,7 +144,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, NORMAL_CONTACT_STRESS )
     KRATOS_DEFINE_VARIABLE( double, TANGENTIAL_CONTACT_STRESS )
 
-    KRATOS_DEFINE_VARIABLE( double, PARTITION_INDEX )
+    KRATOS_DEFINE_VARIABLE( int,    PARTITION_INDEX )
     KRATOS_DEFINE_VARIABLE( double, TEMPERATURE_OLD_IT )
     KRATOS_DEFINE_VARIABLE( double, VISCOSITY )
     KRATOS_DEFINE_VARIABLE( double, ERROR_RATIO )
@@ -193,6 +196,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, NUMBER_OF_NEIGHBOUR_ELEMENTS )
     KRATOS_DEFINE_VARIABLE(bool, UPDATE_SENSITIVITIES )
     KRATOS_DEFINE_VARIABLE(AdjointExtensions::Pointer, ADJOINT_EXTENSIONS )
+    KRATOS_DEFINE_VARIABLE(Matrix, NORMAL_SHAPE_DERIVATIVE )
 
     // For MeshingApplication
     KRATOS_DEFINE_VARIABLE( double, NODAL_ERROR )
@@ -422,6 +426,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Matrix, DEFORMATION_GRADIENT )
     KRATOS_DEFINE_VARIABLE( Matrix, MATERIAL_STIFFNESS_MATRIX )
     KRATOS_DEFINE_VARIABLE( Matrix, GEOMETRIC_STIFFNESS_MATRIX )
+    KRATOS_DEFINE_VARIABLE( Quaternion<double>, ORIENTATION )
 
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )

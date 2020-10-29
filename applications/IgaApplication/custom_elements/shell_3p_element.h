@@ -144,8 +144,7 @@ public:
     {};
 
     /// Destructor.
-    virtual ~Shell3pElement() override
-    {};
+    virtual ~Shell3pElement() = default;
 
     ///@}
     ///@name Life Cycle
@@ -310,18 +309,19 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "KLElement #" << Id();
+        buffer << "Kirchhoff-Love Shell3pElement #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "KLElement #" << Id();
+        rOStream << "Kirchhoff-Love Shell3pElement #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override
+    {
         pGetGeometry()->PrintData(rOStream);
     }
 
@@ -430,7 +430,7 @@ private:
 
     friend class Serializer;
 
-    void load(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
         rSerializer.save("A_ab_covariant_vector", m_A_ab_covariant_vector);

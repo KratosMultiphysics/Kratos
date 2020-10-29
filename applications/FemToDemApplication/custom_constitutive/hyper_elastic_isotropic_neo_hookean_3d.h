@@ -40,14 +40,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class HyperElasticIsotropicNeoHookean3D
+ * @class HyperElasticIsotropicNeoHookean3DFEMDEM
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines an hyperelastic material according to the NeoHookean formulation for 3D  cases
  * @details A neo-Hookean solid is a hyperelastic material model, similar to Hooke's law, that can be used for predicting the nonlinear stress-strain behavior of materials undergoing large deformations. The model was proposed by Ronald Rivlin in 1948. In contrast to linear elastic materials, the stress-strain curve of a neo-Hookean material is not linear. Instead, the relationship between applied stress and strain is initially linear, but at a certain point the stress-strain curve will plateau. The neo-Hookean model does not account for the dissipative release of energy as heat while straining the material and perfect elasticity is assumed at all stages of deformation. he neo-Hookean model is based on the statistical thermodynamics of cross-linked polymer chains and is usable for plastics and rubber-like substances.
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class HyperElasticIsotropicNeoHookean3D
+class HyperElasticIsotropicNeoHookean3DFEMDEM
     : public ConstitutiveLaw
 {
 public:
@@ -73,8 +73,8 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
 
-    /// Pointer definition of HyperElasticIsotropicNeoHookean3D
-    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookean3D );
+    /// Pointer definition of HyperElasticIsotropicNeoHookean3DFEMDEM
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookean3DFEMDEM );
 
     ///@name Lyfe Cycle
     ///@{
@@ -82,17 +82,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    HyperElasticIsotropicNeoHookean3D();
+    HyperElasticIsotropicNeoHookean3DFEMDEM();
 
     /**
      * @brief Copy constructor.
      */
-    HyperElasticIsotropicNeoHookean3D (const HyperElasticIsotropicNeoHookean3D& rOther);
+    HyperElasticIsotropicNeoHookean3DFEMDEM (const HyperElasticIsotropicNeoHookean3DFEMDEM& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~HyperElasticIsotropicNeoHookean3D() override;
+    ~HyperElasticIsotropicNeoHookean3DFEMDEM() override;
 
     ///@}
     ///@name Operators
@@ -421,6 +421,6 @@ private:
     }
 
 
-}; // Class HyperElasticIsotropicNeoHookean3D
+}; // Class HyperElasticIsotropicNeoHookean3DFEMDEM
 }  // namespace Kratos.
 #endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined

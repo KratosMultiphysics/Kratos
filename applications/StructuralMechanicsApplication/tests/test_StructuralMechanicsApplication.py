@@ -9,10 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os, subprocess
 
-if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-    has_external_solvers_application = True
-else:
-    has_external_solvers_application = False
+has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 # Import the tests or test_classes to create the suits
 
@@ -25,6 +22,8 @@ from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
 from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
 from test_axis_projection import TestAxisProjection as TTestAxisProjection
+from test_distribute_load_on_surface_process import TestDistributeLoadOnSurfaceProcess as TTestDistributeLoadOnSurfaceProcess
+from test_perturb_geometry_utility import TestPerturbGeometryUtility as TTestPerturbGeometryUtility
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
@@ -67,11 +66,13 @@ from test_prebuckling_analysis import TestPrebucklingAnalysis as TTestPrebucklin
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
 from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
+# Eigensolver with different dofs test
+from test_eigen_solver_different_dofs import TestEigenSolverWithDifferentDofs
 # Custom Scipy Solver test
 from test_custom_scipy_base_solver import TestCustomScipyBaseSolver
 # local-axis visualization tests
 from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
-# Test adjoint elements
+# Test adjoint elements and conditions
 from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestCrBeamAdjointElement
 from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
 from test_truss_adjoint_element_3d2n import TestTrussAdjointElement as TTestTrussAdjointElement
@@ -86,6 +87,7 @@ from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnal
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisSpringDamperElement as TTestAdjointSensitivityAnalysisSpringDamperElement
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
+from test_adjoint_loading_conditions import TestAdjointLoadingConditions as TTestAdjointLoadingConditions
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -137,6 +139,8 @@ from structural_mechanics_test_factory import MembraneOrthotropicDiagonalTests a
 from structural_mechanics_test_factory import MembraneOrthotropicHorizontalTests as TMembraneOrthotropicHorizontalTests
 from structural_mechanics_test_factory import MembranePreStressHorizontalTests as TMembranePreStressHorizontalTests
 from structural_mechanics_test_factory import MembranePreStressDiagonalTests as TMembranePreStressDiagonalTests
+from structural_mechanics_test_factory import MembraneMultiLinearIsotropicPlaneStressTests as TMembraneMultiLinearIsotropicPlaneStressTests
+
 # 2Node Element tests
 from structural_mechanics_test_factory import Simple3D2NTrussTest as T3D2NTrussTest
 from structural_mechanics_test_factory import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
@@ -195,6 +199,7 @@ from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
 # Serial-Parallel Tests
 from structural_mechanics_test_factory import SerialParallelRuleOfMixturesCubeDamageTest as TSerialParallelRuleOfMixturesCubeDamageTest
+from structural_mechanics_test_factory import AnisotropyTest as TAnisotropyTest
 
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -202,6 +207,9 @@ from structural_mechanics_test_factory import RigidBlockTest as TRigidBlockTest
 from structural_mechanics_test_factory import RigidEliminationTest as TRigidEliminationTest
 from structural_mechanics_test_factory import RigidSphereFailing as TRigidSphereFailing
 from structural_mechanics_test_factory import RigidSphereFailingExplicit as TRigidSphereFailingExplicit
+
+# 2.5D solid element test
+from structural_mechanics_test_factory import Solid2p5DElementTest as TSolid2p5DElementTest
 
 ##### VALIDATION TESTS #####
 # SPRISM tests
@@ -267,6 +275,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
     nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
+    nightSuite.addTest(TAnisotropyTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
@@ -280,6 +289,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeMassMomentOfInertia]))
     # Axis projection tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAxisProjection]))
+    # Force distribution process
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDistributeLoadOnSurfaceProcess]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
@@ -317,19 +328,23 @@ def AssembleTestSuites():
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithDifferentDofs]))
     # Custom Scipy Solver test
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
     # local-axis visualization tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
-    # Adjoint Elements
+    # Adjoint Elements and Conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointLoadingConditions]))
     # RVE tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
     # Element damping test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
+    # Perturb geometry process test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryUtility]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -380,6 +395,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressDiagonalTests('test_execution'))
+    nightSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution'))
     # 2Node Element tests
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
@@ -411,10 +427,12 @@ def AssembleTestSuites():
     nightSuite.addTest(TRigidEliminationTest('test_execution'))
     nightSuite.addTest(TRigidSphereFailing('test_execution'))
     nightSuite.addTest(TRigidSphereFailingExplicit('test_execution'))
+    # 2.5D solid element test
+    nightSuite.addTest(TSolid2p5DElementTest('test_execution'))
 
-    if has_external_solvers_application:
-        import KratosMultiphysics.ExternalSolversApplication
-        if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):
+    if has_linear_solvers_application:
+        from KratosMultiphysics import LinearSolversApplication
+        if LinearSolversApplication.HasFEAST():
             # Eigenvalues tests
             smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
             smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
@@ -424,7 +442,7 @@ def AssembleTestSuites():
             # Rayleigh process test
             nightSuite.addTest(TRayleighProcessTest('test_execution'))
         else:
-            print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+            print("FEAST not available in LinearSolversApplication")
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
 
@@ -515,17 +533,6 @@ if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
-    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-        p = subprocess.Popen(
-            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py", "--using-mpi"],
-            stdout=subprocess.PIPE,
-            cwd=os.path.dirname(os.path.abspath(__file__)))
-        p.wait()
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    else:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())

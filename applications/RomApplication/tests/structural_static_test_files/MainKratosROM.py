@@ -17,7 +17,7 @@ class TestStructuralMechanicsStaticROM(StructuralMechanicsAnalysisROM):
        #                    and nodal area                                                           #
        ##############################################################################################
         ArrayOfDisplacements = []
-        for node in self._GetSolver().GetComputingModelPart().Nodes:            
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
             ArrayOfDisplacements.append(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0))
             ArrayOfDisplacements.append(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0))
         return ArrayOfDisplacements
@@ -26,18 +26,18 @@ class TestStructuralMechanicsStaticROM(StructuralMechanicsAnalysisROM):
         computing_model_part = self._solver.GetComputingModelPart()
         dimension = self._GetSolver().settings["domain_size"].GetInt()
         area_calculator = KratosMultiphysics.CalculateNodalAreaProcess(computing_model_part , dimension)
-        area_calculator.Execute()        
+        area_calculator.Execute()
 
         ArrayOfAreas = []
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             ArrayOfAreas.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
-            ArrayOfAreas.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))            
-        return ArrayOfAreas    
+            ArrayOfAreas.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+        return ArrayOfAreas
 
 
 if __name__ == "__main__":
     with open("ProjectParametersROM.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    model = KratosMultiphysics.Model()      
+    model = KratosMultiphysics.Model()
     Simulation = TestStructuralMechanicsStaticROM(model,parameters)
     Simulation.Run()
