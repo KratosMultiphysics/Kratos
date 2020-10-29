@@ -131,7 +131,7 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
         if response_type == "adjoint_nodal_displacement_root_mean_square":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementRootMeanSquareResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif response_type == "adjoint_damping_energy_dissipation_response_function":
+        elif response_type == "adjoint_damping_energy_dissipation":
             self.response_function = StructuralMechanicsApplication.AdjointDampingEnergyDissipationResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_test":
             self.response_function = StructuralMechanicsApplication.AdjointTestResponseFunction(self.main_model_part, self.settings["response_function_settings"])

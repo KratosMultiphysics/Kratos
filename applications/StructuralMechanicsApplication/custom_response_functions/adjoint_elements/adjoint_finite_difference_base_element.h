@@ -185,7 +185,7 @@ public:
             noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
             KRATOS_CATCH("");
 
-            KRATOS_WARNING("AdjointFiniteDifferencingBaseElement")<<"WARNING: Negative LHS was calculated." << std::endl;
+            //KRATOS_WARNING("AdjointFiniteDifferencingBaseElement")<<"WARNING: Negative LHS was calculated." << std::endl;
             //TODO Flag to distinguish between static and transient computation. 
     }
 

@@ -31,8 +31,10 @@
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.h"
-#include "custom_response_functions/response_utilities/adjoint_test_response_function.h"
+
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_root_mean_square_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_damping_energy_dissipation_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_test_response_function.h"
 
 namespace Kratos {
 namespace Python {

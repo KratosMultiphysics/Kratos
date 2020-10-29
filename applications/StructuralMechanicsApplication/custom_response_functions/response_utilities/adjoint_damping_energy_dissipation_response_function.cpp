@@ -52,19 +52,25 @@ namespace Kratos
         
         ModelPart& response_part = mrModelPart.GetSubModelPart(mResponsePartName);
         const ProcessInfo &r_current_process_info = response_part.GetProcessInfo();
+
+        // Assuming spring damper element with number of dofs = 12
+        Vector velocity_vector = ZeroVector(12);
         Matrix damping_matrix;
-        Vector velocity_vector;
-        
-        // Check if there are at primal elements, because the primal state is required
-        KRATOS_ERROR_IF( r_current_process_info.Has(IS_ADJOINT) && r_current_process_info[IS_ADJOINT] )
-             << "Calculate first derivatives gradient for damped dissipation energy response is only available when using primal elements" << std::endl;
 
         for (auto& element_i : response_part.Elements())
         {
             if(element_i.Id() == rAdjointElement.Id()){
-                element_i.GetFirstDerivativesVector(velocity_vector, 0);
+                
+                // get velocity vector
+                auto& r_geometry = rAdjointElement.GetGeometry();
+                for(IndexType n_i = 0; n_i < 2; ++n_i){
+                    for(IndexType dir_i = 0; dir_i < 3; ++dir_i){
+                        velocity_vector[dir_i + 2*n_i   *3] = r_geometry[n_i].FastGetSolutionStepValue(VELOCITY)[dir_i];
+                        velocity_vector[dir_i +(2*n_i+1)*3] = r_geometry[n_i].FastGetSolutionStepValue(ANGULAR_VELOCITY)[dir_i];
+                    }
+                }
                 element_i.CalculateDampingMatrix(damping_matrix, r_current_process_info);
-                rResponseGradient = 2*prod(damping_matrix, velocity_vector);
+                rResponseGradient = -2*prod(damping_matrix, velocity_vector);
                 break;
             }
         }
@@ -158,8 +164,14 @@ namespace Kratos
                     Matrix damping_matrix_deriv;
 
                     // get velocity vector
-                    Vector velocity_vector;
-                    element_i.GetFirstDerivativesVector(velocity_vector, 0);
+                    Vector velocity_vector = ZeroVector(12);
+                    auto& r_geometry = rAdjointElement.GetGeometry();
+                    for(IndexType n_i = 0; n_i < 2; ++n_i){
+                        for(IndexType dir_i = 0; dir_i < 3; ++dir_i){
+                            velocity_vector[dir_i + 2*n_i   *3] = r_geometry[n_i].FastGetSolutionStepValue(VELOCITY)[dir_i];
+                            velocity_vector[dir_i +(2*n_i+1)*3] = r_geometry[n_i].FastGetSolutionStepValue(ANGULAR_VELOCITY)[dir_i];
+                        }
+                    }
 
                     // compute partial derivative
                     // The following approach assumes a linear dependency between damping matrix and damping ratio
@@ -199,11 +211,18 @@ namespace Kratos
 
         double response_value = 0.0;
         Matrix damping_matrix;
-        Vector velocity_vector;
+        Vector velocity_vector  = ZeroVector(12);
 
         for(auto& element_i : response_part.Elements())
         {
-            element_i.GetValuesVector(velocity_vector, 0);
+            // get velocity vector
+            auto& r_geometry = element_i.GetGeometry();
+                    for(IndexType n_i = 0; n_i < 2; ++n_i){
+                        for(IndexType dir_i = 0; dir_i < 3; ++dir_i){
+                            velocity_vector[dir_i + 2*n_i   *3] = r_geometry[n_i].FastGetSolutionStepValue(VELOCITY)[dir_i];
+                            velocity_vector[dir_i +(2*n_i+1)*3] = r_geometry[n_i].FastGetSolutionStepValue(ANGULAR_VELOCITY)[dir_i];
+                        }
+                    }
             element_i.CalculateDampingMatrix(damping_matrix, r_current_process_info);
             // Compute the dissipation work integrand -v*C*v
             response_value -= inner_prod(velocity_vector, prod(damping_matrix, velocity_vector)); 
