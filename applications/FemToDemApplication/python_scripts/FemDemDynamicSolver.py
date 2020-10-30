@@ -5,12 +5,12 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 # Import the mechanical solver base class
 import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return ImplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(main_model_part, custom_settings, DEMStrategy = None):
+    return ImplicitMechanicalSolver(main_model_part, custom_settings, DEMStrategy)
 
 class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
 
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, main_model_part, custom_settings, DEMStrategy = None):
 
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
@@ -37,6 +37,10 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
         print("::[Implicit_Dynamic_Solver]:: Constructed")
+
+        self.DEMStrategy = None
+        if DEMStrategy != None:
+            self.DEMStrategy = DEMStrategy
 
     #### Solver internal methods ####
 
@@ -71,7 +75,10 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
             elif (self.settings["strategy_type"] == "arc_length"):
                 mechanical_solver = self._create_ramm_arc_length_strategy()
             else:
-                mechanical_solver = self._create_newton_raphson_strategy()
+                if self.DEMStrategy == None:
+                    mechanical_solver = self._create_newton_raphson_strategy()
+                else:
+                    mechanical_solver = self._create_DEM_coupled_newton_raphson_strategy(self.DEMStrategy)
         return mechanical_solver
 
     def _create_line_search_strategy(self):
@@ -106,19 +113,36 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      self.settings["move_mesh_flag"].GetBool())
 
-    def _create_newton_raphson_hexaedrons_strategy(self):
+    # def _create_newton_raphson_hexaedrons_strategy(self):
+    #     computing_model_part = self.GetComputingModelPart()
+    #     mechanical_scheme = self._get_solution_scheme()
+    #     linear_solver = self._get_linear_solver()
+    #     mechanical_convergence_criterion = self._get_convergence_criterion()
+    #     return KratosFemDem.HexahedraNewtonRaphsonStrategy(computing_model_part,
+    #                                                                  mechanical_scheme,
+    #                                                                  linear_solver,
+    #                                                                  mechanical_convergence_criterion,
+    #                                                                  self.settings["max_iteration"].GetInt(),
+    #                                                                  self.settings["compute_reactions"].GetBool(),
+    #                                                                  self.settings["reform_dofs_at_each_step"].GetBool(),
+    #                                                                  self.settings["move_mesh_flag"].GetBool())
+
+    def _create_DEM_coupled_newton_raphson_strategy(self, DEM_strategy):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
-        return KratosFemDem.HexahedraNewtonRaphsonStrategy(computing_model_part,
-                                                                     mechanical_scheme,
-                                                                     linear_solver,
-                                                                     mechanical_convergence_criterion,
-                                                                     self.settings["max_iteration"].GetInt(),
-                                                                     self.settings["compute_reactions"].GetBool(),
-                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     self.settings["move_mesh_flag"].GetBool())
+        builder_and_solver = self._get_builder_and_solver()
+        return KratosMultiphysics.ResidualBasedDEMCoupledNewtonRaphsonStrategy(computing_model_part,
+                                                                               DEM_strategy,
+                                                                               mechanical_scheme,
+                                                                               linear_solver,
+                                                                               mechanical_convergence_criterion,
+                                                                               builder_and_solver,
+                                                                               self.settings["max_iteration"].GetInt(),
+                                                                               self.settings["compute_reactions"].GetBool(),
+                                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                               self.settings["move_mesh_flag"].GetBool())
 
 
     def _create_ramm_arc_length_strategy(self):

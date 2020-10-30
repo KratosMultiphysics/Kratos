@@ -38,6 +38,10 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
 
         print("::[Static_Mechanical_Solver]:: Constructed")
 
+        self.DEMStrategy = None
+        if DEMStrategy != None:
+            self.DEMStrategy = DEMStrategy
+
     #### Solver internal methods ####
 
     def _create_solution_scheme (self):
