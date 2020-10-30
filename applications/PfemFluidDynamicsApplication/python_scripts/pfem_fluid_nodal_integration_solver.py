@@ -73,10 +73,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_ERROR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
-
 
         #VARIABLES FOR PAPANASTASIOU MODEL
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
@@ -84,7 +81,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
 
         #VARIABLES FOR FRICTIONAL VISCOPLASTIC MODEL
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FRICTION_ANGLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.COHESION)
 
         #VARIABLES FOR MU-I RHEOLOGY MODEL
@@ -111,7 +108,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
 
@@ -156,13 +152,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         # Pfem Extra Vars
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_NORMAL)
-
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.OFFSET)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PROPERTY_ID)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
