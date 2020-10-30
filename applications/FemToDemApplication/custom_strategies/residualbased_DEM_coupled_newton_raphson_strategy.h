@@ -359,7 +359,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
             BaseType::InitializeSolutionStep();
             mpDEMStrategy->InitializeSolutionStep();
         }
-            
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -466,6 +465,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     ///@}
 
   protected:
+
     ///@name Static Member Variables
     ///@{
 
@@ -473,15 +473,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     ///@name Member Variables
     ///@{
 
-    // typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
-    // typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
-    // typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed
     typename ExplicitSolverStrategy::Pointer mpDEMStrategy = nullptr;
-
-    // TSystemVectorPointerType mpDx; /// The increment in the solution
-    // TSystemVectorPointerType mpb; /// The RHS vector of the system of equations
-    // TSystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
-
 
     ///@}
     ///@name Private Operators
