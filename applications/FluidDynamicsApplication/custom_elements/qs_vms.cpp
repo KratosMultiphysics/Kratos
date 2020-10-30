@@ -95,7 +95,7 @@ void QSVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
 // Inquiry
 
 template< class TElementData >
-int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
@@ -110,9 +110,10 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
 
-    for(unsigned int i=0; i<NumNodes; ++i)
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        const auto& rNode = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
     }

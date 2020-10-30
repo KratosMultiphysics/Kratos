@@ -161,23 +161,6 @@ public:
         return Kratos::make_intrusive< BinghamFluid<TBaseElement> >(NewId,pGeom,pProperties);
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY;
-
-        int Error = 0;
-
-        // Check that any required model parameters are defined
-
-
-        // Call the underlying element's check routine
-        Error = TBaseElement::Check(rCurrentProcessInfo);
-
-        return Error;
-
-        KRATOS_CATCH("");
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -280,9 +263,9 @@ protected:
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
 
         double YieldStress = rProcessInfo[YIELD_STRESS];
-                        
+
         double m = rProcessInfo[REGULARIZATION_COEFFICIENT];
-        
+
         if (GammaDot > 1e-12) // Normal behaviour
         {
             double Regularization = 1.0 - std::exp(-m*GammaDot);
