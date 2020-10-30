@@ -50,7 +50,7 @@ virtual ~L2ErrorProjection(){}
 double GetL2VectorProjection(ModelPart& r_model_part)
 {
     const unsigned int n_elements = r_model_part.Elements().size();
-    double interpolator = 0.0, result = 0.0, error_x = 0.0, error_y = 0.0, error_z = 0.0, area = 0.0;
+    double element_area, interpolator = 0.0, result = 0.0, error_x = 0.0, error_y = 0.0, error_z = 0.0, area = 0.0;
     const unsigned int dim = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     Matrix NContainer;
     array_1d<double, 3> scalar_product;
@@ -65,9 +65,12 @@ double GetL2VectorProjection(ModelPart& r_model_part)
         NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
         const SizeType& NumGauss = NContainer.size1();
 
+        element_area = 0.0;
+
         for (unsigned int k = 0; k < NumNodes; ++k)
         {
             area += ielem->GetGeometry()[k].FastGetSolutionStepValue(NODAL_AREA);
+            element_area += ielem->GetGeometry()[k].FastGetSolutionStepValue(NODAL_AREA);
         }
 
         for (SizeType gss = 0; gss < NumGauss; ++gss){
@@ -83,10 +86,8 @@ double GetL2VectorProjection(ModelPart& r_model_part)
             error.push_back(error_x);
             error.push_back(error_y);
             if (dim == 3) error.push_back(error_z);
-            // for (unsigned int d = 0; d < dim; ++d){
-            //     scalar_product[d] = error[d];
-            // }
-            result += std::pow(SWIMMING_MODULUS_3(error),2) * DetJ[gss] * IntegrationPoints[gss].Weight();
+
+            result += element_area * std::pow(SWIMMING_MODULUS_3(error),2) * DetJ[gss] * IntegrationPoints[gss].Weight();
             error.clear();
             error_x = 0.0;
             error_y = 0.0;
@@ -103,7 +104,7 @@ double GetL2VectorProjection(ModelPart& r_model_part)
 double GetL2ScalarProjection(ModelPart& r_model_part)
 {
     const unsigned int n_elements = r_model_part.Elements().size();
-    double interpolator = 0.0, result = 0.0, error = 0.0, area = 0.0;
+    double element_area, interpolator = 0.0, result = 0.0, error = 0.0, total_area = 0.0;
     Matrix NContainer;
     array_1d<double, 3> scalar_product;
 
@@ -116,9 +117,12 @@ double GetL2ScalarProjection(ModelPart& r_model_part)
         NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
         const SizeType& NumGauss = NContainer.size1();
 
+        element_area = 0.0;
+
         for (unsigned int k = 0; k < NumNodes; ++k)
         {
-            area += ielem->GetGeometry()[k].FastGetSolutionStepValue(NODAL_AREA);
+            total_area += ielem->GetGeometry()[k].FastGetSolutionStepValue(NODAL_AREA);
+            element_area +=  ielem->GetGeometry()[k].FastGetSolutionStepValue(NODAL_AREA);
         }
 
         for (SizeType gss = 0; gss < NumGauss; ++gss){
@@ -129,14 +133,14 @@ double GetL2ScalarProjection(ModelPart& r_model_part)
             for (unsigned int j = 0; j < NumNodes; ++j){
                 error += rGeom[j].FastGetSolutionStepValue(SCALAR_ERROR) * N[j];
             }
-            result += std::pow(error,2) * DetJ[gss] * IntegrationPoints[gss].Weight();
+            result += element_area * std::pow(error,2) * DetJ[gss] * IntegrationPoints[gss].Weight();
             error = 0.0;
         }
         interpolator += result;
         result = 0.0;
     }
 
-    return std::sqrt(interpolator/area);
+    return std::sqrt(interpolator/total_area);
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
