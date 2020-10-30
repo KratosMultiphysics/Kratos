@@ -322,6 +322,7 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         max_id = self.GetMaximumConditionId()
         props = self.FEM_Solution.main_model_part.Properties[0]
         self.FEM_Solution.main_model_part.CreateSubModelPart("ContactForcesDEMConditions")
+        self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").CreateSubModelPart("ContactForcesDEMConditions")
         for node in self.FEM_Solution.main_model_part.Nodes:
             self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").AddNode(node, 0)
             max_id += 1
@@ -331,6 +332,7 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
                                                                             [node.Id],
                                                                             props)
             self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
+            self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").GetSubModelPart("ContactForcesDEMConditions").AddCondition(cond)
             self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(KratosSMA.POINT_LOAD, [0.0,0.0,0.0])
 
 #FindNeighboursIfNecessary===================================================================================================================================
