@@ -457,8 +457,17 @@ def executeInstanceReadingFromFileAuxLev5_Task(pickled_model,pickled_project_par
     ############################################# ZeroTask #############################################
 
 @ExaquteTask(returns=2)
-def returnZeroQoiAndTime_Task(number):
-    qoi = [0.0 for _ in range(number)]
+def returnZeroQoiAndTime_Task(number_scalar, number_vector, size_vector):
+    if number_scalar > 0:
+        qoi_scalar = [0.0 for _ in range(number_scalar)]
+    if number_vector > 0:
+        qoi_vector = [[0.0 for _ in range(size_vector)] for _ in range(number_vector)]
+    if number_scalar > 0 and number_vector > 0:
+        qoi = qoi_scalar + qoi_vector
+    elif number_scalar > 0:
+        qoi = qoi_scalar
+    elif number_vector > 0:
+        qoi = qoi_vector
     time_for_qoi = 0.0
     return qoi,time_for_qoi
 
