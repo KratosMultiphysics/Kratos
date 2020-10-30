@@ -238,13 +238,12 @@ public:
      *
      * @return 0 after successful completion.
      */
-    int Check(const ProcessInfo &/*rCurrentProcessInfo*/) const override
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
         // Check the element id and geometry.
-        ProcessInfo UnusedProcessInfo;
-        int ReturnValue = Element::Check(UnusedProcessInfo);
+        int ReturnValue = Element::Check(rCurrentProcessInfo);
 
         // Check if adjoint and fluid variables are defined.
         if (ADJOINT_FLUID_VECTOR_1.Key() == 0)
