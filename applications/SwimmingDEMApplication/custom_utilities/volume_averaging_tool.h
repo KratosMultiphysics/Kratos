@@ -299,18 +299,14 @@ private:
 
         double area = CalculateVol(x0,y0,x1,y1,x2,y2);
         double inv_area = 0.0;
-        if (KRATOS_CHECK_DOUBLE_EQUAL(area, 0.0))
-        {
+        if (std::abs(area) > std::numeric_limits<double>::epsilon()) {
 
             //The interpolated node will not be inside an elemente with zero area
             return false;
-
         }
-        else
-        {
+        else {
             inv_area = 1.0 / area;
         }
-
 
         N[0] = CalculateVol(x1,y1,x2,y2,xc,yc) * inv_area;
         N[1] = CalculateVol(x2,y2,x0,y0,xc,yc) * inv_area;

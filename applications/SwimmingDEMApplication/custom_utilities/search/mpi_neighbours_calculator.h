@@ -90,7 +90,7 @@ namespace Kratos {
             if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
 
             static double MaxNodeRadius = 0.0f;
-            if(KRATOS_CHECK_DOUBLE_EQUAL(MaxNodeRadius, 0.0)) //TODO
+            if(std::abs(MaxNodeRadius) > std::numeric_limits<double>::epsilon()) //TODO
                 for (IteratorType particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
                 {
                     double NodeRaidus = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS); //TODO: MA: WATCH OUT! The use of SEARCH_RADIUS_EXTENSION might have changed
