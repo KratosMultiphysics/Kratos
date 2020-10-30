@@ -13,7 +13,6 @@ import KratosMultiphysics.MeshingApplication as MeshingApplication
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 import KratosMultiphysics.DEMApplication as KratosDEM
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
-import KratosMultiphysics.FemToDemApplication.fem_dem_coupled_gid_output as gid_output
 import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
 
 def Wait():
