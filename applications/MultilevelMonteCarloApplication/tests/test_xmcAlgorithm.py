@@ -158,6 +158,7 @@ class TestXMCAlgorithm(unittest.TestCase):
             "parameters/parameters_xmc_test_mlmc_Kratos_poisson_2d.json",
             "parameters/parameters_xmc_test_mlmc_Kratos_poisson_2d_with_combined_power_sums.json",
             "parameters/poisson_multi-moment_mlmc.json",
+            "parameters/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_with_combined_power_sums_multi.json"
         ]
         for parametersPath in parametersList:
             with open(parametersPath, "r") as parameter_file:
@@ -280,7 +281,6 @@ class TestXMCAlgorithm(unittest.TestCase):
             self.assertAlmostEqual(estimations[0], estimated_mean, delta=1.0)
             for level in algo.hierarchy():
                 self.assertEqual(level[1], 15)
-
 
 if __name__ == "__main__":
     unittest.main()
