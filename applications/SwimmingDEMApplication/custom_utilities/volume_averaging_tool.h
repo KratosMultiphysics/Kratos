@@ -299,7 +299,7 @@ private:
 
         double area = CalculateVol(x0,y0,x1,y1,x2,y2);
         double inv_area = 0.0;
-        if (std::abs(area) > std::numeric_limits<double>::epsilon()) {
+        if (std::abs(area) < std::numeric_limits<double>::epsilon()) {
 
             //The interpolated node will not be inside an elemente with zero area
             return false;
