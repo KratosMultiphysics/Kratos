@@ -7,6 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 from generalTests import KratosMetisGeneralTests
+from test_metis_submodelpart_list import TestMetisSubModelPartList
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -40,11 +41,8 @@ def AssembleTestSuites():
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosMetisGeneralTests
-        ])
-    )
+    allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosMetisGeneralTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMetisSubModelPartList]))
 
     return suites
 
