@@ -59,6 +59,7 @@
             "parts_list" : ["Parts_Parts_Auto6"]
         }],
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto4","Parts_Parts_Auto5","Parts_Parts_Auto6"],
+        "constitutive_laws_list" : ["NewtonianLaw","Rigid","HypoelasticLaw"],
         "processes_sub_model_part_list"      : ["VELOCITY_Velocity_Auto1"]
     },
     "problem_process_list"     : [{
