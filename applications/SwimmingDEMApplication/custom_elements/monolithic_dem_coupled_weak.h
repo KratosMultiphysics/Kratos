@@ -1101,13 +1101,15 @@ public:
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i) {
-            KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false) << "Missing VELOCITY variable on solution step data for node "<< this->GetGeometry()[i].Id() << std::endl;
-            KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false) << "Missing PRESSURE variable on solution step data for node "<< this->GetGeometry()[i].Id() << std::endl;
-            KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false) << "Missing MESH_VELOCITY variable on solution step data for node "<< this->GetGeometry()[i].Id() << std::endl;
-            KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false) << "Missing ACCELERATION variable on solution step data for node "<< this->GetGeometry()[i].Id() << std::endl;
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, this->GetGeometry()[i])
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, this->GetGeometry()[i])
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, this->GetGeometry()[i])
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION, this->GetGeometry()[i])
 
-            KRATOS_ERROR_IF(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false || this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false || this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false) << "Missing VELOCITY component degree of freedom on node "<< this->GetGeometry()[i].Id() << std::endl;
-            KRATOS_ERROR_IF(this->GetGeometry()[i].HasDofFor(PRESSURE) == false) << "Missing PRESSURE component degree of freedom on node "<< this->GetGeometry()[i].Id() << std::endl;
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X, this->GetGeometry()[i])
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y, this->GetGeometry()[i])
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z, this->GetGeometry()[i])
+            KRATOS_CHECK_DOF_IN_NODE(PRESSURE, this->GetGeometry()[i])
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
 

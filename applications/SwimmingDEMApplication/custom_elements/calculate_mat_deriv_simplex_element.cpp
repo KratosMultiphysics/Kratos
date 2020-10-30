@@ -85,7 +85,7 @@ int ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::Check(const ProcessInfo& 
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i) {
-        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(MATERIAL_ACCELERATION) == false)<< "Missing MATERIAL_ACCELERATION variable on solution step data for node " << this->GetGeometry()[i].Id() << std::endl;
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MATERIAL_ACCELERATION, this->GetGeometry()[i])
     }
     return 0;
 

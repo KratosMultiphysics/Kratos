@@ -88,7 +88,7 @@ int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& r
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i < this->GetGeometry().size(); ++i) {
-        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_COMPONENT_GRADIENT) == false) << "missing VELOCITY_COMPONENT_GRADIENT variable on solution step data for node " << this->GetGeometry()[i].Id() << std::endl;
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_COMPONENT_GRADIENT, this->GetGeometry()[i])
     }
     return 0;
 

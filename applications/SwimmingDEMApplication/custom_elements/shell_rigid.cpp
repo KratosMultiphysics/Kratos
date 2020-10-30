@@ -1971,10 +1971,14 @@ int  ShellRigid::Check(const ProcessInfo& rCurrentProcessInfo)
 
     //verify that the dofs exist
     for(unsigned int i=0; i<this->GetGeometry().size(); i++) {
-        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) << "Missing variable DISPLACEMENT on node "<< this->GetGeometry()[i].Id() << std::endl;
-        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(ROTATION) == false) << "Missing variable ROTATION on node "<< this->GetGeometry()[i].Id() << std::endl;
-        KRATOS_ERROR_IF(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false) << "Missing DISPLACEMENT component degree of freedom on node "<< this->GetGeometry()[i].Id() << std::endl;
-        KRATOS_ERROR_IF(this->GetGeometry()[i].HasDofFor(ROTATION_X) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Y) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Z) == false) << "Missing ROTATION component degree of freedom on node "<< this->GetGeometry()[i].Id() << std::endl;
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, this->GetGeometry()[i])
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z, this->GetGeometry()[i])
     }
 
     //Verify that the body force is defined

@@ -59,7 +59,7 @@ int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& r
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i) {
-        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_LAPLACIAN) == false) << "Missing VELOCITY_LAPLACIAN variable on solution step data for node " << this->GetGeometry()[i].Id() << std::endl;
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_LAPLACIAN, this->GetGeometry()[i])
     }
     return 0;
 
