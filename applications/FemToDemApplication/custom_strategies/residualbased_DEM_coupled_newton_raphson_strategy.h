@@ -207,65 +207,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
-        if (!mSolutionStepIsInitialized) {
-            // Pointers needed in the solution
-            typename TSchemeType::Pointer p_scheme = GetScheme();
-            typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-            ModelPart& r_model_part = BaseType::GetModelPart();
-
-            //set up the system, operation performed just once unless it is required
-            //to reform the dof set at each iteration
-            BuiltinTimer system_construction_time;
-            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
-                mReformDofSetAtEachStep == true)
-            {
-                //setting up the list of the DOFs to be solved
-                BuiltinTimer setup_dofs_time;
-                p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-                KRATOS_INFO_IF("ResidualBasedDEMCoupledNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
-                    << setup_dofs_time.ElapsedSeconds() << std::endl;
-
-                //shaping correctly the system
-                BuiltinTimer setup_system_time;
-                p_builder_and_solver->SetUpSystem(r_model_part);
-                KRATOS_INFO_IF("ResidualBasedDEMCoupledNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
-                    << setup_system_time.ElapsedSeconds() << std::endl;
-
-                //setting up the Vectors involved to the correct size
-                BuiltinTimer system_matrix_resize_time;
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                 r_model_part);
-                KRATOS_INFO_IF("ResidualBasedDEMCoupledNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
-                    << system_matrix_resize_time.ElapsedSeconds() << std::endl;
-            }
-
-            KRATOS_INFO_IF("ResidualBasedDEMCoupledNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
-                << system_construction_time.ElapsedSeconds() << std::endl;
-
-            TSystemMatrixType& rA  = *mpA;
-            TSystemVectorType& rDx = *mpDx;
-            TSystemVectorType& rb  = *mpb;
-
-            // Initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
-
-            // Initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
-
-            // Initialisation of the convergence criteria
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-            {
-                TSparseSpace::SetToZero(rb);
-                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-            }
-
-            mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
-
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-                TSparseSpace::SetToZero(rb);
-
-            mSolutionStepIsInitialized = true;
-        }
+        BaseType::InitializeSolutionStep();
 
         mpDEMStrategy->InitializeSolutionStep();
         TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
@@ -282,34 +224,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = BaseType::GetModelPart();
-
-        typename TSchemeType::Pointer p_scheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
-
-        //Finalisation of the solution step,
-        //operations to be done after achieving convergence, for example the
-        //Final Residual Vector (mb) has to be saved in there
-        //to avoid error accumulation
-
-        p_scheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
-        p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
-        mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
-
-        //Cleaning memory after the solution
-        p_scheme->Clean();
-
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
-
-        if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
-        {
-            this->Clear();
-        }
+        BaseType::FinalizeSolutionStep();
 
         mpDEMStrategy->FinalizeSolutionStep();
 
