@@ -26,7 +26,7 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 
@@ -80,10 +80,10 @@ namespace Kratos {
         }
 
         using Element::InitializeSolutionStep;
-        virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {}
+        virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override {}
 
         using Element::FinalizeSolutionStep;
-        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {}
+        virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info) override {}
 
         virtual std::string Info() const override {
             std::stringstream buffer;

@@ -472,11 +472,6 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
                      << std::endl;
     }
 
-    if (GetProperties().Has(YOUNG_MODULUS) == false ||
-            GetProperties()[YOUNG_MODULUS] < 0.0) {
-        KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << Id()
-                     << std::endl;
-    }
     if (GetProperties().Has(DENSITY) == false) {
         KRATOS_ERROR << "DENSITY not provided for this element" << Id()
                      << std::endl;

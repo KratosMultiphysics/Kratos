@@ -154,9 +154,12 @@ public:
 
     /**
      * @brief This method returns the mapping-matrix
-     * @return The mapping-matrix
+     * @return Reference to the mapping-matrix
      */
-    virtual TMappingMatrixType* pGetMappingMatrix() = 0;
+    virtual TMappingMatrixType& GetMappingMatrix()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetMappingMatrix\"!" << std::endl;
+    }
 
     ///@}
     ///@name Inquiry

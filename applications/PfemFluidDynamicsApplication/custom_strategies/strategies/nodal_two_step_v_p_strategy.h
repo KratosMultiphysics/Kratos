@@ -229,16 +229,16 @@ namespace Kratos
 			KRATOS_CATCH("");
 		}
 
-		double Solve() override
+		bool SolveSolutionStep() override
 		{
 			// Initialize BDF2 coefficients
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			this->SetTimeCoefficients(rModelPart.GetProcessInfo());
-			double NormDp = 0.0;
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 			bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+			bool converged = false;
 
 			// bool momentumAlreadyConverged=false;
 			// bool continuityAlreadyConverged=false;
@@ -326,6 +326,7 @@ namespace Kratos
 				{
 					rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
 					rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
+					converged = true;
 					std::cout << "nodal V-P strategy converged in " << it + 1 << " iterations." << std::endl;
 					break;
 				}
@@ -339,7 +340,7 @@ namespace Kratos
 
 			/* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
 
-			return NormDp;
+			return converged;
 		}
 
 		void FinalizeSolutionStep() override
@@ -1533,7 +1534,7 @@ namespace Kratos
 
 			if (it == 0)
 			{
-				this->ComputeVelocityNorm(velocityNorm);
+				velocityNorm = this->ComputeVelocityNorm();
 			}
 			double DvErrorNorm = NormDv / velocityNorm;
 
@@ -1607,7 +1608,7 @@ namespace Kratos
 
 			if (it == 0)
 			{
-				this->ComputePressureNorm(NormP);
+				NormP=this->ComputePressureNorm();
 			}
 
 			double DpErrorNorm = NormDp / (NormP);
@@ -1714,11 +1715,11 @@ namespace Kratos
 			}
 		}
 
-		void ComputeVelocityNorm(double &NormV)
+		double ComputeVelocityNorm()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
 
-			NormV = 0.00;
+			double NormV = 0.00;
 
 #pragma omp parallel reduction(+ \
 							   : NormV)
@@ -1746,11 +1747,15 @@ namespace Kratos
 
 			if (NormV == 0.0)
 				NormV = 1.00;
+
+			return NormV;
 		}
 
-		void ComputePressureNorm(double &NormP)
+		double ComputePressureNorm()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
+
+			double NormP = 0.00;
 
 #pragma omp parallel reduction(+ \
 							   : NormP)
@@ -1771,6 +1776,8 @@ namespace Kratos
 
 			if (NormP == 0.0)
 				NormP = 1.00;
+
+			return NormP;
 		}
 
 		void ComputeErrorL2NormCaseImposedG()

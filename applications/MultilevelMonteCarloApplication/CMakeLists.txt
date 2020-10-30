@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMultilevelMonteCarloApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## define application core sources (pure C++ parts)
 set( KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_SOURCES
