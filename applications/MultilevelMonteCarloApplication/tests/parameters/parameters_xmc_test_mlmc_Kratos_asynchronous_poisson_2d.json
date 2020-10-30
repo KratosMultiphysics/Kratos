@@ -71,6 +71,8 @@
         "numberContributionsPerInstance": 1,
         "numberQoI": 1,
         "numberCombinedQoi": 0,
+        "numberMultiQoI": 0,
+        "numberMultiCombinedQoI": 0,
         "parameters": null,
         "printToFile": false,
         "problemId": "poisson_2d",
