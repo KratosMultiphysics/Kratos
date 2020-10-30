@@ -79,6 +79,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> OriginBaseType;
+
     typedef ResidualBasedDEMCoupledNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
@@ -137,41 +139,16 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart),
-          mpDEMStrategy(pDEMStrategy),
-          mpScheme(pScheme),
-          mpBuilderAndSolver(pNewBuilderAndSolver),
-          mpConvergenceCriteria(pNewConvergenceCriteria),
-          mReformDofSetAtEachStep(ReformDofSetAtEachStep),
-          mCalculateReactionsFlag(CalculateReactions),
-          mSolutionStepIsInitialized(false),
-          mMaxIterationNumber(MaxIterations),
-          mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
+        : BaseType(rModelPart,
+                   pScheme,
+                   pNewConvergenceCriteria,
+                   pNewBuilderAndSolver,
+                   MaxIterations,
+                   CalculateReactions,
+                   ReformDofSetAtEachStep,
+                   MoveMeshFlag),
+          mpDEMStrategy(pDEMStrategy)
     {
-        KRATOS_TRY
-
-        // Getting builder and solver
-        auto p_builder_and_solver = GetBuilderAndSolver();
-
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        p_builder_and_solver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        //be reshaped at each step or not
-        p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-        // Set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
-
-        // By default the matrices are rebuilt at each iteration
-        this->SetRebuildLevel(2);
-
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
-
-        KRATOS_CATCH("")
     }
 
 
@@ -204,149 +181,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         Clear();
     }
 
-    /**
-     * @brief Set method for the time scheme
-     * @param pScheme The pointer to the time scheme considered
-     */
-    void SetScheme(typename TSchemeType::Pointer pScheme)
-    {
-        mpScheme = pScheme;
-    };
-
-    /**
-     * @brief Get method for the time scheme
-     * @return mpScheme: The pointer to the time scheme considered
-     */
-    typename TSchemeType::Pointer GetScheme()
-    {
-        return mpScheme;
-    };
-
-    /**
-     * @brief Set method for the builder and solver
-     * @param pNewBuilderAndSolver The pointer to the builder and solver considered
-     */
-    void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
-    {
-        mpBuilderAndSolver = pNewBuilderAndSolver;
-    };
-
-    /**
-     * @brief Get method for the builder and solver
-     * @return mpBuilderAndSolver: The pointer to the builder and solver considered
-     */
-    typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
-    {
-        return mpBuilderAndSolver;
-    };
-
-    /**
-     * @brief This method sets the flag mInitializeWasPerformed
-     * @param InitializePerformedFlag The flag that tells if the initialize has been computed
-     */
-    void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
-    {
-        mInitializeWasPerformed = InitializePerformedFlag;
-    }
-
-    /**
-     * @brief This method gets the flag mInitializeWasPerformed
-     * @return mInitializeWasPerformed: The flag that tells if the initialize has been computed
-     */
-    bool GetInitializePerformedFlag()
-    {
-        return mInitializeWasPerformed;
-    }
-
-    /**
-     * @brief This method sets the flag mCalculateReactionsFlag
-     * @param CalculateReactionsFlag The flag that tells if the reactions are computed
-     */
-    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
-    {
-        mCalculateReactionsFlag = CalculateReactionsFlag;
-    }
-
-    /**
-     * @brief This method returns the flag mCalculateReactionsFlag
-     * @return The flag that tells if the reactions are computed
-     */
-    bool GetCalculateReactionsFlag()
-    {
-        return mCalculateReactionsFlag;
-    }
-
-    /**
-     * @brief This method sets the flag mFullUpdateFlag
-     * @param UseOldStiffnessInFirstIterationFlag The flag that tells if
-     */
-    void SetUseOldStiffnessInFirstIterationFlag(bool UseOldStiffnessInFirstIterationFlag)
-    {
-        mUseOldStiffnessInFirstIteration = UseOldStiffnessInFirstIterationFlag;
-    }
-
-    /**
-     * @brief This method returns the flag mFullUpdateFlag
-     * @return The flag that tells if
-     */
-    bool GetUseOldStiffnessInFirstIterationFlag()
-    {
-        return mUseOldStiffnessInFirstIteration;
-    }
-
-    /**
-     * @brief This method sets the flag mReformDofSetAtEachStep
-     * @param Flag The flag that tells if each time step the system is rebuilt
-     */
-    void SetReformDofSetAtEachStepFlag(bool Flag)
-    {
-        mReformDofSetAtEachStep = Flag;
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-    }
-
-    /**
-     * @brief This method returns the flag mReformDofSetAtEachStep
-     * @return The flag that tells if each time step the system is rebuilt
-     */
-    bool GetReformDofSetAtEachStepFlag()
-    {
-        return mReformDofSetAtEachStep;
-    }
-
-    /**
-     * @brief This method sets the flag mMaxIterationNumber
-     * @param MaxIterationNumber This is the maximum number of on linear iterations
-     */
-    void SetMaxIterationNumber(unsigned int MaxIterationNumber)
-    {
-        mMaxIterationNumber = MaxIterationNumber;
-    }
-
-    /**
-     * @brief This method gets the flag mMaxIterationNumber
-     * @return mMaxIterationNumber: This is the maximum number of on linear iterations
-     */
-    unsigned int GetMaxIterationNumber()
-    {
-        return mMaxIterationNumber;
-    }
-
-    /**
-     * @brief It sets the level of echo for the solving strategy
-     * @param Level The level to set
-     * @details The different levels of echo are:
-     * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
-     * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
-     */
-
-    void SetEchoLevel(int Level) override
-    {
-        BaseType::mEchoLevel = Level;
-        GetBuilderAndSolver()->SetEchoLevel(Level);
-    }
-
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT: **/
 
@@ -358,7 +192,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
-        if (mInitializeWasPerformed == false)
+        if (this->GetInitializePerformedFlag() == false)
         {
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -380,7 +214,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
             if (p_convergence_criteria->IsInitialized() == false)
                 p_convergence_criteria->Initialize(BaseType::GetModelPart());
 
-            mInitializeWasPerformed = true;
+            this->SetInitializePerformedFlag(true);
         }
 
         mpDEMStrategy->Initialize();
@@ -753,143 +587,19 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     ///@name Member Variables
     ///@{
 
-    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
-    typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed
+    // typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
+    // typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
+    // typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed
     typename ExplicitSolverStrategy::Pointer mpDEMStrategy = nullptr;
 
-    TSystemVectorPointerType mpDx; /// The increment in the solution
-    TSystemVectorPointerType mpb; /// The RHS vector of the system of equations
-    TSystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
+    // TSystemVectorPointerType mpDx; /// The increment in the solution
+    // TSystemVectorPointerType mpb; /// The RHS vector of the system of equations
+    // TSystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
 
-    /**
-     * @brief Flag telling if it is needed to reform the DofSet at each
-    solution step or if it is possible to form it just once
-    * @details Default = false
-        - true  : Reforme at each time step
-        - false : Form just one (more efficient)
-     */
-    bool mReformDofSetAtEachStep;
-
-    /**
-     * @brief Flag telling if it is needed or not to compute the reactions
-     * @details default = true
-     */
-    bool mCalculateReactionsFlag;
-
-    /**
-     * @brief Flag telling if a full update of the database will be performed at the first iteration
-     * @details default = false
-     */
-    bool mUseOldStiffnessInFirstIteration = false;
-
-    bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
-
-    unsigned int mMaxIterationNumber; /// The maximum number of iterations, 30 by default
-
-    bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
-
-    bool mKeepSystemConstantDuringIterations; // Flag to allow keeping system matrix constant during iterations
 
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-     * @brief Here the database is updated
-     * @param A The LHS matrix of the system of equations
-     * @param Dx The incremement in the solution
-     * @param b The RHS vector of the system of equations
-     * @param MoveMesh The flag that allows to move the mesh
-     */
-
-    virtual void UpdateDatabase(
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb,
-        const bool MoveMesh)
-    {
-        typename TSchemeType::Pointer p_scheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-
-        p_scheme->Update(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
-
-        // Move the mesh if needed
-        if (MoveMesh == true)
-            BaseType::MoveMesh();
-    }
-
-    /**
-     * @brief This method returns the components of the system of equations depending of the echo level
-     * @param IterationNumber The non linear iteration in the solution loop
-     */
-    virtual void EchoInfo(const unsigned int IterationNumber)
-    {
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
-
-        if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
-        {
-            KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
-        }
-        else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
-        {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
-        }
-        else if (this->GetEchoLevel() == 4) //print to matrix market file
-        {
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
-
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rb);
-        }
-    }
-
-    /**
-     * @brief This method prints information after reach the max number of iterations
-     */
-
-    virtual void MaxIterationsExceeded()
-    {
-        KRATOS_INFO_IF("ResidualBasedDEMCoupledNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
-            << "ATTENTION: max iterations ( " << mMaxIterationNumber
-            << " ) exceeded!" << std::endl;
-    }
-
-    /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
-     */
-    void AssignSettings(const Parameters ThisParameters) override
-    {
-        BaseType::AssignSettings(ThisParameters);
-        mMaxIterationNumber = ThisParameters["max_iteration"].GetInt();
-        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
-        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
-        mUseOldStiffnessInFirstIteration = ThisParameters["use_old_stiffness_in_first_iteration"].GetBool();
-
-        // Saving the convergence criteria to be used
-        if (ThisParameters["convergence_criteria_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
-        }
-
-        // Saving the scheme
-        if (ThisParameters["scheme_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
-        }
-
-        // Setting up the default builder and solver
-        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
-        }
-    }
 
     ///@}
     ///@name Private Operations
