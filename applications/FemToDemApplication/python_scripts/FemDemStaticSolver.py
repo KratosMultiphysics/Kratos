@@ -4,8 +4,8 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 # Import the mechanical solver base class
 import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(main_model_part, custom_settings, DEMStrategy = None):
+    return StaticMechanicalSolver(main_model_part, custom_settings, DEMStrategy)
 
 class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
 
@@ -14,7 +14,7 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
     Public member variables:
     See solid_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, main_model_part, custom_settings, DEMStrategy = None):
 
         # Set defaults and validate custom settings.
         static_settings = KratosMultiphysics.Parameters("""
