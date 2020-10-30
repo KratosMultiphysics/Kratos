@@ -78,33 +78,17 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedDEMCoupledNewtonRaphsonStrategy);
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> OriginBaseType;
-
     typedef ResidualBasedDEMCoupledNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
-
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-
     typedef typename BaseType::TDataType TDataType;
-
     typedef TSparseSpace SparseSpaceType;
-
     typedef typename BaseType::TSchemeType TSchemeType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
     ///@}
@@ -180,11 +164,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     void Initialize() override
     {
         KRATOS_TRY;
-
         BaseType::Initialize();
-
         mpDEMStrategy->Initialize();
-
         KRATOS_CATCH("");
     }
 
@@ -195,13 +176,10 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     void InitializeSolutionStep() override
     {
         KRATOS_TRY;
-
         BaseType::InitializeSolutionStep();
-
         mpDEMStrategy->InitializeSolutionStep();
         TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
         UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
-
         KRATOS_CATCH("");
     }
 
@@ -212,11 +190,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
-
         BaseType::FinalizeSolutionStep();
-
         mpDEMStrategy->FinalizeSolutionStep();
-
         KRATOS_CATCH("");
     }
 
@@ -287,8 +262,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         }
 
         //Iteration Cycle... performed only for NonLinearProblems
-        while (is_converged == false && iteration_number++ < mMaxIterationNumber)
-        {
+        while (is_converged == false && iteration_number++ < mMaxIterationNumber) {
             // We compute the contact forces with the DEM
             UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
             mpDEMStrategy->SolveSolutionStep();
@@ -305,37 +279,28 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
 
             //call the linear system solver to find the correction mDx for the
             //it is not called if there is no system to solve
-            if (SparseSpaceType::Size(rDx) != 0)
-            {
-                if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
-                {
-                    if (GetKeepSystemConstantDuringIterations() == false)
-                    {
+            if (SparseSpaceType::Size(rDx) != 0) {
+                if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false) {
+                    if (GetKeepSystemConstantDuringIterations() == false) {
                         //A = 0.00;
                         TSparseSpace::SetToZero(rA);
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-                    }
-                    else
-                    {
+                    } else {
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
-                }
-                else
-                {
+                } else {
                     TSparseSpace::SetToZero(rDx);
                     TSparseSpace::SetToZero(rb);
 
                     p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                 }
-            }
-            else
-            {
+            } else {
                 KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
             }
 
@@ -350,16 +315,12 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
 
             residual_is_updated = false;
 
-            if (is_converged == true)
-            {
-                if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-                {
+            if (is_converged == true) {
+                if (mpConvergenceCriteria->GetActualizeRHSflag() == true) {
                     TSparseSpace::SetToZero(rb);
-
                     p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
                     residual_is_updated = true;
                 }
-
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
         }
@@ -373,21 +334,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
                 << mMaxIterationNumber << " iterations" << std::endl;
         }
 
-        //recalculate residual if needed
-        //(note that some convergence criteria need it to be recalculated)
-        if (residual_is_updated == false)
-        {
-            // NOTE:
-            // The following part will be commented because it is time consuming
-            // and there is no obvious reason to be here. If someone need this
-            // part please notify the community via mailing list before uncommenting it.
-            // Pooyan.
-
-            //    TSparseSpace::SetToZero(mb);
-            //    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, mb);
-        }
-
-        //calculate reactions if required
+        // Calculate reactions if required
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
@@ -426,17 +373,17 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
         const int local_number_of_constraints = r_constraints_array.size();
         const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
-        if(global_number_of_constraints != 0) {
+        if (global_number_of_constraints != 0) {
             const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
             const auto it_const_begin = r_constraints_array.begin();
 
             #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
+            for (int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                 (it_const_begin + i)->ResetSlaveDofs(r_process_info);
 
             #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
+            for (int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_const_begin + i)->Apply(r_process_info);
 
             // The following is needed since we need to eventually compute time derivatives after applying
