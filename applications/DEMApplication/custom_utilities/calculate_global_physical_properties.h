@@ -86,7 +86,7 @@ class SphericElementGlobalPhysicsCalculator
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
-        KRATOS_ERROR_IF(!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)) << "Cannot compute maximum of the required nodal variable. Missing nodal variable " << r_variable << std::endl;
+        KRATOS_ERROR_IF_NOT(it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)) << "Cannot compute maximum of the required nodal variable. Missing nodal variable " << r_variable << std::endl;
 
         std::vector<double> max_values;
         double max_val = - std::numeric_limits<double>::max();
@@ -128,7 +128,7 @@ class SphericElementGlobalPhysicsCalculator
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
-        KRATOS_ERROR_IF(!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)) << "Cannot compute minimum of the required nodal variable. Missing variable " << r_variable << std::endl;
+        KRATOS_ERROR_IF_NOT(it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)) << "Cannot compute minimum of the required nodal variable. Missing variable " << r_variable << std::endl;
 
         std::vector<double> min_values;
         double min_val = std::numeric_limits<double>::max();
