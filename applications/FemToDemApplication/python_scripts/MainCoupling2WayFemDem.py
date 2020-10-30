@@ -55,7 +55,7 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
             
         self.FEM_Solution.Initialize()
-        # self.DEM_Solution.Initialize()
+        self.DEM_Solution.Initialize()
 
         nodes = self.FEM_Solution.main_model_part.Nodes
         utils = KratosMultiphysics.VariableUtils()
@@ -912,11 +912,13 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         if self.DEM_Solution.rigid_face_model_part.HasSubModelPart("SkinTransferredFromStructure"):
             self.EraseConditionsAndNodesSubModelPart()
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
+            dem_walls_mp.SetValue(KratosDEM.RIGID_BODY_OPTION, False)
             props = self.DEM_Solution.rigid_face_model_part.GetProperties(self.created_props_id,0)
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
         else: # have to create it
             props = self.CreateFEMPropertiesForDEFEContact()
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
+            dem_walls_mp.SetValue(KratosDEM.RIGID_BODY_OPTION, False)
             dem_walls_mp.AddProperties(props)
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
 

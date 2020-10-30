@@ -192,30 +192,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
-        if (this->GetInitializePerformedFlag() == false)
-        {
-            //pointers needed in the solution
-            typename TSchemeType::Pointer p_scheme = GetScheme();
-            typename TConvergenceCriteriaType::Pointer p_convergence_criteria = mpConvergenceCriteria;
-
-            //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->SchemeIsInitialized() == false)
-                p_scheme->Initialize(BaseType::GetModelPart());
-
-            //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->ElementsAreInitialized() == false)
-                p_scheme->InitializeElements(BaseType::GetModelPart());
-
-            //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->ConditionsAreInitialized() == false)
-                p_scheme->InitializeConditions(BaseType::GetModelPart());
-
-            //initialisation of the convergence criteria
-            if (p_convergence_criteria->IsInitialized() == false)
-                p_convergence_criteria->Initialize(BaseType::GetModelPart());
-
-            this->SetInitializePerformedFlag(true);
-        }
+        BaseType::Initialize();
 
         mpDEMStrategy->Initialize();
 
@@ -291,8 +268,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         }
 
         mpDEMStrategy->InitializeSolutionStep();
-        TransferNodalForcesToFem(BaseType::GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
-        UpdateDemKinematicsProcess(BaseType::GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
 
         KRATOS_CATCH("");
     }
@@ -364,8 +341,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
 
         // We compute the contact forces with the DEM
         mpDEMStrategy->SolveSolutionStep();
-        TransferNodalForcesToFem(BaseType::GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
-        UpdateDemKinematicsProcess(BaseType::GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
 
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
@@ -410,8 +387,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         {
             // We compute the contact forces with the DEM
             mpDEMStrategy->SolveSolutionStep();
-            TransferNodalForcesToFem(BaseType::GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
-            UpdateDemKinematicsProcess(BaseType::GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+            TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+            UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
 
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
