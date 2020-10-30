@@ -7,10 +7,7 @@ include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Use Metis 5 by default
-if(NOT DEFINED USE_METIS_5)
-	message("USE_METIS_5 not defined. Setting to ON")
-	SET (USE_METIS_5 ON)
-endif(NOT DEFINED USE_METIS_5)
+OPTION ( USE_METIS_5 "Using Metis 5 (and not 4)" ON )
 
 if(${USE_METIS_5} MATCHES ON)
     message("using metis (and not Parmetis) version 5")
@@ -26,16 +23,29 @@ else(${USE_METIS_5} MATCHES ON)
     link_directories(${PARMETIS_LIBRARIES})
 endif(${USE_METIS_5} MATCHES ON)
 
-## generate variables with the sources
-set( KRATOS_METIS_APPLICATION_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_metis_python_application.cpp
+## Metis Core sources
+file( GLOB KRATOS_METIS_APPLICATION_CORE
+    ${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
 )
 
-# ###############################################################
-pybind11_add_module(KratosMetisApplication MODULE THIN_LTO ${KRATOS_METIS_APPLICATION_SOURCES})
-target_link_libraries(KratosMetisApplication PRIVATE KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES} )
+## Metis python interface sources
+file(GLOB_RECURSE KRATOS_METIS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
+
+## define test sources (cpp tests)
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+ 	file(GLOB KRATOS_METIS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+
+add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE} ${KRATOS_METIS_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosMetisCore PUBLIC KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES}) # todo refactor to use DataCommunicator then MPI can be removed
+set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
+
+###############################################################
+## define library Kratos which defines the basic python interface
+pybind11_add_module(KratosMetisApplication MODULE THIN_LTO ${KRATOS_METIS_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosMetisApplication PRIVATE KratosMetisCore)
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd
@@ -50,6 +60,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosMetisCore)
     cotire(KratosMetisApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -73,4 +84,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install(TARGETS KratosMetisCore DESTINATION libs )
 install(TARGETS KratosMetisApplication DESTINATION libs )

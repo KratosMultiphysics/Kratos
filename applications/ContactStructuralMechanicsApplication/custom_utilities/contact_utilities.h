@@ -168,6 +168,13 @@ public:
         );
 
     /**
+     * @brief This method checks that the modelpart has a rotation DoF
+     * @details Used in the convergence criteria
+     * @param rModelPart The modelpart to clean up
+     */
+    static bool CheckModelPartHasRotationDoF(ModelPart& rModelPart);
+
+    /**
      * @brief This method removes the model parts with computing conditions
      * @details So for example we can remove potential errors in remeshing processes
      * @param rModelPart The modelpart to clean up

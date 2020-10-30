@@ -708,21 +708,6 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 }
 
 template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                                                                                   std::vector<double> &rValues,
-                                                                                                   const ProcessInfo &rCurrentProcessInfo)
-{
-  if (rVariable == YIELDED)
-  {
-    rValues[0] = this->GetValue(YIELDED);
-  }
-  if (rVariable == FLOW_INDEX)
-  {
-    rValues[0] = this->GetValue(FLOW_INDEX);
-  }
-}
-
-template <unsigned int TDim>
 int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;
