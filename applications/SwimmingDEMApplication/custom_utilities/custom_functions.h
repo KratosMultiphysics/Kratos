@@ -149,7 +149,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
             mLastPressureVariation = pressure_spatial_variation;
             const double characteristic_pressure_variation = 0.5 * (pressure_spatial_variation + mLastPressureVariation);
 
-            if (characteristic_pressure_variation == 0.0 || reciprocal_of_characteristic_time == 0.0){ // unlikely
+            if (KRATOS_CHECK_DOUBLE_EQUAL(characteristic_pressure_variation, 0.0) || KRATOS_CHECK_DOUBLE_EQUAL(reciprocal_of_characteristic_time, 0.0){ // unlikely
                 std::cout << "Uniform problem: stationarity check being performed with dimensional values...! " << "\n";
 
                 if (max_pressure_change_rate <= tol){ // go with the absolute value
@@ -627,7 +627,7 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
         vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
 
-    if (vol == 0.0){
+    if (KRATOS_CHECK_DOUBLE_EQUAL(vol, 0.0)){
         KRATOS_ERROR << "Element with zero area found with the current geometry "<< geom << std::endl;
     }
 
@@ -659,7 +659,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    KRATOS_ERROR_IF(vol == 0.0) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
+    KRATOS_ERROR_IF(KRATOS_CHECK_DOUBLE_EQUAL(vol, 0.0)) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -700,7 +700,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    KRATOS_ERROR_IF(vol == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
+    KRATOS_ERROR_IF(KRATOS_CHECK_DOUBLE_EQUAL(vol, 0.0)) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -741,7 +741,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMas
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    KRATOS_ERROR_IF(vol == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
+    KRATOS_ERROR_IF(KRATOS_CHECK_DOUBLE_EQUAL(vol, 0.0)) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);

@@ -299,7 +299,7 @@ private:
 
         double area = CalculateVol(x0,y0,x1,y1,x2,y2);
         double inv_area = 0.0;
-        if (area == 0.0)
+        if (KRATOS_CHECK_DOUBLE_EQUAL(area, 0.0))
         {
 
             //The interpolated node will not be inside an elemente with zero area

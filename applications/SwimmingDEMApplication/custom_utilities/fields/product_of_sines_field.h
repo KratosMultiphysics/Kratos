@@ -48,7 +48,7 @@ ProductOfSines(const double period)
     unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
 
-    KRATOS_ERROR_IF(period == 0.0) << "The period must be non-negative." << std::endl;
+    KRATOS_ERROR_IF(period <= 0.0) << "The period must be non-negative." << std::endl;
 
     mOmega = Globals::Pi / period;
 }

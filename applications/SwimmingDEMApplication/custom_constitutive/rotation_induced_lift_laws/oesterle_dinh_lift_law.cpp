@@ -44,7 +44,7 @@ namespace Kratos {
                                                                                 particle_radius,
                                                                                 fluid_kinematic_viscosity);
 
-        if (reynolds_number == 0.0 || rot_reynolds == 0.0){
+        if (KRATOS_CHECK_DOUBLE_EQUAL(reynolds_number, 0.0) || KRATOS_CHECK_DOUBLE_EQUAL(rot_reynolds, 0.0)){
             return;
         }
 
