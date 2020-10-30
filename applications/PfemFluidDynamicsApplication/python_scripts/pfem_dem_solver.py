@@ -20,7 +20,6 @@ class PfemDemSolver(BaseSolver.PfemFluidSolver):
         print("Construction of 2-step Pfem Dem Solver finished.")
 
     def AddVariables(self):
-        print("ADD VARIABLESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS in fluid solver")
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)

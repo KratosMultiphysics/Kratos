@@ -33,7 +33,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### TIME MONITORING END ####
 
         #### PARSING THE PARAMETERS ####
-        print("INIT IN PFEM FLUID ANALYSIS SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSDFFFFFFFFFFFFFFFFFFFFFFSSSSSSSSSSSSSSSSSSSSSS")
         #set echo level
         self.echo_level = parameters["problem_data"]["echo_level"].GetInt()
 

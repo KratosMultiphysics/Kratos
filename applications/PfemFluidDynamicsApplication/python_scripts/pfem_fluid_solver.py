@@ -143,7 +143,6 @@ class PfemFluidSolver(PythonSolver):
         self.fluid_solver.Check()
 
     def AddVariables(self):
-        print("ADD VARIABLESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS in pfem_fluid solver")
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
