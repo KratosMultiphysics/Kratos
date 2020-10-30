@@ -1209,24 +1209,29 @@ namespace Kratos
 
     this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
 
-    if (this->GetProperties()[YIELD_SHEAR] > 0)
+    const Properties &r_properties = this->GetProperties();
+    if (r_properties.Has(YIELD_SHEAR))
     {
+
       double TauNorm = sqrt(0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
                             0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
                             rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2]);
 
       if (TauNorm > this->GetProperties()[YIELD_SHEAR])
       {
-        this->SetValue(YIELDED, true);
+        if (this->Has(YIELDED))
+          this->SetValue(YIELDED, true);
       }
       else
       {
-        this->SetValue(YIELDED, false);
+        if (this->Has(YIELDED))
+          this->SetValue(YIELDED, false);
       }
     }
     else
     {
-      this->SetValue(YIELDED, false);
+      if (this->Has(YIELDED))
+        this->SetValue(YIELDED, false);
     }
 
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
@@ -1279,8 +1284,9 @@ namespace Kratos
     rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.UpdatedDeviatoricCauchyStress[5];
 
     this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
-    
-    if (this->GetProperties()[YIELD_SHEAR] > 0)
+
+    const Properties &r_properties = this->GetProperties();
+    if (r_properties.Has(YIELD_SHEAR))
     {
 
       double TauNorm = sqrt(2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
@@ -1292,16 +1298,19 @@ namespace Kratos
 
       if (TauNorm > this->GetProperties()[YIELD_SHEAR])
       {
-        this->SetValue(YIELDED, true);
+        if (this->Has(YIELDED))
+          this->SetValue(YIELDED, true);
       }
       else
       {
-        this->SetValue(YIELDED, false);
+        if (this->Has(YIELDED))
+          this->SetValue(YIELDED, false);
       }
     }
     else
     {
-      this->SetValue(YIELDED, false);
+      if (this->Has(YIELDED))
+        this->SetValue(YIELDED, false);
     }
 
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
