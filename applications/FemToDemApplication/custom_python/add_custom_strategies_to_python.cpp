@@ -45,21 +45,20 @@ namespace Python
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
         typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
         typedef FemDemResidualCriteria< SparseSpaceType,  LocalSpaceType > FemDemResidualCriteriaType;
-
-
-        // Base types
         typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
         typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
         typedef BaseSolvingStrategyType::TBuilderAndSolverType BuilderAndSolverType;
         typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
         typedef ResidualBasedDEMCoupledNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedDEMCoupledNewtonRaphsonStrategy;
 
+
         class_< ResidualBasedDEMCoupledNewtonRaphsonStrategy,
                 typename ResidualBasedDEMCoupledNewtonRaphsonStrategy::Pointer,
                 BaseSolvingStrategyType  >  (m, "ResidualBasedDEMCoupledNewtonRaphsonStrategy")
                 .def(init <ModelPart& , ExplicitSolverStrategy::Pointer,  BaseSchemeType::Pointer , ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer , int  , bool , bool , bool  >())
                 ;
-    
+
+
         class_<FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >,
             typename FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >::Pointer,
             ConvergenceCriteriaType >

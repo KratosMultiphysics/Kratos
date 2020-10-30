@@ -189,16 +189,15 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedDEMCoupledNewtonRaphsonStrategy(computing_model_part,
-                                                                               DEM_strategy,
-                                                                               mechanical_scheme,
-                                                                               linear_solver,
-                                                                               mechanical_convergence_criterion,
-                                                                               builder_and_solver,
-                                                                               self.settings["max_iteration"].GetInt(),
-                                                                               self.settings["compute_reactions"].GetBool(),
-                                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                               self.settings["move_mesh_flag"].GetBool())
+        return KratosFemDem.ResidualBasedDEMCoupledNewtonRaphsonStrategy(computing_model_part,
+                                                                         DEM_strategy,
+                                                                         mechanical_scheme,
+                                                                         mechanical_convergence_criterion,
+                                                                         builder_and_solver,
+                                                                         self.settings["max_iteration"].GetInt(),
+                                                                         self.settings["compute_reactions"].GetBool(),
+                                                                         self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                         self.settings["move_mesh_flag"].GetBool())
 
     def _create_ramm_arc_length_strategy(self):
         # Create list of sub sub model parts (it is a copy of the standard lists with a different name)

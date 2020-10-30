@@ -26,7 +26,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         KratosMultiphysics.Logger.Print(message, label="")
         KratosMultiphysics.Logger.Flush()
 #============================================================================================================================                    
-    def __init__(self, Model, path = ""):
+    def __init__(self, Model, path = "", DEMStrategy = None):
 
         #### TIME MONITORING START ####
         # Time control starts        
@@ -84,11 +84,22 @@ class FEM_Solution(MainSolidFEM.Solution):
         # Construct the solver (main setting methods are located in the solver_module)
         if self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemDynamicSolver":
             import KratosMultiphysics.FemToDemApplication.FemDemDynamicSolver as FemDemDynamicSolver
-            self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+            if DEMStrategy == None:
+                self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part,
+                                                               self.ProjectParameters["solver_settings"])
+            else:
+                self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part, 
+                                                               self.ProjectParameters["solver_settings"], 
+                                                               DEMStrategy)
         elif self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemStaticSolver":
             import KratosMultiphysics.FemToDemApplication.FemDemStaticSolver as FemDemStaticSolver
-            self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
-
+            if DEMStrategy == None:
+                self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part,
+                                                               self.ProjectParameters["solver_settings"])
+            else:
+                self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part, 
+                                                               self.ProjectParameters["solver_settings"], 
+                                                               DEMStrategy)
         #### Output settings start ####
         self.problem_path = os.getcwd()
         self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()

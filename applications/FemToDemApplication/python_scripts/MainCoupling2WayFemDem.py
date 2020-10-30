@@ -26,7 +26,8 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         self.model = Model
         # Initialize solutions
         self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, path)
-        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path)
+        self.DEM_Solution.Initialize()
+        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path, self.DEM_Solution.solver)
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
@@ -54,7 +55,7 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
             
         self.FEM_Solution.Initialize()
-        self.DEM_Solution.Initialize()
+        # self.DEM_Solution.Initialize()
 
         nodes = self.FEM_Solution.main_model_part.Nodes
         utils = KratosMultiphysics.VariableUtils()
