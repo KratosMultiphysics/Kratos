@@ -25,7 +25,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -1925,9 +1924,7 @@ namespace Kratos
 				(*it)->Set(FLUID);
 				(*it)->Set(ACTIVE);
 				(*it)->Reset(TO_ERASE);
-				//correct contact_normal interpolation
-				if ((*it)->SolutionStepsDataHas(CONTACT_FORCE))
-					noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+
 			}
 
 			KRATOS_CATCH("")
@@ -2170,7 +2167,7 @@ namespace Kratos
 			MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY) = SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
 			MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
 
-			MasterNode->FastGetSolutionStepValue(FRICTION_ANGLE) = SlaveNode->FastGetSolutionStepValue(FRICTION_ANGLE);
+			MasterNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE) = SlaveNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
 			MasterNode->FastGetSolutionStepValue(COHESION) = SlaveNode->FastGetSolutionStepValue(COHESION);
 
 			if (MasterNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT) && SlaveNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT))
