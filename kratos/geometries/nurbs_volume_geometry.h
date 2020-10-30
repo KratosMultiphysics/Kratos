@@ -611,7 +611,7 @@ public:
         DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
         //@Tobi Why is this NumberOfShapeFunctionDerivatives -1?
         for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
-            const unsigned int num_derivatives = (2 + i) * (3 + i) / 2);
+            const unsigned int num_derivatives = (2 + i) * (3 + i) / 2;
             shape_function_derivatives[i].resize(num_nonzero_cps, num_derivatives);
         }
 
@@ -635,7 +635,7 @@ public:
             }
             /// Get Shape Functions N
             if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; ++) {
+                for (IndexType j = 0; j < num_nonzero_cps; ++j) {
                     N(0, j) = shape_function_container(j, 0);
                 }
             }
@@ -644,7 +644,7 @@ public:
             if (NumberOfShapeFunctionDerivatives > 0) {
                 IndexType shape_derivative_index = 1;
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n) {
-                    const unsigned int num_derivatives = (2 + i) * (3 + i) / 2);
+                    const unsigned int num_derivatives = (2 + i) * (3 + i) / 2;
                     for (IndexType k = 0; k < num_derivatives; ++k) {
                         for (IndexType j = 0; j < num_nonzero_cps; ++j) {
                             shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);

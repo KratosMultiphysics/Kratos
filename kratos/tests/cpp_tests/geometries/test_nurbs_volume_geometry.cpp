@@ -17,7 +17,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/nurbs_volume_geometry.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_volume_shape_function.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_volume_shape_functions.h"
 
 
 

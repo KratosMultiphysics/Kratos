@@ -392,7 +392,7 @@ public:
         // Compute B-Spline shape functions
         ComputeBSplineShapeFunctionValuesAtSpan(
             rKnotsU, rKnotsV, rKnotsW, SpanU, SpanV, SpanW, ParameterU, ParameterV, ParameterW);
-
+        /*
         // Apply weights
         for (IndexType shape_row_index = 0; shape_row_index < NumberOfShapeFunctionRows(); ++shape_row_index) {
             GetWeightedSum(shape_row_index) = double(0);
@@ -456,7 +456,7 @@ public:
                     ShapeFunctionValue(p, shape) /= GetWeightedSum(0);
                 }
             }
-        }
+        }*/
     }
 
     void ComputeNurbsShapeFunctionValues(
@@ -527,7 +527,7 @@ private:
     {
         const IndexType control_point_index = GetNonzeroControlPointIndex(
             ControlPointIndexU, ControlPointIndexV, ControlPointIndexW);
-        //TODO: Check this.. (Manuel)
+
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(),
             DerivativeRow, control_point_index);
