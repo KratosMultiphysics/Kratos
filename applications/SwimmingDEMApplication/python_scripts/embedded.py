@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector
 import math
@@ -159,7 +158,6 @@ def ApplyEmbeddedBCsToBalls(model_part, DEMParameters):
                 node.Set(Kratos.ACTIVE, True)
 
             elif (DEMParameters.RemoveBallsInEmbeddedOption):
-                #print("--------------- One particle was erased because it entered an embedded structure -------------------")
                 node.Set(Kratos.TO_ERASE,True)
 
 

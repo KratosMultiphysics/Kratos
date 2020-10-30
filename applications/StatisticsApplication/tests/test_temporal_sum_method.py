@@ -16,7 +16,7 @@ class TemporalSumMethodHelperClass(
         temporal_statistics_test_case.TemporalStatisticsTestCase):
     def RunTemporalStatisticsTest(self, norm_type, container_name):
 
-        settings = TemporalSumMethodHelperClass.__GetDefaultSettings(
+        settings = TemporalSumMethodHelperClass.__GetDefaultParameters(
             norm_type, container_name)
         input_method = TemporalSumMethodHelperClass.GetInputMethod(
             container_name)
@@ -97,7 +97,7 @@ class TemporalSumMethodHelperClass(
         return result * 2.0
 
     @staticmethod
-    def __GetDefaultSettings(norm_type, container_name):
+    def __GetDefaultParameters(norm_type, container_name):
         settings_str = r'''
         [
             {

@@ -136,7 +136,7 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
         KRATOS_ERROR << "Unsupported domain size.";
     }
 
-    BlockPartition<ModelPart::ElementsContainerType>(r_elements).for_each([&](ModelPart::ElementType& rElement) {
+    block_for_each(r_elements, [&](ModelPart::ElementType& rElement) {
         const double nut = nut_calculation_method(rElement);
         auto& r_geometry = rElement.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
@@ -149,15 +149,13 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
 
     r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_VISCOSITY);
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
-        [&](ModelPart::NodeType& rNode) {
-            const double number_of_neighbour_elements =
-                rNode.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-            double& nut = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
-            nut = std::max(nut / number_of_neighbour_elements, mMinValue);
-            double& nu = rNode.FastGetSolutionStepValue(VISCOSITY);
-            nu = rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nut;
-        });
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
+        const double number_of_neighbour_elements =
+            rNode.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+        double& nut = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+        nut = std::max(nut / number_of_neighbour_elements, mMinValue);
+        rNode.FastGetSolutionStepValue(VISCOSITY) = rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nut;
+    });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Calculated nu_t for nodes in " << mModelPartName << ".\n";

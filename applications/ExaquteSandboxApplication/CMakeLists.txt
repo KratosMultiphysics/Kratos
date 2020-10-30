@@ -5,8 +5,8 @@ message("**** configuring KratosExaquteSandboxApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/MeshingApplication )
 
 # generate variables with the sources
 set( KRATOS_EXAQUTE_SANDBOX_APPLICATION_SOURCES

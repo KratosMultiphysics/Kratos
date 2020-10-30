@@ -174,7 +174,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
             {
                 const std::string var_name = mParameters["variable_names"][j].GetString();
                 // Checking if the variable is a vector variable
-                if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
+                if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name))
                 {   // TODO: Look for a better alternative to do this.
                     ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
                 } else if (KratosComponents<VariableType>::Has(var_name))
