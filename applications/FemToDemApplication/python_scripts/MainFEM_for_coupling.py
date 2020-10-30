@@ -23,6 +23,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         # For remeshing purposes
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_STRESS_VECTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.DEM_NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS_GRADIENT)

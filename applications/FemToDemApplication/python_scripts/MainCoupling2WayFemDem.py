@@ -55,7 +55,7 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
             
         self.FEM_Solution.Initialize()
-        self.DEM_Solution.Initialize()
+
 
         nodes = self.FEM_Solution.main_model_part.Nodes
         utils = KratosMultiphysics.VariableUtils()
@@ -207,7 +207,10 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         self.FEM_Solution.clock_time = self.FEM_Solution.StartTimeMeasuring()
 
         #### SOLVE FEM #########################################
-        self.FEM_Solution.solver.Solve()
+        self.FEM_Solution.solver.InitializeSolutionStep()
+        self.FEM_Solution.solver.Predict()
+        self.FEM_Solution.solver.SolveSolutionStep()
+        self.FEM_Solution.solver.FinalizeSolutionStep()
         ########################################################
 
         self.ExecuteBeforeGeneratingDEM()
@@ -216,25 +219,25 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         self.BeforeSolveDEMOperations()
 
         #### SOLVE DEM #########################################
-        self.DEM_Solution.solver.Solve()
+        # self.DEM_Solution.solver.Solve()
         ########################################################
 
 
 #============================================================================================================================
     def FinalizeSolutionStep(self):
 
-        self.DEM_Solution.FinalizeSolutionStep()
-        self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+        # self.DEM_Solution.FinalizeSolutionStep()
+        # self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
         # to print DEM with the FEM coordinates
-        self.UpdateDEMVariables()
+        # self.UpdateDEMVariables()
 
         # DEM GiD print output
         # self.PrintDEMResults()
 
         # Transfer the contact forces of the DEM to the FEM nodes
-        if self.TransferDEMContactForcesToFEM:
-            self.TransferNodalForcesToFEM()
+        # if self.TransferDEMContactForcesToFEM:
+        #     self.TransferNodalForcesToFEM()
 
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 

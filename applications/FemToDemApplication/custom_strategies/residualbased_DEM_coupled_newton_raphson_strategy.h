@@ -158,22 +158,11 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
      */
     ~ResidualBasedDEMCoupledNewtonRaphsonStrategy() override
     {
-        // If the linear solver has not been deallocated, clean it before
-        // deallocating mpA. This prevents a memory error with the the ML
-        // solver (which holds a reference to it).
-        // NOTE: The linear solver is hold by the B&S
         auto p_builder_and_solver = this->GetBuilderAndSolver();
         if (p_builder_and_solver != nullptr) {
             p_builder_and_solver->Clear();
         }
 
-        // Deallocating system vectors to avoid errors in MPI. Clear calls
-        // TrilinosSpace::Clear for the vectors, which preserves the Map of
-        // current vectors, performing MPI calls in the process. Due to the
-        // way Python garbage collection works, this may happen after
-        // MPI_Finalize has already been called and is an error. Resetting
-        // the pointers here prevents Clear from operating with the
-        // (now deallocated) vectors.
         mpA.reset();
         mpDx.reset();
         mpb.reset();
@@ -236,6 +225,12 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
      */
     bool SolveSolutionStep() override
     {
+        // We compute the contact forces with the DEM
+        UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        mpDEMStrategy->SolveSolutionStep();
+        TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -253,11 +248,6 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
-
-        // We compute the contact forces with the DEM
-        mpDEMStrategy->SolveSolutionStep();
-        TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
-        UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
 
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
@@ -297,10 +287,10 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         }
 
         //Iteration Cycle... performed only for NonLinearProblems
-        while (is_converged == false &&
-               iteration_number++ < mMaxIterationNumber)
+        while (is_converged == false && iteration_number++ < mMaxIterationNumber)
         {
             // We compute the contact forces with the DEM
+            UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
             mpDEMStrategy->SolveSolutionStep();
             TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
             UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
@@ -404,6 +394,63 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         return is_converged;
     }
 
+    /**
+     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
+    values of the solution step of interest are assumed equal to the old values
+     */
+    void Predict() override
+    {
+        KRATOS_TRY
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+        //if the operations needed were already performed this does nothing
+        if (mInitializeWasPerformed == false)
+            BaseType::Initialize();
+
+        //initialize solution step
+        if (mSolutionStepIsInitialized == false) {
+            BaseType::InitializeSolutionStep();
+            mpDEMStrategy->InitializeSolutionStep();
+        }
+            
+
+        TSystemMatrixType& rA  = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb  = *mpb;
+
+        DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
+
+        GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+
+        // Applying constraints if needed
+        auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
+        const int local_number_of_constraints = r_constraints_array.size();
+        const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
+        if(global_number_of_constraints != 0) {
+            const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+
+            const auto it_const_begin = r_constraints_array.begin();
+
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
+                (it_const_begin + i)->ResetSlaveDofs(r_process_info);
+
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
+                 (it_const_begin + i)->Apply(r_process_info);
+
+            // The following is needed since we need to eventually compute time derivatives after applying
+            // Master slave relations
+            TSparseSpace::SetToZero(rDx);
+            this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        }
+
+        // Move the mesh if needed
+        if (this->MoveMeshFlag() == true)
+            BaseType::MoveMesh();
+
+        KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Operators
