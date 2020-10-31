@@ -52,7 +52,7 @@ zero_copy(size_t n, const Ptr *ptr, const Col *col, const Val *val) {
     auto A = std::make_shared< backend::crs<Val> >();
     A->nrows = n;
     A->ncols = n;
-    A->nnz   = ptr[n];
+    A->nnz   = n ? ptr[n] : 0;
 
     A->ptr = (ptrdiff_t*)ptr;
     A->col = (ptrdiff_t*)col;
