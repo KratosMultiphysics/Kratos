@@ -83,8 +83,7 @@ class CoSimulationSolverWrapper(object):
         pass
 
     def SolveSolutionStep(self):
-        for data in self.data_dict.values():
-            data.is_outdated = True
+        pass
 
 
     def CreateIO(self, io_echo_level):
