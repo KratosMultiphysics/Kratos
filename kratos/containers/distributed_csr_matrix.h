@@ -118,24 +118,31 @@ public:
         //*******************************
         //construct diagonal block
         mDiagBlock.reserve(nlocal_rows, diag_nnz);
-        counter = 0;
-        for(const auto& entries : local_graph){
-            unsigned int k = 0;
-            IndexType row_begin = mDiagBlock.index1_data()[counter];
-            for(auto global_j : entries){
-                
-                if(GetColNumbering().IsLocal(global_j)){
-                    IndexType local_j = GetColNumbering().LocalId(global_j);
-                    mDiagBlock.index2_data()[row_begin+k] = local_j;
-                    mDiagBlock.value_data()[row_begin+k] = 0.0;
-                    k++;
-                }
-            }
-            mDiagBlock.index1_data()[counter+1] = row_begin + k;
-            counter++;
+        if(diag_nnz == 0) //empty matrix
+        {
+            mDiagBlock.index1_data()[0] = 0;
+            mDiagBlock.SetColSize(0); 
         }
-        mDiagBlock.SetColSize(GetColNumbering().LocalSize());
-        
+        else
+        {
+            counter = 0;
+            for(const auto& entries : local_graph){
+                unsigned int k = 0;
+                IndexType row_begin = mDiagBlock.index1_data()[counter];
+                for(auto global_j : entries){
+                    
+                    if(GetColNumbering().IsLocal(global_j)){
+                        IndexType local_j = GetColNumbering().LocalId(global_j);
+                        mDiagBlock.index2_data()[row_begin+k] = local_j;
+                        mDiagBlock.value_data()[row_begin+k] = 0.0;
+                        k++;
+                    }
+                }
+                mDiagBlock.index1_data()[counter+1] = row_begin + k;
+                counter++;
+            }
+            mDiagBlock.SetColSize(GetColNumbering().LocalSize());
+        }        
 #ifdef KRATOS_DEBUG
         mDiagBlock.CheckColSize();
 #endif
@@ -153,23 +160,30 @@ public:
         
         //store off-diagonal block
         mOffDiagBlock.reserve(nlocal_rows, offdiag_nnz); 
-        counter = 0;
-        for(const auto& entries : local_graph){
-            unsigned int k = 0;
-            IndexType row_begin = mOffDiagBlock.index1_data()[counter];
-            for(auto global_j : entries){
-                if( ! GetColNumbering().IsLocal(global_j)){
-                    IndexType local_j = GetOffDiagLocalId(global_j);
-                    mOffDiagBlock.index2_data()[row_begin+k] = local_j;
-                    mOffDiagBlock.value_data()[row_begin+k] = 0.0;
-                    k++;
-                }
-            }
-            mOffDiagBlock.index1_data()[counter+1] = row_begin + k;
-            counter++;
+        if(diag_nnz == 0) //empty matrix
+        {
+            mOffDiagBlock.index1_data()[0] = 0;
+            mOffDiagBlock.SetColSize(0); 
         }
-        mOffDiagBlock.SetColSize(mOffDiagonalLocalIds.size());
-
+        else
+        {
+            counter = 0;
+            for(const auto& entries : local_graph){
+                unsigned int k = 0;
+                IndexType row_begin = mOffDiagBlock.index1_data()[counter];
+                for(auto global_j : entries){
+                    if( ! GetColNumbering().IsLocal(global_j)){
+                        IndexType local_j = GetOffDiagLocalId(global_j);
+                        mOffDiagBlock.index2_data()[row_begin+k] = local_j;
+                        mOffDiagBlock.value_data()[row_begin+k] = 0.0;
+                        k++;
+                    }
+                }
+                mOffDiagBlock.index1_data()[counter+1] = row_begin + k;
+                counter++;
+            }
+            mOffDiagBlock.SetColSize(mOffDiagonalLocalIds.size());
+        }
 #ifdef KRATOS_DEBUG
         mOffDiagBlock.CheckColSize();
 #endif

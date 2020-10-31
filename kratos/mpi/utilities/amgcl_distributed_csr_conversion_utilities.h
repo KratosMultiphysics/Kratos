@@ -39,21 +39,24 @@ public:
 			const DistributedCsrMatrix<TDataType, TIndexType>& rA,
 			DenseVector<TIndexType>& global_index2)
 	{
+
 		IndexType chunk = rA.local_size1();
+
     	auto loc_a = amgcl::adapter::zero_copy(chunk, 
-			&rA.GetDiagBlock().index1_data()[0],
-			&rA.GetDiagBlock().index2_data()[0],
-			&rA.GetDiagBlock().value_data()[0]
+                rA.GetDiagBlock().index1_data().data().begin(),
+                rA.GetDiagBlock().index2_data().data().begin(),
+                rA.GetDiagBlock().value_data().data().begin()
 			);
 
 		auto rem_a = amgcl::adapter::zero_copy(chunk, 
-			&rA.GetOffDiagBlock().index1_data()[0],
-			&global_index2[0],
-			&rA.GetOffDiagBlock().value_data()[0]
+			rA.GetOffDiagBlock().index1_data().data().begin(),
+			global_index2.data().begin(),
+			rA.GetOffDiagBlock().value_data().data().begin()
 		);
 
 		auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator( rA.GetComm());
 		amgcl::mpi::communicator comm(raw_mpi_comm);
+
 		auto pAmgcl = Kratos::make_shared<amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>>(comm, loc_a, rem_a);
 		pAmgcl->move_to_backend();
 		return pAmgcl;

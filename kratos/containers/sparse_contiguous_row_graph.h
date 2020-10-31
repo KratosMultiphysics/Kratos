@@ -224,19 +224,27 @@ public:
         {
             rRowIndices.resize(nrows+1, false);
         }
-        //set it to zero in parallel to allow first touching
-        IndexPartition<IndexType>(nrows+1).for_each([&](IndexType i){
-            rRowIndices[i] = 0;
-        });
 
-        //count the entries 
-        IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
-            rRowIndices[i+1] = mGraph[i].size();
-        });
-        
-        //sum entries
-        for(IndexType i = 1; i<static_cast<IndexType>(rRowIndices.size()); ++i){
-            rRowIndices[i] += rRowIndices[i-1];
+        if(nrows == 0) //empty
+        {
+            rRowIndices[0] = 0;
+        }
+        else
+        {
+            //set it to zero in parallel to allow first touching
+            IndexPartition<IndexType>(nrows+1).for_each([&](IndexType i){
+                rRowIndices[i] = 0;
+            });
+
+            //count the entries 
+            IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
+                rRowIndices[i+1] = mGraph[i].size();
+            });
+            
+            //sum entries
+            for(IndexType i = 1; i<static_cast<IndexType>(rRowIndices.size()); ++i){
+                rRowIndices[i] += rRowIndices[i-1];
+            }
         }
 
         IndexType nnz = rRowIndices[nrows];

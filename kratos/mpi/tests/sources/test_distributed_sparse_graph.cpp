@@ -663,47 +663,42 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosM
     int world_size =rComm.Size();
     int my_rank = rComm.Rank();
 
-    if(world_size <= 3) //the size of problem is 3, so it cannot work when world_size > 3
+    IndexType max_size = 3;
+    auto dofs_bounds = ComputeBounds<IndexType>(max_size, world_size, my_rank);
+
+    Matrix local_matrix(2,2); //we will assemble a 1D laplacian
+    local_matrix(0,0) = 1.0;  local_matrix(0,1) = -1.0; 
+    local_matrix(1,0) = -1.0; local_matrix(1,1) = 1.0; 
+
+    DenseVector<IndexType> connectivities(2);
+
+    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
     {
-
-        IndexType max_size = 3;
-        auto dofs_bounds = ComputeBounds<IndexType>(max_size, world_size, my_rank);
-
-        Matrix local_matrix(2,2); //we will assemble a 1D laplacian
-        local_matrix(0,0) = 1.0;  local_matrix(0,1) = -1.0; 
-        local_matrix(1,0) = -1.0; local_matrix(1,1) = 1.0; 
-
-        DenseVector<IndexType> connectivities(2);
-
-        DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
-        for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
+        if(i+1<max_size)
         {
-            if(i+1<max_size)
-            {
-                connectivities[0] = i;
-                connectivities[1] = i+1;
-                Agraph.AddEntries(connectivities);
-            }
+            connectivities[0] = i;
+            connectivities[1] = i+1;
+            Agraph.AddEntries(connectivities);
         }
-        Agraph.Finalize();
-
-        //Test SPMV 
-        DistributedCsrMatrix<double, IndexType> A(Agraph);
-        A.BeginAssemble();   
-        for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
-        {
-            if(i+1<max_size)
-            {
-                connectivities[0] = i;
-                connectivities[1] = i+1;       
-                A.Assemble(local_matrix,connectivities);
-            }
-        }
-        A.FinalizeAssemble();
-
-        auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
-        auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
     }
+    Agraph.Finalize();
+    //Test SPMV 
+    DistributedCsrMatrix<double, IndexType> A(Agraph);
+    A.BeginAssemble();   
+    for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
+    {
+        if(i+1<max_size)
+        {
+            connectivities[0] = i;
+            connectivities[1] = i+1;       
+            A.Assemble(local_matrix,connectivities);
+        }
+    }
+    A.FinalizeAssemble();
+    auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
+    auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
+
 }
 
 

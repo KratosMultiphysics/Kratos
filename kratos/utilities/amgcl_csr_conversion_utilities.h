@@ -39,9 +39,9 @@ public:
 	{
     	Kratos::shared_ptr<typename amgcl::backend::builtin<TDataType>::matrix > pAmgcl = amgcl::adapter::zero_copy(
                 rA.size1(),
-                &(rA.index1_data())[0],
-                &(rA.index2_data())[0],
-                &(rA.value_data())[0]
+                rA.index1_data().data().begin(),
+                rA.index2_data().data().begin(),
+                rA.value_data().data().begin()
             );
         return pAmgcl;
 	}
