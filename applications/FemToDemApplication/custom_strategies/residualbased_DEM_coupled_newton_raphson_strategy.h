@@ -201,10 +201,12 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     bool SolveSolutionStep() override
     {
         // We compute the contact forces with the DEM
-        UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        auto &r_update_dem_kinematics_process = UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart());
+        r_update_dem_kinematics_process.Execute();
         mpDEMStrategy->SolveSolutionStep();
-        TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
-        UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        auto &r_transfer_process = TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart());
+        r_transfer_process.Execute();
+        r_update_dem_kinematics_process.Execute();
 
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
@@ -264,10 +266,10 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false && iteration_number++ < mMaxIterationNumber) {
             // We compute the contact forces with the DEM
-            UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+            r_update_dem_kinematics_process.Execute();
             mpDEMStrategy->SolveSolutionStep();
-            TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
-            UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+            r_transfer_process.Execute();
+            r_update_dem_kinematics_process.Execute();
 
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
