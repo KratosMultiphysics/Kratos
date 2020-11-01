@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosPFEM2Application ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
 set( KRATOS_QUIET_WATER_APPLICATION_SOURCES

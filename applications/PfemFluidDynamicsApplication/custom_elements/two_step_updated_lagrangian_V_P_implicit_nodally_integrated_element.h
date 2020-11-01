@@ -330,10 +330,6 @@ namespace Kratos
   protected:
     void NodalFreeSurfaceLength(unsigned int nodeIndex);
 
-    void GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                     std::vector<double> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
-
   private:
     friend class Serializer;
 

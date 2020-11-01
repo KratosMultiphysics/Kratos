@@ -5,7 +5,7 @@ message("**** configuring KratosCoSimulationApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## CoSimulation Core sources
 file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_CORE
