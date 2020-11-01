@@ -31,35 +31,34 @@ namespace Kratos
 namespace KEpsilonAdjointElementData
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-class EpsilonAdjointElementData
+class EpsilonAdjointStateDerivatives
 {
 public:
     ///@name Public forward declarations
     ///@{
 
-    class AdjointElementData;
-
-    class SensitivityElementData;
+    class Data;
 
     ///@}
     ///@name Public classes
     ///@{
 
     class VelocityDerivatives
-        : public ConvectionDiffusionReactionAdjointElementData<TDim, TNumNodes, AdjointElementData>
+        : public ConvectionDiffusionReactionAdjointElementData<TDim, TNumNodes, Data>
     {
     public:
         ///@name Public type definitions
         ///@{
 
-        using BaseType = ConvectionDiffusionReactionAdjointElementData<TDim, TNumNodes, AdjointElementData>;
+        using BaseType =
+            ConvectionDiffusionReactionAdjointElementData<TDim, TNumNodes, Data>;
         static constexpr unsigned int TDerivativesSize = BaseType::TDerivativesSize;
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        VelocityDerivatives(const AdjointElementData& rElementData);
+        VelocityDerivatives(const Data& rElementData);
 
         ///@}
         ///@name Public operations
@@ -77,34 +76,32 @@ public:
             const Vector& rShapeFunctions,
             const Matrix& rShapeFunctionDerivatives) const override;
 
-        void CalculateReactionTermDerivatives(
-            BoundedVector<double, TDerivativesSize>& rOutput,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives) const override;
+        void CalculateReactionTermDerivatives(BoundedVector<double, TDerivativesSize>& rOutput,
+                                              const Vector& rShapeFunctions,
+                                              const Matrix& rShapeFunctionDerivatives) const override;
 
-        void CalculateSourceTermDerivatives(
-            BoundedVector<double, TDerivativesSize>& rOutput,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives) const override;
+        void CalculateSourceTermDerivatives(BoundedVector<double, TDerivativesSize>& rOutput,
+                                            const Vector& rShapeFunctions,
+                                            const Matrix& rShapeFunctionDerivatives) const override;
 
         ///@}
     };
 
     class KDerivatives
-        : public ConvectionDiffusionReactionAdjointElementData<1, TNumNodes, AdjointElementData>
+        : public ConvectionDiffusionReactionAdjointElementData<1, TNumNodes, Data>
     {
     public:
         ///@name Public type definitions
         ///@{
 
-        using BaseType = ConvectionDiffusionReactionAdjointElementData<1, TNumNodes, AdjointElementData>;
+        using BaseType = ConvectionDiffusionReactionAdjointElementData<1, TNumNodes, Data>;
         static constexpr unsigned int TDerivativesSize = BaseType::TDerivativesSize;
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        KDerivatives(const AdjointElementData& rElementData);
+        KDerivatives(const Data& rElementData);
 
         ///@}
         ///@name Public operations
@@ -122,34 +119,32 @@ public:
             const Vector& rShapeFunctions,
             const Matrix& rShapeFunctionDerivatives) const override;
 
-        void CalculateReactionTermDerivatives(
-            BoundedVector<double, TDerivativesSize>& rOutput,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives) const override;
+        void CalculateReactionTermDerivatives(BoundedVector<double, TDerivativesSize>& rOutput,
+                                              const Vector& rShapeFunctions,
+                                              const Matrix& rShapeFunctionDerivatives) const override;
 
-        void CalculateSourceTermDerivatives(
-            BoundedVector<double, TDerivativesSize>& rOutput,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives) const override;
+        void CalculateSourceTermDerivatives(BoundedVector<double, TDerivativesSize>& rOutput,
+                                            const Vector& rShapeFunctions,
+                                            const Matrix& rShapeFunctionDerivatives) const override;
 
         ///@}
     };
 
     class EpsilonDerivatives
-        : public ConvectionDiffusionReactionAdjointElementData<1, TNumNodes, AdjointElementData>
+        : public ConvectionDiffusionReactionAdjointElementData<1, TNumNodes, Data>
     {
     public:
         ///@name Public type definitions
         ///@{
 
-        using BaseType = ConvectionDiffusionReactionAdjointElementData<1, TNumNodes, AdjointElementData>;
+        using BaseType = ConvectionDiffusionReactionAdjointElementData<1, TNumNodes, Data>;
         static constexpr unsigned int TDerivativesSize = BaseType::TDerivativesSize;
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        EpsilonDerivatives(const AdjointElementData& rElementData);
+        EpsilonDerivatives(const Data& rElementData);
 
         ///@}
         ///@name Public operations
@@ -167,34 +162,111 @@ public:
             const Vector& rShapeFunctions,
             const Matrix& rShapeFunctionDerivatives) const override;
 
-        void CalculateReactionTermDerivatives(
-            BoundedVector<double, TDerivativesSize>& rOutput,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives) const override;
+        void CalculateReactionTermDerivatives(BoundedVector<double, TDerivativesSize>& rOutput,
+                                              const Vector& rShapeFunctions,
+                                              const Matrix& rShapeFunctionDerivatives) const override;
 
-        void CalculateSourceTermDerivatives(
-            BoundedVector<double, TDerivativesSize>& rOutput,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives) const override;
+        void CalculateSourceTermDerivatives(BoundedVector<double, TDerivativesSize>& rOutput,
+                                            const Vector& rShapeFunctions,
+                                            const Matrix& rShapeFunctionDerivatives) const override;
 
         ///@}
     };
 
-    class ShapeSensitivity
-        : public ConvectionDiffusionReactionSensitivityElementData<TDim, TNumNodes, SensitivityElementData>
+    /**
+     * @brief Data container for adjoint elements
+     *
+     * This class holds data for adjoint elements. Only one object
+     * of this class is designed to be used with all the derivative classes
+     * making CalculateGaussPointData, CalculateContants method to be called
+     * only once per gauss point, and once per all derivatives
+     *
+     */
+    class Data : public KEpsilonElementData::EpsilonElementData<TDim>
     {
     public:
         ///@name Public type definitions
         ///@{
 
-        using BaseType = ConvectionDiffusionReactionSensitivityElementData<TDim, TNumNodes, SensitivityElementData>;
+        using BaseType = KEpsilonElementData::EpsilonElementData<TDim>;
+        using GeometryType = typename BaseType::GeometryType;
+
+        ///@}
+        ///@name Life cycle
+        ///@{
+
+        Data(const GeometryType& rGeometry);
+
+        ///@}
+        ///@name Public operations
+        ///@{
+
+        void CalculateGaussPointData(const Vector& rShapeFunctions,
+                                     const Matrix& rShapeFunctionDerivatives,
+                                     const int Step = 0) override;
+
+        static void Check(const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+
+        static const Variable<double>& GetAdjointScalarVariable();
+
+        ///@}
+
+    private:
+        ///@name Private members
+        ///{
+
+        double mProductionTerm;
+        double mReactionTerm;
+        double mEffectiveKinematicViscosity;
+        BoundedMatrix<double, TNumNodes, TDim> mNodalVelocity;
+        BoundedVector<double, TNumNodes> mGaussTurbulentKinematicViscositySensitivitiesK;
+        BoundedVector<double, TNumNodes> mGaussTurbulentKinematicViscositySensitivitiesEpsilon;
+
+        ///@}
+        ///@name Private friend class definitions
+        ///@{
+
+        // following classes are made friends in order to access private members of this class
+        // as well as the base class. (To avoid having lots of setters and getters)
+        friend class VelocityDerivatives;
+        friend class KDerivatives;
+        friend class EpsilonDerivatives;
+
+        ///@}
+    };
+
+    ///@}
+};
+
+template <unsigned int TDim, unsigned int TNumNodes>
+class EpsilonAdjointShapeDerivatives
+{
+public:
+    ///@name Public forward declarations
+    ///@{
+
+    class Data;
+
+    ///@}
+    ///@name Public classes
+    ///@{
+
+    class ShapeDerivatives
+        : public ConvectionDiffusionReactionSensitivityElementData<TDim, TNumNodes, Data>
+    {
+    public:
+        ///@name Public type definitions
+        ///@{
+
+        using BaseType =
+            ConvectionDiffusionReactionSensitivityElementData<TDim, TNumNodes, Data>;
         static constexpr unsigned int TDerivativesSize = TDim * TNumNodes;
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        ShapeSensitivity(const SensitivityElementData& rElementData);
+        ShapeDerivatives(const Data& rElementData);
 
         ///@}
         ///@name Public operations
@@ -233,16 +305,7 @@ public:
         ///@}
     };
 
-    /**
-     * @brief Data container for adjoint elements
-     *
-     * This class holds data for adjoint elements. Only one object
-     * of this class is designed to be used with all the derivative classes
-     * making CalculateGaussPointData, CalculateContants method to be called
-     * only once per gauss point, and once per all derivatives
-     *
-     */
-    class AdjointElementData : public KEpsilonElementData::EpsilonElementData<TDim>
+    class Data : public KEpsilonElementData::EpsilonElementData<TDim>
     {
     public:
         ///@name Public type definitions
@@ -255,76 +318,17 @@ public:
         ///@name Life cycle
         ///@{
 
-        AdjointElementData(const GeometryType& rGeometry);
+        Data(const GeometryType& rGeometry);
 
         ///@}
         ///@name Public operations
         ///@{
 
-        void CalculateGaussPointData(
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives,
-            const int Step = 0) override;
+        void CalculateGaussPointData(const Vector& rShapeFunctions,
+                                     const Matrix& rShapeFunctionDerivatives,
+                                     const int Step = 0) override;
 
-        static void Check(
-            const GeometryType& rGeometry,
-            const ProcessInfo& rCurrentProcessInfo);
-
-        static const Variable<double>& GetAdjointScalarVariable();
-
-        ///@}
-
-    private:
-        ///@name Private members
-        ///{
-
-        double mProductionTerm;
-        double mReactionTerm;
-        double mEffectiveKinematicViscosity;
-        BoundedMatrix<double, TNumNodes, TDim> mNodalVelocity;
-        BoundedVector<double, TNumNodes> mGaussTurbulentKinematicViscositySensitivitiesK;
-        BoundedVector<double, TNumNodes> mGaussTurbulentKinematicViscositySensitivitiesEpsilon;
-
-        ///@}
-        ///@name Private friend class definitions
-        ///@{
-
-        // following classes are made friends in order to access private members of this class
-        // as well as the base class. (To avoid having lots of setters and getters)
-        friend class VelocityDerivatives;
-        friend class KDerivatives;
-        friend class EpsilonDerivatives;
-
-        ///@}
-    };
-
-    class SensitivityElementData : public KEpsilonElementData::EpsilonElementData<TDim>
-    {
-    public:
-        ///@name Public type definitions
-        ///@{
-
-        using BaseType = KEpsilonElementData::EpsilonElementData<TDim>;
-        using GeometryType = typename BaseType::GeometryType;
-
-        ///@}
-        ///@name Life cycle
-        ///@{
-
-        SensitivityElementData(const GeometryType& rGeometry);
-
-        ///@}
-        ///@name Public operations
-        ///@{
-
-        void CalculateGaussPointData(
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives,
-            const int Step = 0) override;
-
-        static void Check(
-            const GeometryType& rGeometry,
-            const ProcessInfo& rCurrentProcessInfo);
+        static void Check(const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
 
         static const Variable<double>& GetAdjointScalarVariable();
 
@@ -344,13 +348,16 @@ public:
 
         // following classes are made friends in order to access private members of this class
         // as well as the base class. (To avoid having lots of setters and getters)
-        friend class ShapeSensitivity;
+        friend class ShapeDerivatives;
 
         ///@}
     };
 
     ///@}
 };
+
+///@}
+
 } // namespace KEpsilonAdjointElementData
 } // namespace Kratos
 

@@ -35,14 +35,14 @@ namespace KEpsilonAdjointElementData
 //************************** Adjoint Element Data ***********************************//
 
 template <unsigned int TDim, unsigned int TNumNodes>
-EpsilonAdjointElementData<TDim, TNumNodes>::AdjointElementData::AdjointElementData(
+EpsilonAdjointStateDerivatives<TDim, TNumNodes>::Data::Data(
     const GeometryType& rGeometry)
     : BaseType(rGeometry)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::AdjointElementData::CalculateGaussPointData(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const int Step)
@@ -83,7 +83,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::AdjointElementData::CalculateGa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::AdjointElementData::Check(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::Data::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -91,7 +91,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::AdjointElementData::Check(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& EpsilonAdjointElementData<TDim, TNumNodes>::AdjointElementData::GetAdjointScalarVariable()
+const Variable<double>& EpsilonAdjointStateDerivatives<TDim, TNumNodes>::Data::GetAdjointScalarVariable()
 {
     return RANS_SCALAR_2_ADJOINT_1;
 }
@@ -101,20 +101,20 @@ const Variable<double>& EpsilonAdjointElementData<TDim, TNumNodes>::AdjointEleme
 //************************** Velocity Derivatives ***********************************//
 
 template <unsigned int TDim, unsigned int TNumNodes>
-EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::VelocityDerivatives(
-    const AdjointElementData& rElementData)
+EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives::VelocityDerivatives(
+    const Data& rElementData)
     : BaseType(rElementData)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<array_1d<double, 3>>& EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::GetDerivativeVariable()
+const Variable<array_1d<double, 3>>& EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives::GetDerivativeVariable()
 {
     return VELOCITY;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::CalculateEffectiveVelocityDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives::CalculateEffectiveVelocityDerivatives(
     BoundedMatrix<double, TDerivativesSize, 3>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -130,7 +130,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::CalculateE
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -139,7 +139,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::CalculateE
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::CalculateReactionTermDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives::CalculateReactionTermDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -158,7 +158,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::CalculateR
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::CalculateSourceTermDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives::CalculateSourceTermDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -176,20 +176,20 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::VelocityDerivatives::CalculateS
 //***************************** K Derivatives ***************************************//
 
 template <unsigned int TDim, unsigned int TNumNodes>
-EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::KDerivatives(
-    const AdjointElementData& rElementData)
+EpsilonAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives::KDerivatives(
+    const Data& rElementData)
     : BaseType(rElementData)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::GetDerivativeVariable()
+const Variable<double>& EpsilonAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives::GetDerivativeVariable()
 {
     return TURBULENT_KINETIC_ENERGY;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::CalculateEffectiveVelocityDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives::CalculateEffectiveVelocityDerivatives(
     BoundedMatrix<double, TDerivativesSize, 3>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -198,7 +198,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::CalculateEffectiv
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -209,7 +209,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::CalculateEffectiv
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::CalculateReactionTermDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives::CalculateReactionTermDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -227,7 +227,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::CalculateReaction
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::CalculateSourceTermDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives::CalculateSourceTermDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -253,20 +253,20 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::KDerivatives::CalculateSourceTe
 //************************** Epsilon Derivatives ************************************//
 
 template <unsigned int TDim, unsigned int TNumNodes>
-EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::EpsilonDerivatives(
-    const AdjointElementData& rElementData)
+EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives::EpsilonDerivatives(
+    const Data& rElementData)
     : BaseType(rElementData)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::GetDerivativeVariable()
+const Variable<double>& EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives::GetDerivativeVariable()
 {
     return TURBULENT_ENERGY_DISSIPATION_RATE;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::CalculateEffectiveVelocityDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives::CalculateEffectiveVelocityDerivatives(
     BoundedMatrix<double, TDerivativesSize, 3>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -275,7 +275,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::CalculateEf
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -286,7 +286,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::CalculateEf
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::CalculateReactionTermDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives::CalculateReactionTermDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -304,7 +304,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::CalculateRe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::CalculateSourceTermDerivatives(
+void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives::CalculateSourceTermDerivatives(
     BoundedVector<double, TDerivativesSize>& rOutput,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
@@ -317,14 +317,14 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::EpsilonDerivatives::CalculateSo
 //************************ Sensitivity Element Data *********************************//
 
 template <unsigned int TDim, unsigned int TNumNodes>
-EpsilonAdjointElementData<TDim, TNumNodes>::SensitivityElementData::SensitivityElementData(
+EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::Data::Data(
     const GeometryType& rGeometry)
     : BaseType(rGeometry)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::SensitivityElementData::CalculateGaussPointData(
+void EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const int Step)
@@ -345,7 +345,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::SensitivityElementData::Calcula
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EpsilonAdjointElementData<TDim, TNumNodes>::SensitivityElementData::Check(
+void EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::Data::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -353,7 +353,7 @@ void EpsilonAdjointElementData<TDim, TNumNodes>::SensitivityElementData::Check(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& EpsilonAdjointElementData<TDim, TNumNodes>::SensitivityElementData::GetAdjointScalarVariable()
+const Variable<double>& EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::Data::GetAdjointScalarVariable()
 {
     return RANS_SCALAR_2_ADJOINT_1;
 }
@@ -363,20 +363,20 @@ const Variable<double>& EpsilonAdjointElementData<TDim, TNumNodes>::SensitivityE
 //*************************** Shape Sensitivity *************************************//
 
 template <unsigned int TDim, unsigned int TNumNodes>
-EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::ShapeSensitivity(
-    const SensitivityElementData& rElementData)
+EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::ShapeDerivatives(
+    const Data& rElementData)
     : BaseType(rElementData)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<array_1d<double, 3>>& EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::GetDerivativeVariable()
+const Variable<array_1d<double, 3>>& EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::GetDerivativeVariable()
 {
     return SHAPE_SENSITIVITY;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-array_1d<double, 3> EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::CalculateEffectiveVelocityDerivatives(
+array_1d<double, 3> EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateEffectiveVelocityDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -387,7 +387,7 @@ array_1d<double, 3> EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::CalculateEffectiveKinematicViscosityDerivatives(
+double EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -398,7 +398,7 @@ double EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::CalculateEf
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::CalculateReactionTermDerivatives(
+double EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateReactionTermDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -416,7 +416,7 @@ double EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::CalculateRe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::CalculateSourceTermDerivatives(
+double EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateSourceTermDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -436,8 +436,11 @@ double EpsilonAdjointElementData<TDim, TNumNodes>::ShapeSensitivity::CalculateSo
 
 
 // template instantiations
-template class EpsilonAdjointElementData<2, 3>;
-template class EpsilonAdjointElementData<3, 4>;
+template class EpsilonAdjointStateDerivatives<2, 3>;
+template class EpsilonAdjointStateDerivatives<3, 4>;
+
+template class EpsilonAdjointShapeDerivatives<2, 3>;
+template class EpsilonAdjointShapeDerivatives<3, 4>;
 
 } // namespace KEpsilonAdjointElementData
 } // namespace Kratos
