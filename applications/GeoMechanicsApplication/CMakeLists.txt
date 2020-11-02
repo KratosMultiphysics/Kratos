@@ -5,6 +5,8 @@ message("**** configuring KratosGeoMechanicsApplication ****")
 # PYBIND11
 include(pybind11Tools)
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/GeoMechanicsApplication )
@@ -82,7 +84,7 @@ set( KRATOS_GEO_MECHANICS_APPLICATION_CORE_SOURCES
     # Strategies
 )
 
-if(${USE_PORO_MPI} MATCHES ON)
+if(${USE_MPI} MATCHES ON)
 
     include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(${TRILINOS_INCLUDE_DIR})
