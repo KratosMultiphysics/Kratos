@@ -189,7 +189,7 @@ for dim in dim_vector:
         # Navier-Stokes functional
         res_galerkin = w_gauss.transpose()*f_gauss - nu*grad_sym_w.transpose()*grad_sym_v + div_w*p_gauss - q_gauss*div_v
         if convective_term:
-            res_galerkin -= w_gauss.transpose()*convective_term_gauss.transpose()
+            res_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
 
         # Add the stabilization terms to the original residual terms
         if (stabilization):
