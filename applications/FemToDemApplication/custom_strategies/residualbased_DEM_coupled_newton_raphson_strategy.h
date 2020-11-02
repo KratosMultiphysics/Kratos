@@ -352,7 +352,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
-        if (mInitializeWasPerformed == false)
+        if (this->mInitializeWasPerformed == false)
             BaseType::Initialize();
 
         //initialize solution step
