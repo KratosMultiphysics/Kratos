@@ -5,15 +5,11 @@ message("**** configuring KratosMORApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-if( NOT DEFINED EIGEN_ROOT )
-    message( FATAL_ERROR "EIGEN_ROOT not defined" )
-endif()
-
+## add Eigen sources from the LinearSolversApplication
 add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
-
 include_directories(
     ${CMAKE_SOURCE_DIR}/kratos
-        SYSTEM ${EIGEN_ROOT} # Including as System to suppress compile-warnings from it
+        SYSTEM ../LinearSolversApplication/external_libraries/eigen3 # Including as System to suppress compile-warnings from it
 )
 
 ## MOR core sources
