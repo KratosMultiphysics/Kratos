@@ -114,6 +114,39 @@ std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
     return "";
 }
 
+template<class TSparseSpace, class TDenseSpace>
+CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
+    ModelPart& rModelPartOrigin,
+    ModelPart& rModelPartDestination,
+    Parameters JsonParameters):
+        mrModelPartOrigin(rModelPartOrigin),
+        mrModelPartDestination(rModelPartDestination),
+        mMapperSettings(JsonParameters)
+{
+    JsonParameters.ValidateAndAssignDefaults(GetMapperDefaultSettings());
+
+    mpModeler = (ModelerFactory::Create(
+        mMapperSettings["modeler_name"].GetString(),
+        rModelPartOrigin.GetModel(),
+        mMapperSettings["modeler_parameters"]));
+
+    // adds destination model part
+    mpModeler->GenerateNodes(rModelPartDestination);
+
+    mpModeler->SetupGeometryModel();
+    mpModeler->PrepareGeometryModel();
+
+    // here use whatever ModelPart(s) was created by the Modeler
+    mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
+    mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
+    mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
+
+    mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
+    mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
+
+    this->CreateLinearSolver();
+    this->InitializeInterface();
+}
 
 
 template<class TSparseSpace, class TDenseSpace>
