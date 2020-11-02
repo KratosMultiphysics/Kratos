@@ -7,13 +7,12 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz,
-//                   Vahid Galavi
+//  Main authors:    Vahid Galavi
 //
 
 
-#if !defined(KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
-#define  KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_FIC_ELEMENT_H_INCLUDED)
+#define  KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_FIC_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -24,6 +23,7 @@
 // Project includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_utilities/comparison_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
@@ -49,15 +49,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class UPwUpdatedLagrangianElement
+ * @class UPwUpdatedLagrangianFICElement
  * @brief Updated Lagrangian element for 2D and 3D geometries.
  * @details Implements an Updated Lagrangian definition for U-P elements. This works for arbitrary geometries in 2D and 3D
- * @author Vicente Mataix Ferrandiz (StructuralMechanics)
  * @author Vahid Galavi (Geomechanics)
  */
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianElement
-    : public UPwSmallStrainElement<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianFICElement
+    : public UPwSmallStrainFICElement<TDim,TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -80,36 +79,33 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
-    using UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector;
-    using UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector;
-    using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
 
-    /// Counted pointer of UPwUpdatedLagrangianElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianElement);
+    /// Counted pointer of UPwUpdatedLagrangianFICElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianFICElement);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim,TNumNodes>( NewId ) {}
+    UPwUpdatedLagrangianFICElement(IndexType NewId = 0) : UPwSmallStrainFICElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
-    UPwUpdatedLagrangianElement(IndexType NewId,
+    UPwUpdatedLagrangianFICElement(IndexType NewId,
                                 const NodesArrayType& ThisNodes)
-                                : UPwSmallStrainElement<TDim,TNumNodes>(NewId, ThisNodes) {}
+                                : UPwSmallStrainFICElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    UPwUpdatedLagrangianElement(IndexType NewId,
+    UPwUpdatedLagrangianFICElement(IndexType NewId,
                                 GeometryType::Pointer pGeometry)
-                                : UPwSmallStrainElement<TDim,TNumNodes>(NewId, pGeometry) {}
+                                : UPwSmallStrainFICElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianElement(IndexType NewId,
+    UPwUpdatedLagrangianFICElement(IndexType NewId,
                                 GeometryType::Pointer pGeometry,
                                 PropertiesType::Pointer pProperties)
-                                : UPwSmallStrainElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+                                : UPwSmallStrainFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    ~UPwUpdatedLagrangianElement() override {}
+    ~UPwUpdatedLagrangianFICElement() override {}
 
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
@@ -210,14 +206,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Updated Lagrangian U-Pw FIC Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian U-Pw Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Updated Lagrangian U-Pw FIC Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -377,8 +373,8 @@ private:
 
 
     // Copy constructor
-    UPwUpdatedLagrangianElement(UPwUpdatedLagrangianElement const& rOther);
-        // : UPwSmallStrainElement<TDim,TNumNodes>(rOther),
+    UPwUpdatedLagrangianFICElement(UPwUpdatedLagrangianFICElement const& rOther);
+        // : UPwSmallStrainFICElement<TDim,TNumNodes>(rOther),
         // mF0Computed(rOther.mF0Computed),
         // mDetF0(rOther.mDetF0),
         // mF0(rOther.mF0) {}
@@ -402,7 +398,7 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        typedef UPwSmallStrainElement<TDim,TNumNodes> BaseClass;
+        typedef UPwSmallStrainFICElement<TDim,TNumNodes> BaseClass;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseClass );
         rSerializer.save("F0Computed", mF0Computed);
         rSerializer.save("DetF0", mDetF0);
@@ -411,7 +407,7 @@ private:
 
     void load(Serializer& rSerializer) override
     {
-        typedef UPwSmallStrainElement<TDim,TNumNodes> BaseClass;
+        typedef UPwSmallStrainFICElement<TDim,TNumNodes> BaseClass;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseClass );
         rSerializer.load("F0Computed", mF0Computed);
         rSerializer.load("DetF0", mDetF0);
@@ -425,12 +421,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //UPwUpdatedLagrangianElement& operator=(const UPwUpdatedLagrangianElement& rOther);
+    //UPwUpdatedLagrangianFICElement& operator=(const UPwUpdatedLagrangianFICElement& rOther);
     /// Copy constructor.
-    //UPwUpdatedLagrangianElement(const UPwUpdatedLagrangianElement& rOther);
+    //UPwUpdatedLagrangianFICElement(const UPwUpdatedLagrangianFICElement& rOther);
     ///@}
 
-}; // Class UPwUpdatedLagrangianElement
+}; // Class UPwUpdatedLagrangianFICElement
 
 ///@}
 ///@name Type Definitions
@@ -441,4 +437,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_FIC_ELEMENT_H_INCLUDED  defined

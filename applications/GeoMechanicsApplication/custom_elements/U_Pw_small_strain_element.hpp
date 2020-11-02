@@ -195,8 +195,7 @@ protected:
     void SetElementalVariables(ElementVariables& rVariables,
                                ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
-    void CalculateKinematics( ElementVariables& rVariables,
-                              unsigned int PointNumber );
+    virtual void CalculateKinematics( ElementVariables& rVariables, unsigned int PointNumber );
 
     void InitializeBiotCoefficients( ElementVariables& rVariables,
                                      const double &BulkModulus );

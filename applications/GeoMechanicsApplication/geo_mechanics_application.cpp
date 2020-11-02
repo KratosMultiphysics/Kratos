@@ -117,6 +117,11 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwUpdatedLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mUPwUpdatedLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
 
+    mUPwUpdatedLagrangianFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mUPwUpdatedLagrangianFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mUPwUpdatedLagrangianFICElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mUPwUpdatedLagrangianFICElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
     // Updated-Lagrangian different order elements
     mUpdatedLagrangianUPwDiffOrderElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUpdatedLagrangianUPwDiffOrderElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
@@ -247,6 +252,11 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement3D10N", mUPwUpdatedLagrangianElement3D10N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement3D20N", mUPwUpdatedLagrangianElement3D20N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement3D27N", mUPwUpdatedLagrangianElement3D27N )
+
+    KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianFICElement2D3N", mUPwUpdatedLagrangianFICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianFICElement2D4N", mUPwUpdatedLagrangianFICElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianFICElement3D4N", mUPwUpdatedLagrangianFICElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianFICElement3D8N", mUPwUpdatedLagrangianFICElement3D8N )
 
     // Updated-Lagrangian different order elements
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D6N", mUpdatedLagrangianUPwDiffOrderElement2D6N )

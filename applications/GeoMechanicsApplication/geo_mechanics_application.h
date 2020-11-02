@@ -56,6 +56,7 @@
 #include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
+#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -328,6 +329,12 @@ private:
     const UPwUpdatedLagrangianElement<3,10> mUPwUpdatedLagrangianElement3D10N;
     const UPwUpdatedLagrangianElement<3,20> mUPwUpdatedLagrangianElement3D20N;
     const UPwUpdatedLagrangianElement<3,27> mUPwUpdatedLagrangianElement3D27N;
+
+    const UPwUpdatedLagrangianFICElement<2,3> mUPwUpdatedLagrangianFICElement2D3N;
+    const UPwUpdatedLagrangianFICElement<2,4> mUPwUpdatedLagrangianFICElement2D4N;
+    const UPwUpdatedLagrangianFICElement<3,4> mUPwUpdatedLagrangianFICElement3D4N;
+    const UPwUpdatedLagrangianFICElement<3,8> mUPwUpdatedLagrangianFICElement3D8N;
+
 
     // Updated-Lagrangian different order elements
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D6N;
