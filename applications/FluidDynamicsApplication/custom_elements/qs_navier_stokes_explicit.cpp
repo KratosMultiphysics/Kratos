@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "symbolic_explicit_qs_navier_stokes.h"
+#include "qs_navier_stokes_explicit.h"
 
 namespace Kratos
 {
@@ -20,7 +20,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::SymbolicExplicitQSNavierStokes(
+QSNavierStokesExplicit<TDim,TNumNodes>::QSNavierStokesExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {}
@@ -28,7 +28,7 @@ SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::SymbolicExplicitQSNavierStokes(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::SymbolicExplicitQSNavierStokes(
+QSNavierStokesExplicit<TDim,TNumNodes>::QSNavierStokesExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
@@ -38,7 +38,7 @@ SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::SymbolicExplicitQSNavierStokes(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::EquationIdVector(
+void QSNavierStokesExplicit<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -69,7 +69,7 @@ void SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::EquationIdVector(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::GetDofList(
+void QSNavierStokesExplicit<TDim,TNumNodes>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -97,7 +97,7 @@ void SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::GetDofList(
 /***********************************************************************************/
 
 template<>
-void SymbolicExplicitQSNavierStokes<2>::CalculateRightHandSideInternal(
+void QSNavierStokesExplicit<2>::CalculateRightHandSideInternal(
     BoundedVector<double, 9> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -204,7 +204,7 @@ const double crRightHandSideBoundedVector52 =             -1.0*crRightHandSideBo
 /***********************************************************************************/
 
 template<>
-void SymbolicExplicitQSNavierStokes<3>::CalculateRightHandSideInternal(
+void QSNavierStokesExplicit<3>::CalculateRightHandSideInternal(
     BoundedVector<double, 16> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -435,7 +435,7 @@ const double crRightHandSideBoundedVector162 =             4*DN_DX_3_0*nu;
 /***********************************************************************************/
 
 template<>
-void SymbolicExplicitQSNavierStokes<2>::AddExplicitContribution(
+void QSNavierStokesExplicit<2>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -466,7 +466,7 @@ void SymbolicExplicitQSNavierStokes<2>::AddExplicitContribution(
 /***********************************************************************************/
 
 template<>
-void SymbolicExplicitQSNavierStokes<3>::AddExplicitContribution(
+void QSNavierStokesExplicit<3>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -498,7 +498,7 @@ void SymbolicExplicitQSNavierStokes<3>::AddExplicitContribution(
 /***********************************************************************************/
 
 template<>
-void SymbolicExplicitQSNavierStokes<2>::CalculateMassMatrix(
+void QSNavierStokesExplicit<2>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -527,7 +527,7 @@ void SymbolicExplicitQSNavierStokes<2>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template<>
-void SymbolicExplicitQSNavierStokes<3>::CalculateMassMatrix(
+void QSNavierStokesExplicit<3>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -564,7 +564,7 @@ void SymbolicExplicitQSNavierStokes<3>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-int SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
+int QSNavierStokesExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -581,7 +581,7 @@ int SymbolicExplicitQSNavierStokes<TDim,TNumNodes>::Check(const ProcessInfo &rCu
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void SymbolicExplicitQSNavierStokes<TDim, TNumNodes>::FillElementData(
+void QSNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
     ElementDataStruct &rData,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -594,7 +594,7 @@ void SymbolicExplicitQSNavierStokes<TDim, TNumNodes>::FillElementData(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-double SymbolicExplicitQSNavierStokes<TDim, TNumNodes>::CalculateElementSize(
+double QSNavierStokesExplicit<TDim, TNumNodes>::CalculateElementSize(
     const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX)
 {
     KRATOS_TRY;
@@ -616,8 +616,8 @@ double SymbolicExplicitQSNavierStokes<TDim, TNumNodes>::CalculateElementSize(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SymbolicExplicitQSNavierStokes<2>;
-template class SymbolicExplicitQSNavierStokes<3>;
+template class QSNavierStokesExplicit<2>;
+template class QSNavierStokesExplicit<3>;
 
 /***********************************************************************************/
 /***********************************************************************************/

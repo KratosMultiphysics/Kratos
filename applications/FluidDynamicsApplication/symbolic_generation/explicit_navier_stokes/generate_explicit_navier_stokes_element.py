@@ -63,7 +63,7 @@ formulation = "NavierStokes"        # Element type. Options: "NavierStokes"
 if formulation == "NavierStokes":
     convective_term = True
     linearisation = "Picard" # Convective term linearisation type. Options: "Picard", "FullNR"
-    output_filename = "symbolic_explicit_qs_navier_stokes.cpp"
+    output_filename = "qs_navier_stokes_explicit.cpp"
     template_filename = "symbolic_explicit_qs_navier_stokes_cpp_template.cpp"
 else:
     err_msg = "Wrong formulation. Given \'" + formulation + "\'. Available option is \'NavierStokes\'."

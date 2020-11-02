@@ -75,7 +75,7 @@
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/vms_adjoint_element.h"
-#include "custom_elements/symbolic_explicit_qs_navier_stokes.h"
+#include "custom_elements/qs_navier_stokes_explicit.h"
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
@@ -379,8 +379,8 @@ private:
     const NavierStokes<3> mNavierStokes3D;
     const NavierStokesWallCondition<2> mNavierStokesWallCondition2D;
     const NavierStokesWallCondition<3> mNavierStokesWallCondition3D;
-    const SymbolicExplicitQSNavierStokes<2> mSymbolicExplicitQSNavierStokes2D3N;
-    const SymbolicExplicitQSNavierStokes<3> mSymbolicExplicitQSNavierStokes3D4N;
+    const QSNavierStokesExplicit<2> mQSNavierStokesExplicit2D3N;
+    const QSNavierStokesExplicit<3> mQSNavierStokesExplicit3D4N;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
