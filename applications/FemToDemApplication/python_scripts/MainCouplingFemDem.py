@@ -576,6 +576,12 @@ class MainCoupledFemDem_Solution:
         self.PlotFile.write("This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!\n\n")
         self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
         self.PlotFile.close()
+
+        self.PlotFileIter = open("iterations.txt","w")
+        self.PlotFileIter.write("This file prints the number of iterations at each time step\n\n")
+        self.PlotFileIter.write("       time           ITER\n")
+        self.PlotFileIter.close()
+
         self.TimePreviousPlotting = 0.0
         self.plot_files_nodes_list    = []
         self.plot_files_elements_list = []
@@ -626,6 +632,15 @@ class MainCoupledFemDem_Solution:
         total_reaction_z     = 0.0
         interval = self.FEM_Solution.ProjectParameters["interval_of_watching"].GetDouble()
 
+        self.PlotFileIter = open("iterations.txt", "a")
+        max_iter = self.FEM_Solution.ProjectParameters["solver_settings"]["max_iteration"].GetInt()
+        iterations = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]
+        if iterations < max_iter:
+            self.PlotFileIter.write("    " + "{0:.4e}".format(time).rjust(11) + "        " + str(iterations) + "\n")
+        else:
+            self.PlotFileIter.write("    " + "{0:.4e}".format(time).rjust(11) + "        " + str(iterations) + "  MAX iterations reached!" + "\n")
+        self.PlotFileIter.close()
+
         if self.FEM_Solution.time - self.TimePreviousPlotting >= interval:
             if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size() > 0:
                 if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][0].IsInt():
@@ -669,7 +684,6 @@ class MainCoupledFemDem_Solution:
                         "    " + "{0:.4e}".format(total_reaction_x).rjust(11) + "    " + "{0:.4e}".format(total_reaction_y).rjust(11) + "    " +
                         "{0:.4e}".format(total_reaction_z).rjust(11) + "\n")
                 self.PlotFile.close()
-
 
             # Print the selected nodes files
             if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
