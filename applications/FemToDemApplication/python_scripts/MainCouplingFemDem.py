@@ -324,7 +324,7 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").AddNode(node, 0)
             max_id += 1
             cond = self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").CreateNewCondition(
-                                                                            "PointLoadCondition2D1N",
+                                                                            "PointLoadCondition3D1N",
                                                                             max_id,
                                                                             [node.Id],
                                                                             props)
