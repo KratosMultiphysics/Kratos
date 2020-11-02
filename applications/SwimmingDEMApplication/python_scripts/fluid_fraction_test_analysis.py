@@ -26,6 +26,9 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         super(FluidFractionTestAnalysis, self).__init__(model, varying_parameters)
         self.project_parameters = varying_parameters
 
+    def InitializeVariablesWithNonZeroValues(self):
+        pass
+
     def Initialize(self):
         super(FluidFractionTestAnalysis, self).Initialize()
         self._GetSolver().ConstructL2ErrorProjector()
