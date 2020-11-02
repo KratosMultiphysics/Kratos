@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "utilities/geometrical_projection_utilities.h"
 #include "custom_utilities/mortar_explicit_contribution_utilities.h"
 
 namespace Kratos
