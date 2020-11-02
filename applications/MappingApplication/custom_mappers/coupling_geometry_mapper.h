@@ -316,9 +316,13 @@ private:
 
     Parameters GetMapperDefaultSettings() const
     {
-        // @tobiasteschemachen
-        return Parameters( R"({
-            "echo_level" : 0
+        return Parameters(R"({
+            "echo_level"                    : 0,
+            "dual_mortar"                   : false,
+            "precompute_mapping_matrix"     : false,
+            "modeler_name"                  : "UNSPECIFIED",
+            "modeler_parameters"            : {},
+            "consistency_scaling"           : true
         })");
     }
 
