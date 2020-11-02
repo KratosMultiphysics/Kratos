@@ -356,19 +356,14 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
         rProjectedInterfaceMatrix.size2());
 
     const size_t n_rows = mpMappingMatrix->size1();
-    #pragma omp parallel
-    {
-        Vector solution(n_rows);
-        Vector projector_column(n_rows);
+    Vector solution(n_rows);
+    Vector projector_column(n_rows);
 
-        #pragma omp for
-        for (int i = 0; i < static_cast<int>(mpMappingMatrix->size2()); ++i)
-        {
-            for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
-            mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
-            #pragma omp critical
-            for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
-        }
+    for (size_t i = 0; i < mpMappingMatrix->size2(); ++i)
+    {
+        for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
+        mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
+        for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
     }
 }
 
