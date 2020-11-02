@@ -5,7 +5,7 @@ message("**** configuring KratosParticleMechanicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Define application core sources (pure C++ parts)
 file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE

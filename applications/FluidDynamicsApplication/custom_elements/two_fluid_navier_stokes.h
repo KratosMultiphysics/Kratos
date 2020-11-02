@@ -187,7 +187,7 @@ public:
      * current element check implementations
      * @param rCurrentProcessInfo reference to the current process info
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry

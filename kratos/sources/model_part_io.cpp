@@ -12,7 +12,7 @@
 //
 
 // System includes
-#include<unordered_set>
+#include <unordered_set>
 
 // External includes
 
@@ -517,6 +517,8 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
 
 void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 {
+    KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE)) << "ModelPartIO needs to be created in write mode to write a ModelPart!" << std::endl;
+
     Timer::Start("Writing Output");
 
     // Setting the buffer size
@@ -3700,6 +3702,10 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
         DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+    {
+        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+    }
+    else if(KratosComponents<Variable<Vector> >::Has(variable_name))
     {
         DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
     }

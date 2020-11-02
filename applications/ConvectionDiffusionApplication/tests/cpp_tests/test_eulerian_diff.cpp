@@ -79,7 +79,7 @@ namespace Testing
         r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
-        r_test_model_part.CreateNewElement("EulerianDiffusion2D", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("EulerianDiffusion2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
 
         // Set the nodal values
         for (auto &i_node : r_test_model_part.Nodes()) {
@@ -91,12 +91,7 @@ namespace Testing
             i_node.FastGetSolutionStepValue(PROJECTED_SCALAR1, 1) = 0.5;
         }
 
-        // Test element
-        auto p_element = r_test_model_part.pGetElement(1);
-        Vector RHS = ZeroVector(3);
-        Matrix LHS = ZeroMatrix(3,3);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
-
+        // Set expected solution
         std::vector<double> expected_RHS = {1.66667, 1.66667, 1.66667};
         Matrix expected_LHS(3, 3);
         expected_LHS(0, 0) = 1.33333;
@@ -109,8 +104,18 @@ namespace Testing
         expected_LHS(2, 1) = 0.416667;
         expected_LHS(2, 2) = 1.08333;
 
+        // Test CalculateLocalSystem
+        auto p_element = r_test_model_part.pGetElement(1);
+        Vector RHS = ZeroVector(3);
+        Matrix LHS = ZeroMatrix(3,3);
+        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
         KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+
+        // Test CalculateRightHandSide
+        const auto& r_process_info = r_test_model_part.GetProcessInfo();
+        p_element->CalculateRightHandSide(RHS, r_process_info);
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EulerianDiff3D4N, KratosConvectionDiffusionFastSuite)
@@ -126,7 +131,7 @@ namespace Testing
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         r_test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4};
-        r_test_model_part.CreateNewElement("EulerianDiffusion3D", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("EulerianDiffusion3D4N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
 
         // Set the nodal values
         for (auto &i_node : r_test_model_part.Nodes()) {
@@ -138,12 +143,7 @@ namespace Testing
             i_node.FastGetSolutionStepValue(PROJECTED_SCALAR1, 1) = 0.5;
         }
 
-        // Test element
-        auto p_element = r_test_model_part.pGetElement(1);
-        Vector RHS = ZeroVector(4);
-        Matrix LHS = ZeroMatrix(4,4);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
-
+        // Set expected solution
         std::vector<double> expected_RHS = {0.416667, 0.416667, 0.416667, 0.416667};
         Matrix expected_LHS(4, 4);
         expected_LHS(0, 0) = 0.416667;
@@ -163,8 +163,18 @@ namespace Testing
         expected_LHS(3, 2) = 0.0833333;
         expected_LHS(3, 3) = 0.25;
 
+        // Test CalculateLocalSystem
+        auto p_element = r_test_model_part.pGetElement(1);
+        Vector RHS = ZeroVector(4);
+        Matrix LHS = ZeroMatrix(4,4);
+        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
         KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+
+        // Test CalculateRightHandSide
+        const auto& r_process_info = r_test_model_part.GetProcessInfo();
+        p_element->CalculateRightHandSide(RHS, r_process_info);
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
     }
 
 } // namespace Testing

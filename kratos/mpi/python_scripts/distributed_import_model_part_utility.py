@@ -64,7 +64,7 @@ class DistributedImportModelPartUtility:
                 sync_conditions = True
 
                 # Original .mdpa file reading
-                model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
+                model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags)
 
                 if not partition_in_memory:
                     ## Serial partition of the original .mdpa file
