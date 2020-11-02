@@ -34,6 +34,7 @@ void TransferNodalForcesToFem::Execute()
     auto& r_sub_model_conditions = mrModelPart.GetSubModelPart("ContactForcesDEMConditions");
     const auto it_cond_begin = r_sub_model_conditions.ConditionsBegin();
     auto& r_process_info = mrModelPart.GetProcessInfo();
+    
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(r_sub_model_conditions.Conditions().size()); i++) {
         auto it_cond = it_cond_begin + i;
@@ -53,7 +54,7 @@ void TransferNodalForcesToFem::Execute()
 
             if (mDampenSolution) {
                 auto prev_force = it_cond->GetValue(POINT_LOAD);
-                it_cond->SetValue(POINT_LOAD, 0.9*dem_forces + 0.1*prev_force);
+                it_cond->SetValue(POINT_LOAD, 0.5*dem_forces + 0.5*prev_force);
             } else {
                 it_cond->SetValue(POINT_LOAD, dem_forces);
             }

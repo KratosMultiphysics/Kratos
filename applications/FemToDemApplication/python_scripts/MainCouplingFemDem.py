@@ -555,7 +555,7 @@ class MainCoupledFemDem_Solution:
 
 #TransferNodalForcesToFEM============================================================================================================================
     def TransferNodalForcesToFEM(self):
-        tranfer_nodal_forces_process = KratosFemDem.TransferNodalForcesToFem(self.FEM_Solution.main_model_part)
+        tranfer_nodal_forces_process = KratosFemDem.TransferNodalForcesToFem(self.FEM_Solution.main_model_part, False)
         tranfer_nodal_forces_process.Execute()
 
 #WritePostListFile============================================================================================================================
