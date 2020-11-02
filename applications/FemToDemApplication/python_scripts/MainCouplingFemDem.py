@@ -574,7 +574,10 @@ class MainCoupledFemDem_Solution:
         # open general Displ/Reaction File
         self.PlotFile = open("PlotFile.txt","w")
         self.PlotFile.write("This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!\n\n")
-        self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
+        if self.domain_size == 2:
+            self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
+        else:
+            self.PlotFile.write("       time           displ_x        displ_y      displ_z        Reaction_x     Reaction_y     Reaction_z    \n")
         self.PlotFile.close()
 
         self.PlotFileIter = open("iterations.txt","w")
