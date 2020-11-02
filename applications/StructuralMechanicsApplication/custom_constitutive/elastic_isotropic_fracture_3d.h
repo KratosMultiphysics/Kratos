@@ -338,14 +338,14 @@ protected:
     * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
-    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix);
+    void CheckClearConstitutiveMatrix(Matrix& rConstitutiveMatrix);
 
     /**
     * @brief It calculates the constitutive matrix rConstitutiveMatrix
     * @param rConstitutiveMatrix The constitutive matrix
     * @param rValues Parameters of the constitutive law
     */
-    virtual void CalculateElasticMatrix(
+    virtual void CalculateUnDamagedElasticMatrix(
         Matrix& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
         );
@@ -358,17 +358,7 @@ protected:
     virtual void CalculateConstitutiveMatrix(
         Matrix& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
-        ); 
-
-    /**
-    * @brief It calculates the P matrix rConstitutiveMatrix
-    * @param rConstitutiveMatrix The constitutive matrix
-    * @param rValues Parameters of the constitutive law
-    */
-    virtual void CalculatePMatrix(
-        Matrix& rPMatrix,
-        ConstitutiveLaw::Parameters& rValues
-        );                
+        );               
 
     /**
      * @brief It calculates the stress vector

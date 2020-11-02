@@ -77,13 +77,13 @@ void LinearPlaneStrainFracture::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrainFracture::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStrainFracture::CalculateUnDamagedElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(C);
+    this->CheckClearConstitutiveMatrix(C);
 
     const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
     const double c1 = (1.00 - NU)*c0;

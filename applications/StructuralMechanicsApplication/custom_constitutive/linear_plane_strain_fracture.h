@@ -173,7 +173,7 @@ protected:
      * @param C The constitutive matrix
      * @param rValues Parameters of the constitutive law
      */
-    void CalculateElasticMatrix(
+    void CalculateUnDamagedElasticMatrix(
         Matrix& C, 
         ConstitutiveLaw::Parameters& rValues
         ) override;   

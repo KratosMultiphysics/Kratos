@@ -318,7 +318,7 @@ int ElasticIsotropicFracture3D::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ElasticIsotropicFracture3D::CheckClearElasticMatrix(Matrix& rConstitutiveMatrix)
+void ElasticIsotropicFracture3D::CheckClearConstitutiveMatrix(Matrix& rConstitutiveMatrix)
 {
     const SizeType size_system = this->GetStrainSize();
     if (rConstitutiveMatrix.size1() != size_system || rConstitutiveMatrix.size2() != size_system)
@@ -329,7 +329,7 @@ void ElasticIsotropicFracture3D::CheckClearElasticMatrix(Matrix& rConstitutiveMa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ElasticIsotropicFracture3D::CalculateElasticMatrix(
+void ElasticIsotropicFracture3D::CalculateUnDamagedElasticMatrix(
     Matrix& rConstitutiveMatrix,
     ConstitutiveLaw::Parameters& rValues
     )
@@ -338,7 +338,7 @@ void ElasticIsotropicFracture3D::CalculateElasticMatrix(
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(rConstitutiveMatrix);
+    this->CheckClearConstitutiveMatrix(rConstitutiveMatrix);
 
     const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
     const double c2 = c1 * ( 1 - NU );
@@ -368,94 +368,17 @@ void ElasticIsotropicFracture3D::CalculateConstitutiveMatrix(
 {
     
     Matrix unDamagedElasticMatrix;
-    CalculateElasticMatrix(unDamagedElasticMatrix,rValues);
+    CalculateUnDamagedElasticMatrix(unDamagedElasticMatrix,rValues);
 
     const SizeType space_dimension = this->WorkingSpaceDimension();
 
-    double fD = (1-mPhaseField) * (1-mPhaseField); 
+    //parabolic degradation function value at integration point
+    double gPhi = (1-mPhaseField) * (1-mPhaseField); 
 
-    Vector& r_strain_vector = rValues.GetStrainVector();
-    CalculateCauchyGreenStrain( rValues, r_strain_vector);
-    Matrix StrainTensor = MathUtils<double>::StrainVectorToTensor(r_strain_vector);
-    double traceStrainTensor = 0.0;
-    if (r_strain_vector.size()==3)
-        traceStrainTensor = r_strain_vector[0] + r_strain_vector[1];
-    else
-        traceStrainTensor = r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2];
-
-    double sgn = 0.0;
-    if (traceStrainTensor < 0)
-        sgn = 1.0;    
-
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-    double k0 = E/(3*(1-2*NU));
-
-    Matrix II = ZeroMatrix(unDamagedElasticMatrix.size1(),unDamagedElasticMatrix.size2());
-
-    if (space_dimension > 2){
-        II(0,0) = 1.0; II(0,1) = 1.0; II(0,2) = 1.0;
-        II(1,0) = 1.0; II(1,1) = 1.0; II(1,2) = 1.0;
-        II(2,0) = 1.0; II(2,1) = 1.0; II(2,2) = 1.0;
-    }
-    else{
-        II(0,0) = 1.0; II(0,1) = 1.0; 
-        II(1,0) = 1.0; II(1,1) = 1.0;         
-    }        
-    
-    Matrix P = k0 * sgn * II;
     // now correct the constitutive matrix
-    this->CheckClearElasticMatrix(rConstitutiveMatrix);
-    noalias(rConstitutiveMatrix) = fD * unDamagedElasticMatrix + (1-fD) * P;
+    this->CheckClearConstitutiveMatrix(rConstitutiveMatrix);
+    noalias(rConstitutiveMatrix) = gPhi * unDamagedElasticMatrix;
 
-}
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ElasticIsotropicFracture3D::CalculatePMatrix(
-    Matrix& rPMatrix,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-
-    Matrix unDamagedElasticMatrix;
-    CalculateElasticMatrix(unDamagedElasticMatrix,rValues);
-
-    const SizeType space_dimension = this->WorkingSpaceDimension(); 
-
-    Vector& r_strain_vector = rValues.GetStrainVector();
-    CalculateCauchyGreenStrain( rValues, r_strain_vector);
-    Matrix StrainTensor = MathUtils<double>::StrainVectorToTensor(r_strain_vector);
-    double traceStrainTensor = 0.0;
-    if (r_strain_vector.size()==3)
-        traceStrainTensor = r_strain_vector[0] + r_strain_vector[1];
-    else
-        traceStrainTensor = r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2];
-
-    double sgn = 0.0;
-    if (traceStrainTensor < 0)
-        sgn = 1.0;    
-
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-    double k0 = E/(3*(1-2*NU));
-
-    Matrix II = ZeroMatrix(unDamagedElasticMatrix.size1(),unDamagedElasticMatrix.size2());
-
-    if (space_dimension > 2){
-        II(0,0) = 1.0; II(0,1) = 1.0; II(0,2) = 1.0;
-        II(1,0) = 1.0; II(1,1) = 1.0; II(1,2) = 1.0;
-        II(2,0) = 1.0; II(2,1) = 1.0; II(2,2) = 1.0;
-    }
-    else{
-        II(0,0) = 1.0; II(0,1) = 1.0; 
-        II(1,0) = 1.0; II(1,1) = 1.0;         
-    }
-
-    this->CheckClearElasticMatrix(rPMatrix);        
-    noalias(rPMatrix) = k0 * sgn * II;
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -479,13 +402,10 @@ void ElasticIsotropicFracture3D::CalculateUnDamagedPK2Stress(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    Matrix P;
-    this->CalculatePMatrix(P,rValues);
-
     Matrix C0;
-    this->CalculateElasticMatrix(C0,rValues);
+    this->CalculateUnDamagedElasticMatrix(C0,rValues);
 
-    noalias(rStressVector) = prod((C0-P),rStrainVector);
+    noalias(rStressVector) = prod(C0,rStrainVector);
 }
 /***********************************************************************************/
 /***********************************************************************************/
