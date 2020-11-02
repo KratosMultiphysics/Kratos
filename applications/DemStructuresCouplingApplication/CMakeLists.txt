@@ -12,8 +12,6 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  ")
-
 ## generate variables with the sources
 set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/dem_structures_coupling_application.cpp
