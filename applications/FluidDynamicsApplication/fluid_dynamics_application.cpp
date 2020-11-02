@@ -289,8 +289,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("EmbeddedAusasNavierStokes3D4N", mEmbeddedAusasNavierStokes3D);
     KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokes2D3N", mTwoFluidNavierStokes2D3N);
     KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokes3D4N", mTwoFluidNavierStokes3D4N);
-    KRATOS_REGISTER_ELEMENT("ExplicitQSNavierStokesExplicit2D3N", mQSNavierStokesExplicit2D3N);
-    KRATOS_REGISTER_ELEMENT("ExplicitQSNavierStokesExplicit3D4N", mQSNavierStokesExplicit3D4N);
+    KRATOS_REGISTER_ELEMENT("QSNavierStokesExplicit2D3N", mQSNavierStokesExplicit2D3N);
+    KRATOS_REGISTER_ELEMENT("QSNavierStokesExplicit3D4N", mQSNavierStokesExplicit3D4N);
 
     // Compressible Navier-Stokes symbolic elements
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokes2D3N",mCompressibleNavierStokes2D);
