@@ -39,7 +39,7 @@ class FluidFractionTestSolver(BaseSolver):
             node.Fix(Kratos.VELOCITY_Z)
 
     def ConstructL2ErrorProjector(self):
-        self.L2_error_projector = error_projector.L2ErrorProjectionUtility(self.fluid_solver.main_model_part)
+        self.L2_error_projector = error_projector.L2ErrorProjectionUtility(self.fluid_solver.main_model_part, self.project_parameters)
 
     def ProjectL2Error(self):
         self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self.L2_error_projector.ProjectL2()

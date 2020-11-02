@@ -6,7 +6,7 @@ import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import sys
 
 class L2ErrorProjectionUtility:
-    def __init__(self, model):
+    def __init__(self, model, parameters):
         """The default constructor of the class.
 
         Keyword arguments:
@@ -14,19 +14,34 @@ class L2ErrorProjectionUtility:
         model -- the container of the different model parts.
         """
         self.model_part = model
+
+        self.u_characteristic = parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
+        for element in self.model_part.Elements:
+            rho = element.Properties.GetValue(KratosMultiphysics.DENSITY)
+            break
+        self.p_characteristic = (1/2)*rho*self.u_characteristic**2
+
         self.model = KratosMultiphysics.Model()
+
         self.element_name = "CalculateErrorL2Projection3D"
+
         self.error_model_part = self.model.CreateModelPart("ErrorModelPart")
+
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.VECTORIAL_ERROR)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_X)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_Y)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_Z)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.SCALAR_ERROR)
+
         model_part_cloner = KratosMultiphysics.ConnectivityPreserveModeler()
         model_part_cloner.GenerateModelPart(self.model_part, self.error_model_part, self.element_name)
+
         self.error_model_part.ProcessInfo = self.model_part.ProcessInfo
+
         self.DOFs = (SDEM.ERROR_X, SDEM.ERROR_Y, SDEM.ERROR_Z, SDEM.SCALAR_ERROR)
+
         self.AddDofs(self.DOFs)
+
         self.SetStrategy()
 
     def ProjectL2(self):
@@ -36,7 +51,7 @@ class L2ErrorProjectionUtility:
 
         self.velocity_error_projected = SDEM.L2ErrorProjection().GetL2VectorProjection(self.error_model_part)
         self.pressure_error_projected = SDEM.L2ErrorProjection().GetL2ScalarProjection(self.error_model_part)
-        return self.velocity_error_projected, self.pressure_error_projected, self.error_model_part
+        return self.velocity_error_projected/self.u_characteristic, self.pressure_error_projected/self.p_characteristic, self.error_model_part
 
     def ComputeVelocityError(self):
         for node in self.error_model_part.Nodes:
