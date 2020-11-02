@@ -517,7 +517,7 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
 
 void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 {
-    KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE)) << "ModelPartIO needs to be created in write mode to write a ModelPart!" << std::endl;
+    KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "ModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
 
     Timer::Start("Writing Output");
 
