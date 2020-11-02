@@ -59,6 +59,8 @@ namespace Kratos
         mIsImplicitDestination = (destination_beta > numerical_limit) ? true : false;
         mTimestepRatio = timestep_ratio;
 
+        mIsLinear = mParameters["is_linear"].GetBool();
+
         mSubTimestepIndex = 1;
     }
 
@@ -89,25 +91,33 @@ namespace Kratos
         Vector unbalanced_interface_free_kinematics(destination_interface_dofs);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
 
-        // 2 - Construct projection matrices
-        if(mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
-        const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
-        CompressedMatrix projector_destination(destination_interface_dofs, destination_dofs);
-        ComposeProjector(projector_destination, false);
+        if (!mIsLinear || (mIsLinear && !mIsLinearSetupComplete))
+        {
+            // 2 - Construct projection matrices
+            if (mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
+            const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
+            if (mProjectorDestination.size1() != destination_interface_dofs || mProjectorDestination.size2() != destination_dofs)
+                mProjectorDestination.resize(destination_interface_dofs, destination_dofs);
+            ComposeProjector(mProjectorDestination, false);
 
-        // 3 - Determine domain response to unit loads
-        if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, true);
-        CompressedMatrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
-        DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination, false);
+            // 3 - Determine domain response to unit loads
+            if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, true);
+            if (mUnitResponseDestination.size1() != mProjectorDestination.size2() || mUnitResponseDestination.size2() != mProjectorDestination.size1())
+                mUnitResponseDestination.resize(mProjectorDestination.size2(), mProjectorDestination.size1());
+            DetermineDomainUnitAccelerationResponse(mpKDestination, mProjectorDestination, mUnitResponseDestination, false);
 
-        // 4 - Calculate condensation matrix
-        CompressedMatrix condensation_matrix(destination_interface_dofs, destination_interface_dofs);
-        CalculateCondensationMatrix(condensation_matrix, mUnitResponseOrigin,
-            unit_response_destination, mProjectorOrigin, projector_destination);
+            // 4 - Calculate condensation matrix
+            if (mCondensationMatrix.size1() != destination_interface_dofs || mCondensationMatrix.size2() != destination_interface_dofs)
+                mCondensationMatrix.resize(destination_interface_dofs, destination_interface_dofs);
+            CalculateCondensationMatrix(mCondensationMatrix, mUnitResponseOrigin,
+                mUnitResponseDestination, mProjectorOrigin, mProjectorDestination);
+
+            if (mIsLinear) mIsLinearSetupComplete = true;
+        }
 
         // 5 - Calculate lagrange mults
         Vector lagrange_vector(destination_interface_dofs);
-        DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_kinematics);
+        DetermineLagrangianMultipliers(lagrange_vector, mCondensationMatrix, unbalanced_interface_free_kinematics);
         if (mParameters["is_disable_coupling"].GetBool()) lagrange_vector.clear();
         if (mParameters["is_disable_coupling"].GetBool()) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
 
@@ -116,7 +126,7 @@ namespace Kratos
             SetOriginInitialKinematics(); // the final free kinematics of A is the initial free kinematics of A for the next timestep
             ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
         }
-        ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
+        ApplyCorrectionQuantities(lagrange_vector, mUnitResponseDestination, false);
 
         // 7 - Optional check of equilibrium
         if (mIsCheckEquilibrium && !mParameters["is_disable_coupling"].GetBool() && mSubTimestepIndex == mTimestepRatio)

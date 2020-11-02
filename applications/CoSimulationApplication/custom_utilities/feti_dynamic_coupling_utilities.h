@@ -125,6 +125,13 @@ namespace Kratos
         CompressedMatrix mProjectorOrigin;
         CompressedMatrix mUnitResponseOrigin;
 
+        // Quantities to store for a linear system
+        CompressedMatrix mCondensationMatrix;
+        CompressedMatrix mUnitResponseDestination;
+        CompressedMatrix mProjectorDestination;
+        bool mIsLinearSetupComplete = false;
+
+
         std::string mEquilibriumVariableString;
 
         LinearSolverSharedPointerType mpSolver = nullptr;
@@ -132,6 +139,7 @@ namespace Kratos
         bool mIsImplicitOrigin;
         bool mIsImplicitDestination;
         const Parameters mParameters;
+        bool mIsLinear = false;
 
         IndexType mSubTimestepIndex = 1;
         IndexType mTimestepRatio;

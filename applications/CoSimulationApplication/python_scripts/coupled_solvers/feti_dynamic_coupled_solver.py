@@ -174,6 +174,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "timestep_ratio" : 1.0,
             "equilibrium_variable" : "VELOCITY",
             "is_disable_coupling" : false,
+            "is_linear" : false,
             "linear_solver_settings" : {}
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
