@@ -53,11 +53,11 @@ def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
     return mat_N
 
 # Symbolic generation settings
-mode = "c"
+mode = "c"                          # Output mode to a c++ file
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-ASGS_stabilization = False          # Consider ASGS stabilization terms
-OSS_stabilization = False           # Consider OSS stabilization terms
+stabilization = False               # Consider ASGS or OSS stabilization. By default simple ASGS is used
+OSS_stabilization = False           # Requires stabilization to be true
 formulation = "NavierStokes"        # Element type. Options: "NavierStokes"
 
 if formulation == "NavierStokes":
@@ -73,7 +73,7 @@ info_msg = "\n"
 info_msg += "Element generator settings:\n"
 info_msg += "\t - Element type: " + formulation + "\n"
 info_msg += "\t - Dimension: " + dim_to_compute + "\n"
-info_msg += "\t - ASGS stabilization: " + str(ASGS_stabilization) + "\n"
+info_msg += "\t - stabilization: " + str(stabilization) + "\n"
 info_msg += "\t - OSS stabilization: " + str(OSS_stabilization) + "\n"
 print(info_msg)
 
@@ -192,7 +192,7 @@ for dim in dim_vector:
             res_galerkin -= w_gauss.transpose()*convective_term_gauss.transpose()
 
         # Add the stabilization terms to the original residual terms
-        if (ASGS_stabilization):
+        if (stabilization):
             res = res_galerkin + res_stabilization
         else:
             res = res_galerkin
@@ -219,10 +219,6 @@ for dim in dim_vector:
     print("Computing " + str(dim) + "D RHS Gauss point contribution\n")
     rhs = Compute_RHS(res_tot.copy(), testfunc, do_simplifications)
     rhs_out = OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode)
-
-    # print("Computing " + str(dim) + "D LHS Gauss point contribution\n")
-    # lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
-    # lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
 
     # Replace the computed RHS and LHS in the template outstring
     if(dim == 2):
