@@ -39,16 +39,16 @@ namespace Kratos
 		mStartElementId = TheParameters["start_element_id"].GetInt();
 		mStartConditionId = TheParameters["start_condition_id"].GetInt();
 		
-		mCheckTypeOfDivisions = TheParameters["number_of_divisions"].IsVector();
-		
-		if (mCheckTypeOfDivisions.compare(false) == 0){
-			std::vector<int> mNumberOfDivisions(mrGeometry.LocalSpaceDimension(),0);
-			vector<int>::iterator it;
-				for (int it = mNumberOfDivisions.begin(); it <= mNumberOfDivisions.end(); it++) {
-        			mNumberOfDivisions.at(i) = TheParameters["number_of_divisions"].GetInt();
-				}
+		is_number_of_divisions_a_vector = TheParameters["number_of_divisions"].IsVector();
+		mNumberOfDivisions.resize(mrGeometry.LocalSpaceDimension());
+		if (is_number_of_divisions_a_vector == false){
+			for (size_t i = 0; i < mNumberOfDivisions.size(); i++) {
+        		mNumberOfDivisions[i] = TheParameters["number_of_divisions"].GetInt();
+			}
 		} else{
-				mNumberOfDivisions = TheParameters["number_of_divisions"].GetVector();
+			for (size_t i = 0; i < TheParameters["number_of_divisions"].size(); i++) {
+				mNumberOfDivisions[i] = TheParameters["number_of_divisions"][i].GetInt();
+			}
 		}
 
 		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
@@ -77,20 +77,35 @@ namespace Kratos
 	}
 
 	const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
-	{
-        const Parameters default_parameters(R"(
-        {
-            "create_skin_sub_model_part": true,
-            "start_node_id":1,
-            "start_element_id":1,
-            "start_condition_id":1,
-            "number_of_divisions": {0, 0, 0},
-            "elements_properties_id":0,
-            "conditions_properties_id":0,
-            "element_name": "PLEASE SPECIFY IT",
-            "condition_name": "PLEASE SPECIFY IT"
-        }  )");
-        return default_parameters;
+	{	if (is_number_of_divisions_a_vector == false){
+        	const Parameters default_parameters(R"(
+        	{
+            	"create_skin_sub_model_part": true,
+            	"start_node_id":1,
+            	"start_element_id":1,
+            	"start_condition_id":1,
+            	"number_of_divisions": 1,
+            	"elements_properties_id":0,
+            	"conditions_properties_id":0,
+            	"element_name": "PLEASE SPECIFY IT",
+            	"condition_name": "PLEASE SPECIFY IT"
+        	}  )");
+			return default_parameters;
+		}else{
+        	const Parameters default_parameters(R"(
+        	{
+            	"create_skin_sub_model_part": true,
+            	"start_node_id":1,
+            	"start_element_id":1,
+            	"start_condition_id":1,
+            	"number_of_divisions": [1, 1, 1],
+            	"elements_properties_id":0,
+            	"conditions_properties_id":0,
+            	"element_name": "PLEASE SPECIFY IT",
+            	"condition_name": "PLEASE SPECIFY IT"
+        	}  )");			
+			return default_parameters;
+		}
     }
 
 	std::string StructuredMeshGeneratorProcess::Info() const {
@@ -266,9 +281,9 @@ namespace Kratos
 
         KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[0], 0);
 		KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[1], 0);
-		if mrGeometry.LocalSpaceDimension() == 3
+		if (mrGeometry.LocalSpaceDimension() == 3){
 			KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[2], 0);
-
+		}
         return 0;
 
         KRATOS_CATCH("")

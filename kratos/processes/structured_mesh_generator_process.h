@@ -139,8 +139,8 @@ namespace Kratos
 		  std::size_t mConditiongPropertiesId;
 		  std::string mElementName;
 		  std::string mConditionName;
-      std::string mCheckTypeOfDivisions;
           bool mCreateSkinSubModelPart;
+          bool is_number_of_divisions_a_vector;
 		  ModelPart& mrOutputModelPart;
 
 
