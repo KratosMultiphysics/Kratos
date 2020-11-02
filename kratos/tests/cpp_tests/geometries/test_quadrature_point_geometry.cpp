@@ -18,7 +18,7 @@
 #include "includes/stream_serializer.h"
 
 #include "utilities/quadrature_points_utility.h"
-
+#include "utilities/geometrical_projection_utilities.h"
 #include "geometries/point.h"
 
 #include "geometries/triangle_2d_3.h"
