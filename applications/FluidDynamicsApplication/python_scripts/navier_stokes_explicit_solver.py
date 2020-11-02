@@ -16,8 +16,8 @@ class NavierStokesExplicitSolver(FluidSolver):
         self._validate_settings_in_baseclass = True # To be removed eventually
         super(NavierStokesExplicitSolver,self).__init__(model,custom_settings)
 
-        if custom_settings["formulation"]["element_type"].GetString() != "SymbolicExplicitQSNavierStokes":
-            raise Exception("NavierStokesExplicitSolver only accepts SymbolicExplicitQSNavierStokes as the \"element_type\" in \"formulation\"")
+        if custom_settings["formulation"]["element_type"].GetString() != "QSNavierStokesExplicit":
+            raise Exception("NavierStokesExplicitSolver only accepts QSNavierStokesExplicit as the \"element_type\" in \"formulation\"")
 
         self.element_name = custom_settings["formulation"]["element_type"].GetString()
         self.condition_name = custom_settings["formulation"]["condition_type"].GetString()
@@ -33,11 +33,12 @@ class NavierStokesExplicitSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesExplicitSolver finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "Explicit",
+            "solver_type": "FractionalStep",
+            "time_integration_method": "explicit",
             "model_part_name": "FluidModelPart",
             "domain_size": -1,
             "model_import_settings": {
@@ -65,12 +66,12 @@ class NavierStokesExplicitSolver(FluidSolver):
             "use_oss": true,
             "dynamic_tau": 1.0,
             "formulation": {
-                "element_type": "SymbolicExplicitQSNavierStokes",
+                "element_type": "QSNavierStokesExplicit",
                 "condition_type": "WallCondition"
             }
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesExplicitSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesExplicitSolver, cls).GetDefaultParameters())
         return default_settings
 
     def AddVariables(self):
