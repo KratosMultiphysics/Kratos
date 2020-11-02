@@ -17,7 +17,7 @@ Element::Pointer SpalartAllmaras::Create(IndexType NewId,GeometryType::Pointer p
     return Kratos::make_intrusive<SpalartAllmaras>(NewId, pGeom, pProperties);
 }
 
-int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo)
+int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

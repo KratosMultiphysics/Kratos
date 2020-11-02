@@ -6,7 +6,7 @@ message("**** configuring KratosIgaApplication ****")
 include(pybind11Tools)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/kratos
+    ${KRATOS_SOURCE_DIR}/kratos
 )
 
 # Define application core sources (pure C++ parts)

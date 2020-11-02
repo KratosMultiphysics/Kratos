@@ -26,7 +26,7 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
              "meshing_frequency": 0.0,
              "remesh": false,
              "refine": false,
-             "transfer" : true,
+             "transfer" : false,
              "reference_element_type": "Element2D3N",
              "reference_condition_type": "CompositeCondition2D3N"
         }
