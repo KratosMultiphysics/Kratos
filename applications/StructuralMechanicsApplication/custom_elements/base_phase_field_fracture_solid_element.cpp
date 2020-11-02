@@ -673,7 +673,7 @@ void BasePhaseFieldFractureSolidElement::CalculateOnIntegrationPoints(
                     CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, rCurrentProcessInfo, point_number, integration_points, GetStressMeasure());
 
                     double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
 
@@ -737,7 +737,7 @@ void BasePhaseFieldFractureSolidElement::CalculateOnIntegrationPoints(
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, rCurrentProcessInfo, point_number, integration_points, GetStressMeasure());
 
                 const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
 
@@ -881,10 +881,10 @@ void BasePhaseFieldFractureSolidElement::CalculateOnIntegrationPoints(
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR) {
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, rCurrentProcessInfo, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
                 } else {
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, rCurrentProcessInfo, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
                 }
 
                 if ( rOutput[point_number].size() != strain_size )
@@ -920,7 +920,7 @@ void BasePhaseFieldFractureSolidElement::CalculateOnIntegrationPoints(
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, rCurrentProcessInfo, point_number, integration_points, this_stress_measure);
 
                 if ( rOutput[point_number].size() != strain_size)
                     rOutput[point_number].resize( strain_size, false );
@@ -1007,7 +1007,7 @@ void BasePhaseFieldFractureSolidElement::CalculateOnIntegrationPoints(
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, rCurrentProcessInfo, point_number, integration_points, GetStressMeasure());
 
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                     rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
@@ -1267,6 +1267,7 @@ void BasePhaseFieldFractureSolidElement::CalculateConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
+    const ProcessInfo& rCurrentProcessInfo,
     const IndexType PointNumber,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
@@ -1274,6 +1275,11 @@ void BasePhaseFieldFractureSolidElement::CalculateConstitutiveVariables(
 {
     // Setting the variables for the CL
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
+
+    // Set the phase-field value
+    GetPhaseFieldValuesVector(rThisKinematicVariables.PhaseField);
+    double gpPhaseField = inner_prod(rThisKinematicVariables.N,rThisKinematicVariables.PhaseField);
+    mConstitutiveLawVector[PointNumber]->SetValue(PHASE_FIELD,gpPhaseField,rCurrentProcessInfo);
 
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done

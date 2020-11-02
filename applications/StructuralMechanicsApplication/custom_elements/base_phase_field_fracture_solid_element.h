@@ -685,17 +685,19 @@ protected:
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param rThisConstitutiveVariables The constitutive variables
      * @param rValues The CL parameters
+     * @param rCurrentProcessInfo The current process info instance** 
      * @param PointNumber The integration point considered
      * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
+     * @param ThisStressMeasure The stress measure considered      
      */
     virtual void CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
+        const ProcessInfo& rCurrentProcessInfo,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2        
         );
 
     /**

@@ -46,7 +46,7 @@ namespace Kratos
 /**
  * @class FractureSmallDisplacement
  * @ingroup StructuralMechanicsApplication
- * @brief Small displacement element for 2D and 3D geometries.
+ * @brief Small displacement element with phase-field fracture modelling for 2D and 3D geometries.
  * @details Implements a small displacement definition for structural analysis. This works for arbitrary geometries in 2D and 3D
  * @author Reza Najian 
  * @author Shahed Rezaei
@@ -242,17 +242,19 @@ protected:
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param rThisConstitutiveVariables The constitutive variables
      * @param rValues The CL parameters
+     * @param rCurrentProcessInfo The current process info instance* 
      * @param PointNumber The integration point considered
      * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
+     * @param ThisStressMeasure The stress measure considered    
      */
     void CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
+        const ProcessInfo& rCurrentProcessInfo,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure        
         ) override;
 
     /**

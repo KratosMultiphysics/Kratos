@@ -165,11 +165,11 @@ void FractureSmallDisplacement::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
+        // Compute material reponse
+        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, rCurrentProcessInfo, point_number, integration_points, GetStressMeasure());        
+
         // Compute phase-field vars
         CalculatePhaseFieldVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), rCurrentProcessInfo);
-
-        // Compute material reponse
-        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());        
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
@@ -259,6 +259,7 @@ void FractureSmallDisplacement::CalculateConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
+    const ProcessInfo& rCurrentProcessInfo,
     const IndexType PointNumber,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
@@ -267,6 +268,11 @@ void FractureSmallDisplacement::CalculateConstitutiveVariables(
 
     // Set the constitutive variables
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
+
+    // Set the phase-field value
+    GetPhaseFieldValuesVector(rThisKinematicVariables.PhaseField);
+    double gpPhaseField = inner_prod(rThisKinematicVariables.N,rThisKinematicVariables.PhaseField);
+    mConstitutiveLawVector[PointNumber]->SetValue(PHASE_FIELD,gpPhaseField,rCurrentProcessInfo);
 
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
@@ -285,14 +291,6 @@ void FractureSmallDisplacement::CalculatePhaseFieldVariables(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-
-    GetDisplacementValuesVector(rThisKinematicVariables.Displacements);
-    GetPhaseFieldValuesVector(rThisKinematicVariables.PhaseField);
-
-    double gpPhaseField = inner_prod(rThisKinematicVariables.N,rThisKinematicVariables.PhaseField);
-    mConstitutiveLawVector[PointNumber]->SetValue(PHASE_FIELD,gpPhaseField,rCurrentProcessInfo);
-
-    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // calculate elastic strain (excluding crack strain energy)
     mConstitutiveLawVector[PointNumber]->CalculateValue(rValues,UNDAMAGED_ELASTIC_ENERGY,rThisConstitutiveVariables.UndamagedElasticEnergy);
