@@ -3,13 +3,12 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
 ## Import base class file
-from KratosMultiphysics.ShallowWaterApplication.shallow_water_solver import ShallowWaterSolver
-from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
+from KratosMultiphysics.ShallowWaterApplication.free_surface_shallow_water_solver import FreeSurfaceShallowWaterSolver
 
 def CreateSolver(model, custom_settings):
     return LagrangianShallowWaterSolver(model, custom_settings)
 
-class LagrangianShallowWaterSolver(ShallowWaterSolver):
+class LagrangianShallowWaterSolver(FreeSurfaceShallowWaterSolver):
     def __init__(self, model, settings):
         super().__init__(model, settings)
         self.min_buffer_size = 2

@@ -827,7 +827,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -859,7 +859,7 @@ public:
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
-            Node<3> &rNode = this->GetGeometry()[i];
+            const auto &rNode = this->GetGeometry()[i];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);

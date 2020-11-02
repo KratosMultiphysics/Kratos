@@ -367,7 +367,7 @@ private:
         }
 
         // Calculate and Extrapolate Stresses
-        ProcessInfo& r_current_process_info = rCurrentModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rCurrentModelPart.GetProcessInfo();
         const auto it_elem_begin = rCurrentModelPart.ElementsBegin();
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rCurrentModelPart.Elements().size()); ++i) {

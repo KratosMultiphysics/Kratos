@@ -20,7 +20,6 @@
 #include "custom_elements/base_solid_element.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {

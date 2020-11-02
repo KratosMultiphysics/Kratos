@@ -86,17 +86,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Periodic boundary conditions utilities
     typedef void (PeriodicConditionUtilities::*AddDoubleVariableType)(Properties&,Variable<double>&);
-    typedef void (PeriodicConditionUtilities::*AddVariableComponentType)(Properties&,VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&);
 
     AddDoubleVariableType AddDoubleVariable = &PeriodicConditionUtilities::AddPeriodicVariable;
-    AddVariableComponentType AddVariableComponent = &PeriodicConditionUtilities::AddPeriodicVariable;
 
     py::class_<PeriodicConditionUtilities>(m,"PeriodicConditionUtilities")
         .def(py::init<ModelPart&,unsigned int>())
         .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
         .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
         .def("AddPeriodicVariable",AddDoubleVariable)
-        .def("AddPeriodicVariable",AddVariableComponent)
     ;
 
     // Base settings
@@ -158,11 +155,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
         .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
         ;
-
-    py::class_<
-        CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double>,
-        CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double>::Pointer>
-        (m,"CoordinateTransformationUtils");
 
     py::class_<
         CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>,

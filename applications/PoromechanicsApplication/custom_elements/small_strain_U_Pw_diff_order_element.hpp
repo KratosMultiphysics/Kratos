@@ -41,58 +41,58 @@ public:
 
     // Default constructor
     SmallStrainUPwDiffOrderElement();
-    
+
     // Constructor 1
     SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    
+
     // Constructor 2
     SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-    
+
     // Destructor
     virtual ~SmallStrainUPwDiffOrderElement();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     void Initialize() override;
-    
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-    
+
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
-    
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo ) override;
-    
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
-    
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-    
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues,const ProcessInfo& rCurrentProcessInfo ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -100,9 +100,9 @@ public:
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -126,18 +126,18 @@ protected:
         Vector StrainVector;
         Matrix ConstitutiveMatrix;
         Vector StressVector; //It is the "Effective Stress Vector": sigma'_ij = sigma_ij + alpha*pw*delta_ij
-        
+
         //Variables needed for consistency with the general constitutive law
         double detF;
         Matrix F;
-        
+
         //Nodal variables
         Vector BodyAcceleration;
         Vector DisplacementVector;
         Vector VelocityVector;
         Vector PressureVector;
         Vector PressureDtVector;
-        
+
         //Properties and processinfo variables
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -146,66 +146,66 @@ protected:
         double NewmarkCoefficient1;
         double NewmarkCoefficient2;
     };
-    
+
     // Member Variables
-    
+
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    
+
     Geometry< Node<3> >::Pointer mpPressureGeometry;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, 
+
+    void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
                                 bool CalculateLHSMatrixFlag, bool CalculateResidualVectorFlag);
 
     void InitializeElementalVariables (ElementalVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
-    
+
     void InitializeNodalVariables (ElementalVariables& rVariables);
-    
+
     void InitializeProperties (ElementalVariables& rVariables);
-    
+
     void CalculateKinematics(ElementalVariables& rVariables, unsigned int PointNumber);
 
     void SetElementalVariables(ElementalVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters);
-    
+
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, double detJ, double weight);
 
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables);
-    
-    
+
+
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementalVariables& rVariables);
-    
+
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementalVariables& rVariables);
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
@@ -215,10 +215,10 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
-    
-    
+
+
     // Private Operations
-    
+
     template < class TValueType >
     inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
     {
@@ -226,9 +226,9 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
-    
+
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos
 
-#endif // KRATOS_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED  defined

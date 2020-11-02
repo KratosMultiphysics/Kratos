@@ -166,9 +166,9 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
         std::cout << "The stationarity condition tolerance is " << "\n";
-        KRATOS_WATCH(tol)
+        KRATOS_INFO("SwimmingDEM") << tol << std::endl;
         std::cout << "The stationarity residual is now " << "\n";
-        KRATOS_WATCH(max_pressure_change_rate)
+        KRATOS_INFO("SwimmingDEM") << max_pressure_change_rate << std::endl;
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
 
         return max_pressure_change_rate <= tol;
@@ -492,19 +492,6 @@ void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<double>
         Node<3>::Pointer p_node = *(i_particle.base());
         double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         const double& origin_value = p_node->FastGetSolutionStepValue(origin_variable);
-        destination_value = origin_value;
-    }
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& origin_variable, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& destination_variable)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
-        ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
-        double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
-        const double origin_value = p_node->FastGetSolutionStepValue(origin_variable);
         destination_value = origin_value;
     }
 }

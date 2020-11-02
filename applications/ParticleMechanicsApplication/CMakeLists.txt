@@ -5,7 +5,7 @@ message("**** configuring KratosParticleMechanicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Define application core sources (pure C++ parts)
 file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE
@@ -19,6 +19,13 @@ file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
+
+# If there is mpi support, use..
+if((${USE_MPI} MATCHES ON) )
+  file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
+  )
+endif((${USE_MPI} MATCHES ON) )
 
 # Define python interface sources
 file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
@@ -75,3 +82,4 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosParticleMechanicsCore DESTINATION libs )
 install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
+
