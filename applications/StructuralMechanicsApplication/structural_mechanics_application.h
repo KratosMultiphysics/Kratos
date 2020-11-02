@@ -98,6 +98,7 @@
 #include "custom_constitutive/elastic_isotropic_fracture_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/linear_plane_strain_fracture.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
 

@@ -577,6 +577,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    bool mCoupleUPi; /// Specifies if displacements and phase-field are strongly coupled 
+
     std::vector<double> mHisVarVector; /// So-called history variable field, evaluated at each integration point  
 
     IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods

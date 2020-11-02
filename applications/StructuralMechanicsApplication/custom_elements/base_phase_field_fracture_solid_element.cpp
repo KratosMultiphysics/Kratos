@@ -69,6 +69,15 @@ void BasePhaseFieldFractureSolidElement::Initialize(const ProcessInfo& rCurrentP
         mHisVarVector.resize( integration_points.size());
     for(int i=0;i<mHisVarVector.size();i++)
         mHisVarVector[i] = 0.0;
+
+    //Whether couple displacements and phase-field or not
+    if( GetProperties().Has(COUPLE_U_PHI) )
+        mCoupleUPi = GetProperties()[COUPLE_U_PHI];
+    else if( rCurrentProcessInfo.Has(COUPLE_U_PHI) )
+        mCoupleUPi = rCurrentProcessInfo[COUPLE_U_PHI];
+    else
+        mCoupleUPi = false;
+    
     
     KRATOS_CATCH( "" )
 }
@@ -327,7 +336,7 @@ void BasePhaseFieldFractureSolidElement::EquationIdVector(
             const NodeType& i_node = r_geom[i];
             rResult[index] = i_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = i_node.GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index + 2] = i_node.GetDof(DAMAGE).EquationId();
+            rResult[index + 2] = i_node.GetDof(PHASE_FIELD).EquationId();
         }
     } else {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
@@ -336,7 +345,7 @@ void BasePhaseFieldFractureSolidElement::EquationIdVector(
             rResult[index] = i_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = i_node.GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = i_node.GetDof(DISPLACEMENT_Z).EquationId();
-            rResult[index + 3] = i_node.GetDof(DAMAGE).EquationId();
+            rResult[index + 3] = i_node.GetDof(PHASE_FIELD).EquationId();
         }
     }
 
@@ -362,14 +371,14 @@ void BasePhaseFieldFractureSolidElement::GetDofList(
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof(DAMAGE));
+            rElementalDofList.push_back( GetGeometry()[i].pGetDof(PHASE_FIELD));
         }
     } else {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof(DAMAGE));
+            rElementalDofList.push_back( GetGeometry()[i].pGetDof(PHASE_FIELD));
         }
     }
 
@@ -398,8 +407,8 @@ void BasePhaseFieldFractureSolidElement::GetValuesVector(
             rValues[index + k] = displacement[k];
         }
 
-        const double& damagnode = GetGeometry()[i].FastGetSolutionStepValue(DAMAGE, Step);
-        rValues[index + dimension] = damagnode;
+        const double& phasefield = GetGeometry()[i].FastGetSolutionStepValue(PHASE_FIELD, Step);
+        rValues[index + dimension] = phasefield;
 
     }
 }
@@ -443,8 +452,8 @@ void BasePhaseFieldFractureSolidElement::GetPhaseFieldValuesVector(
     for (IndexType i = 0; i < number_of_nodes; ++i)
     {   
         const SizeType index = i;
-        const double& damagnode = GetGeometry()[i].FastGetSolutionStepValue(DAMAGE, Step);
-        rValues[index] = damagnode;
+        const double& phasefield = GetGeometry()[i].FastGetSolutionStepValue(PHASE_FIELD, Step);
+        rValues[index] = phasefield;
     }
 }
 
@@ -1358,16 +1367,16 @@ void BasePhaseFieldFractureSolidElement::CalculateAndAddKm(
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType mat_size = number_of_nodes * (dimension + 1); //damage dimension is included
+    const SizeType mat_size = number_of_nodes * (dimension + 1); //phase-field dimension is included
 
     //momentum stiffness equation
     Matrix Kuu = IntegrationWeight * prod( trans( rThisKinematicVariables.B ), Matrix(prod(rThisConstitutiveVariables.D, rThisKinematicVariables.B))); //displ res contri.
     
-    //damage stiffness equation
+    //phase-field stiffness equation
     const double gc = (GetProperties().Has( CRITICAL_ENERGY_RELEASE_RATE ) == true) ? this->GetProperties()[CRITICAL_ENERGY_RELEASE_RATE] : 10.0;
     const double lc = (GetProperties().Has( PHASE_FIELD_LENGTH ) == true) ? this->GetProperties()[PHASE_FIELD_LENGTH] : 0.1;
     double Hi = rThisConstitutiveVariables.MaxUndamagedElasticEnergy;
-    Matrix Kdd = ZeroMatrix( number_of_nodes, number_of_nodes ); //damage res contri.
+    Matrix Kdd = ZeroMatrix( number_of_nodes, number_of_nodes ); //phase-field res contri.
     Kdd = IntegrationWeight * gc * ((1.0/lc) * outer_prod(rThisKinematicVariables.N,rThisKinematicVariables.N) + lc * prod(rThisKinematicVariables.DN_DX,trans(rThisKinematicVariables.DN_DX)) );
     noalias(Kdd) += IntegrationWeight * 2 * Hi * outer_prod(rThisKinematicVariables.N,rThisKinematicVariables.N);
 
@@ -1403,7 +1412,7 @@ void BasePhaseFieldFractureSolidElement::CalculateAndAddResidualVector(
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType mat_size = number_of_nodes * (dimension + 1); //damage dimension is included
+    const SizeType mat_size = number_of_nodes * (dimension + 1); //phase-field dimension is included
 
     // Operation performed: rRightHandSideVector += ExtForce * IntegrationWeight
     Vector forceCont = ZeroVector( number_of_nodes * dimension); //damage res contr.
