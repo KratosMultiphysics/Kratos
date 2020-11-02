@@ -168,12 +168,7 @@ try {                                                                           
             << "Got:" << std::endl << e.what() << std::endl;                            \
 }
 
-#define KRATOS_CHECK_VARIABLE_KEY(TheVariable)                               \
-    KRATOS_ERROR_IF(TheVariable.Key() == 0)                                  \
-        << TheVariable.Name() << " Key is 0." << std::endl                   \
-        << "Check that Kratos variables have been correctly registered and " \
-           "all required applications have been imported."                   \
-        << std::endl;
+#define KRATOS_CHECK_VARIABLE_KEY(TheVariable)
 
 #define KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)                          \
     KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))                         \
