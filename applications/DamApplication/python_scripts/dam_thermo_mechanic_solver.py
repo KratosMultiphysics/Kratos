@@ -233,7 +233,6 @@ class DamThermoMechanicSolver(object):
         # Solver creation
         self.Thermal_Solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.thermal_computing_model_part,
                                                                              thermal_scheme,
-                                                                             self.thermal_linear_solver,
                                                                              thermal_builder_and_solver,
                                                                              self.settings["thermal_solver_settings"]["compute_reactions"].GetBool(),
                                                                              self.settings["thermal_solver_settings"]["reform_dofs_at_each_step"].GetBool(),
@@ -452,7 +451,6 @@ class DamThermoMechanicSolver(object):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.mechanical_computing_model_part,
                                                                                scheme,
-                                                                               self.mechanical_linear_solver,
                                                                                convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -464,7 +462,6 @@ class DamThermoMechanicSolver(object):
                 self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)
                 solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.mechanical_computing_model_part,
                                                                                     scheme,
-                                                                                    self.mechanical_linear_solver,
                                                                                     convergence_criterion,
                                                                                     builder_and_solver,
                                                                                     max_iters,

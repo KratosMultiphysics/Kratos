@@ -367,6 +367,7 @@ unsigned int VtkOutput::DetermineVtkCellListSize(const TContainerType& rContaine
 template <typename TContainerType>
 void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream) const
 {
+    KRATOS_TRY
     // NOTE: also in MPI all nodes (local and ghost) have to be written, because
     // they might be needed by the elements/conditions due to the connectivity
 
@@ -378,11 +379,14 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
         WriteScalarDataToFile((unsigned int)number_of_nodes, rFileStream);
         for (const auto& r_node : r_geom) {
             if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
-            int id = r_id_map.at(r_node.Id());
-            WriteScalarDataToFile((int)id, rFileStream);
+            auto id_iter = r_id_map.find(r_node.Id());
+            KRATOS_DEBUG_ERROR_IF(id_iter == r_id_map.end()) << "The node with Id " << r_node.Id() << " is not part of the ModelPart but used for Elements/Conditions!" << std::endl;
+            WriteScalarDataToFile((int)id_iter->second, rFileStream);
         }
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

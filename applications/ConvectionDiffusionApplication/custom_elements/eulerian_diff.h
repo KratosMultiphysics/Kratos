@@ -1,12 +1,12 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//  License: BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:  Riccardo Rossi
+//  Main authors:    Riccardo Rossi
 //
 
 #if !defined(KRATOS_EULERIAN_DIFFUSION_ELEMENT_INCLUDED )
@@ -221,18 +221,100 @@ public:
         KRATOS_CATCH("Error in Eulerian ConvDiff Element")
     }
 
-
-
-
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
+        KRATOS_TRY
+
+        if (rRightHandSideVector.size() != TNumNodes) {
+            rRightHandSideVector.resize(TNumNodes, false); // False says not to preserve existing storage!!
+        }
+
+        ConvectionDiffusionSettings::Pointer p_my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const auto& r_unknown_var = p_my_settings->GetUnknownVariable();
+
+        // Getting data for the given geometry
+        double volume;
+        array_1d<double, TNumNodes > N;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume);
+
+        // Here we get all the variables we will need
+        // Using only one Gauss Point for the material properties and volumetric heat flux
+        double density = 0.0;
+        double conductivity = 0.0;
+        double specific_heat = 0.0;
+        array_1d<double,TNumNodes> phi, phi_old, phi_convected;
+
+	    // Storing locally the flags to avoid repeated check in the nodal loops
+        const bool is_defined_density_variable = p_my_settings->IsDefinedDensityVariable();
+        const bool is_defined_specific_heat_variable = p_my_settings->IsDefinedSpecificHeatVariable();
+        const bool is_defined_diffusion_variable = p_my_settings->IsDefinedDiffusionVariable();
+        const bool is_defined_projection_variable = p_my_settings->IsDefinedProjectionVariable();
+
+        // Get nodal data
+        const auto& r_geom = GetGeometry();
+        for (unsigned int i = 0; i < TNumNodes; i++) {
+            const auto& r_node = r_geom[i];
+            phi[i] = r_node.FastGetSolutionStepValue(r_unknown_var);
+
+            // If it is a convection diffusion problem, then the projection variable will exist and 
+            // Therefore we must use it instead of UnknownVariable(timestep n), that is, to take the convection into account.
+	        if (is_defined_projection_variable) {
+                const auto& r_projection_var = p_my_settings->GetProjectionVariable();
+            	phi_convected[i] = r_node.FastGetSolutionStepValue(r_projection_var);
+            } else {
+                phi_old[i] = r_node.FastGetSolutionStepValue(r_unknown_var,1);
+		        phi_convected[i] = phi_old[i];
+            }
+
+			if (is_defined_density_variable) {
+				const auto& r_density_var = p_my_settings->GetDensityVariable();
+				density += r_node.FastGetSolutionStepValue(r_density_var);
+			} else {
+				density += 1.0;
+            }
+
+			if (is_defined_specific_heat_variable) {
+				const auto& r_specific_heat_var = p_my_settings->GetSpecificHeatVariable();
+				specific_heat += r_node.FastGetSolutionStepValue(r_specific_heat_var);
+			} else {
+				specific_heat += 1.0;
+            }
+
+			if (is_defined_diffusion_variable) {
+				const auto& r_diffusion_var = p_my_settings->GetDiffusionVariable();
+				conductivity += r_node.FastGetSolutionStepValue(r_diffusion_var);
+			} // If not, the conductivity is 0
+        }
+
+        const double lumping_factor = 1.0 / static_cast<double>(TNumNodes);
+        density *= lumping_factor;
+        conductivity *= lumping_factor;
+        specific_heat *= lumping_factor;
+
+        BoundedMatrix<double, TNumNodes, TNumNodes> aux_NxN = ZeroMatrix(TNumNodes, TNumNodes); // Terms multiplying dphi/dt
+        BoundedMatrix<double, TNumNodes, TNumNodes> N_container;
+        GetShapeFunctionsOnGauss(N_container);
+        for(unsigned int i_gauss=0; i_gauss < TDim+1; ++i_gauss){
+            noalias(N) = row(N_container, i_gauss);
+            noalias(aux_NxN) += outer_prod(N, N);
+        }
+
+        const double dt_inv = 1.0 / rCurrentProcessInfo[DELTA_TIME];
+
+        // Mass matrix
+        const double aux_1 = dt_inv * density * specific_heat * volume / static_cast<double>(TNumNodes);
+        noalias(rRightHandSideVector) = aux_1 * prod(aux_NxN, phi_convected - phi);
+        // Adding the diffusion
+        // Note 1: the diffusive term is computed using a Crank-Nicholson scheme
+        // Note 2: the gradients already include the corresponding Gauss point weight (no need to divide by TNumNodes)
+        const double aux_2 = conductivity * 0.5 * volume;
+        noalias(rRightHandSideVector) -= aux_2 * prod(prod(DN_DX, trans(DN_DX)), phi_convected + phi);
+
+        KRATOS_CATCH("Error in Eulerian diffusion element CalculateRightHandSide")
     }
-
-
-
-
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
     {
@@ -460,5 +542,4 @@ private:
 } // namespace Kratos.
 
 #endif // KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED  defined
-
 

@@ -132,11 +132,29 @@ class EmpireMortarMapper(PythonMapper):
     def __CreateEmpireFEMesh(self, model_part, mesh_name):
         if model_part.NumberOfNodes() < 1:
             raise Exception('No nodes exist in ModelPart "{}"!'.format(model_part.FullName()))
-        if model_part.NumberOfConditions() < 1:
-            raise Exception('No conditions exist in ModelPart "{}"!'.format(model_part.FullName()))
 
-        for cond in model_part.Conditions:
-            if cond.GetGeometry().PointsNumber() not in [3,4]:
+        num_elements = model_part.NumberOfElements()
+        num_conditions = model_part.NumberOfConditions()
+
+        if num_elements > 0 and num_conditions > 0:
+            err_msg  = "Both Elements and Conditions are present which is not allowed!\n"
+            err_msg += "Name of ModelPart: {}\n".format(model_part.FullName())
+            err_msg += "Number of Elements: {}\n".format(num_elements)
+            err_msg += "Number of Conditions: {}".format(num_elements)
+            raise Exception(err_msg)
+
+        if num_elements + num_conditions == 0:
+            err_msg  = "No Elements and Conditions are present which is not allowed!\n"
+            err_msg += "Name of ModelPart: {}\n".format(model_part.FullName())
+            raise Exception(err_msg)
+
+        if num_conditions > 0:
+            entities_to_use = model_part.Conditions
+        else:
+            entities_to_use = model_part.Elements
+
+        for ent in entities_to_use:
+            if ent.GetGeometry().PointsNumber() not in [3,4]:
                 raise Exception("The EmpireMortarMapper only works with Triangles and Quadrilaterals")
 
         c_mesh_name = ConvertToChar(mesh_name)
@@ -145,7 +163,7 @@ class EmpireMortarMapper(PythonMapper):
             raise Exception('Mesh "{}" exists already in Empire!'.format(mesh_name))
 
         c_num_nodes          = ctp.c_int(model_part.NumberOfNodes())
-        c_num_elems          = ctp.c_int(model_part.NumberOfConditions())
+        c_num_elems          = ctp.c_int(len(entities_to_use))
         c_node_ids           = (ctp.c_int * c_num_nodes.value) (0)
         c_node_coords        = (ctp.c_double * (3 * c_num_nodes.value))(0.0)
         c_num_nodes_per_elem = (ctp.c_int * c_num_elems.value) (0)
@@ -165,13 +183,13 @@ class EmpireMortarMapper(PythonMapper):
                 c_node_coords[i_node*3+2] = node.Z
 
         elem_node_ctr = 0
-        for elem_ctr, elem in enumerate(model_part.Conditions):
+        for elem_ctr, elem in enumerate(entities_to_use):
             c_num_nodes_per_elem[elem_ctr] = len(elem.GetNodes())
             elem_node_ctr += c_num_nodes_per_elem[elem_ctr]
 
         elem_index = 0
         c_elems = (ctp.c_int * elem_node_ctr) (0)
-        for elem_ctr, elem in enumerate(model_part.Conditions):
+        for elem_ctr, elem in enumerate(entities_to_use):
             for elem_node_ctr, elem_node in enumerate(elem.GetNodes()):
                 c_elems[elem_index + elem_node_ctr] = elem_node.Id
             elem_index += len(elem.GetNodes())
