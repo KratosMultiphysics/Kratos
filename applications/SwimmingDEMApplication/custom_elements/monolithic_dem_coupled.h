@@ -1161,20 +1161,20 @@ public:
         if(ErrorCode != 0) return ErrorCode;
 
         // Check that all required variables have been registered
-        KRATOS_ERROR_IF(VELOCITY.Key() == 0) << "VELOCITY Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(MESH_VELOCITY.Key() == 0) << "MESH_VELOCITY Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(ACCELERATION.Key() == 0) << "ACCELERATION Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(PRESSURE.Key() == 0) << "PRESSURE Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(DENSITY.Key() == 0) << "DENSITY Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(VISCOSITY.Key() == 0) << "VISCOSITY Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(OSS_SWITCH.Key() == 0) << "OSS_SWITCH Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(DYNAMIC_TAU.Key() == 0) << "DYNAMIC_TAU Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(DELTA_TIME.Key() == 0) << "DELTA_TIME Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(ADVPROJ.Key() == 0) << "ADVPROJ Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(DIVPROJ.Key() == 0) << "DIVPROJ Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(NODAL_AREA.Key() == 0) << "NODAL_AREA Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(C_SMAGORINSKY.Key() == 0) << "C_SMAGORINSKY Key is 0. Check if the application was correctly registered." << std::endl;
-        KRATOS_ERROR_IF(ERROR_RATIO.Key() == 0) << "ERROR_RATIO Key is 0. Check if the application was correctly registered." << std::endl;
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+        KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY)
+        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
+        KRATOS_CHECK_VARIABLE_KEY(PRESSURE)
+        KRATOS_CHECK_VARIABLE_KEY(DENSITY)
+        KRATOS_CHECK_VARIABLE_KEY(VISCOSITY)
+        KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH)
+        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
+        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
+        KRATOS_CHECK_VARIABLE_KEY(ADVPROJ)
+        KRATOS_CHECK_VARIABLE_KEY(DIVPROJ)
+        KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA)
+        KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY)
+        KRATOS_CHECK_VARIABLE_KEY(ERROR_RATIO)
 
         // Additional variables, only required to print results:
         // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.

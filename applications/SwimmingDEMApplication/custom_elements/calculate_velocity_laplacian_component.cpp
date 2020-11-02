@@ -106,7 +106,7 @@ int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const Proce
     if(ErrorCode != 0) return ErrorCode;
 
     KRATOS_ERROR_IF(this->GetGeometry().size() != TDim+1)<< "Wrong number of nodes for element" << this->Id() << std::endl;
-    KRATOS_ERROR_IF(VELOCITY_LAPLACIAN_Z.Key() == 0)<< "VELOCITY_LAPLACIAN_Z Key is 0. Check if the application was correctly registered." << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY_LAPLACIAN_Z)
 
     // Checks on nodes
 

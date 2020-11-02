@@ -152,7 +152,7 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
     if(ErrorCode != 0) return ErrorCode;
 
     KRATOS_ERROR_IF(this->GetGeometry().size() != TNumNodes)<< "Wrong number of nodes for element" << this->Id() << std::endl;
-    KRATOS_ERROR_IF(VELOCITY_COMPONENT_GRADIENT.Key() == 0)<< "VELOCITY_COMPONENT_GRADIENT Key is 0. Check if the application was correctly registered." << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY_COMPONENT_GRADIENT)
 
     // Checks on nodes
 

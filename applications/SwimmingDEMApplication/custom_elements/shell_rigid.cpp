@@ -1962,12 +1962,12 @@ int  ShellRigid::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY
 
     //verify that the variables are correctly initialized
-    KRATOS_ERROR_IF(VELOCITY.Key() == 0) << "VELOCITY Key is 0. Check if the application was correctly registered." << std::endl;
-    KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) << "DISPLACEMENT Key is 0. Check if the application was correctly registered." << std::endl;
-    KRATOS_ERROR_IF(ACCELERATION.Key() == 0) << "ACCELERATION Key is 0. Check if the application was correctly registered." << std::endl;
-    KRATOS_ERROR_IF(DENSITY.Key() == 0) << "DENSITY Key is 0. Check if the application was correctly registered." << std::endl;
-    KRATOS_ERROR_IF(BODY_FORCE.Key() == 0) << "BODY_FORCE Key is 0. Check if the application was correctly registered." << std::endl;
-    KRATOS_ERROR_IF(THICKNESS.Key() == 0) << "THICKNESS Key is 0. Check if the application was correctly registered." << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
+    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE)
+    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
 
     //verify that the dofs exist
     for(unsigned int i=0; i<this->GetGeometry().size(); i++) {

@@ -79,7 +79,7 @@ int ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::Check(const ProcessInfo& 
     if(ErrorCode != 0) return ErrorCode;
 
     KRATOS_ERROR_IF(this->GetGeometry().size() != TDim+1)<< "Wrong number of nodes for element" << this->Id() << std::endl;
-    KRATOS_ERROR_IF(MATERIAL_ACCELERATION.Key() == 0)<< "MATERIAL_ACCELERATION Key is 0. Check if the application was correctly registered." << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(MATERIAL_ACCELERATION)
 
     // Checks on nodes
 
