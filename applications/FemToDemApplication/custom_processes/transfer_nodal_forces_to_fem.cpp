@@ -20,9 +20,9 @@ namespace Kratos {
 
 TransferNodalForcesToFem::TransferNodalForcesToFem(
     ModelPart& rModelPart,
-    ModelPart& rDemModelPart)
+    const bool DampenSolution)
     : mrModelPart(rModelPart),
-      mrDEMModelPart(rDemModelPart)
+      mDampenSolution(DampenSolution)
 {
 }
 
@@ -50,7 +50,13 @@ void TransferNodalForcesToFem::Execute()
                 auto& r_dem_forces_wall = r_node.FastGetSolutionStepValue(CONTACT_FORCES);
                 dem_forces = r_dem_forces_ball + r_dem_forces_wall;
             }
-            it_cond->SetValue(POINT_LOAD, dem_forces);
+
+            if (mDampenSolution) {
+                auto prev_force = it_cond->GetValue(POINT_LOAD);
+                it_cond->SetValue(POINT_LOAD, 0.9*dem_forces + 0.1*prev_force);
+            } else {
+                it_cond->SetValue(POINT_LOAD, dem_forces);
+            }
         }
     }
 }

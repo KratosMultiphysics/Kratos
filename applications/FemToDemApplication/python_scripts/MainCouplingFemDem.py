@@ -550,12 +550,12 @@ class MainCoupledFemDem_Solution:
 
 #UpdateDEMVariables============================================================================================================================
     def UpdateDEMVariables(self):
-        update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
+        update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part)
         update_de_kinematics_process.Execute()
 
 #TransferNodalForcesToFEM============================================================================================================================
     def TransferNodalForcesToFEM(self):
-        tranfer_nodal_forces_process = KratosFemDem.TransferNodalForcesToFem(self.FEM_Solution.main_model_part, self.SpheresModelPart)
+        tranfer_nodal_forces_process = KratosFemDem.TransferNodalForcesToFem(self.FEM_Solution.main_model_part)
         tranfer_nodal_forces_process.Execute()
 
 #WritePostListFile============================================================================================================================

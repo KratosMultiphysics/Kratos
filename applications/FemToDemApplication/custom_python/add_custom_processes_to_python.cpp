@@ -148,11 +148,11 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def("Execute", &GenerateDemProcess::Execute);
 
     class_<UpdateDemKinematicsProcess, UpdateDemKinematicsProcess::Pointer, Process>(m, "UpdateDemKinematicsProcess")
-        .def(init<ModelPart &, ModelPart &>())
+        .def(init<ModelPart &>())
         .def("Execute", &UpdateDemKinematicsProcess::Execute);
 
     class_<TransferNodalForcesToFem, TransferNodalForcesToFem::Pointer, Process>(m, "TransferNodalForcesToFem")
-        .def(init<ModelPart &, ModelPart &>())
+        .def(init<ModelPart &, bool>())
         .def("Execute", &TransferNodalForcesToFem::Execute);
 
     class_<ComputeSandProduction, ComputeSandProduction::Pointer, Process>(m, "ComputeSandProduction")

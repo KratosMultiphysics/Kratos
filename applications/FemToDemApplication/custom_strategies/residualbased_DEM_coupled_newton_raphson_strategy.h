@@ -178,8 +178,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         KRATOS_TRY;
         BaseType::InitializeSolutionStep();
         mpDEMStrategy->InitializeSolutionStep();
-        TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
-        UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart()).Execute();
+        TransferNodalForcesToFem(this->GetModelPart(), false).Execute();
+        UpdateDemKinematicsProcess(this->GetModelPart()).Execute();
         KRATOS_CATCH("");
     }
 
@@ -201,10 +201,10 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
     bool SolveSolutionStep() override
     {
         // We compute the contact forces with the DEM
-        auto &r_update_dem_kinematics_process = UpdateDemKinematicsProcess(this->GetModelPart(), mpDEMStrategy->GetModelPart());
+        auto &r_update_dem_kinematics_process = UpdateDemKinematicsProcess(this->GetModelPart());
         r_update_dem_kinematics_process.Execute();
         mpDEMStrategy->SolveSolutionStep();
-        auto &r_transfer_process = TransferNodalForcesToFem(this->GetModelPart(), mpDEMStrategy->GetModelPart());
+        auto &r_transfer_process = TransferNodalForcesToFem(this->GetModelPart(), false);
         r_transfer_process.Execute();
         r_update_dem_kinematics_process.Execute();
 
@@ -256,10 +256,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         if (is_converged) {
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(rb);
-
                 p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
             }
-
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
@@ -268,7 +266,8 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
             // We compute the contact forces with the DEM
             r_update_dem_kinematics_process.Execute();
             mpDEMStrategy->SolveSolutionStep();
-            r_transfer_process.Execute();
+            auto &r_transfer_process_damped = TransferNodalForcesToFem(this->GetModelPart(), true);
+            r_transfer_process_damped.Execute();
             r_update_dem_kinematics_process.Execute();
 
             //setting the number of iteration
