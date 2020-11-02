@@ -224,7 +224,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         bool residual_is_updated = false;
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         this->mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-        bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        bool is_converged = this->mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
@@ -332,7 +332,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
         } else {
             KRATOS_INFO_IF("ResidualBasedDEMCoupledNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / "
-                << mMaxIterationNumber << " iterations" << std::endl;
+                << this->mMaxIterationNumber << " iterations" << std::endl;
         }
 
         // Calculate reactions if required
@@ -356,7 +356,7 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
             BaseType::Initialize();
 
         //initialize solution step
-        if (mSolutionStepIsInitialized == false) {
+        if (this->mSolutionStepIsInitialized == false) {
             BaseType::InitializeSolutionStep();
             mpDEMStrategy->InitializeSolutionStep();
         }
