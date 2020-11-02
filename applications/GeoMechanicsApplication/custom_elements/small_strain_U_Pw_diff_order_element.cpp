@@ -139,11 +139,11 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
     }
 
     // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(Prop.Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << Prop.Id() << std::endl;
 
     //verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
-    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
+    Prop.GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
     bool correct_strain_measure = false;
     for (unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
@@ -168,7 +168,7 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
     }
     */
 
-    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), rGeom, rCurrentProcessInfo );
+    Prop.GetValue( CONSTITUTIVE_LAW )->Check( Prop, rGeom, rCurrentProcessInfo );
 
     return 0;
 
@@ -182,7 +182,8 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::Initialize()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
+    const GeometryType::IntegrationPointsArrayType& 
+        IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
 
     if ( mConstitutiveLawVector.size() != IntegrationPoints.size() )
         mConstitutiveLawVector.resize( IntegrationPoints.size() );
@@ -1708,25 +1709,28 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties( ElementVariables& rVa
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeProperties") << std::endl;
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const PropertiesType& Prop = this->GetProperties();
 
     rVariables.IgnoreUndrained = false;
-    if (GetProperties().Has(IGNORE_UNDRAINED))
-    {
-        rVariables.IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
-    }
+    if (Prop.Has(IGNORE_UNDRAINED))
+        rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
 
-    rVariables.DynamicViscosity = GetProperties()[DYNAMIC_VISCOSITY];
+    rVariables.ConsiderGeometricStiffness = false;
+    if (Prop.Has(CONSIDER_GEOMETRIC_STIFFNESS))
+        rVariables.ConsiderGeometricStiffness = Prop[CONSIDER_GEOMETRIC_STIFFNESS];
+
+    rVariables.DynamicViscosity = Prop[DYNAMIC_VISCOSITY];
     //Setting the intrinsic permeability matrix
     (rVariables.IntrinsicPermeability).resize(dimension,dimension,false);
-    rVariables.IntrinsicPermeability(0,0) = GetProperties()[PERMEABILITY_XX];
-    rVariables.IntrinsicPermeability(1,1) = GetProperties()[PERMEABILITY_YY];
-    rVariables.IntrinsicPermeability(0,1) = GetProperties()[PERMEABILITY_XY];
+    rVariables.IntrinsicPermeability(0,0) = Prop[PERMEABILITY_XX];
+    rVariables.IntrinsicPermeability(1,1) = Prop[PERMEABILITY_YY];
+    rVariables.IntrinsicPermeability(0,1) = Prop[PERMEABILITY_XY];
     rVariables.IntrinsicPermeability(1,0) = rVariables.IntrinsicPermeability(0,1);
     if (dimension==3)
     {
-        rVariables.IntrinsicPermeability(2,2) = GetProperties()[PERMEABILITY_ZZ];
-        rVariables.IntrinsicPermeability(2,0) = GetProperties()[PERMEABILITY_ZX];
-        rVariables.IntrinsicPermeability(1,2) = GetProperties()[PERMEABILITY_YZ];
+        rVariables.IntrinsicPermeability(2,2) = Prop[PERMEABILITY_ZZ];
+        rVariables.IntrinsicPermeability(2,0) = Prop[PERMEABILITY_ZX];
+        rVariables.IntrinsicPermeability(1,2) = Prop[PERMEABILITY_YZ];
         rVariables.IntrinsicPermeability(0,2) = rVariables.IntrinsicPermeability(2,0);
         rVariables.IntrinsicPermeability(2,1) = rVariables.IntrinsicPermeability(1,2);
     }
@@ -2191,11 +2195,12 @@ void SmallStrainUPwDiffOrderElement::
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
+    const PropertiesType& Prop = this->GetProperties();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
 
-    const double Porosity = GetProperties()[POROSITY];
-    const double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
+    const double Porosity = Prop[POROSITY];
+    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
 
     Vector BodyAcceleration = ZeroVector(Dim);
     SizeType Index = 0;

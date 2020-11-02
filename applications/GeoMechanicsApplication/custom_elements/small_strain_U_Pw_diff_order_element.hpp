@@ -192,6 +192,7 @@ protected:
 
         //Properties and processinfo variables
         bool IgnoreUndrained;
+        bool ConsiderGeometricStiffness;
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosity;

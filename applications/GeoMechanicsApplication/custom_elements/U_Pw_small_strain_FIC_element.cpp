@@ -601,12 +601,6 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
     const unsigned int NumGPoints = IntegrationPoints.size();
 
-    //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-    Vector detJContainer(NumGPoints);
-    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,this->GetIntegrationMethod());
-
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -615,25 +609,27 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
     //Element variables
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables, CurrentProcessInfo);
 
     FICElementVariables FICVariables;
-    this->InitializeFICElementVariables(FICVariables,DN_DXContainer,Geom,Prop,CurrentProcessInfo);
+    this->InitializeFICElementVariables(FICVariables,Variables.DN_DXContainer,Geom,Prop,CurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
-        //Compute GradNpT, B and StrainVector
-        noalias(Variables.GradNpT) = DN_DXContainer[GPoint];
-        this->CalculateBMatrix(Variables.B, Variables.GradNpT);
-        noalias(Variables.StrainVector) = prod(Variables.B,Variables.DisplacementVector);
+        //Compute Np, GradNpT, B and StrainVector
+        this->CalculateKinematics(Variables, GPoint);
 
-        //Compute Np, Nu and BodyAcceleration
-        noalias(Variables.Np) = row(NContainer,GPoint);
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu,NContainer,GPoint);
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetElementalVariables(Variables, ConstitutiveParameters);
+
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu,Variables.NContainer,GPoint);
         GeoElementUtilities::
             InterpolateVariableWithComponents<TDim, TNumNodes>( Variables.BodyAcceleration,
-                                                                NContainer,
+                                                                Variables.NContainer,
                                                                 Variables.VolumeAcceleration,
                                                                 GPoint );
 
@@ -654,7 +650,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              detJContainer[GPoint],
+                                              Variables.detJContainer[GPoint],
                                               IntegrationPoints[GPoint].Weight());
 
         if (CalculateStiffnessMatrixFlag)

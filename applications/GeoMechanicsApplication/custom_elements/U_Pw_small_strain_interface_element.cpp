@@ -1553,7 +1553,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< >
 template< class TMatrixType >
 void UPwSmallStrainInterfaceElement<2,4>::
@@ -1582,7 +1581,6 @@ void UPwSmallStrainInterfaceElement<2,4>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< >
 template< class TMatrixType >
 void UPwSmallStrainInterfaceElement<3,6>::
@@ -1635,7 +1633,6 @@ void UPwSmallStrainInterfaceElement<3,6>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< >
 template< class TMatrixType >
 void UPwSmallStrainInterfaceElement<3,8>::
@@ -1687,7 +1684,6 @@ void UPwSmallStrainInterfaceElement<3,8>::
 
 //----------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
@@ -1711,7 +1707,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
@@ -1761,16 +1756,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+    CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
+                                         InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
     noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient
                                                * rVariables.BiotModulusInverse
-                                               * outer_prod(rVariables.Np,rVariables.Np)
+                                               * outer_prod(rVariables.Np, rVariables.Np)
                                                * rVariables.JointWidth
                                                * rVariables.IntegrationCoefficient;
 
@@ -1782,16 +1777,19 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+    CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
+                                      InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.JointWidth*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse
+                                                              * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT))
+                                                              * rVariables.JointWidth
+                                                              * rVariables.IntegrationCoefficient;
 
     //Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,rVariables.PMatrix);
@@ -1838,7 +1836,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
-    noalias(rVariables.UVector) = -1.0 * prod(rVariables.UDimMatrix,rVariables.StressVector)
+    noalias(rVariables.UVector) = -1.0 * prod(rVariables.UDimMatrix, rVariables.StressVector)
                                        * rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into elemental vector
@@ -1857,7 +1855,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY;
 
     noalias(rVariables.UVector) = rVariables.Density * prod(trans(rVariables.Nu),rVariables.BodyAcceleration)
-                                                     * rVariables.JointWidth*rVariables.IntegrationCoefficient;
+                                                     * rVariables.JointWidth
+                                                     * rVariables.IntegrationCoefficient;
 
     //Distribute body force block vector into elemental vector
     GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.UVector);
@@ -1879,8 +1878,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
 
     noalias(rVariables.UPMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient
-                                                * outer_prod(rVariables.UVector, rVariables.Np)
-                                                * rVariables.IntegrationCoefficient;
+                                                               * outer_prod(rVariables.UVector, rVariables.Np)
+                                                               * rVariables.IntegrationCoefficient;
 
     noalias(rVariables.UVector) = prod(rVariables.UPMatrix,rVariables.PressureVector);
 
@@ -1889,7 +1888,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     if (!rVariables.IgnoreUndrained)
     {
-        noalias(rVariables.PVector) = PORE_PRESSURE_SIGN_FACTOR * prod(trans(rVariables.UPMatrix),rVariables.VelocityVector);
+        noalias(rVariables.PVector) = PORE_PRESSURE_SIGN_FACTOR * prod( trans(rVariables.UPMatrix),
+                                                                        rVariables.VelocityVector );
 
         //Distribute coupling block vector 2 into elemental vector
         GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.PVector);
@@ -1908,7 +1908,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY;
 
     noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse
-                                               * outer_prod(rVariables.Np,rVariables.Np)
+                                               * outer_prod(rVariables.Np, rVariables.Np)
                                                * rVariables.JointWidth
                                                * rVariables.IntegrationCoefficient;
 
@@ -1931,7 +1931,10 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.JointWidth*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse
+                                                              * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT))
+                                                              * rVariables.JointWidth
+                                                              * rVariables.IntegrationCoefficient;
 
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.PressureVector);
 
@@ -1949,9 +1952,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix)
-                                                  * rVariables.JointWidth
-                                                  * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix)
+                                                                 * rVariables.JointWidth
+                                                                 * rVariables.IntegrationCoefficient;
 
     noalias(rVariables.PVector) =  rVariables.DynamicViscosityInverse
                                  * rVariables.FluidDensity

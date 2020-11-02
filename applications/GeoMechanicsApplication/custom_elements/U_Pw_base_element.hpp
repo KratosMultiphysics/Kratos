@@ -169,6 +169,11 @@ protected:
      */
     Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
 
+    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
+                                                      Matrix& DNu_DX0,
+                                                      const IndexType& GPoint,
+                                                      IntegrationMethod ThisIntegrationMethod) const;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

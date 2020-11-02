@@ -108,17 +108,18 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
 
     ElementVariables Variables;
-    UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables( Variables,
-                                                                       ConstitutiveParameters,
-                                                                       this->GetGeometry(),
-                                                                       this->GetProperties(),
-                                                                       rCurrentProcessInfo );
+    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
 
     // Reading integration points
     for ( IndexType GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
         // Compute element kinematics B, F, GradNpT ...
         this->CalculateKinematics(Variables, GPoint);
+
+        this->CalculateStrain(Variables);
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetElementalVariables(Variables, ConstitutiveParameters);
 
         // Call the constitutive law to update material variables
         //Compute constitutive tensor and stresses
@@ -133,6 +134,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     }
 
     mF0Computed = true;
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -159,9 +161,6 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
         this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    //Containers of variables at all integration points
-    const Matrix& NContainer = this->GetGeometry().ShapeFunctionsValues( this->GetIntegrationMethod() );
-
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(),
                                                        this->GetProperties(),
@@ -172,32 +171,33 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
 
     ElementVariables Variables;
-    UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables( Variables,
-                                                                       ConstitutiveParameters,
-                                                                       this->GetGeometry(),
-                                                                       this->GetProperties(),
-                                                                       rCurrentProcessInfo );
-
+    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     // Computing in all integrations points
     for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint )
     {
+        // Compute element kinematics B, F, GradNpT ...
+        this->CalculateKinematics(Variables, GPoint);
+
+        // Calculating operator B
+        this->CalculateBMatrix( Variables.B, Variables.GradNpT);
+
         //Compute Np, Nu and BodyAcceleration
-        noalias(Variables.Np) = row(NContainer,GPoint);
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, NContainer, GPoint);
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::
             InterpolateVariableWithComponents<TDim, TNumNodes>( Variables.BodyAcceleration,
-                                                                NContainer,
+                                                                Variables.NContainer,
                                                                 Variables.VolumeAcceleration,
                                                                 GPoint );
 
 
-        // Compute element kinematics B, F, GradNpT ...
-        this->CalculateKinematics(Variables, GPoint);
 
         // Cauchy strain: This needs to be investigated which strain measure should be used
         // In some references, e.g. Bathe, suggested to use Almansi strain measure
-        noalias(Variables.StrainVector) = prod(Variables.B, Variables.DisplacementVector);
+        this->CalculateStrain(Variables);
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetElementalVariables(Variables, ConstitutiveParameters);
 
         //Compute constitutive tensor and stresses
         UpdateElementalVariableStressVector(Variables, GPoint);
@@ -220,11 +220,25 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
             /* Geometric stiffness matrix */
-            this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables );
+            if (Variables.ConsiderGeometricStiffness)
+                this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables );
         }
 
         if (CalculateResidualVectorFlag)
         {
+            //Contributions to the right hand side
+            Variables.detJ0 =
+                CalculateDerivativesOnInitialConfiguration(this->GetGeometry(),
+                                                           Variables.GradNpT,
+                                                           GPoint,
+                                                           this->GetIntegrationMethod());
+
+            // Calculating operator B
+            this->CalculateBMatrix( Variables.B, Variables.GradNpT);
+            this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
+                                                   Variables.detJ0,
+                                                   IntegrationPoints[GPoint].Weight() );
+
             //Contributions to the right hand side
             this->CalculateAndAddRHS(rRightHandSideVector, Variables);
         }
@@ -262,38 +276,58 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     CalculateKinematics(ElementVariables& rVariables,
                         const SizeType GPoint)
 {
+    noalias(rVariables.Np) = row(rVariables.NContainer, GPoint);
+
+    Matrix J0, InvJ0;
     rVariables.detJ0 =
-        this->CalculateDerivativesOnReferenceConfiguration(rVariables.J0,
-                                                           rVariables.InvJ0,
+        this->CalculateDerivativesOnReferenceConfiguration(J0,
+                                                           InvJ0,
                                                            rVariables.GradNpT,
                                                            GPoint,
                                                            this->GetIntegrationMethod());
 
+    // Calculating operator B
+    this->CalculateBMatrix( rVariables.B, rVariables.GradNpT);
+
     // Calculating jacobian
-    Matrix J, inv_J;
-    rVariables.detJ0 =
+    Matrix J, InvJ;
+    double detJ =
         this->CalculateDerivativesOnCurrentConfiguration(J,
-                                                         inv_J,
+                                                         InvJ,
                                                          rVariables.GradNpT,
                                                          GPoint,
                                                          this->GetIntegrationMethod());
 
-    KRATOS_ERROR_IF(rVariables.detJ0 < 0.0)
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+    if (detJ < 0.0)
+    {
+        KRATOS_INFO("negative detJ")
+        << "ERROR:: ELEMENT ID: "
+        << this->Id()
+        << " INVERTED. DETJ: "
+        << detJ
+        << " nodes:" << this->GetGeometry()
+        << std::endl;
+    }
+#endif
+
+    KRATOS_ERROR_IF(detJ < 0.0)
      << "ERROR:: ELEMENT ID: "
      << this->Id()
-     << " INVERTED. DETJ0: "
-     << rVariables.detJ0
+     << " INVERTED. DETJ: "
+     << detJ
+     << " nodes:" << this->GetGeometry()
      << std::endl;
 
     // Deformation gradient
-    Matrix DF = prod( J, rVariables.InvJ0 );
+    // Matrix DF = prod( J, rVariables.InvJ0 );
+    // const double detDF = MathUtils<double>::Det(DF);
+    // rVariables.detF = detDF * this->ReferenceConfigurationDeformationGradientDeterminant(GPoint);
+    // noalias(rVariables.F) = prod(DF, this->ReferenceConfigurationDeformationGradient(GPoint));
 
-    const double detDF = MathUtils<double>::Det(DF);
-    rVariables.detF = detDF * this->ReferenceConfigurationDeformationGradientDeterminant(GPoint);
-    noalias(rVariables.F) = prod(DF, this->ReferenceConfigurationDeformationGradient(GPoint));
+    noalias(rVariables.F) = prod( J, InvJ0 );
+    rVariables.detF = MathUtils<double>::Det(rVariables.F);
 
-    // Calculating operator B
-    this->CalculateBMatrix( rVariables.B, rVariables.GradNpT);
 }
 
 //----------------------------------------------------------------------------------------
@@ -467,6 +501,15 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     }
 }
 
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
+    CalculateStrain( ElementVariables& rVariables )
+{
+    //this->CalculateCauchyGreenStrain( rVariables );
+    this->CalculateCauchyStrain( rVariables );
+    //this->CalculateCauchyAlmansiStrain( rVariables );
+}
 
 //----------------------------------------------------------------------------------------
 

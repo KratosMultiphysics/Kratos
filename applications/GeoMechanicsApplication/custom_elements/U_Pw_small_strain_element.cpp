@@ -212,50 +212,30 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,this->GetIntegrationMethod());
 
-    unsigned int VoigtSize = VOIGT_SIZE_3D;
-    if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
-    Matrix B(VoigtSize,TNumNodes*TDim);
-    noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
-    array_1d<double,TNumNodes*TDim> DisplacementVector;
-    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
-
-    //Create constitutive law parameters:
-    Vector StrainVector(VoigtSize);
-    Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
-
-    unsigned int VoigtSizeStress = VOIGT_SIZE_3D;
-    if (TDim == 2) VoigtSizeStress = VOIGT_SIZE_2D_PLANE_STRAIN;
-    Vector StressVector(VoigtSizeStress);
-
-    Vector Np(TNumNodes);
-    Matrix GradNpT(TNumNodes,TDim);
-    Matrix F = identity_matrix<double>(TDim);
-    double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
-    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    ConstitutiveParameters.SetStressVector(StressVector);
-    ConstitutiveParameters.SetStrainVector(StrainVector);
-    ConstitutiveParameters.SetShapeFunctionsValues(Np);
-    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-    ConstitutiveParameters.SetDeformationGradientF(F);
-    ConstitutiveParameters.SetDeterminantF(detF);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,
+                                     rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
-        noalias(Np) = row(NContainer,GPoint);
-        noalias(GradNpT) = DN_DXContainer[GPoint];
-        this->CalculateBMatrix(B, GradNpT);
+        //Compute Np, GradNpT, B and StrainVector
+        this->CalculateKinematics(Variables, GPoint);
+
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetElementalVariables(Variables, ConstitutiveParameters);
 
         // Compute Stress
-        noalias(StrainVector) = prod(B, DisplacementVector);
-        UpdateElementalVariableStressVector(StressVector, GPoint);
+        UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
     }
     // KRATOS_INFO("1-UPwSmallStrainElement::InitializeSolutionStep()") << std::endl;
@@ -274,52 +254,33 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,this->GetIntegrationMethod());
-
-    unsigned int VoigtSize = VOIGT_SIZE_3D;
-    if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
-    Matrix B(VoigtSize,TNumNodes*TDim);
-    noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
-    array_1d<double,TNumNodes*TDim> DisplacementVector;
-    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, Geom, DISPLACEMENT);
 
     //Create constitutive law parameters:
-    Vector StrainVector(VoigtSize);
-    Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
-
-    unsigned int VoigtSizeStress = VOIGT_SIZE_3D;
-    if (TDim == 2) VoigtSizeStress = VOIGT_SIZE_2D_PLANE_STRAIN;
-    Vector StressVector(VoigtSizeStress);
-    Vector Np(TNumNodes);
-    Matrix GradNpT(TNumNodes,TDim);
-    Matrix F = identity_matrix<double>(TDim);
-    double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
-    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    ConstitutiveParameters.SetStressVector(StressVector);
-    ConstitutiveParameters.SetStrainVector(StrainVector);
-    ConstitutiveParameters.SetShapeFunctionsValues(Np);
-    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-    ConstitutiveParameters.SetDeformationGradientF(F);
-    ConstitutiveParameters.SetDeterminantF(detF);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,
+                                     rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
-        noalias(Np) = row(NContainer,GPoint);
-        noalias(GradNpT) = DN_DXContainer[GPoint];
-        this->CalculateBMatrix(B, GradNpT);
+        this->CalculateKinematics(Variables, GPoint);
+
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetElementalVariables(Variables, ConstitutiveParameters);
 
         // Compute Stress
-        noalias(StrainVector) = prod(B, DisplacementVector);
-        UpdateElementalVariableStressVector(StressVector, GPoint);
+        UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UpdateStressVector(StressVector, GPoint);
+        UpdateStressVector(Variables, GPoint);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainElement::InitializeNonLinearIteration()") << std::endl;
@@ -352,82 +313,58 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,this->GetIntegrationMethod());
 
-    unsigned int VoigtSize = VOIGT_SIZE_3D;
-    if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
-    Matrix B(VoigtSize,TNumNodes*TDim);
-    noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
-    array_1d<double,TNumNodes*TDim> DisplacementVector;
-    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, Geom, DISPLACEMENT);
-
-    //Create constitutive law parameters:
-    Vector StrainVector(VoigtSize);
-    Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
-
-    unsigned int VoigtSizeStress = VOIGT_SIZE_3D;
-    if (TDim == 2) VoigtSizeStress = VOIGT_SIZE_2D_PLANE_STRESS;
-    Vector StressVector(VoigtSizeStress);
-
-    Vector Np(TNumNodes);
-    Matrix GradNpT(TNumNodes,TDim);
-    Matrix F = identity_matrix<double>(TDim);
-    double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
-    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    ConstitutiveParameters.SetStressVector(StressVector);
-    ConstitutiveParameters.SetStrainVector(StrainVector);
-    ConstitutiveParameters.SetShapeFunctionsValues(Np);
-    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-    ConstitutiveParameters.SetDeterminantF(detF);
-    ConstitutiveParameters.SetDeformationGradientF(F);
-    //ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,
+                                     rCurrentProcessInfo);
 
     if (rCurrentProcessInfo[NODAL_SMOOTHING] == true)
     {
-        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-        Matrix StressContainer(NumGPoints, StressVector.size());
+        Matrix StressContainer(NumGPoints, Variables.StressVector.size());
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
-            noalias(GradNpT) = DN_DXContainer[GPoint];
+            this->CalculateKinematics(Variables, GPoint);
 
-            this->CalculateBMatrix(B, GradNpT);
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
 
-            noalias(StrainVector) = prod(B, DisplacementVector);
-
-            noalias(Np) = row(NContainer,GPoint);
+            //set gauss points variables to constitutivelaw parameters
+            this->SetElementalVariables(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(StressVector, GPoint);
+            UpdateElementalVariableStressVector(Variables, GPoint);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
                                                           mStateVariablesFinalized[GPoint] );
 
-            this->SaveGPStress(StressContainer,StressVector,StressVector.size(),GPoint);
+            this->SaveGPStress(StressContainer,Variables.StressVector,Variables.StressVector.size(),GPoint);
         }
-        this->ExtrapolateGPValues(StressContainer,StressVector.size());
+        this->ExtrapolateGPValues(StressContainer,Variables.StressVector.size());
     }
     else
     {
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
-            noalias(GradNpT) = DN_DXContainer[GPoint];
+            //Compute Np, GradNpT, B and StrainVector
+            this->CalculateKinematics(Variables, GPoint);
 
-            this->CalculateBMatrix(B, GradNpT);
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
 
-            noalias(StrainVector) = prod(B, DisplacementVector);
-
-            noalias(Np) = row(NContainer,GPoint);
+            //set gauss points variables to constitutivelaw parameters
+            this->SetElementalVariables(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(StressVector, GPoint);
+            UpdateElementalVariableStressVector(Variables, GPoint);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -801,58 +738,34 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,this->GetIntegrationMethod());
 
-        unsigned int VoigtSize = VOIGT_SIZE_3D;
-        if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
-        Matrix B(VoigtSize,TNumNodes*TDim);
-        noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
-        array_1d<double,TNumNodes*TDim> DisplacementVector;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
-
-        //Create constitutive law parameters:
-        Vector StrainVector(VoigtSize);
-        Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
-
-        unsigned int VoigtSizeStress = VOIGT_SIZE_3D;
-        if (TDim == 2) VoigtSizeStress = VOIGT_SIZE_2D_PLANE_STRAIN;
-        Vector StressVector(VoigtSizeStress);
-
-        Vector Np(TNumNodes);
-        Matrix GradNpT(TNumNodes,TDim);
-        Matrix F = identity_matrix<double>(TDim);
-        double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        ConstitutiveParameters.SetStressVector(StressVector);
-        ConstitutiveParameters.SetStrainVector(StrainVector);
-        ConstitutiveParameters.SetShapeFunctionsValues(Np);
-        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-        ConstitutiveParameters.SetDeterminantF(detF);
-        ConstitutiveParameters.SetDeformationGradientF(F);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,
+                                         rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
-            noalias(GradNpT) = DN_DXContainer[GPoint];
+            this->CalculateKinematics(Variables, GPoint);
 
-            this->CalculateBMatrix(B, GradNpT);
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
 
-            noalias(StrainVector) = prod(B,DisplacementVector);
-
-            noalias(Np) = row(NContainer,GPoint);
+            //set gauss points variables to constitutivelaw parameters
+            this->SetElementalVariables(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(StressVector, GPoint);
+            UpdateElementalVariableStressVector(Variables, GPoint);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            UpdateStressVector(StressVector, GPoint);
+            UpdateStressVector(Variables, GPoint);
 
             ComparisonUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateVonMises(StressVector);
+            rOutput[GPoint] = EquivalentStress.CalculateVonMises(Variables.StressVector);
         }
     }
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateOnIntegrationPoints()") << std::endl;
@@ -935,58 +848,37 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,this->GetIntegrationMethod());
 
-        unsigned int VoigtSize = VOIGT_SIZE_3D;
-        if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
-        Matrix B(VoigtSize,TNumNodes*TDim);
-        noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
-        array_1d<double,TNumNodes*TDim> DisplacementVector;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
 
         //Create constitutive law parameters:
-        Vector StrainVector(VoigtSize);
-        Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
-
-        unsigned int VoigtSizeStress = VOIGT_SIZE_3D;
-        if (TDim == 2) VoigtSizeStress = VOIGT_SIZE_2D_PLANE_STRAIN;
-        Vector StressVector(VoigtSizeStress);
-
-        Vector Np(TNumNodes);
-        Matrix GradNpT(TNumNodes,TDim);
-        Matrix F = identity_matrix<double>(TDim);
-        double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        ConstitutiveParameters.SetStressVector(StressVector);
-        ConstitutiveParameters.SetStrainVector(StrainVector);
-        ConstitutiveParameters.SetShapeFunctionsValues(Np);
-        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-        ConstitutiveParameters.SetDeterminantF(detF);
-        ConstitutiveParameters.SetDeformationGradientF(F);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,
+                                         rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
-            noalias(GradNpT) = DN_DXContainer[GPoint];
+            //Compute Np, GradNpT, B and StrainVector
+            this->CalculateKinematics(Variables, GPoint);
 
-            this->CalculateBMatrix(B, GradNpT);
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
 
-            noalias(StrainVector) = prod(B,DisplacementVector);
-
-            noalias(Np) = row(NContainer,GPoint);
+            //set gauss points variables to constitutivelaw parameters
+            this->SetElementalVariables(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(StressVector, GPoint);
+            UpdateElementalVariableStressVector(Variables, GPoint);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            UpdateStressVector(StressVector, GPoint);
+            UpdateStressVector(Variables, GPoint);
 
             rOutput[GPoint].resize(TDim,TDim,false );
-            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector);
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(Variables.StressVector);
         }
     }
     else if (rVariable == TOTAL_STRESS_TENSOR)
@@ -995,97 +887,50 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,this->GetIntegrationMethod());
 
-        unsigned int VoigtSizeStress = VOIGT_SIZE_3D;
-        if (TDim == 2) VoigtSizeStress = VOIGT_SIZE_2D_PLANE_STRAIN;
-
-        unsigned int VoigtSize = VOIGT_SIZE_3D;
-        if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
-
-        Vector VoigtVector = ZeroVector(VoigtSizeStress);
-
-        if (VoigtVector.size() == VOIGT_SIZE_3D)
-        {
-            VoigtVector[INDEX_3D_XX] = 1.0;
-            VoigtVector[INDEX_3D_YY] = 1.0;
-            VoigtVector[INDEX_3D_ZZ] = 1.0;
-        }
-        else if (VoigtVector.size() == VOIGT_SIZE_2D_PLANE_STRAIN)
-        {
-            VoigtVector[INDEX_2D_PLANE_STRAIN_XX] = 1.0;
-            VoigtVector[INDEX_2D_PLANE_STRAIN_YY] = 1.0;
-            VoigtVector[INDEX_2D_PLANE_STRAIN_ZZ] = 1.0;
-        }
-        else
-        {
-            VoigtVector[INDEX_2D_PLANE_STRESS_XX] = 1.0;
-            VoigtVector[INDEX_2D_PLANE_STRESS_YY] = 1.0;
-        }
-
-
-        Matrix B(VoigtSize,TNumNodes*TDim);
-        noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
-        array_1d<double,TNumNodes*TDim> DisplacementVector;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
-
-        array_1d<double,TNumNodes> PressureVector;
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        }
-
-        //Create constitutive law parameters:
-        Vector StrainVector(VoigtSize);
-        Vector StressVector(VoigtSizeStress);
-        Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
-        Vector Np(TNumNodes);
-        Matrix GradNpT(TNumNodes,TDim);
-        Matrix F = identity_matrix<double>(TDim);
-        double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        ConstitutiveParameters.SetStressVector(StressVector);
-        ConstitutiveParameters.SetStrainVector(StrainVector);
-        ConstitutiveParameters.SetShapeFunctionsValues(Np);
-        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-        ConstitutiveParameters.SetDeterminantF(detF);
-        ConstitutiveParameters.SetDeformationGradientF(F);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,
+                                         rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
-            noalias(GradNpT) = DN_DXContainer[GPoint];
+            //Compute Np, GradNpT, B and StrainVector
+            this->CalculateKinematics(Variables, GPoint);
 
-            this->CalculateBMatrix(B, GradNpT);
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables);
 
-            noalias(StrainVector) = prod(B,DisplacementVector);
-
-            noalias(Np) = row(NContainer,GPoint);
+            //set gauss points variables to constitutivelaw parameters
+            this->SetElementalVariables(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(StressVector, GPoint);
+            UpdateElementalVariableStressVector(Variables, GPoint);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            UpdateStressVector(StressVector, GPoint);
+            UpdateStressVector(Variables, GPoint);
 
-            const double BulkModulus = CalculateBulkModulus(ConstitutiveMatrix);
+            const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
             const double BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
 
             double Pressure = 0.0;
             for (unsigned int node = 0; node < TNumNodes; ++node)
             {
-                Pressure += NContainer(GPoint, node)*PressureVector[node];
+                Pressure += Variables.NContainer(GPoint, node) * Variables.PressureVector[node];
             }
 
-            noalias(StressVector) += PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient*Pressure*VoigtVector;
+            noalias(Variables.StressVector) +=  PORE_PRESSURE_SIGN_FACTOR
+                                              * BiotCoefficient
+                                              * Pressure
+                                              * Variables.VoigtVector;
 
             rOutput[GPoint].resize(TDim,TDim,false );
-            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector);
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(Variables.StressVector);
         }
     }
     else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
@@ -1140,7 +985,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
-                                      const ProcessInfo& CurrentProcessInfo )
+                                      const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::CalculateMaterialStiffnessMatrix()") << std::endl;
@@ -1158,33 +1003,27 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
     const unsigned int NumGPoints = IntegrationPoints.size();
 
-    //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-    Vector detJContainer(NumGPoints);
-    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, detJContainer, this->GetIntegrationMethod());
-
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,
-                                     ConstitutiveParameters,
-                                     Geom,
-                                     Prop,
-                                     CurrentProcessInfo);
+                                     rCurrentProcessInfo);
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute Np, GradNpT, B and StrainVector
-        noalias(Variables.Np) = row(NContainer,GPoint);
-        noalias(Variables.GradNpT) = DN_DXContainer[GPoint];
-        this->CalculateBMatrix(Variables.B, Variables.GradNpT);
-        noalias(Variables.StrainVector) = prod(Variables.B, Variables.DisplacementVector);
+        this->CalculateKinematics(Variables, GPoint);
+
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetElementalVariables(Variables, ConstitutiveParameters);
 
         //Compute constitutive tensor
         UpdateElementalVariableStressVector(Variables, GPoint);
@@ -1196,7 +1035,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              detJContainer[GPoint],
+                                              Variables.detJ0,
                                               IntegrationPoints[GPoint].Weight());
 
         //Compute stiffness matrix
@@ -1212,7 +1051,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateAll( MatrixType& rLeftHandSideMatrix,
                   VectorType& rRightHandSideVector,
-                  const ProcessInfo& CurrentProcessInfo,
+                  const ProcessInfo& rCurrentProcessInfo,
                   const bool CalculateStiffnessMatrixFlag,
                   const bool CalculateResidualVectorFlag)
 {
@@ -1225,16 +1064,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
     const unsigned int NumGPoints = IntegrationPoints.size();
 
-    //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-    Vector detJContainer(NumGPoints);
-    Geom.ShapeFunctionsIntegrationPointsGradients( DN_DXContainer,
-                                                   detJContainer,
-                                                   this->GetIntegrationMethod() );
-
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
     if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -1242,27 +1073,25 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //Element variables
     ElementVariables Variables;
     this->InitializeElementVariables( Variables,
-                                      ConstitutiveParameters,
-                                      Geom,
-                                      Prop,
-                                      CurrentProcessInfo );
+                                      rCurrentProcessInfo );
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute GradNpT, B and StrainVector
-        noalias(Variables.GradNpT) = DN_DXContainer[GPoint];
+        this->CalculateKinematics(Variables, GPoint);
 
-        this->CalculateBMatrix(Variables.B, Variables.GradNpT);
+        //Compute infinitessimal strain
+        this->CalculateStrain(Variables);
 
-        noalias(Variables.StrainVector) = prod(Variables.B, Variables.DisplacementVector);
+        //set gauss points variables to constitutivelaw parameters
+        this->SetElementalVariables(Variables, ConstitutiveParameters);
 
-        //Compute Np, Nu and BodyAcceleration
-        noalias(Variables.Np) = row(NContainer,GPoint);
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, NContainer, GPoint);
+        //Compute Nu and BodyAcceleration
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::
             InterpolateVariableWithComponents<TDim, TNumNodes>( Variables.BodyAcceleration,
-                                                                NContainer,
+                                                                Variables.NContainer,
                                                                 Variables.VolumeAcceleration,
                                                                 GPoint );
 
@@ -1278,7 +1107,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              detJContainer[GPoint],
+                                              Variables.detJ0,
                                               IntegrationPoints[GPoint].Weight());
 
         //Contributions to the left hand side
@@ -1339,37 +1168,28 @@ double UPwSmallStrainElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     InitializeElementVariables( ElementVariables& rVariables,
-                                ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                const GeometryType& Geom,
-                                const PropertiesType& Prop,
-                                const ProcessInfo& CurrentProcessInfo )
+                                const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::InitializeElementVariables()") << std::endl;
 
     //Properties variables
-    rVariables.IgnoreUndrained = false;
-    if (Prop.Has(IGNORE_UNDRAINED))
-        rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
-
-    rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity = Prop[DENSITY_WATER];
-    rVariables.Density = Prop[POROSITY]*rVariables.FluidDensity + (1.0-Prop[POROSITY])*Prop[DENSITY_SOLID];
-    GeoElementUtilities::CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix, Prop);
+    this->InitializeProperties( rVariables );
 
     //ProcessInfo variables
-    rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
-    rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     //Nodal Variables
-    for (unsigned int i=0; i<TNumNodes; i++)
-    {
-        rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
-    }
-    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.DisplacementVector, Geom, DISPLACEMENT);
-    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VelocityVector,     Geom, VELOCITY);
-    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VolumeAcceleration, Geom, VOLUME_ACCELERATION);
+    this->InitializeNodalVariables( rVariables );
+
+    //Variables computed at each GP
+    noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
+    rVariables.Np.resize(TNumNodes,false);
+    rVariables.GradNpT.resize(TNumNodes,TDim,false);
+    rVariables.F.resize(TDim,TDim,false);
+    noalias(rVariables.F) = identity_matrix<double>(TDim);
+    rVariables.detF = 1.0;
 
     //General Variables
     unsigned int VoigtSizeStress;
@@ -1378,43 +1198,38 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     {
         VoigtSize = VOIGT_SIZE_3D;
         VoigtSizeStress = VOIGT_SIZE_3D;
-        rVariables.VoigtVector.resize(VoigtSize);
-        rVariables.VoigtVector[INDEX_3D_XX] = 1.0;
-        rVariables.VoigtVector[INDEX_3D_YY] = 1.0;
-        rVariables.VoigtVector[INDEX_3D_ZZ] = 1.0;
-        rVariables.VoigtVector[INDEX_3D_XY] = 0.0;
-        rVariables.VoigtVector[INDEX_3D_YZ] = 0.0;
-        rVariables.VoigtVector[INDEX_3D_XZ] = 0.0;
     }
     else
     {
         VoigtSize       = VOIGT_SIZE_2D_PLANE_STRESS;
         VoigtSizeStress = VOIGT_SIZE_2D_PLANE_STRAIN;
-        rVariables.VoigtVector.resize(VoigtSize);
-        rVariables.VoigtVector[INDEX_2D_PLANE_STRESS_XX] = 1.0;
-        rVariables.VoigtVector[INDEX_2D_PLANE_STRESS_YY] = 1.0;
-        rVariables.VoigtVector[INDEX_2D_PLANE_STRESS_XY] = 0.0;
     }
 
-    //Variables computed at each GP
+    rVariables.VoigtVector.resize(VoigtSize);
+    noalias(rVariables.VoigtVector) = ZeroVector(VoigtSize);
+    for (unsigned int i=0; i < TDim; ++i) rVariables.VoigtVector[i] = 1.0;
+
     rVariables.B.resize(VoigtSize,TNumNodes*TDim,false);
     noalias(rVariables.B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
-    noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
+
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+
+    // shape functions
+    (rVariables.NContainer).resize(NumGPoints, TNumNodes, false);
+    rVariables.NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+
+    // gradient of shape functions and determinant of Jacobian
+    (rVariables.detJContainer).resize(NumGPoints,false);
+    Geom.ShapeFunctionsIntegrationPointsGradients( rVariables.DN_DXContainer,
+                                                   rVariables.detJContainer,
+                                                   this->GetIntegrationMethod() );
+
     //Constitutive Law parameters
     rVariables.StrainVector.resize(VoigtSize,false);
     rVariables.StressVector.resize(VoigtSizeStress,false);
     rVariables.ConstitutiveMatrix.resize(VoigtSize,VoigtSize,false);
-    rVariables.Np.resize(TNumNodes,false);
-    rVariables.GradNpT.resize(TNumNodes,TDim,false);
-    rVariables.F.resize(TDim,TDim,false);
-    rVariables.detF = 1.0;
-    rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
-    rConstitutiveParameters.SetStressVector(rVariables.StressVector);
-    rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-    rConstitutiveParameters.SetShapeFunctionsValues(rVariables.Np);
-    rConstitutiveParameters.SetShapeFunctionsDerivatives(rVariables.GradNpT);
-    rConstitutiveParameters.SetDeformationGradientF(rVariables.F);
-    rConstitutiveParameters.SetDeterminantF(rVariables.detF);
+
     //Auxiliary variables
     rVariables.UVoigtMatrix.resize(TNumNodes*TDim,VoigtSize,false);
 
@@ -1744,7 +1559,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
@@ -1765,6 +1579,195 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateAndAddFluidBodyFlow()") << std::endl;
     KRATOS_CATCH("");
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    CalculateStrain( ElementVariables& rVariables )
+{
+    this->CalculateCauchyStrain( rVariables );
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    CalculateCauchyStrain( ElementVariables& rVariables )
+{
+    noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    CalculateCauchyGreenStrain( ElementVariables& rVariables )
+{
+   // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain()") << std::endl;
+
+    //-Compute total deformation gradient
+    const Matrix& F = rVariables.F;
+
+    Matrix ETensor;
+    if (TDim == 3)
+    {
+        ETensor = prod(trans(F), F);
+    }
+    else
+    {
+        Matrix F2x2(TDim,TDim);
+        for (unsigned int i = 0; i<TDim; ++i)
+            for (unsigned int j = 0; j<TDim; ++j)
+                F2x2(i, j) = F(i, j);
+
+        ETensor = prod(trans(F2x2), F2x2);
+    }
+
+    for (unsigned int i=0; i<TDim; ++i)
+        ETensor(i,i) -= 1.0;
+    ETensor *= 0.5;
+
+    noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+
+   // KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateCauchyGreenStrain()") << std::endl;
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    CalculateCauchyAlmansiStrain(ElementVariables& rVariables )
+{
+   // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain()") << std::endl;
+
+    //-Compute total deformation gradient
+    const Matrix& F = rVariables.F;
+
+    Matrix LeftCauchyGreen;
+    if (TDim == 3)
+    {
+        LeftCauchyGreen = prod(F, trans(F));
+    }
+    else
+    {
+        Matrix F2x2(TDim, TDim);
+        for (unsigned int i = 0; i<TDim; ++i)
+            for (unsigned int j = 0; j<TDim; ++j)
+                F2x2(i, j) = F(i, j);
+
+        LeftCauchyGreen = prod(F2x2, trans(F2x2));
+    }
+
+    Matrix ETensor;
+    double det;
+    MathUtils<double>::InvertMatrix(LeftCauchyGreen, ETensor, det );
+
+    for (unsigned int i=0; i<TDim; ++i)
+        ETensor(i,i) = 1.0 - ETensor(i,i);
+
+    ETensor *= 0.5;
+    noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+
+   // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain()") << std::endl;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    InitializeNodalVariables( ElementVariables& rVariables )
+{
+    KRATOS_TRY
+    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeNodalVariables") << std::endl;
+
+    const GeometryType& Geom = this->GetGeometry();
+
+    //Nodal Variables
+    for (unsigned int i=0; i<TNumNodes; i++)
+    {
+        rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+    }
+    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.DisplacementVector, Geom, DISPLACEMENT);
+    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VelocityVector,     Geom, VELOCITY);
+    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VolumeAcceleration, Geom, VOLUME_ACCELERATION);
+
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeNodalVariables") << std::endl;
+    KRATOS_CATCH( "" )
+
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    InitializeProperties( ElementVariables& rVariables )
+{
+    KRATOS_TRY
+    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeProperties") << std::endl;
+
+    const PropertiesType& Prop = this->GetProperties();
+
+    rVariables.IgnoreUndrained = false;
+    if (Prop.Has(IGNORE_UNDRAINED))
+        rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
+
+    rVariables.ConsiderGeometricStiffness = false;
+    if (Prop.Has(CONSIDER_GEOMETRIC_STIFFNESS))
+        rVariables.ConsiderGeometricStiffness = Prop[CONSIDER_GEOMETRIC_STIFFNESS];
+
+    rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
+    rVariables.FluidDensity = Prop[DENSITY_WATER];
+    rVariables.Density = Prop[POROSITY]*rVariables.FluidDensity + (1.0-Prop[POROSITY])*Prop[DENSITY_SOLID];
+    GeoElementUtilities::CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix, Prop);
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeProperties") << std::endl;
+    KRATOS_CATCH( "" )
+
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    CalculateKinematics( ElementVariables& rVariables,
+                         unsigned int PointNumber )
+
+{
+    KRATOS_TRY
+    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
+
+    //Setting the vector of shape functions and the matrix of the shape functions global gradients
+    noalias(rVariables.Np) = row(rVariables.NContainer, PointNumber);
+    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[PointNumber];
+
+    rVariables.detJ0 = rVariables.detJContainer[PointNumber];
+
+    //Compute the deformation matrix B
+    this->CalculateBMatrix(rVariables.B, rVariables.GradNpT);
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    SetElementalVariables(ElementVariables& rVariables,
+                          ConstitutiveLaw::Parameters& rConstitutiveParameters)
+{
+    KRATOS_TRY
+    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::SetElementalVariables") << std::endl;
+
+    rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
+    rConstitutiveParameters.SetStressVector(rVariables.StressVector);
+    rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
+    rConstitutiveParameters.SetShapeFunctionsValues(rVariables.Np);
+    rConstitutiveParameters.SetShapeFunctionsDerivatives(rVariables.GradNpT);
+    rConstitutiveParameters.SetDeformationGradientF(rVariables.F);
+    rConstitutiveParameters.SetDeterminantF(rVariables.detF);
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::SetElementalVariables") << std::endl;
+
+    KRATOS_CATCH( "" )
+
 }
 
 //----------------------------------------------------------------------------------------------------

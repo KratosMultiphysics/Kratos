@@ -113,6 +113,7 @@ protected:
     {
         ///Properties variables
         bool IgnoreUndrained;
+        bool ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
         double FluidDensity;
         double Density;
@@ -147,11 +148,12 @@ protected:
         Matrix GradNpT;
         Matrix F;
         double detF;
+        Vector detJContainer;
+        Matrix NContainer;
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
         // needed for updated Lagrangian:
         double detJ0;
-        Matrix J0;
-        Matrix InvJ0;
 
         //Auxiliary Variables
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
@@ -188,10 +190,13 @@ protected:
                        const bool CalculateResidualVectorFlag ) override;
 
     void InitializeElementVariables( ElementVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                     const GeometryType& Geom,
-                                     const PropertiesType& Prop,
                                      const ProcessInfo& CurrentProcessInfo );
+
+    void SetElementalVariables(ElementVariables& rVariables,
+                               ConstitutiveLaw::Parameters& rConstitutiveParameters);
+
+    void CalculateKinematics( ElementVariables& rVariables,
+                              unsigned int PointNumber );
 
     void InitializeBiotCoefficients( ElementVariables& rVariables,
                                      const double &BulkModulus );
@@ -230,6 +235,14 @@ protected:
     void UpdateStressVector(const Vector &StressVector, unsigned int PointNumber);
 
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
+
+    virtual void CalculateCauchyAlmansiStrain( ElementVariables& rVariables );
+    virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
+    virtual void CalculateCauchyStrain( ElementVariables& rVariables );
+    virtual void CalculateStrain( ElementVariables& rVariables );
+
+    void InitializeNodalVariables( ElementVariables& rVariables );
+    void InitializeProperties( ElementVariables& rVariables );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

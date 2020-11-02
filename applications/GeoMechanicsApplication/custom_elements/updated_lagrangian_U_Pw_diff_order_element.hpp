@@ -347,8 +347,7 @@ protected:
                                                  IntegrationMethod ThisIntegrationMethod ) const;
 
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                                  ElementVariables& rVariables,
-                                                  const Vector& StressVector );
+                                                  ElementVariables& rVariables);
 
     void CalculateStrain( ElementVariables& rVariables ) override;
 

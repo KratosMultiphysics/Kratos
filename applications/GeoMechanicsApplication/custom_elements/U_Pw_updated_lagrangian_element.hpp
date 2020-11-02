@@ -334,6 +334,8 @@ protected:
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
                                                   ElementVariables& rVariables );
 
+    void CalculateStrain( ElementVariables& rVariables ) override;
+
     ///@}
     ///@name Protected Operations
     ///@{

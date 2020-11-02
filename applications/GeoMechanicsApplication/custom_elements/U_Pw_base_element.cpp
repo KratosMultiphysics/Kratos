@@ -403,9 +403,15 @@ void UPwBaseElement<TDim,TNumNodes>::
     {
         GeoElementUtilities::CalculateNuElementMatrix<TDim, TNumNodes>(Nut,NContainer,GPoint);
 
+        Matrix DNu_DX0;
+        double detJ = CalculateDerivativesOnInitialConfiguration(Geom,
+                                                                 DNu_DX0,
+                                                                 GPoint,
+                                                                 this->GetIntegrationMethod());
+
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( IntegrationCoefficient,
-                                               detJContainer[GPoint],
+                                               detJ,
                                                IntegrationPoints[GPoint].Weight() );
 
         //Adding contribution to Mass matrix
@@ -580,12 +586,8 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    //KRATOS_INFO("0-UPwBaseElement::1-SetValuesOnIntegrationPoints()") << std::endl;
-
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
-
-    //KRATOS_INFO("1-UPwBaseElement::1-SetValuesOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -599,12 +601,8 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    //KRATOS_INFO("0-UPwBaseElement::1-SetValuesOnIntegrationPoints()") << std::endl;
-
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
-
-    //KRATOS_INFO("1-UPwBaseElement::1-SetValuesOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -641,7 +639,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 
         this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
-    else //if (rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
+    else
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
@@ -804,6 +802,30 @@ Matrix& UPwBaseElement<TDim,TNumNodes>::
     }
 
     return DeltaDisplacement;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+double UPwBaseElement<TDim,TNumNodes>::
+    CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
+                                               Matrix& DNu_DX0,
+                                               const IndexType& GPoint,
+                                               IntegrationMethod ThisIntegrationMethod) const
+{
+    KRATOS_TRY
+
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+    Matrix J0, InvJ0;
+    double detJ0;
+    GeometryUtils::JacobianOnInitialConfiguration(Geometry, IntegrationPoints[GPoint], J0);
+    const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[GPoint];
+    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
+    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
+
+    return detJ0;
 
     KRATOS_CATCH( "" )
 }
