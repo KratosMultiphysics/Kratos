@@ -16,6 +16,11 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, models, solver_name):
         super().__init__(settings, models, solver_name)
 
+        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
+
+    def Initialize(self):
+        super().Initialize()
+
         self.convergence_accelerators_list = factories_helper.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
             self.solver_wrappers,
@@ -25,11 +30,6 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             self.settings["convergence_criteria"],
             self.solver_wrappers,
             self.echo_level)
-
-        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
-
-    def Initialize(self):
-        super().Initialize()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Initialize()

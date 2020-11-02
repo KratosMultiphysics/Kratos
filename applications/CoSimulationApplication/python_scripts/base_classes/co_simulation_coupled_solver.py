@@ -67,6 +67,19 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solver.CreateIO(self.echo_level)
             # using the Echo_level of the coupled solver, since IO is needed by the coupling
 
+    def _GetSolver(self, solver_name):
+        solver_name, *sub_solver_names = solver_name.split(".")
+        solver = self.solver_wrappers[solver_name]
+        if len(sub_solver_names) > 0:
+            return solver._GetSolver(".".join(sub_solver_names))
+        else:
+            return solver
+
+    def Initialize(self):
+        for solver in self.solver_wrappers.values():
+            solver.Initialize()
+
+        super().Initialize()
         ### Creating the predictors
         self.predictors_list = factories_helper.CreatePredictors(
             self.settings["predictors"],
@@ -84,20 +97,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         self.data_transfer_operators_dict = factories_helper.CreateDataTransferOperators(
             self.settings["data_transfer_operators"],
             self.echo_level)
-
-    def _GetSolver(self, solver_name):
-        solver_name, *sub_solver_names = solver_name.split(".")
-        solver = self.solver_wrappers[solver_name]
-        if len(sub_solver_names) > 0:
-            return solver._GetSolver(".".join(sub_solver_names))
-        else:
-            return solver
-
-    def Initialize(self):
-        for solver in self.solver_wrappers.values():
-            solver.Initialize()
-
-        super().Initialize()
 
         for predictor in self.predictors_list:
             predictor.Initialize()
@@ -174,6 +173,18 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         err_msg  = 'Calling "SolveSolutionStep" of the "CoSimulationCoupledSolver"!\n'
         err_msg += 'This function has to be implemented in the derived class!'
         raise Exception(err_msg)
+
+    # def _GetIOType(self):
+    #     # only external solvers have to specify sth here / override this
+    #     return "coupled_io"
+
+    # def GetInterfaceData(self, data_name):
+    #     try:
+    #         [coupled_solver_name, solver_name, name] = data_name.split(".")
+    #         solver = self.solver_wrappers[solver_name]
+    #         return solver.GetInterfaceData(name)
+    #     except KeyError:
+    #         raise Exception('Requested data field "{}" does not exist for solver "{}"'.format(data_name, self.name))
 
     def _SynchronizeInputData(self, solver_name):
         to_solver = self.solver_wrappers[solver_name]
