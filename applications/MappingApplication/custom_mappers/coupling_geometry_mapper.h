@@ -322,7 +322,8 @@ private:
             "precompute_mapping_matrix"     : false,
             "modeler_name"                  : "UNSPECIFIED",
             "modeler_parameters"            : {},
-            "consistency_scaling"           : true
+            "consistency_scaling"           : true,
+            "linear_solver_settings"        : {}
         })");
     }
 
