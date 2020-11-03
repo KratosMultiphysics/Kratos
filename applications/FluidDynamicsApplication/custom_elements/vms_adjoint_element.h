@@ -238,43 +238,12 @@ public:
      *
      * @return 0 after successful completion.
      */
-    int Check(const ProcessInfo &/*rCurrentProcessInfo*/) override
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
         // Check the element id and geometry.
-        ProcessInfo UnusedProcessInfo;
-        int ReturnValue = Element::Check(UnusedProcessInfo);
-
-        // Check if adjoint and fluid variables are defined.
-        if (ADJOINT_FLUID_VECTOR_1.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_FLUID_VECTOR_1 Key is 0. "
-                    "Check if the application was correctly registered.","");
-        if (ADJOINT_FLUID_VECTOR_2.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_FLUID_VECTOR_2 Key is 0. "
-                    "Check if the application was correctly registered.","");
-        if (ADJOINT_FLUID_VECTOR_3.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_FLUID_VECTOR_3 Key is 0. "
-                    "Check if the application was correctly registered.","");
-        if (ADJOINT_FLUID_SCALAR_1.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_FLUID_SCALAR_1 Key is 0. "
-                    "Check if the application was correctly registered.","");
-        if (VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "VELOCITY Key is 0. "
-                    "Check if the application was correctly registered.","");
-        if (ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ACCELERATION Key is 0. "
-                    "Check if the application was correctly registered.","");
-        if (PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "PRESSURE Key is 0. "
-                    "Check if the application was correctly registered.","");
+        int ReturnValue = Element::Check(rCurrentProcessInfo);
 
         // Check if the nodes have adjoint and fluid variables and adjoint dofs.
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)

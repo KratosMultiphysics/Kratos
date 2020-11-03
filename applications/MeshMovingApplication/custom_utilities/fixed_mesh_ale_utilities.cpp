@@ -497,6 +497,6 @@ namespace Kratos
         return rOStream;
     }
 
-    template void FixedMeshALEUtilities::ProjectVirtualValues<2>(ModelPart &rOriginModelPart, const unsigned int BufferSize);
-    template void FixedMeshALEUtilities::ProjectVirtualValues<3>(ModelPart &rOriginModelPart, const unsigned int BufferSize);
+    template void KRATOS_API(MESH_MOVING_APPLICATION) FixedMeshALEUtilities::ProjectVirtualValues<2>(ModelPart &rOriginModelPart, const unsigned int BufferSize);
+    template void KRATOS_API(MESH_MOVING_APPLICATION) FixedMeshALEUtilities::ProjectVirtualValues<3>(ModelPart &rOriginModelPart, const unsigned int BufferSize);
 }

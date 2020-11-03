@@ -81,7 +81,7 @@ namespace Kratos
 			: mrModelPart(rModelPart),
 			  mrRemesh(rRemeshingParameters)
 		{
-			KRATOS_INFO("RemoveMeshNodesForFluidsProcess") << " remove_mesh_nodes_process_for_fluids ";
+			KRATOS_INFO("RemoveMeshNodesForFluidsProcess") << " activated "<< std::endl;
 
 			mEchoLevel = EchoLevel;
 		}

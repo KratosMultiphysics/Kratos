@@ -98,7 +98,8 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     Vector RHS = ZeroVector(9);
     Matrix LHS = ZeroMatrix(9,9);
 
-    element->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_process_info = model_part.GetProcessInfo();
+    element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)

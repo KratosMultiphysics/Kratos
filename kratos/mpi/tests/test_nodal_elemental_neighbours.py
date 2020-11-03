@@ -1,10 +1,7 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import os
-import sys
+﻿import os
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-import KratosMultiphysics.kratos_utilities as kratos_utilities
+from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 def GetFilePath(fileName):
@@ -13,12 +10,7 @@ def GetFilePath(fileName):
 class TestNodalElementalNeighbours(KratosUnittest.TestCase):
 
     def tearDown(self):
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        rank = kratos_comm.Rank()
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".mdpa")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
-        kratos_comm.Barrier()
+        DeleteDirectoryIfExisting("test_mpi_communicator_partitioned")
 
     def _ReadSerialModelPart(self,model_part, mdpa_file_name):
         import_flags = KratosMultiphysics.ModelPartIO.READ | KratosMultiphysics.ModelPartIO.SKIP_TIMER
