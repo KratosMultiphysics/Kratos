@@ -186,128 +186,210 @@ proc WriteMdpa { basename dir problemtypedir } {
     set FIC [GiD_AccessValue get gendata FIC_Stabilization]
     set IsQuadratic [GiD_Info Project Quadratic]
     set Dim [GiD_AccessValue get gendata Domain_Size]
+    set IsMoveMesh [GiD_AccessValue get gendata Move_Mesh]
 
     # Soil_two_phase part
-    set Groups [GiD_Info conditions Soil_two_phase groups]   
+    set Groups [GiD_Info conditions Soil_two_phase groups]
     if {$IsQuadratic eq 0} {
         if {$FIC eq false} {
             for {set i 0} {$i < [llength $Groups]} {incr i} {
                 # Elements Property
                 set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
-                # UPwSmallStrainElement2D3N
-                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
-                # UPwSmallStrainElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainElement3D4N
-                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                if {$IsMoveMesh eq false} {
+                    # UPwSmallStrainElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwSmallStrainElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                } else {
+                    # UPwUpdatedLagrangianElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwUpdatedLagrangianElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwUpdatedLagrangianElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwUpdatedLagrangianElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwUpdatedLagrangianElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwUpdatedLagrangianElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                }
             }
         } else {
             for {set i 0} {$i < [llength $Groups]} {incr i} {
                 # Elements Property
                 set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-                # UPwSmallStrainFICElement2D3N
-                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
-                # UPwSmallStrainFICElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainFICElement3D4N
-                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainFICElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                if {$IsMoveMesh eq false} {
+                    # UPwSmallStrainFICElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwSmallStrainFICElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainFICElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainFICElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                } else {
+                    # UPwUpdatedLagrangianFICElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwUpdatedLagrangianFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwUpdatedLagrangianFICElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwUpdatedLagrangianFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianFICElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwUpdatedLagrangianFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianFICElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwUpdatedLagrangianFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                }
             }
         }
     } elseif {$IsQuadratic eq 1} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-            # SmallStrainUPwDiffOrderElement2D6N
-            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
-            # SmallStrainUPwDiffOrderElement2D8N
-            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
-            # SmallStrainUPwDiffOrderElement3D10N
-            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
-            # SmallStrainUPwDiffOrderElement3D20N
-            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            if {$IsMoveMesh eq false} {
+                # SmallStrainUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # SmallStrainUPwDiffOrderElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # SmallStrainUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # SmallStrainUPwDiffOrderElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            } else {
+                # UpdatedLagrangianUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle UpdatedLagrangianUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UpdatedLagrangianUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            }
         }
     } else {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-            # SmallStrainUPwDiffOrderElement2D6N
-            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
-            # SmallStrainUPwDiffOrderElement2D9N
-            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
-            # SmallStrainUPwDiffOrderElement3D10N
-            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
-            # SmallStrainUPwDiffOrderElement3D27N
-            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            if {$IsMoveMesh eq false} {
+                # SmallStrainUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # SmallStrainUPwDiffOrderElement2D9N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+                # SmallStrainUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # SmallStrainUPwDiffOrderElement3D27N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            } else {
+                # UpdatedLagrangianUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle UpdatedLagrangianUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement2D9N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UpdatedLagrangianUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D27N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            }
         }
     }
 
     # Soil_drained part
-    set Groups [GiD_Info conditions Soil_drained groups]  
+    set Groups [GiD_Info conditions Soil_drained groups]
     if {$IsQuadratic eq 0} {
         if {$FIC eq false} {
             for {set i 0} {$i < [llength $Groups]} {incr i} {
                 # Elements Property
                 set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-                # UPwSmallStrainElement2D3N
-                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
-                # UPwSmallStrainElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainElement3D4N
-                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                if {$IsMoveMesh eq false} {
+                    # UPwSmallStrainElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwSmallStrainElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                } else {
+                    # UPwUpdatedLagrangianElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwUpdatedLagrangianElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwUpdatedLagrangianElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwUpdatedLagrangianElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwUpdatedLagrangianElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwUpdatedLagrangianElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                }
             }
         } else {
             for {set i 0} {$i < [llength $Groups]} {incr i} {
                 # Elements Property
                 set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-                # UPwSmallStrainFICElement2D3N
-                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
-                # UPwSmallStrainFICElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainFICElement3D4N
-                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainFICElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                if {$IsMoveMesh eq false} {
+                    # UPwSmallStrainFICElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwSmallStrainFICElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainFICElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainFICElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                } else {
+                    # UPwUpdatedLagrangianFICElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwUpdatedLagrangianFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwUpdatedLagrangianFICElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwUpdatedLagrangianFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianFICElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwUpdatedLagrangianFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianFICElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwUpdatedLagrangianFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                }
             }
         }
     } elseif {$IsQuadratic eq 1} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-            # SmallStrainUPwDiffOrderElement2D6N
-            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
-            # SmallStrainUPwDiffOrderElement2D8N
-            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
-            # SmallStrainUPwDiffOrderElement3D10N
-            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
-            # SmallStrainUPwDiffOrderElement3D20N
-            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            if {$IsMoveMesh eq false} {
+                # SmallStrainUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # SmallStrainUPwDiffOrderElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # SmallStrainUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # SmallStrainUPwDiffOrderElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            } else {
+                # UpdatedLagrangianUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle UpdatedLagrangianUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UpdatedLagrangianUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            }
         }
     } else {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-            # SmallStrainUPwDiffOrderElement2D6N
-            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
-            # SmallStrainUPwDiffOrderElement2D9N
-            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
-            # SmallStrainUPwDiffOrderElement3D10N
-            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
-            # SmallStrainUPwDiffOrderElement3D27N
-            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            if {$IsMoveMesh eq false} {
+                # SmallStrainUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # SmallStrainUPwDiffOrderElement2D9N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+                # SmallStrainUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # SmallStrainUPwDiffOrderElement3D27N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            } else {
+                # UpdatedLagrangianUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle UpdatedLagrangianUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement2D9N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UpdatedLagrangianUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D27N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            }
         }
     }
 
@@ -318,58 +400,98 @@ proc WriteMdpa { basename dir problemtypedir } {
             for {set i 0} {$i < [llength $Groups]} {incr i} {
                 # Elements Property
                 set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-                # UPwSmallStrainElement2D3N
-                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
-                # UPwSmallStrainElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainElement3D4N
-                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                if {$IsMoveMesh eq false} {
+                    # UPwSmallStrainElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwSmallStrainElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                } else {
+                    # UPwUpdatedLagrangianElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwUpdatedLagrangianElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwUpdatedLagrangianElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwUpdatedLagrangianElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwUpdatedLagrangianElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwUpdatedLagrangianElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                }
             }
         } else {
             for {set i 0} {$i < [llength $Groups]} {incr i} {
                 # Elements Property
                 set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-                # UPwSmallStrainFICElement2D3N
-                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
-                # UPwSmallStrainFICElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainFICElement3D4N
-                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainFICElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                if {$IsMoveMesh eq false} {
+                    # UPwSmallStrainFICElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwSmallStrainFICElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainFICElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwSmallStrainFICElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                } else {
+                    # UPwUpdatedLagrangianFICElement2D3N
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwUpdatedLagrangianFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                    # UPwUpdatedLagrangianFICElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwUpdatedLagrangianFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianFICElement3D4N
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwUpdatedLagrangianFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                    # UPwUpdatedLagrangianFICElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwUpdatedLagrangianFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+                }
             }
         }
     } elseif {$IsQuadratic eq 1} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-            # SmallStrainUPwDiffOrderElement2D6N
-            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
-            # SmallStrainUPwDiffOrderElement2D8N
-            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
-            # SmallStrainUPwDiffOrderElement3D10N
-            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
-            # SmallStrainUPwDiffOrderElement3D20N
-            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            if {$IsMoveMesh eq false} {
+                # SmallStrainUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # SmallStrainUPwDiffOrderElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # SmallStrainUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # SmallStrainUPwDiffOrderElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            } else {
+                # UpdatedLagrangianUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle UpdatedLagrangianUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UpdatedLagrangianUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            }
         }
     } else {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-            # SmallStrainUPwDiffOrderElement2D6N
-            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
-            # SmallStrainUPwDiffOrderElement2D9N
-            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
-            # SmallStrainUPwDiffOrderElement3D10N
-            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
-            # SmallStrainUPwDiffOrderElement3D27N
-            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            if {$IsMoveMesh eq false} {
+                # SmallStrainUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # SmallStrainUPwDiffOrderElement2D9N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+                # SmallStrainUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # SmallStrainUPwDiffOrderElement3D27N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            } else {
+                # UpdatedLagrangianUPwDiffOrderElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle UpdatedLagrangianUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement2D9N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UpdatedLagrangianUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # UpdatedLagrangianUPwDiffOrderElement3D27N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            }
         }
     }
 
@@ -379,32 +501,52 @@ proc WriteMdpa { basename dir problemtypedir } {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-            # SmallDisplacement2D3N
-            WriteElements FileVar [lindex $Groups $i] triangle SmallDisplacementElement2D3N $BodyElemsProp Triangle2D3Connectivities
-            # SmallDisplacement2D4N
-            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallDisplacementElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
-            # SmallDisplacement3D4N
-            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallDisplacementElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
-            # SmallDisplacement3D8N
-            WriteElements FileVar [lindex $Groups $i] hexahedra SmallDisplacementElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            if {$IsMoveMesh eq false} {
+                # SmallDisplacement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle SmallDisplacementElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # SmallDisplacement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SmallDisplacementElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # SmallDisplacement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SmallDisplacementElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # SmallDisplacement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SmallDisplacementElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            } else {
+                # UpdatedLagrangianElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle UpdatedLagrangianElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # UpdatedLagrangianElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UpdatedLagrangianElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UpdatedLagrangianElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UpdatedLagrangianElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
         }
     } elseif {$IsQuadratic eq 1} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-
-            # SmallDisplacement2D6N
-            WriteElements FileVar [lindex $Groups $i] triangle SmallDisplacementElement2D6N $BodyElemsProp Triangle2D6Connectivities
-            # SmallDisplacement2D8N
-            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallDisplacementElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
-            # SmallDisplacement3D10N
-            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallDisplacementElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
-            # SmallDisplacement3D20N
-            WriteElements FileVar [lindex $Groups $i] hexahedra SmallDisplacementElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            if {$IsMoveMesh eq false} {
+                # SmallDisplacement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle SmallDisplacementElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # SmallDisplacement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SmallDisplacementElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # SmallDisplacement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SmallDisplacementElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # SmallDisplacement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SmallDisplacementElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            } else {
+                # UpdatedLagrangianElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle UpdatedLagrangianElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # UpdatedLagrangianElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UpdatedLagrangianElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # UpdatedLagrangianElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # UpdatedLagrangianElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            }
         }
     }
-    
+
     # Beam_Part
     set Groups [GiD_Info conditions Beam groups]
     if {$IsQuadratic eq 0} {
@@ -465,7 +607,7 @@ proc WriteMdpa { basename dir problemtypedir } {
 
     set CableId 0
     set CableElementDict [dict create]
-    
+
     # Truss_Part
     set Groups [GiD_Info conditions Truss groups]
     if {$IsQuadratic eq 0} {
@@ -576,7 +718,6 @@ proc WriteMdpa { basename dir problemtypedir } {
             WriteLineConditions FileVar ConditionId ConditionDict $Groups LineLoadCondition3D3N $PropertyDict
         }
     }
-    
 
     # Surface_Load
     set Groups [GiD_Info conditions Surface_Load groups]
@@ -651,6 +792,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             }
         }
     }
+
     # Normal_Fluid_Flux
     set Groups [GiD_Info conditions Normal_Fluid_Flux groups]
     if {$Dim eq 2} {
@@ -709,6 +851,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             }
         }
     }
+
     # Interface_Face_Load
     set Groups [GiD_Info conditions Interface_Face_Load groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -720,6 +863,7 @@ proc WriteMdpa { basename dir problemtypedir } {
         WriteInterfaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] quadrilateral UPwFaceLoadInterfaceCondition3D4N $InterfaceElemsProp QuadrilateralInterface3D4Connectivities
         dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
     }
+
     # Interface_Normal_Fluid_Flux
     set Groups [GiD_Info conditions Interface_Normal_Fluid_Flux groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
