@@ -28,6 +28,7 @@
 #include "includes/kratos_parameters.h"
 
 /* Utilities */
+#include "utilities/geometry_utilities.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/openmp_utils.h"
 
@@ -59,6 +60,73 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @ingroup MeshingApplication
+ * @class PointBoundary
+ * @brief Custom Point container to be used to look in the boundary skin
+ * @details The main difference with this point and the base one is that it contains the pointer to condition where the center of the points belongs
+ * @author Vicente Mataix Ferrandiz
+ */
+template< SizeType TDim, class TConfigureType = SpatialContainersConfigure<TDim> >
+class ProjectedBinBasedFastPointLocator
+    : public BinBasedFastPointLocator<TDim, TConfigureType>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// The base type
+    typedef BinBasedFastPointLocator<TDim, TConfigureType> BaseType;
+
+    /// Geometry definitions
+    typedef Node<3>                                                NodeType;
+    typedef Geometry<NodeType>                                 GeometryType;
+
+    /// Pointer definition of ProjectedBinBasedFastPointLocator
+    KRATOS_CLASS_POINTER_DEFINITION(ProjectedBinBasedFastPointLocator);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief This is the default constructor
+     * @param rModelPart The model part of the mesh used in the search
+     */
+    explicit ProjectedBinBasedFastPointLocator(ModelPart& rModelPart)
+        : BinBasedFastPointLocator<TDim, TConfigureType>(rModelPart)
+    {
+    }
+
+    /// Destructor.
+    virtual ~ProjectedBinBasedFastPointLocator() = default;
+
+    ///@}
+protected:
+    ///@name Protected Operations
+    ///@{
+
+    /**
+    * @brief Checks if given point in global space coordinates is inside the geometry boundaries.
+    * @details This function computes the local coordinates and checks then if this point lays within the boundaries.
+    * @param rPointGlobalCoordinates the global coordinates of the external point.
+    * @param rResult the local coordinates of the point.
+    * @param Tolerance the tolerance to the boundary.
+    * @return true if the point is inside, false otherwise
+    */
+    bool LocalIsInside(
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        GeometryType::CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        GeometryUtils::ProjectedIsInside(rGeometry, rPointGlobalCoordinates, rResult, Tolerance);
+    }
+
+    ///@}
+};
 
 /**
  * @ingroup MeshingApplication

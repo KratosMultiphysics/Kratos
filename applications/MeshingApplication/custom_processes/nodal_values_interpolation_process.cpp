@@ -45,7 +45,7 @@ template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::Execute()
 {
     // We create the locator
-    BinBasedFastPointLocator<TDim> point_locator = BinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
+    ProjectedBinBasedFastPointLocator<TDim> point_locator = ProjectedBinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
     point_locator.UpdateSearchDatabase();
 
     // Iterate in the nodes
