@@ -31,7 +31,7 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
         SizeType num_nodes_in_mesh = BaseType::mrIO.ReadNodesNumber();
         rNodePartition.resize(num_nodes_in_mesh);
 
-        for (auto submodelpart_name : mSettings["submodelpart_list"].GetStringArray()) {
+        for (auto submodelpart_name : mSettings["sub_model_part_list"].GetStringArray()) {
             // Read nodal graph from input
             IO::ConnectivitiesContainerType kratos_format_node_connectivities;
             std::unordered_set<SizeType> submodelpart_elements_ids;

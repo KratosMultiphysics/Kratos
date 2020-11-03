@@ -37,6 +37,9 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             KratosMultiphysics.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
 
     def test_ReadTwoSubModelParts(self):
+        """Checks that all processor have entities from the given list
+           of sub model parts.
+        """
         self.work_folder = ""
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
@@ -47,7 +50,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
                 "input_filename"                             : \"""" + GetFilePath(self.file_name) + """\",
                 "partition_in_memory"                        : false,
                 "partition_sub_model_parts_list"             : true,
-                "submodelpart_list" : ["submodelpart_solid", "submodelpart_liquid"]
+                "sub_model_part_list" : ["submodelpart_solid", "submodelpart_liquid"]
             },
             "echo_level" : 0
         }""")
@@ -69,19 +72,19 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             self.assertEqual(total_elements, results.get(submodel_part_name)[1])
             self.assertEqual(total_conditions, results.get(submodel_part_name)[2])
 
-        local_main_number_nodes = model_part.GetCommunicator().LocalMesh().NumberOfNodes()
-        local_main_number_elements = model_part.GetCommunicator().LocalMesh().NumberOfElements()
-        local_main_number_conditions = model_part.GetCommunicator().LocalMesh().NumberOfConditions()
+        total_main_nodes = model_part.GetCommunicator().GlobalNumberOfNodes()
+        total_main_elements = model_part.GetCommunicator().GlobalNumberOfElements()
+        total_main_conditions = model_part.GetCommunicator().GlobalNumberOfConditions()
 
-        total_main_nodes = model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_nodes)
-        total_main_elements =model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_elements)
-        total_main_conditions = model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_conditions)
         self.assertEqual(total_main_nodes, 413 )
         self.assertEqual(total_main_elements, 1191 )
         self.assertEqual(total_main_conditions, 780 )
 
 
     def test_ReadSubSubModelParts(self):
+        """Checks that all processor have entities from the given list
+           of sub-sub model parts.
+        """
         self.work_folder = ""
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
@@ -92,7 +95,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
                 "input_filename"                             : \"""" + GetFilePath(self.file_name) + """\",
                 "partition_in_memory"                        : false,
                 "partition_sub_model_parts_list"             : true,
-                "submodelpart_list" : ["ingate", "mainPart", "submodelpart_solid"]
+                "sub_model_part_list" : ["ingate", "mainPart", "submodelpart_solid"]
             },
             "echo_level" : 0
         }""")
@@ -102,7 +105,6 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.ReadModelPart(model_part, settings)
         for submodel_part_name in results:
             submodel_part = current_model[submodel_part_name]
-            print(submodel_part)
             local_number_nodes = submodel_part.GetCommunicator().LocalMesh().NumberOfNodes()
             local_number_elements = submodel_part.GetCommunicator().LocalMesh().NumberOfElements()
             local_number_conditions = submodel_part.GetCommunicator().LocalMesh().NumberOfConditions()
@@ -123,8 +125,39 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.assertEqual(total_main_elements, 1191 )
         self.assertEqual(total_main_conditions, 780 )
 
+    def test_ReadWithoutSubModelParts(self):
+        """Checks that all processor have entities of main model part
+           if sub_model_parts_list is empty.
+        """
+        self.work_folder = ""
+        self.file_name = "cube"
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        settings = KratosMultiphysics.Parameters("""{
+            "model_import_settings" : {
+                "input_type": "mdpa",
+                "input_filename"                             : \"""" + GetFilePath(self.file_name) + """\",
+                "partition_in_memory"                        : false,
+                "partition_sub_model_parts_list"             : true
+            },
+            "echo_level" : 0
+        }""")
+        self.ReadModelPart(model_part, settings)
 
+        local_main_number_nodes = model_part.GetCommunicator().LocalMesh().NumberOfNodes()
+        local_main_number_elements = model_part.GetCommunicator().LocalMesh().NumberOfElements()
+        local_main_number_conditions = model_part.GetCommunicator().LocalMesh().NumberOfConditions()
 
+        self.assertTrue(local_main_number_nodes > 0)
+        self.assertTrue(local_main_number_elements > 0)
+        self.assertTrue(local_main_number_conditions > 0)
+
+        total_main_nodes = model_part.GetCommunicator().GlobalNumberOfNodes()
+        total_main_elements = model_part.GetCommunicator().GlobalNumberOfElements()
+        total_main_conditions = model_part.GetCommunicator().GlobalNumberOfConditions()
+        self.assertEqual(total_main_nodes, 413 )
+        self.assertEqual(total_main_elements, 1191 )
+        self.assertEqual(total_main_conditions, 780 )
 
 if __name__ == '__main__':
     KratosUnittest.main()
