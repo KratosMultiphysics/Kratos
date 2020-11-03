@@ -122,7 +122,7 @@ protected:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        GeometryUtils::ProjectedIsInside(rGeometry, rPointGlobalCoordinates, rResult, Tolerance);
+        return GeometryUtils::ProjectedIsInside(rGeometry, rPointGlobalCoordinates, rResult, Tolerance);
     }
 
     ///@}
