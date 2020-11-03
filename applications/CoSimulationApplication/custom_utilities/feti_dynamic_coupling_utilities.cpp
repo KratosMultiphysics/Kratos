@@ -91,7 +91,7 @@ namespace Kratos
         Vector unbalanced_interface_free_kinematics(destination_interface_dofs);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
 
-        if (!mIsLinear || (mIsLinear && !mIsLinearSetupComplete))
+        if (!mIsLinear || !mIsLinearSetupComplete)
         {
             // 2 - Construct projection matrices
             if (mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
@@ -619,19 +619,14 @@ namespace Kratos
         CompressedMatrix effective_mass = (*pK) * (dt * dt * beta);
 
         //auto start = std::chrono::system_clock::now();
-        #pragma omp parallel
-        {
-            Vector solution(system_dofs);
-            Vector projector_transpose_column(system_dofs);
+        Vector solution(system_dofs);
+        Vector projector_transpose_column(system_dofs);
 
-            #pragma omp for
-            for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
-            {
-                for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
-                mpSolver->Solve(effective_mass, solution, projector_transpose_column);
-                #pragma omp critical
-                for (size_t j = 0; j < system_dofs; ++j) rUnitResponse.insert_element(j,i,solution[j]);
-            }
+        for (int i = 0; i < interface_dofs; ++i)
+        {
+            for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
+            mpSolver->Solve(effective_mass, solution, projector_transpose_column);
+            for (size_t j = 0; j < system_dofs; ++j) rUnitResponse.insert_element(j,i,solution[j]);
         }
 
         //auto end = std::chrono::system_clock::now();
