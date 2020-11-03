@@ -562,19 +562,19 @@ private:
 /****************************** INPUT STREAM FUNCTION ******************************/
 /***********************************************************************************/
 
-// template<class TPointType, class TPointerType>
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   NodalValuesInterpolationProcess& rThis);
+template<SizeType TDim>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  NodalValuesInterpolationProcess<TDim>& rThis);
 
 /***************************** OUTPUT STREAM FUNCTION ******************************/
 /***********************************************************************************/
 
-// template<class TPointType, class TPointerType>
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const NodalValuesInterpolationProcess& rThis)
-// {
-//     return rOStream;
-// }
+template<SizeType TDim>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const NodalValuesInterpolationProcess<TDim>& rThis)
+{
+    return rOStream;
+}
 
 ///@}
 
