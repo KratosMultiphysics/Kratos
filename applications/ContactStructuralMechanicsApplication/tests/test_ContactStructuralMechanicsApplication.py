@@ -305,7 +305,6 @@ def AssembleTestSuites():
     nightlySuite.addTest(TALMPureFrictionalTestContact('test_execution'))
     nightlySuite.addTest(TALMBasicFrictionTestContact('test_execution'))
     nightlySuite.addTest(TALMStaticEvolutionLoadFrictionTestContact('test_execution'))
-    nightlySuite.addTest(TALMEvolutionLoadFrictionTestContact('test_execution'))
 
     # MPC contact test
     nightlySuite.addTest(TBeamAxilSimpleContactTest('test_execution'))
@@ -372,6 +371,7 @@ def AssembleTestSuites():
     validationSuite.addTest(TComponentsALMSelfContactContactTest('test_execution'))
 
     # ALM frictional tests
+    validationSuite.addTest(TALMEvolutionLoadFrictionTestContact('test_execution'))
     validationSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
     validationSuite.addTest(TALMMeshMovingMatchingTestFrictionalPureSlipContact('test_execution'))
     validationSuite.addTest(TALMMeshMovingNotMatchingTestFrictionalPureSlipContact('test_execution'))
