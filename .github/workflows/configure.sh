@@ -46,6 +46,7 @@ add_app ${KRATOS_APP_DIR}/ChimeraApplication;
 add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 
 # Clean
 clear
@@ -67,7 +68,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DBLAS_LIBRARIES="/usr/lib/x86_64-linux-gnu/blas/libblas.so.3" \
 -DLAPACK_LIBRARIES="/usr/lib/x86_64-linux-gnu/liblapack.so.3" \
 -DUSE_COTIRE=ON \
--DINCLUDE_MMG=OFF                                    \
+-DINCLUDE_MMG=ON                                    \
 -DMMG_ROOT="/usr/local/"                            \
 
 # Buid

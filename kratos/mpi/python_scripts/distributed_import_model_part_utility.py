@@ -1,10 +1,11 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-class DistributedImportModelPartUtility(object):
+# Other imports
+from pathlib import Path
+
+class DistributedImportModelPartUtility:
 
     def __init__(self, main_model_part, settings):
         self.main_model_part = main_model_part
@@ -63,7 +64,7 @@ class DistributedImportModelPartUtility(object):
                 sync_conditions = True
 
                 # Original .mdpa file reading
-                model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
+                model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags)
 
                 if not partition_in_memory:
                     ## Serial partition of the original .mdpa file
@@ -91,7 +92,12 @@ class DistributedImportModelPartUtility(object):
             if is_single_process_run:
                 mpi_input_filename = input_filename
             else:
-                mpi_input_filename = input_filename + "_" + str(self.comm.Rank())
+                base_path = Path(input_filename)
+                raw_file_name = base_path.stem
+                folder_name = base_path.parent / Path(str(raw_file_name) + "_partitioned")
+
+                mpi_input_filename = str(folder_name / Path(str(raw_file_name) + "_"+str(self.comm.Rank())))
+
             model_part_import_settings["input_filename"].SetString(mpi_input_filename)
 
             ## Read the new generated *.mdpa files

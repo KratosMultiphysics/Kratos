@@ -19,7 +19,6 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
 
     def AddVariables(self):
         super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
         self.main_model_part.AddNodalSolutionStepVariable(SW.ATMOSPHERIC_PRESSURE)
 
     def AddDofs(self):
