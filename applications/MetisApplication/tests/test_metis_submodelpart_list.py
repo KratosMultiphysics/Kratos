@@ -51,8 +51,8 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             },
             "echo_level" : 0
         }""")
-        results = {"Main.submodelpart_liquid" : [289, 924, 464],
-                   "Main.submodelpart_solid" :  [563, 1652, 1118]}
+        results = {"Main.submodelpart_liquid" : [133, 381, 228],
+                   "Main.submodelpart_solid" :  [280, 810, 552]}
         self.ReadModelPart(model_part, settings)
         for submodel_part_name in results:
             submodel_part = current_model[submodel_part_name]
@@ -76,9 +76,9 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         total_main_nodes = model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_nodes)
         total_main_elements =model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_elements)
         total_main_conditions = model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_conditions)
-        self.assertEqual(total_main_nodes, 852 )
-        self.assertEqual(total_main_elements, 2576 )
-        self.assertEqual(total_main_conditions, 1582 )
+        self.assertEqual(total_main_nodes, 413 )
+        self.assertEqual(total_main_elements, 1191 )
+        self.assertEqual(total_main_conditions, 780 )
 
 
     def test_ReadSubSubModelParts(self):
@@ -96,12 +96,13 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             },
             "echo_level" : 0
         }""")
-        results = {"Main.submodelpart_liquid.ingate" : [183, 537, 268],
-                   "Main.submodelpart_liquid.mainPart" : [137, 387, 196],
-                   "Main.submodelpart_solid" : [563,1652,1118]}
+        results = {"Main.submodelpart_liquid.ingate" : [81, 188, 110],
+                   "Main.submodelpart_liquid.mainPart" : [85, 193, 118],
+                   "Main.submodelpart_solid" : [280,810,552]}
         self.ReadModelPart(model_part, settings)
         for submodel_part_name in results:
             submodel_part = current_model[submodel_part_name]
+            print(submodel_part)
             local_number_nodes = submodel_part.GetCommunicator().LocalMesh().NumberOfNodes()
             local_number_elements = submodel_part.GetCommunicator().LocalMesh().NumberOfElements()
             local_number_conditions = submodel_part.GetCommunicator().LocalMesh().NumberOfConditions()
@@ -115,16 +116,12 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             self.assertEqual(total_elements, results.get(submodel_part_name)[1])
             self.assertEqual(total_conditions, results.get(submodel_part_name)[2])
 
-        local_main_number_nodes = model_part.GetCommunicator().LocalMesh().NumberOfNodes()
-        local_main_number_elements = model_part.GetCommunicator().LocalMesh().NumberOfElements()
-        local_main_number_conditions = model_part.GetCommunicator().LocalMesh().NumberOfConditions()
-
-        total_main_nodes = model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_nodes)
-        total_main_elements =model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_elements)
-        total_main_conditions = model_part.GetCommunicator().GetDataCommunicator().SumAll(local_main_number_conditions)
-        self.assertEqual(total_main_nodes, 852 )
-        self.assertEqual(total_main_elements, 2576 )
-        self.assertEqual(total_main_conditions, 1582 )
+        total_main_nodes = model_part.GetCommunicator().GlobalNumberOfNodes()
+        total_main_elements = model_part.GetCommunicator().GlobalNumberOfElements()
+        total_main_conditions = model_part.GetCommunicator().GlobalNumberOfConditions()
+        self.assertEqual(total_main_nodes, 413 )
+        self.assertEqual(total_main_elements, 1191 )
+        self.assertEqual(total_main_conditions, 780 )
 
 
 
