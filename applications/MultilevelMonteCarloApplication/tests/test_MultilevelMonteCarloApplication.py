@@ -43,18 +43,18 @@ def AssembleTestSuites():
     smallSuite.addTest(TestMultiMomentEstimator('test_construction_isParallel'))
     smallSuite.addTest(TestMultiCombinedMomentEstimator('test_updateD0'))
     smallSuite.addTest(TestMultiCombinedMomentEstimator('test_estimationD0'))
+    smallSuite.addTest(TestXMCAlgorithm('test_mc_Kratos'))
+    smallSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarlo'))
+    if(hasattr(MeshingApplication,"MmgProcess2D")):
+        smallSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarlo'))
+        smallSuite.addTest(TestXMCAlgorithm('test_mlmc_Kratos'))
+    else:
+        print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     nightSuite.addTest(TestMultiMomentEstimator('test_estimation_random'))
-    nightSuite.addTest(TestXMCAlgorithm('test_mc_Kratos'))
-    nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarlo'))
-    if(hasattr(MeshingApplication,"MmgProcess2D")):
-        nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarlo'))
-        nightSuite.addTest(TestXMCAlgorithm('test_mlmc_Kratos'))
-    else:
-        print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests
     allSuite = suites['all']
