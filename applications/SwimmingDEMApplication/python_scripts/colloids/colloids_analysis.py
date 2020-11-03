@@ -33,9 +33,9 @@ class ColloidsAnalysis(BaseAnalysis):
                 node.SetSolutionStepValue(Kratos.CATION_CONCENTRATION, self.concentration)
 
             if self.cation_concentration_counter.SuperTick(1000):
-                print()
-                print('Current cation concentration: ', str(self.concentration))
-                print()
+                Kratos.Logger.PrintInfo("SwimmingDEM", "")
+                Kratos.Logger.PrintInfo("SwimmingDEM", 'Current cation concentration: ', str(self.concentration))
+                Kratos.Logger.PrintInfo("SwimmingDEM", "")
 
     def GetCationConcentrationCounter(self):
         return SDP.Counter(self.project_parameters['cation_concentration_frequence'].GetInt(), 1)

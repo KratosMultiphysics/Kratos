@@ -1,7 +1,6 @@
 import os
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
 from importlib import import_module
@@ -345,10 +344,10 @@ class FemDemMechanicalSolver(object):
         if path_to_mdpa == "":
             if os.path.isfile("materials.py"):
                 # Constitutive law import
-                import KratosMultiphysics.SolidMechanicsApplication.constitutive_law_python_utility as constitutive_law_utils
+                import KratosMultiphysics.FemToDemApplication.constitutive_law_python_utility as constitutive_law_utils
                 constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
                                                                                 self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
-                constitutive_law.Initialize();
+                constitutive_law.Initialize()
 
                 return True
             else:

@@ -1104,10 +1104,6 @@ void ShellRigid::CalculateOnIntegrationPoints(const Variable<double >& rVariable
 
         Output[0] = std::max(von_mises_face1,von_mises_face2);
         //Output[0] = von_mises;
-
-//  			KRATOS_WATCH(von_mises);
-
-
     }
 
     KRATOS_CATCH("")

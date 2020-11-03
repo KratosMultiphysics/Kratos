@@ -155,11 +155,11 @@ void UPwElement<TDim,TNumNodes>::Initialize()
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
     unsigned int index = 0;
 
@@ -189,7 +189,7 @@ GeometryData::IntegrationMethod UPwElement<TDim,TNumNodes>::GetIntegrationMethod
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -213,7 +213,7 @@ void UPwElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSide
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -225,7 +225,7 @@ void UPwElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSid
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -244,11 +244,11 @@ void UPwElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandS
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 3 * (2 + 1);
     unsigned int index = 0;
 
@@ -268,11 +268,11 @@ void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 4 * (2 + 1);
     unsigned int index = 0;
 
@@ -292,11 +292,11 @@ void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 4 * (3 + 1);
     unsigned int index = 0;
 
@@ -317,11 +317,11 @@ void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 6 * (3 + 1);
     unsigned int index = 0;
 
@@ -342,11 +342,11 @@ void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 8 * (3 + 1);
     unsigned int index = 0;
 
@@ -367,7 +367,7 @@ void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -412,7 +412,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, P
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

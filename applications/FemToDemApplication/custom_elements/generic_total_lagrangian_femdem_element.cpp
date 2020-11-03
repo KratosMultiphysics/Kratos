@@ -269,7 +269,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
         if (rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize(mat_size, false);
-        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
     }
 
     // Reading integration points
@@ -313,7 +313,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
         Vector r_strain_vector;
-        double damage_element;
+        double damage_element = 0.0;
         bool is_damaging = false;
         const Vector &r_integrated_stress_vector = this->IntegrateSmoothedConstitutiveLaw(
                                                         yield_surface, cl_values, this_constitutive_variables,
@@ -339,7 +339,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
                 this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
             }
             /* Geometric stiffness matrix */
-            this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
+            this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, r_integrated_stress_vector, int_to_reference_weight);
         }
 
         if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
@@ -416,7 +416,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
         Vector r_strain_vector;
-        double damage_element;
+        double damage_element = 0.0;
         bool is_damaging = false;
         const Vector &r_integrated_stress_vector = this->IntegrateSmoothedConstitutiveLaw(
                                                         yield_surface, cl_values, this_constitutive_variables,
@@ -864,8 +864,7 @@ Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedCo
     }
 
     this->CalculateGreenLagrangeStrainVector(rStrainVector, rKinVariables.F);
-    const Vector& r_stress_vector = rThisConstVars.StressVector;
-    return (1.0 - rDamageElement)*r_stress_vector;
+    return (1.0 - rDamageElement)*rThisConstVars.StressVector;
 }
 
 /***********************************************************************************/
@@ -1716,7 +1715,7 @@ double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateCharacteri
     )
 {
     auto& r_geometry = pCurrentElement->GetGeometry();
-    const auto& r_edges = r_geometry.Edges();
+    const auto& r_edges = r_geometry.GenerateEdges();
 
     double sum_of_lengths = 0.0;
     for (IndexType i = 0; i < NumberOfEdges; ++i) {
