@@ -1961,14 +1961,6 @@ int  ShellRigid::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    //verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE)
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
-
     //verify that the dofs exist
     for(unsigned int i=0; i<this->GetGeometry().size(); i++) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, this->GetGeometry()[i])
