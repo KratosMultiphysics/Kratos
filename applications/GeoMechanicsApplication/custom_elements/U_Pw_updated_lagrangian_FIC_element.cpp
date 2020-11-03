@@ -195,7 +195,6 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
-    const unsigned int NumGPoints = IntegrationPoints.size();
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);

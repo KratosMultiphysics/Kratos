@@ -77,8 +77,15 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
+    using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
+
+    using UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateShearModulus;
+
+    using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
+    using UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
+    typedef typename UPwSmallStrainFICElement<TDim,TNumNodes>::FICElementVariables FICElementVariables;
 
     /// Counted pointer of UPwUpdatedLagrangianFICElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianFICElement);

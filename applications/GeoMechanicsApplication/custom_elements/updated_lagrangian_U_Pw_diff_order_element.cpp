@@ -325,7 +325,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
 
     // derivative of shape function (pore pressure)
     Matrix Jp0, InvJp0;
-    double detJp0 =
+    rVariables.detJp0 =
         CalculateDerivativesOnReferenceConfiguration(*mpPressureGeometry,
                                                      Jp0,
                                                      InvJp0,

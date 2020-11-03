@@ -181,7 +181,8 @@ protected:
         Matrix F;
 
         // needed for updated Lagrangian:
-        double detJ0;
+        double detJ0;  // displacement
+        double detJp0; // pore pressure
 
         //Nodal variables
         Vector BodyAcceleration;

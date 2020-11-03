@@ -472,7 +472,6 @@ void SmallStrainUPwDiffOrderElement::
     //Defining shape functions and the determinant of the jacobian at all integration points
 
     //Loop over integration points
-    double IntegrationCoefficient;
     double Porosity = GetProperties()[POROSITY];
     double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
     Matrix Nu = ZeroMatrix( Dim , NumUNodes * Dim );
@@ -488,7 +487,7 @@ void SmallStrainUPwDiffOrderElement::
                                               IntegrationPoints[PointNumber].Weight());
 
         //Adding contribution to Mass matrix
-        noalias(M) += Density*outer_prod(Variables.Nu,Variables.Nu)*IntegrationCoefficient;
+        noalias(M) += Density*outer_prod(Variables.Nu,Variables.Nu)*Variables.IntegrationCoefficient;
 
     }
 
@@ -1787,11 +1786,11 @@ void SmallStrainUPwDiffOrderElement::
     // Calculating operator B
     this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX);
 
-    double detJp0 =
+    rVariables.detJp0 =
         CalculateDerivativesOnInitialConfiguration(*mpPressureGeometry,
-                                                   rVariables.DNp_DX,
-                                                   PointNumber,
-                                                   this->GetIntegrationMethod());
+                                                    rVariables.DNp_DX,
+                                                    PointNumber,
+                                                    this->GetIntegrationMethod());
 
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematicsOnInitialConfiguration") << std::endl;

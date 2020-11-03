@@ -78,6 +78,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
+    using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
     using UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector;
