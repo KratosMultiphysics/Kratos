@@ -37,6 +37,7 @@
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_excavation_process.hpp"
 #include "custom_processes/apply_gradual_excavation_process.hpp"
+#include "custom_processes/apply_write_result_scalar_process.hpp"
 
 namespace Kratos
 {
@@ -112,14 +113,17 @@ namespace Python
             (m, "ApplyConstantBoundaryPhreaticSurfacePressureProcess")
             .def(init < ModelPart&, Parameters>());
 
-
         class_<ApplyExcavationProcess, ApplyExcavationProcess::Pointer, Process>
             (m, "ApplyExcavationProcess")
             .def(init < ModelPart&, Parameters&>());
 
-		class_<ApplyGradualExcavationProcess, ApplyGradualExcavationProcess::Pointer, Process>
-			(m, "ApplyGradualExcavationProcess")
-			.def(init < ModelPart&, Parameters&>());
+        class_<ApplyGradualExcavationProcess, ApplyGradualExcavationProcess::Pointer, Process>
+            (m, "ApplyGradualExcavationProcess")
+            .def(init < ModelPart&, Parameters&>());
+
+        class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>
+            (m, "ApplyWriteScalarProcess")
+            .def(init < ModelPart&, Parameters&>());
 
     }
 }  // namespace Python.

@@ -4269,3 +4269,103 @@ DEPENDENCIES: (Constant,HIDE,Body_Acceleration_Z_Table,#CURRENT#)(Table_Interpol
 QUESTION: Body_Acceleration_Z_Table(Time,Body_Acceleration_Z)
 VALUE: #N# 2 0.0 0.0
 END CONDITION
+
+BOOK: Recording_Results
+
+CONDITION: Result_DISPLACEMENT
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points
+QUESTION: Variable_X#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Y#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Z#CB#(true,false)
+VALUE: true
+QUESTION: Append_File#CB#(true,false)
+VALUE: false
+END CONDITION
+
+CONDITION: Result_VELOCITY
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points
+QUESTION: Variable_X#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Y#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Z#CB#(true,false)
+VALUE: true
+QUESTION: Append_File#CB#(true,false)
+VALUE: false
+END CONDITION
+
+CONDITION: Result_ACCELERATION
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points
+QUESTION: Variable_X#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Y#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Z#CB#(true,false)
+VALUE: true
+QUESTION: Append_File#CB#(true,false)
+VALUE: false
+END CONDITION
+
+CONDITION: Result_VOLUME_ACCELERATION
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points
+QUESTION: Variable_X#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Y#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Z#CB#(true,false)
+VALUE: true
+QUESTION: Append_File#CB#(true,false)
+VALUE: false
+END CONDITION
+
+CONDITION: Result_POINT_LOAD
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points
+QUESTION: Variable_X#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Y#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Z#CB#(true,false)
+VALUE: true
+QUESTION: Append_File#CB#(true,false)
+VALUE: false
+END CONDITION
+
+CONDITION: Result_LINE_LOAD
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points
+QUESTION: Variable_X#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Y#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Z#CB#(true,false)
+VALUE: true
+QUESTION: Append_File#CB#(true,false)
+VALUE: false
+END CONDITION
+
+CONDITION: Result_SURFACE_LOAD
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points
+QUESTION: Variable_X#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Y#CB#(true,false)
+VALUE: true
+QUESTION: Variable_Z#CB#(true,false)
+VALUE: true
+QUESTION: Append_File#CB#(true,false)
+VALUE: false
+END CONDITION

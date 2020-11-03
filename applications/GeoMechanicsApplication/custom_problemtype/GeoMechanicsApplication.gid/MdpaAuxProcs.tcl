@@ -1176,6 +1176,8 @@ proc WriteConstraintSubmodelPart {FileVar CondName TableDict} {
     }
 }
 
+#-------------------------------------------------------------------------------
+
 proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
  set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -1198,9 +1200,8 @@ proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
             for {set j 0} {$j < [llength $Entities]} {incr j} {
                 puts $MyFileVar "    [lindex $Entities $j]"
             }
-            puts $MyFileVar "  End SubModelPartNodes"    
-            
-            
+            puts $MyFileVar "  End SubModelPartNodes"
+
             puts $MyFileVar "  Begin SubModelPartElements"
             dict for {k CableList} $CableElementDict {
                 set model_part_affected 0
@@ -1218,15 +1219,15 @@ proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
                     } elseif {!([lindex $Entities $j] in $added_entities)} {
                         puts $MyFileVar "    [lindex $Entities $j]"
                         lappend added_entities  [lindex $Entities $j]
-                    }            
-                }                
+                    }
+                }
                 if {$model_part_affected} {
-                    puts $MyFileVar "    [lindex $CableList 0]"    
-                }                    
+                    puts $MyFileVar "    [lindex $CableList 0]"
+                }
             }
-            puts $MyFileVar "  End SubModelPartElements"            
-                
-            # Conditions            
+            puts $MyFileVar "  End SubModelPartElements"
+
+            # Conditions
             puts $MyFileVar "  Begin SubModelPartConditions"
             puts $MyFileVar "  End SubModelPartConditions"
             puts $MyFileVar "End SubModelPart"
@@ -1275,3 +1276,35 @@ proc WriteLoadSubmodelPart {FileVar CondName TableDict ConditionDict} {
         }
     }
 }
+
+#-------------------------------------------------------------------------------
+
+proc WriteRecordResultSubmodelPart {FileVar CondName} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
+            # Tables
+            puts $MyFileVar "  Begin SubModelPartTables"
+            puts $MyFileVar "  End SubModelPartTables"
+            # Nodes
+            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
+            puts $MyFileVar "  Begin SubModelPartNodes"
+            for {set j 0} {$j < [llength $Entities]} {incr j} {
+                puts $MyFileVar "    [lindex $Entities $j]"
+            }
+            puts $MyFileVar "  End SubModelPartNodes"
+            # Elements
+            puts $MyFileVar "  Begin SubModelPartElements"
+            puts $MyFileVar "  End SubModelPartElements"
+            # Conditions
+            puts $MyFileVar "  Begin SubModelPartConditions"
+            puts $MyFileVar "  End SubModelPartConditions"
+            puts $MyFileVar "End SubModelPart"
+            puts $MyFileVar ""
+        }
+    }
+}
+

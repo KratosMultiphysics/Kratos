@@ -184,6 +184,8 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
 
 }
 
+#-------------------------------------------------------------------------------
+
 proc WriteExcavationConstraintProcess {FileVar GroupNum Groups EntityType VarName NumGroups} {
     upvar $FileVar MyFileVar
     upvar $GroupNum MyGroupNum
@@ -207,6 +209,31 @@ proc WriteExcavationConstraintProcess {FileVar GroupNum Groups EntityType VarNam
     }
 }
 
+#-------------------------------------------------------------------------------
+
+proc WriteResultVectorProcess {FileVar GroupNum Groups EntityType VarName NumGroups} {
+    upvar $FileVar MyFileVar
+    upvar $GroupNum MyGroupNum
+    
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] $EntityType]
+        if {[llength $Entities] > 0} {
+            incr MyGroupNum
+            puts $MyFileVar "        \"python_module\": \"apply_write_result_vector_process\","
+            puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.GeoMechanicsApplication\","
+            puts $MyFileVar "        \"process_name\":  \"ApplyWriteVectorProcess\","
+            puts $MyFileVar "        \"Parameters\":    \{"
+            puts $MyFileVar "            \"model_part_name\": \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "            \"variable_name\":   \"$VarName\","
+            puts $MyFileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 5]\],"
+            puts $MyFileVar "            \"append_file\":     [lindex [lindex $Groups $i] 6]"
+            puts $MyFileVar "        \}"
+            if {$MyGroupNum < $NumGroups} {
+                puts $MyFileVar "    \},\{"
+            }
+        }
+    }
+}
 
 
 #-------------------------------------------------------------------------------

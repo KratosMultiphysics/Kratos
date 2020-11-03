@@ -185,6 +185,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Interface_Normal_Fluid_Flux
     # Body_Acceleration
     AppendGroupNames PutStrings Body_Acceleration
+    # Result_DISPLACEMENT
+    AppendGroupNames PutStrings Result_DISPLACEMENT
 
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
@@ -359,6 +361,9 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set Groups [GiD_Info conditions Excavation groups]
     incr NumGroups [llength $Groups]
 
+    set Groups [GiD_Info conditions Result_DISPLACEMENT groups]
+    incr NumGroups [llength $Groups]
+
     set iGroup 0
     puts $FileVar "        \"constraints_process_list\": \[\{"
     # Solid_Displacement
@@ -382,12 +387,18 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     WritePressureConstraintProcess FileVar iGroup $Groups surfaces WATER_PRESSURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups lines WATER_PRESSURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups points WATER_PRESSURE $TableDict $NumGroups
+
     # Excavation
     set Groups [GiD_Info conditions Excavation groups]
     WriteExcavationConstraintProcess FileVar iGroup $Groups volumes EXCAVATION $NumGroups
     WriteExcavationConstraintProcess FileVar iGroup $Groups surfaces EXCAVATION $NumGroups
     WriteExcavationConstraintProcess FileVar iGroup $Groups lines EXCAVATION $NumGroups
     WriteExcavationConstraintProcess FileVar iGroup $Groups points EXCAVATION $NumGroups
+
+    # Result_DISPLACEMENT
+    set Groups [GiD_Info conditions Result_DISPLACEMENT groups]
+    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+
     puts $FileVar "    \}\],"
                 
     ## loads_process_list

@@ -9,6 +9,7 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "GeoMechanicsApplication" [list "Elements"] 1 PRE "GidOpenConditions \"Elements\"" "" ""
         GiDMenu::InsertOption "GeoMechanicsApplication" [list "Dirichlet Constraints"] 2 PRE "GidOpenConditions \"Dirichlet_Constraints\"" "" ""
         GiDMenu::InsertOption "GeoMechanicsApplication" [list "Loads"] 3 PRE "GidOpenConditions \"Loads\"" "" ""
+        GiDMenu::InsertOption "GeoMechanicsApplication" [list "Recording Results"] 4 PRE "GidOpenConditions \"Recording_Results\"" "" ""
         GiDMenu::UpdateMenus
     }
 
