@@ -1,7 +1,7 @@
 # Multilevel Monte Carlo Application
 
 MultilevelMonteCarloApplication provides different algorithms, belonging to the Monte Carlo (MC) family, and tools to perform statistical analysis of stochastic problems.
-The application contains several interfaces to both Kratos and external libraries.
+The application contains several interfaces with external libraries.
 
 ## Getting started
 
