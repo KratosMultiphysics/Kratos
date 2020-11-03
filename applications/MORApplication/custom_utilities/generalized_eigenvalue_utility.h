@@ -16,9 +16,9 @@ namespace Kratos
 namespace GeneralizedEigenvalueUtility
 {
 
-    void SolveGEP(const Eigen::MatrixXcd& rA, const Eigen::MatrixXcd& rB, Eigen::Map<Eigen::ArrayXcd>& rEV);
+    void KRATOS_API(MOR_APPLICATION) SolveGEP(const Eigen::MatrixXcd& rA, const Eigen::MatrixXcd& rB, Eigen::Map<Eigen::ArrayXcd>& rEV);
 
-    void SolveGEP(const Eigen::MatrixXd& rA, const Eigen::MatrixXd& rB, Eigen::Map<Eigen::ArrayXcd>& rEV);
+    void KRATOS_API(MOR_APPLICATION) SolveGEP(const Eigen::MatrixXd& rA, const Eigen::MatrixXd& rB, Eigen::Map<Eigen::ArrayXcd>& rEV);
 
     template <typename DenseSpaceType>
     void ComputePolynomial(typename DenseSpaceType::MatrixType& rA0,

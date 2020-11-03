@@ -56,7 +56,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMORApplication : public KratosApplication {
+class KRATOS_API(MOR_APPLICATION) KratosMORApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{
