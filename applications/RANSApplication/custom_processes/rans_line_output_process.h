@@ -35,7 +35,7 @@ namespace LineOutputProcessUtilities
 using NodeType = ModelPart::NodeType;
 using GeometryType = ModelPart::ElementType::GeometryType;
 using SizeType = std::size_t;
-using IndicesVector = std::vector<SizeType>;
+using IndicesVector = std::vector<int>;
 
 ///@}
 
@@ -350,7 +350,7 @@ public:
 
     using NodeType = ModelPart::NodeType;
     using SizeType = std::size_t;
-    using IndicesVector = std::vector<SizeType>;
+    using IndicesVector = std::vector<int>;
 
     ///@}
     ///@name Life Cycle
