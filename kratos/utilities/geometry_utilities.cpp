@@ -127,7 +127,7 @@ bool GeometryUtils::ProjectedIsInside(
     Point point_projected;
     double distance = 0.0;
     if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) {
-        GeometricalProjectionUtilities::FastProjectOnLine2D(rGeometry, point_to_project, point_projected);
+        distance = GeometricalProjectionUtilities::FastProjectOnLine2D(rGeometry, point_to_project, point_projected);
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
         const auto center = rGeometry.Center();
