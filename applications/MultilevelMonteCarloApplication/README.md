@@ -1,7 +1,7 @@
 # Multilevel Monte Carlo Application
 
 MultilevelMonteCarloApplication provides different algorithms, belonging to the Monte Carlo (MC) family, and tools to perform statistical analysis of stochastic problems.
-The application contains several interfaces to both Kratos and third part libraries.
+The application contains several interfaces to both Kratos and external libraries.
 
 ## Getting started
 
@@ -13,13 +13,13 @@ Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and make sure 
 ``` cmake
 add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication
 ```
-in the compilation configuration, in order to compile the MultilevelMonteCarloApplication along with other required auxiliary Kratos applications.
+in the compilation configuration, in order to compile the `MultilevelMonteCarloApplication` application.
 
 ## Hierarchical Monte Carlo methods
 * Repeatedly generate the random input and solve the associated deterministic problem.
 * Convergence to the exact statistics as the number of realizations grows.
 * Problem under consideration considered as a black-box.
-* Convergence rate independent from stochstic space dimension.
+* Convergence rate independent from stochastic space dimension.
 
 ### Monte Carlo
 
@@ -38,8 +38,8 @@ in the compilation configuration, in order to compile the MultilevelMonteCarloAp
 
 * Multilevel Monte Carlo (MLMC) requires a hierarchy of levels with increasing accuracy to solve the statistical problem. Convergence rate is faster with respect to MC if MLMC hypotheses are satisfied.
 * Computation of a large number of cheap and lower accuracy realizations, while only few expensive high accuracy realizations are run.
-    * Low accuracy levels: capture satistical variability,
-    * High acuracy levels: capture discretization error.
+    * Low accuracy levels: capture statistical variability,
+    * High accuracy levels: capture discretization error.
 * Example of hierarchy of computational grids, showing increasing accuracy levels (by decreasing mesh size):
 <p align="center">
   <img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Readme_files/MultilevelMonteCarloApplication/mesh012.PNG" alt="Solution" style="width: 600px;"/>
@@ -78,7 +78,7 @@ in the compilation configuration, in order to compile the MultilevelMonteCarloAp
 * This algorithm is equivalent to MLMC, but designed for running in distributed environments. It avoids idle times and keeps at maximum the computational efficiency.
 * Levels of parallelism:
     * Between batches,
-    * Betweenn levels,
+    * Between  levels,
     * Between samples,
     * On each sample at solver level.
 * Hierarchy update:
@@ -137,7 +137,7 @@ Information about these libraries can be found in their respective pages, which 
 ### MMG
 
 [MMG](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries.
-Informations for installing MMG can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-MMG-Process).
+Instructions for installing MMG can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-MMG-Process).
 
 ### PyCOMPSs
 
@@ -145,7 +145,7 @@ PyCOMPSs is the python library required in order to use [COMPSs](https://www.bsc
 By default PyCOMPSs is not required in order to run the application.
 In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS = ON \ `.
 
-The instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs and maximizing parallelism.
+Instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs and maximizing parallelism.
 
 Finally, wherever required, it is needed to switch from:
 ``` cmake
@@ -169,7 +169,7 @@ to use the distributed computing capabilities.
 
 ## License
 
-The MultilelvelMonteCarloApplication is OPEN SOURCE. The main code and program structure are available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+The MultilevelMonteCarloApplication is OPEN SOURCE. The main code and program structure are available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
 ## Examples
 
