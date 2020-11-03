@@ -1442,6 +1442,7 @@ class DEMIo():
         self.PushPrintVar(self.PostDisplacement, DISPLACEMENT, self.global_variables)
         self.PushPrintVar(self.PostVelocity, VELOCITY, self.global_variables)
         self.PushPrintVar(self.PostTotalForces, TOTAL_FORCES, self.global_variables)
+        self.PushPrintVar(self.PostContactForces, CONTACT_FORCES, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_FORCE, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_MOMENT, self.global_variables)
         if self.DEM_parameters["PostAngularVelocity"].GetBool():
@@ -1517,7 +1518,6 @@ class DEMIo():
 
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces, ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostContactForces, CONTACT_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostPressure, DEM_PRESSURE, self.fem_boundary_variables)
         self.PushPrintVar(self.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostShearStress, SHEAR_STRESS, self.fem_boundary_variables)
