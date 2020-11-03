@@ -313,6 +313,27 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+    * @brief Checks if given point in global space coordinates
+    *        is inside the geometry boundaries. This function
+    *        computes the local coordinates and checks then if
+    *        this point lays within the boundaries.
+    * @param rPointGlobalCoordinates the global coordinates of the
+    *        external point.
+    * @param rResult the local coordinates of the point.
+    * @param Tolerance the tolerance to the boundary.
+    * @return true if the point is inside, false otherwise
+    */
+    virtual bool LocalIsInside(
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        GeometryType::CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const
+    {
+        return rGeometry.IsInside(rPointGlobalCoordinates, rResult, Tolerance);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
