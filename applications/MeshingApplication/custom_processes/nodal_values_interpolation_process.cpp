@@ -312,7 +312,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
 
                 GeometryType::CoordinatesArrayType projected_point_local;
 
-                const bool is_inside = r_geom.IsInside(projected_point_global.Coordinates( ), projected_point_local);
+                const bool is_inside = GeometryUtils::ProjectedIsInside(r_geom, projected_point_global.Coordinates( ), projected_point_local);
 
                 if (is_inside) {
                     // SHAPE FUNCTIONS
