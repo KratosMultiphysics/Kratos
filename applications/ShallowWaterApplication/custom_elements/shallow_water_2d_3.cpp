@@ -132,7 +132,7 @@ void ShallowWater2D3::GetFirstDerivativesVector(Vector& rValues, int Step) const
     {
         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
-        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
     }
 }
 
@@ -713,22 +713,18 @@ void ShallowWater2D3::AlgebraicResidual(
     double height_acc = 0.0;
     double rain = 0.0;
 
-    // auto& r_geom = GetGeometry();
+    auto& r_geom = GetGeometry();
     for (size_t i = 0; i < 3; ++i)
     {
-        // TODO: use accelerations from the scheme
-        // flow_acc += r_geom[i].FastGetSolutionStepValue(ACCELERATION);
-        // height_acc += r_geom[i].FastGetSolutionStepValue(VELOCITY_Z);
+        flow_acc += r_geom[i].FastGetSolutionStepValue(ACCELERATION);
+        height_acc += r_geom[i].FastGetSolutionStepValue(VERTICAL_VELOCITY);
 
         const size_t block = 3 * i;
-        flow_acc[0] += rData.unknown[block] - rData.prev_unk[block];
-        flow_acc[1] += rData.unknown[block + 1] - rData.prev_unk[block + 1];
-        height_acc += rData.unknown[block + 2] - rData.prev_unk[block + 2];
         rain += rData.rain[block + 2];
     }
     const double lumping_factor = 1.0 / 3.0;
-    flow_acc *= rData.dt_inv * lumping_factor;
-    height_acc *= rData.dt_inv * lumping_factor;
+    flow_acc *= lumping_factor;
+    height_acc *= lumping_factor;
     rain *= lumping_factor;
 
     const double c2 = rData.gravity * rData.effective_height;

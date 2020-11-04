@@ -20,6 +20,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
     def AddVariables(self):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.ATMOSPHERIC_PRESSURE)
 
     def AddDofs(self):

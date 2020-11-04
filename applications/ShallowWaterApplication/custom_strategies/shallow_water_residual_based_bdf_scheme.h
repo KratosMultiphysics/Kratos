@@ -136,7 +136,7 @@ public:
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         const std::array<const Variable<double>*, 3> var_components = {&MOMENTUM_X, &MOMENTUM_Y, &HEIGHT};
-        const std::array<const Variable<double>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &VELOCITY_Z};
+        const std::array<const Variable<double>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &VERTICAL_VELOCITY};
 
         #pragma omp parallel for
         for (int i = 0;  i < num_nodes; ++i) {
@@ -204,7 +204,7 @@ protected:
     void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dot_un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
-        double& dot_hn0 = itNode->FastGetSolutionStepValue(VELOCITY_Z);
+        double& dot_hn0 = itNode->FastGetSolutionStepValue(VERTICAL_VELOCITY);
         noalias(dot_un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(MOMENTUM);
         dot_hn0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(HEIGHT);
         for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
