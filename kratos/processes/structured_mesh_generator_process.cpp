@@ -33,13 +33,7 @@ namespace Kratos
 
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
 
-		TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-
-		mStartNodeId = TheParameters["start_node_id"].GetInt();
-		mStartElementId = TheParameters["start_element_id"].GetInt();
-		mStartConditionId = TheParameters["start_condition_id"].GetInt();
-		
-		is_number_of_divisions_a_vector = TheParameters["number_of_divisions"].IsVector();
+		bool is_number_of_divisions_a_vector = TheParameters["number_of_divisions"].IsVector();
 		mNumberOfDivisions.resize(mrGeometry.LocalSpaceDimension());
 		if (is_number_of_divisions_a_vector == false){
 			for (size_t i = 0; i < mNumberOfDivisions.size(); i++) {
@@ -51,6 +45,20 @@ namespace Kratos
 			}
 		}
 
+		Parameters default_parameters_before_completing = GetIncompleteDefaultParameters();
+		Parameters default_parameters_after_completing = default_parameters_before_completing;
+		if (is_number_of_divisions_a_vector == false){
+			default_parameters_after_completing.AddEmptyValue("number_of_divisions");
+			default_parameters_after_completing["number_of_divisions"].SetInt(1);
+		}else{
+			default_parameters_after_completing.AddEmptyArray("number_of_divisions");
+		}
+
+		TheParameters.ValidateAndAssignDefaults(default_parameters_after_completing);
+
+		mStartNodeId = TheParameters["start_node_id"].GetInt();
+		mStartElementId = TheParameters["start_element_id"].GetInt();
+		mStartConditionId = TheParameters["start_condition_id"].GetInt();
 		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
 		mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
 		mElementName = TheParameters["element_name"].GetString();
@@ -76,37 +84,23 @@ namespace Kratos
 
 	}
 
-	const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
-	{	if (is_number_of_divisions_a_vector == false){
-        	const Parameters default_parameters(R"(
-        	{
-            	"create_skin_sub_model_part": true,
-            	"start_node_id":1,
-            	"start_element_id":1,
-            	"start_condition_id":1,
-            	"number_of_divisions": 1,
-            	"elements_properties_id":0,
-            	"conditions_properties_id":0,
-            	"element_name": "PLEASE SPECIFY IT",
-            	"condition_name": "PLEASE SPECIFY IT"
-        	}  )");
-			return default_parameters;
-		}else{
-        	const Parameters default_parameters(R"(
-        	{
-            	"create_skin_sub_model_part": true,
-            	"start_node_id":1,
-            	"start_element_id":1,
-            	"start_condition_id":1,
-            	"number_of_divisions": [1, 1, 1],
-            	"elements_properties_id":0,
-            	"conditions_properties_id":0,
-            	"element_name": "PLEASE SPECIFY IT",
-            	"condition_name": "PLEASE SPECIFY IT"
-        	}  )");			
-			return default_parameters;
-		}
+	Parameters StructuredMeshGeneratorProcess::GetIncompleteDefaultParameters()
+	{
+        Parameters default_parameters(R"(
+        {
+            "create_skin_sub_model_part": true,
+            "start_node_id":1,
+            "start_element_id":1,
+            "start_condition_id":1,
+            "elements_properties_id":0,
+            "conditions_properties_id":0,
+            "element_name": "PLEASE SPECIFY IT",
+            "condition_name": "PLEASE SPECIFY IT"
+        }  )");
+
+        return default_parameters;
     }
+
 
 	std::string StructuredMeshGeneratorProcess::Info() const {
 		return "StructuredMeshGeneratorProcess";

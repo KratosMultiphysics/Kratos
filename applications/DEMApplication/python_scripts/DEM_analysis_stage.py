@@ -2,6 +2,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
+import math
+import KratosMultiphysics.DEMApplication.meshing_utilities as meshing_utilities
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -345,9 +347,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         print(lower_corner_coordinates)
         print(higher_corner_coordinates)
-        element_size = int(input("Enter element size:"))
-
-        import math
+        #element_size = int(input("Enter element size:"))
+        element_size = 10
 
         number_of_divisions = Vector(3)
         number_of_divisions[0] = math.ceil((higher_corner_coordinates[0]-lower_corner_coordinates[0])/element_size)
@@ -358,8 +359,6 @@ class DEMAnalysisStage(AnalysisStage):
         higher_corner_coordinates[2] = lower_corner_coordinates [2] + number_of_divisions[2] * element_size
         #provisional fins que es fassin divisions diferents per demensio al meshing_utilities
         #number_of_divisions = int(input("Enter number of divisions:"))
-
-        import KratosMultiphysics.DEMApplication.meshing_utilities as meshing_utilities
 
         if self.DEM_parameters["Dimension"].GetInt() == 2:
             homogenization_mesher = meshing_utilities.RectangularRegularMesher(self.homogenization_model_part,

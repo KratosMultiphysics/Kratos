@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Node, Parameters
 
-class ParallelepipedRegularMesher: # TO-DO_ Generalize to different number of divisions per dimension
+class ParallelepipedRegularMesher:
     def __init__(self,
                  model_part_to_be_filled,
                  lower_corner_coordinates,
@@ -63,10 +63,10 @@ class RectangularRegularMesher:
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
         parameters.AddEmptyValue("number_of_divisions").SetVector(self.n_divisions)
 
-        self.domain_geometry = Kratos.Quadrilateral2D4(Node(1, self.lc[0], self.hc[1]),
-                                          Node(2, self.hc[0], self.hc[1]),
-                                          Node(3, self.hc[0], self.lc[1]),
-                                          Node(4, self.lc[0], self.lc[1]))
+        self.domain_geometry = Kratos.Quadrilateral2D4(Node(1, self.lc[0], self.hc[1], 0),
+                                          Node(2, self.hc[0], self.hc[1], 0),
+                                          Node(3, self.hc[0], self.lc[1], 0),
+                                          Node(4, self.lc[0], self.lc[1], 0))
 
         self.mesh_generator_process = Kratos.StructuredMeshGeneratorProcess(self.domain_geometry,
                                                                         self.mp,

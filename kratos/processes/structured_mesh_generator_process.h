@@ -86,11 +86,6 @@ namespace Kratos
 
       int Check() override;
 
-      /**
-       * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-       */
-      const Parameters GetDefaultParameters() const override;
-
       ///@}
       ///@name Access
       ///@{
@@ -130,7 +125,7 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-          const GeometryType& mrGeometry;
+      const GeometryType& mrGeometry;
       std::vector<int> mNumberOfDivisions;
 		  std::size_t mStartNodeId;
 		  std::size_t mStartElementId;
@@ -139,8 +134,7 @@ namespace Kratos
 		  std::size_t mConditiongPropertiesId;
 		  std::string mElementName;
 		  std::string mConditionName;
-          bool mCreateSkinSubModelPart;
-          bool is_number_of_divisions_a_vector;
+      bool mCreateSkinSubModelPart;
 		  ModelPart& mrOutputModelPart;
 
 
@@ -148,9 +142,11 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+      Parameters GetIncompleteDefaultParameters();
+
 		  void Generate2DMesh();
 
-          void Generate3DMesh();
+      void Generate3DMesh();
 
 		  void GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint);
 
