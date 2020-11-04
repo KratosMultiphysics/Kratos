@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -21,6 +22,10 @@
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+
+// this needs to be included last to avoid redefinition problems in win
+#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
+namespace fs = ghc::filesystem;
 
 namespace Kratos
 {
@@ -512,6 +517,8 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
 
 void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 {
+    KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "ModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
+
     Timer::Start("Writing Output");
 
     // Setting the buffer size
@@ -826,12 +833,20 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     std::string word;
     OutputFilesContainerType output_files;
 
+    // create folder for partitioned files
+    const fs::path base_path(mBaseFilename);
+
+    const fs::path raw_file_name = base_path.stem();
+    const fs::path folder_name = base_path.parent_path() / raw_file_name += "_partitioned";
+
+    fs::remove_all(folder_name); // to remove leftovers
+    fs::create_directory(folder_name);
+
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
-        std::stringstream buffer;
-        buffer << mBaseFilename << "_" << i << ".mdpa";
-        std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());
-        KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << buffer.str() << std::endl;
+        const fs::path full_file_name = folder_name / raw_file_name += "_"+std::to_string(i)+".mdpa";
+        std::ofstream* p_ofstream = new std::ofstream(full_file_name);
+        KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << full_file_name << std::endl;
 
         output_files.push_back(p_ofstream);
     }
