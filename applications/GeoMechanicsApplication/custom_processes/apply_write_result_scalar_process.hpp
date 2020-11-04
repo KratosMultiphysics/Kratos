@@ -155,7 +155,7 @@ public:
         KRATOS_TRY;
 
         //#pragma omp parallel for
-        for (int i = 0; i < mOutFile.size(); i++)
+        for (unsigned int i = 0; i < mOutFile.size(); i++)
         {
             mOutFile[i].close();
         }
