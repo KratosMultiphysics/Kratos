@@ -146,13 +146,13 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;    //corotational formulation
+    void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;    //corotational formulation
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+    void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 

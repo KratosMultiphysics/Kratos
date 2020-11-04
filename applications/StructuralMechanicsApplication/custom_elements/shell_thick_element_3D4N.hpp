@@ -325,15 +325,15 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,

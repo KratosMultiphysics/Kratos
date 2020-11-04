@@ -126,35 +126,35 @@ void ShellThinElement3D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void ShellThinElement3D3N::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->InitializeNonLinearIteration();
 
     BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void ShellThinElement3D3N::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->FinalizeNonLinearIteration();
 
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void ShellThinElement3D3N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
     mpCoordinateTransformation->InitializeSolutionStep();
 }
 
-void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void ShellThinElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
     mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
-void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18)) {
         rMassMatrix.resize(18, 18, false);
