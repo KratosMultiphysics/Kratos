@@ -134,7 +134,7 @@ class ImposePerturbedInitialConditionProcess(KratosMultiphysics.Process):
     The generated initial field reads
         u_0 = u_T + c*P(u_{cn}) + c*\nabla potential ,
     where u_T is the velocity field we load, c a penalty coefficient, and P(u_{cn}) and \nabla potential are discussed next.
-    @details The process first projects the correlated noise u_{cn} into the model part. The projected correlated noise is denoted as P(u_{cn}).
+    The process first projects the correlated noise u_{cn} into the model part. The projected correlated noise is denoted as P(u_{cn}).
     Then, the associated poisson problem for the unknown TEMPERATURE is solved:
         - \nabla \cdot \nabla TEMPERATURE = \nabla \cdot (c*P(u_{cn}) + u_{T})  on \Omega
         c*P(u_{cn}) \cdot NORMAL = - \nabla TEMPERATURE \cdot NORMAL  on \partial \Omega_{bluff body}
