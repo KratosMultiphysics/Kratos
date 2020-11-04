@@ -112,13 +112,13 @@ public:
         auto i_patch_begin = mIntersections.begin();
         auto i_patch_end = mIntersections.begin();
         for(auto i_intersection = mIntersections.begin() + 1 ; i_intersection != mIntersections.end() ; i_intersection++) {
-            if (std::abs(i_intersection->first - i_unique_end->first) < Tolerance){ // we are in a patch so let's continue until the patch finishes
+            if (std::abs(i_intersection->first - i_patch_begin->first) < Tolerance){ // we are in a patch so let's continue until the patch finishes
                 i_patch_end = i_intersection;
                 if(i_intersection + 1 != mIntersections.end()) { // if i_intersection is not the last one we keep continuing
                     continue;
                 }
             }
-            if((i_patch_begin == i_patch_begin) || // The previous patch was only one intersection and we add it.
+            if((i_patch_begin == i_patch_end) || // The previous patch was only one intersection and we add it.
                (CheckPassingThroughByExtraRays(i_patch_begin, i_patch_end+1, Tolerance,  2.00*Tolerance))) { // more than one intersection to be checked with extra rays
                 if(i_unique_end != i_patch_begin) {          
                     *i_unique_end = std::move(*i_patch_begin);
