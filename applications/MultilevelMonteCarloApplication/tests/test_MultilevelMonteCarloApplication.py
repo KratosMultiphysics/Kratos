@@ -49,7 +49,6 @@ def AssembleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     nightSuite.addTest(TestMultiMomentEstimator('test_estimation_random'))
-    nightSuite.addTest(TestXMCAlgorithm('test_mc_Kratos'))
     nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarlo'))
     if(hasattr(MeshingApplication,"MmgProcess2D")):
         nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarlo'))
