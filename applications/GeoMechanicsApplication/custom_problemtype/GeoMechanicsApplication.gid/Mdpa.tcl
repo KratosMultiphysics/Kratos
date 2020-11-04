@@ -929,9 +929,20 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteLoadSubmodelPart FileVar Interface_Normal_Fluid_Flux $TableDict $ConditionDict
     # Body_Acceleration
     WriteConstraintSubmodelPart FileVar Body_Acceleration $TableDict
-    # Result_DISPLACEMENT
-    WriteRecordResultSubmodelPart FileVar Result_DISPLACEMENT
-
+    # Record_DISPLACEMENT
+    WriteRecordResultSubmodelPart FileVar Record_DISPLACEMENT
+    # Record_VELOCITY
+    WriteRecordResultSubmodelPart FileVar Record_VELOCITY
+    # Record_ACCELERATION
+    WriteRecordResultSubmodelPart FileVar Record_ACCELERATION
+    # Record_VOLUME_ACCELERATION
+    WriteRecordResultSubmodelPart FileVar Record_VOLUME_ACCELERATION
+    # Record_POINT_LOAD
+    WriteRecordResultSubmodelPart FileVar Record_POINT_LOAD
+    # Record_LINE_LOAD
+    WriteRecordResultSubmodelPart FileVar Record_LINE_LOAD
+    # Record_SURFACE_LOAD
+    WriteRecordResultSubmodelPart FileVar Record_SURFACE_LOAD
 
     close $FileVar
 

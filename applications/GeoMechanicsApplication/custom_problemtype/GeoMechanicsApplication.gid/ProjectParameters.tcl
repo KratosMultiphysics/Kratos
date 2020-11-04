@@ -185,8 +185,20 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Interface_Normal_Fluid_Flux
     # Body_Acceleration
     AppendGroupNames PutStrings Body_Acceleration
-    # Result_DISPLACEMENT
-    AppendGroupNames PutStrings Result_DISPLACEMENT
+    # Record_DISPLACEMENT
+    AppendGroupNames PutStrings Record_DISPLACEMENT
+    # Record_VELOCITY
+    AppendGroupNames PutStrings Record_VELOCITY
+    # Record_ACCELERATION
+    AppendGroupNames PutStrings Record_ACCELERATION
+    # Record_VOLUME_ACCELERATION
+    AppendGroupNames PutStrings Record_VOLUME_ACCELERATION
+    # Record_POINT_LOAD
+    AppendGroupNames PutStrings Record_POINT_LOAD
+    # Record_LINE_LOAD
+    AppendGroupNames PutStrings Record_LINE_LOAD
+    # Record_SURFACE_LOAD
+    AppendGroupNames PutStrings Record_SURFACE_LOAD
 
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
@@ -361,7 +373,25 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set Groups [GiD_Info conditions Excavation groups]
     incr NumGroups [llength $Groups]
 
-    set Groups [GiD_Info conditions Result_DISPLACEMENT groups]
+    set Groups [GiD_Info conditions Record_DISPLACEMENT groups]
+    incr NumGroups [llength $Groups]
+
+    set Groups [GiD_Info conditions Record_VELOCITY groups]
+    incr NumGroups [llength $Groups]
+
+    set Groups [GiD_Info conditions Record_ACCELERATION groups]
+    incr NumGroups [llength $Groups]
+
+    set Groups [GiD_Info conditions Record_VOLUME_ACCELERATION groups]
+    incr NumGroups [llength $Groups]
+
+    set Groups [GiD_Info conditions Record_POINT_LOAD groups]
+    incr NumGroups [llength $Groups]
+
+    set Groups [GiD_Info conditions Record_LINE_LOAD groups]
+    incr NumGroups [llength $Groups]
+
+    set Groups [GiD_Info conditions Record_SURFACE_LOAD groups]
     incr NumGroups [llength $Groups]
 
     set iGroup 0
@@ -395,9 +425,34 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     WriteExcavationConstraintProcess FileVar iGroup $Groups lines EXCAVATION $NumGroups
     WriteExcavationConstraintProcess FileVar iGroup $Groups points EXCAVATION $NumGroups
 
-    # Result_DISPLACEMENT
-    set Groups [GiD_Info conditions Result_DISPLACEMENT groups]
+    # Record_DISPLACEMENT
+    set Groups [GiD_Info conditions Record_DISPLACEMENT groups]
     WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+
+    # Record_VELOCITY
+    set Groups [GiD_Info conditions Record_VELOCITY groups]
+    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+
+    # Record_ACCELERATION
+    set Groups [GiD_Info conditions Record_ACCELERATION groups]
+    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+
+    # Record_VOLUME_ACCELERATION
+    set Groups [GiD_Info conditions Record_VOLUME_ACCELERATION groups]
+    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+
+    # Record_POINT_LOAD
+    set Groups [GiD_Info conditions Record_POINT_LOAD groups]
+    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+
+    # Record_LINE_LOAD
+    set Groups [GiD_Info conditions Record_LINE_LOAD groups]
+    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+
+    # Record_SURFACE_LOAD
+    set Groups [GiD_Info conditions Record_SURFACE_LOAD groups]
+    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+
 
     puts $FileVar "    \}\],"
                 
