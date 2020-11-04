@@ -44,7 +44,7 @@ namespace Kratos
         Parameters default_parameters = Parameters(R"(
         {
             "nodal_unknowns" : [],
-            "number_of_rom_dofs" : 10
+            "number_of_rom_dofs" : []
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -52,7 +52,7 @@ namespace Kratos
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
 
         mNodalDofs = mNodalVariablesNames.size();
-        mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
+        mRomDofs = ThisParameters["number_of_rom_dofs"][0].GetInt(); //hardcoding here and in the B&S to take the first component
 
         // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
         for(int k=0; k<mNodalDofs; k++){

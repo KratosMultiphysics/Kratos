@@ -25,6 +25,7 @@
 
 /* Application includes */
 #include "rom_application_variables.h"
+#include "custom_utilities/rom_bases.h"
 
 namespace Kratos
 {
@@ -93,7 +94,7 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "nodal_unknowns" : [],
-            "number_of_rom_dofs" : 10
+            "number_of_rom_dofs" : []
         })");
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -104,7 +105,7 @@ public:
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
 
         mNodalDofs = mNodalVariablesNames.size();
-        mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
+        mRomDofs = ThisParameters["number_of_rom_dofs"][0].GetInt(); //hardcoding that it should take first componenet, this must be selected accroding to the current cluster
 
         // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
         for(int k=0; k<mNodalDofs; k++){
@@ -371,6 +372,11 @@ public:
     //     return rom_unknowns;
 	// }
 
+    void SetUpBases(RomBases ThisBases){
+        mRomBases = ThisBases;
+        //KRATOS_WATCH('I have my bases inside the B&S')
+    }
+
     void ProjectToFineBasis(
         const TSystemVectorType &rRomUnkowns,
         ModelPart &rModelPart,
@@ -379,7 +385,7 @@ public:
         const auto dofs_begin = BaseType::mDofSet.begin();
         const auto dofs_number = BaseType::mDofSet.size();
 
-        #pragma omp parallel firstprivate(dofs_begin, dofs_number)
+        //#pragma omp parallel firstprivate(dofs_begin, dofs_number)
         {
             const Matrix *pcurrent_rom_nodal_basis = nullptr;
             unsigned int old_dof_id;
@@ -394,6 +400,7 @@ public:
                     pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
                     old_dof_id = dof->Id();
                 }
+                //KRATOS_WATCH(dof->Id())
                 Dx[dof->EquationId()] = inner_prod(  row(  *pcurrent_rom_nodal_basis    , mMapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
             }
         }
@@ -404,20 +411,24 @@ public:
         const Element::DofsVectorType &dofs,
         const Element::GeometryType &geom)
     {
-        const Matrix *pcurrent_rom_nodal_basis = nullptr;
+        Matrix pcurrent_rom_nodal_basis;
         int counter = 0;
         for(unsigned int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
-            if(k==0)
-                pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+            if(k==0){
+                pcurrent_rom_nodal_basis = mRomBases.GetBasis(0).GetNodalBasis(dofs[k]->Id());
+                //KRATOS_WATCH('at least enters once')
+                //pcurrent_rom_nodal_basis = geom[counter].GetValue(ROM_BASIS);
+            }
             else if(dofs[k]->Id() != dofs[k-1]->Id()){
                 counter++;
-                pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+                pcurrent_rom_nodal_basis = mRomBases.GetBasis(0).GetNodalBasis(dofs[k]->Id());
+                //pcurrent_rom_nodal_basis = geom[counter].GetValue(ROM_BASIS);
             }
             if (dofs[k]->IsFixed())
                 noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
             else
-                noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, mMapPhi[variable_key]);
+                noalias(row(PhiElemental, k)) = row(pcurrent_rom_nodal_basis, mMapPhi[variable_key]);
         }
     }
 
@@ -700,6 +711,7 @@ protected:
     ModelPart::ElementsContainerType mSelectedElements;
     bool mHromSimulation = false;
     int mTimeStep = 0;
+    RomBases mRomBases;
 
     /*@} */
     /**@name Protected Operations*/

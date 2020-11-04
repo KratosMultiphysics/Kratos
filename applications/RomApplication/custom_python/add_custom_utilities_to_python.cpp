@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
 #include "custom_utilities/hrom_model_part_utility.h"
+#include "custom_utilities/rom_bases.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
@@ -47,6 +48,18 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     class_<HromModelPartUtility, typename HromModelPartUtility::Pointer>(m, "HromModelPartUtility")
     .def(init<ModelPart&,ModelPart&, Vector, Vector>()) //
     .def("DoSomethig",&HromModelPartUtility::DoSomethig) //
+    ;
+
+    class_<RomBases, typename RomBases::Pointer>(m, "RomBases")
+    .def(init<>()) //
+    .def("AddBasis",&RomBases::AddBasis) //
+    .def("GetBasis",&RomBases::GetBasis) //
+    ;
+
+    class_<RomBasis, typename RomBasis::Pointer>(m, "RomBasis")
+    .def(init<>()) //
+    .def("SetNodalBasis",&RomBasis::SetNodalBasis) //
+    .def("GetNodalBasis",&RomBasis::GetNodalBasis) //
     ;
 
 }

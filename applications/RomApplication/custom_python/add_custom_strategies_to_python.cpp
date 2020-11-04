@@ -53,7 +53,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ROMBuilderAndSolverType;
 
      py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
-        .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def(py::init< LinearSolverType::Pointer, Parameters>() ) //
+        .def("SetUpBases",&ROMBuilderAndSolverType::SetUpBases) //
         ;
 
 }
