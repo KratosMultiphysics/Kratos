@@ -134,8 +134,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
 
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
-    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e5);
-    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e5);
+    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e4);
+    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e4);
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
@@ -163,10 +163,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     T TrescaCL = T();
 
     std::vector<double> MCres, VMres, DPres, Tres;
-    MCres = {1.00123e+07,1.00123e+07,9.97543e+06,0,0,-3.90205e-13};
-    VMres = {9.96669e+06,9.96669e+06,1.00666e+07,0,0,1.05792e-12};
-    DPres = {-1.98441e+09, -1.98441e+09, -2.02922e+09, 0, 0, -4.74365e-10};
-    Tres = {9.96669e+06,9.96669e+06,1.00666e+07,0,0,1.05792e-12};
+    MCres = {9.99683e+06, 9.99683e+06, 1.00063e+07, 0, 0, 1.00636e-13};
+    VMres = {1.00033e+07, 1.00033e+07, 9.99343e+06, 0, 0, -1.0439e-13};
+    DPres = {11102.3, 11102.3, 11101.8, 0, 0, -5.46183e-18};
+    Tres = {1.00033e+07, 1.00033e+07, 9.99343e+06, 0, 0, -1.0439e-13};
 
     double plastic_dissipation;
     Vector TestMC, TestVM, TestDP, TestT;
@@ -243,8 +243,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStr
 
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
-    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e5);
-    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e5);
+    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e4);
+    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e4);
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
@@ -440,8 +440,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
 
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
-    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
-    material_properties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
+    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e4);
+    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e4);
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
@@ -594,8 +594,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
 
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
-    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e5);
-    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e5);
+    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e4);
+    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e4);
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
@@ -759,8 +759,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
 
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
-    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
-    material_properties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
+    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e4);
+    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e4);
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
@@ -913,7 +913,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
 
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
-    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e5);
+    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e4);
     material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e4);
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
