@@ -1637,7 +1637,7 @@ class DEMIo():
             self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(all_model_parts.Get("RigidFacePart").GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(all_model_parts.Get("ClusterPart").GetCommunicator().LocalMesh())
-            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
                 self.gid_io.WriteCircleMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
@@ -1655,10 +1655,11 @@ class DEMIo():
             self.RemoveElementsAndNodes()
             self.AddModelPartsToMixedModelPart()
             self.gid_io.InitializeMesh(time)
-            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
+
             if self.contact_mesh_option:
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
                 contact_model_part.GetProperties(0)[0].Id = 9184
