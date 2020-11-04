@@ -157,7 +157,7 @@ public:
     /// Call at teh begining of each step, ita decides if element is cutted or no!
     /**
       */
-    void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override
     {
 // 	for (unsigned int jj = 0; jj < 4; jj++){
 // 	      this->GetGeometry()[jj].FastGetSolutionStepValue(WET_VOLUME ) = 0.0;
@@ -168,7 +168,7 @@ public:
     /// Call at teh begining of each iteration, ita decides if element is cutted or no!
     /**
       */
-    void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
 	  // Calculate this element's geometric parameters
 	  double Area;
@@ -690,7 +690,7 @@ public:
     }
 
     /// Implementation of FinalizeNonLinearIteration to compute enriched pressure.
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();
       if( this->is_cutted == 0)

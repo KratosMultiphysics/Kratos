@@ -59,7 +59,7 @@ Condition::Pointer FSPeriodicCondition<TDim>::Create(IndexType NewId, GeometryTy
 }
 
 template< unsigned int TDim >
-int FSPeriodicCondition<TDim>::Check(const ProcessInfo& rCurrentProcessInfo)
+int FSPeriodicCondition<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

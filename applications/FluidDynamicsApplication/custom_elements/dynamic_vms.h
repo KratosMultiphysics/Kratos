@@ -207,13 +207,13 @@ public:
      * Update the values on the subscales and evaluate elemental shape functions.
      * @param rCurrentProcessInfo. ProcessInfo instance (unused).
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Calculate a new value for the velocity subscale.
     /**
      * @param rCurrentProcessInfo ProcessInfo instance containig the time step as DELTA_TIME
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,

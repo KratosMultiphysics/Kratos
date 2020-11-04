@@ -208,19 +208,19 @@ namespace Kratos
         void Initialize() override;
 
         /// Initializes the element and all geometric information required for the problem.
-        void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
+        void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
 
 
-        void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override;
+        void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override;
 
         /// Calculate the element's local contribution to the system for the current step.
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override;
+                                          const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                           ProcessInfo& rCurrentProcessInfo) override
+                                           const ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
             KRATOS_THROW_ERROR(std::logic_error,"FractionalStep::CalculateLeftHandSide not implemented","");

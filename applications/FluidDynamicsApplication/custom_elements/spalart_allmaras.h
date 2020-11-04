@@ -132,10 +132,10 @@ public:
     void Initialize() override;
 
     /// Calculates the projection term for stabilization
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 //    /// Compute projection of convective term for stabilization
-//    virtual void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
+//    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
     /// Evaluate the elemental contribution to the problem for turbulent viscosity.
     /**

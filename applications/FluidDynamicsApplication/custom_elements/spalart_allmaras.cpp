@@ -86,7 +86,7 @@ void SpalartAllmaras::Initialize()
     KRATOS_CATCH( "" )
 }
 
-void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];

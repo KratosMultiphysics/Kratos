@@ -313,7 +313,7 @@ namespace Kratos
 
 
         /// Check that all data required by this condition is available and reasonable
-        int Check(const ProcessInfo& rCurrentProcessInfo) override
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override
         {
             KRATOS_TRY;
 

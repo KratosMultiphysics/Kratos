@@ -232,7 +232,7 @@ public:
      * Note that this needs to be done at each time step for that cases
      * in where the distance function varies.
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override {
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override {
         KRATOS_TRY;
 
         // Set a reference to the current condition geometry
@@ -584,7 +584,7 @@ public:
     /**
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 

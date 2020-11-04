@@ -16,12 +16,12 @@ void FractionalStep<TDim>::Initialize()
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void FractionalStep<TDim>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+void FractionalStep<TDim>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
 
 }
@@ -29,7 +29,7 @@ void FractionalStep<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentPro
 template< unsigned int TDim >
 void FractionalStep<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

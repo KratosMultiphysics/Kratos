@@ -225,7 +225,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
  * @param rCurrentProcessInfo reference to the ProcessInfo
  */
 template<unsigned int TDim, unsigned int TNumNodes>
-int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0

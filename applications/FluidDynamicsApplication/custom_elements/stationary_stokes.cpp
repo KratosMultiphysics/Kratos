@@ -17,7 +17,7 @@ Element::Pointer StationaryStokes<TDim>::Create(IndexType NewId,GeometryType::Po
 }
 
 template< unsigned int TDim >
-int StationaryStokes<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+int StationaryStokes<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int Result = Element::Check(rCurrentProcessInfo);
 

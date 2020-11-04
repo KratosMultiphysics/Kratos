@@ -249,7 +249,7 @@ public:
     /**
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Provides the global indices for each one of this element's local rows.

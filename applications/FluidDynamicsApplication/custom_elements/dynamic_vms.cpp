@@ -91,7 +91,7 @@ void DynamicVMS<TDim>::Initialize()
 {}
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     this->CalculateGeometryData();
 
@@ -101,7 +101,7 @@ void DynamicVMS<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
 //    this->LinearUpdateSubscale(rCurrentProcessInfo);
     this->UpdateSubscale(rCurrentProcessInfo);

@@ -127,7 +127,7 @@ void DVMS<TElementData>::Initialize()
 }
 
 template <class TElementData>
-void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void DVMS<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     // Get Shape function data
     Vector gauss_weights;
@@ -154,7 +154,7 @@ void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 
 
 template <class TElementData>
-void DVMS<TElementData>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+void DVMS<TElementData>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     // Get Shape function data
     Vector gauss_weights;
