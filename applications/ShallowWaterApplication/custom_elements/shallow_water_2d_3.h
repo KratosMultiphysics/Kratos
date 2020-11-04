@@ -203,6 +203,16 @@ public:
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
+     * Getting method to obtain the time derivative of variable which defines the degrees of freedom
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side

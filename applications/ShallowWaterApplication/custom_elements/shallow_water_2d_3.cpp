@@ -121,6 +121,26 @@ void ShallowWater2D3::GetValuesVector(Vector& rValues, int Step) const
     }
 }
 
+void ShallowWater2D3::GetFirstDerivativesVector(Vector& rValues, int Step) const
+{
+    if (rValues.size() != 9)
+        rValues.resize(9, false);
+
+    const GeometryType& r_geom = this->GetGeometry();
+    size_t counter = 0;
+    for (size_t i = 0; i < 3; i++)
+    {
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
+    }
+}
+
+void ShallowWater2D3::GetSecondDerivativesVector(Vector& rValues, int Step) const
+{
+    KRATOS_ERROR << "ShallowWater2D3: This method is not supported by the formulation" << std::endl;
+}
+
 void ShallowWater2D3::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -146,8 +166,6 @@ void ShallowWater2D3::CalculateLocalSystem(
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
 
     data.GetNodalData(GetGeometry(), DN_DX);
-
-    AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
     AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
@@ -453,23 +471,20 @@ void ShallowWater2D3::CalculateMassMatrix(
     if(rMassMatrix.size1() != 9)
         rMassMatrix.resize(9, 9, false);
 
-    rMassMatrix = ZeroMatrix(9,9);
+    // Struct to pass around the data
+    ElementData data;
+    data.InitializeData(rCurrentProcessInfo);
 
     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
     array_1d<double,3> N;            // Position of the gauss point
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
 
-    const double lumping_factor = area / 3.0;
-    for (size_t i = 0; i < 3; ++i)
-    {
-        const size_t block = 3 * i;
-        rMassMatrix(block, block) += lumping_factor;
-        rMassMatrix(block+1, block+1) += lumping_factor;
-        rMassMatrix(block+2, block+2) += lumping_factor;
+    data.GetNodalData(GetGeometry(), DN_DX);
 
-        // TODO: add consistent mass matrix
-    }
+    BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
+    ComputeMassMatrix(mass_matrix, data, N, DN_DX);
+    rMassMatrix = area * mass_matrix;
 }
 
 void ShallowWater2D3::ComputeGradientMatrix(
