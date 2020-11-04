@@ -58,11 +58,7 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
     """
     def __init__(self,input_model,input_parameters):
         super(ImposePerturbedInitialConditionAnalysisStage,self).__init__(input_model,input_parameters)
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN) # for storing \nabla TEMPERATURE
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE) # for storing P(u_{cn})
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X_GRADIENT) # for storing VELOCITY_X gradient
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y_GRADIENT) # for storing VELOCITY_Y gradient
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z_GRADIENT) # for storing VELOCITY_Z gradient
 
     def ApplyBoundaryConditions(self):
         super(ImposePerturbedInitialConditionAnalysisStage,self).ApplyBoundaryConditions()
@@ -73,9 +69,9 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
         # set forcing term
         self.ComputeVelocityGradients() # of c*P(u_{cn}) + u_T (which is stored in VELOCITY)
         for node in self.model.GetModelPart(main_model_part_name).Nodes:
-            divergence = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X_GRADIENT)[0] + \
-                node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y_GRADIENT)[1] + \
-                node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z_GRADIENT)[2]
+            divergence = node.GetValue(KratosMultiphysics.VELOCITY_X_GRADIENT)[0] + \
+                node.GetValue(KratosMultiphysics.VELOCITY_Y_GRADIENT)[1] + \
+                node.GetValue(KratosMultiphysics.VELOCITY_Z_GRADIENT)[2]
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,-1*divergence) # forcing term = - \nabla \cdot (c*P(u_{cn}) + u_T)
 
         # set boundary condition
@@ -86,24 +82,24 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
             node.SetSolutionStepValue(KratosMultiphysics.FACE_HEAT_FLUX,computed_flux) # boundary term = - c*P(u_{cn}) \cdot NORMAL
 
     def ComputeVelocityGradients(self):
-        KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_X_GRADIENT).Execute()
-        KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Y_GRADIENT).Execute()
-        KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.VELOCITY_Z_GRADIENT).Execute()
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_X_GRADIENT).Execute()
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Y_GRADIENT).Execute()
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.VELOCITY_Z_GRADIENT).Execute()
 
     def RestoreBoundaryValues(self):
         for submdpa in self.project_parameters["solver_settings"]["processes_sub_model_part_list"].GetStringArray():
             for node in self._GetSolver().main_model_part.GetSubModelPart(submdpa).Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN, -1*node.GetSolutionStepValue(KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE)) # recall VELOCITY_NOISE is P(u_{cn}) (without penalty coefficient)
+                node.SetValue(KratosMultiphysics.VELOCITY_LAPLACIAN, -1*node.GetSolutionStepValue(KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE)) # recall VELOCITY_NOISE is P(u_{cn}) (without penalty coefficient)
 
     def FinalizeSolutionStep(self):
         super(ImposePerturbedInitialConditionAnalysisStage,self).FinalizeSolutionStep()
-        KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.TEMPERATURE,KratosMultiphysics.VELOCITY_LAPLACIAN).Execute()
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.TEMPERATURE,KratosMultiphysics.VELOCITY_LAPLACIAN).Execute()
         self.RestoreBoundaryValues()
         # save new velocity
         penalty_coeff = self.project_parameters["problem_data"]["penalty_coefficient"].GetDouble()
         for node in self._GetSolver().main_model_part.Nodes:
             velocity_field_loaded_and_correlated_noise = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) # u_T + c*P(u_{cn})
-            gradient_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN) # no-boundary: \nabla T ; boundary: - \nabla T
+            gradient_solution = node.GetValue(KratosMultiphysics.VELOCITY_LAPLACIAN) # no-boundary: \nabla T ; boundary: - \nabla T
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,velocity_field_loaded_and_correlated_noise + penalty_coeff*gradient_solution)
 
 
