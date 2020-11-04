@@ -66,11 +66,11 @@ public:
      *          Thus, for DerivativesOrder 0 the return value is 1, for 1 the return value is 4, ...
      * @return  NumberOfShapeFunctionRows.
      */
-    static inline SizeType NumberOfShapeFunctionRows(const SizeType DerivativeOrder) noexcept
+    static inline SizeType NumberOfShapeFunctionRows(const SizeType DerivativeOrder)
     {
         //TODO: Is there any close form for this?
-        unsigned int number_of_shape_function_rows = 0.0;
-        for( unsigned int i = 0; i < DerivativeOrder + 1; ++i){
+        IndexType number_of_shape_function_rows = 0.0;
+        for( IndexType i = 0; i < DerivativeOrder + 1; ++i){
             number_of_shape_function_rows += (1 + i) * (2 + i) / 2;
         }
 
@@ -89,17 +89,24 @@ public:
     static inline IndexType IndexOfShapeFunctionRow(
         const SizeType DerivativeOrderU,
         const SizeType DerivativeOrderV,
-        const SizeType DerivativeOrderW) noexcept
+        const SizeType DerivativeOrderW)
     {
-        //This seraializes the pascals pyramid.
-        const unsigned int current_level = DerivativeOrderU + DerivativeOrderV + DerivativeOrderW;
-        const unsigned int first_index_of_current_level = NumberOfShapeFunctionRows(current_level-1);
-        const unsigned int offset = current_level - DerivativeOrderU;
-        unsigned int index_in_current_level = 0;
+        // This seraializes the pascals pyramid.
+        const SizeType current_level = DerivativeOrderU + DerivativeOrderV + DerivativeOrderW;
 
-        for( unsigned int i = 0; i < offset; ++i){
-            index_in_current_level += i;
+        SizeType first_index_of_current_level = 0;
+        if( current_level > 0)
+            first_index_of_current_level = NumberOfShapeFunctionRows(current_level - 1);
+        else
+            return 0;
+
+        const SizeType offset = current_level - DerivativeOrderU;
+
+        SizeType index_in_current_level = 0;
+        for( IndexType i = 0; i < offset; ++i){
+            index_in_current_level += i + 1;
         }
+        index_in_current_level += DerivativeOrderW;
 
         return first_index_of_current_level + index_in_current_level;
     }
@@ -133,7 +140,6 @@ public:
         const SizeType DerivativeOrder)
     {
         const SizeType number_of_shape_function_rows = this->NumberOfShapeFunctionRows(DerivativeOrder);
-        //TODO: Is this correct?
         const SizeType number_of_nonzero_control_points = (PolynomialDegreeU + 1) * (PolynomialDegreeV + 1) * (PolynomialDegreeW + 1);
 
         mShapeFunctionsU.ResizeDataContainers(PolynomialDegreeU, DerivativeOrder);
@@ -187,7 +193,7 @@ public:
 
     SizeType NumberOfNonzeroControlPoints() const
     {
-        return NumberOfNonzeroControlPointsU() * NumberOfNonzeroControlPointsV() * NumberOfNonzeroControlPointsV();
+        return NumberOfNonzeroControlPointsU() * NumberOfNonzeroControlPointsV() * NumberOfNonzeroControlPointsW();
     }
 
     std::vector<array_1d<int, 3>> NonzeroControlPointIndices() const
@@ -196,9 +202,9 @@ public:
 
         for (IndexType i = 0; i < NumberOfNonzeroControlPointsU(); ++i) {
             for (IndexType j = 0; j < NumberOfNonzeroControlPointsV(); ++j) {
-                for (IndexType k = 0; 0 < NumberOfNonzeroControlPointsW(); ++k) {
+                for (IndexType k = 0; k < NumberOfNonzeroControlPointsW(); ++k) {
                     IndexType poleIndex = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-                        NumberOfNonzeroControlPointsU(), NumberOfNonzeroControlPointsV(), NumberOfNonzeroControlPointsV(), i, j, k);
+                        NumberOfNonzeroControlPointsU(), NumberOfNonzeroControlPointsV(), NumberOfNonzeroControlPointsW(), i, j, k);
 
                     IndexType poleU = GetFirstNonzeroControlPointU() + i;
                     IndexType poleV = GetFirstNonzeroControlPointV() + j;
@@ -323,20 +329,17 @@ public:
         // Compute 1D shape functions
         mShapeFunctionsU.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsU, SpanU, ParameterU);
         mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsV, SpanV, ParameterV);
-        mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsW, SpanW, ParameterW);
-
+        mShapeFunctionsW.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsW, SpanW, ParameterW);
         // Compute 3D shape functions
-        // TODO: Check this with python script again (Manuel)
         for( IndexType currrent_order = 0; currrent_order <= DerivativeOrder(); ++currrent_order){
-            for (IndexType OrderU = currrent_order; OrderU >= 0; --OrderU) {
-                const unsigned int difference = currrent_order - OrderU;
+            for (int OrderU = currrent_order; OrderU >= 0; OrderU = OrderU - 1) {
+                const IndexType difference = currrent_order - OrderU;
                 for (IndexType OrderW = 0; OrderW <= difference; ++OrderW) {
-                    const unsigned int OrderV = difference - OrderW;
+                    const IndexType OrderV = difference - OrderW;
                     for (IndexType a = 0; a < NumberOfNonzeroControlPointsU(); ++a) {
                         for (IndexType b = 0; b < NumberOfNonzeroControlPointsV(); ++b) {
                             for (IndexType c = 0; c < NumberOfNonzeroControlPointsW(); ++c) {
                                 const IndexType index = IndexOfShapeFunctionRow(OrderU, OrderV, OrderW);
-
                                 ShapeFunctionValue(a, b, c, index) = mShapeFunctionsU(a, OrderU) * mShapeFunctionsV(b, OrderV) * mShapeFunctionsW(c, OrderW);
                             }
                         }
@@ -392,6 +395,8 @@ public:
         // Compute B-Spline shape functions
         ComputeBSplineShapeFunctionValuesAtSpan(
             rKnotsU, rKnotsV, rKnotsW, SpanU, SpanV, SpanW, ParameterU, ParameterV, ParameterW);
+        // TODO: Throw warning if Rational. Also remove constructor for NURBS.
+
         /*
         // Apply weights
         for (IndexType shape_row_index = 0; shape_row_index < NumberOfShapeFunctionRows(); ++shape_row_index) {

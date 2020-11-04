@@ -76,7 +76,7 @@ public:
         , mPolynomialDegreeW(PolynomialDegreeW)
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
-        , mKnotsV(rKnotsW)
+        , mKnotsW(rKnotsW)
     {
         CheckAndFitKnotVectors();
     }
@@ -97,7 +97,7 @@ public:
         , mPolynomialDegreeW(PolynomialDegreeW)
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
-        , mKnotsV(rKnotsW)
+        , mKnotsW(rKnotsW)
         , mWeights(rWeights)
     {
         CheckAndFitKnotVectors();
@@ -234,7 +234,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(LocalDirectionIndex > 2)
             << "Trying to access polynomial degree in direction " << LocalDirectionIndex
-            << " from NurbsSurfaceGeometry #" << this->Id() << ". Nurbs surfaces have only two directions."
+            << " from NurbsVolumeGeometry #" << this->Id() << ". Nurbs volume have only three directions."
             << std::endl;
 
         if (LocalDirectionIndex == 0) {
@@ -571,10 +571,49 @@ public:
                         NumPointsPerSpanU, NumPointsPerSpanV, NumPointsPerSpanW,
                         knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
                         knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1(),
-                        knot_span_intervals_w[j].GetT0(), knot_span_intervals_w[j].GetT1());
+                        knot_span_intervals_w[k].GetT0(), knot_span_intervals_w[k].GetT1());
                 }
             }
         }
+    }
+
+    Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates ) const override
+    {
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType points_number = this->PointsNumber();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
+
+        Matrix shape_functions_gradients(points_number, local_space_dimension);
+        ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
+
+        NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 1);
+        shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU,mKnotsV,mKnotsW,
+            rCoordinates[0], rCoordinates[1], rCoordinates[2]);
+        std::vector<array_1d<int,3>> indices = shape_function_container.NonzeroControlPointIndices();
+        SizeType number_of_cp = shape_function_container.NumberOfNonzeroControlPoints();
+
+        SizeType number_cp_u = NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size());
+        SizeType number_cp_v = NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size());
+        SizeType number_cp_w = NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeW, mKnotsW.size());
+
+        rResult.clear();
+        for (IndexType i = 0; i < number_of_cp; ++i ) {
+            SizeType global_cp_index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+                                    number_cp_u, number_cp_v, number_cp_w,
+                                    indices[i][0], indices[i][1], indices[i][2]);
+
+            const array_1d<double, 3>& r_coordinates = (*this)[global_cp_index].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k];
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += value * shape_functions_gradients(i,m);
+                }
+            }
+        }
+
+        return rResult;
     }
 
     ///@}
@@ -609,9 +648,9 @@ public:
 
         Matrix N(1, num_nonzero_cps);
         DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
-        //@Tobi Why is this NumberOfShapeFunctionDerivatives -1?
+
         for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
-            const unsigned int num_derivatives = (2 + i) * (3 + i) / 2;
+            const IndexType num_derivatives = (2 + i) * (3 + i) / 2;
             shape_function_derivatives[i].resize(num_nonzero_cps, num_derivatives);
         }
 
@@ -644,7 +683,7 @@ public:
             if (NumberOfShapeFunctionDerivatives > 0) {
                 IndexType shape_derivative_index = 1;
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n) {
-                    const unsigned int num_derivatives = (2 + i) * (3 + i) / 2;
+                    const IndexType num_derivatives = (2 + i) * (3 + i) / 2;
                     for (IndexType k = 0; k < num_derivatives; ++k) {
                         for (IndexType j = 0; j < num_nonzero_cps; ++j) {
                             shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
@@ -697,11 +736,9 @@ public:
                     IndexType cp_index_u = shape_function_container.GetFirstNonzeroControlPointU() + u;
                     IndexType cp_index_v = shape_function_container.GetFirstNonzeroControlPointV() + v;
                     IndexType cp_index_w = shape_function_container.GetFirstNonzeroControlPointW() + w;
-    
                     const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-                        NumberOfControlPointsU(), NumberOfControlPointsV(), NumberOfControlPointsW(), 
+                        NumberOfControlPointsU(), NumberOfControlPointsV(), NumberOfControlPointsW(),
                             cp_index_u, cp_index_v, cp_index_w);
-    
                     rResult += (*this)[index] * shape_function_container(u, v, w, 0);
                 }
             }
@@ -748,7 +785,7 @@ public:
                         IndexType cp_index_w = shape_function_container.GetFirstNonzeroControlPointW() + w;
 
                         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-                            NumberOfControlPointsU(), NumberOfControlPointsV(), NumberOfControlPointsW(), 
+                            NumberOfControlPointsU(), NumberOfControlPointsV(), NumberOfControlPointsW(),
                                 cp_index_u, cp_index_v, cp_index_w);
 
                         if (u == 0 && v==0 && w==0)
@@ -774,11 +811,11 @@ public:
         NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 0);
 
         if (IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, mWeights, 
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, mWeights,
                 rCoordinates[0], rCoordinates[1], rCoordinates[2]);
         }
         else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, 
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
                 rCoordinates[0], rCoordinates[1], rCoordinates[2]);
         }
 
@@ -796,25 +833,25 @@ public:
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 0);
+        NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 1);
 
         if (IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, mWeights, 
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, mWeights,
                 rCoordinates[0], rCoordinates[1], rCoordinates[2]);
         }
         else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, 
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
                 rCoordinates[0], rCoordinates[1], rCoordinates[2]);
         }
 
-        if (rResult.size1() != 3
-            && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
-            rResult.resize(3, shape_function_container.NumberOfNonzeroControlPoints());
+        if (rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints()
+            && rResult.size2() != 3)
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), 3);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); ++i) {
-            rResult(0, i) = shape_function_container(i, 1);
-            rResult(1, i) = shape_function_container(i, 2);
-            rResult(2, i) = shape_function_container(i, 3);
+            rResult(i, 0) = shape_function_container(i, 1);
+            rResult(i, 1) = shape_function_container(i, 2);
+            rResult(i, 2) = shape_function_container(i, 3);
         }
 
         return rResult;
@@ -896,7 +933,7 @@ private:
                     KnotsW[i] = mKnotsW[i + 1];
                 }
                 mKnotsW = KnotsW;
- 
+
             } else {
                 KRATOS_ERROR
                     << "Number of controls points and polynomial degrees and number of knots do not match! " << std::endl
