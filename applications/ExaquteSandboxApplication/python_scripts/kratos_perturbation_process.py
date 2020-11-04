@@ -70,12 +70,6 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
         KratosMultiphysics.MortarUtilities.ComputeNodesMeanNormalModelPart(structure_model_part, True)
         main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
 
-        if self.project_parameters["problem_data"].Has("load_velocity_field"):
-            self.LoadVelocityField()
-        else: # required if a velocity field from file is not loaded
-            for node in self.model.GetModelPart(main_model_part_name).Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN_RATE, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
-
         # set forcing term
         self.ComputeVelocityGradients() # of c*P(u_{cn}) + u_T (which is stored in VELOCITY)
         for node in self.model.GetModelPart(main_model_part_name).Nodes:
@@ -95,20 +89,6 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
         KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_X_GRADIENT).Execute()
         KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Y_GRADIENT).Execute()
         KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().main_model_part,KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.VELOCITY_Z_GRADIENT).Execute()
-
-    def LoadVelocityField(self):
-        main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        main_model_part = self.model.GetModelPart(main_model_part_name)
-        penalty_coeff = self.project_parameters["problem_data"]["penalty_coefficient"].GetDouble()
-        with open(self.project_parameters["problem_data"]["load_velocity_field"].GetString()) as dat_file:
-            lines=dat_file.readlines()
-            for line, node in zip(lines,main_model_part.Nodes):
-                velocity = KratosMultiphysics.Vector(3,0.0)
-                velocity[0] = float(line.split(' ')[0])
-                velocity[1] = float(line.split(' ')[1])
-                velocity[2] = float(line.split(' ')[2])
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN_RATE, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)) # P(u_{cn}) stored in VELOCITY_LAPLACIAN_RATE
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, penalty_coeff*node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) + velocity) # c*P(u_{cn}) + u_T stored in VELOCITY
 
     def RestoreBoundaryValues(self):
         for submdpa in self.project_parameters["solver_settings"]["processes_sub_model_part_list"].GetStringArray():
@@ -218,18 +198,45 @@ class ImposePerturbedInitialConditionProcess(KratosMultiphysics.Process):
                 vel = mapper.interpolate(node)
                 node.SetSolutionStepValue(var, vel)
 
+    def LoadVelocityField(self):
+        main_model_part_name = self.poisson_parameters["problem_data"]["model_part_name"].GetString()
+        main_model_part = self.model.GetModelPart(main_model_part_name)
+        penalty_coeff = self.poisson_parameters["problem_data"]["penalty_coefficient"].GetDouble()
+        with open(self.poisson_parameters["problem_data"]["load_velocity_field"].GetString()) as dat_file:
+            lines=dat_file.readlines()
+            for line, node in zip(lines,main_model_part.Nodes):
+                velocity = KratosMultiphysics.Vector(3,0.0)
+                velocity[0] = float(line.split(' ')[0])
+                velocity[1] = float(line.split(' ')[1])
+                velocity[2] = float(line.split(' ')[2])
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, penalty_coeff*node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) + velocity) # c*P(u_{cn}) + u_T stored in VELOCITY
+
     def SolveAssociatedPoissonProblem(self):
+        # set up parameters
         default_parameters = self.GetDefaultParametersAnalysisStage()
         self.poisson_parameters["problem_data"].ValidateAndAssignDefaults(default_parameters["problem_data"])
         self.poisson_parameters["solver_settings"].ValidateAndAssignDefaults(default_parameters["solver_settings"])
         self.poisson_parameters["processes"]["constraints_process_list"][0]["Parameters"].ValidateAndAssignDefaults(default_parameters["processes"]["constraints_process_list"][0]["Parameters"])
+
+        # prepare Poisson simulation
         model = KratosMultiphysics.Model()
         simulation = ImposePerturbedInitialConditionAnalysisStage(model,self.poisson_parameters)
         simulation.Initialize() # required before mapping
+
+        # map P(u_{cn}) into VELOCITY_LAPLACIAN_RATE variable of Poisson simulation
+        # map c*P(u_{cn}) + u_T into VELOCITY variable of Poisson simulation
         mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.model.GetModelPart(self.poisson_parameters["problem_data"]["model_part_name"].GetString()),simulation._GetSolver().main_model_part,self.mapper_parameters)
-        mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.VELOCITY)
+        mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.VELOCITY_LAPLACIAN_RATE) # map P(u_{cn}) into Poisson problem variable VELOCITY_LAPLACIAN_RATE
+        self.LoadVelocityField() # c*P(u_{cn}) + u_T stored in VELOCITY
+        mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.VELOCITY) # map c*P(u_{cn}) + u_T into Poisson problem variable VELOCITY
+
+        # run the Poisson problem
+        # restore boundary conditions
+        # sum VELOCITY = u_T + c*P(u_{cn}) + c*\nabla TEMPERATURE
         simulation.RunSolutionLoop()
         simulation.Finalize()
+
+        # map u_T + c*P(u_{cn}) + c*\nabla TEMPERATURE into current variable VELOCITY
         mapper.InverseMap(KratosMultiphysics.VELOCITY,KratosMultiphysics.VELOCITY)
 
     def GetDefaultParametersAnalysisStage(self):
