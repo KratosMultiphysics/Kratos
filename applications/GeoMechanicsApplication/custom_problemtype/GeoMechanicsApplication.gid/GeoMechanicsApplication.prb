@@ -114,14 +114,14 @@ HELP: Calculate reaction forces.
 QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
 VALUE: false
 QUESTION: Move_Mesh#CB#(true,false)
-VALUE: true
+VALUE: false
 HELP: Allows to move nodes (Updated Lagrangian), no movement (Fixed mesh)
 QUESTION: Block_Builder#CB#(true,false)
 VALUE: true
 QUESTION: Reset_Displacements#CB#(true,false)
 VALUE: true
 QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
-VALUE: SuperLUSolver
+VALUE: BICGSTABSolver
 HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
 QUESTION: Scaling#CB#(true,false)
 VALUE: true
