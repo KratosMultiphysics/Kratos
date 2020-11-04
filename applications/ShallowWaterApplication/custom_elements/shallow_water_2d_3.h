@@ -71,7 +71,6 @@ public:
         array_1d<double, 9> depth;
         array_1d<double, 9> rain;
         array_1d<double, 9> unknown;
-        array_1d<double, 9> prev_unk;
 
         bool is_monotonic_calculation;
 
@@ -335,13 +334,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void AddInertiaTerms(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const ElementData& rData,
-        const array_1d<double,3>& rN,
-        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void AddGradientTerms(
         MatrixType& rLHS,

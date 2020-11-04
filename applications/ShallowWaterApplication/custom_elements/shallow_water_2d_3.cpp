@@ -182,17 +182,27 @@ void ShallowWater2D3::CalculateLocalSystem(
     rLeftHandSideMatrix *= area;
 }
 
-void ShallowWater2D3::AddInertiaTerms(
-    MatrixType& rLHS,
-    VectorType& rRHS,
-    const ElementData& rData,
-    const array_1d<double,3>& rN,
-    const BoundedMatrix<double,3,2>& rDN_DX)
+void ShallowWater2D3::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
+    if(rMassMatrix.size1() != 9)
+        rMassMatrix.resize(9, 9, false);
+
+    // Struct to pass around the data
+    ElementData data;
+    data.InitializeData(rCurrentProcessInfo);
+
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+
+    data.GetNodalData(GetGeometry(), DN_DX);
+
     BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
-    ComputeMassMatrix(mass_matrix, rData, rN, rDN_DX);
-    rLHS += rData.dt_inv * mass_matrix;
-    rRHS += rData.dt_inv * prod(mass_matrix, rData.prev_unk);
+    ComputeMassMatrix(mass_matrix, data, N, DN_DX);
+    rMassMatrix = area * mass_matrix;
 }
 
 void ShallowWater2D3::AddGradientTerms(
@@ -328,8 +338,6 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         const auto h = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
         const auto f = rGeometry[i].FastGetSolutionStepValue(MOMENTUM);
         const auto v = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
-        const auto hn = rGeometry[i].FastGetSolutionStepValue(HEIGHT, 1);
-        const auto fn = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, 1);
         const auto n = rGeometry[i].FastGetSolutionStepValue(MANNING);
 
         height += h;
@@ -342,19 +350,16 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         depth[j] = 0;
         rain[j]  = 0;
         unknown[j]  = f[0];
-        prev_unk[j]  = fn[0];
         j++;
 
         depth[j] = 0;
         rain[j]  = 0;
         unknown[j]  = f[1];
-        prev_unk[j]  = fn[1];
         j++;
 
         depth[j] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
         rain[j]  = rGeometry[i].FastGetSolutionStepValue(RAIN);
         unknown[j]  = h;
-        prev_unk[j]  = hn;
         j++;
 
         double aux_wet_fraction, aux_effective_height;
@@ -462,29 +467,6 @@ void ShallowWater2D3::ComputeMassMatrix(
 
         // TODO: add consistent mass matrix with stabilization
     }
-}
-
-void ShallowWater2D3::CalculateMassMatrix(
-    MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rMassMatrix.size1() != 9)
-        rMassMatrix.resize(9, 9, false);
-
-    // Struct to pass around the data
-    ElementData data;
-    data.InitializeData(rCurrentProcessInfo);
-
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
-
-    data.GetNodalData(GetGeometry(), DN_DX);
-
-    BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
-    ComputeMassMatrix(mass_matrix, data, N, DN_DX);
-    rMassMatrix = area * mass_matrix;
 }
 
 void ShallowWater2D3::ComputeGradientMatrix(
