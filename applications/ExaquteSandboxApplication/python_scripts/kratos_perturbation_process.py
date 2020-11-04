@@ -59,7 +59,7 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
     def __init__(self,input_model,input_parameters):
         super(ImposePerturbedInitialConditionAnalysisStage,self).__init__(input_model,input_parameters)
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN) # for storing \nabla TEMPERATURE
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN_RATE) # for storing P(u_{cn})
+        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE) # for storing P(u_{cn})
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X_GRADIENT) # for storing VELOCITY_X gradient
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y_GRADIENT) # for storing VELOCITY_Y gradient
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z_GRADIENT) # for storing VELOCITY_Z gradient
@@ -80,7 +80,7 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
 
         # set boundary condition
         for node in structure_model_part.Nodes:
-            perturbed_velocity = self.project_parameters["problem_data"]["penalty_coefficient"].GetDouble() * node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN_RATE) # c*P(u_{cn})
+            perturbed_velocity = self.project_parameters["problem_data"]["penalty_coefficient"].GetDouble() * node.GetSolutionStepValue(KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE) # c*P(u_{cn})
             normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
             computed_flux = - _DotProduct(normal,perturbed_velocity)
             node.SetSolutionStepValue(KratosMultiphysics.FACE_HEAT_FLUX,computed_flux) # boundary term = - c*P(u_{cn}) \cdot NORMAL
@@ -93,7 +93,7 @@ class ImposePerturbedInitialConditionAnalysisStage(ConvectionDiffusionAnalysis):
     def RestoreBoundaryValues(self):
         for submdpa in self.project_parameters["solver_settings"]["processes_sub_model_part_list"].GetStringArray():
             for node in self._GetSolver().main_model_part.GetSubModelPart(submdpa).Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN, -1*node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN_RATE)) # recall VELOCITY_LAPLACIAN_RATE is P(u_{cn}) (without penalty coefficient)
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN, -1*node.GetSolutionStepValue(KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE)) # recall VELOCITY_NOISE is P(u_{cn}) (without penalty coefficient)
 
     def FinalizeSolutionStep(self):
         super(ImposePerturbedInitialConditionAnalysisStage,self).FinalizeSolutionStep()
@@ -223,10 +223,10 @@ class ImposePerturbedInitialConditionProcess(KratosMultiphysics.Process):
         simulation = ImposePerturbedInitialConditionAnalysisStage(model,self.poisson_parameters)
         simulation.Initialize() # required before mapping
 
-        # map P(u_{cn}) into VELOCITY_LAPLACIAN_RATE variable of Poisson simulation
+        # map P(u_{cn}) into VELOCITY_NOISE variable of Poisson simulation
         # map c*P(u_{cn}) + u_T into VELOCITY variable of Poisson simulation
         mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.model.GetModelPart(self.poisson_parameters["problem_data"]["model_part_name"].GetString()),simulation._GetSolver().main_model_part,self.mapper_parameters)
-        mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.VELOCITY_LAPLACIAN_RATE) # map P(u_{cn}) into Poisson problem variable VELOCITY_LAPLACIAN_RATE
+        mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE) # map P(u_{cn}) into Poisson problem variable VELOCITY_NOISE
         self.LoadVelocityField() # c*P(u_{cn}) + u_T stored in VELOCITY
         mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.VELOCITY) # map c*P(u_{cn}) + u_T into Poisson problem variable VELOCITY
 
