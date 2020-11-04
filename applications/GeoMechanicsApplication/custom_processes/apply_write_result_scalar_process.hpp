@@ -85,6 +85,9 @@ public:
     {
         KRATOS_TRY;
 
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
+
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
         if (nNodes > 0)
@@ -110,6 +113,8 @@ public:
                     // open a new file and overwrite
                     mOutFile[i].open(fileName, std::ios::trunc); // overwrite
                     mOutFile[i] << "Time" << "   " << mVariableName << std::endl;
+                    double value = it->FastGetSolutionStepValue(var);
+                    mOutFile[i] << Time << "   " << value << std::endl;
                 }
             }
         }
