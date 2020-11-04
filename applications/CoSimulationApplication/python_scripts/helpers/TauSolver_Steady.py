@@ -98,7 +98,7 @@ else:
 
 Deform = PyDeform.Deformation(para_path_mod)
 tau_parallel_sync()
-step = 0
+step = start_step
 tau_parallel_sync()
 
 def AdvanceInTime(current_time):
@@ -254,7 +254,7 @@ settings = {
 if rank == 0:
     CoSimIO.Connect(connection_name, settings)
 
-n_steps = 18#int(Para.get_para_value('Unsteady physical time steps'))
+n_steps = 1
 coupling_interface_imported = False
 
 factor = 1.0
