@@ -116,7 +116,7 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
         bool compute_lhs_matrix = true;
@@ -124,7 +124,7 @@ public:
         KRATOS_CATCH("Error in StokesTwoFluid Element Symbolic CalculateLocalSystem")
     }
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -139,7 +139,7 @@ public:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool ComputeLHSMatrix)
     {
         KRATOS_TRY
@@ -403,7 +403,7 @@ public:
                              const double& Volume,
                              element_data<4,3>& data,
                              BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
-                             ProcessInfo& rCurrentProcessInfo,
+                             const ProcessInfo& rCurrentProcessInfo,
                              bool ComputeLHSMatrix)
     {
         const double air_density = GetProperties()[DENSITY_AIR];
@@ -465,7 +465,7 @@ public:
                                const double& Volume,
                                element_data<4,3>& data,
                                BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
-                               ProcessInfo& rCurrentProcessInfo,
+                               const ProcessInfo& rCurrentProcessInfo,
                                bool ComputeLHSMatrix)
     {
         const double weight = Volume/static_cast<double>(NumNodes);
@@ -522,7 +522,7 @@ public:
                                Vector& rRightHandSideVector,
                                const double& Volume,
                                element_data<4,3>& data,
-                               ProcessInfo& rCurrentProcessInfo,
+                               const ProcessInfo& rCurrentProcessInfo,
                                const array_1d<double,NumNodes>& distances,
                                bool ComputeLHSMatrix
                               )
@@ -848,7 +848,7 @@ private:
 
 ///@name Private Operations
 ///@{
-    virtual void ComputeConstitutiveResponse_AIR(element_data<4,3>& data, const double rho, const double nu,  ProcessInfo& rCurrentProcessInfo)
+    virtual void ComputeConstitutiveResponse_AIR(element_data<4,3>& data, const double rho, const double nu,  const ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int strain_size = 6;
 

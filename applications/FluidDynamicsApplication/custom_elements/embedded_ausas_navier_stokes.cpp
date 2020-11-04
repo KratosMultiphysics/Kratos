@@ -17,7 +17,7 @@ namespace Kratos {
 template<>
 void EmbeddedAusasNavierStokes<3>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
@@ -43,7 +43,7 @@ void EmbeddedAusasNavierStokes<3>::EquationIdVector(
 template<>
 void EmbeddedAusasNavierStokes<2>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
@@ -68,7 +68,7 @@ void EmbeddedAusasNavierStokes<2>::EquationIdVector(
 template<>
 void EmbeddedAusasNavierStokes<3>::GetDofList(
     DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
@@ -94,7 +94,7 @@ void EmbeddedAusasNavierStokes<3>::GetDofList(
 template<>
 void EmbeddedAusasNavierStokes<2>::GetDofList(
     DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 

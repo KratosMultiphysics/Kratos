@@ -83,7 +83,7 @@ void EmbeddedFluidElement<TBaseElement>::Initialize()
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo& rCurrentProcessInfo) {
 
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)

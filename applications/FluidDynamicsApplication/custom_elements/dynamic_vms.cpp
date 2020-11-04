@@ -113,7 +113,7 @@ void DynamicVMS<TDim>::InitializeNonLinearIteration(const ProcessInfo& rCurrentP
 template< unsigned int TDim >
 void DynamicVMS<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                             VectorType &rRightHandSideVector,
-                                            ProcessInfo &rCurrentProcessInfo)
+                                            const ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -132,7 +132,7 @@ void DynamicVMS<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -148,7 +148,7 @@ void DynamicVMS<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector, 
 template< unsigned int TDim >
 void DynamicVMS<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampingMatrix,
                                                           VectorType &rRightHandSideVector,
-                                                          ProcessInfo &rCurrentProcessInfo)
+                                                          const ProcessInfo &rCurrentProcessInfo)
 {
     if (rCurrentProcessInfo[OSS_SWITCH]==1.0)
         this->CalculateOSSVelocityContribution(rDampingMatrix,rRightHandSideVector,rCurrentProcessInfo);
@@ -158,7 +158,7 @@ void DynamicVMS<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampingMa
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, const ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();

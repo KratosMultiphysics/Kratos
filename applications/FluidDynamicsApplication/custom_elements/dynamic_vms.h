@@ -218,11 +218,11 @@ public:
 
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                       VectorType &rRightHandSideVector,
-                                      ProcessInfo &rCurrentProcessInfo) override;
+                                     const ProcessInfo &rCurrentProcessInfo) override;
 
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Computes the local contribution associated to 'new' velocity and pressure values
@@ -236,9 +236,9 @@ public:
      */
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType &rMassMatrix, const ProcessInfo &rCurrentProcessInfo) override;
 
 
     /// Provides the global indices for each one of this element's local rows

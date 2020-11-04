@@ -106,7 +106,7 @@ void StationaryStokes<TDim>::Initialize()
 }
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     // Obtain required constants
     GeometryType& rGeom = this->GetGeometry();
@@ -167,9 +167,9 @@ void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatri
 
 template< unsigned int TDim >
 void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
-                                  ProcessInfo &rCurrentProcessInfo)
+                                  const ProcessInfo &rCurrentProcessInfo) const 
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 
@@ -189,9 +189,9 @@ void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
 
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 
@@ -211,9 +211,9 @@ void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rRe
 
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step)
+void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 

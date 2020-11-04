@@ -25,7 +25,7 @@ namespace Kratos
  */
 template <>
 void NavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      ProcessInfo& rCurrentProcessInfo)
+                                                      const ProcessInfo& rCurrentProcessInfo) const 
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -48,7 +48,7 @@ void NavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rRes
  */
 template <>
 void NavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      ProcessInfo& rCurrentProcessInfo)
+                                                      const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -277,7 +277,7 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
  */
 template <>
 void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -299,7 +299,7 @@ void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofLis
 
 template <>
 void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;

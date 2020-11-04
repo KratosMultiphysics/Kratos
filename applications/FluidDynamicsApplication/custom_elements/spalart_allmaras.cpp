@@ -149,7 +149,7 @@ void SpalartAllmaras::InitializeSolutionStep(const ProcessInfo& rCurrentProcessI
     KRATOS_CATCH("")
 }
 
-void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     // Obtain required constants
     const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
@@ -267,13 +267,13 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
     noalias( rRightHandSideVector ) -= prod(MassMatrix,TimeTerm);
 }
 
-void SpalartAllmaras::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::CalculateRightHandSide(VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     MatrixType TempMatrix;
     this->CalculateLocalSystem(TempMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
-void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
@@ -285,7 +285,7 @@ void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo 
 }
 
 
-void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
