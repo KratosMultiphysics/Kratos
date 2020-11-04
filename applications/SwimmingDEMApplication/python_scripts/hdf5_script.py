@@ -48,13 +48,11 @@ class ErrorProjectionPostProcessTool(object):
                             data = [self.time, self.v_error, self.p_error])
 
     def WriteDataToFile(self, file_or_group, names, data):
-        overwrite_previous = True
         if self.group_name in file_or_group:
-            if overwrite_previous:
-                file_or_group['/'].__delitem__(self.group_name)
-                self.sub_group = file_or_group.create_group(self.group_name)
-            else:
-                self.sub_group = file_or_group['/' + self.group_name]
+            file_or_group['/'].__delitem__(self.group_name)
+            self.sub_group = file_or_group.create_group(self.group_name)
+        else:
+            self.sub_group = file_or_group.create_group(self.group_name)
         self.sub_group.attrs['element_size'] = str(self.element_size)
         self.sub_group.attrs['n_elements'] = str(len(self.error_model_part.Elements))
         for name, datum in zip(names, data):
