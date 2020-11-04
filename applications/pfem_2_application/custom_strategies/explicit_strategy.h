@@ -73,7 +73,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/explicit_strategy.h"
+#include "includes/element.h"
+#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 //#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "includes/variables.h"
@@ -91,7 +92,7 @@ namespace Kratos
  class TSparseSpace,
  class TDenseSpace,
  class TLinearSolver>
- class PFEM2_Explicit_Strategy : public ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+ class PFEM2_Explicit_Strategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
 	  public:
@@ -163,7 +164,7 @@ namespace Kratos
 			//typename         TBuilderAndSolverType::Pointer pNewBuilderAndSolver
 			)
 
-	  : ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, dimension ,MoveMeshFlag)
+	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 	      {
 
 	      }
@@ -183,6 +184,27 @@ namespace Kratos
       for(unsigned int i = 1; i<number_of_threads; i++)
       partitions[i] = partitions[i-1] + partition_size ;
   }
+
+
+void AssembleLoop()
+{
+
+	KRATOS_TRY
+	ModelPart& r_model_part = BaseType::GetModelPart();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+	ElementsArrayType& pElements = r_model_part.Elements();
+
+
+	typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
+	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+	{
+		it->AddExplicitContribution(CurrentProcessInfo);
+	}
+
+
+	KRATOS_CATCH("")
+}  
 
   //SPECIFIC FUNCTIONS FOR MY APPLICATION
 void InitializeSolutionStep() override
@@ -818,7 +840,7 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
  class TSparseSpace,
  class TDenseSpace,
  class TLinearSolver>
- class Fluid_Phase_PFEM2_Explicit_Strategy : public ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+ class Fluid_Phase_PFEM2_Explicit_Strategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
 	  public:
@@ -890,7 +912,7 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
 			//typename         TBuilderAndSolverType::Pointer pNewBuilderAndSolver
 			)
 
-	  : ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, dimension ,MoveMeshFlag)
+	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 	      {
 
 	      }
@@ -910,6 +932,27 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
       for(unsigned int i = 1; i<number_of_threads; i++)
       partitions[i] = partitions[i-1] + partition_size ;
   }
+
+
+void AssembleLoop()
+{
+
+	KRATOS_TRY
+	ModelPart& r_model_part = BaseType::GetModelPart();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+	ElementsArrayType& pElements = r_model_part.Elements();
+
+
+	typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+	{
+		it->AddExplicitContribution(CurrentProcessInfo);
+	}
+
+
+	KRATOS_CATCH("")
+}   
 
   //SPECIFIC FUNCTIONS FOR MY APPLICATION
 void InitializeSolutionStep() override
