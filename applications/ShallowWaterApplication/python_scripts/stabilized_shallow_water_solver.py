@@ -15,7 +15,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         # Set the element and condition names for the replace settings
         self.element_name = "ShallowWater"
         self.condition_name = "LineCondition"
-        self.min_buffer_size = self.settings["time_order"].GetInt() + 1
+        self.min_buffer_size = self.settings["time_integration_order"].GetInt() + 1
 
     def AddVariables(self):
         super().AddVariables()
@@ -54,7 +54,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
     def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
-        "time_order"                 : 2,
+        "time_integration_order"     : 2,
         "lumped_mass_factor"         : 1.0,
         "shock_stabilization_factor" : 0.001,
         "ground_irregularity"        : 0.0
@@ -64,7 +64,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         return default_settings
 
     def _CreateScheme(self):
-        time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_order"].GetInt())
+        time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
         return time_scheme
 
     def _InitializeWaterLoss(self):
