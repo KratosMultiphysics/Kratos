@@ -35,22 +35,22 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
             // Read nodal graph from input
             IO::ConnectivitiesContainerType kratos_format_node_connectivities;
             std::unordered_set<SizeType> submodelpart_elements_ids;
-            std::unordered_set<SizeType> submodelpart_condtions_ids;
+            std::unordered_set<SizeType> submodelpart_conditions_ids;
             std::vector<idxtype> submodelpart_partition_nodes;
 
             BaseType::mrIO.ReadSubModelPartElementsAndConditionsIds(
                 submodelpart_name,
                 submodelpart_elements_ids,
-                submodelpart_condtions_ids);
+                submodelpart_conditions_ids);
 
             rNumNodes = BaseType::mrIO.ReadNodalGraphFromEntitiesList(
                 kratos_format_node_connectivities,
                 submodelpart_elements_ids,
-                submodelpart_condtions_ids);
+                submodelpart_conditions_ids);
 
             SizeType id = 0;
             IO::ConnectivitiesContainerType reduced_kratos_format_node_connectivities;
-            std::map<SizeType, SizeType> node_ids_map;
+            std::unordered_map<SizeType, SizeType> node_ids_map;
 
             for (SizeType i = 0; i < kratos_format_node_connectivities.size(); i++) {
                 if (kratos_format_node_connectivities[i].size() > 0) {

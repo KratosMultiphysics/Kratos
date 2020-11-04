@@ -49,7 +49,6 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
                 "input_type": "mdpa",
                 "input_filename"                             : \"""" + GetFilePath(self.file_name) + """\",
                 "partition_in_memory"                        : false,
-                "partition_sub_model_parts_list"             : true,
                 "sub_model_part_list" : ["submodelpart_solid", "submodelpart_liquid"]
             },
             "echo_level" : 0
@@ -94,7 +93,6 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
                 "input_type": "mdpa",
                 "input_filename"                             : \"""" + GetFilePath(self.file_name) + """\",
                 "partition_in_memory"                        : false,
-                "partition_sub_model_parts_list"             : true,
                 "sub_model_part_list" : ["ingate", "mainPart", "submodelpart_solid"]
             },
             "echo_level" : 0
@@ -137,8 +135,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             "model_import_settings" : {
                 "input_type": "mdpa",
                 "input_filename"                             : \"""" + GetFilePath(self.file_name) + """\",
-                "partition_in_memory"                        : false,
-                "partition_sub_model_parts_list"             : true
+                "partition_in_memory"                        : false
             },
             "echo_level" : 0
         }""")
@@ -158,6 +155,50 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.assertEqual(total_main_nodes, 413 )
         self.assertEqual(total_main_elements, 1191 )
         self.assertEqual(total_main_conditions, 780 )
+
+    def test_NodesAreNotBeingReordered(self):
+        """Checks that all processor have entities of main model part
+           if sub_model_parts_list is empty.
+        """
+        self.work_folder = ""
+        self.file_name = "cube"
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        settings = KratosMultiphysics.Parameters("""{
+            "model_import_settings" : {
+                "input_type": "mdpa",
+                "input_filename"                             : \"""" + GetFilePath(self.file_name) + """\",
+                "partition_in_memory"                        : false,
+                "sub_model_part_list" : ["ingate", "mainPart", "submodelpart_solid"]
+            },
+            "echo_level" : 0
+        }""")
+        self.ReadModelPart(model_part, settings)
+        results = {1:[0.0,	0.0508782,	0.0514686],
+            20:[0.0,	0.0176281,	0.0138362],
+            50:[-0.0248201,	0.025,	0.1],
+            80:[-0.01241,	0.0375,	0.0],
+            100:[0.0244074,	0.025,	0.0],
+            120:[0.0244074,	0.0,	0.05],
+            140:[0.0244074,	0.0725731,	0.0483441],
+            170:[-0.0373201,	0.0619352,	0.0700256],
+            200:[-0.0373201,	0.1125,	0.034375],
+            220:[-0.000206333,	0.1125,	-0.0125],
+            240:[0.0369074,	0.1125,	0.1125],
+            260:[0.0369074,	-0.0125,	0.01875],
+            280:[0.0369074,	0.0947413,	0.0296595],
+            300:[-0.0248201,	0.025,	0.1],
+            330:[-0.000103589,	0.0983335,	0.1125],
+            360:[-0.0128035,	0.0,	0.00872692],
+            393:[-0.0159504,	0.0707544,	-0.0125],
+            413:[-0.01241,	0.1,	0.0375]}
+
+        for node in model_part.Nodes:
+            if node in results:
+                self.assertAlmostEqual(results.get(node.Id)[0], node.X, 7)
+                self.assertAlmostEqual(results.get(node.Id)[1], node.Y, 7)
+                self.assertAlmostEqual(results.get(node.Id)[2], node.Z, 7)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
