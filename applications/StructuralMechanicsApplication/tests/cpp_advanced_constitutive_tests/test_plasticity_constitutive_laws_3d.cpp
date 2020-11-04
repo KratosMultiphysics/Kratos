@@ -163,9 +163,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     T TrescaCL = T();
 
     std::vector<double> MCres, VMres, DPres, Tres;
-    MCres = {9.96711e+06,9.96711e+06,1.00658e+07,0,0,1.04486e-12};
+    MCres = {1.00123e+07,1.00123e+07,9.97543e+06,0,0,-3.90205e-13};
     VMres = {9.96669e+06,9.96669e+06,1.00666e+07,0,0,1.05792e-12};
-    DPres = {-4.24126e+08,-4.24126e+08,-4.24845e+08,0,0,-7.61457e-12};
+    DPres = {-1.98441e+09, -1.98441e+09, -2.02922e+09, 0, 0, -4.74365e-10};
     Tres = {9.96669e+06,9.96669e+06,1.00666e+07,0,0,1.05792e-12};
 
     double plastic_dissipation;
@@ -898,12 +898,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
-    strain_vector[0] = 0.0;
-    strain_vector[1] = 0.0;
-    strain_vector[2] = 8.0e-5;
+    strain_vector[0] = 2.67364e-05;
+    strain_vector[1] = 2.67364e-05;
+    strain_vector[2] = 2.65238e-05;
     strain_vector[3] = 0.0;
     strain_vector[4] = 0.0;
-    strain_vector[5] = 1.6941e-21;
+    strain_vector[5] = -4.50395e-24;
     Matrix deformation_gradient = ZeroMatrix(3, 3);
     deformation_gradient(0,0) = 1.0;
     deformation_gradient(1,1) = 1.0;
@@ -914,7 +914,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
     material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e5);
-    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e5);
+    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e4);
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
@@ -954,19 +954,19 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     // Von Mises
     ConstitutiveLaw::Parameters cl_parameters_VM_res(cl_parameters);
     VonMisesCL.CalculateMaterialResponseCauchy(cl_parameters_VM_res);
-    VonMisesCL.FinalizeMaterialResponseCauchy(cl_parameters_MC_res);
+    VonMisesCL.FinalizeMaterialResponseCauchy(cl_parameters_VM_res);
     VMres = cl_parameters_VM_res.GetConstitutiveMatrix();
 
     // Drucker Pragger
     ConstitutiveLaw::Parameters cl_parameters_DP_res(cl_parameters);
     DruckerPragerCL.CalculateMaterialResponseCauchy(cl_parameters_DP_res);
-    DruckerPragerCL.FinalizeMaterialResponseCauchy(cl_parameters_MC_res);
+    DruckerPragerCL.FinalizeMaterialResponseCauchy(cl_parameters_DP_res);
     DPres = cl_parameters_DP_res.GetConstitutiveMatrix();
 
     // Tresca
     ConstitutiveLaw::Parameters cl_parameters_T_res(cl_parameters);
     TrescaCL.CalculateMaterialResponseCauchy(cl_parameters_T_res);
-    TrescaCL.FinalizeMaterialResponseCauchy(cl_parameters_MC_res);
+    TrescaCL.FinalizeMaterialResponseCauchy(cl_parameters_T_res);
     Tres = cl_parameters_T_res.GetConstitutiveMatrix();
 
     // Create the CL's (Finite strain)
