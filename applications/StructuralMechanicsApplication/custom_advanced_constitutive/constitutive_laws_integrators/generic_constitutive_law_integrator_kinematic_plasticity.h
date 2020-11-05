@@ -705,7 +705,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const Vector& curve_fitting_parameters = r_material_properties[CURVE_FITTING_PARAMETERS];
 
         const bool has_tangency_linear_region = r_material_properties.Has(TANGENCY_REGION2);
-        const bool& tangency_linear_region = has_tangency_linear_region ? r_material_properties[TANGENCY_REGION2] : false;
+        const bool tangency_linear_region = has_tangency_linear_region ? r_material_properties[TANGENCY_REGION2] : false;
 
         const Vector& plastic_strain_indicators = r_material_properties[PLASTIC_STRAIN_INDICATORS];
         const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
