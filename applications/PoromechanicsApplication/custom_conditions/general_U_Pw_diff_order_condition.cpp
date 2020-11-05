@@ -53,10 +53,10 @@ Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType NewId,NodesArr
 void GeneralUPwDiffOrderCondition::Initialize()
 {
     KRATOS_TRY
-    
+
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
-    
+
     switch(NumUNodes)
     {
         case 3: //2D L3P2
@@ -74,13 +74,13 @@ void GeneralUPwDiffOrderCondition::Initialize()
         default:
             KRATOS_THROW_ERROR(std::logic_error,"Unexpected geometry type for different order interpolation element","");
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -92,7 +92,7 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
 
     if(rConditionDofList.size() != ConditionSize)
         rConditionDofList.resize(ConditionSize);
-    
+
     SizeType Index = 0;
 /*
     for(SizeType i = 0; i < NumPNodes; i++)
@@ -103,7 +103,7 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
             rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
     }
-    
+
     for(SizeType i=NumPNodes; i<NumUNodes; i++)
     {
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_X );
@@ -123,13 +123,13 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
 
     for(SizeType i=0; i<NumPNodes; i++)
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
-        
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -138,63 +138,63 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSi
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
     const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
-    
+
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != ConditionSize )
         rLeftHandSideMatrix.resize( ConditionSize, ConditionSize, false );
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( ConditionSize, ConditionSize );
-    
+
     //Resetting the RHS
     if ( rRightHandSideVector.size() != ConditionSize )
         rRightHandSideVector.resize( ConditionSize, false );
     noalias( rRightHandSideVector ) = ZeroVector( ConditionSize );
-    
+
     //calculation flags
     bool CalculateLHSMatrixFlag = true;
     bool CalculateResidualVectorFlag = true;
-    
+
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateLHSMatrixFlag, CalculateResidualVectorFlag);
-    
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwDiffOrderCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     KRATOS_THROW_ERROR(std::logic_error,"GeneralUPwDiffOrderCondition::CalculateLeftHandSide not implemented","");
-    
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
     const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
-        
+
     //Resetting the RHS
     if ( rRightHandSideVector.size() != ConditionSize )
         rRightHandSideVector.resize( ConditionSize, false );
     noalias( rRightHandSideVector ) = ZeroVector( ConditionSize );
-    
+
     //calculation flags
     bool CalculateLHSMatrixFlag = false;
     bool CalculateResidualVectorFlag = true;
     MatrixType temp = Matrix();
-    
+
     CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateLHSMatrixFlag, CalculateResidualVectorFlag);
 }
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -203,12 +203,12 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
     const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
-    
+
     if ( rResult.size() != ConditionSize )
         rResult.resize( ConditionSize, false );
-    
+
     SizeType Index = 0;
-    
+
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {
         rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
@@ -225,15 +225,15 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, 
+void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
                                         bool CalculateLHSMatrixFlag, bool CalculateResidualVectorFlag)
-{   
+{
     KRATOS_TRY
 
     //Definition of variables
     ConditionVariables Variables;
     this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
-    
+
     //Loop over integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -241,22 +241,22 @@ void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix,
     {
         //compute element kinematics (Np)
         this->CalculateKinematics(Variables,PointNumber);
-        
+
         //Compute Condition Vector
         this->CalculateConditionVector(Variables,PointNumber);
-        
+
         //Calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( Variables, PointNumber, integration_points[PointNumber].Weight() );
 
         //Contributions to the left hand side
         if ( CalculateLHSMatrixFlag )
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
-        
+
         //Contributions to the right hand side
         if ( CalculateResidualVectorFlag )
             this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -273,7 +273,7 @@ void GeneralUPwDiffOrderCondition::InitializeConditionVariables (ConditionVariab
 
     (rVariables.NuContainer).resize(NumGPoints,NumUNodes,false);
     rVariables.NuContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
-    
+
     (rVariables.NpContainer).resize(NumGPoints,NumPNodes,false);
     rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
 
@@ -324,7 +324,7 @@ void GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVari
 //----------------------------------------------------------------------------------------
 
 void GeneralUPwDiffOrderCondition::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables)
-{    
+{
 
 }
 

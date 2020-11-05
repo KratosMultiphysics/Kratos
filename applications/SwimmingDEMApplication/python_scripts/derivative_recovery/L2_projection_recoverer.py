@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, ModelPart
@@ -51,7 +50,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         for node in self.recovery_model_part.Nodes:
             for var in DOF_variables:
                 node.AddDof(var)
-        print("DOFs for the derivative recovery solvers added correctly")
+        Kratos.Logger.PrintInfo("SwimmingDEM", "DOFs for the derivative recovery solvers added correctly")
 
     def Solve(self):
         pass
@@ -75,7 +74,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
                                                                                'vorticity_induced_lift_parameters'))
 
     def Solve(self):
-        print("\nSolving for the fluid acceleration...")
+        Kratos.Logger.PrintInfo("SwimmingDEM", "\nSolving for the fluid acceleration...")
         sys.stdout.flush()
         self.SetToZero(Kratos.VELOCITY_COMPONENT_GRADIENT)
         self.recovery_strategy.Solve()
@@ -140,6 +139,6 @@ class L2ProjectionLaplacianRecoverer(L2ProjectionMaterialAccelerationRecoverer, 
         self.AddDofs(self.DOFs)
 
     def RecoverVelocityLaplacian(self):
-        print("\nSolving for the laplacian...")
+        Kratos.Logger.PrintInfo("SwimmingDEM", "\nSolving for the laplacian...")
         self.SetToZero(Kratos.VELOCITY_LAPLACIAN)
         self.recovery_strategy.Solve()

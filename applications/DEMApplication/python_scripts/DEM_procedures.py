@@ -1,6 +1,3 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 import math
 import os
 import shutil
@@ -1445,6 +1442,7 @@ class DEMIo():
         self.PushPrintVar(self.PostDisplacement, DISPLACEMENT, self.global_variables)
         self.PushPrintVar(self.PostVelocity, VELOCITY, self.global_variables)
         self.PushPrintVar(self.PostTotalForces, TOTAL_FORCES, self.global_variables)
+        self.PushPrintVar(self.PostContactForces, CONTACT_FORCES, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_FORCE, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_MOMENT, self.global_variables)
         if self.DEM_parameters["PostAngularVelocity"].GetBool():
@@ -1520,7 +1518,6 @@ class DEMIo():
 
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces, ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostContactForces, CONTACT_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostPressure, DEM_PRESSURE, self.fem_boundary_variables)
         self.PushPrintVar(self.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostShearStress, SHEAR_STRESS, self.fem_boundary_variables)
@@ -1640,7 +1637,7 @@ class DEMIo():
             self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(all_model_parts.Get("RigidFacePart").GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(all_model_parts.Get("ClusterPart").GetCommunicator().LocalMesh())
-            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
                 self.gid_io.WriteCircleMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
@@ -1658,10 +1655,11 @@ class DEMIo():
             self.RemoveElementsAndNodes()
             self.AddModelPartsToMixedModelPart()
             self.gid_io.InitializeMesh(time)
-            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
+
             if self.contact_mesh_option:
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
                 contact_model_part.GetProperties(0)[0].Id = 9184
