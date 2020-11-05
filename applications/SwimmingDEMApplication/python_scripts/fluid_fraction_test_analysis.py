@@ -23,14 +23,14 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         """
         from KratosMultiphysics.SwimmingDEMApplication import hdf5_script
         self.projector_post_process = hdf5_script.ErrorProjectionPostProcessTool(iteration)
-        super(FluidFractionTestAnalysis, self).__init__(model, varying_parameters)
+        super().__init__(model, varying_parameters)
         self.project_parameters = varying_parameters
 
     def InitializeVariablesWithNonZeroValues(self):
         pass
 
     def Initialize(self):
-        super(FluidFractionTestAnalysis, self).Initialize()
+        super().Initialize()
         self._GetSolver().ConstructL2ErrorProjector()
 
     def GetDebugInfo(self):
@@ -57,7 +57,7 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
             self.dem_volume_tool.UpdateDataAndPrint(
                 self.project_parameters["fluid_domain_volume"].GetDouble())
 
-        super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
         self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self._GetSolver().ProjectL2Error()
         self.projector_post_process.WriteData(self.error_model_part, self.velocity_error_projected, self.pressure_error_projected)
