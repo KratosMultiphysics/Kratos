@@ -356,6 +356,174 @@ void RunAdjointSensitivityDataTest(
     );
 }
 
+template<class TDataType>
+IndexType GetVariableDimension(const Variable<TDataType>& rVariable, const ProcessInfo& rProcessInfo);
+
+template <class TClassType>
+void CalculateResidual(
+    Vector& residual,
+    TClassType& rClassTypeObject,
+    const ProcessInfo& rProcessInfo)
+{
+    const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
+
+    Vector nodal_scalar_values, current_nodal_scalar_rate_values, old_nodal_scalar_rate_values;
+    Matrix lhs, damping_matrix, mass_matrix;
+
+    rClassTypeObject.CalculateLocalSystem(lhs, residual, rProcessInfo);
+    rClassTypeObject.CalculateMassMatrix(mass_matrix, rProcessInfo);
+    rClassTypeObject.CalculateLocalVelocityContribution(damping_matrix, residual, rProcessInfo);
+
+    static_cast<const TClassType&>(rClassTypeObject).GetFirstDerivativesVector(nodal_scalar_values);
+    static_cast<const TClassType&>(rClassTypeObject).GetSecondDerivativesVector(current_nodal_scalar_rate_values);
+    static_cast<const TClassType&>(rClassTypeObject).GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
+
+    noalias(current_nodal_scalar_rate_values) =
+        current_nodal_scalar_rate_values * (1 - bossak_alpha) +
+        old_nodal_scalar_rate_values * bossak_alpha;
+
+    IndexType residual_equations_size = std::max(
+        {damping_matrix.size1(), mass_matrix.size1(), nodal_scalar_values.size(),
+         current_nodal_scalar_rate_values.size(), old_nodal_scalar_rate_values.size()});
+
+    if (residual.size() != 0)
+    {
+        KRATOS_ERROR_IF(residual.size() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateRightHandSide RHS vector size doesn't match with max residual_equations_size "
+            << residual_equations_size << " [ RHS_size = " << residual.size()
+            << " != " << residual_equations_size << " ].\n";
+    }
+
+    if (damping_matrix.size1() != 0 && nodal_scalar_values.size() != 0)
+    {
+        KRATOS_ERROR_IF(damping_matrix.size1() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateDampingMatrix damping matrix size1 doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ DampingMatrix_size1 = " << damping_matrix.size1()
+            << " != " << residual_equations_size << " ].\n";
+        KRATOS_ERROR_IF(damping_matrix.size1() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateDampingMatrix damping matrix size2 doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ DampingMatrix_size2 = " << damping_matrix.size1()
+            << " != " << residual_equations_size << " ].\n";
+        KRATOS_ERROR_IF(nodal_scalar_values.size() != residual_equations_size)
+            << rClassTypeObject.Info() << "::GetFirstDerivativesVector values vector size doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ Values_size = " << nodal_scalar_values.size()
+            << " != " << residual_equations_size << " ].\n";
+    }
+
+    if (mass_matrix.size1() != 0 && current_nodal_scalar_rate_values.size() != 0)
+    {
+        KRATOS_ERROR_IF(mass_matrix.size1() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateMassMatrix damping matrix size1 doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ MassMatrix_size1 = " << mass_matrix.size1()
+            << " != " << residual_equations_size << " ].\n";
+        KRATOS_ERROR_IF(mass_matrix.size1() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateMassMatrix damping matrix size2 doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ MassMatrix_size2 = " << mass_matrix.size1()
+            << " != " << residual_equations_size << " ].\n";
+        KRATOS_ERROR_IF(current_nodal_scalar_rate_values.size() != residual_equations_size)
+            << rClassTypeObject.Info() << "::GetSecondDerivativesVector values vector size doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ Values_size = " << current_nodal_scalar_rate_values.size()
+            << " != " << residual_equations_size << " ].\n";
+        noalias(residual) -= prod(mass_matrix, current_nodal_scalar_rate_values);
+    }
+}
+
+template<class TContainerType, class TDataType>
+void RunAdjointElementTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    const std::function<void(ModelPart&)>& rUpdateModelPart,
+    const Variable<TDataType>& rVariable,
+    const std::function<void(Matrix&, typename TContainerType::data_type&, const ProcessInfo&)>& rCalculateElementResidualDerivatives,
+    const IndexType EquationOffset,
+    const IndexType DerivativeOffset,
+    const double Delta,
+    const double Tolerance)
+{
+    KRATOS_TRY
+
+    auto& r_primal_container = RansCalculationUtilities::GetContainer<TContainerType>(rPrimalModelPart);
+    auto& r_adjoint_container = RansCalculationUtilities::GetContainer<TContainerType>(rAdjointModelPart);
+    rAdjointModelPart.GetProcessInfo()[DELTA_TIME] = rPrimalModelPart.GetProcessInfo()[DELTA_TIME] * -1.0;
+
+    const IndexType number_of_elements = r_primal_container.size();
+    KRATOS_ERROR_IF(number_of_elements != r_adjoint_container.size())
+        << "Mismatching number of items (i.e. elements/conditions) in primal "
+           "and adjoint model parts.\n";
+
+    const auto& r_primal_process_info = rPrimalModelPart.GetProcessInfo();
+    const auto& r_adjoint_process_info = rAdjointModelPart.GetProcessInfo();
+
+    KRATOS_ERROR_IF(r_primal_process_info[DOMAIN_SIZE] != r_adjoint_process_info[DOMAIN_SIZE])
+        << "Domain size mismatch in primal and adjoint model parts.\n";
+
+
+    Matrix adjoint_residual_derivatives;
+    Vector residual_ref, residual, fd_derivatives;
+
+    rUpdateModelPart(rPrimalModelPart);
+    rUpdateModelPart(rAdjointModelPart);
+
+    const auto& perturbation_method = GetPerturbationMethod(rVariable);
+    const auto derivative_dimension = GetVariableDimension(rVariable, r_primal_process_info);
+
+    for (IndexType i = 0; i < number_of_elements; ++i) {
+        auto& r_primal_element = *(r_primal_container.begin() + i);
+        auto& r_adjoint_element = *(r_adjoint_container.begin() + i);
+
+        r_primal_element.Check(r_primal_process_info);
+        r_adjoint_element.Check(r_adjoint_process_info);
+
+        // calculate adjoint sensitivities
+        rCalculateElementResidualDerivatives(adjoint_residual_derivatives, r_adjoint_element, r_adjoint_process_info);
+
+        // calculate primal reference residuals
+        CalculateResidual(residual_ref, r_primal_element, r_primal_process_info);
+
+        const IndexType number_of_nodes = r_primal_element.GetGeometry().PointsNumber();
+        KRATOS_ERROR_IF(number_of_nodes != r_adjoint_element.GetGeometry().PointsNumber()) << "Number of nodes mismatch between primal and adjoint elements.\n";
+
+        const IndexType residual_block_size = residual_ref.size() / number_of_nodes;
+        const IndexType adjoint_equation_block_size = adjoint_residual_derivatives.size2() / number_of_nodes;
+        const IndexType adjoint_derivatives_block_size = adjoint_residual_derivatives.size1() / number_of_nodes;
+
+        for (IndexType c = 0; c < number_of_nodes; ++c) {
+            auto& r_node = r_primal_element.GetGeometry()[c];
+            for (IndexType k = 0; k < derivative_dimension; ++k) {
+                perturbation_method(r_node, k) += Delta;
+                rUpdateModelPart(rPrimalModelPart);
+
+                // calculate perturbed residual
+                CalculateResidual(residual, r_primal_element, r_primal_process_info);
+                fd_derivatives = (residual - residual_ref) / Delta;
+
+                // checking fd derivatives and adjoint derivatives
+                for (IndexType a = 0; a < number_of_nodes; ++a) {
+                    for (IndexType b = 0; b < residual_block_size; ++b) {
+                        const double adjoint_derivative_value = adjoint_residual_derivatives(
+                            c * adjoint_derivatives_block_size + DerivativeOffset + k,
+                            a * adjoint_equation_block_size + EquationOffset + b);
+                        const double fd_derivative_value = fd_derivatives[a * residual_block_size + b];
+
+                        CompareValues(fd_derivative_value, adjoint_derivative_value, Tolerance);
+                    }
+                }
+
+                perturbation_method(r_node, k) -= Delta;
+            }
+        }
+
+    }
+
+    KRATOS_CATCH("");
+}
+
 } // namespace RansApplicationTestUtilities
 } // namespace Kratos
 

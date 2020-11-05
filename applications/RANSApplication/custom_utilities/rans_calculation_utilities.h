@@ -155,6 +155,20 @@ double GetDivergence(
     const Matrix& rShapeDerivatives,
     const int Step = 0);
 
+template <std::size_t TNumNodes>
+void GetConvectionOperator(
+    BoundedVector<double, TNumNodes>& rOutput,
+    const array_1d<double, 3>& rVector,
+    const Matrix& rShapeDerivatives)
+{
+    rOutput.clear();
+    for (IndexType i = 0; i < TNumNodes; ++i) {
+        for (IndexType j = 0; j < rShapeDerivatives.size2(); ++j) {
+            rOutput[i] += rVector[j] * rShapeDerivatives(i, j);
+        }
+    }
+}
+
 template <unsigned int TNumNodes>
 void CalculateGaussSensitivities(
     BoundedVector<double, TNumNodes>& rGaussSensitivities,

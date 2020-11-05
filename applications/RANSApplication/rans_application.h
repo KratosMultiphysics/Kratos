@@ -62,6 +62,12 @@
 #include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
 
+// Adjoint element
+#include "custom_elements/two_equation_turbulence_model_adjoint_element.h"
+
+// Adjoint element data containers
+#include "custom_elements/data_containers/k_epsilon/vms_rfc_k_epsilon_adjoint_element_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -229,6 +235,10 @@ private:
 
     const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
+
+    // Adjoint elements
+    // k-epsilon turbulence model adjoint elements
+    const TwoEquationTurbulenceModelAdjointElement<2, 3, VMSRFCKEpsilonAdjintElementData<2, 3>> mRansAdjointVMSKEpsilonRFC2D;
 
     ///@}
     ///@name Un accessible methods

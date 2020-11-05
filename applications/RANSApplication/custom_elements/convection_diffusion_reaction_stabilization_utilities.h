@@ -142,7 +142,7 @@ inline void CalculateCrossWindDiffusionParameters(
     rCrossWindDiffusionCoeff = RansCalculationUtilities::SoftPositive(value);
 }
 
-template <unsigned int TSize>
+template <std::size_t TSize>
 inline void CalculateDiscreteUpwindOperator(
     double& rScalarCoeff,
     BoundedMatrix<double, TSize, TSize>& rDiffusionMatrix,

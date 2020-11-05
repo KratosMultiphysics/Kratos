@@ -96,6 +96,17 @@ void CompareValues(const array_1d<double, 3>& rA, const array_1d<double, 3>& rB,
     KRATOS_CHECK_VECTOR_NEAR(rA, rB, Tolerance);
 }
 
+template<>
+IndexType GetVariableDimension(const Variable<double>& rVariable, const ProcessInfo& rProcessInfo)
+{
+    return 1;
+}
+
+template<>
+IndexType GetVariableDimension(const Variable<array_1d<double, 3>>& rVariable, const ProcessInfo& rProcessInfo)
+{
+    return rProcessInfo[DOMAIN_SIZE];
+}
 
 } // namespace RansApplicationTestUtilities
 } // namespace Kratos

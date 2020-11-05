@@ -16,6 +16,8 @@
 #include "geometries/geometry_data.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "includes/checks.h"
+#include "includes/cfd_variables.h"
 
 // Application includes
 #include "custom_elements/data_containers/k_epsilon/adjoint_element_data_utilities.h"
@@ -87,7 +89,23 @@ void EpsilonAdjointStateDerivatives<TDim, TNumNodes>::Data::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // BaseType::Check(rGeometry, rCurrentProcessInfo);
+    KRATOS_TRY
+    const int number_of_nodes = rGeometry.PointsNumber();
+
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+        const auto& r_node = rGeometry[i_node];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(RANS_SCALAR_2_ADJOINT_1, r_node);
+    }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -349,7 +367,21 @@ void EpsilonAdjointShapeDerivatives<TDim, TNumNodes>::Data::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // BaseType::Check(rGeometry, rCurrentProcessInfo);
+    KRATOS_TRY
+    const int number_of_nodes = rGeometry.PointsNumber();
+
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+        const auto& r_node = rGeometry[i_node];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
+    }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
