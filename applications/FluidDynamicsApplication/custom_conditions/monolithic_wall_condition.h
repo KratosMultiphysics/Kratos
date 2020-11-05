@@ -213,7 +213,7 @@ public:
       */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -249,7 +249,7 @@ public:
       @see CalculateLocalVelocityContribution
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -263,7 +263,7 @@ public:
 
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                            ProcessInfo& rCurrentProcessInfo) override
+                            const ProcessInfo& rCurrentProcessInfo) override
     {
         VectorType RHS;
         this->CalculateLocalVelocityContribution(rDampingMatrix,RHS,rCurrentProcessInfo);

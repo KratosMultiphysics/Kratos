@@ -306,7 +306,7 @@ public:
 	 */
 	void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override
+			const ProcessInfo& rCurrentProcessInfo) override
 	{
 		KRATOS_TRY;
 
@@ -636,7 +636,7 @@ protected:
 	 */
 	void ApplyIACPenalty(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo)
+			const ProcessInfo& rCurrentProcessInfo)
 	{
 		GeometryType& rGeometry = this->GetGeometry();
 		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
