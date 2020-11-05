@@ -89,7 +89,7 @@ namespace Kratos
 			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 			//********************************************************************
@@ -99,6 +99,7 @@ namespace Kratos
 
 			  //initialize and finalize. the others are standard and are in the ExplicitStrategy
 			  .def("InitializeSolutionStep",&PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
+			  .def("AssembleLoop",&PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssembleLoop)
 			  .def("FinalizeSolutionStep",&PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)
 			  ;
 			py::class_< Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,BaseSolvingStrategyType >(m,"Fluid_Phase_PFEM2_Explicit_Strategy")
@@ -106,6 +107,7 @@ namespace Kratos
 
 			  //initialize and finalize. the others are standard and are in the ExplicitStrategy
 			  .def("InitializeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
+			  .def("AssembleLoop",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssembleLoop)
 			  .def("FinalizeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)
 			  ;
 

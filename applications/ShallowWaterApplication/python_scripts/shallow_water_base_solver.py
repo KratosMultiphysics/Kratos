@@ -146,7 +146,6 @@ class ShallowWaterBaseSolver(PythonSolver):
                 "input_filename"           : "unknown_name"
             },
             "echo_level"               : 0,
-            "buffer_size"              : 2,
             "stabilization_factor"     : 0.005,
             "dry_height_threshold"     : 1e-3,
             "relative_tolerance"       : 1e-6,
