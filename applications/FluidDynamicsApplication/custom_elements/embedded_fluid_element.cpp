@@ -240,8 +240,7 @@ void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
 // Inquiry
 
 template <class TBaseElement>
-int EmbeddedFluidElement<TBaseElement>::Check(
-    const ProcessInfo &rCurrentProcessInfo)
+int EmbeddedFluidElement<TBaseElement>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
 
     int out = EmbeddedElementData::Check(*this,rCurrentProcessInfo);

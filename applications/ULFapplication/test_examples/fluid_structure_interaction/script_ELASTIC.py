@@ -20,6 +20,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
+#from KratosMultiphysics.PFEMApplication import PfemUtils
 #STR APPL U NEED FOR COMPUTING DISTANCES BETWEEN VOLUME AND SURFACE MESHES
 from KratosMultiphysics.StructuralMechanicsApplication import *
 

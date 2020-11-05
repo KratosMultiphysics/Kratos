@@ -3,6 +3,7 @@ from KratosMultiphysics.ConvectionDiffusionApplication import *
 #from KratosConvectionDiffusionApplication import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
+#from KratosMultiphysics.PFEMApplication import PfemUtils
 #from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 

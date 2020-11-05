@@ -15,7 +15,6 @@
             "input_filename"           : "square_domain"
         },
         "echo_level"               : 0,
-        "buffer_size"              : 2,
         "stabilization_factor"     : 0.005,
         "relative_tolerance"       : 1.0E-6,
         "absolute_tolerance"       : 1.0E-9,

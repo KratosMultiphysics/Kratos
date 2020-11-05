@@ -791,7 +791,7 @@ void FractionalStep<TDim>::CalculateEndOfStepSystem(MatrixType& rLeftHandSideMat
 
 
 template< unsigned int TDim >
-int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -820,7 +820,7 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
-        Node<3> &rNode = this->GetGeometry()[i];
+        const auto &rNode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,rNode);
