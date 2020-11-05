@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(RANSVMSKEpsilonAdjointCalculateFirstDerivativesLHSEpsi
         rElement.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
     RunRansVMSKEpsilonAdjointElementTest("RansKEpsilonEpsilonRFC2D3N", VELOCITY,
-                                         derivatives_method, 4, 0, 1e-3, 1e-5);
+                                         derivatives_method, 4, 0, 1e-4, 1e-2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RANSVMSKEpsilonAdjointCalculateFirstDerivativesLHSEpsilonP, KratosRansFastSuite)
