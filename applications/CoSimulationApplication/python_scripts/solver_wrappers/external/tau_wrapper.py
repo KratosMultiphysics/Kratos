@@ -57,35 +57,35 @@ class TAUWrapper(CoSimulationSolverWrapper):
         self.time = wrapper_settings["start_time"].GetDouble()
         self.time_step = wrapper_settings["time_step"].GetDouble()
 
-        vtk_parameters = KM.Parameters("""{
-            "file_format"                  : "binary",
-            "output_precision"             : 7,
-            "output_control_type"          : "step",
-            "output_sub_model_parts"       : false,
-            "save_output_files_in_folder"  : false,
-            "folder_name"                  : "vtk_output_mapper_up",
-            "custom_name_prefix"           : "MEMBRANE_UP",
-            "custom_name_postfix"          : "",
-            "nodal_solution_step_data_variables" : ["MESH_DISPLACEMENT","REACTION"],
-            "element_data_value_variables" : []
-        }""")
+        # vtk_parameters = KM.Parameters("""{
+        #     "file_format"                  : "binary",
+        #     "output_precision"             : 7,
+        #     "output_control_type"          : "step",
+        #     "output_sub_model_parts"       : false,
+        #     "save_output_files_in_folder"  : false,
+        #     "folder_name"                  : "vtk_output_mapper_up",
+        #     "custom_name_prefix"           : "MEMBRANE_UP",
+        #     "custom_name_postfix"          : "",
+        #     "nodal_solution_step_data_variables" : ["MESH_DISPLACEMENT","REACTION"],
+        #     "element_data_value_variables" : []
+        # }""")
 
-        self.vtk_io_up = KM.VtkOutput(self.model["UpperInterface"], vtk_parameters)
+        # self.vtk_io_up = KM.VtkOutput(self.model["UpperInterface"], vtk_parameters)
 
-        vtk_parameters = KM.Parameters("""{
-            "file_format"                  : "binary",
-            "output_precision"             : 7,
-            "output_control_type"          : "step",
-            "output_sub_model_parts"       : false,
-            "save_output_files_in_folder"  : false,
-            "folder_name"                  : "vtk_output_mapper_down",
-            "custom_name_prefix"           : "MEMBRANE_DOWN",
-            "custom_name_postfix"          : "",
-            "nodal_solution_step_data_variables" : ["MESH_DISPLACEMENT","REACTION"],
-            "element_data_value_variables" : []
-        }""")
+        # vtk_parameters = KM.Parameters("""{
+        #     "file_format"                  : "binary",
+        #     "output_precision"             : 7,
+        #     "output_control_type"          : "step",
+        #     "output_sub_model_parts"       : false,
+        #     "save_output_files_in_folder"  : false,
+        #     "folder_name"                  : "vtk_output_mapper_down",
+        #     "custom_name_prefix"           : "MEMBRANE_DOWN",
+        #     "custom_name_postfix"          : "",
+        #     "nodal_solution_step_data_variables" : ["MESH_DISPLACEMENT","REACTION"],
+        #     "element_data_value_variables" : []
+        # }""")
 
-        self.vtk_io_down = KM.VtkOutput(self.model["LowerInterface"], vtk_parameters)
+        # self.vtk_io_down = KM.VtkOutput(self.model["LowerInterface"], vtk_parameters)
 
     def Initialize(self):
         print('TAUWrapper Initialize')
@@ -164,8 +164,8 @@ class TAUWrapper(CoSimulationSolverWrapper):
     def FinalizeSolutionStep(self):
         print('TAUWrapper FinalizeSolutionStep')
         super().FinalizeSolutionStep()
-        self.vtk_io_up.PrintOutput()
-        self.vtk_io_down.PrintOutput()
+        # self.vtk_io_up.PrintOutput()
+        # self.vtk_io_down.PrintOutput()
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.FinalizeSolutionStep)
         print('TAUWrapper FinalizeSolutionStep End')
