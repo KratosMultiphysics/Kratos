@@ -1042,10 +1042,23 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
                 }
 
-                if ( rOutput[point_number].size() != strain_size )
-                    rOutput[point_number].resize( strain_size, false );
+                if ( rOutput[point_number].size() != 6 )
+                    rOutput[point_number].resize( 6, false );
 
-                rOutput[point_number] = this_constitutive_variables.StressVector;
+                if (dimension == 2) {
+                    const auto& r_properties = this->GetProperties();
+                    const double mu = r_properties[POISSON_RATIO];
+                    const auto aux_vector = this_constitutive_variables.StressVector;
+                    for (IndexType i = 0; i < 2; ++i) {
+                        rOutput[point_number][i] = aux_vector[i];
+                    }
+                    rOutput[point_number][2] = mu * (aux_vector[0] + aux_vector[1]);
+                    rOutput[point_number][3] = aux_vector[2];
+                    rOutput[point_number][4] = 0.0;
+                    rOutput[point_number][5] = 0.0;
+                } else {
+                    rOutput[point_number] = this_constitutive_variables.StressVector;
+                }
             }
         } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR ) {
             // Create and initialize element variables:
@@ -1116,13 +1129,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             // Loop integration points
             for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-                if ( rOutput[point_number].size2() != dimension )
-                    rOutput[point_number].resize( dimension, dimension, false );
+                if ( rOutput[point_number].size2() != 3 )
+                    rOutput[point_number].resize( 3, 3, false );
 
                 rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
             }
-        }
-        else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
+        } else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
             std::vector<Vector> strain_vector;
             if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
                 CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
