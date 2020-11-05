@@ -174,7 +174,8 @@ namespace Kratos
             : time_ratio * mFinalOriginInterfaceKinematics + (1.0 - time_ratio) * mInitialOriginInterfaceKinematics;
         CompressedMatrix expanded_mapper(mpMappingMatrix->size1() * dim, mpMappingMatrix->size2() * dim, 0.0);
         GetExpandedMappingMatrix(expanded_mapper, dim);
-        Vector mapped_interpolated_origin_kinematics = prod(expanded_mapper, interpolated_origin_kinematics);
+        Vector mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
+        axpy_prod(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics,false);
 
         // Determine kinematics difference
         rUnbalancedKinematics += mapped_interpolated_origin_kinematics;
@@ -306,7 +307,6 @@ namespace Kratos
             rLagrangeVec.resize(rUnbalancedKinematics.size(), false);
         rLagrangeVec.clear();
 
-
         mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedKinematics);
 
         KRATOS_CATCH("")
@@ -325,7 +325,8 @@ namespace Kratos
         const bool is_implicit = (IsOrigin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         // Apply acceleration correction
-        Vector accel_corrections = prod(rUnitResponse, rLagrangeVec);
+        Vector accel_corrections(rUnitResponse.size1(), 0.0);
+        axpy_prod(rUnitResponse, rLagrangeVec, accel_corrections,false);
         AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
 
         // Apply velocity correction
@@ -574,7 +575,9 @@ namespace Kratos
             // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
             CompressedMatrix expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
             GetExpandedMappingMatrix(expanded_mapper, DOFs);
-            rProjector = prod(expanded_mapper, rProjector);
+            CompressedMatrix temp(expanded_mapper.size1(), rProjector.size2(), 0.0);
+            axpy_prod(expanded_mapper, rProjector, temp,false);
+            rProjector = temp;
         }
 
         KRATOS_CATCH("")
