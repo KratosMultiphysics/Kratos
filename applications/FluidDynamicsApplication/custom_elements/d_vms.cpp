@@ -177,7 +177,7 @@ void DVMS<TElementData>::InitializeNonLinearIteration(ProcessInfo &rCurrentProce
 // Inquiry
 
 template< class TElementData >
-int DVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int DVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     int out = QSVMS<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)

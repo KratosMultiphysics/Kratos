@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosContactMechanicsApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 
 ################### PYBIND11
@@ -12,7 +12,7 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplicati
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+  set(TRIANGLE_DIR ${KRATOS_SOURCE_DIR}/external_libraries/triangle)
   include_directories( ${TRIANGLE_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 

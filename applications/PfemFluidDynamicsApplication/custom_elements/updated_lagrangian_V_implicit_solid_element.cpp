@@ -119,6 +119,8 @@ void UpdatedLagrangianVImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted
     rElementalVariables.UpdatedTotalCauchyStress[2] =
         2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[2] + rElementalVariables.CurrentTotalCauchyStress[2];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
 }
@@ -184,6 +186,8 @@ void UpdatedLagrangianVImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted
         2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[4] + rElementalVariables.CurrentTotalCauchyStress[4];
     rElementalVariables.UpdatedTotalCauchyStress[5] =
         2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[5] + rElementalVariables.CurrentTotalCauchyStress[5];
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
 
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;

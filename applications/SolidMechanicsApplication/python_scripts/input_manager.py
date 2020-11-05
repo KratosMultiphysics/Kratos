@@ -14,12 +14,14 @@ class InputManager(object):
     def __init__(self, input_file):
 
         parameters = None
-        if os.path.isfile(input_file):
-            parameters_file = open(input_file,'r')
-            parameters = KratosMultiphysics.Parameters(parameters_file.read())
+        if type(input_file) == str:
+            if os.path.isfile(input_file):
+                parameters_file = open(input_file,'r')
+                parameters = KratosMultiphysics.Parameters(parameters_file.read())
+            else:
+                raise Exception("Input file "+input_file+" does not exist")
         else:
-            raise Exception("Input file "+input_file+" does not exist")
-
+            parameters = input_file
         #print(" PARAMETERS ", parameters.PrettyPrintJsonString())
 
         # Set custom input settings
@@ -35,6 +37,9 @@ class InputManager(object):
 
         if(self.project_parameters.Has("input_settings")):
             self._set_input_parts()
+
+        # Set model name (prepend parent model part name)
+        self._set_model_name(self.project_parameters)
 
         #print(self.project_parameters.PrettyPrintJsonString())
         return self.project_parameters
@@ -58,12 +63,71 @@ class InputManager(object):
         if(self.project_parameters.Has("input_settings")):
             self._set_material_parts()
 
+        # Set model name (prepend parent model part name)
+        self._set_material_model_name(self.material_parameters, self.project_parameters)
+
         #print(self.material_parameters.PrettyPrintJsonString())
         return self.material_parameters
 
 
 
     #### Input manager internal methods ####
+
+    def _set_material_model_name(self, material_parameters, project_parameters):
+        # prepend parent model part name
+        model_name = "solid_domain"
+        if project_parameters.Has("model_settings"):
+            if project_parameters["model_settings"].Has("model_name"):
+                model_name = project_parameters["model_settings"]["model_name"].GetString()
+
+        for material in material_parameters["material_models_list"]:
+            self._set_model_part_name(material, model_name)
+
+    def _set_model_name(self, project_parameters):
+        # prepend parent model part name
+        model_name = "solid_domain"
+        if project_parameters.Has("model_settings"):
+            if project_parameters["model_settings"].Has("model_name"):
+                model_name = project_parameters["model_settings"]["model_name"].GetString()
+
+        if project_parameters.Has("solver_settings"):
+            solver_parameters = project_parameters["solver_settings"]["Parameters"]
+            if solver_parameters.Has("solvers"):
+                for solver in solver_parameters["solvers"]:
+                    solver_parameters = solver["Parameters"]
+                    self._set_solving_model_part_name(solver_parameters, model_name)
+                    if solver.Has("processes"):
+                       for process in solver["processes"]:
+                           self._set_model_part_name(process, model_name)
+            else:
+                self._set_solving_model_part_name(solver_parameters, model_name)
+                if solver_parameters.Has("processes"):
+                    for process in solver_parameters["processes"]:
+                        self._set_model_part_name(process, model_name)
+
+        process_lists = ["constraints_process_list","loads_process_list","problem_process_list","output_process_list","check_process_list"]
+        for list_name in process_lists:
+            if project_parameters.Has(list_name):
+                for process in project_parameters[list_name]:
+                    self._set_model_part_name(process, model_name)
+
+    def _set_solving_model_part_name(self, solver_parameters, model_name):
+        # prepend parent model part name
+        if solver_parameters.Has("solving_model_part"):
+            name = model_name+"."+solver_parameters["solving_model_part"].GetString()
+            solver_parameters["solving_model_part"].SetString(name)
+        else:
+            solver_parameters.AddEmptyValue("solving_model_part").SetString(model_name+".computing_domain")
+
+    def _set_model_part_name(self, process, model_name):
+        # prepend parent model part name
+        parameters = process
+        if process.Has("Parameters"):
+            parameters = process["Parameters"]
+        if parameters.Has("model_part_name"):
+            if model_name != parameters["model_part_name"].GetString():
+                name = model_name+"."+parameters["model_part_name"].GetString()
+                parameters["model_part_name"].SetString(name)
 
     #
     def _set_custom_parameters(self, parameters):

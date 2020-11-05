@@ -25,7 +25,7 @@
 #include "containers/vector_map.h"
 #include "containers/pointer_vector_set.h"
 #include "containers/variables_list_data_value_container.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/global_pointers_vector.h"
 
 namespace Kratos
