@@ -46,7 +46,7 @@ tau_parallel_sync()
 if rotate:
     para_path='input/airfoil_Structured_rotation.cntl'
 else:
-    para_path='input/airfoil_Structured.cntl'
+    para_path='input/airfoil_Structured_rotation.cntl'
 
 para_path_mod = para_path + ".mod"
 para_path_up = 'input/airfoil_Structured_up.cntl'
@@ -58,11 +58,12 @@ Para = PyPara.Parafile(para_path_mod)
 tau_time_step = float(Para.get_para_value('Unsteady physical time step size'))
 tau_parallel_sync()
 
-if rotate:
+if is_strong_coupling:
     # --- Prepare parameters for unsteady simulation ---
     Para.update({"Unsteady allow external control over progress in time (0/1)": 1,
                  "Unsteady enable external control over progress in time (0/1)": 1})
 
+if rotate:
     # external output period (needed if output period in para_path not working properly)
 
     # --- Load external excitation files ---
@@ -219,13 +220,13 @@ def ExportData(conn_name, identifier):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = 0.0*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step)
             # with open('forces_up' + str(step) + '.dat','w') as fname:
             #    for i in range(len(forces)/3):
             #        fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
-            forces = 0.0*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -316,9 +317,9 @@ if rank == 0:
 n_steps = int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
-first_iteration = True
+first_iteration = False
 
-factor = 0.0
+factor = 1.0
 for i in range(n_steps):
 
     sub_step = 0
