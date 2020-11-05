@@ -492,7 +492,7 @@ public:
             double Cmixed    = denG*c_v + denS*cs;
             double Cpmixed   = denG*cp + denS*cs;
 
-            double vel      = norm_2(mom)/(denG + denS);
+            double vel      = norm_2(mom)/denT;
 
             double velsound = sqrt(denG*R*Cpmixed*(2*ene - denT*vel*vel)/(2*denT*Cmixed*Cmixed));
             double mach     = vel/velsound;
@@ -509,6 +509,7 @@ public:
             it_node->FastGetSolutionStepValue(PRESSURE)     = pressure; 
             it_node->FastGetSolutionStepValue(GAS_PRESSURE) = denG*R*temp/(1 - sol_conc); 
             it_node->FastGetSolutionStepValue(SOLID_CONCENTRATION) = sol_conc; 
+            it_node->FastGetSolutionStepValue(DYNAMIC_PRESSURE) = 0.5*denT*vel*vel; 
             it_node->FastGetSolutionStepValue(MACH)         = mach; 
             
 

@@ -271,7 +271,8 @@ public:
             it_node->FastGetSolutionStepValue(TEMPERATURE)  = temp;     
             it_node->FastGetSolutionStepValue(PRESSURE)     = pressure; 
             it_node->FastGetSolutionStepValue(GAS_PRESSURE) = denG*R*temp/(1 - sol_conc); 
-            it_node->FastGetSolutionStepValue(SOLID_CONCENTRATION) = sol_conc; 
+            it_node->FastGetSolutionStepValue(SOLID_CONCENTRATION) = sol_conc;
+            it_node->FastGetSolutionStepValue(DYNAMIC_PRESSURE) = 0.5*denT*vel*vel; 
             it_node->FastGetSolutionStepValue(MACH)         = mach; 
             
 

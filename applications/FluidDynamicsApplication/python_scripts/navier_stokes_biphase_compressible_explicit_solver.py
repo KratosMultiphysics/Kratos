@@ -131,6 +131,7 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)  #for momentum
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.SOLID_CONCENTRATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DYNAMIC_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.GAS_PRESSURE)
         
         print("Monolithic compressible fluid solver variables added correctly")
