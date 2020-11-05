@@ -299,7 +299,7 @@ public:
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 

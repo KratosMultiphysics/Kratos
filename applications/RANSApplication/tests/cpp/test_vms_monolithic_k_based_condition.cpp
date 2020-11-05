@@ -151,7 +151,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
 
     // setting reference values
@@ -163,7 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
 
     // setting reference values
@@ -188,7 +188,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLeftHandSide(LHS, r_process_info);
 
     // setting reference values
@@ -198,7 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLeftHandSide(LHS, r_process_info);
 
     // setting reference values
@@ -221,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateRightHandSide(RHS, r_process_info);
 
     // setting reference values
@@ -231,7 +231,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateRightHandSide(RHS, r_process_info);
 
     // setting reference values
@@ -254,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateDampingMatrix(LHS, r_process_info);
 
     // setting reference values
@@ -264,7 +264,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateDampingMatrix(LHS, r_process_info);
 
     // setting reference values
@@ -296,7 +296,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values
@@ -310,7 +310,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values

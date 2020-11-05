@@ -31,7 +31,7 @@ namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
 int IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -53,7 +53,7 @@ int IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Check(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Initialize()
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

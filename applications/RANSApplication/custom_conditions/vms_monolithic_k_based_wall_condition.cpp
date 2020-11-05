@@ -35,7 +35,7 @@ namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
 int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -57,7 +57,7 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize()
+void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -100,7 +100,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
     MatrixType& rLocalMatrix,
     VectorType& rLocalVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

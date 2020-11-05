@@ -173,7 +173,7 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Cal
 
 template <unsigned int TDim, unsigned int TNumNodes, class TScalarWallFluxConditionData>
 int ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
