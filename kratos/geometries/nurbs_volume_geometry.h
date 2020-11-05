@@ -683,7 +683,7 @@ public:
             if (NumberOfShapeFunctionDerivatives > 0) {
                 IndexType shape_derivative_index = 1;
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n) {
-                    const IndexType num_derivatives = (2 + i) * (3 + i) / 2;
+                    const IndexType num_derivatives = (2 + n) * (3 + n) / 2;
                     for (IndexType k = 0; k < num_derivatives; ++k) {
                         for (IndexType j = 0; j < num_nonzero_cps; ++j) {
                             shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
