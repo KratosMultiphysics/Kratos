@@ -83,10 +83,11 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.CreateNewElement("EmbeddedSymbolicNavierStokesDiscontinuous2D3N", 1, element_nodes, p_properties);
     model_part.CreateNewElement("EmbeddedQSVMSDiscontinuous2D3N", 2, element_nodes, p_properties);
 
-    // Call the elements Initialize()
+    const auto& r_process_info = model_part.GetProcessInfo();
     for (auto &r_elem : model_part.Elements()) {
-        r_elem.Initialize(model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
-        r_elem.Check(model_part.GetProcessInfo()); // Otherwise the constitutive law is not seen here
+        r_elem.Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        const auto& r_const_elem = r_elem;
+        r_const_elem.Check(r_process_info); // Otherwise the constitutive law is not seen here
     }
 
     // Define the nodal values
@@ -130,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+        i->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
@@ -159,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Set(SLIP, false);
-        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+        i->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
@@ -181,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); ++i) {
         i->Set(SLIP, true);
-        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+        i->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
