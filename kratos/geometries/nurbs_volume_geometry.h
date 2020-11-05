@@ -55,13 +55,13 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
-    /// Counted pointer of NurbsSurfaceGeometry
+    /// Pointer of NurbsVolumeGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsVolumeGeometry);
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline surfaces
+    /// Conctructor for B-Spline volumes
     NurbsVolumeGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
@@ -81,30 +81,30 @@ public:
         CheckAndFitKnotVectors();
     }
 
-    /// Conctructor for NURBS surfaces
-    NurbsVolumeGeometry(
-        const PointsArrayType& rThisPoints,
-        const SizeType PolynomialDegreeU,
-        const SizeType PolynomialDegreeV,
-        const SizeType PolynomialDegreeW,
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const Vector& rKnotsW,
-        const Vector& rWeights)
-        : BaseType(rThisPoints, &msGeometryData)
-        , mPolynomialDegreeU(PolynomialDegreeU)
-        , mPolynomialDegreeV(PolynomialDegreeV)
-        , mPolynomialDegreeW(PolynomialDegreeW)
-        , mKnotsU(rKnotsU)
-        , mKnotsV(rKnotsV)
-        , mKnotsW(rKnotsW)
-        , mWeights(rWeights)
-    {
-        CheckAndFitKnotVectors();
+    /// Conctructor for NURBS volumes
+    // NurbsVolumeGeometry(
+    //     const PointsArrayType& rThisPoints,
+    //     const SizeType PolynomialDegreeU,
+    //     const SizeType PolynomialDegreeV,
+    //     const SizeType PolynomialDegreeW,
+    //     const Vector& rKnotsU,
+    //     const Vector& rKnotsV,
+    //     const Vector& rKnotsW,
+    //     const Vector& rWeights)
+    //     : BaseType(rThisPoints, &msGeometryData)
+    //     , mPolynomialDegreeU(PolynomialDegreeU)
+    //     , mPolynomialDegreeV(PolynomialDegreeV)
+    //     , mPolynomialDegreeW(PolynomialDegreeW)
+    //     , mKnotsU(rKnotsU)
+    //     , mKnotsV(rKnotsV)
+    //     , mKnotsW(rKnotsW)
+    //     , mWeights(rWeights)
+    // {
+    //     CheckAndFitKnotVectors();
 
-        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
-            << "Number of control points and weights do not match!" << std::endl;
-    }
+    //     KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
+    //         << "Number of control points and weights do not match!" << std::endl;
+    // }
 
     explicit NurbsVolumeGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
@@ -221,7 +221,7 @@ public:
         else if (LocalDirectionIndex == 2) {
             return this->NumberOfControlPointsW();
         }
-        KRATOS_ERROR << "Possible direction index in NurbsSurfaceGeometry reaches from 0-2. Given direction index: "
+        KRATOS_ERROR << "Possible direction index in NurbsVolumeGeometry reaches from 0-2. Given direction index: "
             << LocalDirectionIndex << std::endl;
     }
 
@@ -229,7 +229,7 @@ public:
     ///@name Mathematical Informations
     ///@{
 
-    /// Return polynomial degree of the surface in direction 0 or 1
+    /// Return polynomial degree of the volume in direction 0, 1, 2
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
         KRATOS_DEBUG_ERROR_IF(LocalDirectionIndex > 2)
@@ -252,83 +252,100 @@ public:
     ///@name Get and Set functions
     ///@{
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    /**
+     * @return returns the polynomial degree 'p' in u direction.
+     **/
     SizeType PolynomialDegreeU() const
     {
         return mPolynomialDegreeU;
     }
 
-    /* @return returns the polynomial degree 'p' in v direction. */
+    /**
+     *  @return returns the polynomial degree 'p' in v direction.
+     **/
     SizeType PolynomialDegreeV() const
     {
         return mPolynomialDegreeV;
     }
 
-    /* @return returns the polynomial degree 'p' in w direction. */
+    /**
+     *  @return returns the polynomial degree 'p' in w direction.
+     **/
     SizeType PolynomialDegreeW() const
     {
         return mPolynomialDegreeW;
     }
 
-    /* Get Knot vector in u-direction. This vector is defined to have
-    a multiplicity of p at the beginning and end (NOT: p + 1).
-    @return knot vector. */
+    /**
+     * @brief Get Knot vector in u-direction.
+     * @details This vector is defined to have a multiplicity of p at the beginning and end (NOT: p + 1).
+     * @return knot vector.
+     **/
     const Vector& KnotsU() const
     {
         return mKnotsU;
     }
 
-    /* Get Knot vector in v-direction. This vector is defined to have
-    a multiplicity of p at the beginning and end (NOT: p + 1).
-    @return knot vector. */
+    /**
+     * @brief Get Knot vector in v-direction.
+     * @details This vector is defined to have a multiplicity of p at the beginning and end (NOT: p + 1).
+     * @return knot vector.
+     **/
     const Vector& KnotsV() const
     {
         return mKnotsV;
     }
 
-    /* Get Knot vector in w-direction. This vector is defined to have
-    a multiplicity of p at the beginning and end (NOT: p + 1).
-    @return knot vector. */
+    /**
+     * @brief Get Knot vector in w-direction.
+     * @details This vector is defined to have a multiplicity of p at the beginning and end (NOT: p + 1).
+     * @return knot vector.
+     **/
     const Vector& KnotsW() const
     {
         return mKnotsW;
     }
 
-    /* @return Gives the size of the knot vector in u-direction.
-    */
+    /**
+     * @return Gives the size of the knot vector in u-direction.
+     **/
     SizeType NumberOfKnotsU() const
     {
         return mKnotsU.size();
     }
 
-    /* @return Gives the size of the knot vector in v-direction.
-    */
+    /**
+     * @return Gives the size of the knot vector in v-direction.
+     **/
     SizeType NumberOfKnotsV() const
     {
         return mKnotsV.size();
     }
 
-    /* @return Gives the size of the knot vector in w-direction.
-    */
+    /**
+     * @return Gives the size of the knot vector in w-direction.
+     **/
     SizeType NumberOfKnotsW() const
     {
         return mKnotsW.size();
     }
 
-    /* Checks if shape functions are rational or not.
-    @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
+    /**
+     * @brief Checks if shape functions are rational or not.
+     * @return False. Weights are not yet considered.
+     **/
     bool IsRational() const
     {
-        return mWeights.size() != 0;
+        return false;
     }
 
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
     @return weights vector.
     */
-    const Vector& Weights() const
-    {
-        return mWeights;
-    }
+    // const Vector& Weights() const
+    // {
+    //     return mWeights;
+    // }
 
     SizeType NumberOfControlPointsU() const
     {
@@ -345,7 +362,10 @@ public:
         return NumberOfKnotsW() - PolynomialDegreeW() + 1;
     }
 
-    /// Returns the number of spans in DirectionIndex=0:U, DirectionIndex=1:V and DirectionIndex=2 (which are larger than 0).
+    /**
+     * @brief Returns the number of spans in DirectionIndex=0:U, DirectionIndex=1:V and DirectionIndex=2
+     * (which are larger than 0).
+     **/
     SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
     {
         SizeType knot_span_counter = 0;
@@ -371,16 +391,17 @@ public:
             }
 
         } else {
-            KRATOS_ERROR << "NurbsSurfaceGeometry::NumberOfKnotSpans: Direction index: "
+            KRATOS_ERROR << "NurbsVolumeGeometry::NumberOfKnotSpans: Direction index: "
                 << DirectionIndex << " not available. Options are: 0, 1 and 2." << std::endl;
         }
         return knot_span_counter;
     }
 
-    /* @brief Provides all knot spans within direction u.
+    /**
+     * @brief Provides all knot spans within direction u.
      * @param return vector of span intervals.
      * @param index of direction: 0: U; 1: V; 2: W;
-     */
+     **/
     void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
@@ -418,14 +439,15 @@ public:
                 }
             }
         } else {
-            KRATOS_ERROR << "NurbsSurfaceGeometry::Spans: Direction index: "
+            KRATOS_ERROR << "NurbsVolumeGeometry::Spans: Direction index: "
                 << DirectionIndex << " not available. Options are: 0, 1 and 2." << std::endl;
         }
     }
 
-    /* Provides the natural boundaries of the NURBS/B-Spline surface.
-    @return domain interval.
-    */
+    /**
+     * @brief Provides the natural boundaries of the NURBS/B-Spline volume.
+     * @return domain interval.
+     **/
     NurbsInterval DomainIntervalU() const
     {
         return NurbsInterval(
@@ -433,9 +455,10 @@ public:
             mKnotsU[NumberOfKnotsU() - mPolynomialDegreeU]);
     }
 
-    /* Provides the natural boundaries of the NURBS/B-Spline surface.
-    @return domain interval.
-    */
+    /**
+     * @brief Provides the natural boundaries of the NURBS/B-Spline volume.
+     * @return domain interval.
+     **/
     NurbsInterval DomainIntervalV() const
     {
         return NurbsInterval(
@@ -443,9 +466,10 @@ public:
             mKnotsV[NumberOfKnotsV() - mPolynomialDegreeV]);
     }
 
-    /* Provides the natural boundaries of the NURBS/B-Spline surface.
-    @return domain interval.
-    */
+    /**
+     * @brief Provides the natural boundaries of the NURBS/B-Spline volume.
+     * @return domain interval.
+     **/
     NurbsInterval DomainIntervalW() const
     {
         return NurbsInterval(
@@ -453,9 +477,10 @@ public:
             mKnotsW[NumberOfKnotsW() - mPolynomialDegreeW]);
     }
 
-    /* Provides all knot span intervals of the surface in u-direction.
-    @return vector of knot span intervals.
-    */
+    /**
+     * @brief Provides all knot span intervals of the volume in u-direction.
+     * @return vector of knot span intervals.
+     **/
     std::vector<NurbsInterval> KnotSpanIntervalsU() const
     {
         const SizeType first_span = mPolynomialDegreeU - 1;
@@ -475,9 +500,10 @@ public:
         return result;
     }
 
-    /* Provides all knot span intervals of the surface in v-direction.
-    @return vector of knot span intervals.
-    */
+    /**
+     * @brief Provides all knot span intervals of the volume in v-direction.
+     * @return vector of knot span intervals.
+     **/
     std::vector<NurbsInterval> KnotSpanIntervalsV() const
     {
         const SizeType first_span = mPolynomialDegreeV - 1;
@@ -497,9 +523,10 @@ public:
         return result;
     }
 
-    /* Provides all knot span intervals of the surface in w-direction.
-    @return vector of knot span intervals.
-    */
+    /**
+     * @brief Provides all knot span intervals of the volume in w-direction.
+     * @return vector of knot span intervals.
+     **/
     std::vector<NurbsInterval> KnotSpanIntervalsW() const
     {
         const SizeType first_span = mPolynomialDegreeW - 1;
@@ -522,8 +549,9 @@ public:
     ///@name Integration Points
     ///@{
 
-    /** Creates integration points according to the polynomial degrees.
-     * @param return integration points.
+    /**
+     * @brief Creates integration points according to the polynomial degrees.
+     * @return integration points.
      **/
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
@@ -537,7 +565,7 @@ public:
     }
 
     /**
-     * Creates integration points according to the input parameter.
+     * @brief Creates integration points according to the input parameter.
      * @param return integration points.
      * @param points in u direction per span.
      * @param points in v direction per span.
@@ -577,6 +605,11 @@ public:
         }
     }
 
+    /**
+     * @brief Compute jacobian matrix at the given Coordinates.
+     * @param rCoordinates Coordinates to be evaluated.
+     * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
+     **/
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates ) const override
     {
         const SizeType working_space_dimension = this->WorkingSpaceDimension();
@@ -620,14 +653,13 @@ public:
     ///@name Operations
     ///@{
 
-    /* @brief creates a list of quadrature point geometries
+    /**
+     * @brief creates a list of quadrature point geometries
      *        from a list of integration points.
-     *
      * @param rResultGeometries list of quadrature point geometries.
      * @param rIntegrationPoints list of provided integration points.
      * @param NumberOfShapeFunctionDerivatives the number of evaluated
      *        derivatives of shape functions at the quadrature point geometries.
-     *
      * @see quadrature_point_geometry.h
      */
     void CreateQuadraturePointGeometries(
@@ -706,13 +738,14 @@ public:
     ///@name Operations
     ///@{
 
-    /** This method maps from dimension space to working space.
-    * @param rResult array_1d<double, 3> with the coordinates in working space
-    * @param LocalCoordinates The local coordinates in dimension space,
+    /**
+     * @brief This method maps from dimension space to working space.
+     * @param rResult array_1d<double, 3> with the coordinates in working space
+     * @param LocalCoordinates The local coordinates in dimension space,
                               here only the first 2 entries are taken into account.
-    * @return array_1d<double, 3> with the coordinates in working space
-    * @see PointLocalCoordinates
-    */
+     * @return array_1d<double, 3> with the coordinates in working space.
+     * @see PointLocalCoordinates
+     **/
     CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates
@@ -747,13 +780,14 @@ public:
         return rResult;
     }
 
-    /** This method maps from local space to working space and computes the
-    *   number of derivatives at the local space parameter in the dimension of the object.
-    * @param LocalCoordinates The local coordinates in dimension space
-    * @param Derivative Number of computed derivatives
-    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
-    * @see PointLocalCoordinates
-    */
+    /**
+     * @brief This method maps from local space to working space and computes the
+     *   number of derivatives at the local space parameter in the dimension of the object.
+     * @param LocalCoordinates The local coordinates in dimension space
+     * @param Derivative Number of computed derivatives
+     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+     * @see PointLocalCoordinates
+     **/
     void GlobalSpaceDerivatives(
         std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
         const CoordinatesArrayType& rLocalCoordinates,
@@ -899,11 +933,12 @@ private:
     ///@name Private Operations
     ///@{
 
-    /*
-    * @brief Checks if the knot vector is coinciding with the number of
-    *        control points and the polynomial degree. If the knot vectors
-    *        have a multiplicity of p+1 in the beginning, it is reduced to p.
-    */
+    /**
+     * @brief   Checks if the knot vector is coinciding with the number of
+     *          control points and the polynomial degree.
+     * @details If the knot vectors
+     *          have a multiplicity of p+1 in the beginning, it is reduced to p.
+     **/
     void CheckAndFitKnotVectors()
     {
         SizeType num_control_points = this->size();
@@ -980,7 +1015,7 @@ private:
 
     ///@}
 
-}; // class NurbsSurfaceGeometry
+}; // class NurbsVolumeGeometry
 
 template<int TWorkingSpaceDimension, class TPointType>
 const GeometryData NurbsVolumeGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(

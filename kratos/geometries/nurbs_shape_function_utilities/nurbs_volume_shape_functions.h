@@ -21,9 +21,9 @@ namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
-/// Computes the shape function for 3D geometrical objects as surfaces.
-/** This class is to be initialized to optimize. It creates the containers for the
-shape functions and the derivatives for an optimized data treatment.
+/**
+ * @class NurbsVolumeShapeFunctions
+ * @brief Provides the shape functions and evaluation methods for 3D-BSplines Volumes.
 */
 class NurbsVolumeShapeFunction
 {
@@ -59,16 +59,15 @@ public:
     ///@{
     /**
      * @brief   Returns the number of shape function rows for a given order.
-     * @details The Shape function are provided in the following order:
+     * @details The shape functions are provided in the following order:
      *          N | dN/du, dN/dv, dN/dw | dN^2/du^2, dN^2/du*dv, dN^2/du*dw, dN^2/v^2, dN^2/dv*dw, dN^2/dw^2 | ...
      *          0 | (1,0,0), (0,1,0), (0,0,1) | (2,0,0), (1,1,0), (1,0,1), (0,2,0), (0,1,1), (0,0,2) | ...
-     * @param   DerivativesOrder 0 the shape functions N only, 1 N and first derivatives, ...
+     * @param   DerivativesOrder 0: the shape functions N only, 1: N and first derivatives, ...
      *          Thus, for DerivativesOrder 0 the return value is 1, for 1 the return value is 4, ...
      * @return  NumberOfShapeFunctionRows.
      */
     static inline SizeType NumberOfShapeFunctionRows(const SizeType DerivativeOrder)
     {
-        //TODO: Is there any close form for this?
         IndexType number_of_shape_function_rows = 0.0;
         for( IndexType i = 0; i < DerivativeOrder + 1; ++i){
             number_of_shape_function_rows += (1 + i) * (2 + i) / 2;
@@ -78,13 +77,11 @@ public:
     }
     /**
      * @brief   Returns the index of the shape function row for a given derivative index.
-     * @details The Shape function are provided in the following order:
+     * @details The shape functions are provided in the following order:
      *          N | dN/du, dN/dv, dN/dw | dN^2/du^2, dN^2/du*dv, dN^2/du*dw, dN^2/v^2, dN^2/dv*dw, dN^2/dw^2 | ...
      *          0 | (1,0,0), (0,1,0), (0,0,1) | (2,0,0), (1,1,0), (1,0,1), (0,2,0), (0,1,1), (0,0,2) | ...
-     * @param   DerivativesOrder 0 the shape functions N only, 1 N and first derivatives, ...
-     *          Thus, for DerivativesOrder 0 the return value is 1, for 1 the return value is 3, ...
+     * @param   DerivativesOrder 0: the shape functions N only, 1: N and first derivatives, ...
      * @return  IndexOfShapeFunctionRow
-     *
      **/
     static inline IndexType IndexOfShapeFunctionRow(
         const SizeType DerivativeOrderU,
@@ -95,20 +92,22 @@ public:
         const SizeType current_level = DerivativeOrderU + DerivativeOrderV + DerivativeOrderW;
 
         SizeType first_index_of_current_level = 0;
-        if( current_level > 0)
+        if( current_level > 0){
             first_index_of_current_level = NumberOfShapeFunctionRows(current_level - 1);
-        else
-            return 0;
+            const SizeType offset = current_level - DerivativeOrderU;
+            SizeType index_in_current_level = 0;
+            for( IndexType i = 0; i < offset; ++i){
+                index_in_current_level += i + 1;
+            }
+            index_in_current_level += DerivativeOrderW;
 
-        const SizeType offset = current_level - DerivativeOrderU;
-
-        SizeType index_in_current_level = 0;
-        for( IndexType i = 0; i < offset; ++i){
-            index_in_current_level += i + 1;
+            return first_index_of_current_level + index_in_current_level;
         }
-        index_in_current_level += DerivativeOrderW;
+        else {
+            return 0;
+        }
 
-        return first_index_of_current_level + index_in_current_level;
+
     }
     ///@}
     ///@name Operators
@@ -575,7 +574,7 @@ private:
     IndexType mFirstNonzeroControlPointV;
     IndexType mFirstNonzeroControlPointW;
     ///@}
-    }; // class NurbsSurfaceShapeFunction
+    }; // class NurbsVolumeShapeFunction
 
 } // namespace Kratos
 
