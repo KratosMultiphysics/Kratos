@@ -11,7 +11,7 @@ def GetPython3Command():
     raise Exception("The python command could not be determined!")
 
 
-def ReadModelPart(mdpa_file_name, model_part):
+def ReadModelPart(mdpa_file_name, model_part, settings=None):
     """This method is designed to read a ModelPart.
 
     The ModelPart is filled with respective nodes, conditions, elements
@@ -29,7 +29,7 @@ def ReadModelPart(mdpa_file_name, model_part):
 
     communicator = Kratos.DataCommunicator.GetDefault()
     if communicator.IsDistributed():
-        ReadDistributedModelPart(mdpa_file_name, model_part)
+        ReadDistributedModelPart(mdpa_file_name, model_part, settings)
     else:
         ReadSerialModelPart(mdpa_file_name, model_part)
 
@@ -47,7 +47,7 @@ def ReadSerialModelPart(mdpa_file_name, model_part):
     Kratos.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
 
 
-def ReadDistributedModelPart(mdpa_file_name, model_part):
+def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings):
     """Reads mdpa file
 
     This method reads mdpa file and fills given model_part accordingly using MPI
@@ -60,15 +60,16 @@ def ReadDistributedModelPart(mdpa_file_name, model_part):
 
     from KratosMultiphysics.mpi import distributed_import_model_part_utility
     model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
-
-    importer_settings = Kratos.Parameters("""{
-        "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename": \"""" + mdpa_file_name + """\",
-            "partition_in_memory" : true
-        },
-        "echo_level" : 0
-    }""")
+    
+    if settings is not None:
+        importer_settings = Kratos.Parameters("""{
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": \"""" + mdpa_file_name + """\",
+                "partition_in_memory" : true
+            },
+            "echo_level" : 0
+        }""")
 
     model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(
         model_part, importer_settings)
