@@ -30,6 +30,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
+            "multi_point_constraints_used": false,
             "linear_solver_settings" : {
                 "solver_type" : "amesos",
                 "amesos_solver_type" : "Amesos_Klu"
@@ -108,7 +109,6 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         builder_and_solver = self.get_builder_and_solver()
         return TrilinosApplication.TrilinosLinearStrategy(computing_model_part,
                                                           mechanical_scheme,
-                                                          linear_solver,
                                                           builder_and_solver,
                                                           self.settings["compute_reactions"].GetBool(),
                                                           self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -123,7 +123,6 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         builder_and_solver = self.get_builder_and_solver()
         return TrilinosApplication.TrilinosNewtonRaphsonStrategy(computing_model_part,
                                                                  solution_scheme,
-                                                                 linear_solver,
                                                                  convergence_criterion,
                                                                  builder_and_solver,
                                                                  self.settings["max_iteration"].GetInt(),

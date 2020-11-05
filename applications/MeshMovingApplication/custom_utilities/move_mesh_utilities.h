@@ -28,20 +28,20 @@ namespace MoveMeshUtilities {
 typedef Element::GeometryType GeometryType;
 typedef Element::VectorType VectorType;
 
-void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
+void KRATOS_API(MESH_MOVING_APPLICATION) CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                             VectorType &rDetJ0, const GeometryType &rGeometry);
 
-void MoveMesh(ModelPart::NodesContainerType &rNodes);
+void KRATOS_API(MESH_MOVING_APPLICATION) MoveMesh(ModelPart::NodesContainerType &rNodes);
 
-ModelPart* GenerateMeshPart(ModelPart &rModelPart,
+KRATOS_API(MESH_MOVING_APPLICATION) ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
-void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
+void KRATOS_API(MESH_MOVING_APPLICATION) SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
                                                  const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
 
-void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+void KRATOS_API(MESH_MOVING_APPLICATION) SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
 
-void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+void KRATOS_API(MESH_MOVING_APPLICATION) SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
 
 } // namespace Move Mesh Utilities.
 
