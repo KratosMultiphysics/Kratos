@@ -61,7 +61,7 @@ def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings):
     from KratosMultiphysics.mpi import distributed_import_model_part_utility
     model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
     
-    if settings is not None:
+    if settings is None:
         importer_settings = Kratos.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
