@@ -282,13 +282,15 @@ namespace Kratos
             KRATOS_ERROR << "FetiDynamicCouplingUtilities:: The equilibrium variable must be either DISPLACEMENT, VELOCITY or ACCELERATION.";
         }
 
-        rCondensationMatrix = prod(rOriginProjector, rOriginUnitResponse);
-        rCondensationMatrix *= origin_kinematic_coefficient;
+        CompressedMatrix h_origin(rOriginProjector.size1(), rOriginUnitResponse.size2(),0.0);
+        axpy_prod(rOriginProjector, rOriginUnitResponse,h_origin,false); // optimised for sparse matrix prod
+        h_origin *= origin_kinematic_coefficient;
 
-        Matrix h_destination = prod(rDestinationProjector, rDestinationUnitResponse);
+        CompressedMatrix h_destination(rDestinationProjector.size1(), rDestinationUnitResponse.size2(), 0.0);
+        axpy_prod(rDestinationProjector, rDestinationUnitResponse, h_destination, false); // optimised for sparse matrix prod
         h_destination *= dest_kinematic_coefficient;
-        rCondensationMatrix += h_destination;
 
+        rCondensationMatrix = h_origin + h_destination;
         rCondensationMatrix *= -1.0;
 
         KRATOS_CATCH("")
@@ -302,8 +304,9 @@ namespace Kratos
 
         if (rLagrangeVec.size() != rUnbalancedKinematics.size())
             rLagrangeVec.resize(rUnbalancedKinematics.size(), false);
-
         rLagrangeVec.clear();
+
+
         mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedKinematics);
 
         KRATOS_CATCH("")
@@ -373,7 +376,10 @@ namespace Kratos
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
         KRATOS_ERROR_IF_NOT(rCorrection.size() == domain_nodes.size() * dim)
-            << "AddCorrectionToDomain | Correction dof size does not match domain dofs";
+            << "AddCorrectionToDomain | Correction dof size does not match domain dofs\n"
+            << "Correction size = " << rCorrection.size() << "\n"
+            << "Domain dof size = " << domain_nodes.size() * dim << "\n"
+            << "\n\n\nModel part:\n" << *pDomain << "\n";
 
         if (IsImplicit)
         {
@@ -647,7 +653,7 @@ namespace Kratos
 
         //auto end = std::chrono::system_clock::now();
         //auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        //std::cout << "solve time = " << elasped_solve.count() << "\n";
+        //std::cout << "response solve time = " << elasped_solve.count() << "\n";
 
         // reference answer for testing - slow matrix inversion
         const bool is_test_ref = false;
