@@ -29,12 +29,12 @@ def ReadModelPart(mdpa_file_name, model_part):
 
     communicator = Kratos.DataCommunicator.GetDefault()
     if communicator.IsDistributed():
-        __ReadDistributedModelPart(mdpa_file_name, model_part)
+        ReadDistributedModelPart(mdpa_file_name, model_part)
     else:
-        __ReadSerialModelPart(mdpa_file_name, model_part)
+        ReadSerialModelPart(mdpa_file_name, model_part)
 
 
-def __ReadSerialModelPart(mdpa_file_name, model_part):
+def ReadSerialModelPart(mdpa_file_name, model_part):
     """Reads mdpa file
 
     This method reads mdpa file and fills given model_part accordingly without MPI
@@ -47,7 +47,7 @@ def __ReadSerialModelPart(mdpa_file_name, model_part):
     Kratos.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
 
 
-def __ReadDistributedModelPart(mdpa_file_name, model_part):
+def ReadDistributedModelPart(mdpa_file_name, model_part):
     """Reads mdpa file
 
     This method reads mdpa file and fills given model_part accordingly using MPI

@@ -247,7 +247,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     void CalculateElementalLaplacian(MatrixType &rLeftHandSideMatrix,
                                      VectorType &rRightHandSideVector,
@@ -329,10 +329,6 @@ namespace Kratos
 
   protected:
     void NodalFreeSurfaceLength(unsigned int nodeIndex);
-
-    void GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                     std::vector<double> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
 
   private:
     friend class Serializer;
