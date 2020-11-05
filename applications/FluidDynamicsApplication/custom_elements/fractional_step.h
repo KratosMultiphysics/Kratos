@@ -205,7 +205,7 @@ namespace Kratos
             return pNewElement;
         }
 
-        void Initialize() override;
+        void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
         /// Initializes the element and all geometric information required for the problem.
         void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
@@ -228,7 +228,7 @@ namespace Kratos
         }
 
         void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                            ProcessInfo& rCurrentProcessInfo) override
+                                    const ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
             KRATOS_THROW_ERROR(std::logic_error,"FractionalStep::CalculateRightHandSide not implemented","");

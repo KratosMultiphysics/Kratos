@@ -60,12 +60,12 @@ Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,Geom
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElement<TBaseElement>::Initialize()
+void EmbeddedFluidElement<TBaseElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     // Call the base element initialize method to set the constitutive law
-    TBaseElement::Initialize();
+    TBaseElement::Initialize(rCurrentProcessInfo);
 
     // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
     const array_1d<double,3> zero_vel = ZeroVector(3);

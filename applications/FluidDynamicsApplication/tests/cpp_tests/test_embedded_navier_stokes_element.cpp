@@ -110,7 +110,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->Initialize(modelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
@@ -205,7 +205,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->Initialize(modelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,

@@ -87,7 +87,7 @@ Element::Pointer DynamicVMS<TDim>::Create(IndexType NewId, GeometryType::Pointer
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::Initialize()
+void DynamicVMS<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {}
 
 template< unsigned int TDim >

@@ -195,7 +195,7 @@ public:
 
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
         constexpr unsigned int MatrixSize = TNumNodes*(BlockSize);

@@ -174,7 +174,7 @@ public:
     /// Set up the element for solution.
     /** For EmbeddedFluidElement, this initializes the nodal imposed velocity (EMBEDDED_VELOCITY)
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculates both LHS and RHS contributions
     /**

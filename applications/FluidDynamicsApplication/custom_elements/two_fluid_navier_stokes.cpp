@@ -180,7 +180,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateRightHandSide(
     VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     MatrixType tmp;
     CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);

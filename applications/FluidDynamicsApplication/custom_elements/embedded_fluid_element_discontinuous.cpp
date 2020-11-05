@@ -68,12 +68,12 @@ Element::Pointer EmbeddedFluidElementDiscontinuous<TBaseElement>::Create(
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::Initialize()
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     // Call the base element initialize method to set the constitutive law
-    TBaseElement::Initialize();
+    TBaseElement::Initialize(rCurrentProcessInfo);
 
     // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
     if (!this->Has(ELEMENTAL_DISTANCES)) {

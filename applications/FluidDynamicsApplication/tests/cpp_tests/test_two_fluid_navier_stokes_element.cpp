@@ -117,7 +117,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->Initialize(modelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
@@ -214,7 +214,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->Initialize(modelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
@@ -318,7 +318,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(16);
             Matrix LHS = ZeroMatrix(16, 16);
 
-            pElement->Initialize(); // Initialize the element to initialize the constitutive law
+            pElement->Initialize(modelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
@@ -422,7 +422,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(16);
             Matrix LHS = ZeroMatrix(16, 16);
 
-            pElement->Initialize(); // Initialize the element to initialize the constitutive law
+            pElement->Initialize(modelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
@@ -547,7 +547,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->Initialize(modelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			double det;
@@ -700,8 +700,8 @@ namespace Kratos {
 			pElement2->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
 
             // Initialization
-            pElement1->Initialize();
-            pElement2->Initialize();
+            pElement1->Initialize(modelPart.GetProcessInfo());
+            pElement2->Initialize(modelPart.GetProcessInfo());
 
 			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
             pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
@@ -712,8 +712,8 @@ namespace Kratos {
             NormalCalculationUtils find_nodal_normal_utility;
             find_nodal_normal_utility.CalculateOnSimplex(modelPart, 2);
 
-            pCondition1->Initialize();
-            pCondition2->Initialize();
+            pCondition1->Initialize(modelPart.GetProcessInfo());
+            pCondition2->Initialize(modelPart.GetProcessInfo());
 
             // Computing locel contributions
             pCondition1->CalculateLocalSystem(condLHS, condRHS1, modelPart.GetProcessInfo());
@@ -937,9 +937,9 @@ namespace Kratos {
 			Vector contriFromCond3 = ZeroVector(3);
 
             // Initialization
-            pElement1->Initialize();
-			pElement2->Initialize();
-			pElement3->Initialize();
+            pElement1->Initialize(modelPart.GetProcessInfo());
+			pElement2->Initialize(modelPart.GetProcessInfo());
+			pElement3->Initialize(modelPart.GetProcessInfo());
 
 			pElement1->InitializeSolutionStep( modelPart.GetProcessInfo() );
 			pElement2->InitializeSolutionStep( modelPart.GetProcessInfo() );
@@ -955,9 +955,9 @@ namespace Kratos {
             NormalCalculationUtils find_nodal_normal_utility;
             find_nodal_normal_utility.CalculateOnSimplex(modelPart, 3);
 
-            pCondition1->Initialize();
-            pCondition2->Initialize();
-			pCondition3->Initialize();
+            pCondition1->Initialize(modelPart.GetProcessInfo());
+            pCondition2->Initialize(modelPart.GetProcessInfo());
+			pCondition3->Initialize(modelPart.GetProcessInfo());
 
             // Computing local contributions of elemet
             pCondition1->CalculateLocalSystem(condLHS, condRHS1, modelPart.GetProcessInfo());
@@ -1143,8 +1143,8 @@ namespace Kratos {
 			pElement2->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
 
             // Initialization
-            pElement1->Initialize();
-            pElement2->Initialize();
+            pElement1->Initialize(modelPart.GetProcessInfo());
+            pElement2->Initialize(modelPart.GetProcessInfo());
 
 			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
             pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
@@ -1155,8 +1155,8 @@ namespace Kratos {
             NormalCalculationUtils find_nodal_normal_utility;
             find_nodal_normal_utility.CalculateOnSimplex(modelPart, 2);
 
-            pCondition1->Initialize();
-            pCondition2->Initialize();
+            pCondition1->Initialize(modelPart.GetProcessInfo());
+            pCondition2->Initialize(modelPart.GetProcessInfo());
 
             // Computing locel contributions
             pCondition1->CalculateLocalSystem(condLHS, condRHS1, modelPart.GetProcessInfo());
@@ -1271,7 +1271,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(16);
             Matrix LHS = ZeroMatrix(16, 16);
 
-            pElement->Initialize(); // Initialize the element to initialize the constitutive law
+            pElement->Initialize(modelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
@@ -1423,9 +1423,9 @@ namespace Kratos {
 			pElement2->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
 
             // Initialization
-            pElement1->Initialize();
-            pElement2->Initialize();
-			pElement3->Initialize();
+            pElement1->Initialize(modelPart.GetProcessInfo());
+            pElement2->Initialize(modelPart.GetProcessInfo());
+			pElement3->Initialize(modelPart.GetProcessInfo());
 
 			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
             pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
@@ -1437,8 +1437,8 @@ namespace Kratos {
             NormalCalculationUtils find_nodal_normal_utility;
             find_nodal_normal_utility.CalculateOnSimplex(modelPart, 2);
 
-            pCondition1->Initialize();
-            pCondition2->Initialize();
+            pCondition1->Initialize(modelPart.GetProcessInfo());
+            pCondition2->Initialize(modelPart.GetProcessInfo());
 
             // before adding Navier Slip
             pCondition1->CalculateLocalSystem(condLHS, condRHS1Before, modelPart.GetProcessInfo());
@@ -1633,9 +1633,9 @@ namespace Kratos {
 			Vector contriFromCond3After = ZeroVector(3);
 
             // Initialization
-            pElement1->Initialize();
-			pElement2->Initialize();
-			pElement3->Initialize();
+            pElement1->Initialize(modelPart.GetProcessInfo());
+			pElement2->Initialize(modelPart.GetProcessInfo());
+			pElement3->Initialize(modelPart.GetProcessInfo());
 
 			pElement1->InitializeSolutionStep( modelPart.GetProcessInfo() );
 			pElement2->InitializeSolutionStep( modelPart.GetProcessInfo() );
@@ -1651,9 +1651,9 @@ namespace Kratos {
             NormalCalculationUtils find_nodal_normal_utility;
             find_nodal_normal_utility.CalculateOnSimplex(modelPart, 3);
 
-            pCondition1->Initialize();
-            pCondition2->Initialize();
-			pCondition3->Initialize();
+            pCondition1->Initialize(modelPart.GetProcessInfo());
+            pCondition2->Initialize(modelPart.GetProcessInfo());
+			pCondition3->Initialize(modelPart.GetProcessInfo());
 
             // Computing local contributions before setting a smaller slip length
             pCondition1->CalculateLocalSystem(condLHS, condRHS1, modelPart.GetProcessInfo());

@@ -635,7 +635,7 @@ protected:
     }
 
 
-    void Initialize() override
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override
     {
         KRATOS_TRY
 

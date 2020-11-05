@@ -77,7 +77,7 @@ int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo) const
     KRATOS_CATCH("");
 }
 
-void SpalartAllmaras::Initialize()
+void SpalartAllmaras::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

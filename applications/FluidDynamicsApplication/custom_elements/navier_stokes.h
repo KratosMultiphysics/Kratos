@@ -186,7 +186,7 @@ public:
 
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -374,7 +374,7 @@ protected:
     ///@{
 
     // Element initialization (constitutive law)
-    void Initialize() override
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override
     {
         KRATOS_TRY
 

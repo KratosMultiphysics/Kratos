@@ -11,7 +11,7 @@ namespace Kratos {
  */
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::Initialize()
+void FractionalStep<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
 }
 

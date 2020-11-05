@@ -279,7 +279,7 @@ public:
       */
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Check that all data required by this condition is available and reasonable
@@ -350,7 +350,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Returns a list of the element's Dofs
@@ -359,7 +359,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+                    const ProcessInfo& CurrentProcessInfo) const override;
 
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
@@ -368,7 +368,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
     void GetFirstDerivativesVector(Vector& Values,
-                                           int Step = 0) override
+                                           int Step = 0) const override
     {
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
         unsigned int LocalIndex = 0;
@@ -378,7 +378,7 @@ public:
 
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
         {
-            array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+            const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
             for (unsigned int d = 0; d < TDim; ++d)
                 Values[LocalIndex++] = rVelocity[d];
             Values[LocalIndex++] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE, Step);
@@ -392,7 +392,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
     void GetSecondDerivativesVector(Vector& Values,
-                                            int Step = 0) override
+                                            int Step = 0) const override
     {
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
         unsigned int LocalIndex = 0;
@@ -402,7 +402,7 @@ public:
 
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
         {
-            array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+            const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
             for (unsigned int d = 0; d < TDim; ++d)
                 Values[LocalIndex++] = rVelocity[d];
             Values[LocalIndex++] = 0.0; // No value on pressure positions
@@ -500,7 +500,7 @@ protected:
       */
     virtual void ApplyWallLaw(MatrixType& rLocalMatrix,
                       VectorType& rLocalVector,
-		      ProcessInfo& rCurrentProcessInfo)
+		              const ProcessInfo& rCurrentProcessInfo)
     {
         GeometryType& rGeometry = this->GetGeometry();
         const size_t BlockSize = TDim + 1;

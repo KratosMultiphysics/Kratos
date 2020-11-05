@@ -185,7 +185,7 @@ public:
      * expected to contain values for DYNAMIC_TAU and DELTA_TIME
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int local_size = (TDim+1)*(TDim+1);
         Matrix tmp(local_size,local_size);

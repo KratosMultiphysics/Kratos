@@ -175,7 +175,7 @@ public:
     /** For EmbeddedFluidElementDiscontinuous, this initializes the discontinuous
      * level set (ELEMENTAL_DISTANCES) and the nodal imposed velocity (EMBEDDED_VELOCITY)
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculates both LHS and RHS contributions
     /**

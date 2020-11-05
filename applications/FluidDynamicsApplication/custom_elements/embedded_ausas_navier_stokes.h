@@ -208,7 +208,7 @@ public:
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override {
+        const ProcessInfo& rCurrentProcessInfo) override {
 
         KRATOS_TRY;
 
@@ -433,7 +433,7 @@ protected:
     ///@{
 
     // Element initialization (constitutive law)
-    void Initialize() override {
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override {
         KRATOS_TRY;
 
         // Initalize the constitutive law pointer
@@ -689,7 +689,7 @@ protected:
     void CalculateRightHandSideContribution(
         VectorType &rRightHandSideVector,
         EmbeddedAusasElementDataStruct &rData,
-        ProcessInfo &rCurrentProcessInfo) {
+        const ProcessInfo &rCurrentProcessInfo) {
 
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 

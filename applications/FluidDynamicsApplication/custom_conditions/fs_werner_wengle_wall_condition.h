@@ -238,7 +238,7 @@ public:
     }
 
 	/// Find the condition's parent element.
-	void Initialize() override
+	void Initialize(const ProcessInfo &rCurrentProcessInfo) override
 	{
 		KRATOS_TRY;
 
@@ -312,7 +312,7 @@ public:
 
 		if (mInitializeWasPerformed == false)
 		{
-		        Initialize();
+		        Initialize(rCurrentProcessInfo);
 		}
 
 		if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -431,7 +431,7 @@ public:
 	 * @param rCurrentProcessInfo the current process info object
 	 */
 	void EquationIdVector(EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo) override;
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	/// Returns a list of the condition's Dofs.
 	/**
@@ -439,14 +439,14 @@ public:
 	 * @param rCurrentProcessInfo the current process info instance
 	 */
 	void GetDofList(DofsVectorType& rConditionDofList,
-			ProcessInfo& rCurrentProcessInfo) override;
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	/// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z) for each node.
 	/**
 	 * @param Values Vector of nodal unknowns
 	 * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
 	 */
-	void GetValuesVector(Vector& Values, int Step = 0) override
+	void GetValuesVector(Vector& Values, int Step = 0) const override
 	{
 		const SizeType LocalSize = TDim * TNumNodes;
 		unsigned int LocalIndex = 0;
@@ -458,7 +458,7 @@ public:
 
 		for (unsigned int i = 0; i < TNumNodes; ++i)
 		{
-			array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+			const array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
 			for (unsigned int d = 0; d < TDim; ++d)
 			{
 				Values[LocalIndex++] = rVelocity[d];

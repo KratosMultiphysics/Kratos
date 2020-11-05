@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
 
     // Call the elements Initialize()
     for (auto &r_elem : model_part.Elements()) {
-        r_elem.Initialize(); // Initialize the element to initialize the constitutive law
+        r_elem.Initialize(model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
         r_elem.Check(model_part.GetProcessInfo()); // Otherwise the constitutive law is not seen here
     }
 

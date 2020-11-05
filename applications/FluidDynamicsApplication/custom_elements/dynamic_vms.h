@@ -200,7 +200,7 @@ public:
         PropertiesType::Pointer pProperties) const override;
 
     /// Initialize containters for subscales on integration points.
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Prepare the element for a new solution step.

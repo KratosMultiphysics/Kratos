@@ -186,7 +186,7 @@ public:
     /// Set up the element for solution.
     /** For FluidElement, this initializes the constitutive law using the data in the element's properties.
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateLocalSystem Return empty matrices and vectors of appropriate size.

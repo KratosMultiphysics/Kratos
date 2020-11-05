@@ -98,10 +98,10 @@ void DVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
 
 template <class TElementData>
-void DVMS<TElementData>::Initialize()
+void DVMS<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     // Base class does things with constitutive law here.
-    QSVMS<TElementData>::Initialize();
+    QSVMS<TElementData>::Initialize(rCurrentProcessInfo);
 
     const unsigned int number_of_gauss_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
 

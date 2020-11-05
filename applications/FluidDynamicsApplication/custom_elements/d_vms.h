@@ -195,7 +195,7 @@ public:
 
     /// Set up the element.
     /** Allocate the subscale velocity containers and let base class initialize the constitutive law */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Update the values of tracked small scale quantities.
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;

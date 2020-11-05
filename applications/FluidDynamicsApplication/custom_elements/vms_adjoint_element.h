@@ -200,7 +200,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override
     {
         this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     }
@@ -369,7 +369,7 @@ public:
     }
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& /*rCurrentProcessInfo*/) override
+                               const ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         if (rLeftHandSideMatrix.size1() != TFluidLocalSize ||
             rLeftHandSideMatrix.size2() != TFluidLocalSize)
@@ -379,7 +379,7 @@ public:
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& /*rCurrentProcessInfo*/) override
+                                const ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         KRATOS_TRY
 
@@ -407,7 +407,7 @@ public:
      * ACCELERATION.
      */
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
         this->CalculateFirstDerivativesLHS(LHS, rCurrentProcessInfo);
@@ -416,7 +416,7 @@ public:
     }
 
     virtual void CalculateFirstDerivativesLHS(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo)
     {
         this->CalculatePrimalGradientOfVMSSteadyTerm(rLeftHandSideMatrix, rCurrentProcessInfo);
         this->AddPrimalGradientOfVMSMassTerm(rLeftHandSideMatrix, ACCELERATION,
@@ -436,7 +436,7 @@ public:
      * \f]
      */
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+                                       const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
         this->CalculateSecondDerivativesLHS(LHS, rCurrentProcessInfo);
@@ -445,13 +445,13 @@ public:
     }
 
     void CalculateSecondDerivativesLHS(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       const ProcessInfo& rCurrentProcessInfo)
     {
         this->CalculateVMSMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
         rLeftHandSideMatrix = -trans(rLeftHandSideMatrix); // transpose
     }
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& /*rCurrentProcessInfo*/) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         KRATOS_TRY
 
@@ -462,7 +462,7 @@ public:
     }
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                ProcessInfo& /*rCurrentProcessInfo*/) override
+                                const ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         KRATOS_TRY
 

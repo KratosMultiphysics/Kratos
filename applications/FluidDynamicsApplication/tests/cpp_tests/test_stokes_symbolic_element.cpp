@@ -91,7 +91,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			p_element->Initialize(); // Initialize the element to initialize the constitutive law
+			p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
 			// Check values
@@ -157,7 +157,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			p_element->Initialize(); // Initialize the element to initialize the constitutive law
+			p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
 			// Check obtained RHS
@@ -260,7 +260,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(12);
             Matrix LHS = ZeroMatrix(12, 12);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
             // Check values
@@ -327,7 +327,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(12);
             Matrix LHS = ZeroMatrix(12, 12);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
             // Check obtained RHS
@@ -433,7 +433,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			p_element->Initialize(); // Initialize the element to initialize the constitutive law
+			p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
 			// Check values
@@ -498,7 +498,7 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			p_element->Initialize(); // Initialize the element to initialize the constitutive law
+			p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
 			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
 			// Check obtained RHS
@@ -629,7 +629,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(24);
             Matrix LHS = ZeroMatrix(24, 24);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
             // Check values
@@ -697,7 +697,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(24);
             Matrix LHS = ZeroMatrix(24, 24);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
             // Check obtained RHS
@@ -855,7 +855,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(32);
             Matrix LHS = ZeroMatrix(32, 32);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
             // Check values
@@ -925,7 +925,7 @@ namespace Kratos {
             Vector RHS = ZeroVector(32);
             Matrix LHS = ZeroMatrix(32, 32);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
             p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
             // Check obtained RHS

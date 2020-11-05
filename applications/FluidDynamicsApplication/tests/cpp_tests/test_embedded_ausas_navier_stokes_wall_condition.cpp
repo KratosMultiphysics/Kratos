@@ -121,7 +121,7 @@ namespace Kratos {
             Vector condRHS = ZeroVector(6);
             Matrix condLHS = ZeroMatrix(6,6);
 
-            pCondition->Initialize();
+            pCondition->Initialize(modelPart.GetProcessInfo());
 			pCondition->InitializeSolutionStep(modelPart.GetProcessInfo());
 			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
 
@@ -226,7 +226,7 @@ namespace Kratos {
             Vector condRHS = ZeroVector(12);
             Matrix condLHS = ZeroMatrix(12,12);
 
-            pCondition->Initialize();
+            pCondition->Initialize(modelPart.GetProcessInfo());
 			pCondition->InitializeSolutionStep(modelPart.GetProcessInfo());
 			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
 

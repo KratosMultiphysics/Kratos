@@ -152,7 +152,7 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Calculate Shape function derivatives and Jacobian at each integration point
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Evaluate the elemental contribution to the problem.
     /**

@@ -78,7 +78,7 @@ Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryTyp
 }
 
 template< class TElementData >
-void FluidElement<TElementData>::Initialize() {
+void FluidElement<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo) {
     KRATOS_TRY;
 
     // If we are restarting, the constitutive law will be already defined

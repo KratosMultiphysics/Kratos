@@ -64,7 +64,7 @@ int StationaryStokes<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::Initialize()
+void StationaryStokes<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

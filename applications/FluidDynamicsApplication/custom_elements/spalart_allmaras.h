@@ -129,7 +129,7 @@ public:
     int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     /// Calculate Shape function derivatives for the element
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculates the projection term for stabilization
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
