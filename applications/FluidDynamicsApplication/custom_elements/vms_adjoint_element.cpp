@@ -7,7 +7,7 @@ namespace Kratos {
 
 template<>
 void VMSAdjointElement<2>::GetDofArray(DofsArrayType& rElementalDofList,
-                                      ProcessInfo& /*rCurrentProcessInfo*/)
+                                      const ProcessInfo& /*rCurrentProcessInfo*/) const 
 {
   unsigned int LocalIndex = 0;
   for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
@@ -23,7 +23,7 @@ void VMSAdjointElement<2>::GetDofArray(DofsArrayType& rElementalDofList,
 
 template<>
 void VMSAdjointElement<3>::GetDofArray(DofsArrayType& rElementalDofList,
-                                      ProcessInfo& /*rCurrentProcessInfo*/)
+                                      const ProcessInfo& /*rCurrentProcessInfo*/) const 
 {
   IndexType LocalIndex = 0;
   for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
@@ -41,7 +41,7 @@ void VMSAdjointElement<3>::GetDofArray(DofsArrayType& rElementalDofList,
 
 template <>
 void VMSAdjointElement<2>::EquationIdArray(EquationIdArrayType& rResult,
-                                           ProcessInfo& /*rCurrentProcessInfo*/)
+                                           const ProcessInfo& /*rCurrentProcessInfo*/) const 
 {
     IndexType LocalIndex = 0;
     for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
@@ -57,7 +57,7 @@ void VMSAdjointElement<2>::EquationIdArray(EquationIdArrayType& rResult,
 
 template <>
 void VMSAdjointElement<3>::EquationIdArray(EquationIdArrayType& rResult,
-                                           ProcessInfo& /*rCurrentProcessInfo*/)
+                                           const ProcessInfo& rCurrentProcessInfo) const 
 {
     IndexType LocalIndex = 0;
     for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)

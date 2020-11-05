@@ -112,7 +112,7 @@ void QSVMSDEMCoupled<TElementData>::Calculate(
 template < class TElementData >
 void QSVMSDEMCoupled<TElementData>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     QSVMS<TElementData>::EquationIdVector(rResult, rCurrentProcessInfo);
 }
@@ -135,7 +135,7 @@ void QSVMSDEMCoupled<TElementData>::PrintInfo(std::ostream& rOStream) const
 template<class TElementData>
 void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);

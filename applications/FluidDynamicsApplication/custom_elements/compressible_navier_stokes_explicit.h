@@ -271,7 +271,7 @@ protected:
      */
     void EquationIdVector(
         EquationIdVectorType &rResult,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) const override;
 
     /**
      * Determines the elemental list of DOFs

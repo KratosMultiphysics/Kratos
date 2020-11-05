@@ -296,7 +296,7 @@ void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, c
         rResult[i] = GetGeometry()[i].GetDof(TURBULENT_VISCOSITY).EquationId();
 }
 
-void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step)
+void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step) const 
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 

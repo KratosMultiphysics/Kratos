@@ -141,7 +141,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                       ProcessInfo& rCurrentProcessInfo)
+                                                       const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -174,7 +174,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                        ProcessInfo& rCurrentProcessInfo)
+                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     if (rRightHandSideVector.size() != LocalSize)
         rRightHandSideVector.resize(LocalSize, false);
@@ -206,7 +206,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalVelocityContribution(
-    MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if( rDampMatrix.size1() != LocalSize )
@@ -244,7 +244,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rMassMatrix.size1() != LocalSize)
@@ -276,9 +276,9 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 template< class TElementData >
-void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     unsigned int LocalIndex = 0;
 
@@ -299,9 +299,9 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
 
 
 template< class TElementData >
-void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
      if (rElementalDofList.size() != LocalSize)
          rElementalDofList.resize(LocalSize);
@@ -320,9 +320,9 @@ void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step)
+void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
@@ -340,9 +340,9 @@ void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int 
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step)
+void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const 
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);

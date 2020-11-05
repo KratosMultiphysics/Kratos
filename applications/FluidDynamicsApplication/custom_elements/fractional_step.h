@@ -264,7 +264,7 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info object (unused)
          */
         void EquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) const override;
 
         /// Returns a list of the element's Dofs
         /**
@@ -272,7 +272,7 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         void GetDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                        const ProcessInfo& rCurrentProcessInfo) const override;
 
 
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
@@ -421,22 +421,22 @@ namespace Kratos
                                       const ProcessInfo& rCurrentProcessInfo);
 
         void VelocityEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo) const ;
 
         void PressureEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo) const ;
 
         void GetVelocityDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo) const ;
 
         void GetPressureDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo) const ;
 
         void GetPressureValues(Vector& rValues,
-                               const int Step = 0);
+                               const int Step = 0) const ;
 
         void GetVelocityValues(Vector& rValues,
-                               const int Step = 0);
+                               const int Step = 0) const ;
 
         /// Determine integration point weights and shape funcition derivatives from the element's geometry.
         virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,

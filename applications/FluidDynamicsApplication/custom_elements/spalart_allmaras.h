@@ -157,7 +157,7 @@ public:
     void EquationIdVector(Element::EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given vector with nodal values of the problem variable (TURBULENT_VISCOSITY)
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     ///@}
     ///@name Access

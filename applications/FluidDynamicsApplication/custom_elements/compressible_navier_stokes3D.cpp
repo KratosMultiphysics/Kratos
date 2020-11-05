@@ -40,7 +40,7 @@ void CompressibleNavierStokes<3>::EquationIdVector(EquationIdVectorType& rResult
 }
 
 template<>
-void CompressibleNavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const 
+void CompressibleNavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

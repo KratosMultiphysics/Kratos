@@ -743,7 +743,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
 
-    void GetFirstDerivativesVector(Vector& values, int Step) override
+    void GetFirstDerivativesVector(Vector& values, int Step) const override
     {
 // 	this->IsCutted();
 	if( this->is_cutted == 0)
@@ -772,7 +772,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
 
-      void GetSecondDerivativesVector(Vector& values, int Step) override
+      void GetSecondDerivativesVector(Vector& values, int Step) const override
       {
 // 	this->IsCutted();
 	if( this->is_cutted == 0)
