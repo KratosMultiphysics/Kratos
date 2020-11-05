@@ -81,7 +81,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
     }
 
     // Now detect all the cases in which a node or a cond belongs to more than one part simultaneously
-    std::unordered_map<std::set<IndexType>, IndexType, KeyHasherRange<std::set<IndexType>>, KeyComparorRange<std::set<IndexType>> > combinations;
+   IndexSetIndexMapType combinations;
 
     /* Nodes */
     for(auto& r_aux_node_tag : aux_node_tags) {
@@ -101,13 +101,17 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
         if (r_value.size() > 1) combinations[r_value] = 0;
     }
 
-    /* Combinations */
-    for(auto& combination : combinations) {
-        const std::set<IndexType>& r_key_set = combination.first;
-        for(IndexType it : r_key_set)
-            rCollections[tag].push_back(rCollections[it][0]);
-        combinations[r_key_set] = tag;
-        ++tag;
+    if (DataCommunicator::GetDefault().IsDistributed()) {
+        SetParallelModelPartAndSubModelPartCollectionsAndCombinations(rCollections, combinations, tag);
+    } else {
+        /* Combinations */
+        for(auto& combination : combinations) {
+            const std::set<IndexType>& r_key_set = combination.first;
+            for(IndexType it : r_key_set)
+                rCollections[tag].push_back(rCollections[it][0]);
+            combinations[r_key_set] = tag;
+            ++tag;
+        }
     }
 
     // The final maps are created
@@ -164,6 +168,83 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelPartCollectionsAndCombinations(
+                                            IndexStringMapType& rCollections,
+                                            IndexSetIndexMapType& rCombinations,
+                                            IndexType& rTag)
+{
+    const int rank = mrModelPart.GetCommunicator().GetDataCommunicator().Rank();
+    const IndexType size = mrModelPart.GetCommunicator().GetDataCommunicator().Size();
+
+    std::vector<std::vector<IndexType>> combinations_keys;
+    for(auto& combination : rCombinations) {
+        std::vector<IndexType> aux_vector;
+        for (auto it=combination.first.begin(); it != combination.first.end(); ++it)
+            aux_vector.push_back(*it);
+        combinations_keys.push_back(aux_vector);
+    }
+
+    if (rank>0) {
+        std::vector<std::vector<IndexType>> SendObject=combinations_keys;
+
+        mrModelPart.GetCommunicator().GetDataCommunicator().Send(SendObject, 0);
+    }
+    else {
+        std::vector<std::vector<std::vector<IndexType>>> ReceiveBuffer(size);
+        ReceiveBuffer[0] = combinations_keys;
+        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
+            std::vector<std::vector<IndexType>> RecvObject;
+            mrModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, i_rank);
+            ReceiveBuffer[i_rank] = RecvObject;
+        }
+
+        for (auto& combination_keys : ReceiveBuffer) {
+            for (auto& submodel_part_vector : combination_keys) {
+
+                std::set<IndexType> submodel_part_set;
+                for (auto& values : submodel_part_vector) {
+                    submodel_part_set.insert(values);
+                }
+
+                if (rCombinations.find(submodel_part_set) == rCombinations.end()) {
+                    rCombinations[submodel_part_set] = 0; //creating new key, value does not matter
+                }
+            }
+        }
+    }
+
+    DataCommunicator::GetDefault().Barrier();
+
+    std::vector<std::vector<IndexType>> SendRecvObject;
+    if (rank==0) {
+        std::vector<std::vector<IndexType>> final_combination_keys;
+        for(auto& combination : rCombinations) {
+            std::vector<IndexType> aux_vector;
+            for (auto it=combination.first.begin(); it != combination.first.end(); ++it)
+                aux_vector.push_back(*it);
+            final_combination_keys.push_back(aux_vector);
+        }
+        SendRecvObject = final_combination_keys;
+        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
+            mrModelPart.GetCommunicator().GetDataCommunicator().Send(SendRecvObject, i_rank);
+        }
+    } else {
+        mrModelPart.GetCommunicator().GetDataCommunicator().Recv(SendRecvObject, 0);
+    }
+
+    rCombinations.clear();
+
+    for (auto& submodel_part_vector : SendRecvObject) {
+        const std::set<IndexType> r_key_set(submodel_part_vector.begin(), submodel_part_vector.end());
+        for(IndexType it : r_key_set)
+            rCollections[rTag].push_back(rCollections[it][0]);
+        rCombinations[r_key_set] = rTag;
+        ++rTag;
+    }
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
