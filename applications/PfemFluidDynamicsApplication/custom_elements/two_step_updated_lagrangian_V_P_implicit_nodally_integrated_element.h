@@ -247,7 +247,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     void CalculateElementalLaplacian(MatrixType &rLeftHandSideMatrix,
                                      VectorType &rRightHandSideVector,

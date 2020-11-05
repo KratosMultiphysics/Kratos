@@ -708,7 +708,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 }
 
 template <unsigned int TDim>
-int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
   KRATOS_TRY;
 
