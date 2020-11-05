@@ -137,7 +137,7 @@ bool GeometryUtils::ProjectedIsInside(
     }
 
     // We check if we are on the plane
-    if (std::abs(distance) > Tolerance) {
+    if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
         if (std::abs(distance) > 1.0e-6 * rGeometry.Length()) {
             return false;
         }
