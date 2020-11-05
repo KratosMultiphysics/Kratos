@@ -626,7 +626,7 @@ namespace Kratos
         if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
 
         const int omp_nest = omp_get_nested();
-        omp_set_nested(0);
+        omp_set_nested(0); // disable omp nesting, forces solvers to be serial
 
         #pragma omp parallel
         {
