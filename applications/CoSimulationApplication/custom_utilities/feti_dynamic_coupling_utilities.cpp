@@ -16,6 +16,7 @@
 
 // Project includes
 #include "feti_dynamic_coupling_utilities.h"
+#include "factories/linear_solver_factory.h"
 
 
 namespace Kratos
@@ -619,18 +620,34 @@ namespace Kratos
         CompressedMatrix effective_mass = (*pK) * (dt * dt * beta);
 
         //auto start = std::chrono::system_clock::now();
-        Vector solution(system_dofs);
-        Vector projector_transpose_column(system_dofs);
+        Matrix result(rUnitResponse.size1(), rUnitResponse.size2(),0.0);
 
-        for (int i = 0; i < interface_dofs; ++i)
+        Parameters solver_parameters(mParameters["linear_solver_settings"]);
+        if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
+
+        const int omp_nest = omp_get_nested();
+        omp_set_nested(0);
+
+        #pragma omp parallel
         {
-            for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
-            mpSolver->Solve(effective_mass, solution, projector_transpose_column);
-            for (size_t j = 0; j < system_dofs; ++j) rUnitResponse.insert_element(j,i,solution[j]);
+            Vector solution(system_dofs);
+            Vector projector_transpose_column(system_dofs);
+            auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
+
+            #pragma omp for
+            for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
+            {
+                for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
+                solver->Solve(effective_mass, solution, projector_transpose_column);
+                for (size_t j = 0; j < system_dofs; ++j) result(j, i) = solution[j]; // dense matrix for result so we can parallel access
+            }
         }
+        omp_set_nested(omp_nest);
+        rUnitResponse = CompressedMatrix(result);
 
         //auto end = std::chrono::system_clock::now();
         //auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        //std::cout << "solve time = " << elasped_solve.count() << "\n";
 
         // reference answer for testing - slow matrix inversion
         const bool is_test_ref = false;
