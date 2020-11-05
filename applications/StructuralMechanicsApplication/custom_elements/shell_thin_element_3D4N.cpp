@@ -201,7 +201,7 @@ void ShellThinElement3D4N::FinalizeSolutionStep
 }
 
 void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rMassMatrix.size1() != 24) || (rMassMatrix.size2() != 24)) {
         rMassMatrix.resize(24, 24, false);

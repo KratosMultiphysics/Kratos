@@ -209,7 +209,7 @@ public:
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             ProcessInfo& rCurrentProcessInfo) override;
+                             const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
