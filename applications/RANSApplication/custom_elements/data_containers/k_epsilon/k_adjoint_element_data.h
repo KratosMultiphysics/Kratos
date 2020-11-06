@@ -17,10 +17,10 @@
 
 // Project includes
 #include "includes/ublas_interface.h"
+#include "utilities/geometrical_sensitivity_utility.h"
 
 // Application includes
 #include "custom_elements/convection_diffusion_reaction_adjoint_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_sensitivity_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/k_element_data.h"
 
 namespace Kratos
@@ -247,85 +247,41 @@ public:
 };
 
 template<unsigned int TDim, unsigned int TNumNodes>
-class KAdjointShapeDerivatives
+class KAdjointSensitivityDerivatives
 {
 public:
-    ///@name Public forward declarations
-    ///@{
-
-    class Data;
-
-    ///@}
     ///@name Public classes
     ///@{
 
-    class ShapeDerivatives
-        : public ConvectionDiffusionReactionSensitivityElementData<TDim, TNumNodes, Data>
-    {
-    public:
-        ///@name Public type definitions
-        ///@{
-
-        using BaseType = ConvectionDiffusionReactionSensitivityElementData<TDim, TNumNodes, Data>;
-        static constexpr unsigned int TDerivativesSize = TDim * TNumNodes;
-
-        ///@}
-        ///@name Life cycle
-        ///@{
-
-        ShapeDerivatives(const Data& rElementData);
-
-        ///@}
-        ///@name Public operations
-        ///@{
-
-        static const Variable<array_1d<double, 3>>& GetDerivativeVariable();
-
-        array_1d<double, 3> CalculateEffectiveVelocityDerivatives(
-            const ShapeParameter& rShapeParameters,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives,
-            const double detJ_deriv,
-            const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const override;
-
-        double CalculateEffectiveKinematicViscosityDerivatives(
-            const ShapeParameter& rShapeParameters,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives,
-            const double detJ_deriv,
-            const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const override;
-
-        double CalculateReactionTermDerivatives(
-            const ShapeParameter& rShapeParameters,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives,
-            const double detJ_deriv,
-            const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const override;
-
-        double CalculateSourceTermDerivatives(
-            const ShapeParameter& rShapeParameters,
-            const Vector& rShapeFunctions,
-            const Matrix& rShapeFunctionDerivatives,
-            const double detJ_deriv,
-            const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const override;
-
-        ///@}
-    };
-
-    class Data : public KEpsilonElementData::KElementData<TDim>
+    class ShapeDerivatives : public KEpsilonElementData::KElementData<TDim>
     {
     public:
         ///@name Public type definitions
         ///@{
 
         using BaseType = KEpsilonElementData::KElementData<TDim>;
+
         using GeometryType = typename BaseType::GeometryType;
+
+        static constexpr unsigned int TDerivativesSize = TDim * TNumNodes;
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        Data(const GeometryType& rGeometry);
+        ShapeDerivatives(const GeometryType& rGeometry);
+
+        ///@}
+        ///@name Public static methods
+        ///@{
+
+        static void Check(
+            const GeometryType& rGeometry,
+            const ProcessInfo& rCurrentProcessInfo);
+
+        static const Variable<array_1d<double, 3>>& GetDerivativeVariable();
+
+        static const Variable<double>& GetAdjointScalarVariable();
 
         ///@}
         ///@name Public operations
@@ -336,35 +292,51 @@ public:
             const Matrix& rShapeFunctionDerivatives,
             const int Step = 0) override;
 
-        static void Check(
-            const GeometryType& rGeometry,
-            const ProcessInfo& rCurrentProcessInfo);
+        array_1d<double, 3> CalculateEffectiveVelocityDerivatives(
+            const ShapeParameter& rShapeParameters,
+            const Vector& rShapeFunctions,
+            const Matrix& rShapeFunctionDerivatives,
+            const double detJ_deriv,
+            const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const;
 
-        static const Variable<double>& GetAdjointScalarVariable();
+        double CalculateEffectiveKinematicViscosityDerivatives(
+            const ShapeParameter& rShapeParameters,
+            const Vector& rShapeFunctions,
+            const Matrix& rShapeFunctionDerivatives,
+            const double detJ_deriv,
+            const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const;
+
+        double CalculateReactionTermDerivatives(
+            const ShapeParameter& rShapeParameters,
+            const Vector& rShapeFunctions,
+            const Matrix& rShapeFunctionDerivatives,
+            const double detJ_deriv,
+            const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const;
+
+        double CalculateSourceTermDerivatives(
+            const ShapeParameter& rShapeParameters,
+            const Vector& rShapeFunctions,
+            const Matrix& rShapeFunctionDerivatives,
+            const double detJ_deriv,
+            const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const;
 
         ///@}
 
     private:
         ///@name Private members
-        ///{
-
-        double mProductionTerm;
-        double mReactionTerm;
-        BoundedMatrix<double, TNumNodes, TDim> mNodalVelocity;
-
-        ///@}
-        ///@name Private friend class definitions
         ///@{
 
-        // following classes are made friends in order to access private members of this class
-        // as well as the base class. (To avoid having lots of setters and getters)
-        friend class ShapeDerivatives;
+        double mReactionTerm;
+        double mProductionTerm;
+
+        BoundedMatrix<double, TNumNodes, TDim> mNodalVelocity;
 
         ///@}
     };
 
     ///@}
 };
+
 } // namespace KEpsilonAdjointElementData
 } // namespace Kratos
 

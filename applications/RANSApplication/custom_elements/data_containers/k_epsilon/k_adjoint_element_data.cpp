@@ -320,17 +320,17 @@ void KAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives::CalculateSou
 
 //************************** Epsilon Derivatives ************************************//
 //***********************************************************************************//
-//************************ Sensitivity Element Data *********************************//
+//**************************** Shape Derivatives ************************************//
 
 template <unsigned int TDim, unsigned int TNumNodes>
-KAdjointShapeDerivatives<TDim, TNumNodes>::Data::Data(
+KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::ShapeDerivatives(
     const GeometryType& rGeometry)
     : BaseType(rGeometry)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointShapeDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
+void KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateGaussPointData(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const int Step)
@@ -351,7 +351,7 @@ void KAdjointShapeDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointShapeDerivatives<TDim, TNumNodes>::Data::Check(
+void KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -373,30 +373,19 @@ void KAdjointShapeDerivatives<TDim, TNumNodes>::Data::Check(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& KAdjointShapeDerivatives<TDim, TNumNodes>::Data::GetAdjointScalarVariable()
-{
-    return RANS_SCALAR_1_ADJOINT_1;
-}
-
-//************************ Sensitivity Element Data *********************************//
-//***********************************************************************************//
-//*************************** Shape Sensitivity *************************************//
-
-template <unsigned int TDim, unsigned int TNumNodes>
-KAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::ShapeDerivatives(
-    const Data& rElementData)
-    : BaseType(rElementData)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<array_1d<double, 3>>& KAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::GetDerivativeVariable()
+const Variable<array_1d<double, 3>>& KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::GetDerivativeVariable()
 {
     return SHAPE_SENSITIVITY;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-array_1d<double, 3> KAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateEffectiveVelocityDerivatives(
+const Variable<double>& KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::GetAdjointScalarVariable()
+{
+    return RANS_SCALAR_1_ADJOINT_1;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+array_1d<double, 3> KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateEffectiveVelocityDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -407,7 +396,7 @@ array_1d<double, 3> KAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives:
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
+double KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateEffectiveKinematicViscosityDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -418,46 +407,43 @@ double KAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateEff
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateReactionTermDerivatives(
+double KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateReactionTermDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const double detJ_deriv,
     const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const
 {
-    const auto& data = this->GetElementData();
-
-    if (data.mReactionTerm > 0.0) {
+    if (mReactionTerm > 0.0) {
         return (2.0 / 3.0) * RansCalculationUtilities::GetDivergence(
-                                 data.GetGeometry(), VELOCITY, rDN_Dx_deriv);
+                                 this->GetGeometry(), VELOCITY, rDN_Dx_deriv);
     } else {
         return 0.0;
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointShapeDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateSourceTermDerivatives(
+double KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives::CalculateSourceTermDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const double detJ_deriv,
     const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const
 {
-    const auto& data = this->GetElementData();
     return KEpsilonElementData::AdjointUtilities<TDim, TNumNodes>::CalculateProductionShapeSensitivities(
-        data.mTurbulentKinematicViscosity, 0.0, data.mProductionTerm,
-        data.mNodalVelocity, rShapeFunctionDerivatives, rDN_Dx_deriv);
+        this->mTurbulentKinematicViscosity, 0.0, this->mProductionTerm,
+        this->mNodalVelocity, rShapeFunctionDerivatives, rDN_Dx_deriv);
 }
 
-//*************************** Shape Sensitivity *************************************//
+//**************************** Shape Derivatives ************************************//
 //***********************************************************************************//
 
 // template instantiations
 template class KAdjointStateDerivatives<2, 3>;
 template class KAdjointStateDerivatives<3, 4>;
 
-template class KAdjointShapeDerivatives<2, 3>;
-template class KAdjointShapeDerivatives<3, 4>;
+template class KAdjointSensitivityDerivatives<2, 3>;
+template class KAdjointSensitivityDerivatives<3, 4>;
 
 } // namespace KEpsilonAdjointElementData
 } // namespace Kratos

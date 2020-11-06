@@ -123,7 +123,7 @@ void RunAdjointDataTest(
     const std::function<void(ModelPart& rModelPart)>& rSetVariableDataFunction,
     const std::function<void(ModelPart& rModelPart)>& rUpdateFunction,
     const std::function<std::tuple<TArgs...>(const TPrimalElementDataType&, const Vector&, const Matrix&)>& rPrimalTupleRetrievalMethod,
-    const std::function<std::tuple<BoundedVector<TArgs, TAdjointDerivativeType::TDerivativesSize>...>(const TAdjointDerivativeType&, const Vector&, const Matrix&, const IndexType)>& rAdjointTupleRetrievalMethod,
+    const std::function<std::tuple<BoundedVector<TArgs, TAdjointDerivativeType::TDerivativesSize>...>(const TAdjointElementDataType&, const Vector&, const Matrix&, const IndexType)>& rAdjointTupleRetrievalMethod,
     const int BufferSize,
     const double Delta,
     const double RelativeTolerance)
@@ -155,7 +155,6 @@ void RunAdjointDataTest(
 
     // setup adjoint element data
     TAdjointElementDataType adjoint_element_data(r_adjoint_geometry);
-    TAdjointDerivativeType derivatives(adjoint_element_data);
 
     TPrimalElementDataType::Check(r_primal_geometry, r_primal_model_part.GetProcessInfo());
     TAdjointElementDataType::Check(r_adjoint_geometry, r_adjoint_model_part.GetProcessInfo());
@@ -186,7 +185,7 @@ void RunAdjointDataTest(
 
         // calculating adjoint sensitivities
         adjoint_element_data.CalculateGaussPointData(adjoint_gauss_shape_functions, adjoint_gauss_shape_function_derivatives);
-        const auto& analytical_values =  rAdjointTupleRetrievalMethod(derivatives, adjoint_gauss_shape_functions, adjoint_gauss_shape_function_derivatives, g);
+        const auto& analytical_values =  rAdjointTupleRetrievalMethod(adjoint_element_data, adjoint_gauss_shape_functions, adjoint_gauss_shape_function_derivatives, g);
 
         // calculating primal finite difference sensitivities
         RansCalculationUtilities::CalculateGeometryData(
@@ -243,7 +242,7 @@ std::tuple<array_1d<double, 3>, double, double, double> RetrievePrimalValues(
 }
 
 template <class TPrimalElementDataType, class TAdjointElementDataType, class TAdjointDerivativeType>
-void RunAdjointElementDataTest(
+void RunAdjointElementDataStateDerivativesTest(
     Model& rModel,
     const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFunction,
     const std::function<void(ModelPart& rModelPart)>& rSetVariableDataFunction,
@@ -255,8 +254,8 @@ void RunAdjointElementDataTest(
     using BArrN = BoundedVector<array_1d<double, 3>, TAdjointDerivativeType::TDerivativesSize>;
     using BDN = BoundedVector<double, TAdjointDerivativeType::TDerivativesSize>;
 
-    const std::function<std::tuple<BArrN, BDN, BDN, BDN>(const TAdjointDerivativeType&, const Vector&, const Matrix&, const IndexType)>& adjoint_values = [](
-        const TAdjointDerivativeType& rDerivatives,
+    const std::function<std::tuple<BArrN, BDN, BDN, BDN>(const TAdjointElementDataType&, const Vector&, const Matrix&, const IndexType)>& adjoint_values = [](
+        const TAdjointElementDataType& rData,
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
         const IndexType GaussPointIndex) -> std::tuple<BArrN, BDN, BDN, BDN> {
@@ -265,10 +264,11 @@ void RunAdjointElementDataTest(
         BoundedVector<double, TAdjointDerivativeType::TDerivativesSize> effective_kinematic_viscosity_derivatives, reaction_term_derivatives, source_term_derivatives;
         BoundedVector<array_1d<double, 3>, TAdjointDerivativeType::TDerivativesSize> effective_velocity_derivatives_arr;
 
-        rDerivatives.CalculateEffectiveVelocityDerivatives(effective_velocity_derivatives, rShapeFunctions, rShapeFunctionDerivatives);
-        rDerivatives.CalculateEffectiveKinematicViscosityDerivatives(effective_kinematic_viscosity_derivatives, rShapeFunctions, rShapeFunctionDerivatives);
-        rDerivatives.CalculateReactionTermDerivatives(reaction_term_derivatives, rShapeFunctions, rShapeFunctionDerivatives);
-        rDerivatives.CalculateSourceTermDerivatives(source_term_derivatives, rShapeFunctions, rShapeFunctionDerivatives);
+        TAdjointDerivativeType derivatives(rData);
+        derivatives.CalculateEffectiveVelocityDerivatives(effective_velocity_derivatives, rShapeFunctions, rShapeFunctionDerivatives);
+        derivatives.CalculateEffectiveKinematicViscosityDerivatives(effective_kinematic_viscosity_derivatives, rShapeFunctions, rShapeFunctionDerivatives);
+        derivatives.CalculateReactionTermDerivatives(reaction_term_derivatives, rShapeFunctions, rShapeFunctionDerivatives);
+        derivatives.CalculateSourceTermDerivatives(source_term_derivatives, rShapeFunctions, rShapeFunctionDerivatives);
 
         for (IndexType i = 0; i < TAdjointDerivativeType::TDerivativesSize; ++i) {
             noalias(effective_velocity_derivatives_arr[i]) =  row(effective_velocity_derivatives, i);
@@ -295,8 +295,8 @@ void RunAdjointElementDataTest(
     );
 }
 
-template <class TPrimalElementDataType, class TAdjointElementDataType, class TAdjointDerivativeType>
-void RunAdjointSensitivityDataTest(
+template <class TPrimalElementDataType, class TAdjointDerivativeType>
+void RunAdjointElementDataSensitivityDerivativesTest(
     Model& rModel,
     const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFunction,
     const std::function<void(ModelPart& rModelPart)>& rSetVariableDataFunction,
@@ -319,8 +319,8 @@ void RunAdjointSensitivityDataTest(
             reaction_term_derivatives, source_term_derivatives;
 
         Geometry<Point>::JacobiansType J;
-        rDerivatives.GetElementData().GetGeometry().Jacobian(J, GeometryData::GI_GAUSS_2);
-        const auto& DN_De = rDerivatives.GetElementData().GetGeometry().ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_2);
+        rDerivatives.GetGeometry().Jacobian(J, GeometryData::GI_GAUSS_2);
+        const auto& DN_De = rDerivatives.GetGeometry().ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_2);
 
         GeometricalSensitivityUtility::ShapeFunctionsGradientType DN_DX_deriv;
         const Matrix& rJ = J[GaussPointIndex];
@@ -353,7 +353,8 @@ void RunAdjointSensitivityDataTest(
             );
     };
 
-    RunAdjointDataTest<TPrimalElementDataType, TAdjointElementDataType, TAdjointDerivativeType, array_1d<double, 3>, double, double, double>(
+
+    RunAdjointDataTest<TPrimalElementDataType, TAdjointDerivativeType, TAdjointDerivativeType, array_1d<double, 3>, double, double, double>(
         rModel,
         rAddNodalSolutionStepVariablesFunction,
         rSetVariableDataFunction,

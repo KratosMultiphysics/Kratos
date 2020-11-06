@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(RANSAdjointKEpsilonKEquationVelocityDerivatives, Krato
 {
     Model model;
 
-    RansApplicationTestUtilities::RunAdjointElementDataTest<
+    RansApplicationTestUtilities::RunAdjointElementDataStateDerivativesTest<
         KEpsilonElementData::KElementData<2>,
         KEpsilonAdjointElementData::KAdjointStateDerivatives<2, 3>::Data,
         KEpsilonAdjointElementData::KAdjointStateDerivatives<2, 3>::VelocityDerivatives>(
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(RANSAdjointKEpsilonKEquationKDerivatives, KratosRansFa
 {
     Model model;
 
-    RansApplicationTestUtilities::RunAdjointElementDataTest<
+    RansApplicationTestUtilities::RunAdjointElementDataStateDerivativesTest<
         KEpsilonElementData::KElementData<2>,
         KEpsilonAdjointElementData::KAdjointStateDerivatives<2, 3>::Data,
         KEpsilonAdjointElementData::KAdjointStateDerivatives<2, 3>::KDerivatives>(
@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(RANSAdjointKEpsilonKEquationEpsilonDerivatives, Kratos
 {
     Model model;
 
-    RansApplicationTestUtilities::RunAdjointElementDataTest<
+    RansApplicationTestUtilities::RunAdjointElementDataStateDerivativesTest<
         KEpsilonElementData::KElementData<2>,
         KEpsilonAdjointElementData::KAdjointStateDerivatives<2, 3>::Data,
         KEpsilonAdjointElementData::KAdjointStateDerivatives<2, 3>::EpsilonDerivatives>(
@@ -126,10 +126,9 @@ KRATOS_TEST_CASE_IN_SUITE(RANSAdjointKEpsilonKEquationShapeDerivatives, KratosRa
 {
     Model model;
 
-    RansApplicationTestUtilities::RunAdjointSensitivityDataTest<
+    RansApplicationTestUtilities::RunAdjointElementDataSensitivityDerivativesTest<
         KEpsilonElementData::KElementData<2>,
-        KEpsilonAdjointElementData::KAdjointShapeDerivatives<2, 3>::Data,
-        KEpsilonAdjointElementData::KAdjointShapeDerivatives<2, 3>::ShapeDerivatives>(
+        KEpsilonAdjointElementData::KAdjointSensitivityDerivatives<2, 3>::ShapeDerivatives>(
         model, KEpsilonAddVariables, KEpsilonSetVariables, KEpsilonUpdateVariables, 2, 1e-6, 1e-5);
 }
 
@@ -137,7 +136,7 @@ KRATOS_TEST_CASE_IN_SUITE(RANSAdjointKEpsilonEpsilonEquationVelocityDerivatives,
 {
     Model model;
 
-    RansApplicationTestUtilities::RunAdjointElementDataTest<
+    RansApplicationTestUtilities::RunAdjointElementDataStateDerivativesTest<
         KEpsilonElementData::EpsilonElementData<2>,
         KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<2, 3>::Data,
         KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<2, 3>::VelocityDerivatives>(
@@ -148,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(RANSAdjointKEpsilonEpsilonEquationKDerivatives, Kratos
 {
     Model model;
 
-    RansApplicationTestUtilities::RunAdjointElementDataTest<
+    RansApplicationTestUtilities::RunAdjointElementDataStateDerivativesTest<
         KEpsilonElementData::EpsilonElementData<2>,
         KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<2, 3>::Data,
         KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<2, 3>::KDerivatives>(
@@ -159,7 +158,7 @@ KRATOS_TEST_CASE_IN_SUITE(RANSAdjointKEpsilonEpsilonEquationEpsilonDerivatives, 
 {
     Model model;
 
-    RansApplicationTestUtilities::RunAdjointElementDataTest<
+    RansApplicationTestUtilities::RunAdjointElementDataStateDerivativesTest<
         KEpsilonElementData::EpsilonElementData<2>,
         KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<2, 3>::Data,
         KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<2, 3>::EpsilonDerivatives>(
@@ -170,10 +169,9 @@ KRATOS_TEST_CASE_IN_SUITE(RANSAdjointKEpsilonEpsilonEquationShapeDerivatives, Kr
 {
     Model model;
 
-    RansApplicationTestUtilities::RunAdjointSensitivityDataTest<
+    RansApplicationTestUtilities::RunAdjointElementDataSensitivityDerivativesTest<
         KEpsilonElementData::EpsilonElementData<2>,
-        KEpsilonAdjointElementData::EpsilonAdjointShapeDerivatives<2, 3>::Data,
-        KEpsilonAdjointElementData::EpsilonAdjointShapeDerivatives<2, 3>::ShapeDerivatives>(
+        KEpsilonAdjointElementData::EpsilonAdjointSensitivityDerivatives<2, 3>::ShapeDerivatives>(
         model, KEpsilonAddVariables, KEpsilonSetVariables, KEpsilonUpdateVariables, 2, 1e-6, 1e-5);
 }
 
