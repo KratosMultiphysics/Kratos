@@ -246,15 +246,15 @@ namespace Kratos {
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); //TODO: can we remove this? We should overwrite LocalElasticContactForce afterwards
 
             double ViscoDampingLocalContactForce[3] = {0.0};
-            double equiv_visco_damp_coeff_normal;
-            double equiv_visco_damp_coeff_tangential_0;
-            double equiv_visco_damp_coeff_tangential_1;
-            double ElasticLocalRotationalMoment[3] = {0.0};
-            double ViscoLocalRotationalMoment[3] = {0.0};
+
             double LocalRelVel[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, RelVel, LocalRelVel);
 
             if (i < (int)mContinuumInitialNeighborsSize) {
+
+                double equiv_visco_damp_coeff_normal;
+                double equiv_visco_damp_coeff_tangential_0;
+                double equiv_visco_damp_coeff_tangential_1;
 
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
                                                                    OldLocalElasticContactForce,
@@ -310,6 +310,10 @@ namespace Kratos {
                                   r_process_info); // 0.0 means null cohesive force
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
+
+                double ElasticLocalRotationalMoment[3] = {0.0};
+                double ViscoLocalRotationalMoment[3] = {0.0};
+
                 ComputeMoments(LocalContactForce[2],
                                TotalGlobalElasticContactForce,
                                RollingResistance,
@@ -319,7 +323,6 @@ namespace Kratos {
                                false,
                                i);
 
-                if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this,
                                                                                         neighbour_iterator,
                                                                                         equiv_young,
@@ -330,7 +333,7 @@ namespace Kratos {
                                                                                         ViscoLocalRotationalMoment,
                                                                                         equiv_poisson,
                                                                                         indentation);
-                }
+
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 

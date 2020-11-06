@@ -100,10 +100,6 @@ namespace Kratos {
         kt_el_0 = 3.0 * equiv_young * Inertia_Iyy / (calculation_area * initial_dist);
         kt_el_1 = 3.0 * equiv_young * Inertia_Ixx / (calculation_area * initial_dist);
 
-        // 2013 Bourrier. Discrete modeling of granular soils reinforcement by plant roots FOR CYLINDERS!!! CHECK!!!
-        // kt_el_0 = 12.0 * equiv_young * Inertia_Iyy / (initial_dist * initial_dist * initial_dist);
-        // kt_el_1 = 12.0 * equiv_young * Inertia_Ixx / (initial_dist * initial_dist * initial_dist);
-
         KRATOS_CATCH("")
     }
 
