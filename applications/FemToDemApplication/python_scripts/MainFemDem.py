@@ -32,7 +32,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         # Time control starts        
         self.KratosPrintInfo(timer.ctime())
         # Measure process time
-        self.t0p = timer.process_time()
+        self.t0p = timer.clock()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####
