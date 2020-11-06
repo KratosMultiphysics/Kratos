@@ -59,16 +59,24 @@ namespace Kratos
             r_sub_modelpart_4.AddNode(r_model_part.pGetNode(6));
 
             // Adding nodes to random submodelparts
-            if (rank == 0) {
+            if (DataCommunicator::GetDefault().IsDistributed()) {
+                if (rank == 0) {
+                    r_sub_modelpart_3.AddNode(r_model_part.pGetNode(4));
+                }
+                else {
+                    r_sub_modelpart_3.AddNode(r_model_part.pGetNode(6));
+                    r_sub_modelpart_2.AddNode(r_model_part.pGetNode(5));
+                    r_sub_modelpart_4.AddNode(r_model_part.pGetNode(5));
+
+                }
+            } else {
                 r_sub_modelpart_3.AddNode(r_model_part.pGetNode(4));
-            }
-            else {
                 r_sub_modelpart_3.AddNode(r_model_part.pGetNode(6));
                 r_sub_modelpart_2.AddNode(r_model_part.pGetNode(5));
                 r_sub_modelpart_4.AddNode(r_model_part.pGetNode(5));
             }
 
-            // Adding nodes to random submodelparts
+            // Adding elements to random submodelparts
             r_sub_modelpart_1.AddElement(r_model_part.pGetElement(1));
             r_sub_modelpart_2.AddElement(r_model_part.pGetElement(4));
 
