@@ -64,6 +64,16 @@ RUN apt-get update -y && apt-get upgrade -y && \
     make install && \
     rm -r /tmp/mmg_5_5_1 && \
     cd / && \
+    # install PARMMG
+    git clone --depth 1 https://github.com/MmgTools/ParMmg /tmp/ParMmg && \
+    mkdir /tmp/ParMmg/build && \
+    mkdir -p /external_libraries/mmg/ParMmg && \
+    cd /tmp/mmg_5_5_1/build && git checkout 4d272bb3d1a51d839a5fdfaa3eef93f340cafda3 && \
+    cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/ParMmg" -DLIBPARMMG_SHARED=ON -DDOWNLOAD_MMG=OFF -DMMG_DIR="/external_libraries/mmg/mmg_5_5_1" \
+             -DMMG_BUILDDIR="/external_libraries/mmg/mmg_5_5_1/build" -DDOWNLOAD_METIS=OFF -DMETIS_DIR="/usr/include"  && \
+    make install && \
+    rm -r /tmp/ParMmg && \
+    cd / && \
     # remove some now unnecessary packages
     apt-get -y remove \
         gnupg2 \
