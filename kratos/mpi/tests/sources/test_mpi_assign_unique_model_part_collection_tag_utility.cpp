@@ -38,7 +38,7 @@ namespace Kratos
         /**
         * Checks the correct work of the sub modelparts list utility
         */
-        KRATOS_TEST_CASE_IN_SUITE(AssignMPIUniqueModelPartCollectionTagUtility, KratosMPICoreFastSuiteTESTING)
+        KRATOS_TEST_CASE_IN_SUITE(AssignMPIUniqueModelPartCollectionTagUtility, KratosMPICoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
             auto rank = DataCommunicator::GetDefault().Rank();
