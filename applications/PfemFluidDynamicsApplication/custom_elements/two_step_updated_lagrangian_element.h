@@ -301,7 +301,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override { return 0; };
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override { return 0; };
 
     ///@}
     ///@name Inquiry
