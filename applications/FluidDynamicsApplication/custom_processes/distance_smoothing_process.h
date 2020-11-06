@@ -160,7 +160,7 @@ private:
      * This method creates the linear solution strategy
      * @param pBuilderAndSolver Builder and solver pointer
      */
-    void CreateSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver);
+    void CreateSolutionStrategy(typename TLinearSolver::Pointer pLinearSolver);
 
     /**
      * @brief Initialize the process
