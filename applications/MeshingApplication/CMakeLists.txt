@@ -38,6 +38,16 @@ set( KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/multiscale_refining_process.cpp
 )
 
+set(KRATOS_MESHING_APPLICATION_CORE_PMMG "")
+if(${INCLUDE_PMMG} MATCHES ON)
+set( KRATOS_MESHING_APPLICATION_CORE_PMMG ${KRATOS_MESHING_APPLICATION_CORE_PMMG}
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/pmmg_utilities.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/pmmg_process.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_io/pmmg_io.cpp
+)
+endif(${INCLUDE_PMMG} MATCHES ON)
+
+
 ## If we have MMG support, use it
 set(KRATOS_MESHING_APPLICATION_CORE_MMG "")
 if(${INCLUDE_MMG} MATCHES ON)
@@ -56,7 +66,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
+add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_CORE_PMMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 
 IF(NOT DEFINED MMG_LIBRARY_PREFIX)
     SET(MMG_LIBRARY_PREFIX "lib")
@@ -116,7 +126,7 @@ if(${INCLUDE_MMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
 
     target_link_libraries(KratosMeshingCore PUBLIC KratosCore tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
-    
+
     message("Installed MMG = " ${MMG_LIBRARY})
     install(FILES ${MMG_LIBRARY} DESTINATION libs)
     message("Installed MMG2D = " ${MMG2D_LIBRARY})
@@ -128,6 +138,87 @@ if(${INCLUDE_MMG} MATCHES ON)
 else(${INCLUDE_MMG} MATCHES ON)
     target_link_libraries(KratosMeshingCore PUBLIC KratosCore tetMeshOpt)
 endif(${INCLUDE_MMG} MATCHES ON)
+
+target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
+set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
+
+IF(NOT DEFINED PMMG_LIBRARY_PREFIX)
+    SET(PMMG_LIBRARY_PREFIX "lib")
+ENDIF(NOT DEFINED PMMG_LIBRARY_PREFIX)
+
+if(${INCLUDE_PMMG} MATCHES ON)
+    IF(NOT DEFINED INCLUDE_MMG)
+        message( FATAL_ERROR "MMG not included. Please add -DINCLUDE_MMG=ON to the configure file in order to compile with ParMMG")
+    ELSE(NOT DEFINED INCLUDE_MMG)
+        if(${INCLUDE_MMG} MATCHES OFF)
+            message( FATAL_ERROR " MMG disabled. Please set -DINCLUDE_MMG=ON in the configure file in order to compile with ParMMG")
+        endif(${INCLUDE_MMG} MATCHES OFF)
+    ENDIF(NOT DEFINED PMMG_LIBRARY_PREFIX)
+
+
+    add_definitions( -DINCLUDE_PMMG )
+    ## find Metis for ParMmg
+    if(NOT DEFINED USE_METIS_5)
+        message("USE_METIS_5 not defined. Setting to ON")
+        SET (USE_METIS_5 ON)
+    endif(NOT DEFINED USE_METIS_5)
+
+    if(${USE_METIS_5} MATCHES ON)
+        message("using metis (and not Parmetis) version 5")
+        add_definitions(-DKRATOS_USE_METIS_5)
+        find_package(METIS REQUIRED)
+        include_directories(${METIS_INCLUDE_DIR})
+        link_directories(${METIS_LIBRARIES})
+        install(FILES ${METIS_LIBRARIES} DESTINATION libs)
+    else(${USE_METIS_5} MATCHES ON)
+        message("using PARMETIS < 4 as default. Set USE_METIS_5=ON to compile with METIS v5 instead- note that current compile option is deprecated and will be removed soon")
+        find_package(PARMETIS REQUIRED)
+        include_directories(${PARMETIS_INCLUDE_DIR})
+        link_directories(${PARMETIS_LIBRARIES})
+    endif(${USE_METIS_5} MATCHES ON)
+    IF (PMMG_ROOT)
+        IF(NOT DEFINED PMMG_LIBRARY_EXTENSION)
+            IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+                IF(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.dll") # Dynamic library
+                    SET(PMMG_LIBRARY_EXTENSION "dll")
+                ELSE(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.dll") # Static library
+                    SET(PMMG_LIBRARY_EXTENSION "lib")
+                ENDIF(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.dll")
+            ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+                IF(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.so") # Dynamic library
+                    SET(PMMG_LIBRARY_EXTENSION "so")
+                ELSE(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.so") # Static library
+                    SET(PMMG_LIBRARY_EXTENSION "a")
+                ENDIF(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.so")
+            ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        ENDIF(NOT DEFINED PMMG_LIBRARY_EXTENSION)
+
+        IF(NOT DEFINED PMMG_INCLUDE_DIR)
+            SET(PMMG_INCLUDE_DIR ${PMMG_ROOT}/include/)
+        ENDIF(NOT DEFINED PMMG_INCLUDE_DIR)
+        IF(NOT DEFINED PMMG_LIBRARY)
+            SET(PMMG_LIBRARY ${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.${PMMG_LIBRARY_EXTENSION})
+        ENDIF(NOT DEFINED PMMG_LIBRARY)
+        IF (MMG_ROOT)
+            IF(NOT DEFINED MMG3D_INCLUDE_DIR)
+                SET(MMG3D_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmg3d/)
+            ENDIF(NOT DEFINED MMG3D_INCLUDE_DIR)
+            IF(NOT DEFINED MMG3D_LIBRARY)
+                SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/${MMG_LIBRARY_PREFIX}mmg3d.${MMG_LIBRARY_EXTENSION})
+            ENDIF(NOT DEFINED MMG3D_LIBRARY)
+        ENDIF (MMG_ROOT)
+    ENDIF (PMMG_ROOT)
+
+    INCLUDE_DIRECTORIES(${PMMG_INCLUDE_DIR})
+    INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
+
+    message("Installed PMMG = " ${PMMG_LIBRARY})
+    install(FILES ${PMMG_LIBRARY} DESTINATION libs)
+    message("... with MMG3D = " ${MMG3D_LIBRARY})
+    install(FILES ${MMG3D_LIBRARY} DESTINATION libs)
+
+    target_link_libraries(KratosMeshingCore PUBLIC KratosCore KratosMPICore triangle tetMeshOpt ${METIS_LIBRARY} ${PMMG_LIBRARY} ${MMG3D_LIBRARY})
+endif(${INCLUDE_PMMG} MATCHES ON)
 
 set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 
