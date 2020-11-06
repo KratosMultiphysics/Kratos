@@ -80,11 +80,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    static GeometryData::IntegrationMethod GetIntegrationMethod()
-    {
-        return GeometryData::GI_GAUSS_2;
-    }
-
     ///@}
     ///@name Public static operations
     ///@{

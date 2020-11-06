@@ -204,6 +204,11 @@ public:
 
     using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
+    using TurbulenceEquation1Data = typename TAdjointTurbulenceModelDataType::TurbulenceEquation1;
+
+    using TurbulenceEquation2Data = typename TAdjointTurbulenceModelDataType::TurbulenceEquation2;
+
+
     ///@name Pointer Definitions
     /// Pointer definition of TwoEquationTurbulenceModelAdjointElement
     KRATOS_CLASS_POINTER_DEFINITION(TwoEquationTurbulenceModelAdjointElement);
@@ -318,8 +323,8 @@ public:
     {
         const auto& geometry = this->GetGeometry();
         // TAdjointTurbulenceModelDataType::FluidEquation::Check(geometry, rCurrentProcessInfo);
-        TAdjointTurbulenceModelDataType::TurbulenceEquation1::Check(geometry, rCurrentProcessInfo);
-        TAdjointTurbulenceModelDataType::TurbulenceEquation2::Check(geometry, rCurrentProcessInfo);
+        TurbulenceEquation1Data::StateDerivatives::Check(geometry, rCurrentProcessInfo);
+        TurbulenceEquation2Data::StateDerivatives::Check(geometry, rCurrentProcessInfo);
         return 0;
     }
 
@@ -338,7 +343,7 @@ public:
         }
 
         IndexType local_index = 0;
-        const auto& add_dof_variables_list =
+        const auto& set_equation_ids =
             [&](const NodeType& rNode, const std::vector<const Variable<double>*>& rVariables) {
                 for (const auto p_variable : rVariables) {
                     rElementalEquationIdList[local_index++] = rNode.GetDof(*p_variable).EquationId();
@@ -348,9 +353,9 @@ public:
         for (IndexType i = 0; i < TNumNodes; ++i)
         {
             const auto& r_node = this->GetGeometry()[i];
-            // add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::FluidEquation::GetDofVariablesList());
-            add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::TurbulenceEquation1::GetDofVariablesList());
-            add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::TurbulenceEquation2::GetDofVariablesList());
+            // set_equation_ids(r_node, TAdjointTurbulenceModelDataType::FluidEquation::GetDofVariablesList());
+            set_equation_ids(r_node, TurbulenceEquation1Data::StateDerivatives::GetDofVariablesList());
+            set_equation_ids(r_node, TurbulenceEquation2Data::StateDerivatives::GetDofVariablesList());
         }
     }
 
@@ -368,7 +373,7 @@ public:
         }
 
         IndexType local_index = 0;
-        const auto& add_dof_variables_list =
+        const auto& set_dof_variables =
             [&](const NodeType& rNode, const std::vector<const Variable<double>*>& rVariables) {
                 for (const auto p_variable : rVariables) {
                     rElementalDofList[local_index++] = rNode.pGetDof(*p_variable);
@@ -378,9 +383,9 @@ public:
         for (IndexType i = 0; i < TNumNodes; ++i)
         {
             const auto& r_node = this->GetGeometry()[i];
-            // add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::FluidEquation::GetDofVariablesList());
-            add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::TurbulenceEquation1::GetDofVariablesList());
-            add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::TurbulenceEquation2::GetDofVariablesList());
+            // set_dof_variables(r_node, TAdjointTurbulenceModelDataType::FluidEquation::GetDofVariablesList());
+            set_dof_variables(r_node, TurbulenceEquation1Data::StateDerivatives::GetDofVariablesList());
+            set_dof_variables(r_node, TurbulenceEquation2Data::StateDerivatives::GetDofVariablesList());
         }
     }
 
@@ -402,7 +407,7 @@ public:
         }
 
         IndexType local_index = 0;
-        const auto& add_dof_variables_list =
+        const auto& set_first_derivative_values =
             [&](const NodeType& rNode, const std::vector<const Variable<double>*>& rVariables) {
                 for (const auto p_variable : rVariables) {
                     rValues[local_index++] = rNode.FastGetSolutionStepValue(p_variable->GetTimeDerivative());
@@ -412,9 +417,9 @@ public:
         for (IndexType i = 0; i < TNumNodes; ++i)
         {
             const auto& r_node = this->GetGeometry()[i];
-            // add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::FluidEquation::GetDofVariablesList());
-            add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::TurbulenceEquation1::GetDofVariablesList());
-            add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::TurbulenceEquation2::GetDofVariablesList());
+            // set_first_derivative_values(r_node, TAdjointTurbulenceModelDataType::FluidEquation::GetDofVariablesList());
+            set_first_derivative_values(r_node, TurbulenceEquation1Data::StateDerivatives::GetDofVariablesList());
+            set_first_derivative_values(r_node, TurbulenceEquation2Data::StateDerivatives::GetDofVariablesList());
         }
     }
 
@@ -427,7 +432,7 @@ public:
         }
 
         IndexType local_index = 0;
-        const auto& add_dof_variables_list =
+        const auto& set_second_derivative_values =
             [&](const NodeType& rNode, const std::vector<const Variable<double>*>& rVariables) {
                 for (const auto p_variable : rVariables) {
                     rValues[local_index++] = rNode.FastGetSolutionStepValue(p_variable->GetTimeDerivative());
@@ -437,9 +442,9 @@ public:
         for (IndexType i = 0; i < TNumNodes; ++i)
         {
             const auto& r_node = this->GetGeometry()[i];
-            // add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::FluidEquation::GetDofVariablesList());
-            add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::TurbulenceEquation1::GetDofVariablesList());
-            add_dof_variables_list(r_node, TAdjointTurbulenceModelDataType::TurbulenceEquation2::GetDofVariablesList());
+            // set_second_derivative_values(r_node, TAdjointTurbulenceModelDataType::FluidEquation::GetDofVariablesList());
+            set_second_derivative_values(r_node, TurbulenceEquation1Data::StateDerivatives::GetDofVariablesList());
+            set_second_derivative_values(r_node, TurbulenceEquation2Data::StateDerivatives::GetDofVariablesList());
         }
     }
 
@@ -487,30 +492,26 @@ public:
 
         rLeftHandSideMatrix.clear();
 
-        // TAdjointTurbulenceModelDataType::FluidEquation::FirstDerivatives::Data fluid_data(this->GetGeometry());
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::FirstDerivatives::Data equation_1_data(this->GetGeometry());
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::FirstDerivatives::Data equation_2_data(this->GetGeometry());
+        using turbulence_equation_1_derivatives_data = typename TurbulenceEquation1Data::StateDerivatives::FirstDerivatives;
+        using turbulence_equation_2_derivatives_data = typename TurbulenceEquation2Data::StateDerivatives::FirstDerivatives;
 
-        // initialize derivatives
-        // TAdjointTurbulenceModelDataType::FluidEquation::FirstDerivatives::VelocityPressure  fluid_vp(fluid_data);
-        // TAdjointTurbulenceModelDataType::FluidEquation::FirstDerivatives::TurbulenceDof1 fluid_dof_1(fluid_data);
-        // TAdjointTurbulenceModelDataType::FluidEquation::FirstDerivatives::TurbulenceDof2 fluid_dof_2(fluid_data);
+        typename turbulence_equation_1_derivatives_data::Data equation_1_data(this->GetGeometry());
+        typename turbulence_equation_1_derivatives_data::VelocityPressure    turbulence_equation_1_derivative_variable_0(equation_1_data);
+        typename turbulence_equation_1_derivatives_data::TurbulenceVariable1 turbulence_equation_1_derivative_variable_1(equation_1_data);
+        typename turbulence_equation_1_derivatives_data::TurbulenceVariable2 turbulence_equation_1_derivative_variable_2(equation_1_data);
 
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::FirstDerivatives::VelocityPressure turbulence_equation_1_dof_0(equation_1_data);
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::FirstDerivatives::TurbulenceDof1 turbulence_equation_1_dof_1(equation_1_data);
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::FirstDerivatives::TurbulenceDof2 turbulence_equation_1_dof_2(equation_1_data);
+        typename turbulence_equation_2_derivatives_data::Data equation_2_data(this->GetGeometry());
+        typename turbulence_equation_2_derivatives_data::VelocityPressure    turbulence_equation_2_derivative_variable_0(equation_2_data);
+        typename turbulence_equation_2_derivatives_data::TurbulenceVariable1 turbulence_equation_2_derivative_variable_1(equation_2_data);
+        typename turbulence_equation_2_derivatives_data::TurbulenceVariable2 turbulence_equation_2_derivative_variable_2(equation_2_data);
 
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::FirstDerivatives::VelocityPressure turbulence_equation_2_dof_0(equation_2_data);
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::FirstDerivatives::TurbulenceDof1 turbulence_equation_2_dof_1(equation_2_data);
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::FirstDerivatives::TurbulenceDof2 turbulence_equation_2_dof_2(equation_2_data);
+        turbulence_equation_1_derivative_variable_0.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_1_derivative_variable_1.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_1_derivative_variable_2.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-        turbulence_equation_1_dof_0.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_1_dof_1.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_1_dof_2.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-        turbulence_equation_2_dof_0.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_2_dof_1.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_2_dof_2.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_2_derivative_variable_0.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_2_derivative_variable_1.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_2_derivative_variable_2.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
 
         // fluid_data.Initialize(rCurrentProcessInfo);
         equation_1_data.Initialize(rCurrentProcessInfo);
@@ -520,43 +521,37 @@ public:
         Vector gauss_weights;
         Matrix shape_functions;
         ShapeFunctionDerivativesArrayType shape_derivatives;
-        RansCalculationUtilities::CalculateGeometryData(this->GetGeometry(), TAdjointTurbulenceModelDataType::TurbulenceEquation1::GetIntegrationMethod(), gauss_weights, shape_functions, shape_derivatives);
+        RansCalculationUtilities::CalculateGeometryData(this->GetGeometry(), TurbulenceEquation1Data::GetIntegrationMethod(), gauss_weights, shape_functions, shape_derivatives);
 
         for (IndexType g = 0; g < gauss_weights.size(); ++g) {
             const Vector& N = row(shape_functions, g);
             const Matrix& dNdX = shape_derivatives[g];
             const double weight = gauss_weights[g];
 
-            // fluid equation derivatives
-            // fluid_data.CalculateGaussPointData(weight, N, dNdX);
-            // fluid_vp.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalFluidEqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            // fluid_dof_1.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalTurbulenceEquation1EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            // fluid_dof_2.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalTurbulenceEquation2EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-
-            // // turbulence equation 1 derivatives
+            // turbulence equation 1 derivatives
             equation_1_data.CalculateGaussPointData(weight, N, dNdX);
-            turbulence_equation_1_dof_0.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
-            turbulence_equation_1_dof_1.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
-            turbulence_equation_1_dof_2.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
+            turbulence_equation_1_derivative_variable_0.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
+            turbulence_equation_1_derivative_variable_1.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
+            turbulence_equation_1_derivative_variable_2.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
 
             // turbulence equation 2 derivatives
             equation_2_data.CalculateGaussPointData(weight, N, dNdX);
-            turbulence_equation_2_dof_0.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
-            turbulence_equation_2_dof_1.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
-            turbulence_equation_2_dof_2.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
+            turbulence_equation_2_derivative_variable_0.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
+            turbulence_equation_2_derivative_variable_1.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
+            turbulence_equation_2_derivative_variable_2.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
         }
 
         // fluid_data.Finalize(rCurrentProcessInfo);
         equation_1_data.Finalize(rCurrentProcessInfo);
         equation_2_data.Finalize(rCurrentProcessInfo);
 
-        turbulence_equation_1_dof_0.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_1_dof_1.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_1_dof_2.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_1_derivative_variable_0.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_1_derivative_variable_1.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_1_derivative_variable_2.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-        turbulence_equation_2_dof_0.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_2_dof_1.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_2_dof_2.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_2_derivative_variable_0.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_2_derivative_variable_1.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_2_derivative_variable_2.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -572,8 +567,11 @@ public:
 
         rLeftHandSideMatrix.clear();
 
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::SecondDerivatives turbulence_equation_1(this->GetGeometry());
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::SecondDerivatives turbulence_equation_2(this->GetGeometry());
+        using turbulence_equation_1_derivatives_data = typename TurbulenceEquation1Data::StateDerivatives::SecondDerivatives;
+        using turbulence_equation_2_derivatives_data = typename TurbulenceEquation2Data::StateDerivatives::SecondDerivatives;
+
+        turbulence_equation_1_derivatives_data turbulence_equation_1(this->GetGeometry());
+        turbulence_equation_2_derivatives_data turbulence_equation_2(this->GetGeometry());
 
         turbulence_equation_1.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
         turbulence_equation_2.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -582,7 +580,7 @@ public:
         Vector gauss_weights;
         Matrix shape_functions;
         ShapeFunctionDerivativesArrayType shape_derivatives;
-        RansCalculationUtilities::CalculateGeometryData(this->GetGeometry(), TAdjointTurbulenceModelDataType::TurbulenceEquation1::GetIntegrationMethod(), gauss_weights, shape_functions, shape_derivatives);
+        RansCalculationUtilities::CalculateGeometryData(this->GetGeometry(), TurbulenceEquation1Data::GetIntegrationMethod(), gauss_weights, shape_functions, shape_derivatives);
 
         for (IndexType g = 0; g < gauss_weights.size(); ++g) {
             const Vector& N = row(shape_functions, g);
@@ -627,77 +625,6 @@ public:
         KRATOS_TRY
 
         if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-            // if (rLeftHandSideMatrix.size1() != TElementLocalSize ||
-            //     rLeftHandSideMatrix.size2() != TElementLocalSize)
-            //     rLeftHandSideMatrix.resize(TElementLocalSize, TElementLocalSize, false);
-
-            // rLeftHandSideMatrix.clear();
-
-            // TAdjointTurbulenceModelDataType::FluidEquation::SensitivityDerivativesData fluid_data(this->GetGeometry());
-            // TAdjointTurbulenceModelDataType::TurbulenceEquation1::SensitivityDerivativesData equation_1_data(this->GetGeometry());
-            // TAdjointTurbulenceModelDataType::TurbulenceEquation2::SensitivityDerivativesData equation_2_data(this->GetGeometry());
-
-            // fluid_data.Initialize(rCurrentProcessInfo);
-            // equation_1_data.Initialize(rCurrentProcessInfo);
-            // equation_2_data.Initialize(rCurrentProcessInfo);
-
-            // // Get Shape function data
-            // Vector gauss_weights;
-            // Matrix shape_functions;
-            // ShapeFunctionDerivativesArrayType shape_derivatives;
-            // this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-
-            // // initialize derivatives
-            // TAdjointTurbulenceModelDataType::FluidEquation::VelocityPressureSensitivityDerivatives  fluid_vp(fluid_data);
-            // TAdjointTurbulenceModelDataType::FluidEquation::TurbulenceDof1SensitivityDerivatives fluid_dof_1(fluid_data);
-            // TAdjointTurbulenceModelDataType::FluidEquation::TurbulenceDof2SensitivityDerivatives fluid_dof_2(fluid_data);
-
-            // TAdjointTurbulenceModelDataType::TurbulenceEquation1::VelocityPressureSensitivityDerivatives  turbulence_equation_1_vp(equation_1_data);
-            // TAdjointTurbulenceModelDataType::TurbulenceEquation1::TurbulenceDof1SensitivityDerivatives turbulence_equation_1_dof_1(equation_1_data);
-            // TAdjointTurbulenceModelDataType::TurbulenceEquation1::TurbulenceDof2SensitivityDerivatives turbulence_equation_1_dof_2(equation_1_data);
-
-            // TAdjointTurbulenceModelDataType::TurbulenceEquation2::VelocityPressureSensitivityDerivatives  turbulence_equation_2_vp(equation_2_data);
-            // TAdjointTurbulenceModelDataType::TurbulenceEquation2::TurbulenceDof1SensitivityDerivatives turbulence_equation_2_dof_1(equation_2_data);
-            // TAdjointTurbulenceModelDataType::TurbulenceEquation2::TurbulenceDof2SensitivityDerivatives turbulence_equation_2_dof_2(equation_2_data);
-
-            // for (IndexType g = 0; g < gauss_weights.size(); ++g) {
-            //     const Vector& N = row(shape_functions, g);
-            //     const Matrix& dNdX = shape_derivatives[g];
-            //     const double weight = gauss_weights[g];
-
-            //     const Matrix& rJ = J[g];
-            //     const Matrix& rDN_De = DN_De[g];
-            //     const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
-            //     GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
-
-            //     for (unsigned int c = 0; c < TNumNodes; ++c)
-            //     {
-            //         const unsigned int block_size = c * TDim;
-            //         for (unsigned int k = 0; k < TDim; ++k)
-            //         {
-            //             deriv.NodeIndex = c;
-            //             deriv.Direction = k;
-
-            //             // fluid equation derivatives
-            //             fluid_data.CalculateGaussPointData(weight, N, dNdX);
-            //             fluid_vp.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalFluidEqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            //             fluid_dof_1.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalTurbulenceEquation1EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            //             fluid_dof_2.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalTurbulenceEquation2EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-
-            //             // turbulence equation 1 derivatives
-            //             equation_1_data.CalculateGaussPointData(weight, N, dNdX);
-            //             turbulence_equation_1_vp.CalculateResidualDerivatives<TPrimalTurbulenceEquation1EqOffset, TPrimalFluidEqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            //             turbulence_equation_1_dof_1.CalculateResidualDerivatives<TPrimalTurbulenceEquation1EqOffset, TPrimalTurbulenceEquation1EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            //             turbulence_equation_1_dof_2.CalculateResidualDerivatives<TPrimalTurbulenceEquation1EqOffset, TPrimalTurbulenceEquation2EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-
-            //             // turbulence equation 2 derivatives
-            //             equation_2_data.CalculateGaussPointData(weight, N, dNdX);
-            //             turbulence_equation_2_vp.CalculateResidualDerivatives<TPrimalTurbulenceEquation2EqOffset, TPrimalFluidEqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            //             turbulence_equation_2_dof_1.CalculateResidualDerivatives<TPrimalTurbulenceEquation2EqOffset, TPrimalTurbulenceEquation1EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            //             turbulence_equation_2_dof_2.CalculateResidualDerivatives<TPrimalTurbulenceEquation2EqOffset, TPrimalTurbulenceEquation2EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            //         }
-            //     }
-            // }
         } else {
             KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
                          << " not supported." << std::endl;

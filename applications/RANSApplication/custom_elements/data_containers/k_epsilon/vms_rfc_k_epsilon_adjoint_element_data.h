@@ -16,6 +16,7 @@
 // System includes
 
 // Project includes
+#include "geometries/geometry.h"
 
 // Application includes
 #include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_adjoint_state_derivatives.h"
@@ -28,58 +29,126 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 class VMSRFCKEpsilonAdjintElementData
 {
+    ///@name Private type definitions
+    ///@{
+
     template <class TStateDerivativesType>
-    using stabilization_state_derivatives =
-        ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointUtilities::StabilizationStateDerivatives<TDim, TNumNodes, TStateDerivativesType>;
+    using StabilizationStateDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointUtilities::StabilizationStateDerivatives<TDim, TNumNodes, TStateDerivativesType>;
 
     constexpr static unsigned int TEquation1Offset = TDim + 1;
     constexpr static unsigned int TEquation2Offset = TDim + 2;
 
+    ///@}
 public:
+    ///@name Public classes
+    ///@{
+
+    /// Derivatives and related data structures for k-epsilon k equation
     class TurbulenceEquation1
-        : public stabilization_state_derivatives<KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>>
     {
     public:
-        using BaseType =
-            stabilization_state_derivatives<KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>>;
+        ///@name Public static operations
+        ///@{
 
-        class FirstDerivatives
+        static GeometryData::IntegrationMethod GetIntegrationMethod()
+        {
+            return GeometryData::GI_GAUSS_2;
+        }
+
+        ///@}
+        ///@name Public classes
+        ///@{
+
+        class StateDerivatives : public StabilizationStateDerivatives<KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>>
         {
         public:
-            using Data = typename BaseType::FirstDerivativesData;
-            using VelocityPressure = typename BaseType::FirstDerivatives<
-                typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives, TEquation1Offset, 0>;
-            using TurbulenceDof1 = typename BaseType::FirstDerivatives<
-                typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives, TEquation1Offset, TEquation1Offset>;
-            using TurbulenceDof2 = typename BaseType::FirstDerivatives<
-                typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives, TEquation1Offset, TEquation2Offset>;
+            ///@name Public type definitions
+            ///@{
+
+            using BaseType = StabilizationStateDerivatives<KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>>;
+
+            using SecondDerivatives = typename BaseType::SecondDerivatives<TEquation1Offset>;
+
+            ///@}
+            ///@name Public classes
+            ///@{
+
+            class FirstDerivatives
+            {
+            public:
+                using Data = typename BaseType::FirstDerivativesData;
+                using VelocityPressure = typename BaseType::FirstDerivatives<typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives, TEquation1Offset, 0>;
+                using TurbulenceVariable1 = typename BaseType::FirstDerivatives<typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives, TEquation1Offset, TEquation1Offset>;
+                using TurbulenceVariable2 = typename BaseType::FirstDerivatives<typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives, TEquation1Offset, TEquation2Offset>;
+            };
+
+            ///@}
+
         };
 
-        using SecondDerivatives = typename BaseType::SecondDerivatives<TEquation1Offset>;
+        class SensitivityDerivatives
+        {
+
+        };
+
+        ///@}
+
     };
 
+    /// Derivatives and related data structures for k-epsilon k equation
     class TurbulenceEquation2
-        : public stabilization_state_derivatives<KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>>
+
     {
     public:
-        using BaseType =
-            stabilization_state_derivatives<KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>>;
+        ///@name Public static operations
+        ///@{
 
-        class FirstDerivatives
+        static GeometryData::IntegrationMethod GetIntegrationMethod()
+        {
+            return GeometryData::GI_GAUSS_2;
+        }
+
+        ///@}
+        ///@name Public classes
+        ///@{
+
+        class StateDerivatives : public StabilizationStateDerivatives<KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>>
         {
         public:
-            using Data = typename BaseType::FirstDerivativesData;;
+            ///@name Public type definitions
+            ///@{
 
-            using VelocityPressure = typename BaseType::FirstDerivatives<
-                typename KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives, TEquation2Offset, 0>;
-            using TurbulenceDof1 = typename BaseType::FirstDerivatives<
-                typename KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives, TEquation2Offset, TEquation1Offset>;
-            using TurbulenceDof2 = typename BaseType::FirstDerivatives<
-                typename KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives, TEquation2Offset, TEquation2Offset>;
+            using BaseType = StabilizationStateDerivatives<KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>>;
+
+            using SecondDerivatives = typename BaseType::SecondDerivatives<TEquation2Offset>;
+
+            ///@}
+            ///@name Public classes
+            ///@{
+
+            class FirstDerivatives
+            {
+            public:
+                using Data = typename BaseType::FirstDerivativesData;
+                using VelocityPressure = typename BaseType::FirstDerivatives<typename KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives, TEquation2Offset, 0>;
+                using TurbulenceVariable1 = typename BaseType::FirstDerivatives<typename KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives, TEquation2Offset, TEquation1Offset>;
+                using TurbulenceVariable2 = typename BaseType::FirstDerivatives<typename KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives, TEquation2Offset, TEquation2Offset>;
+            };
+
+            ///@}
+
         };
 
-        using SecondDerivatives = typename BaseType::SecondDerivatives<TEquation2Offset>;
+        class SensitivityDerivatives
+        {
+
+        };
+
+        ///@}
+
     };
+
+    ///@}
 };
 } // namespace Kratos
 
