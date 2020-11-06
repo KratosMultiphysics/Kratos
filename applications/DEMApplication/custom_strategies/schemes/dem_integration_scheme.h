@@ -46,6 +46,7 @@ namespace Kratos {
 
         virtual void Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void RotateBeam(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
 

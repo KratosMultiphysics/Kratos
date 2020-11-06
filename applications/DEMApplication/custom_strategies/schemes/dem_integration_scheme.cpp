@@ -34,6 +34,11 @@ namespace Kratos {
         CalculateRotationalMotionOfSphereNode(i, delta_t, moment_reduction_factor, StepFlag);
     }
 
+    void DEMIntegrationScheme::RotateBeam(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+        if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
+        CalculateRotationalMotionOfRigidBodyElementNode(i, delta_t, moment_reduction_factor, StepFlag);
+    }
+
     void DEMIntegrationScheme::MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
         rigid_body_element->UpdateLinearDisplacementAndVelocityOfNodes();

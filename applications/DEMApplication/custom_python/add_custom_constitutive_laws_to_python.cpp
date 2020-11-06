@@ -42,6 +42,7 @@
 #include "../custom_constitutive/dem_kdem_fissured_rock_cl.h"
 #include "../custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
+#include "../custom_constitutive/DEM_KDEM_Beam_CL.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "../custom_constitutive/DEM_Dempack_torque_CL.h"
 #include "../custom_constitutive/DEM_Dempack_dev_CL.h"
@@ -207,6 +208,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_KDEMFabric, DEM_KDEMFabric::Pointer, DEM_KDEM>(m, "DEM_KDEMFabric")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_Beam, DEM_KDEM_Beam::Pointer, DEM_KDEM>(m, "DEM_KDEM_Beam")
         .def(py::init<>())
         ;
 
