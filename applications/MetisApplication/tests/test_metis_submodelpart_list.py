@@ -3,6 +3,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 if KratosMultiphysics.IsDistributedRun():
     from KratosMultiphysics.mpi import distributed_import_model_part_utility
@@ -19,22 +20,8 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             self.comm.Barrier()
-            if self.rank == 0:
-                kratos_utils.DeleteFileIfExisting(self.file_name + ".time")
-            kratos_utils.DeleteFileIfExisting(self.file_name + "_" + str(self.rank) + ".mdpa")
+            kratos_utils.DeleteDirectoryIfExisting("cube_partitioned")
             self.comm.Barrier()
-
-    def ReadModelPart(self, model_part, settings):
-        if KratosMultiphysics.IsDistributedRun():
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-            model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(
-                model_part, settings)
-            model_part_import_util.ImportModelPart()
-            model_part_import_util.CreateCommunicators()
-        else:
-            import_flags = KratosMultiphysics.ModelPartIO.READ | KratosMultiphysics.ModelPartIO.SKIP_TIMER
-            mdpa_file_name = settings["model_import_settings"]["input_filename"].GetString()
-            KratosMultiphysics.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
 
     def test_ReadTwoSubModelParts(self):
         """Checks that all processor have entities from the given list
@@ -44,6 +31,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         settings = KratosMultiphysics.Parameters("""{
             "model_import_settings" : {
                 "input_type": "mdpa",
@@ -55,7 +43,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         }""")
         results = {"Main.submodelpart_liquid" : [133, 381, 228],
                    "Main.submodelpart_solid" :  [280, 810, 552]}
-        self.ReadModelPart(model_part, settings)
+        ReadModelPart(self.file_name, model_part, settings)
         for submodel_part_name in results:
             submodel_part = current_model[submodel_part_name]
             local_number_nodes = submodel_part.GetCommunicator().LocalMesh().NumberOfNodes()
@@ -88,6 +76,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         settings = KratosMultiphysics.Parameters("""{
             "model_import_settings" : {
                 "input_type": "mdpa",
@@ -100,7 +89,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         results = {"Main.submodelpart_liquid.ingate" : [81, 188, 110],
                    "Main.submodelpart_liquid.mainPart" : [85, 193, 118],
                    "Main.submodelpart_solid" : [280,810,552]}
-        self.ReadModelPart(model_part, settings)
+        ReadModelPart(self.file_name, model_part, settings)
         for submodel_part_name in results:
             submodel_part = current_model[submodel_part_name]
             local_number_nodes = submodel_part.GetCommunicator().LocalMesh().NumberOfNodes()
@@ -131,6 +120,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         settings = KratosMultiphysics.Parameters("""{
             "model_import_settings" : {
                 "input_type": "mdpa",
@@ -139,7 +129,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             },
             "echo_level" : 0
         }""")
-        self.ReadModelPart(model_part, settings)
+        ReadModelPart(self.file_name, model_part, settings)
 
         local_main_number_nodes = model_part.GetCommunicator().LocalMesh().NumberOfNodes()
         local_main_number_elements = model_part.GetCommunicator().LocalMesh().NumberOfElements()
@@ -164,6 +154,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         settings = KratosMultiphysics.Parameters("""{
             "model_import_settings" : {
                 "input_type": "mdpa",
@@ -173,7 +164,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             },
             "echo_level" : 0
         }""")
-        self.ReadModelPart(model_part, settings)
+        ReadModelPart(self.file_name, model_part, settings)
         results = {1:[0.0,	0.0508782,	0.0514686],
             20:[0.0,	0.0176281,	0.0138362],
             50:[-0.0248201,	0.025,	0.1],

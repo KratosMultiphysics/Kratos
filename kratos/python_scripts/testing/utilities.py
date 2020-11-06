@@ -22,7 +22,7 @@ def ReadModelPart(mdpa_file_name, model_part, settings=None):
         model_part (Kratos.ModelPart): ModelPart to be filled
     """
     if Kratos.DOMAIN_SIZE not in model_part.ProcessInfo:
-        raise Exception('"PROCESS_INFO" needs to be specified!')
+        raise Exception('"DOMAIN_SIZE" needs to be specified in ProcessInfo!')
 
     if model_part.NumberOfNodes() > 0:
         raise Exception("ModelPart must not contain Nodes!")
@@ -60,8 +60,8 @@ def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings):
 
     from KratosMultiphysics.mpi import distributed_import_model_part_utility
     model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
-    
-    if settings is None:
+
+    if importer_settings is None:
         importer_settings = Kratos.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
