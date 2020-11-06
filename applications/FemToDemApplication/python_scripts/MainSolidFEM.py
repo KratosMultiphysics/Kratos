@@ -16,7 +16,7 @@ class Solution():
         # Time control starts        
         print(timer.ctime())
         # Measure process time
-        self.t0p = process_time()
+        self.t0p = timer.clock()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####
@@ -278,7 +278,7 @@ class Solution():
         #### END SOLUTION ####
 
         # Measure process time
-        tfp = process_time()
+        tfp = timer.clock()
         # Measure wall time
         tfw = timer.time()
 
@@ -327,12 +327,12 @@ class Solution():
     
     def StartTimeMeasuring(self):
         # Measure process time
-        time_ip = process_time()
+        time_ip = timer.clock()
         return time_ip
 
     def StopTimeMeasuring(self, time_ip, process, report):
         # Measure process time
-        time_fp = process_time()
+        time_fp = timer.clock()
         if( report ):
             used_time = time_fp - time_ip
             print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
