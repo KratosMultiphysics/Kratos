@@ -53,6 +53,7 @@ namespace Kratos
         // Primary variables
         KRATOS_REGISTER_VARIABLE(HEIGHT)
         KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ELEVATION)
+        KRATOS_REGISTER_VARIABLE(VERTICAL_VELOCITY)
         KRATOS_REGISTER_VARIABLE(FLOW_RATE)
 
         // Physical variables
