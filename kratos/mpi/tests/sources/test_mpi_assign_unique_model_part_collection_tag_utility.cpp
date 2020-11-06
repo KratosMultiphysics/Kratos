@@ -85,6 +85,8 @@ namespace Kratos
             const std::string filename = "mpi_test";
 
             AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(filename + std::to_string(rank), collections);
+            KRATOS_CHECK_EQUAL(collections.size(), 8);
+
             DataCommunicator::GetDefault().Barrier();
             for (int i = 0; i < size; i++) {
                 if (i != rank) {
