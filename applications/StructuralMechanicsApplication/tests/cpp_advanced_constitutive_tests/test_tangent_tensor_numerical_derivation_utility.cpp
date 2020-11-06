@@ -131,7 +131,7 @@ void Create3DGeometryHexahedra(
 
     // Initialize elements
     for (auto& elem : rThisModelPart.Elements()) {
-        elem.r_const_process_info(r_const_process_info);
+        elem.Initialize(r_const_process_info);
         elem.InitializeSolutionStep(r_const_process_info);
         elem.InitializeNonLinearIteration(r_const_process_info);
     }

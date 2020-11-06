@@ -145,7 +145,8 @@ void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPa
 
     const auto& r_const_process_info = rModelPart.GetProcessInfo();
 
-    rModelPart.GetElement(1).Check(r_const_process_info);
+    const auto& rConstElemRef = rModelPart.GetElement(1);
+    rConstElemRef.Check(r_const_process_info);
     rModelPart.GetElement(1).Initialize(r_const_process_info);
     rModelPart.GetElement(1).InitializeSolutionStep(r_const_process_info);
     rModelPart.GetElement(1).InitializeNonLinearIteration(r_const_process_info);
@@ -561,8 +562,8 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructural
     Matrix mass_matrix;
     auto get_res = [&p_elem, &mass_matrix, &acceleration, &r_process_info](Vector& rRes) {
         const auto& rConstElemRef = *p_elem;
-        rConstElemRef.CalculateRightHandSide(rRes, r_process_info);
-        rConstElemRef.CalculateMassMatrix(mass_matrix, r_process_info);
+        p_elem->CalculateRightHandSide(rRes, r_process_info);
+        p_elem->CalculateMassMatrix(mass_matrix, r_process_info);
         rConstElemRef.GetSecondDerivativesVector(acceleration);
         if (rRes.size() != acceleration.size())
             rRes.resize(acceleration.size(), false);

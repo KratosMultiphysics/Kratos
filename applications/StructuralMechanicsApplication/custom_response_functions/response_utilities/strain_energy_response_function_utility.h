@@ -254,7 +254,8 @@ protected:
 			Vector RHS;
 
 			// Get state solution
-			elem_i.GetValuesVector(u,0);
+			const auto& rConstElemRef = elem_i;
+			rConstElemRef.GetValuesVector(u,0);
 
 			// Get adjoint variables (Corresponds to 1/2*u)
 			lambda = 0.5*u;
@@ -366,7 +367,8 @@ protected:
 				Vector RHS;
 
 				// Get state solution
-				cond_i.GetValuesVector(u,0);
+				const auto& rConstCondRef = cond_i;
+				rConstCondRef.GetValuesVector(u,0);
 
 				// Perform finite differencing of RHS vector
 				cond_i.CalculateRightHandSide(RHS, CurrentProcessInfo);

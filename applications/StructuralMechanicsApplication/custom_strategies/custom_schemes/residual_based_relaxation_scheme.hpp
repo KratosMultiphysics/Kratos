@@ -658,7 +658,8 @@ protected:
             MAtrix * mdamping_factor
                         if (D.size1() != 0)
                         {*/
-            rCurrentCondition.GetFirstDerivativesVector(mvel[k], 0);
+            const auto& rConstCondRef = rCurrentCondition;
+            rConstCondRef.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
         }
 
