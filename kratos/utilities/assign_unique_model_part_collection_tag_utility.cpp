@@ -204,13 +204,13 @@ void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelP
                     rCombinations[submodel_part_set] = 0; //creating new key, value does not matter
                 }
             }
-            // Converting back to vector to be broadcasted
-            for(auto& r_key_combination_set : rCombinations) {
-                std::vector<IndexType> key_vector;
-                for (auto it=r_key_combination_set.first.begin(); it != r_key_combination_set.first.end(); ++it)
-                    key_vector.push_back(*it);
-                global_combination_vector_keys.push_back(key_vector);
-            }
+        }
+        // Converting back to vector to be broadcasted
+        for(auto& r_key_combination_set : rCombinations) {
+            std::vector<IndexType> key_vector;
+            for (auto it=r_key_combination_set.first.begin(); it != r_key_combination_set.first.end(); ++it)
+                key_vector.push_back(*it);
+            global_combination_vector_keys.push_back(key_vector);
         }
     }
 
