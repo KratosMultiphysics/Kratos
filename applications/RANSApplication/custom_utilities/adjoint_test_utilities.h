@@ -32,6 +32,16 @@ namespace Kratos
 {
 namespace RansApplicationTestUtilities
 {
+template<class TDataType>
+TDataType ComputeRelaxedVariableRate(
+    const double BossakAlpha,
+    const Variable<TDataType>& rVariable,
+    const ModelPart::NodeType& rNode)
+{
+    return (1 - BossakAlpha) * rNode.FastGetSolutionStepValue(rVariable) +
+           BossakAlpha * rNode.FastGetSolutionStepValue(rVariable, 1);
+}
+
 template <int I, class... TArgs>
 typename std::enable_if<(I == sizeof...(TArgs)), void>::type
 fill_value(
@@ -467,15 +477,15 @@ void RunAdjointElementTest(
     Matrix adjoint_residual_derivatives;
     Vector residual_ref, residual, fd_derivatives;
 
-    rUpdateModelPart(rPrimalModelPart);
-    rUpdateModelPart(rAdjointModelPart);
-
     const auto& perturbation_method = GetPerturbationMethod(rVariable);
     const auto derivative_dimension = GetVariableDimension(rVariable, r_primal_process_info);
 
     for (IndexType i = 0; i < number_of_elements; ++i) {
         auto& r_primal_element = *(r_primal_container.begin() + i);
         auto& r_adjoint_element = *(r_adjoint_container.begin() + i);
+
+        rUpdateModelPart(rPrimalModelPart);
+        rUpdateModelPart(rAdjointModelPart);
 
         r_primal_element.Check(r_primal_process_info);
         r_adjoint_element.Check(r_adjoint_process_info);

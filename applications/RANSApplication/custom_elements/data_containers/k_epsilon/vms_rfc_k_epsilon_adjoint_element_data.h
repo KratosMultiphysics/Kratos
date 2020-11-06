@@ -46,6 +46,7 @@ public:
         class FirstDerivatives
         {
         public:
+            using Data = typename BaseType::FirstDerivativesData;
             using VelocityPressure = typename BaseType::FirstDerivatives<
                 typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives, TEquation1Offset, 0>;
             using TurbulenceDof1 = typename BaseType::FirstDerivatives<
@@ -54,14 +55,7 @@ public:
                 typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives, TEquation1Offset, TEquation2Offset>;
         };
 
-        class SecondDerivatives
-        {
-        public:
-            using TurbulenceDof1 = typename BaseType::SecondDerivatives<
-                typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives, TEquation1Offset, TEquation1Offset>;
-            using TurbulenceDof2 = typename BaseType::SecondDerivatives<
-                typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives, TEquation1Offset, TEquation2Offset>;
-        };
+        using SecondDerivatives = typename BaseType::SecondDerivatives<TEquation1Offset>;
     };
 
     class TurbulenceEquation2
@@ -74,6 +68,8 @@ public:
         class FirstDerivatives
         {
         public:
+            using Data = typename BaseType::FirstDerivativesData;;
+
             using VelocityPressure = typename BaseType::FirstDerivatives<
                 typename KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>::VelocityDerivatives, TEquation2Offset, 0>;
             using TurbulenceDof1 = typename BaseType::FirstDerivatives<
@@ -82,14 +78,7 @@ public:
                 typename KEpsilonAdjointElementData::EpsilonAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives, TEquation2Offset, TEquation2Offset>;
         };
 
-        class SecondDerivatives
-        {
-        public:
-            using TurbulenceDof1 = typename BaseType::SecondDerivatives<
-                typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::KDerivatives, TEquation2Offset, TEquation1Offset>;
-            using TurbulenceDof2 = typename BaseType::SecondDerivatives<
-                typename KEpsilonAdjointElementData::KAdjointStateDerivatives<TDim, TNumNodes>::EpsilonDerivatives, TEquation2Offset, TEquation2Offset>;
-        };
+        using SecondDerivatives = typename BaseType::SecondDerivatives<TEquation2Offset>;
     };
 };
 } // namespace Kratos

@@ -488,8 +488,8 @@ public:
         rLeftHandSideMatrix.clear();
 
         // TAdjointTurbulenceModelDataType::FluidEquation::FirstDerivatives::Data fluid_data(this->GetGeometry());
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::Data equation_1_data(this->GetGeometry());
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::Data equation_2_data(this->GetGeometry());
+        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::FirstDerivatives::Data equation_1_data(this->GetGeometry());
+        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::FirstDerivatives::Data equation_2_data(this->GetGeometry());
 
         // initialize derivatives
         // TAdjointTurbulenceModelDataType::FluidEquation::FirstDerivatives::VelocityPressure  fluid_vp(fluid_data);
@@ -533,7 +533,7 @@ public:
             // fluid_dof_1.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalTurbulenceEquation1EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
             // fluid_dof_2.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalTurbulenceEquation2EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
 
-            // turbulence equation 1 derivatives
+            // // turbulence equation 1 derivatives
             equation_1_data.CalculateGaussPointData(weight, N, dNdX);
             turbulence_equation_1_dof_0.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
             turbulence_equation_1_dof_1.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
@@ -572,70 +572,29 @@ public:
 
         rLeftHandSideMatrix.clear();
 
-        // TAdjointTurbulenceModelDataType::FluidEquation::SecondDerivatives::Data fluid_data(this->GetGeometry());
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::Data equation_1_data(this->GetGeometry());
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::Data equation_2_data(this->GetGeometry());
+        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::SecondDerivatives turbulence_equation_1(this->GetGeometry());
+        typename TAdjointTurbulenceModelDataType::TurbulenceEquation2::SecondDerivatives turbulence_equation_2(this->GetGeometry());
 
-        // initialize derivatives
-        // TAdjointTurbulenceModelDataType::FluidEquation::SecondDerivatives::VelocityPressure  fluid_vp(fluid_data);
-        // TAdjointTurbulenceModelDataType::FluidEquation::SecondDerivatives::TurbulenceDof1 fluid_dof_1(fluid_data);
-        // TAdjointTurbulenceModelDataType::FluidEquation::SecondDerivatives::TurbulenceDof2 fluid_dof_2(fluid_data);
-
-        // TAdjointTurbulenceModelDataType::TurbulenceEquation1::SecondDerivatives::VelocityPressure  turbulence_equation_1_vp(equation_1_data);
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::SecondDerivatives::TurbulenceDof1 turbulence_equation_1_dof_1(equation_1_data);
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::SecondDerivatives::TurbulenceDof2 turbulence_equation_1_dof_2(equation_1_data);
-
-        // TAdjointTurbulenceModelDataType::TurbulenceEquation2::SecondDerivatives::VelocityPressure  turbulence_equation_2_vp(equation_2_data);
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::SecondDerivatives::TurbulenceDof1 turbulence_equation_2_dof_1(equation_1_data);
-        typename TAdjointTurbulenceModelDataType::TurbulenceEquation1::SecondDerivatives::TurbulenceDof2 turbulence_equation_2_dof_2(equation_1_data);
-
-        turbulence_equation_1_dof_1.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_1_dof_2.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_2_dof_1.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_2_dof_2.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-        // fluid_data.Initialize(rCurrentProcessInfo);
-        equation_1_data.Initialize(rCurrentProcessInfo);
-        equation_2_data.Initialize(rCurrentProcessInfo);
+        turbulence_equation_1.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_2.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
 
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
         ShapeFunctionDerivativesArrayType shape_derivatives;
-        // this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        RansCalculationUtilities::CalculateGeometryData(this->GetGeometry(), TAdjointTurbulenceModelDataType::TurbulenceEquation1::GetIntegrationMethod(), gauss_weights, shape_functions, shape_derivatives);
 
         for (IndexType g = 0; g < gauss_weights.size(); ++g) {
             const Vector& N = row(shape_functions, g);
             const Matrix& dNdX = shape_derivatives[g];
             const double weight = gauss_weights[g];
 
-            // fluid equation derivatives
-            // fluid_data.CalculateGaussPointData(weight, N, dNdX);
-            // fluid_vp.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalFluidEqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            // fluid_dof_1.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalTurbulenceEquation1EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            // fluid_dof_2.CalculateResidualDerivatives<TPrimalFluidEqOffset, TPrimalTurbulenceEquation2EqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-
-            // turbulence equation 1 derivatives
-            equation_1_data.CalculateGaussPointData(weight, N, dNdX);
-            // turbulence_equation_1_vp.CalculateResidualDerivatives<TPrimalTurbulenceEquation1EqOffset, TPrimalFluidEqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            turbulence_equation_1_dof_1.CalculateSelfResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
-            turbulence_equation_1_dof_2.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
-
-            // turbulence equation 2 derivatives
-            equation_2_data.CalculateGaussPointData(weight, N, dNdX);
-            // turbulence_equation_2_vp.CalculateResidualDerivatives<TPrimalTurbulenceEquation2EqOffset, TPrimalFluidEqOffset>(rLeftHandSideMatrix, weight, N, dNdX);
-            turbulence_equation_2_dof_1.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
-            turbulence_equation_2_dof_2.CalculateSelfResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
+            turbulence_equation_1.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
+            turbulence_equation_2.CalculateResidualDerivatives(rLeftHandSideMatrix, weight, N, dNdX);
         }
 
-        // fluid_data.Finalize(rCurrentProcessInfo);
-        equation_1_data.Finalize(rCurrentProcessInfo);
-        equation_2_data.Finalize(rCurrentProcessInfo);
-
-        turbulence_equation_1_dof_1.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_1_dof_2.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_2_dof_1.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
-        turbulence_equation_2_dof_2.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_1.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+        turbulence_equation_2.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
