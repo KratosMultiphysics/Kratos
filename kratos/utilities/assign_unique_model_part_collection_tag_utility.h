@@ -176,7 +176,8 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
 
 
     /**
-     * @brief This method returns the model part combinations
+     * @brief This method returns the model part combinations as colors, expressed as integers, and the collection
+     * of all model part names strings combinations. Required to run in MPI.
      */
     void SetParallelModelPartAndSubModelPartCollectionsAndCombinations(IndexStringMapType& rCollections,
                                             IndexSetIndexMapType& rCombinations,
