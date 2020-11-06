@@ -59,6 +59,12 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             self.pressure_plot = open("pressure_plot.txt", "w")
             self.pressure_plot.write("This File prints the pressures at the interface nodes!\n\n")
             self.pressure_plot.close()
+        
+        PlotFileIterAitken = open("iterations_Aitken.txt","w")
+        PlotFileIterAitken.write("This file prints the number of iterations at each time step\n\n")
+        PlotFileIterAitken.write("       time           ITER\n")
+        PlotFileIterAitken.close()
+
 
 #============================================================================================================================
     def SolveSolutionStep(self):
@@ -134,6 +140,14 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
         # We update the NO_MESH flag in the FEMDEM skin
         self.UpdateFEMDEMBoundary()
+
+        PlotFileIterAitken = open("iterations_Aitken.txt", "a")
+        time = self.FEMDEM_Solution.FEM_Solution.time
+        if aitken_iteration < self.aitken_max_iterations:
+            PlotFileIterAitken.write("    " + "{0:.4e}".format(time).rjust(11) + "        " + str(aitken_iteration) + "\n")
+        else:
+            PlotFileIterAitken.write("    " + "{0:.4e}".format(time).rjust(11) + "        " + str(aitken_iteration) + "  MAX iterations reached!" + "\n")
+        PlotFileIterAitken.close()
 
 #============================================================================================================================
     def UpdateAndRelaxSolution(self, solid_model_part):
