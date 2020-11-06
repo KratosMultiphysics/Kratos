@@ -139,7 +139,7 @@ namespace NurbsUtilities
 
     /**
      * @brief Computes a vector index from three matrix indicies.
-     * @details Matrix serialization: First walk along rows then colums then into depths.
+     * @details Matrix serialization: First walk along rows, then colums, then into depths.
      * @return Index within vector
      **/
     static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
@@ -166,7 +166,7 @@ namespace NurbsUtilities
 
     /**
      * @brief Computes three matrix indices from vector index.
-     * @details Matrix serialization: First walk along rows then colums then into depths.
+     * @details Matrix serialization: First walk along rows, then colums, then into depths.
      * @return indices within Matrix
      **/
     static inline array_1d<IndexType,3> GetMatrixIndicesFromVectorIndex(

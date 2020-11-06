@@ -16,6 +16,7 @@
 // Project includes
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -23,8 +24,10 @@ namespace Kratos
 ///@{
 /**
  * @class NurbsVolumeShapeFunctions
- * @brief Provides the shape functions and evaluation methods for 3D-BSplines Volumes.
-*/
+ * @ingroup KratosCore
+ * @brief Provides the shape functions and evaluation methods for 3D-BSpline volumes.
+ * @details The implementation corresponds to a 3D-BSpline, as weights are not yet implemented.
+ **/
 class NurbsVolumeShapeFunction
 {
 public:
@@ -76,11 +79,13 @@ public:
         return number_of_shape_function_rows;
     }
     /**
-     * @brief   Returns the index of the shape function row for a given derivative index.
+     * @brief   Returns the index of the shape function row for the given derivative indices.
      * @details The shape functions are provided in the following order:
      *          N | dN/du, dN/dv, dN/dw | dN^2/du^2, dN^2/du*dv, dN^2/du*dw, dN^2/v^2, dN^2/dv*dw, dN^2/dw^2 | ...
      *          0 | (1,0,0), (0,1,0), (0,0,1) | (2,0,0), (1,1,0), (1,0,1), (0,2,0), (0,1,1), (0,0,2) | ...
-     * @param   DerivativesOrder 0: the shape functions N only, 1: N and first derivatives, ...
+     * @param   DerivativesOrderU Derivive order along u-direction.
+     * @param   DerivativesOrderV Derivive order along v-direction.
+     * @param   DerivativesOrderW Derivive order along w-direction.
      * @return  IndexOfShapeFunctionRow
      **/
     static inline IndexType IndexOfShapeFunctionRow(
@@ -132,6 +137,10 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Prepares the required shape function data containers.
+     **/
     void ResizeDataContainers(
         const SizeType PolynomialDegreeU,
         const SizeType PolynomialDegreeV,
@@ -195,6 +204,10 @@ public:
         return NumberOfNonzeroControlPointsU() * NumberOfNonzeroControlPointsV() * NumberOfNonzeroControlPointsW();
     }
 
+    /**
+     * @brief Computes indices of the nonzero control points.
+     * @return std::vector<array_1d<int, 3>> which holds the indices in u,v, and w-direction.
+     **/
     std::vector<array_1d<int, 3>> NonzeroControlPointIndices() const
     {
         std::vector<array_1d<int, 3>> indices(NumberOfNonzeroControlPoints());
@@ -219,6 +232,13 @@ public:
         return indices;
     }
 
+    /**
+     * @return Indices of control points for given discretization.
+     * @param Number control points in u-direction.
+     * @param Number control points in v-direction.
+     * @param Number control points in w-direction.
+     * @return Vector with indices.
+     **/
     std::vector<int> ControlPointIndices(
         SizeType NumberOfControlPointsU, SizeType NumberOfControlPointsV, SizeType NumberOfControlPointsW) const
     {
@@ -243,6 +263,9 @@ public:
         return indices;
     }
 
+    /**
+     * @brief Get shape function value for given CP-indices and derivative row.
+     **/
     double ShapeFunctionValue(
         const IndexType ControlPointIndexU,
         const IndexType ControlPointIndexV,
@@ -263,6 +286,9 @@ public:
         return mShapeFunctionValues[index];
     }
 
+    /**
+     * @brief Get shape function value for given CP-index and derivative row.
+     **/
     double ShapeFunctionValue(
         const IndexType ControlPointIndex,
         const SizeType DerivativeOrder) const
@@ -308,6 +334,9 @@ public:
         return GetFirstNonzeroControlPointW() + PolynomialDegreeW();
     }
 
+    /**
+     * @brief Computes the shape function values at the given parameter and span.
+     **/
     void ComputeBSplineShapeFunctionValuesAtSpan(
         const Vector& rKnotsU,
         const Vector& rKnotsV,
@@ -348,6 +377,11 @@ public:
         }
     }
 
+    /**
+     * @brief Computes the shape function values at the given parameter.
+     * @details Finds the span, where the given parameters are located and
+     *          computes then the shape function values.
+     **/
     void ComputeBSplineShapeFunctionValues(
         const Vector& rKnotsU,
         const Vector& rKnotsV,
@@ -385,82 +419,13 @@ public:
         const double ParameterW)
     {
         // Check input
-        KRATOS_DEBUG_ERROR_IF(Weights.size() !=
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU(), rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV(), rKnotsV.size())
-                  * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeW(), rKnotsW.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+        KRATOS_WARNING("NURBSVolumeShapeFunctions: ComputeNurbsShapeFunctionValuesAtSpan")
+            << "The NURBS weights are not yet imlemented. "
+            << "Therefore the 'ComputeBSplineShapeFunctionValuesAtSpan' is invoked." << std::endl;
 
         // Compute B-Spline shape functions
         ComputeBSplineShapeFunctionValuesAtSpan(
             rKnotsU, rKnotsV, rKnotsW, SpanU, SpanV, SpanW, ParameterU, ParameterV, ParameterW);
-        // TODO: Throw warning if Rational. Also remove constructor for NURBS.
-
-        /*
-        // Apply weights
-        for (IndexType shape_row_index = 0; shape_row_index < NumberOfShapeFunctionRows(); ++shape_row_index) {
-            GetWeightedSum(shape_row_index) = double(0);
-
-            for (IndexType u = 0; u < NumberOfNonzeroControlPointsU(); ++u) {
-                for (IndexType v = 0; v < NumberOfNonzeroControlPointsV(); ++v) {
-                    for (IndexType w = 0; w < NumberOfNonzeroControlPointsW(); ++w) {
-                        const IndexType ControlPointIndexU = GetFirstNonzeroControlPointU() + u;
-                        const IndexType ControlPointIndexV = GetFirstNonzeroControlPointV() + v;
-                        const IndexType ControlPointIndexW = GetFirstNonzeroControlPointW() + w;
-
-                        const double weight = Weights(GetControlPointIndex(rKnotsU.size(), rKnotsV.size(), rKnotsW.size(),
-                            ControlPointIndexU, ControlPointIndexV, ControlPointIndexW));
-                        ShapeFunctionValue(u, v, w, shape_row_index) *= weight;
-                        GetWeightedSum(shape_row_index) += ShapeFunctionValue(u, v, w, shape_row_index);
-                    }
-                }
-            }
-        }
-        // Continue here (Manuel)...
-        for (IndexType k = 0; k <= DerivativeOrder(); k++) {
-            for (IndexType l = 0; l <= DerivativeOrder() - k; l++) {
-                const IndexType shape = IndexOfShapeFunctionRow(k, l);
-
-                for (IndexType j = 1; j <= l; j++) {
-                    const IndexType index = IndexOfShapeFunctionRow(k, l - j);
-
-                    double a = NurbsUtilities::GetBinomCoefficient(l, j) * GetWeightedSum(0, j);
-
-                    for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
-                    }
-                }
-
-                for (IndexType i = 1; i <= k; i++) {
-                    const IndexType index = IndexOfShapeFunctionRow(k - i, l);
-
-                    double a = NurbsUtilities::GetBinomCoefficient(k, i) * GetWeightedSum(i, 0);
-
-                    for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
-                    }
-                }
-
-                for (IndexType i = 1; i <= k; i++) {
-                    const double a = NurbsUtilities::GetBinomCoefficient(k, i);
-
-                    for (IndexType j = 1; j <= l; j++) {
-                        const IndexType index = IndexOfShapeFunctionRow(k - i, l - j);
-
-                        const double b = a * NurbsUtilities::GetBinomCoefficient(l, j) *
-                            GetWeightedSum(i, j);
-
-                        for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                            ShapeFunctionValue(p, shape) -= b * ShapeFunctionValue(p, index);
-                        }
-                    }
-                }
-
-                for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                    ShapeFunctionValue(p, shape) /= GetWeightedSum(0);
-                }
-            }
-        }*/
     }
 
     void ComputeNurbsShapeFunctionValues(
