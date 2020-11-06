@@ -86,7 +86,7 @@ public:
         KRATOS_TRY;
 
         int thread_id = OpenMPUtils::ThisThread();
-
+        const auto& rConstElemRef = rCurrentElement;
         rCurrentElement.CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
@@ -98,10 +98,10 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        rCurrentElement.GetFirstDerivativesVector(this->mAdjointValues[thread_id]);
+        rConstElemRef.GetFirstDerivativesVector(this->mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, this->mAdjointValues[thread_id]);
 
-        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rConstElemRef.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -128,7 +128,7 @@ public:
         KRATOS_TRY;
 
         int thread_id = OpenMPUtils::ThisThread();
-
+        const auto& rConstCondRef = rCurrentCondition;
         rCurrentCondition.CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
@@ -140,10 +140,10 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        rCurrentCondition.GetFirstDerivativesVector(this->mAdjointValues[thread_id]);
+        rConstCondRef.GetFirstDerivativesVector(this->mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, this->mAdjointValues[thread_id]);
 
-        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rConstCondRef.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }

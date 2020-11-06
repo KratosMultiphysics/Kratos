@@ -616,7 +616,7 @@ public:
      */
     virtual void CleanMemory(Element& rElement)
     {
-        this->CleanMemory(Element::Pointer(&rElement)); // TODO remove this after the transition period and uncomment the following
+       // this->CleanMemory(Element::Pointer(&rElement)); // TODO remove this after the transition period and uncomment the following
         // rElement.CleanMemory();
     }
     KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
@@ -670,21 +670,24 @@ public:
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.NumberOfElements()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Check(r_current_process_info);
+            const auto& r_elem = *it_elem;
+            r_elem.Check(r_current_process_info);
         }
 
         // Checks for all of the conditions
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.NumberOfConditions()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Check(r_current_process_info);
+            const auto& r_cond = *it_cond;
+            r_cond.Check(r_current_process_info);
         }
 
         // Checks for all of the constraints
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.NumberOfMasterSlaveConstraints()); i++) {
             auto it_constraint = rModelPart.MasterSlaveConstraintsBegin() + i;
-            it_constraint->Check(r_current_process_info);
+            const auto& r_constraint = *it_constraint;
+            r_constraint.Check(r_current_process_info);
         }
 
         return 0;

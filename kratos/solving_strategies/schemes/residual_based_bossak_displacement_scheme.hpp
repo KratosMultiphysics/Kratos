@@ -663,12 +663,13 @@ protected:
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
+        const auto& rConstElemRef = rElement;
         // Adding inertia contribution
         if (M.size1() != 0) {
-            rElement.GetSecondDerivativesVector(mVector.a[this_thread], 0);
+            rConstElemRef.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
-            rElement.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            rConstElemRef.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
             noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
@@ -676,7 +677,7 @@ protected:
 
         // Adding damping contribution
         if (D.size1() != 0) {
-            rElement.GetFirstDerivativesVector(mVector.v[this_thread], 0);
+            rConstElemRef.GetFirstDerivativesVector(mVector.v[this_thread], 0);
 
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
@@ -699,13 +700,13 @@ protected:
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
-
+        const auto& rConstCondRef = rCondition;
         // Adding inertia contribution
         if (M.size1() != 0) {
-            rCondition.GetSecondDerivativesVector(mVector.a[this_thread], 0);
+            rConstCondRef.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
-            rCondition.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            rConstCondRef.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
             noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
@@ -714,7 +715,7 @@ protected:
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0) {
-            rCondition.GetFirstDerivativesVector(mVector.v[this_thread], 0);
+            rConstCondRef.GetFirstDerivativesVector(mVector.v[this_thread], 0);
 
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
