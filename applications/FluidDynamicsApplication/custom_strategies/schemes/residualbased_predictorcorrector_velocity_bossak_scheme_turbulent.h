@@ -958,10 +958,11 @@ namespace Kratos {
         {
             //adding inertia contribution
             if (rM.size1() != 0) {
+                const auto& rConstElemRef = rCurrentElement;
                 int k = OpenMPUtils::ThisThread();
-                rCurrentElement.GetSecondDerivativesVector(macc[k], 0);
+                rConstElemRef.GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentElement.GetSecondDerivativesVector(maccold[k], 1);
+                rConstElemRef.GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
                 noalias(rRHS_Contribution) -= prod(rM, macc[k]);
             }
@@ -986,10 +987,11 @@ namespace Kratos {
             //adding inertia contribution
             if (rM.size1() != 0)
             {
+                const auto& rConstCondRef = rCurrentCondition;
                 int k = OpenMPUtils::ThisThread();
-                rCurrentCondition.GetSecondDerivativesVector(macc[k], 0);
+                rConstCondRef.GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentCondition.GetSecondDerivativesVector(maccold[k], 1);
+                rConstCondRef.GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
 
                 noalias(rRHS_Contribution) -= prod(rM, macc[k]);

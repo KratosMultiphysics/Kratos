@@ -275,7 +275,7 @@ public:
   {
     LocalSystemVectorType RHS_Contribution;
     LocalSystemMatrixType LHS_Contribution;
-    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
     for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin();
          itNode != rModelPart.NodesEnd(); ++itNode)

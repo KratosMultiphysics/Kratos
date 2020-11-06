@@ -83,19 +83,19 @@ namespace Kratos
       std::vector<TVariableType> ValuesOnIntPoint;
 
       for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-	{
-	  itElem->GetValueOnIntegrationPoints(rVariable,ValuesOnIntPoint,
-					      rModelPart.GetProcessInfo());
-	  Element::GeometryType& rGeom = itElem->GetGeometry();
-	  const double Weight = rGeom.Volume() / (double) TNumNodes;
-	  for (unsigned int iNode = 0; iNode < rGeom.size(); iNode++)
-	    {
-	      rGeom[iNode].SetLock();
-	      rGeom[iNode].FastGetSolutionStepValue(rVariable) += Weight * ValuesOnIntPoint[0];
-	      rGeom[iNode].FastGetSolutionStepValue(NODAL_AREA) += Weight;
-	      rGeom[iNode].UnSetLock();
-	    }
-	}
+      {
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        itElem->CalculateOnIntegrationPoints(rVariable,ValuesOnIntPoint,r_process_info);
+        Element::GeometryType& rGeom = itElem->GetGeometry();
+        const double Weight = rGeom.Volume() / (double) TNumNodes;
+        for (unsigned int iNode = 0; iNode < rGeom.size(); iNode++)
+          {
+            rGeom[iNode].SetLock();
+            rGeom[iNode].FastGetSolutionStepValue(rVariable) += Weight * ValuesOnIntPoint[0];
+            rGeom[iNode].FastGetSolutionStepValue(NODAL_AREA) += Weight;
+            rGeom[iNode].UnSetLock();
+          }
+      }
     }
 
     rModelPart.GetCommunicator().AssembleCurrentData(rVariable);
