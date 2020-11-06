@@ -319,7 +319,7 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
     }
 }
 
-int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
 

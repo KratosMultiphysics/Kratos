@@ -607,6 +607,7 @@ protected:
         if (M.size1() != 0)
         {
             int k = OpenMPUtils::ThisThread();
+            const auto& rConstElemRef = rCurrentElement;
             /*              rCurrentElement-
             >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
                             (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
@@ -623,7 +624,7 @@ protected:
                         //damping contribution
                         if (D.size1() != 0)
                         {*/
-            rCurrentElement.GetFirstDerivativesVector(mvel[k], 0);
+            rConstElemRef.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
         }
 

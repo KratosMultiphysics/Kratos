@@ -1695,13 +1695,13 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Vector>& rVa
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
+int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
     Element::Check(rCurrentProcessInfo);
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 

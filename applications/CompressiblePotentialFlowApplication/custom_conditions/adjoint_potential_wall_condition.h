@@ -105,7 +105,7 @@ public:
                                         Matrix& rOutput,
                                         const ProcessInfo& rCurrentProcessInfo)  override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     std::string Info() const override;
 

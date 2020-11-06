@@ -109,6 +109,7 @@ void Create3DGeometryHexahedra(
     )
 {
     auto& process_info = rThisModelPart.GetProcessInfo();
+    const auto& r_const_process_info = rThisModelPart.GetProcessInfo();
     process_info[STEP] = 2;
     process_info[NL_ITERATION_NUMBER] = 2;
 
@@ -130,9 +131,9 @@ void Create3DGeometryHexahedra(
 
     // Initialize elements
     for (auto& elem : rThisModelPart.Elements()) {
-        elem.Initialize(process_info);
-        elem.InitializeSolutionStep(process_info);
-        elem.InitializeNonLinearIteration(process_info);
+        elem.r_const_process_info(r_const_process_info);
+        elem.InitializeSolutionStep(r_const_process_info);
+        elem.InitializeNonLinearIteration(r_const_process_info);
     }
 }
 
@@ -144,9 +145,9 @@ void Create3DGeometryTetrahedra(
     const std::string ElementName = "SmallDisplacementElement3D4N"
     )
 {
-    auto& process_info = rThisModelPart.GetProcessInfo();
-    process_info[STEP] = 2;
-    process_info[NL_ITERATION_NUMBER] = 2;
+    const auto& process_info = rThisModelPart.GetProcessInfo();
+    rThisModelPart.GetProcessInfo()[STEP] = 2;
+    rThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] = 2;
 
     // Create nodes and elements
     Properties::Pointer p_elem_prop = rThisModelPart.pGetProperties(1);

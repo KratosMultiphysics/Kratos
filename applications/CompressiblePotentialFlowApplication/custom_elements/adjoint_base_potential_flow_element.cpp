@@ -259,12 +259,13 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    int AdjointBasePotentialFlowElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+    int AdjointBasePotentialFlowElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
 
         KRATOS_TRY
 
-        int Check = mpPrimalElement -> Check(rCurrentProcessInfo);
+        const auto& ConstElemRef = *mpPrimalElement;
+        int Check = ConstElemRef.Check(rCurrentProcessInfo);
 
         if (Check != 0)
         {
