@@ -105,6 +105,8 @@ namespace Kratos
 
         conductivity /= number_of_integration_points;
         m_thermal_conductivity = conductivity;
+
+        m_adjusted_density = GetProperties()[DENSITY];
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -148,6 +150,7 @@ namespace Kratos
 
         Variables.specific_heat = m_specific_heat_capacity;
         Variables.conductivity = m_thermal_conductivity;
+        Variables.density = m_adjusted_density;
 
         double h = this->ComputeH(DN_DX);
 
@@ -422,6 +425,7 @@ namespace Kratos
 
         Matrix Ncontainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
+        Vector degree_of_cure_vector_previous = m_degree_of_cure_vector;
         for (IndexType i = 0; i < number_of_integration_points; ++i)
         {
             double temperature = 0;
@@ -473,6 +477,7 @@ namespace Kratos
 
         double specific_heat = 0;
         double conductivity = 0;
+        double density = 0;
         for (IndexType i = 0; i < number_of_integration_points; ++i)
         {
             double temperature = 0;
@@ -497,17 +502,25 @@ namespace Kratos
             m_pre_strain_vector[i] = this->ComputePreStrainFactor(
                 m_degree_of_cure_vector[i], temperature, previous_temperature);
 
+            density += this->ComputeAdjustedDensity(
+                previous_temperature, temperature,
+                degree_of_cure_vector_previous[i],
+                m_degree_of_cure_vector[i],
+                m_adjusted_density);
+
             conductivity += this->ComputeThermalConductivity(
                 temperature, m_degree_of_cure_vector[i]);
             //KRATOS_WATCH(temperature)
         }
         specific_heat /= number_of_integration_points;
         conductivity /= number_of_integration_points;
+        density /= number_of_integration_points;
         //KRATOS_WATCH(m_glass_transition_temperature)
         //KRATOS_WATCH(m_degree_of_cure_vector)
         //KRATOS_WATCH(specific_heat)
         m_specific_heat_capacity = specific_heat;
         m_thermal_conductivity = conductivity;
+        m_adjusted_density = density;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -584,6 +597,13 @@ namespace Kratos
                 rOutput[i] = m_thermal_conductivity;
             }
         }
+        else if (rVariable == ADJUSTED_DENSITY)
+        {
+            for (IndexType i = 0; i < number_of_integration_points; ++i)
+            {
+                rOutput[i] = m_adjusted_density;
+            }
+        }
         else if (rVariable == CONDUCTIVITY)
         {
             for (IndexType i = 0; i < number_of_integration_points; ++i)
@@ -658,6 +678,24 @@ namespace Kratos
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
+    double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeAdjustedDensity(
+        double temperature_previous,
+        double temperature_current,
+        double degree_of_cure_previous,
+        double degree_of_cure_current,
+        double density_previous)
+    {
+        double alpha_vr = 0.00019;
+        double gamma_sh_coeff = 0.083;
+
+
+        double adjusted_density = density_previous/(1 + alpha_vr * (temperature_current-temperature_previous) 
+            - (gamma_sh_coeff*(degree_of_cure_current-degree_of_cure_previous)));
+
+        return adjusted_density;
+    }
+
+    template< unsigned int TDim, unsigned int TNumNodes >
     double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeHeatOfReaction(
         double degree_of_cure_previous,
         double degree_of_cure_current,
@@ -684,7 +722,7 @@ namespace Kratos
         double temperature_current,
         double temperature_previous)
     {
-        const double CTE = 5;
+        const double CTE = 0.4;
 
         if (DegreeOfCureCurrent < 0.77) {
             double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (8.233 * DegreeOfCureCurrent - 0.4199)/100;

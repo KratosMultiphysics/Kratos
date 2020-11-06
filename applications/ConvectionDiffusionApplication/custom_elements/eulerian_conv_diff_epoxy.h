@@ -172,6 +172,8 @@ private:
 
     double m_thermal_conductivity = 0.0;
 
+    double m_adjusted_density = 0.0;
+
     double ComputeDegreeOfCure(double rDegreeOfCure, double Temperature);
 
     double ComputeGlassTransitionTemperature(double DegreeOfCure);
@@ -182,6 +184,13 @@ private:
         double degree_of_cure_previous,
         double degree_of_cure_current,
         double delta_time);
+
+    double ComputeAdjustedDensity(
+        double degree_of_cure_previous,
+        double degree_of_cure_current,
+        double temperature_current,
+        double temperature_previous,
+        double density_previous);
 
     double ComputeSpecificHeatCapacity(
         double Temperature,
