@@ -53,9 +53,6 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
             CppTestsUtilities::Create2DGeometry(r_model_part, "Element2D3N");
 
-            r_model_part.pGetNode(6)->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
-            ParallelFillCommunicator(r_model_part).Execute();
-
             r_sub_modelpart_1.AddNode(r_model_part.pGetNode(1));
             r_sub_modelpart_2.AddNode(r_model_part.pGetNode(4));
             r_sub_modelpart_3.AddNode(r_model_part.pGetNode(5));

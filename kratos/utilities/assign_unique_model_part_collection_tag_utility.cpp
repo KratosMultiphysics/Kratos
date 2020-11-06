@@ -189,12 +189,12 @@ void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelP
 
     std::vector<std::vector<IndexType>> global_combination_vector_keys;
     if (rank>0) {
-        mrModelPart.GetCommunicator().GetDataCommunicator().Send(local_combination_vector_keys, 0);
+        DataCommunicator::GetDefault().Send(local_combination_vector_keys, 0);
     }
     else {
         for (IndexType i_rank = 1; i_rank<size; i_rank++) {
             std::vector<std::vector<IndexType>> recv_irank_combinations;
-            mrModelPart.GetCommunicator().GetDataCommunicator().Recv(recv_irank_combinations, i_rank);
+            DataCommunicator::GetDefault().Recv(recv_irank_combinations, i_rank);
 
             for (auto& key_combination_vector : recv_irank_combinations) {
                 // Convert vector to set
@@ -214,7 +214,7 @@ void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelP
         }
     }
 
-    mrModelPart.GetCommunicator().GetDataCommunicator().Broadcast(global_combination_vector_keys, 0);
+    DataCommunicator::GetDefault().Broadcast(global_combination_vector_keys, 0);
 
     rCombinations.clear();
 
