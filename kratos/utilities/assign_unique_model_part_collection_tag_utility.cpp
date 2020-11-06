@@ -176,69 +176,51 @@ void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelP
                                             IndexSetIndexMapType& rCombinations,
                                             IndexType& rTag)
 {
-    const int rank = mrModelPart.GetCommunicator().GetDataCommunicator().Rank();
-    const IndexType size = mrModelPart.GetCommunicator().GetDataCommunicator().Size();
+    const IndexType rank = DataCommunicator::GetDefault().Rank();
+    const IndexType size = DataCommunicator::GetDefault().Size();
 
-    std::vector<std::vector<IndexType>> combinations_keys;
-    for(auto& combination : rCombinations) {
-        std::vector<IndexType> aux_vector;
-        for (auto it=combination.first.begin(); it != combination.first.end(); ++it)
-            aux_vector.push_back(*it);
-        combinations_keys.push_back(aux_vector);
+    std::vector<std::vector<IndexType>> local_combination_vector_keys;
+    for(auto& key_combination_set : rCombinations) {
+        std::vector<IndexType> key_vector;
+        for (auto it=key_combination_set.first.begin(); it != key_combination_set.first.end(); ++it)
+            key_vector.push_back(*it);
+        local_combination_vector_keys.push_back(key_vector);
     }
 
+    std::vector<std::vector<IndexType>> global_combination_vector_keys;
     if (rank>0) {
-        std::vector<std::vector<IndexType>> SendObject=combinations_keys;
-
-        mrModelPart.GetCommunicator().GetDataCommunicator().Send(SendObject, 0);
+        mrModelPart.GetCommunicator().GetDataCommunicator().Send(local_combination_vector_keys, 0);
     }
     else {
-        std::vector<std::vector<std::vector<IndexType>>> ReceiveBuffer(size);
-        ReceiveBuffer[0] = combinations_keys;
         for (IndexType i_rank = 1; i_rank<size; i_rank++) {
-            std::vector<std::vector<IndexType>> RecvObject;
-            mrModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, i_rank);
-            ReceiveBuffer[i_rank] = RecvObject;
-        }
+            std::vector<std::vector<IndexType>> recv_irank_combinations;
+            mrModelPart.GetCommunicator().GetDataCommunicator().Recv(recv_irank_combinations, i_rank);
 
-        for (auto& combination_keys : ReceiveBuffer) {
-            for (auto& submodel_part_vector : combination_keys) {
-
-                std::set<IndexType> submodel_part_set;
-                for (auto& values : submodel_part_vector) {
-                    submodel_part_set.insert(values);
-                }
-
+            for (auto& key_combination_vector : recv_irank_combinations) {
+                // Convert vector to set
+                const std::set<IndexType> submodel_part_set(key_combination_vector.begin(), key_combination_vector.end());
+                // Check if key exists in the combinations maps, if not, add it
                 if (rCombinations.find(submodel_part_set) == rCombinations.end()) {
                     rCombinations[submodel_part_set] = 0; //creating new key, value does not matter
                 }
             }
+            // converting back to vector to be broadcasted
+            for(auto& key_combination_set : rCombinations) {
+                std::vector<IndexType> key_vector;
+                for (auto it=key_combination_set.first.begin(); it != key_combination_set.first.end(); ++it)
+                    key_vector.push_back(*it);
+                global_combination_vector_keys.push_back(key_vector);
+            }
         }
     }
 
-    DataCommunicator::GetDefault().Barrier();
-
-    std::vector<std::vector<IndexType>> SendRecvObject;
-    if (rank==0) {
-        std::vector<std::vector<IndexType>> final_combination_keys;
-        for(auto& combination : rCombinations) {
-            std::vector<IndexType> aux_vector;
-            for (auto it=combination.first.begin(); it != combination.first.end(); ++it)
-                aux_vector.push_back(*it);
-            final_combination_keys.push_back(aux_vector);
-        }
-        SendRecvObject = final_combination_keys;
-        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
-            mrModelPart.GetCommunicator().GetDataCommunicator().Send(SendRecvObject, i_rank);
-        }
-    } else {
-        mrModelPart.GetCommunicator().GetDataCommunicator().Recv(SendRecvObject, 0);
-    }
+    mrModelPart.GetCommunicator().GetDataCommunicator().Broadcast(global_combination_vector_keys, 0);
 
     rCombinations.clear();
 
-    for (auto& submodel_part_vector : SendRecvObject) {
-        const std::set<IndexType> r_key_set(submodel_part_vector.begin(), submodel_part_vector.end());
+    // Assigning final maps considering all ranks information
+    for (auto& r_key_vector : global_combination_vector_keys) {
+        const std::set<IndexType> r_key_set(r_key_vector.begin(), r_key_vector.end());
         for(IndexType it : r_key_set)
             rCollections[rTag].push_back(rCollections[it][0]);
         rCombinations[r_key_set] = rTag;
