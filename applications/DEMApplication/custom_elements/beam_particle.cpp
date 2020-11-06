@@ -323,16 +323,16 @@ namespace Kratos {
                                false,
                                i);
 
-                    mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this,
-                                                                                        neighbour_iterator,
-                                                                                        equiv_young,
-                                                                                        data_buffer.mDistance,
-                                                                                        calculation_area,
-                                                                                        data_buffer.mLocalCoordSystem,
-                                                                                        ElasticLocalRotationalMoment,
-                                                                                        ViscoLocalRotationalMoment,
-                                                                                        equiv_poisson,
-                                                                                        indentation);
+                mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this,
+                                                                                    neighbour_iterator,
+                                                                                    equiv_young,
+                                                                                    data_buffer.mDistance,
+                                                                                    calculation_area,
+                                                                                    data_buffer.mLocalCoordSystem,
+                                                                                    ElasticLocalRotationalMoment,
+                                                                                    ViscoLocalRotationalMoment,
+                                                                                    equiv_poisson,
+                                                                                    indentation);
 
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
