@@ -21,6 +21,7 @@
 #include "includes/checks.h"
 #include "utilities/time_discretization.h"
 #include "solving_strategies/schemes/residual_based_bdf_scheme.h"
+#include "custom_utilities/flow_rate_slip_utility.h"
 #include "shallow_water_application_variables.h"
 
 namespace Kratos
@@ -78,6 +79,8 @@ public:
 
     typedef ModelPart::NodesContainerType                          NodesArrayType;
 
+    typedef FlowRateSlipUtility<LocalSystemMatrixType,LocalSystemVectorType,double>FlowRateSlipToolType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -85,11 +88,13 @@ public:
     // Constructor
     explicit ShallowWaterResidualBasedBDFScheme(const std::size_t Order = 2)
         : BDFBaseType(Order)
+        , mRotationTool()
     {}
 
     // Copy Constructor
     explicit ShallowWaterResidualBasedBDFScheme(ShallowWaterResidualBasedBDFScheme& rOther)
         : BDFBaseType(rOther)
+        , mRotationTool()
     {}
 
     /**
@@ -110,6 +115,35 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Performing the update of the solution within newton iteration
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        mRotationTool.RotateVelocities(rModelPart);
+
+        mpDofUpdater->UpdateDofs(rDofSet, rDx);
+
+        mRotationTool.RecoverVelocities(rModelPart);
+
+        BDFBaseType::UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
+
+        KRATOS_CATCH("ShallowWaterResidualBasedBDFScheme.Update");
+    }
 
     /**
      * @brief Performing the prediction of the solution
@@ -155,7 +189,117 @@ public:
             UpdateFirstDerivative(it_node);
         }
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("ShallowWaterResidualBasedBDFScheme.Predict");
+    }
+
+    /**
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
+     * @param rCurrentElement The element to compute
+     * @param rLHS_Contribution The LHS matrix contribution
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        BDFBaseType::CalculateSystemContributions(
+            rCurrentElement,
+            rLHS_Contribution,
+            rRHS_Contribution,
+            rEquationId,
+            rCurrentProcessInfo);
+
+        mRotationTool.Rotate(rLHS_Contribution,rRHS_Contribution,rCurrentElement.GetGeometry());
+        mRotationTool.ApplySlipCondition(rLHS_Contribution,rRHS_Contribution,rCurrentElement.GetGeometry());
+    }
+
+    /**
+     * @brief This function is designed to calculate just the RHS contribution
+     * @param rCurrentElement The element to compute
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        BDFBaseType::CalculateRHSContribution(
+            rCurrentElement,
+            rRHS_Contribution,
+            rEquationId,
+            rCurrentProcessInfo);
+
+        mRotationTool.Rotate(rRHS_Contribution,rCurrentElement.GetGeometry());
+        mRotationTool.ApplySlipCondition(rRHS_Contribution,rCurrentElement.GetGeometry());
+    }
+
+    /**
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
+     * @param rCurrentCondition The condition to compute
+     * @param rLHS_Contribution The LHS matrix contribution
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        BDFBaseType::CalculateSystemContributions(
+            rCurrentCondition,
+            rLHS_Contribution,
+            rRHS_Contribution,
+            rEquationId,
+            rCurrentProcessInfo);
+
+        mRotationTool.Rotate(rLHS_Contribution,rRHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ApplySlipCondition(rLHS_Contribution,rRHS_Contribution,rCurrentCondition.GetGeometry());
+    }
+
+    /**
+     * @brief This function is designed to calculate just the RHS contribution
+     * @param rCurrentCondition The condition to compute
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        BDFBaseType::CalculateRHSContribution(
+            rCurrentCondition,
+            rRHS_Contribution,
+            rEquationId,
+            rCurrentProcessInfo);
+
+        mRotationTool.Rotate(rRHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ApplySlipCondition(rRHS_Contribution,rCurrentCondition.GetGeometry());
+    }
+
+    /*
+     * @brief Free memory allocated by this class.
+     */
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
     }
 
     ///@}
@@ -188,6 +332,10 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
+    FlowRateSlipToolType mRotationTool;
 
     ///@}
     ///@name Protected Operators
@@ -302,40 +450,6 @@ protected:
     ///@name Protected LifeCycle
     ///@{
     ///@{
-
-private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
 
 }; // Class ShallowWaterResidualBasedBDFScheme
 
