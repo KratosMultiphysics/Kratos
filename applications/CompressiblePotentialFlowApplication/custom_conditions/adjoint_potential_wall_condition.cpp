@@ -134,7 +134,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLocalSystem(Matri
 
 /// Check that all data required by this condition is available and reasonable
 template <class TPrimalCondition>
-int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

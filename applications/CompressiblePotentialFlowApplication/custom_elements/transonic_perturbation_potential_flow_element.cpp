@@ -210,7 +210,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FinalizeSolutio
 // Inquiry
 
 template <int TDim, int TNumNodes>
-int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
