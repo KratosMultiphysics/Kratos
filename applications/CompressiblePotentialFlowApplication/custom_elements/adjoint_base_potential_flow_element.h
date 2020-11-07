@@ -144,7 +144,7 @@ protected:
 
     Element::Pointer mpPrimalElement;
 
-    void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances);
+    void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances) const;
 
 private:
 
