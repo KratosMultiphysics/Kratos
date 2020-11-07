@@ -105,7 +105,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_current_process_info);
+                it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_current_process_info);
 
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
                     const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
@@ -207,7 +207,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsClosestPointTr
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_current_process_info);
+                it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_current_process_info);
 
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
                     // We compute the global coordinates
@@ -313,7 +313,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_current_process_info);
+                it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_current_process_info);
 
                 // Computing the radius
                 const double radius = mSearchFactor *  (mDimension == 2 ? std::sqrt(r_this_geometry.Area()) : std::cbrt(r_this_geometry.Volume()));
@@ -440,7 +440,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
             // Getting the CL
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-            it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_origin_process_info);
+            it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_origin_process_info);
 
             // We initialize the total weigth
             double total_weight = 0.0;
@@ -550,7 +550,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
             // Getting the CL
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-            it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector,r_destination_process_info);
+            it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector,r_destination_process_info);
 
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
                 const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
