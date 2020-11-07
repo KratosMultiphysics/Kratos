@@ -392,9 +392,9 @@ public:
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-        const auto& rConstElemRef = rCurrentElement;
+
         rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        rConstElemRef.EquationIdVector(EquationId,rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
@@ -428,11 +428,10 @@ public:
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-        const auto& rConstElemRef = rCurrentElement;
 
         // Basic operations for the element considered
         rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        rConstElemRef.EquationIdVector(EquationId,rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
@@ -467,10 +466,9 @@ public:
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-        const auto& rConstCondRef = rCurrentCondition;
 
         rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        rConstCondRef.EquationIdVector(EquationId,rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
@@ -503,9 +501,9 @@ public:
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-        const auto& rConstCondRef = rCurrentCondition;
+
         rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        rConstCondRef.EquationIdVector(EquationId,rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
