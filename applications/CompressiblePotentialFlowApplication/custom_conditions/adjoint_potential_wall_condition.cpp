@@ -60,7 +60,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::InitializeSolutionStep(con
     mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
 }
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step)
+void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY

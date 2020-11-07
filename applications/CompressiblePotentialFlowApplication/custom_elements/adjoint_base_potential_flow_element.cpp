@@ -91,7 +91,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
     {
         KRATOS_TRY
         const AdjointBasePotentialFlowElement& r_this = *this;
