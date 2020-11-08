@@ -666,6 +666,7 @@ protected:
         const auto& rConstElemRef = rElement;
         // Adding inertia contribution
         if (M.size1() != 0) {
+
             rConstElemRef.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
@@ -678,7 +679,6 @@ protected:
         // Adding damping contribution
         if (D.size1() != 0) {
             rConstElemRef.GetFirstDerivativesVector(mVector.v[this_thread], 0);
-
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
     }
@@ -701,6 +701,7 @@ protected:
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
         const auto& rConstCondRef = rCondition;
+
         // Adding inertia contribution
         if (M.size1() != 0) {
             rConstCondRef.GetSecondDerivativesVector(mVector.a[this_thread], 0);
