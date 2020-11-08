@@ -202,9 +202,6 @@ public:
                 // assemble the elemental contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
-
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it));
             }
         }
 
@@ -225,9 +222,6 @@ public:
                 // assemble the condition contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
-
-                // clean local elemental memory
-                pScheme->CleanMemory(**it);
             }
         }
 
@@ -270,9 +264,6 @@ public:
 
             // assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -285,8 +276,6 @@ public:
 
             // assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-
-            // TODO CleanMemory is missing
         }
 
         // finalizing the assembly
