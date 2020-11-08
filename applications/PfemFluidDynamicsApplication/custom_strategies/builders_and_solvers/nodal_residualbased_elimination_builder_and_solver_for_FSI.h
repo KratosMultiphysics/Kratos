@@ -1067,8 +1067,6 @@ namespace Kratos
 #else
             AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
           }
         }
 
@@ -1093,9 +1091,6 @@ namespace Kratos
 #else
             AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
-
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
           }
         }
       }
