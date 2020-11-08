@@ -40,7 +40,11 @@ typedef ExplicitBuilder<SparseSpaceType, LocalSpaceType> ExplicitBuilderType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitSolvingStrategyType>;
 
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ExplicitSolvingStrategyType const& ThisComponent);
+
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitBuilderType>;
+
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ExplicitBuilderType const& ThisComponent);
 
 }  // namespace Kratos.
 
