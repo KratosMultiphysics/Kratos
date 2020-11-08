@@ -63,7 +63,7 @@ template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -81,7 +81,7 @@ void FluxCondition<TNodeNumber>::CalculateLocalSystem(
 template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -111,7 +111,7 @@ void FluxCondition<TNodeNumber>::CalculateRightHandSide(
 template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
@@ -125,7 +125,7 @@ void FluxCondition<TNodeNumber>::EquationIdVector(
         rResult.resize(TNodeNumber,false);
     }
 
-    Geometry< Node<3> >& rGeometry = this->GetGeometry();
+    const Geometry< Node<3> >& rGeometry = this->GetGeometry();
 
     for (unsigned int i = 0; i < TNodeNumber; i++)
     {
@@ -138,7 +138,7 @@ void FluxCondition<TNodeNumber>::EquationIdVector(
 template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
@@ -152,7 +152,7 @@ void FluxCondition<TNodeNumber>::GetDofList(
         rConditionalDofList.resize(TNodeNumber);
     }
 
-    Geometry< Node<3> >& rGeometry = this->GetGeometry();
+    const Geometry< Node<3> >& rGeometry = this->GetGeometry();
 
     for (unsigned int i = 0; i < TNodeNumber; i++)
     {

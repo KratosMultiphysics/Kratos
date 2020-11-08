@@ -316,7 +316,7 @@ public:
         KRATOS_CATCH("Error in Eulerian diffusion element CalculateRightHandSide")
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
