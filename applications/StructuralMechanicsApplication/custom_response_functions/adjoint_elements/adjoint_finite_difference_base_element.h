@@ -142,11 +142,6 @@ public:
         mpPrimalElement->ResetConstitutiveLaw();
     }
 
-    void CleanMemory() override
-    {
-        mpPrimalElement->CleanMemory();
-    }
-
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
