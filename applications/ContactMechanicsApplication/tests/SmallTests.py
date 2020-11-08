@@ -12,6 +12,7 @@ try:
   import KratosMultiphysics.SolidMechanicsApplication
   import KratosMultiphysics.ConstitutiveModelsApplication
   import KratosMultiphysics.ExternalSolversApplication as ExternalSolver
+  import KratosMultiphysics.PfemApplication as PfemApplication
   import KratosMultiphysics.PfemSolidMechanicsApplication as PfemSolid
   import KratosMultiphysics.ContactMechanicsApplication as Contact
   missing_external_dependencies = False

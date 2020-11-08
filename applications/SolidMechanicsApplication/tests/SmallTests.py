@@ -212,18 +212,18 @@ def SetTestSuite(suites):
             UL_Element3D8N_TensionTest,
             UL_Element3D4N_TensionTest,
             #DYN
-            Dynamic_Test_Bossak_TL_3D,
-            Dynamic_Test_Simo_TL_3D,
+            #Dynamic_Test_Bossak_TL_3D,
+            #Dynamic_Test_Simo_TL_3D,
             #BEM
-            LD_Beam_BendingRollUpTest,
-            EMC_Beam_BendingRollUpTest,
-            LD_Beam_DynamicRotation,
-            EMC_Beam_DynamicRotation,
+            #LD_Beam_BendingRollUpTest,
+            #EMC_Beam_BendingRollUpTest,
+            #LD_Beam_DynamicRotation,
+            #EMC_Beam_DynamicRotation,
             #SHE
-            Thick_Shell3D4N_BendingRollUpTest,
-            Thick_Shell3D4N_DrillingRollUpTest,
-            Thin_Shell3D3N_BendingRollUpTest,
-            Thin_Shell3D3N_DrillingRollUpTest
+            #Thick_Shell3D4N_BendingRollUpTest,
+            #Thick_Shell3D4N_DrillingRollUpTest,
+            #Thin_Shell3D3N_BendingRollUpTest,
+            #Thin_Shell3D3N_DrillingRollUpTest
 
         ])
     )

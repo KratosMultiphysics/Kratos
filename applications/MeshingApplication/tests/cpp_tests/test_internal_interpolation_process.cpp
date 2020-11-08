@@ -111,7 +111,7 @@ namespace Kratos
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     constitutive_law_vector[i]->SetValue(plastic_strain_variable, 1.0, current_process_info);
@@ -149,7 +149,7 @@ namespace Kratos
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
@@ -206,7 +206,7 @@ namespace Kratos
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     constitutive_law_vector[i]->SetValue(plastic_strain_variable, 1.0, current_process_info);
@@ -248,7 +248,7 @@ namespace Kratos
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
@@ -306,7 +306,7 @@ namespace Kratos
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     constitutive_law_vector[i]->SetValue(plastic_strain_variable, 1.0, current_process_info);
@@ -344,7 +344,7 @@ namespace Kratos
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
@@ -402,7 +402,7 @@ namespace Kratos
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     constitutive_law_vector[i]->SetValue(plastic_strain_variable, 1.0, current_process_info);
@@ -444,7 +444,7 @@ namespace Kratos
 
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
