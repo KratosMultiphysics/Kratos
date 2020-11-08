@@ -373,10 +373,6 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
   KRATOS_CATCH("")
       }
 
-void ShellThinElement3D3N::CleanMemory()
-{
-}
-
 void ShellThinElement3D3N::GetValuesVector(Vector& values, int Step)
 {
   if(values.size() != OPT_NUM_DOFS)
