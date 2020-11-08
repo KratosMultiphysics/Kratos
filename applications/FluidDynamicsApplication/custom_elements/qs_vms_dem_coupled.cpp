@@ -184,7 +184,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
                 for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
                 {
                     rMassMatrix(row+d, col+d) += K;
-                    rMassMatrix(row+Dim,col+d) += weight * (fluid_fraction * rData.DN_DX(i,d) * rData.N[j] + rData.N[i] * fluid_fraction_gradient[d] * rData.N[j]);
+                    rMassMatrix(row+Dim,col+d) += weight * (fluid_fraction * rData.DN_DX(i,d) * rData.N[j]);
                 }
             }
         }
@@ -246,7 +246,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     // Temporary containers
-    double V, AA, P, GAlpha, AG, U, Q, DD, UD, QGAU;
+    double V, AA, P, GAlphaA, AG, U, QAlpha, DAlphaD, DU;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -261,7 +261,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
             // Some terms are the same for all velocity components, calculate them once for each i,j
             V = rData.Weight * rData.N[i] * AGradN[j];
-            AA = rData.Weight * AGradN[j] * tau_one * (AGradN[i]); // Stabilization: u*grad(v) * tau_one * u*grad(u)
+            AA = rData.Weight * tau_one * AGradN[j] * AGradN[i]; // Stabilization: u*grad(v) * tau_one * u*grad(u)
 
             // q-p stabilization block (initialize result)
             double G = 0;
@@ -271,21 +271,20 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
                 // Stabilization: (a * Grad(v)) * tau_one * Grad(p)
                 P = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
-                GAlpha = tau_one * AGradN[j] * (fluid_fraction * rData.DN_DX(i,d));
+                GAlphaA = tau_one * AGradN[j] * (fluid_fraction * rData.DN_DX(i,d));
                 AG = tau_one * AGradN[i] * rData.DN_DX(j,d);
                 U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
-                QGAU = fluid_fraction_gradient[d] * rData.N[i] * tau_one * AGradN[j];
-                Q = fluid_fraction * rData.DN_DX(j,d) * rData.N[i];
+                QAlpha = fluid_fraction * rData.DN_DX(j,d) * rData.N[i];
 
                 LHS(row+d,col+Dim) += rData.Weight * (AG - P);
-                LHS(row+Dim,col+d) += rData.Weight * (GAlpha + U + Q + QGAU);
+                LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QAlpha);
 
-                G += tau_one * (fluid_fraction * rData.DN_DX(j,d) * rData.DN_DX(i,d));
+                G += tau_one * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
 
                 for (unsigned int e = 0; e < Dim; e++){ // Stabilization: Div(v) * tau_two * Div(u)
-                    DD = tau_two * (rData.DN_DX(i,d) * fluid_fraction * rData.DN_DX(j,e));
-                    UD = tau_two * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.N[j];
-                    LHS(row+d,col+e) += rData.Weight * (DD + UD);
+                    DAlphaD = tau_two * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,e);
+                    DU = tau_two * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.N[j];
+                    LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU);
                 }
             }
         // Write q-p term
@@ -294,15 +293,15 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
         }
 
         // RHS terms
-        double QF = 0.0;
+        double QAlphaFplusGAlphaF = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
             rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
-            rLocalRHS[row+d] += rData.Weight * tau_one * AGradN[i] * (body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * tau_one * (Density * BodyForce)
+            rLocalRHS[row+d] += rData.Weight * tau_one * AGradN[i] * (body_force[d] - momentum_projection[d]); // A_F: ( a * Grad(v) ) * tau_one * (Density * BodyForce)
             rLocalRHS[row+d] -= rData.Weight * tau_two * rData.DN_DX(i,d) * (mass_projection + mass_source - fluid_fraction_rate);
-            QF += tau_one * (body_force[d] - momentum_projection[d]) * (fluid_fraction * rData.DN_DX(i,d) + rData.N[i] * fluid_fraction_gradient[d]);
+            QAlphaFplusGAlphaF += tau_one * (body_force[d] - momentum_projection[d]) * fluid_fraction * rData.DN_DX(i,d);
         }
-        rLocalRHS[row+Dim] += rData.Weight * (QF + rData.N[i] * (mass_source - fluid_fraction_rate));
+        rLocalRHS[row+Dim] += rData.Weight * (QAlphaFplusGAlphaF + rData.N[i] * (mass_source - fluid_fraction_rate));
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
