@@ -361,25 +361,25 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
         Vector solution;
         Vector projector_column;
         LinearSolverSharedPointerType p_lin_solver = nullptr;
-    }
+    };
 
-    auto lambda_compute_row = [](solver_tls& rTls, std::size_t i){
+    auto lambda_compute_row = [&](std::size_t i, solver_tls& rTls){
         // first check if tls is initialized
         if (!rTls.p_lin_solver) {
             rTls.p_lin_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
-            rTls.solution = Vector(n_rows)
+            rTls.solution = Vector(n_rows);
             rTls.projector_column = Vector(n_rows);
         }
 
-        for (std::size_t j = 0; j < n_rows; ++j) tls.projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
-        rTls.p_lin_solver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
+        for (std::size_t j = 0; j < n_rows; ++j) rTls.projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
+        rTls.p_lin_solver->Solve(rConsistentInterfaceMatrix, rTls.solution, rTls.projector_column);
         for (std::size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i, rTls.solution[j]);
-    }
+    };
 
     if (mMapperSettings["precompute_in_parallel"].GetBool()) {
-        IndexPartition<std::size_t>(mpMappingMatrix->size2()).for_each(tls(), lambda_compute_row);
+        IndexPartition<std::size_t>(mpMappingMatrix->size2()).for_each(solver_tls(), lambda_compute_row);
     } else {
-        IndexPartition<std::size_t, 1>(mpMappingMatrix->size2()).for_each(tls(), lambda_compute_row);
+        IndexPartition<std::size_t, 1>(mpMappingMatrix->size2()).for_each(solver_tls(), lambda_compute_row);
     }
 }
 
