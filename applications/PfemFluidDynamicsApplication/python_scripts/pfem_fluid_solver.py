@@ -101,15 +101,16 @@ class PfemFluidSolver(PythonSolver):
             },
         "bodies_list": [],
         "problem_domain_sub_model_part_list": [],
-        "processes_sub_model_part_list": [],
-        "constraints_process_list": [],
-        "loads_process_list"       : [],
-        "output_process_list"      : [],
-        "output_configuration"     : {},
-        "problem_process_list"     : [],
-        "processes"                : {},
-        "output_processes"         : {},
-        "check_process_list": []
+        "constitutive_laws_list"            : [],
+        "processes_sub_model_part_list"     : [],
+        "constraints_process_list"          : [],
+        "loads_process_list"                : [],
+        "output_process_list"               : [],
+        "output_configuration"              : {},
+        "problem_process_list"              : [],
+        "processes"                         : {},
+        "output_processes"                  : {},
+        "check_process_list"                : []
         }""")
         this_defaults.AddMissingParameters(super(PfemFluidSolver, cls).GetDefaultParameters())
         return this_defaults

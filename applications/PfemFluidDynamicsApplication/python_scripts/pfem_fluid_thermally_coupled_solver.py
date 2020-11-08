@@ -92,15 +92,16 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 },
                 "bodies_list": [],
                 "problem_domain_sub_model_part_list": [],
-                "processes_sub_model_part_list": [],
-                "constraints_process_list": [],
-                "loads_process_list"       : [],
-                "output_process_list"      : [],
-                "output_configuration"     : {},
-                "problem_process_list"     : [],
-                "processes"                : {},
-                "output_processes"         : {},
-                "check_process_list": []
+                "constitutive_laws_list"            : [],
+                "processes_sub_model_part_list"     : [],
+                "constraints_process_list"          : [],
+                "loads_process_list"                : [],
+                "output_process_list"               : [],
+                "output_configuration"              : {},
+                "problem_process_list"              : [],
+                "processes"                         : {},
+                "output_processes"                  : {},
+                "check_process_list"                : []
             },
             "thermal_solver_settings": {
                 "solver_type": "Transient",
@@ -216,5 +217,5 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
     def PrepareModelPart(self):
         self.CloneThermalModelPart()
-        self.fluid_solver.PrepareModelPart()
         self.thermal_solver.PrepareModelPart()
+        self.fluid_solver.PrepareModelPart()
