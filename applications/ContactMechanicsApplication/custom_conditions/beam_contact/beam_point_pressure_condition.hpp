@@ -91,7 +91,7 @@ public:
     void         EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
     void AddExplicitContribution(const VectorType& rRHSVector,
 						 const Variable<VectorType>& rRHSVariable,
-						 Variable<array_1d<double,3> >& rDestinationVariable,
+						 const Variable<array_1d<double,3> >& rDestinationVariable,
 						 const ProcessInfo& rCurrentProcessInfo);
     void InitializeSystemMatrices( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector);
     void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
