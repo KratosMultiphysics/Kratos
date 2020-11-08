@@ -95,7 +95,7 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& rValues, int Step=0)  override;
+    void GetValuesVector(Vector& rValues, int Step=0) const override;
 
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                         Matrix& rOutput,

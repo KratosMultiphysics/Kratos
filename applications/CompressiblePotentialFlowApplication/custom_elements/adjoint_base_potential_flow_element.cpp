@@ -91,7 +91,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
     {
         KRATOS_TRY
         const AdjointBasePotentialFlowElement& r_this = *this;
@@ -320,7 +320,7 @@ namespace Kratos
     /*PROTECTED*/
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances )
+    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances ) const
     {
 
         for (unsigned int i = 0; i < NumNodes; i++)

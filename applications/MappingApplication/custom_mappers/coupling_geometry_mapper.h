@@ -122,33 +122,7 @@ public:
 
     CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
-                         Parameters JsonParameters)
-                        : mrModelPartOrigin(rModelPartOrigin),
-                          mrModelPartDestination(rModelPartDestination),
-                          mMapperSettings(JsonParameters)
-    {
-        mpModeler = (ModelerFactory::Create(
-            mMapperSettings["modeler_name"].GetString(),
-            rModelPartOrigin.GetModel(),
-            mMapperSettings["modeler_parameters"]));
-
-        // adds destination model part
-        mpModeler->GenerateNodes(rModelPartDestination);
-
-        mpModeler->SetupGeometryModel();
-        mpModeler->PrepareGeometryModel();
-
-        // here use whatever ModelPart(s) was created by the Modeler
-        mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
-        mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
-        mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
-
-        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
-        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
-
-        this->CreateLinearSolver();
-        this->InitializeInterface();
-    }
+                         Parameters JsonParameters);
 
     /// Destructor.
     ~CouplingGeometryMapper() override = default;
@@ -342,9 +316,14 @@ private:
 
     Parameters GetMapperDefaultSettings() const
     {
-        // @tobiasteschemachen
-        return Parameters( R"({
-            "echo_level" : 0
+        return Parameters(R"({
+            "echo_level"                    : 0,
+            "dual_mortar"                   : false,
+            "precompute_mapping_matrix"     : false,
+            "modeler_name"                  : "UNSPECIFIED",
+            "modeler_parameters"            : {},
+            "consistency_scaling"           : true,
+            "linear_solver_settings"        : {}
         })");
     }
 
