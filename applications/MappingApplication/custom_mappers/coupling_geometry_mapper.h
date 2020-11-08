@@ -320,6 +320,7 @@ private:
             "echo_level"                    : 0,
             "dual_mortar"                   : false,
             "precompute_mapping_matrix"     : false,
+            "precompute_in_parallel"        : false,
             "modeler_name"                  : "UNSPECIFIED",
             "modeler_parameters"            : {},
             "consistency_scaling"           : true,
