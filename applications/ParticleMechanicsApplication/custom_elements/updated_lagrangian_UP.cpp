@@ -1049,9 +1049,9 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step )
+void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step ) const 
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
@@ -1081,9 +1081,9 @@ void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step ) const 
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
@@ -1110,9 +1110,9 @@ void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
