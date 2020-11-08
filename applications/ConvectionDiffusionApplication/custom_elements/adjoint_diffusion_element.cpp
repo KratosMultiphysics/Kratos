@@ -58,7 +58,7 @@ template<class PrimalElement>
 void AdjointDiffusionElement<PrimalElement>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Delegating LHS matrix to base class (the adjoint system matrix is also a laplacian)
     PrimalElement::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -70,7 +70,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateLocalSystem(
 template<class PrimalElement>
 void AdjointDiffusionElement<PrimalElement>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const Geometry<Node<3>>& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -84,7 +84,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateRightHandSide(
 }
 
 template<class PrimalElement>
-void AdjointDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues, int Step)
+void AdjointDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues, int Step) const 
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -103,7 +103,7 @@ void AdjointDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues, in
 template<class PrimalElement>
 void AdjointDiffusionElement<PrimalElement>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -121,7 +121,7 @@ void AdjointDiffusionElement<PrimalElement>::EquationIdVector(
 
 template<class PrimalElement>
 void AdjointDiffusionElement<PrimalElement>::GetDofList(
-    DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -138,7 +138,7 @@ void AdjointDiffusionElement<PrimalElement>::GetDofList(
 }
 
 template<class PrimalElement>
-int AdjointDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProcessInfo)
+int AdjointDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY
 

@@ -58,7 +58,7 @@ ConvDiff3D::~ConvDiff3D()
 //************************************************************************************
 //************************************************************************************
 
-void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -235,7 +235,7 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 //************************************************************************************
 //************************************************************************************
 
-void ConvDiff3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ConvDiff3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::logic_error, "method not implemented", "");
 }
@@ -245,7 +245,7 @@ void ConvDiff3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proces
 // this subroutine calculates the nodal contributions for the explicit steps of the
 // fractional step procedure
 
-void ConvDiff3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ConvDiff3D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
     int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
@@ -310,7 +310,7 @@ void ConvDiff3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 //************************************************************************************
 //************************************************************************************
 
-void ConvDiff3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void ConvDiff3D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const 
 {
 
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
@@ -326,7 +326,7 @@ void ConvDiff3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Cu
 //************************************************************************************
 //************************************************************************************
 
-void ConvDiff3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+void ConvDiff3D::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const 
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
