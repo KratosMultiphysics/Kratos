@@ -374,7 +374,7 @@ public:
 
     /**
      * ELEMENTS inherited from this class must implement next methods
-     * Initialize, ResetConstitutiveLaw, CleanMemory
+     * Initialize, ResetConstitutiveLaw
      * if the element needs to perform any operation before any calculation is done
      * reset material and constitutive parameters
      * or clean memory deleting obsolete variables
@@ -404,13 +404,6 @@ public:
      * the elemental variables will be changed and reset using this method
      */
     virtual void ResetConstitutiveLaw()
-    {
-    }
-
-    /**
-     * deletes all obsolete data from memory
-     */
-    virtual void CleanMemory()
     {
     }
 
