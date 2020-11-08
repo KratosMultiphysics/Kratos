@@ -75,7 +75,7 @@ void MAPcond::CalculateRightHandSide(
 
  void MAPcond::AddExplicitContribution(const VectorType& rRHS,
                          const Variable<VectorType>& rRHSVariable,
-                         Variable<array_1d<double,3> >& rDestinationVariable,
+                         const Variable<array_1d<double,3> >& rDestinationVariable,
                          const ProcessInfo& r_process_info)
 {
     KRATOS_TRY

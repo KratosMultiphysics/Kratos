@@ -71,7 +71,7 @@ public:
     virtual void CalculateNormal(array_1d<double, 3>& rnormal);
     virtual void AddExplicitContribution(const VectorType& rRHS,
                                         const Variable<VectorType>& rRHSVariable,
-                                        Variable<array_1d<double,3> >& rDestinationVariable,
+                                        const Variable<array_1d<double,3> >& rDestinationVariable,
                                         const ProcessInfo& r_process_info) override;
 
     virtual void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode);
