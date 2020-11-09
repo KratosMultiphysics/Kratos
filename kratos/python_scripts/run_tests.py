@@ -30,6 +30,7 @@ def Usage():
     for l in lines:
         KtsMp.Logger.PrintInfo(l) # using the logger to only print once in MPI
 
+
 class Commander(object):
     def __init__(self):
         self.process = None
@@ -114,7 +115,7 @@ class Commander(object):
                     # and capture the first exit code different from OK
                     try:
                         process_stdout, process_stderr = self.process.communicate(timeout=timer)
-                    except TimeoutExpired:
+                    except subprocess.TimeoutExpired:
                         # Timeout reached
                         self.process.kill()
                         print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
@@ -177,7 +178,6 @@ def print_summary(exit_codes):
     sys.stderr.flush()
 
 def main():
-
     # Define the command
     cmd = os.path.join(os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()), 'runkratos')
 
