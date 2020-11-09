@@ -62,7 +62,16 @@ RUN apt-get update -y && apt-get upgrade -y && \
     cd /tmp/mmg_5_5_1/build && \
     cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_5_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make install && \
+    cd / && \
+    # install PARMMG
+    git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_4d272bb && \
+    mkdir /tmp/ParMmg_4d272bb/build && \
+    mkdir -p /external_libraries/ParMmg_4d272bb && \
+    cd /tmp/ParMmg_4d272bb/build && git checkout 4d272bb3d1a51d839a5fdfaa3eef93f340cafda3 && \
+    cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/ParMmg_4d272bb" -DLIBPARMMG_SHARED=ON -DDOWNLOAD_MMG=OFF -DMMG_DIR="/tmp/mmg_5_5_1" -DMMG_BUILDDIR="/tmp/mmg_5_5_1/build" -DDOWNLOAD_METIS=OFF -DMETIS_DIR="/usr/include" && \
+    make install && \
     rm -r /tmp/mmg_5_5_1 && \
+    rm -r /tmp/ParMmg_4d272bb && \
     cd / && \
     # remove some now unnecessary packages
     apt-get -y remove \
