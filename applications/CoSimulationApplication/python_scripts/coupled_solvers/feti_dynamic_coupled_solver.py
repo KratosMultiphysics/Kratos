@@ -149,7 +149,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
     def __SendStiffnessMatrixToUtility(self, solverIndex):
         if self.is_implicit[solverIndex]:
-                system_matrix = self.solver_wrappers_vector[solverIndex].GetSolverStrategy().GetSystemMatrix()
+                system_matrix = self._GetSolverStrategy(solverIndex).GetSystemMatrix()
                 self.feti_coupling.SetEffectiveStiffnessMatrixImplicit(system_matrix,solverIndex)
         else:
             self.feti_coupling.SetEffectiveStiffnessMatrixExplicit(solverIndex)
@@ -162,6 +162,15 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         else:
             KM.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+
+    def _GetSolverStrategy(self,solverIndex):
+        # This is a utility method to get access to the solver's strategy, later used to access the system matrix.
+        # Provision to expand to other solver wrappers in the future.
+        solver_name = str(self.solver_wrappers_vector[solverIndex]._ClassName())
+        if solver_name == "StructuralMechanicsWrapper":
+            return self.solver_wrappers_vector[solverIndex]._analysis_stage._GetSolver().get_mechanical_solution_strategy()
+        else:
+            raise Exception("_GetSolverStrategy not implemented for solver wrapper = " + solver_name)
 
 
     @classmethod

@@ -17,6 +17,3 @@ class StructuralMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def _CreateAnalysisStage(self):
         return StructuralMechanicsAnalysis(self.model, self.project_parameters)
-
-    def GetSolverStrategy(self):
-        return self._analysis_stage._GetSolver().get_mechanical_solution_strategy()
