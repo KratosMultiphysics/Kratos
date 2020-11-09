@@ -5,6 +5,7 @@ import re
 import sys
 import getopt
 import subprocess
+
 from importlib import import_module
 
 import KratosMultiphysics as KtsMp
@@ -28,11 +29,6 @@ def Usage():
     ]
     for l in lines:
         KtsMp.Logger.PrintInfo(l) # using the logger to only print once in MPI
-
-
-def handler(signum, frame):
-    raise Exception("End of time")
-
 
 class Commander(object):
     def __init__(self):
@@ -120,6 +116,7 @@ class Commander(object):
                         process_stdout, process_stderr = self.process.communicate(timeout=timer)
                     except TimeoutExpired:
                         # Timeout reached
+                        self.process.kill()
                         print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
                         self.exitCode = 1
                     else:
