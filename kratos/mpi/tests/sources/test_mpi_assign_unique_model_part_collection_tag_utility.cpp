@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:   BSD License
-//      Kratos default license: kratos/license.txt
+//  Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz, Marc Nunez
 //
@@ -21,7 +21,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_filesystem.h"
 #include "utilities/cpp_tests_utilities.h"
-#include "mpi/utilities/parallel_fill_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 
 /* Utilities */
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
@@ -41,14 +41,18 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(AssignMPIUniqueModelPartCollectionTagUtility, KratosMPICoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
-            auto rank = DataCommunicator::GetDefault().Rank();
-            auto size = DataCommunicator::GetDefault().Size();
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main");
             ModelPart& r_sub_modelpart_1 = r_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart& r_sub_modelpart_2 = r_model_part.CreateSubModelPart("ASubModelPart2");
             ModelPart& r_sub_modelpart_3 = r_model_part.CreateSubModelPart("ZSubModelPart3");
             ModelPart& r_sub_modelpart_4 = r_model_part.CreateSubModelPart("YSubModelPart4");
+
+            Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&r_model_part.GetNodalSolutionStepVariablesList(), DataCommunicator::GetDefault());
+            r_model_part.SetCommunicator(pnew_comm);
+            auto& r_data_communicator = r_model_part.GetCommunicator().GetDataCommunicator();
+            auto rank = r_data_communicator.Rank();
+            auto size = r_data_communicator.Size();
 
             r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
             CppTestsUtilities::Create2DGeometry(r_model_part, "Element2D3N");
@@ -59,7 +63,7 @@ namespace Kratos
             r_sub_modelpart_4.AddNode(r_model_part.pGetNode(6));
 
             // Adding nodes to random submodelparts
-            if (DataCommunicator::GetDefault().IsDistributed()) {
+            if (r_data_communicator.IsDistributed()) {
                 if (rank == 0) {
                     r_sub_modelpart_3.AddNode(r_model_part.pGetNode(4));
                 }
@@ -92,7 +96,7 @@ namespace Kratos
             AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(filename + std::to_string(rank), collections);
             KRATOS_CHECK_EQUAL(collections.size(), 8);
 
-            DataCommunicator::GetDefault().Barrier();
+            r_data_communicator.Barrier();
             for (int i = 0; i < size; i++) {
                 if (i != rank) {
                     IndexStringMapType read_collections;
@@ -105,7 +109,7 @@ namespace Kratos
                     }
                 }
             }
-            DataCommunicator::GetDefault().Barrier();
+            r_data_communicator.Barrier();
             Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), filename + std::to_string(rank) + ".json"}));
 
         }

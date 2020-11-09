@@ -101,7 +101,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
         if (r_value.size() > 1) combinations[r_value] = 0;
     }
 
-    if (DataCommunicator::GetDefault().IsDistributed()) {
+    if (mrModelPart.GetCommunicator().GetDataCommunicator().IsDistributed()) {
         SetParallelModelPartAndSubModelPartCollectionsAndCombinations(rCollections, combinations, tag);
     } else {
         /* Combinations */
@@ -176,8 +176,9 @@ void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelP
                                             IndexSetIndexMapType& rCombinations,
                                             IndexType& rTag)
 {
-    const IndexType rank = DataCommunicator::GetDefault().Rank();
-    const IndexType size = DataCommunicator::GetDefault().Size();
+    auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+    const IndexType rank = r_data_communicator.Rank();
+    const IndexType size = r_data_communicator.Size();
 
     std::vector<std::vector<IndexType>> local_combination_vector_keys;
     for(auto& key_combination_set : rCombinations) {
@@ -189,12 +190,12 @@ void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelP
 
     std::vector<std::vector<IndexType>> global_combination_vector_keys;
     if (rank>0) {
-        DataCommunicator::GetDefault().Send(local_combination_vector_keys, 0);
+        r_data_communicator.Send(local_combination_vector_keys, 0);
     }
     else {
         for (IndexType i_rank = 1; i_rank<size; i_rank++) {
             std::vector<std::vector<IndexType>> recv_irank_combinations;
-            DataCommunicator::GetDefault().Recv(recv_irank_combinations, i_rank);
+            r_data_communicator.Recv(recv_irank_combinations, i_rank);
 
             for (auto& key_combination_vector : recv_irank_combinations) {
                 // Convert vector to set
@@ -214,7 +215,7 @@ void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelP
         }
     }
 
-    DataCommunicator::GetDefault().Broadcast(global_combination_vector_keys, 0);
+    r_data_communicator.Broadcast(global_combination_vector_keys, 0);
 
     rCombinations.clear();
 
