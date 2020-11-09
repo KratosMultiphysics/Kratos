@@ -133,10 +133,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilitiesCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilities2DSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_builder.TestSensitivityBuilderTwoDimSymmetricalSquare]))
-    # smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_GetFileName'))
-    # smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_RetrieveFileNameData'))
-    # smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_SortListOfFileNameData'))
-    # smallSuite.addTest(test_file_name_data_collector.TestFileNameDataCollector('test_ExtractFileNamePattern'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_name_data_collector.TestFileNameDataCollector]))
 
     # Create a test suite with the selected tests plus all small tests
