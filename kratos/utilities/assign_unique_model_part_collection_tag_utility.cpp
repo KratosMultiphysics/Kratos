@@ -101,7 +101,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
         if (r_value.size() > 1) combinations[r_value] = 0;
     }
 
-    if (mrModelPart.GetCommunicator().GetDataCommunicator().IsDistributed()) {
+    if (mrModelPart.IsDistributed()) {
         SetParallelModelPartAndSubModelPartCollectionsAndCombinations(rCollections, combinations, tag);
     } else {
         /* Combinations */
