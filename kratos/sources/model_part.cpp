@@ -1825,7 +1825,7 @@ void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
 }
 
 /// run input validation
-int ModelPart::Check(ProcessInfo& rCurrentProcessInfo) const
+int ModelPart::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     int err = 0;

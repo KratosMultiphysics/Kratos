@@ -4,7 +4,7 @@ import KratosMultiphysics as KM
 def Create(settings, model, solver_name):
     raise Exception('"CoSimulationIO" is a baseclass and cannot be used directly!')
 
-class CoSimulationIO(object):
+class CoSimulationIO:
     """Baseclass defining the interface for the input and output methods
     for the communication with external solvers
     """

@@ -841,7 +841,7 @@ CalculatePlasticParameters(
         TPlasticityIntegratorType::CalculateIndicatorsFactors(rParameters.StressVector, tensile_indicator_factor, compression_indicator_factor);
         TPlasticityIntegratorType::CalculatePlasticDissipation(rParameters.StressVector, tensile_indicator_factor, compression_indicator_factor, rParameters.PlasticStrainIncrement, rParameters.PlasticDissipation, h_capa, rValues, rParameters.CharacteristicLength);
         TPlasticityIntegratorType::CalculateEquivalentPlasticStrain(rParameters.StressVector, rParameters.UniaxialStressPlasticity, rParameters.PlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
-        TPlasticityIntegratorType::CalculateEquivalentStressThreshold(rParameters.PlasticDissipation, tensile_indicator_factor, compression_indicator_factor, rParameters.PlasticityThreshold, slope, rValues, equivalent_plastic_strain);
+        TPlasticityIntegratorType::CalculateEquivalentStressThreshold(rParameters.PlasticDissipation, tensile_indicator_factor, compression_indicator_factor, rParameters.PlasticityThreshold, slope, rValues, equivalent_plastic_strain, rParameters.CharacteristicLength);
         TPlasticityIntegratorType::CalculateHardeningParameter(rParameters.PlasticityFFLux, slope, h_capa, hardening_parameter);
 
         // Has to be slightly modified
