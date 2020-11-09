@@ -359,8 +359,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable,
-				 Variable<array_1d<double,3> >& rDestinationVariable,
-				 const ProcessInfo& rCurrentProcessInfo);
+				 const Variable<array_1d<double,3> >& rDestinationVariable,
+				 const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //on integration points:
