@@ -378,7 +378,7 @@ public:
             BVector<TNumNodes> velocity_convective_terms;
             GetConvectionOperator(velocity_convective_terms, velocity, rGPShapeFunctionDerivatives);
 
-            AddPrimalDampingMatrixGaussPointContributions(
+            ConvectionDiffusionReactionStabilizationUtilities::AddPrimalDampingMatrixGaussPointContributions(
                 mPrimalDampingMatrix, viscosity, reaction_term,
                 absolute_reaction_term, tau, GPWeight, velocity_convective_terms,
                 rGPShapeFunctions, rGPShapeFunctionDerivatives);
@@ -563,7 +563,7 @@ public:
 
             GetConvectionOperator(mVelocityConvectiveTerms, mEffectiveVelocity, rGPShapeFunctionDerivatives);
 
-            AddPrimalDampingMatrixGaussPointContributions(
+            ConvectionDiffusionReactionStabilizationUtilities::AddPrimalDampingMatrixGaussPointContributions(
                 mPrimalDampingMatrix, mEffectiveKinematicViscosity, mReactionTerm,
                 mAbsoluteReactionTerm, mStabilizationTau, GPWeight, mVelocityConvectiveTerms,
                 rGPShapeFunctions, rGPShapeFunctionDerivatives);
@@ -640,43 +640,6 @@ public:
     ///@name Private static operations
     ///@{
 
-    static void AddPrimalDampingMatrixGaussPointContributions(
-        BMatrix<TNumNodes, TNumNodes>& rOutput,
-        const double EffectiveKinematicViscosity,
-        const double ReactionTerm,
-        const double AbsoluteReactionTerm,
-        const double StabilizationTau,
-        const double GPWeight,
-        const BVector<TNumNodes>& rVelocityConvectiveTerms,
-        const Vector& rGPShapeFunctions,
-        const Matrix& rGPShapeFunctionDerivatives)
-    {
-        for (IndexType a = 0; a < TNumNodes; ++a) {
-            for (IndexType b = 0; b < TNumNodes; ++b) {
-                const double dNa_dNb =
-                    inner_prod(row(rGPShapeFunctionDerivatives, a),
-                               row(rGPShapeFunctionDerivatives, b));
-                double value = 0.0;
-
-                value += rGPShapeFunctions[a] * rVelocityConvectiveTerms[b];
-                value += rGPShapeFunctions[a] * ReactionTerm * rGPShapeFunctions[b];
-                value += EffectiveKinematicViscosity * dNa_dNb;
-
-                // Adding SUPG stabilization terms
-                value += StabilizationTau *
-                         (rVelocityConvectiveTerms[a] +
-                          AbsoluteReactionTerm * rGPShapeFunctions[a]) *
-                         rVelocityConvectiveTerms[b];
-                value += StabilizationTau *
-                         (rVelocityConvectiveTerms[a] +
-                          AbsoluteReactionTerm * rGPShapeFunctions[a]) *
-                         ReactionTerm * rGPShapeFunctions[b];
-
-                rOutput(a, b) += GPWeight * value;
-            }
-        }
-    }
-
     template<std::size_t TDerivativesSize>
     static typename std::enable_if<(TNumNodes != TDerivativesSize), void>::type
     AddScalarMultiplierFirstDerivatives(
@@ -727,7 +690,7 @@ public:
         const double StabilizationDiscreteDiffusionUserCoefficient,
         const BVector<TDerivativesSize>& rScalarMultiplierDerivatives,
         const BVector<TNumNodes>& rNodalValues,
-        const BVector<TNumNodes>& rDiscreteDiffusionValues,
+        const BVector<TNumNodes>& rDiscreteDiffusionResidualValues,
         const BMatrix<TNumNodes, TNumNodes>& rInputMatrix,
         const BMatrix<TNumNodes, TNumNodes>& rDiscreteDiffusionMatrix,
         const BoundedVector<BMatrix<TNumNodes, TNumNodes>, TDerivativesSize>& rInputMatrixDerivatives)
@@ -739,7 +702,7 @@ public:
             discrete_upwind_operator_residual_derivatives, rNodalValues,
             rInputMatrix, rInputMatrixDerivatives);
 
-        AdjointUtilities::DidacticProduct(rOutput, rScalarMultiplierDerivatives, rDiscreteDiffusionValues);
+        AdjointUtilities::DidacticProduct(rOutput, rScalarMultiplierDerivatives, rDiscreteDiffusionResidualValues);
         noalias(rOutput) += discrete_upwind_operator_residual_derivatives * ScalarMultiplier;
         noalias(rOutput) += rDiscreteDiffusionMatrix * (ScalarMultiplier * SelfWeight);
         noalias(rOutput) = rOutput * StabilizationDiscreteDiffusionUserCoefficient;
@@ -754,21 +717,16 @@ public:
         const double StabilizationDiscreteDiffusionUserCoefficient,
         const BVector<TDerivativesSize>& rScalarMultiplierDerivatives,
         const BVector<TNumNodes>& rNodalValues,
-        const BVector<TNumNodes>& rDiscreteDiffusionValues,
+        const BVector<TNumNodes>& rDiscreteDiffusionResidualValues,
         const BMatrix<TNumNodes, TNumNodes>& rInputMatrix,
         const BMatrix<TNumNodes, TNumNodes>& rDiscreteDiffusionMatrix,
         const BoundedVector<BMatrix<TNumNodes, TNumNodes>, TDerivativesSize>& rInputMatrixDerivatives)
     {
         using AdjointUtilities = ConvectionDiffusionReactionStabilizationUtilities::AdjointUtilities<TDim, TNumNodes>;
-
-        BMatrix<TDerivativesSize, TNumNodes> discrete_upwind_operator_residual_derivatives;
-        AdjointUtilities::CalculateDiscreteUpwindOperatorResidualContributionDerivatives(
-            discrete_upwind_operator_residual_derivatives, rNodalValues,
-            rInputMatrix, rInputMatrixDerivatives);
-
-        AdjointUtilities::DidacticProduct(rOutput, rScalarMultiplierDerivatives, rDiscreteDiffusionValues);
-        noalias(rOutput) += discrete_upwind_operator_residual_derivatives * ScalarMultiplier;
-        noalias(rOutput) = rOutput * StabilizationDiscreteDiffusionUserCoefficient;
+        AdjointUtilities::CalculateStabilizationDiscreteUpwindMatrixResidualFristDerivatives(
+            rOutput, ScalarMultiplier, StabilizationDiscreteDiffusionUserCoefficient,
+            rScalarMultiplierDerivatives, rNodalValues,
+            rDiscreteDiffusionResidualValues, rInputMatrix, rInputMatrixDerivatives);
     }
 
     template<std::size_t TDerivativesSize>
@@ -784,18 +742,12 @@ public:
         const BMatrix<TNumNodes, TNumNodes>& rInputMatrix,
         const BoundedVector<BMatrix<TNumNodes, TNumNodes>, TDerivativesSize>& rInputMatrixDerivatives)
     {
-        using AdjointUtilities = ConvectionDiffusionReactionStabilizationUtilities::AdjointUtilities<TDim, TNumNodes>;
-        BVector<TDerivativesSize> positivity_preserving_coefficient_derivatives;
-        AdjointUtilities::CalculatePositivityPreservingCoefficientDerivatives(
-            positivity_preserving_coefficient_derivatives, PositivityPreservingMatrixCoefficient, rInputMatrix,
-            rInputMatrixDerivatives);
-
-        AdjointUtilities::DidacticProduct(
-            rOutput,
-            positivity_preserving_coefficient_derivatives * ScalarMultiplier +
-                rScalarMultiplierDerivatives * PositivityPreservingMatrixCoefficient,
-            rNodalScalarValues);
-        noalias(rOutput) = rOutput * StabilizationPositivityPreservingUserCoefficient;
+        using AdjointUtilities =
+            ConvectionDiffusionReactionStabilizationUtilities::AdjointUtilities<TDim, TNumNodes>;
+        AdjointUtilities::CalculateStabilizationPositivityPreservingMatrixResidualFristDerivatives(
+            rOutput, ScalarMultiplier, PositivityPreservingMatrixCoefficient,
+            StabilizationPositivityPreservingUserCoefficient, rScalarMultiplierDerivatives,
+            rNodalScalarValues, rInputMatrix, rInputMatrixDerivatives);
     }
 
     template<std::size_t TDerivativesSize>
