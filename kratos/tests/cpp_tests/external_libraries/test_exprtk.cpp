@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-#include "exprtk.hpp"
+#include "exprtk/exprtk.hpp"
 
 
 #ifdef exprtk_test_float32_type
