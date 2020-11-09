@@ -380,7 +380,7 @@ public:
 
     /**
      * CONDITIONS inherited from this class must implement next methods
-     * Initialize, ResetConstitutiveLaw, CleanMemory
+     * Initialize, ResetConstitutiveLaw
      * if the condition needs to perform any operation before any calculation is done
      * reset material and constitutive parameters
      * or clean memory deleting obsolete variables
@@ -409,13 +409,6 @@ public:
      * the condition variables will be changed and reset using this method
      */
     virtual void ResetConstitutiveLaw()
-    {
-    }
-
-    /**
-     * deletes all obsolete data from memory
-     */
-    virtual void CleanMemory()
     {
     }
 
