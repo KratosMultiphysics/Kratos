@@ -611,38 +611,6 @@ public:
     }
 
     /**
-     * @brief Function to clean up "element" scratch space after each element is built.
-     * @param rElement The element to compute
-     */
-    virtual void CleanMemory(Element& rElement)
-    {
-        this->CleanMemory(Element::Pointer(&rElement)); // TODO remove this after the transition period and uncomment the following
-        // rElement.CleanMemory();
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void CleanMemory(Element::Pointer rCurrentElement)
-    {
-        rCurrentElement->CleanMemory();
-    }
-
-    /**
-     * @brief Function to clean up "condition" scratch space after each condition is built.
-     * @param rCondition The condition to compute
-     */
-    virtual void CleanMemory(Condition& rCondition)
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->CleanMemory(Condition::Pointer(&rCondition)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // rCondition.CleanMemory();
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void CleanMemory(Condition::Pointer rCurrentCondition)
-    {
-        rCurrentCondition->CleanMemory();
-    }
-
-    /**
      * @brief Liberate internal storage.
      * @warning Must be implemented in the derived classes
      */
