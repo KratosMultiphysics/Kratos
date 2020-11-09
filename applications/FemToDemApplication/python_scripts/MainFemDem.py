@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import system python modules
 import time as timer
@@ -6,7 +5,6 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.MainSolidFEM as MainSolidFEM
 import KratosMultiphysics.process_factory as process_factory
@@ -15,6 +13,9 @@ import KratosMultiphysics.gid_output_process as gid_output_process
 
 def Wait():
     input("Press Something")
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class FEM_Solution(MainSolidFEM.Solution):
 
@@ -25,7 +26,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         KratosMultiphysics.Logger.Print(message, label="")
         KratosMultiphysics.Logger.Flush()
 #============================================================================================================================                    
-    def __init__(self, Model):
+    def __init__(self, Model, path = ""):
 
         #### TIME MONITORING START ####
         # Time control starts        
@@ -39,7 +40,11 @@ class FEM_Solution(MainSolidFEM.Solution):
         #### PARSING THE PARAMETERS ####
 
         # Import input
-        parameter_file = open("ProjectParameters.json",'r')
+        if path == "":
+            parameter_file = open("ProjectParameters.json",'r')
+        else:
+            parameter_file = open(path + "ProjectParameters.json")
+
         self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         # set echo level
@@ -122,7 +127,7 @@ class FEM_Solution(MainSolidFEM.Solution):
                 self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
         
         # Obtain the list of the processes to be applied
-        import KratosMultiphysics.SolidMechanicsApplication.process_handler
+        import KratosMultiphysics.FemToDemApplication.process_handler
 
         process_parameters = KratosMultiphysics.Parameters("{}") 
         process_parameters.AddValue("echo_level", self.ProjectParameters["problem_data"]["echo_level"])
@@ -133,7 +138,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         if( self.ProjectParameters.Has("output_process_list") ):
             process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
 
-        return (KratosMultiphysics.SolidMechanicsApplication.process_handler.ProcessHandler(self.Model, process_parameters))
+        return (KratosMultiphysics.FemToDemApplication.process_handler.ProcessHandler(self.Model, process_parameters))
 
 #============================================================================================================================    
     def Run(self):

@@ -130,9 +130,9 @@ public:
 
         // Builder and solver
         int guess_row_size;
-        if(BaseDomainSize == 2) 
+        if(BaseDomainSize == 2)
             guess_row_size = 15;
-        else 
+        else
             guess_row_size = 40;
 
         auto pBuildAndSolver = Kratos::make_shared<TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> >(
@@ -151,7 +151,6 @@ public:
         pSolutionStrategy = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             rStokesModelPart,
             pScheme,
-            pBaseLinearSolver,
             pBuildAndSolver,
             ReactionFlag,
             ReformDofSetFlag,

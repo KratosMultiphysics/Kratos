@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -14,7 +12,6 @@ import sys
 
 class CoSimulationAnalysis(AnalysisStage):
     """AnalysisStage of the CoSimulationApplication.
-    It contains all necessary modifications to make CoSimulation work both with Kratos and pyKratos
     It does NOT override the "RunSolutionLoop" method!
     """
     def __init__(self, cosim_settings, models=None):
@@ -94,7 +91,7 @@ class CoSimulationAnalysis(AnalysisStage):
             CoSimulationAnalysis.Flush()
 
     def _GetSolver(self, solver_name=""):
-        solver = super(CoSimulationAnalysis, self)._GetSolver()
+        solver = super()._GetSolver()
         if solver_name == "":
             return solver
         else:

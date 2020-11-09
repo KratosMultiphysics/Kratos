@@ -15,7 +15,7 @@ The test checks if the two solutions are the same, which should be the case if e
 
 class StructuralMechanicsAnalysisWithConstraints(StructuralMechanicsAnalysis):
     def ModifyInitialGeometry(self):
-        super(StructuralMechanicsAnalysisWithConstraints, self).ModifyInitialGeometry()
+        super().ModifyInitialGeometry()
 
         model_part = self.model["Structure"]
         num_nodes = model_part.NumberOfNodes()

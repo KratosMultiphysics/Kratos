@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -31,7 +29,7 @@ class ScalingOperation(CoSimulationCouplingOperation):
         # removing since the type of "scaling_factor" can be double or string and hence would fail in the validation
         settings.RemoveValue("scaling_factor")
 
-        super(ScalingOperation, self).__init__(settings, process_info)
+        super().__init__(settings, process_info)
 
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
@@ -64,11 +62,11 @@ class ScalingOperation(CoSimulationCouplingOperation):
             GenericCallFunction(self.scaling_factor, scope_vars, check=True) # trying to evaluate the function string, such that the check can be disabled later
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
             "interval"  : [0.0, 1e30]
         }""")
-        this_defaults.AddMissingParameters(super(ScalingOperation, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

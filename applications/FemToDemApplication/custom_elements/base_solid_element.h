@@ -23,8 +23,8 @@
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "fem_to_dem_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -336,7 +336,7 @@ public:
     void AddExplicitContribution(
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<double >& rDestinationVariable,
+        const Variable<double >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -351,7 +351,7 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const Variable<array_1d<double, 3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 

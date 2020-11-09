@@ -50,7 +50,7 @@ Element::Pointer EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::Clone(
 
 template <int Dim, int NumNodes>
 void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const EmbeddedCompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -71,7 +71,7 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSyst
 
 template <int Dim, int NumNodes>
 void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);

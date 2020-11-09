@@ -16,6 +16,7 @@
 // Project includes
 #include "utilities/variable_utils.h"
 #include "utilities/mortar_utilities.h"
+#include "utilities/normal_calculation_utils.h"
 #include "custom_processes/normal_check_process.h"
 #include "contact_structural_mechanics_application_variables.h"
 
@@ -26,7 +27,7 @@ void NormalCheckProcess::Execute()
     KRATOS_TRY
 
     // First we compute the normals
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mrModelPart);
+    NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
 
     // Getting the nodes array
     auto& r_nodes_array = mrModelPart.Nodes();
@@ -220,7 +221,7 @@ void NormalCheckProcess::Execute()
     }
 
     // We re-compute the normals
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mrModelPart);
+    NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
 
     KRATOS_CATCH("")
 }

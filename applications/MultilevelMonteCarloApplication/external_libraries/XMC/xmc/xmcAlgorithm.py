@@ -5,10 +5,7 @@ import pathlib as pl
 from xmc.tools import dynamicImport
 from xmc.tools import splitOneListIntoTwo
 
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from xmc.distributedEnvironmentFramework import *
 
 class XMCAlgorithm():
     """
@@ -16,6 +13,11 @@ class XMCAlgorithm():
     as everything related to error, tolerance and iterations. It also possesses
     the necessary methods and attributes to create new types of algorithms. However,
     the export of results is to be handled outside. Although self-sufficient, this class may inherit from some metaclass.
+
+    Methods:
+    - runXMC: run an algorithm with generic structure. It is the method to call to run the algorithm.
+    - runAsynchronousXMC: run an algorithm with generic structure exploiting the asynchronous framework. It is the method to call to run the asynchronous algorithm.
+    Other methods are called from the two methods defined above.
     """
 
     def __init__(self, **keywordArgs):
@@ -92,7 +94,7 @@ class XMCAlgorithm():
         # Indexwise estimations
         input_dict['estimations'] = [self.indexEstimation(c[0],c[1])
                                      for c in self.estimatorsForHierarchy]
-        # Predictors 
+        # Predictors
         input_dict['models'] = []
         input_dict['parametersForModel'] = []
         for coord in self.predictorsForHierarchy:
@@ -106,14 +108,14 @@ class XMCAlgorithm():
         if self.costEstimatorForHierarchy is not None:
             input_dict['costEstimations'] = self.indexCostEstimation(
                 self.costEstimatorForHierarchy)
-            
+
         # Predictor
         if self.costPredictor() is not None:
             input_dict['costModel'] = self.costPredictor()._valueForParameters
             #TODO This should get self.costPredictor().oldParameters
             # and default to self.costPredictor().parameters if they are None
             input_dict['costParameters'] = self.costPredictor().parameters
-            
+
         # Error parameters
         # TODO - Triple dereference below!! Add method to get errorEstimator parameters
         # or errorEstimator objects themselves from monteCarloSampler
@@ -179,21 +181,17 @@ class XMCAlgorithm():
             input_dictionary['error'+str(i)] = get_value_from_remote(errors[i])
         input_dictionary['hierarchy'] = self.hierarchy()
         input_dictionary['algorithmCost'] = currentCost
-              
+
         # Compute flag from dictionary and return
         flag = self.stoppingCriterion.flag(input_dictionary)
         return flag
 
     def runXMC(self):
         """
-        Run an algorithm with generic structure, as described in the documentation.
-        Other methods may be implemented in the future, for specific needs that do
-        not fit even this generic algorithm.
+        Run an algorithm with generic structure.
         """
 
-        swDict = self.monteCarloSampler.indexConstructorDictionary[
-            "samplerInputDictionary"]["solverWrapperInputDictionary"]
-        self.checkInitialisation(solverWrapperDictionary=swDict)
+        self.checkInitialisation(self)
 
         # Iteration Loop will start here
         flag = self.stoppingCriterion.flagStructure()
@@ -279,6 +277,10 @@ class XMCAlgorithm():
 
 
     def asynchronousFinalizeIteration(self):
+        """
+        Method finalizing an iteration of the asynchornous framework. It synchronizes and calls all relevant methods of one single batch, the first available, before estimating convergence.
+        """
+
         continue_iterating = True
         for batch in range (self.monteCarloSampler.numberBatches):
             if (self.monteCarloSampler.batchesLaunched[batch] is True and self.monteCarloSampler.batchesExecutionFinished[batch] is True and self.monteCarloSampler.batchesAnalysisFinished[batch] is True and self.monteCarloSampler.batchesConvergenceFinished[batch] is not True and continue_iterating is True):
@@ -303,11 +305,9 @@ class XMCAlgorithm():
 
     def runAsynchronousXMC(self):
         """
-        Run specified algorithm with asynchronous framework.
+        Run algorithm with asynchronous framework.
         """
-        self.checkInitialisation(solverWrapperDictionary=self.monteCarloSampler.indexConstructorDictionary["samplerInputDictionary"]["solverWrapperInputDictionary"],\
-            positionMaxNumberIterationsCriterion=self.positionMaxNumberIterationsCriterion,
-            tolerances=self.stoppingCriterion.tolerances())
+        self.checkInitialisation(self)
         # set maximum number of iteration variable
         self.monteCarloSampler.maximumNumberIterations = self.stoppingCriterion.tolerances([self.positionMaxNumberIterationsCriterion])[0]
         # Iteration loop will start here

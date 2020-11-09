@@ -52,10 +52,10 @@ namespace MPMParticleGeneratorUtility
     Matrix MP33ShapeFunctions();
 
     /// Get integration weights of the geometry for the given integration method
-    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
+    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
 
     /// Get integration method and shape function values for the given element
-    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
     /**
@@ -241,7 +241,8 @@ namespace MPMParticleGeneratorUtility
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions
      */
-    void GenerateMaterialPointCondition(    ModelPart& rBackgroundGridModelPart,
+    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GenerateMaterialPointCondition(
+                                            ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
 

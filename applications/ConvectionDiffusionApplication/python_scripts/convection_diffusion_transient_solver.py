@@ -22,28 +22,33 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
     """
 
     def __init__(self, model, custom_settings):
-        # Set defaults and validate custom settings.
-        self.transient_settings = KratosMultiphysics.Parameters(r"""{
-            "transient_parameters" : {
-                "dynamic_tau": 1.0,
-                "theta"    : 0.5
-            }
-        }""")
-
-        self.validate_and_transfer_matching_settings(custom_settings, self.transient_settings)
-
         # Construct the base solver and validate the remaining settings in the base class
         super(ConvectionDiffusionTransientSolver, self).__init__(model, custom_settings)
 
         # Overwrite the base solver minimum buffer size
         self.min_buffer_size = 2
 
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionTransientSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction finished")
+
+    @classmethod
+    def GetDefaultParameters(cls):
+
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "transient_parameters" : {
+                "dynamic_tau": 1.0,
+                "theta"    : 0.5
+            }
+        }
+        """)
+
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
 
     #### Private functions ####
     def _create_solution_scheme(self):
         # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.transient_settings["transient_parameters"]["theta"].GetDouble()
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.transient_settings["transient_parameters"]["dynamic_tau"].GetDouble()
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()
         convection_diffusion_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return convection_diffusion_scheme

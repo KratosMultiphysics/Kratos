@@ -23,6 +23,7 @@ from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestCo
 from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
 from test_axis_projection import TestAxisProjection as TTestAxisProjection
 from test_distribute_load_on_surface_process import TestDistributeLoadOnSurfaceProcess as TTestDistributeLoadOnSurfaceProcess
+from test_perturb_geometry_utility import TestPerturbGeometryUtility as TTestPerturbGeometryUtility
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
@@ -138,6 +139,8 @@ from structural_mechanics_test_factory import MembraneOrthotropicDiagonalTests a
 from structural_mechanics_test_factory import MembraneOrthotropicHorizontalTests as TMembraneOrthotropicHorizontalTests
 from structural_mechanics_test_factory import MembranePreStressHorizontalTests as TMembranePreStressHorizontalTests
 from structural_mechanics_test_factory import MembranePreStressDiagonalTests as TMembranePreStressDiagonalTests
+from structural_mechanics_test_factory import MembraneMultiLinearIsotropicPlaneStressTests as TMembraneMultiLinearIsotropicPlaneStressTests
+
 # 2Node Element tests
 from structural_mechanics_test_factory import Simple3D2NTrussTest as T3D2NTrussTest
 from structural_mechanics_test_factory import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
@@ -340,6 +343,8 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
     # Element damping test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
+    # Perturb geometry process test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryUtility]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -390,6 +395,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressDiagonalTests('test_execution'))
+    nightSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution'))
     # 2Node Element tests
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))

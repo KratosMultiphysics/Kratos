@@ -106,7 +106,7 @@ def CreateSolver(model, custom_settings):
 class PotentialFlowSolver(FluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         # Default settings string in json format
         default_settings = KratosMultiphysics.Parameters(r'''{
             "solver_type": "potential_flow_solver",
@@ -148,7 +148,7 @@ class PotentialFlowSolver(FluidSolver):
             "auxiliary_variables_list" : []
         }''')
 
-        default_settings.AddMissingParameters(super(PotentialFlowSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(PotentialFlowSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):

@@ -145,7 +145,7 @@ void CompressibleNavierStokesExplicit<3>::GetDofList(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-int CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Check(const ProcessInfo &rCurrentProcessInfo)
+int CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

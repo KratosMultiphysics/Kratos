@@ -10,17 +10,14 @@ proc WriteMdpa { basename dir problemtypedir } {
     ## Properties
     set PropertyId 0
     set PropertyDict [dict create]
-    puts $FileVar "Begin Properties 0"
-    puts $FileVar "End Properties"
     # Source_terms
-    set Groups [GiD_Info conditions Bottom_friction groups]
+    set Groups [GiD_Info conditions Computing_domain groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr PropertyId
         dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
         puts $FileVar "Begin Properties $PropertyId"
-        puts $FileVar "  MANNING [lindex [lindex $Groups $i] 3]"
         puts $FileVar "End Properties"
         puts $FileVar ""
+        incr PropertyId
     }
 
     ## Nodes
@@ -39,10 +36,8 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar ""
 
     ## Elements
-    set VariablesType [GiD_AccessValue get gendata Variables]
-    set FrameworkType [GiD_AccessValue get gendata Framework]
-    # Body_Part
-    set Groups [GiD_Info conditions Bottom_friction groups]
+    # Computing_domain
+    set Groups [GiD_Info conditions Computing_domain groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         # Elements Property
         set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
@@ -70,8 +65,8 @@ proc WriteMdpa { basename dir problemtypedir } {
         WriteFaceConditions FileVar ConditionId ConditionDict $Groups LineCondition2D2N $PropertyDict
     }
 
-    # Imposed_flux
-    set Groups [GiD_Info conditions Imposed_flux groups]
+    # Imposed_flow_rate
+    set Groups [GiD_Info conditions Imposed_flow_rate groups]
     if {$Dim eq 2} {
         WriteFaceConditions FileVar ConditionId ConditionDict $Groups LineCondition2D2N $PropertyDict
     }
@@ -80,16 +75,15 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar ""
 
     ## SubModelParts
-    # Body_Part
-    WriteElementSubmodelPart FileVar Body_Part
+    # Topographic data
+    WriteElementSubmodelPart FileVar Topography
+    WriteElementSubmodelPart FileVar Bottom_friction
     # Initial_water_level
-    WriteConstraintSubmodelPart FileVar Initial_water_level
-    # Slip_condition
+    WriteElementSubmodelPart FileVar Initial_water_level
+    # Conditions
     WriteLoadSubmodelPart FileVar Slip_condition $ConditionDict
-    # Water_height
     WriteLoadSubmodelPart FileVar Water_height $ConditionDict
-    # Imposed_flux
-    WriteLoadSubmodelPart FileVar Imposed_flux $ConditionDict
+    WriteLoadSubmodelPart FileVar Imposed_flow_rate $ConditionDict
 
 
     close $FileVar

@@ -117,6 +117,7 @@ namespace Kratos
 
     // Essential Boundary Conditions
     KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, PENALTY_FACTOR )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, MPC_BOUNDARY_CONDITION_TYPE )
 
     // Natural Boundary Conditions
     // Nodal load variables

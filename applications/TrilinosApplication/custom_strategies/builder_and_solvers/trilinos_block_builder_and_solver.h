@@ -202,9 +202,6 @@ public:
                 // assemble the elemental contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
-
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it));
             }
         }
 
@@ -225,9 +222,6 @@ public:
                 // assemble the condition contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
-
-                // clean local elemental memory
-                pScheme->CleanMemory(**it);
             }
         }
 
@@ -270,9 +264,6 @@ public:
 
             // assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -285,8 +276,6 @@ public:
 
             // assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-
-            // TODO CleanMemory is missing
         }
 
         // finalizing the assembly
@@ -438,6 +427,9 @@ public:
                   TSystemVectorType& rb) override
     {
         KRATOS_TRY
+        if (BaseType::GetEchoLevel() > 0) {
+            START_TIMER("BuildRHS ", 0)
+        }
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
@@ -474,6 +466,9 @@ public:
         // finalizing the assembly
         rb.GlobalAssemble();
 
+        if (BaseType::GetEchoLevel() > 0) {
+            STOP_TIMER("BuildRHS ", 0)
+        }
         KRATOS_CATCH("")
     }
 

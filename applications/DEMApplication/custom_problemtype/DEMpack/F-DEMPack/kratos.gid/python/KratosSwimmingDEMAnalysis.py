@@ -4,9 +4,6 @@
 # Some parts of the original fluid script have been kept practically untouched and are clearly marked.
 # Whenever a minor modification has been made on one of these parts, the corresponding line is indicated with a comment: # MOD.
 
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-# Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication   import *
 from KratosMultiphysics.DEMApplication import *
@@ -19,7 +16,7 @@ class SwimmingDEMAnalysisWithFlush(SwimmingDEMAnalysis):
     def __init__(self, model, algorithm = None, parameters=Parameters("{}")):
         with open('ProjectParameters.json','r') as parameter_file:
             parameters = Parameters(parameter_file.read())
-        super(SwimmingDEMAnalysisWithFlush, self).__init__(model, parameters)
+        super().__init__(model, parameters)
 
     def __enter__ (self):
         return self

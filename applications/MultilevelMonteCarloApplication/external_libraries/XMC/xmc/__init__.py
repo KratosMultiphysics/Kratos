@@ -9,6 +9,8 @@ from .estimationAssembler import EstimationAssembler
 
 from .hierarchyOptimiser import HierarchyOptimiser
 
+from .distributedEnvironmentFramework import *
+
 from .modelEstimator import ModelEstimator
 
 from .momentEstimator import MomentEstimator
@@ -20,6 +22,7 @@ from .monteCarloIndex import MonteCarloIndex
 from .monteCarloSampler import MonteCarloSampler
 
 from .multiCriterion import MultiCriterion
+
 from .methodDefs_multiCriterion.flag import *
 
 from .randomGeneratorWrapper import RandomGeneratorWrapper

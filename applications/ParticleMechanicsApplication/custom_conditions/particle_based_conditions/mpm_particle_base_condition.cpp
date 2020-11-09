@@ -133,9 +133,9 @@ void MPMParticleBaseCondition::GetValuesVector(
 void MPMParticleBaseCondition::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const 
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -162,9 +162,9 @@ void MPMParticleBaseCondition::GetFirstDerivativesVector(
 void MPMParticleBaseCondition::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;

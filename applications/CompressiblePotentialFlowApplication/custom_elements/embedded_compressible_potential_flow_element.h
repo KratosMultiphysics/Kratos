@@ -113,7 +113,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
     /// Turn back information as a string.
@@ -134,7 +134,7 @@ private:
 
     void CalculateEmbeddedLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              const ProcessInfo& rCurrentProcessInfo);
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;

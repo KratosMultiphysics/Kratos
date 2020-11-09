@@ -84,6 +84,9 @@ public:
     /// The definition of the linear solver factory type
     typedef LinearSolverFactory<TSparseSpaceType,TDenseSpaceType> LinearSolverFactoryType;
 
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -259,6 +262,11 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    IndexType GetIterationsNumber() override
+    {
+        return mpLinearSolver->GetIterationsNumber();
+    }
 
 
     ///@}
