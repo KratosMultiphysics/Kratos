@@ -269,6 +269,16 @@ KRATOS_TEST_CASE_IN_SUITE(RANSVMSKEpsilonAdjointCalculateSecondDerivativesLHSK, 
                                          derivatives_method, 3, 3, 1e-7, 1e-5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(RANSVMSKEpsilonAdjointCalculateShapeSensitivityK, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
+                                        const ProcessInfo& rProcessInfo) {
+        rElement.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
+    RunRansVMSKEpsilonAdjointElementTest("RansKEpsilonKRFC2D3N", SHAPE_SENSITIVITY,
+                                         derivatives_method, 3, 0, 1e-7, 1e-5);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(RANSVMSKEpsilonAdjointCalculateFirstDerivativesLHSEpsilonU, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
@@ -319,6 +329,16 @@ KRATOS_TEST_CASE_IN_SUITE(RANSVMSKEpsilonAdjointCalculateSecondDerivativesLHSEps
     };
     RunRansVMSKEpsilonAdjointElementTest("RansKEpsilonEpsilonRFC2D3N", TURBULENT_ENERGY_DISSIPATION_RATE_2,
                                          derivatives_method, 4, 4, 1e-6, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RANSVMSKEpsilonAdjointCalculateShapeSensitivityEpsilon, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
+                                        const ProcessInfo& rProcessInfo) {
+        rElement.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
+    RunRansVMSKEpsilonAdjointElementTest("RansKEpsilonEpsilonRFC2D3N", SHAPE_SENSITIVITY,
+                                         derivatives_method, 4, 0, 1e-7, 1e-5);
 }
 
 } // namespace Testing

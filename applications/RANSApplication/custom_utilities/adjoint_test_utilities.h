@@ -485,20 +485,19 @@ void RunAdjointElementTest(
         auto& r_primal_element = *(r_primal_container.begin() + i);
         auto& r_adjoint_element = *(r_adjoint_container.begin() + i);
 
-        rUpdateModelPart(rPrimalModelPart);
-        rUpdateModelPart(rAdjointModelPart);
+        const IndexType number_of_nodes = r_primal_element.GetGeometry().PointsNumber();
+        KRATOS_ERROR_IF(number_of_nodes != r_adjoint_element.GetGeometry().PointsNumber()) << "Number of nodes mismatch between primal and adjoint elements.\n";
 
         r_primal_element.Check(r_primal_process_info);
         r_adjoint_element.Check(r_adjoint_process_info);
 
         // calculate adjoint sensitivities
+        rUpdateModelPart(rAdjointModelPart);
         rCalculateElementResidualDerivatives(adjoint_residual_derivatives, r_adjoint_element, r_adjoint_process_info);
 
         // calculate primal reference residuals
+        rUpdateModelPart(rPrimalModelPart);
         CalculateResidual(residual_ref, r_primal_element, r_primal_process_info);
-
-        const IndexType number_of_nodes = r_primal_element.GetGeometry().PointsNumber();
-        KRATOS_ERROR_IF(number_of_nodes != r_adjoint_element.GetGeometry().PointsNumber()) << "Number of nodes mismatch between primal and adjoint elements.\n";
 
         const IndexType residual_block_size = residual_ref.size() / number_of_nodes;
         const IndexType adjoint_equation_block_size = adjoint_residual_derivatives.size2() / number_of_nodes;
@@ -508,9 +507,9 @@ void RunAdjointElementTest(
             auto& r_node = r_primal_element.GetGeometry()[c];
             for (IndexType k = 0; k < derivative_dimension; ++k) {
                 perturbation_method(r_node, k) += Delta;
-                rUpdateModelPart(rPrimalModelPart);
 
                 // calculate perturbed residual
+                rUpdateModelPart(rPrimalModelPart);
                 CalculateResidual(residual, r_primal_element, r_primal_process_info);
                 fd_derivatives = (residual - residual_ref) / Delta;
 
