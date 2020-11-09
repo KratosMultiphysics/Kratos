@@ -55,7 +55,7 @@ jobs:
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
           export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable -Werror=parentheses -Werror=pessimizing-move -Werror=c++17-extensions -Werror=logical-op-parentheses"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
@@ -71,6 +71,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running MPICore C++ tests (2 Cores)
@@ -79,6 +83,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (3 Cores)
@@ -87,6 +95,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (4 Cores)
@@ -95,6 +107,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore Python tests (2 Cores)
@@ -103,6 +119,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
 
     - name: Running MPICore Python tests (3 Cores)
@@ -111,6 +131,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 3 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
 
     - name: Running MPICore Python tests (4 Cores)
@@ -119,6 +143,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 4 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
 
     - name: Running MPI Python TrilinosApplication (2 Cores)
@@ -127,6 +155,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
 
     - name: Running MPI Python TrilinosApplication (3 Cores)
@@ -135,6 +167,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 3 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
 
     - name: Running MPI Python TrilinosApplication (4 Cores)
@@ -143,6 +179,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 4 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
 
     - name: Running MPI Python CoSimulationApplication (2 Cores)
@@ -151,6 +191,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
 
     - name: Running MPI Python CoSimulationApplication (3 Cores)
@@ -159,6 +203,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 3 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
 
     - name: Running MPI Python CoSimulationApplication (4 Cores)
@@ -167,6 +215,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 4 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MappingApplication (2 Cores)
@@ -175,6 +227,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MappingApplication (3 Cores)
@@ -183,6 +239,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 3 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MappingApplication (4 Cores)
@@ -191,6 +251,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 4 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python StructuralMechanicsApplication (2 Cores)
@@ -199,6 +263,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 applications/StructuralMechanicsApplication/tests/test_StructuralMechanicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python FluidDynamicsApplication (2 Cores)
@@ -207,6 +275,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 applications/FluidDynamicsApplication/tests/test_FluidDynamicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python RANSApplication (2 Cores)
@@ -215,6 +287,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi
 
     - name: Running MPI Python ParticleMechanicsApplication (2 Cores)
@@ -223,6 +299,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python ParticleMechanicsApplication (3 Cores)
@@ -231,6 +311,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 3 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python ParticleMechanicsApplication (4 Cores)
@@ -239,6 +323,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe -np 4 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MeshingApplication (2 Cores)
@@ -247,6 +335,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec -np 2 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MeshingApplication (3 Cores)
@@ -255,6 +347,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe  -np 3 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MeshingApplication (4 Cores)
@@ -263,6 +359,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_5_1/lib
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/external_libraries/mmg/mmg_5_4_1/lib
         mpiexec --oversubscribe  -np 4 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
 
   windows:
