@@ -332,10 +332,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
 
         # Constitutive law import
 
-        # OLD METHOD
-        # import geomechanics_constitutivelaw_utility
-        # geomechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
-
         # This will be removed once the Model is fully supported! => It wont be necessary any more
         # NOTE: We do this here in case the model is empty, so the properties can be assigned
         if not self.model.HasModelPart(self.main_model_part.Name):
