@@ -153,7 +153,7 @@ if(${INCLUDE_PMMG} MATCHES ON)
         if(${INCLUDE_MMG} MATCHES OFF)
             message( FATAL_ERROR " MMG disabled. Please set -DINCLUDE_MMG=ON in the configure file in order to compile with ParMMG")
         endif(${INCLUDE_MMG} MATCHES OFF)
-    ENDIF(NOT DEFINED PMMG_LIBRARY_PREFIX)
+    ENDIF(NOT DEFINED INCLUDE_MMG)
 
 
     add_definitions( -DINCLUDE_PMMG )
