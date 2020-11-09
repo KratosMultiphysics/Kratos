@@ -400,14 +400,17 @@ namespace Kratos
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(domain_nodes.size()); i++)
             {
-                const double nodal_mass = domain_nodes[i]->GetValue(NODAL_MASS);
-                if (nodal_mass > numerical_limit)
+                if (domain_nodes[i]->Has(EXPLICIT_EQUATION_ID))
                 {
-                    IndexType equation_id = domain_nodes[i]->GetValue(EXPLICIT_EQUATION_ID);
-                    array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
-                    for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                    const double nodal_mass = domain_nodes[i]->GetValue(NODAL_MASS);
+                    if (nodal_mass > numerical_limit)
                     {
-                        r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                        IndexType equation_id = domain_nodes[i]->GetValue(EXPLICIT_EQUATION_ID);
+                        array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
+                        for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                        {
+                            r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                        }
                     }
                 }
             }

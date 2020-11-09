@@ -102,8 +102,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         self.mapper = mapper_create_fct(self.model_part_origin_interface, self.model_part_destination_interface, self.mapper_parameters.Clone())
 
         # get interface modelparts created by the mapper modeler
-        self.modelpart_interface_origin_from_mapper = self.mapper.GetInterfaceModelPart(0)
-        self.modelpart_interface_destination_from_mapper = self.mapper.GetInterfaceModelPart(1)
+        self.modelpart_interface_origin_from_mapper = self.mapper.GetInterfaceModelPartOrigin()
+        self.modelpart_interface_destination_from_mapper = self.mapper.GetInterfaceModelPartDestination()
 
         # Get time integration parameters
         self.is_implicit = [True, True]
@@ -149,7 +149,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
     def __SendStiffnessMatrixToUtility(self, solverIndex):
         if self.is_implicit[solverIndex]:
-                system_matrix = self.solver_wrappers_vector[solverIndex].GetSolverStrategy().GetSystemMatrix()
+                system_matrix = self._GetSolverStrategy(solverIndex).GetSystemMatrix()
                 self.feti_coupling.SetEffectiveStiffnessMatrixImplicit(system_matrix,solverIndex)
         else:
             self.feti_coupling.SetEffectiveStiffnessMatrixExplicit(solverIndex)
@@ -162,6 +162,15 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         else:
             KM.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+
+    def _GetSolverStrategy(self,solverIndex):
+        # This is a utility method to get access to the solver's strategy, later used to access the system matrix.
+        # Provision to expand to other solver wrappers in the future.
+        solver_name = str(self.solver_wrappers_vector[solverIndex]._ClassName())
+        if solver_name == "StructuralMechanicsWrapper":
+            return self.solver_wrappers_vector[solverIndex]._analysis_stage._GetSolver().get_mechanical_solution_strategy()
+        else:
+            raise Exception("_GetSolverStrategy not implemented for solver wrapper = " + solver_name)
 
 
     @classmethod

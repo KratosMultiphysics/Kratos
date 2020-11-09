@@ -277,9 +277,14 @@ public:
     }
 
     // Get values
-    ModelPart& GetInterfaceModelPart(IndexType ModelPartIndex) override
+    ModelPart& GetInterfaceModelPartOrigin() override
     {
-        return (ModelPartIndex == 0) ? *mpCouplingInterfaceOrigin : *mpCouplingInterfaceDestination;
+        return *mpCouplingInterfaceOrigin;
+    }
+
+    ModelPart& GetInterfaceModelPartDestination() override
+    {
+        return *mpCouplingInterfaceDestination;
     }
 
 private:
