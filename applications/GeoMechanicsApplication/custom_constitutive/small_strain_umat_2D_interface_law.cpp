@@ -129,7 +129,7 @@ void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Par
       // transfer fortran style matrix to C++ style
       for (unsigned int i = 0; i < VoigtSize; i++) {
          for (unsigned int j = 0; j < VoigtSize; j++) {
-            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<intexStress2DInterface>(j))][getIndex3D(static_cast<intexStress2DInterface>(i))];
+            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(j))][getIndex3D(static_cast<indexStress2DInterface>(i))];
          }
       }
    }
@@ -137,13 +137,13 @@ void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Par
    {
       for (unsigned int i = 0; i < VoigtSize; i++) {
          for (unsigned int j = 0; j < VoigtSize; j++) {
-            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<intexStress2DInterface>(i))][getIndex3D(static_cast<intexStress2DInterface>(j))];
+            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(i))][getIndex3D(static_cast<indexStress2DInterface>(j))];
          }
       }
    }
 }
 
-intexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(intexStress2DInterface index2D)
+indexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface index2D)
 {
    switch (index2D)
    {

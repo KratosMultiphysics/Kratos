@@ -99,27 +99,22 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
     }
 
     //Solid variables
-    if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT Key is 0. Check if all applications were correctly registered.", "" )
-
-    if ( VELOCITY.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY Key is 0. Check if all applications were correctly registered.", "" )
-
-    if ( ACCELERATION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION Key is 0. Check if all applications were correctly registered.", "" )
-
-    if ( DENSITY_SOLID.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_SOLID Key is 0. Check if all applications were correctly registered.", "" )
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY_SOLID)
 
     //Fluid variables
-    if ( WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
+    KRATOS_CHECK_VARIABLE_KEY(WATER_PRESSURE)
+    KRATOS_CHECK_VARIABLE_KEY(DT_WATER_PRESSURE)
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY_WATER)
 
-    if ( DT_WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
 
-    if ( DENSITY_WATER.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_WATER Key is 0. Check if all applications were correctly registered.", "" )
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY_COEFFICIENT)
+    KRATOS_CHECK_VARIABLE_KEY(DT_PRESSURE_COEFFICIENT)
+    KRATOS_CHECK_VARIABLE_KEY(RAYLEIGH_ALPHA)
+    KRATOS_CHECK_VARIABLE_KEY(RAYLEIGH_BETA)
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < rGeom.size(); i++ )
@@ -129,7 +124,6 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
 
         if ( rGeom[i].HasDofFor( DISPLACEMENT_X ) == false || rGeom[i].HasDofFor( DISPLACEMENT_Y ) == false || rGeom[i].HasDofFor( DISPLACEMENT_Z ) == false )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", rGeom[i].Id() )
-
 
         if ( rGeom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", rGeom[i].Id() )
@@ -241,9 +235,9 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
           mStressVector[i].resize(VoigtSize);
           std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
        }
+        mStressVectorFinalized = mStressVector;
     }
 
-    mStressVectorFinalized = mStressVector;
 
     if ( mStateVariablesFinalized.size() != IntegrationPoints.size() )
     {

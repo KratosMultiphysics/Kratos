@@ -49,7 +49,7 @@ namespace Kratos
     constexpr SizeType VOIGT_SIZE_3D_INTERFACE    = 3;
 
     // stress/strain vector indices (3D):
-    enum intexStress3D: int{ INDEX_3D_XX,
+    enum indexStress3D: int{ INDEX_3D_XX,
                              INDEX_3D_YY,
                              INDEX_3D_ZZ,
                              INDEX_3D_XY,
@@ -57,28 +57,28 @@ namespace Kratos
                              INDEX_3D_XZ };
 
     // stress/strain vector indices (2D plane strain):
-    enum intexStress2DPlaneStrain: int{ INDEX_2D_PLANE_STRAIN_XX,
+    enum indexStress2DPlaneStrain: int{ INDEX_2D_PLANE_STRAIN_XX,
                                         INDEX_2D_PLANE_STRAIN_YY,
                                         INDEX_2D_PLANE_STRAIN_ZZ,
                                         INDEX_2D_PLANE_STRAIN_XY };
 
     // stress/strain vector indices (2D plane stress):
-    enum intexStress2DPlaneStress: int{ INDEX_2D_PLANE_STRESS_XX,
+    enum indexStress2DPlaneStress: int{ INDEX_2D_PLANE_STRESS_XX,
                                         INDEX_2D_PLANE_STRESS_YY,
                                         INDEX_2D_PLANE_STRESS_XY };
 
     // stress/strain vector indices (2D axisymmetric):
-    enum intexStress2DAxisymmetric: int{ INDEX_2D_AXI_SYMMETRIC_XX,
+    enum indexStress2DAxisymmetric: int{ INDEX_2D_AXI_SYMMETRIC_XX,
                                          INDEX_2D_AXI_SYMMETRIC_YY,
                                          INDEX_2D_AXI_SYMMETRIC_RR,
                                          INDEX_2D_AXI_SYMMETRIC_XY};
 
     // stress/strain vector indices (2D interface):
-    enum intexStress2DInterface: int{ INDEX_2D_INTERFACE_XZ,
+    enum indexStress2DInterface: int{ INDEX_2D_INTERFACE_XZ,
                                       INDEX_2D_INTERFACE_ZZ };
 
     // stress/strain vector indices (3D interface):
-    enum intexStress3DInterface: int{ INDEX_3D_INTERFACE_XZ,
+    enum indexStress3DInterface: int{ INDEX_3D_INTERFACE_XZ,
                                       INDEX_3D_INTERFACE_YZ,
                                       INDEX_3D_INTERFACE_ZZ };
 

@@ -132,7 +132,7 @@ void SmallStrainUMAT2DPlaneStrainLaw::CopyConstitutiveMatrix( ConstitutiveLaw::P
       // transfer fortran style matrix to C++ style
       for (unsigned int i = 0; i < VoigtSizePlaneStress; i++) {
          for (unsigned int j = 0; j < VoigtSizePlaneStress; j++) {
-            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<intexStress2DPlaneStress>(j))][getIndex3D(static_cast<intexStress2DPlaneStress>(i))];
+            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<indexStress2DPlaneStress>(j))][getIndex3D(static_cast<indexStress2DPlaneStress>(i))];
          }
       }
    }
@@ -140,7 +140,7 @@ void SmallStrainUMAT2DPlaneStrainLaw::CopyConstitutiveMatrix( ConstitutiveLaw::P
    {
       for (unsigned int i = 0; i < VoigtSizePlaneStress; i++) {
          for (unsigned int j = 0; j < VoigtSizePlaneStress; j++) {
-            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<intexStress2DPlaneStress>(i))][getIndex3D(static_cast<intexStress2DPlaneStress>(j))];
+            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<indexStress2DPlaneStress>(i))][getIndex3D(static_cast<indexStress2DPlaneStress>(j))];
          }
       }
    }
@@ -148,7 +148,7 @@ void SmallStrainUMAT2DPlaneStrainLaw::CopyConstitutiveMatrix( ConstitutiveLaw::P
    KRATOS_CATCH("")
 }
 
-intexStress3D SmallStrainUMAT2DPlaneStrainLaw::getIndex3D(intexStress2DPlaneStress index2D)
+indexStress3D SmallStrainUMAT2DPlaneStrainLaw::getIndex3D(indexStress2DPlaneStress index2D)
 {
    KRATOS_TRY;
 
