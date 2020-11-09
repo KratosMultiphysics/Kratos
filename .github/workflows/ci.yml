@@ -295,6 +295,7 @@ jobs:
 
     - name: Running small tests
       shell: cmd
+      timeout-minutes : 60
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
