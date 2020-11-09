@@ -205,51 +205,51 @@ template void TestGetDofList<ModelPart::ConditionsContainerType>(
     ModelPart&,
     const Variable<double>&);
 
-template void RandomFillNodalHistoricalVariable<double>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillNodalHistoricalVariable<double>(
     ModelPart&,
     const Variable<double>&,
     const double,
     const double,
     const int);
 
-template void RandomFillNodalHistoricalVariable<array_1d<double, 3>>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillNodalHistoricalVariable<array_1d<double, 3>>(
     ModelPart&,
     const Variable<array_1d<double, 3>>&,
     const double,
     const double,
     const int);
 
-template void RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>(
     ModelPart&,
     const Variable<array_1d<double, 3>>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
     ModelPart&,
     const Variable<array_1d<double, 3>>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(
     ModelPart&,
     const Variable<array_1d<double, 3>>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::NodesContainerType, double>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::NodesContainerType, double>(
     ModelPart&,
     const Variable<double>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>(
     ModelPart&,
     const Variable<double>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::ElementsContainerType, double>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ElementsContainerType, double>(
     ModelPart&,
     const Variable<double>&,
     const double,

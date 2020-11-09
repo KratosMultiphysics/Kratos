@@ -22,14 +22,13 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
-          rCustomListOfSphericParticles[i]->SetFastProperties(vector_of_properties_proxies);
+            rCustomListOfSphericParticles[i]->SetFastProperties(vector_of_properties_proxies);
         }
         return;
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::SendProcessInfoToClustersModelPart() {
-
         KRATOS_TRY
 
         ProcessInfo& r_process_info = mpDem_model_part->GetProcessInfo();
@@ -116,7 +115,7 @@ namespace Kratos {
 
 
     void ExplicitSolverStrategy::DisplayThreadInfo() {
-
+        KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
         KRATOS_INFO("DEM") << "          **************************************************" << std::endl;
         KRATOS_INFO("DEM") << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() << std::endl;
@@ -125,7 +124,7 @@ namespace Kratos {
         KRATOS_INFO("DEM") << "            Parallelism Info:  OMP number of processors: " << mNumberOfThreads << std::endl;
         KRATOS_INFO("DEM") << "          **************************************************" << std::endl;
         KRATOS_INFO("DEM") << std::endl;
-
+        KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::Initialize() {
@@ -219,9 +218,8 @@ namespace Kratos {
     } // Initialize()
 
     void ExplicitSolverStrategy::AttachSpheresToStickyWalls() {
-
-        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = GetFemModelPart().SubModelPartsBegin();
-                                                                 sub_model_part != GetFemModelPart().SubModelPartsEnd(); ++sub_model_part) {
+        KRATOS_TRY
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = GetFemModelPart().SubModelPartsBegin(); sub_model_part != GetFemModelPart().SubModelPartsEnd(); ++sub_model_part) {
 
             ModelPart& submp = *sub_model_part;
             if(!submp[IS_STICKY]) continue;
@@ -254,10 +252,11 @@ namespace Kratos {
                 }
             }
         }
+        KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
-
+        KRATOS_TRY
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
 
         #pragma omp parallel for
@@ -271,6 +270,7 @@ namespace Kratos {
                 p_sphere->GetGeometry()[0].Set(TO_ERASE);
             }
         }
+        KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::ComputeNodalArea() {
@@ -343,7 +343,7 @@ namespace Kratos {
        //double young = (*mpInlet_model_part)[YOUNG_MODULUS];  // no funciona pq no forma part de modelpart sino de properties
        //PropertiesContainerType pprop2 = mpInlet_model_part->PropertiesArray(0);
        //long unsigned int pprop4 = mpInlet_model_part->NumberOfSubModelParts();
-       KRATOS_CATCH("")
+        KRATOS_CATCH("")
     }
 
     double ExplicitSolverStrategy::CalculateMaxInletTimeStep() {
@@ -596,7 +596,7 @@ namespace Kratos {
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
-            mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity, mSearchControl);
+            mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity);
         }
 
         KRATOS_CATCH("")
@@ -613,7 +613,7 @@ namespace Kratos {
         {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->FirstCalculateRightHandSide(r_process_info, dt, mSearchControl);
+                mListOfSphericParticles[i]->FirstCalculateRightHandSide(r_process_info, dt);
             }
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
@@ -1404,7 +1404,6 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::SearchNeighbours() {
-
         KRATOS_TRY
 
         if (!mDoSearchNeighbourElements) {
@@ -1419,7 +1418,6 @@ namespace Kratos {
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);
 
-        //SetSearchRadiiOnAllParticles(r_model_part, r_model_part.GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
@@ -1626,26 +1624,6 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-
-    // void ExplicitSolverStrategy::ContactInitializeSolutionStep() {
-    //     ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-    //     ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
-
-    //     std::vector<unsigned int> contact_element_partition;
-
-    //     OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
-    //     #pragma omp parallel for
-    //     for (int k = 0; k < mNumberOfThreads; k++) {
-    //         ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-    //         ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
-
-    //         for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-    //             (it_contact)->InitializeSolutionStep(r_process_info);
-    //         } //loop over CONTACT ELEMENTS
-
-    //     }// loop threads OpenMP
-
-    // } //Contact_InitializeSolutionStep
 
     void ExplicitSolverStrategy::PrepareContactElementsForPrinting() {
 

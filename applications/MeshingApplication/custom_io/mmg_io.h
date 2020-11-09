@@ -196,6 +196,12 @@ public:
      */
     void WriteModelPart(ModelPart& rModelPart) override;
 
+    /**
+     * @brief This method retrieves the current Mmg version
+     * @return The current version of Mmg (as a string)
+     */
+    std::string GetMmgVersion();
+
     ///@}
     ///@name Access
     ///@{

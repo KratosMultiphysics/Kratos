@@ -31,9 +31,9 @@ class TestFactory(KratosUnittest.TestCase):
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             # Create Model
-            model = KratosMultiphysics.Model()
+            self.model = KratosMultiphysics.Model()
 
-            self.test = InterpolationTestAnalysis(model, parameters)
+            self.test = InterpolationTestAnalysis(self.model, parameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

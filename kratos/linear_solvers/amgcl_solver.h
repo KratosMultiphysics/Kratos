@@ -132,8 +132,8 @@ public:
     /// DofArray type
     typedef ModelPart::DofsArrayType DofsArrayType;
 
-    /// The index type definition
-    typedef std::size_t IndexType;
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
 
     /// The size type definition
     typedef std::size_t SizeType;
@@ -489,7 +489,7 @@ public:
      * @brief This method returns the current iteration number
      * @return mIterationsNumber The current iteration number
      */
-    virtual IndexType GetIterationsNumber()
+    IndexType GetIterationsNumber() override
     {
         return mIterationsNumber;
     }

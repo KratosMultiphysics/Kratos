@@ -229,16 +229,16 @@ namespace Kratos
 			KRATOS_CATCH("");
 		}
 
-		double Solve() override
+		bool SolveSolutionStep() override
 		{
 			// Initialize BDF2 coefficients
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			this->SetTimeCoefficients(rModelPart.GetProcessInfo());
-			double NormDp = 0.0;
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 			bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+			bool converged = false;
 
 			// bool momentumAlreadyConverged=false;
 			// bool continuityAlreadyConverged=false;
@@ -326,6 +326,7 @@ namespace Kratos
 				{
 					rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
 					rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
+					converged = true;
 					std::cout << "nodal V-P strategy converged in " << it + 1 << " iterations." << std::endl;
 					break;
 				}
@@ -339,7 +340,7 @@ namespace Kratos
 
 			/* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
 
-			return NormDp;
+			return converged;
 		}
 
 		void FinalizeSolutionStep() override

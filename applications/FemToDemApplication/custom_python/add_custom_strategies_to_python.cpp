@@ -23,7 +23,7 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/hexahedra_newton_raphson_strategy.h"
+// #include "custom_strategies/hexahedra_newton_raphson_strategy.h"
 #include "custom_strategies/femdem_residual_criteria.h"
 
 //linear solvers
@@ -49,13 +49,13 @@ namespace Python
 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 		typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 		typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-		typedef HexahedraNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HexahedraNewtonRaphsonStrategyType;
+		// typedef HexahedraNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HexahedraNewtonRaphsonStrategyType;
 
-		class_< HexahedraNewtonRaphsonStrategyType,
-				typename HexahedraNewtonRaphsonStrategyType::Pointer,
-				BaseSolvingStrategyType  >  (m, "HexahedraNewtonRaphsonStrategy")
-				.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
-				;
+		// class_< HexahedraNewtonRaphsonStrategyType,
+		// 		typename HexahedraNewtonRaphsonStrategyType::Pointer,
+		// 		BaseSolvingStrategyType  >  (m, "HexahedraNewtonRaphsonStrategy")
+		// 		.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+		// 		;
 	
 		class_<FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >,
 			typename FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >::Pointer,

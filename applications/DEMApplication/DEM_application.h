@@ -104,8 +104,7 @@ private:
     const RigidFace3D  mRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
     const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
-    const RigidEdge3D  mRigidEdge3D2N;
-    const RigidEdge3D  mRigidEdge2D2N;
+    const RigidEdge2D  mRigidEdge2D2N;
     const RigidBodyElement3D mRigidBodyElement3D;
     const ShipElement3D mShipElement3D;
     const ContactInfoSphericParticle mContactInfoSphericParticle3D;

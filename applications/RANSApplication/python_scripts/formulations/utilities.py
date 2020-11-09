@@ -20,7 +20,7 @@ else:
     raise Exception("Distributed run requires TrilinosApplication")
 
 
-def GetKratosObjectType(type_name):
+def GetKratosObjectPrototype(type_name):
     type_dict = {
         "LinearSolverFactory": [
             "KratosMultiphysics.python_linear_solver_factory.ConstructSolver",
@@ -61,6 +61,22 @@ def GetKratosObjectType(type_name):
         "ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent":[
             "KratosMultiphysics.FluidDynamicsApplication.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",
             "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent"
+        ],
+        "FractionalStepSettingsPeriodic":[
+            "KratosMultiphysics.FluidDynamicsApplication.FractionalStepSettingsPeriodic",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosFractionalStepSettingsPeriodic"
+        ],
+        "FractionalStepSettings":[
+            "KratosMultiphysics.FluidDynamicsApplication.FractionalStepSettings",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosFractionalStepSettings"
+        ],
+        "FractionalStepStrategy":[
+            "KratosMultiphysics.FluidDynamicsApplication.FractionalStepStrategy",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosFractionalStepStrategy"
+        ],
+        "StrategyLabel":[
+            "KratosMultiphysics.FluidDynamicsApplication.StrategyLabel",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosStrategyLabel"
         ]
     }
 
@@ -116,25 +132,24 @@ def CreateDuplicateModelPart(
 
 
 def CreateRansFormulationModelPart(
-    formulation,
+    original_model_part,
+    model_part_name_suffix,
+    domain_size,
     element_name,
     condition_name = ""):
-    formulation.domain_size = formulation.GetBaseModelPart().ProcessInfo[
-        Kratos.DOMAIN_SIZE]
 
-    element_suffix = str(
-        formulation.domain_size) + "D" + str(formulation.domain_size + 1) + "N"
+    element_suffix = str(domain_size) + "D" + str(domain_size + 1) + "N"
     element_name = element_name + element_suffix
 
-    new_model_part_name = formulation.GetName() + "_" + element_name
+    new_model_part_name = model_part_name_suffix + "_" + element_name
 
     if (condition_name != ""):
-        condition_suffix = str(formulation.domain_size) + "D" + str(
-                               formulation.domain_size) + "N"
+        condition_suffix = str(domain_size) + "D" + str(
+                               domain_size) + "N"
         condition_name = condition_name + condition_suffix
         new_model_part_name += "_" + condition_name
 
-    return CreateDuplicateModelPart(formulation.GetBaseModelPart(),
+    return CreateDuplicateModelPart(original_model_part,
                                     new_model_part_name, element_name,
                                     condition_name)
 
@@ -179,9 +194,12 @@ def InitializeYPlusVariablesInConditions(model_part):
 def InitializePeriodicConditions(
     base_model_part,
     model_part,
-    variables_list):
+    variables_list,
+    periodic_condition_name = "PeriodicCondition"):
+
     properties = model_part.CreateNewProperties(
         model_part.NumberOfProperties() + 1)
+
     pcu = KratosCFD.PeriodicConditionUtilities(
         model_part, model_part.ProcessInfo[Kratos.DOMAIN_SIZE])
     for variable in variables_list:
@@ -193,7 +211,7 @@ def InitializePeriodicConditions(
             index += 1
             node_id_list = [node.Id for node in condition.GetNodes()]
             periodic_condition = model_part.CreateNewCondition(
-                "PeriodicCondition", index, node_id_list, properties)
+                periodic_condition_name, index, node_id_list, properties)
             periodic_condition.Set(Kratos.PERIODIC)
 
 

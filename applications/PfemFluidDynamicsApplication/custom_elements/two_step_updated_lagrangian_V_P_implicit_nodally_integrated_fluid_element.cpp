@@ -49,7 +49,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim>::Init
 }
 
 template <unsigned int TDim>
-int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
   KRATOS_TRY;
 

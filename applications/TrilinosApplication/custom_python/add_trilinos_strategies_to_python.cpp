@@ -134,7 +134,7 @@ void AddStrategies(pybind11::module& m)
     .def("InitializeSolutionStep", &TrilinosBaseSolvingStrategyType::InitializeSolutionStep)
     .def("FinalizeSolutionStep", &TrilinosBaseSolvingStrategyType::FinalizeSolutionStep)
     .def("SolveSolutionStep", &TrilinosBaseSolvingStrategyType::SolveSolutionStep)
-    //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
+    .def("GetModelPart", &TrilinosBaseSolvingStrategyType::GetModelPart)
     ;
 
     typedef ResidualBasedLinearStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLinearStrategy;

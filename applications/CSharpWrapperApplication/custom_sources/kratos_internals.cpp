@@ -103,7 +103,6 @@ void KratosInternals::initDofs() {
     Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_Z, Kratos::REACTION_Z, r_model_part);
 
     // Adding custom dofs
-    typedef Kratos::VectorComponentAdaptor<Kratos::array_1d<double,3>> ComponentType;
     const std::size_t n_variables = mSettingsParameters["solver_settings"]["auxiliary_dofs_list"].size();
     for (std::size_t i_var = 0; i_var < n_variables; ++i_var) {
         const std::string& r_variable_name = mSettingsParameters["solver_settings"]["auxiliary_dofs_list"].GetArrayItem(i_var).GetString();
@@ -113,13 +112,13 @@ void KratosInternals::initDofs() {
             const auto& r_reaction_variable = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name);
             Kratos::VariableUtils().AddDofWithReaction(r_variable, r_reaction_variable, r_model_part);
         } else if (Kratos::KratosComponents<Kratos::Variable<Kratos::array_1d<double, 3>>>::Has(r_variable_name)) {
-            const auto& r_component_x = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_variable_name + "_X");
-            const auto& r_component_y = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_variable_name + "_Y");
-            const auto& r_component_z = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_variable_name + "_Z");
+            const auto& r_component_x = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_X");
+            const auto& r_component_y = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_Y");
+            const auto& r_component_z = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_Z");
 
-            const auto& r_reaction_component_x = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_reaction_variable_name + "_X");
-            const auto& r_reaction_component_y = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_reaction_variable_name + "_Y");
-            const auto& r_reaction_component_z = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_reaction_variable_name + "_Z");
+            const auto& r_reaction_component_x = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_X");
+            const auto& r_reaction_component_y = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_Y");
+            const auto& r_reaction_component_z = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_Z");
 
             Kratos::VariableUtils().AddDofWithReaction(r_component_x, r_reaction_component_x, r_model_part);
             Kratos::VariableUtils().AddDofWithReaction(r_component_y, r_reaction_component_y, r_model_part);

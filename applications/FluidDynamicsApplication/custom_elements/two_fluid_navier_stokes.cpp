@@ -189,7 +189,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateRightHandSide(
 // Public Inquiry
 
 template <class TElementData>
-int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);

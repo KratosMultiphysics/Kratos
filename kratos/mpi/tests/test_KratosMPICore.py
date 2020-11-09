@@ -17,10 +17,13 @@ import test_mpi_serializer
 import test_neighbours
 import test_nodal_elemental_neighbours
 import test_parallel_environment
+import test_mpi_processes
 
 # importing OpenMP tests in MPI scope.
 with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
+    from test_processes import TestProcesses
     import test_normal_utils
+    import test_sensitivity_builder
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -49,10 +52,14 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_neighbours.TestNeighbours]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nodal_elemental_neighbours.TestNodalElementalNeighbours]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_parallel_environment.TestParallelEnvironment]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_processes.TestMPIProcesses]))
 
     # adding non-mpi tests also as mpi tests
+    smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursProcess"))
+    smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursForConditionsProcess"))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsQuadSphere]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_builder.TestSensitivityBuilderTwoDimSymmetricalSquare]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']

@@ -34,11 +34,6 @@ const Variable<double>& EpsilonUBasedWallConditionData::GetScalarVariable()
     return TURBULENT_ENERGY_DISSIPATION_RATE;
 }
 
-const Variable<double>& EpsilonUBasedWallConditionData::GetScalarRateVariable()
-{
-    return TURBULENT_ENERGY_DISSIPATION_RATE_2;
-}
-
 void EpsilonUBasedWallConditionData::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)

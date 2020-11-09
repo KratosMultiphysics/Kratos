@@ -22,8 +22,6 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
     """
 
     def __init__(self, main_model_part, custom_settings):
-        # Set defaults and validate custom settings.
-        self.stationary_settings = KratosMultiphysics.Parameters(r"""{}""")
 
         # Construct the base solver and validate the remaining settings in the base class
         super(ConvectionDiffusionStationarySolver, self).__init__(main_model_part, custom_settings)
@@ -34,7 +32,7 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
         else:
             self.min_buffer_size = 1
 
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionStationarySolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction finished")
 
     #### Private functions ####
     def _create_solution_scheme(self):

@@ -120,7 +120,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 
     const auto& r_geometry = this->GetGeometry();
     const Variable<double>& r_variable =
-        TConvectionDiffusionReactionData::GetScalarRateVariable();
+        TConvectionDiffusionReactionData::GetScalarVariable().GetTimeDerivative();
 
     IndexType LocalIndex = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {

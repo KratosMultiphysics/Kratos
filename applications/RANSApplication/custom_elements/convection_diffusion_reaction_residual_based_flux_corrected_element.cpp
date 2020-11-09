@@ -267,7 +267,7 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
     const Variable<double>& primal_variable =
         TConvectionDiffusionReactionData::GetScalarVariable();
     const Variable<double>& relaxed_primal_rate_variable =
-        TConvectionDiffusionReactionData::GetScalarRelaxedRateVariable();
+        primal_variable.GetTimeDerivative().GetTimeDerivative();
 
     const auto& r_geometry = this->GetGeometry();
     TConvectionDiffusionReactionData r_current_data(r_geometry);

@@ -46,7 +46,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass = True
         super(ConvectionDiffusionBaseSolver, self).__init__(model, custom_settings)
 
         # Adding warnings
@@ -109,6 +108,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "domain_size" : -1,
             "echo_level": 0,
             "analysis_type": "linear",
+            "time_integration_method": "implicit",
             "solver_type": "convection_diffusion_base_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
@@ -520,7 +520,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement"):
+        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 

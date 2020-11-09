@@ -19,8 +19,6 @@ class Mesher(object):
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
 
-        print(self._class_prefix()+" Ready")
-
     #
     def Initialize(self, dimension):
 

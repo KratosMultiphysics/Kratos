@@ -8,6 +8,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io im
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
 
 # Other imports
 import os
@@ -46,7 +47,7 @@ class EmpireIO(CoSimulationIO):
 
         if not self.model.HasModelPart(model_part_name):
             main_model_part_name, *sub_model_part_names = model_part_name.split(".")
-            cs_tools.RecursiveCreateModelParts(self.model[main_model_part_name], ".".join(sub_model_part_names))
+            model_part_utilities.RecursiveCreateModelParts(self.model[main_model_part_name], ".".join(sub_model_part_names))
 
         model_part = self.model[model_part_name]
         KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part, comm_name)
