@@ -4,7 +4,6 @@ import os
 import numpy as np
 import h5py
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SwimmingDEMApplication as Dem
 
 class ErrorProjectionPostProcessTool(object):
     def __init__(self, test_number):
@@ -32,8 +31,6 @@ class ErrorProjectionPostProcessTool(object):
 
     def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected):
         self.error_model_part = error_model_part
-        mod_error = 0.0
-        iterator = 0
 
         for Element in self.error_model_part.Elements:
             self.element_size = Element.GetGeometry().Length()

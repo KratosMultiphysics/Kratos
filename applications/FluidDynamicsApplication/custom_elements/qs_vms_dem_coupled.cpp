@@ -170,7 +170,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
         AGradN *= density;
 
         const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-        array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+
         // Note: Dof order is (vx,vy,[vz,]p) for each node
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
