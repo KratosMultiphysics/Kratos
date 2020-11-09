@@ -253,6 +253,44 @@ inline void AddSourceTermWithSUPGStabilizationGaussPointContributions(
     }
 }
 
+template<std::size_t TNumNodes>
+void AddPrimalDampingMatrixGaussPointContributions(
+    BoundedMatrix<double, TNumNodes, TNumNodes>& rOutput,
+    const double EffectiveKinematicViscosity,
+    const double ReactionTerm,
+    const double AbsoluteReactionTerm,
+    const double StabilizationTau,
+    const double GPWeight,
+    const BoundedVector<double, TNumNodes>& rVelocityConvectiveTerms,
+    const Vector& rGPShapeFunctions,
+    const Matrix& rGPShapeFunctionDerivatives)
+{
+    for (IndexType a = 0; a < TNumNodes; ++a) {
+        for (IndexType b = 0; b < TNumNodes; ++b) {
+            const double dNa_dNb =
+                inner_prod(row(rGPShapeFunctionDerivatives, a),
+                            row(rGPShapeFunctionDerivatives, b));
+            double value = 0.0;
+
+            value += rGPShapeFunctions[a] * rVelocityConvectiveTerms[b];
+            value += rGPShapeFunctions[a] * ReactionTerm * rGPShapeFunctions[b];
+            value += EffectiveKinematicViscosity * dNa_dNb;
+
+            // Adding SUPG stabilization terms
+            value += StabilizationTau *
+                        (rVelocityConvectiveTerms[a] +
+                        AbsoluteReactionTerm * rGPShapeFunctions[a]) *
+                        rVelocityConvectiveTerms[b];
+            value += StabilizationTau *
+                        (rVelocityConvectiveTerms[a] +
+                        AbsoluteReactionTerm * rGPShapeFunctions[a]) *
+                        ReactionTerm * rGPShapeFunctions[b];
+
+            rOutput(a, b) += GPWeight * value;
+        }
+    }
+}
+
 } // namespace ConvectionDiffusionReactionStabilizationUtilities
 
 ///@}

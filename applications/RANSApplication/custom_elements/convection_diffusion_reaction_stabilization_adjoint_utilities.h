@@ -155,6 +155,19 @@ public:
         }
     }
 
+    static double CalculateEffectiveVelocityMagnitudeDerivative(
+        const double EffectiveVelocityMagnitude,
+        const Array3D& rEffectiveVelocity,
+        const Array3D& rEffectiveVelocityDerivative)
+    {
+        if (EffectiveVelocityMagnitude > 0.0) {
+            return inner_prod(rEffectiveVelocity, rEffectiveVelocityDerivative) /
+                   EffectiveVelocityMagnitude;
+        } else {
+            return 0.0;
+        }
+    }
+
     template<std::size_t TDerivativesSize>
     static void CalculateStabilizationTauDerivatives(
         VectorD<TDerivativesSize>& rOutput,
@@ -171,6 +184,41 @@ public:
         noalias(rOutput) += rEffectiveKinematicViscosityDerivatives * (144 * EffectiveKinematicViscosity / std::pow(ElementLength, 4));
         noalias(rOutput) += rReactionTermDerivatives * ReactionTerm;
         noalias(rOutput) = rOutput * (-1.0 * std::pow(StabilizationTau, 3));
+    }
+
+    static double CalculateElementLengthShapeDerivative(
+        const double ElementLength,
+        const double DetJDerivative);
+
+    static double CalculateTauShapeDerivatives(
+        const double Tau,
+        const double EffectiveVelocityMagnitude,
+        const double EffectiveKinematicViscosity,
+        const double ElementLength,
+        const double ReactionTerm,
+        const double EffectiveVelocityMagnitudeDerivative,
+        const double EffectiveKinematicViscosityDerivative,
+        const double ReactionTermDerivative,
+        const double DetJDerivative)
+
+    {
+        const double element_length_derivative =
+            CalculateElementLengthShapeDerivative(ElementLength, DetJDerivative);
+
+        double shape_sensitivity = 0.0;
+
+        shape_sensitivity +=
+            (4 * EffectiveVelocityMagnitude / std::pow(ElementLength, 2)) *
+            (EffectiveVelocityMagnitudeDerivative -
+             EffectiveVelocityMagnitude * element_length_derivative / ElementLength);
+        shape_sensitivity +=
+            (144 * EffectiveKinematicViscosity / std::pow(ElementLength, 4)) *
+            (EffectiveKinematicViscosityDerivative -
+             2 * EffectiveKinematicViscosity * element_length_derivative / ElementLength);
+        shape_sensitivity += ReactionTerm * ReactionTermDerivative;
+        shape_sensitivity *= -1.0 * std::pow(Tau, 3);
+
+        return shape_sensitivity;
     }
 
 
@@ -281,6 +329,50 @@ public:
                 }
             }
         }
+    }
+
+    template <std::size_t TDerivativesSize>
+    void static CalculateStabilizationDiscreteUpwindMatrixResidualFristDerivatives(
+        BoundedMatrix<double, TDerivativesSize, TNumNodes>& rOutput,
+        const double ScalarMultiplier,
+        const double StabilizationDiscreteDiffusionUserCoefficient,
+        const BoundedVector<double, TDerivativesSize>& rScalarMultiplierDerivatives,
+        const BoundedVector<double, TNumNodes>& rNodalValues,
+        const BoundedVector<double, TNumNodes>& rDiscreteDiffusionResidualValues,
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rInputMatrix,
+        const BoundedVector<BoundedMatrix<double, TNumNodes, TNumNodes>, TDerivativesSize>& rInputMatrixDerivatives)
+    {
+        BoundedMatrix<double, TDerivativesSize, TNumNodes> discrete_upwind_operator_residual_derivatives;
+        CalculateDiscreteUpwindOperatorResidualContributionDerivatives(
+            discrete_upwind_operator_residual_derivatives, rNodalValues,
+            rInputMatrix, rInputMatrixDerivatives);
+
+        DidacticProduct(rOutput, rScalarMultiplierDerivatives, rDiscreteDiffusionResidualValues);
+        noalias(rOutput) += discrete_upwind_operator_residual_derivatives * ScalarMultiplier;
+        noalias(rOutput) = rOutput * StabilizationDiscreteDiffusionUserCoefficient;
+    }
+
+    template <std::size_t TDerivativesSize>
+    void static CalculateStabilizationPositivityPreservingMatrixResidualFristDerivatives(
+        BoundedMatrix<double, TDerivativesSize, TNumNodes>& rOutput,
+        const double ScalarMultiplier,
+        const double PositivityPreservingMatrixCoefficient,
+        const double StabilizationPositivityPreservingUserCoefficient,
+        const BoundedVector<double, TDerivativesSize>& rScalarMultiplierDerivatives,
+        const BoundedVector<double, TNumNodes>& rNodalScalarValues,
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rInputMatrix,
+        const BoundedVector<BoundedMatrix<double, TNumNodes, TNumNodes>, TDerivativesSize>& rInputMatrixDerivatives)
+    {
+        BoundedVector<double, TDerivativesSize> positivity_preserving_coefficient_derivatives;
+        CalculatePositivityPreservingCoefficientDerivatives(
+            positivity_preserving_coefficient_derivatives,
+            PositivityPreservingMatrixCoefficient, rInputMatrix, rInputMatrixDerivatives);
+
+        DidacticProduct(rOutput,
+                        positivity_preserving_coefficient_derivatives * ScalarMultiplier +
+                            rScalarMultiplierDerivatives * PositivityPreservingMatrixCoefficient,
+                        rNodalScalarValues);
+        noalias(rOutput) = rOutput * StabilizationPositivityPreservingUserCoefficient;
     }
 
     ///@}
