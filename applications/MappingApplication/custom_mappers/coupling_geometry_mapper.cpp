@@ -114,6 +114,39 @@ std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
     return "";
 }
 
+template<class TSparseSpace, class TDenseSpace>
+CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
+    ModelPart& rModelPartOrigin,
+    ModelPart& rModelPartDestination,
+    Parameters JsonParameters):
+        mrModelPartOrigin(rModelPartOrigin),
+        mrModelPartDestination(rModelPartDestination),
+        mMapperSettings(JsonParameters)
+{
+    JsonParameters.ValidateAndAssignDefaults(GetMapperDefaultSettings());
+
+    mpModeler = (ModelerFactory::Create(
+        mMapperSettings["modeler_name"].GetString(),
+        rModelPartOrigin.GetModel(),
+        mMapperSettings["modeler_parameters"]));
+
+    // adds destination model part
+    mpModeler->GenerateNodes(rModelPartDestination);
+
+    mpModeler->SetupGeometryModel();
+    mpModeler->PrepareGeometryModel();
+
+    // here use whatever ModelPart(s) was created by the Modeler
+    mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
+    mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
+    mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
+
+    mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
+    mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
+
+    this->CreateLinearSolver();
+    this->InitializeInterface();
+}
 
 
 template<class TSparseSpace, class TDenseSpace>
@@ -323,36 +356,24 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
         rProjectedInterfaceMatrix.size2());
 
     const size_t n_rows = mpMappingMatrix->size1();
-    #pragma omp parallel
-    {
-        Vector solution(n_rows);
-        Vector projector_column(n_rows);
+    Vector solution(n_rows);
+    Vector projector_column(n_rows);
 
-        #pragma omp for
-        for (int i = 0; i < static_cast<int>(mpMappingMatrix->size2()); ++i)
-        {
-            for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
-            mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
-            #pragma omp critical
-            for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
-        }
+    for (size_t i = 0; i < mpMappingMatrix->size2(); ++i)
+    {
+        for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
+        mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
+        for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
     }
 }
 
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
 {
-    bool is_linear_solver_specified = false;
-    if (mMapperSettings.Has("linear_solver_settings"))
-    {
-        if (mMapperSettings["linear_solver_settings"].Has("solver_type"))
-        {
-            is_linear_solver_specified = true;
-            mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
-        }
+    if (mMapperSettings["linear_solver_settings"].Has("solver_type")) {
+        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
     }
-    if (!is_linear_solver_specified)
-    {
+    else {
         // TODO - replicate 'get fastest solver'
         mMapperSettings.AddString("solver_type", "skyline_lu_factorization");
         mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);

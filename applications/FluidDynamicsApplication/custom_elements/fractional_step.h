@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -173,7 +173,7 @@ namespace Kratos
 	    {
             return Kratos::make_intrusive< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 	    }
-	
+
         /**
          * Returns a pointer to a new FractionalStep element, created using given input
          * @param NewId the ID of the new element
@@ -181,12 +181,12 @@ namespace Kratos
          * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
-		
+
         Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
         {
             return Kratos::make_intrusive< FractionalStep<TDim> >(NewId, pGeom, pProperties);
         }
-        
+
         /**
          * Clones the selected element variables, creating a new one
          * @param NewId the ID of the new element
@@ -194,17 +194,17 @@ namespace Kratos
          * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
-        
+
         Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
         {
             Element::Pointer pNewElement = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-            
+
             pNewElement->SetData(this->GetData());
             pNewElement->SetFlags(this->GetFlags());
-            
+
             return pNewElement;
         }
-        
+
         void Initialize() override;
 
         /// Initializes the element and all geometric information required for the problem.
@@ -274,7 +274,7 @@ namespace Kratos
         void GetDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
         /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
@@ -353,7 +353,7 @@ namespace Kratos
          * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
          * @return 0 if no errors were found.
          */
-        int Check(const ProcessInfo& rCurrentProcessInfo) override;
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
         ///@}
         ///@name Inquiry
@@ -633,17 +633,17 @@ namespace Kratos
         {
             GeometryType& rGeom = this->GetGeometry();
             const SizeType NumNodes = rGeom.PointsNumber();
-	    
+
 			const double& var = rGeom[0].FastGetSolutionStepValue(Var);
 			for (SizeType d = 0; d < TDim; ++d)
 				rResult[d] = rDN_DX(0,d) * var;
-			
+
 			for(SizeType i = 1; i < NumNodes; i++)
 			{
 			  const double& var = rGeom[i].FastGetSolutionStepValue(Var);
 			  for (SizeType d = 0; d < TDim; ++d)
 						rResult[d] += rDN_DX(i,d) * var;
-				
+
 			}
 		}
 

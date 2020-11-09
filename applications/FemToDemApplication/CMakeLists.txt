@@ -11,13 +11,13 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsAppli
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories(${CMAKE_SOURCE_DIR}/kratos )
-include_directories(${CMAKE_SOURCE_DIR}/applications/DEMApplication)
-include_directories(${CMAKE_SOURCE_DIR}/applications/MeshingApplication)
-include_directories(${CMAKE_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
-include_directories(${CMAKE_SOURCE_DIR}/applications/DelaunayMeshingApplication)
-include_directories(${CMAKE_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
-include_directories(${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+include_directories(${KRATOS_SOURCE_DIR}/kratos )
+include_directories(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
+include_directories(${KRATOS_SOURCE_DIRR}/applications/PfemFluidDynamicsApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 # generate variables with the sources
 set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES

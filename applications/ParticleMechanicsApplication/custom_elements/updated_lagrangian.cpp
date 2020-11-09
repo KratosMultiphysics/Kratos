@@ -1368,9 +1368,9 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const Proc
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetValuesVector( Vector& values, int Step ) const 
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1391,9 +1391,9 @@ void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step ) const 
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1414,9 +1414,9 @@ void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step ) const 
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;

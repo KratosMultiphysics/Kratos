@@ -71,7 +71,6 @@ public:
         array_1d<double, 9> depth;
         array_1d<double, 9> rain;
         array_1d<double, 9> unknown;
-        array_1d<double, 9> prev_unk;
 
         bool is_monotonic_calculation;
 
@@ -203,6 +202,16 @@ public:
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
+     * Getting method to obtain the time derivative of variable which defines the degrees of freedom
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
@@ -325,13 +334,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void AddInertiaTerms(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const ElementData& rData,
-        const array_1d<double,3>& rN,
-        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void AddGradientTerms(
         MatrixType& rLHS,

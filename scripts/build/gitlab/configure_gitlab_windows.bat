@@ -25,6 +25,7 @@ cd ..\..\..\cmake_build
 -DCONSTITUTIVE_MODELS_APPLICATION=OFF                                            ^
 -DDELAUNAY_MESHING_APPLICATION=OFF                                               ^
 -DCONTACT_MECHANICS_APPLICATION=OFF                                              ^
+-DPFEM_APPLICATION=OFF                                                           ^
 -DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                           ^
 -DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                            ^
 -DMETIS_APPLICATION=OFF                                                         ^

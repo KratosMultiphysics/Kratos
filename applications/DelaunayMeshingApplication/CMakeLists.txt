@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDelaunayMeshingApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -11,7 +11,7 @@ include(pybind11Tools)
 ## to avoid problems with the define linkage block. By default we will compile the lib
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_DIR "${CMAKE_SOURCE_DIR}/external_libraries/triangle")
+  set(TRIANGLE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/triangle")
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
