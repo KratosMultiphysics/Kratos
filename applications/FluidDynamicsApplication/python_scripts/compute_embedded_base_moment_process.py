@@ -15,7 +15,7 @@ def Factory(settings, model):
 
 class ComputeEmbeddedBaseMomentProcess(ComputeBaseMomentProcess):
     """
-    The specific implementation for the output of body fitted drag forces
+    The specific implementation for the output of embedded fitted drag forces
     over obstacles in fluid dynamics problems.
     """
     def _GetFileHeader(self):
