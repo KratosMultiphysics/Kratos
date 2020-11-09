@@ -64,7 +64,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Type for shape function values container
-    typedef Kratos::Vector ShapeFunctionsType;
+    typedef Kratos::Matrix ShapeFunctionsType;
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
@@ -119,45 +119,45 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    // Element::Pointer Create(
-    //     IndexType NewId,
-    //     GeometryType::Pointer pGeom,
-    //     PropertiesType::Pointer pProperties
-    //     ) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
-    // /**
-    //  * @brief Creates a new element
-    //  * @param NewId The Id of the new created element
-    //  * @param ThisNodes The array containing nodes
-    //  * @param pProperties The pointer to property
-    //  * @return The pointer to the created element
-    //  */
-    // Element::Pointer Create(
-    //     IndexType NewId,
-    //     NodesArrayType const& ThisNodes,
-    //     PropertiesType::Pointer pProperties
-    //     ) const override;
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
-    // /**
-    //  * @brief It creates a new element pointer and clones the previous element data
-    //  * @param NewId the ID of the new element
-    //  * @param ThisNodes the nodes of the new element
-    //  * @param pProperties the properties assigned to the new element
-    //  * @return a Pointer to the new element
-    //  */
-    // Element::Pointer Clone (
-    //     IndexType NewId,
-    //     NodesArrayType const& rThisNodes
-    //     ) const override;
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
 
-    // /**
-    //  * @brief This function provides the place to perform checks on the completeness of the input.
-    //  * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-    //  * of the calculations, so to verify that nothing is missing from the input
-    //  * or that no common error is found.
-    //  * @param rCurrentProcessInfo The current process info instance
-    //  */
-    // int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     // ///@}
     // ///@name Access
@@ -190,15 +190,15 @@ public:
     //     pGetGeometry()->PrintData(rOStream);
     // }
 
-    // void EquationIdVector(
-    //         EquationIdVectorType& rResult,
-    //         ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(
+            EquationIdVectorType& rResult,
+            ProcessInfo& rCurrentProcessInfo) override;
 
-    // void GetDofList(
-    //     DofsVectorType& rElementalDofList,
-    //     ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-    // void Initialize() override;
+    void Initialize() override;
 
 
 protected:
@@ -273,57 +273,22 @@ protected:
     // ///@name Protected Operations
     // ///@{
 
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+        
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    // ShapeFunctionDerivativesArrayType& ShapeFunctionsIntegrationPointsGradientsImag(
-    //     ShapeFunctionDerivativesArrayType& rResult, CoordinatesArrayType imag_coordinates, Vector& determinants_of_jacobian, IntegrationMethod ThisMethod ) const
-    // {
-    //     const GeometryType& geom = GetGeometry();
-    //     const unsigned int integration_points_number = geom.IntegrationPointsNumber( ThisMethod );
+    void ComplexJacobian(ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod);
 
-    //     if ( integration_points_number == 0 )
-    //         KRATOS_ERROR << "This integration method is not supported " << geom << std::endl;
+    void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag);
 
-    //     if ( rResult.size() != integration_points_number )
-    //         rResult.resize(  geom.IntegrationPointsNumber( ThisMethod ), false  );
-    //     if ( determinants_of_jacobian.size() != integration_points_number )
-    //         determinants_of_jacobian.resize(  geom.IntegrationPointsNumber( ThisMethod ), false  );
-
-    //     //calculating the local gradients
-    //     const AcousticPMLElement::ShapeFunctionDerivativesArrayType& DN_De = geom.ShapeFunctionsLocalGradients( ThisMethod );
-
-    //     //loop over all integration points
-    //     Matrix J(geom.WorkingSpaceDimension(),geom.LocalSpaceDimension());
-    //     Matrix Jinv(geom.WorkingSpaceDimension(),geom.LocalSpaceDimension());
-    //     double DetJ;
-    //     for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-    //     {
-    //         if(rResult[pnt].size1() != geom.WorkingSpaceDimension() ||  rResult[pnt].size2() != geom.LocalSpaceDimension())
-    //             rResult[pnt].resize( (geom).size(), geom.LocalSpaceDimension(), false );
-    //         geom.Jacobian(J, imag_coordinates);
-    //         MathUtils<double>::GeneralizedInvertMatrix( J, Jinv, DetJ );
-    //         noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
-    //         determinants_of_jacobian[pnt] = DetJ;
-    //     }
-
-    //     return rResult;
-    // }
-
-    void ComplexJacobian( ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod );
+    void CalculateLocalSystem(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo) override;
 
 
-    // void CalculateRightHandSide(
-    //   VectorType& rRightHandSideVector,
-    //   ProcessInfo& rCurrentProcessInfo) override;
-
-    // void CalculateLocalSystem(
-    //   MatrixType& rLeftHandSideMatrix,
-    //   VectorType& rRightHandSideVector,
-    //   ProcessInfo& rCurrentProcessInfo) override;
-
-    // void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     // void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 

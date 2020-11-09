@@ -238,7 +238,7 @@ void AcousticElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
         SizeType dim1= geom.WorkingSpaceDimension();
         SizeType dim2= geom.LocalSpaceDimension();
 
-        std::cout << "i am calculating an acoustic element\n";
+        std::cout << "i am calculating an acoustic element LHS\n";
 
         if( rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes )
         {
@@ -353,8 +353,8 @@ void AcousticElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
 {
     KRATOS_TRY;
 
-    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
-    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 
     // auto& r_geometry = this->GetGeometry();
     // const SizeType number_of_nodes = r_geometry.size();

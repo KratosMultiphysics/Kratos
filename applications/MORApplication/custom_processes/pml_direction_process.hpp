@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 
 #if !defined(KRATOS_PML_DIRECTION_PROCESS_H_INCLUDED)
-#define KRATOS_MONOLITHIC_MAPPING_PROCESS_H_INCLUDED
+#define KRATOS_PML_DIRECTION_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -17,7 +17,13 @@
 // Project includes
 #include "processes/process.h"
 #include "includes/model_part.h"
+#include "includes/define.h"
 #include "mor_application_variables.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+
+
 
 namespace Kratos
 {
@@ -37,15 +43,15 @@ namespace Kratos
 ///@{
 
 /**
- * @class MonolithicMappingProcess
+ * @class PMLDirectionProcess
  *
  * @ingroup MORApplication
  *
- * @brief This method provides mapping info to conditions
- * @details Based on the provided mapping matrix, the nodes of two model parts are paired
+ * @brief This method provides PML damping vector field.
+ * @details Based on solving a convection problem from the inner interface of the PML to the outer boundary, the PML damping direction is calculated for every node in the PML.
 */
-template<typename MatrixType>
-class MonolithicMappingProcess
+template< class TSparseSpace, class TDenseSpace, class TLinearSolver >
+class PMLDirectionProcess
     : public Process
 {
 public:
@@ -55,42 +61,111 @@ public:
     typedef Node < 3 > NodeType;
     typedef Node < 3 > ::Pointer NodeTypePointer;
     typedef std::vector<NodeTypePointer> NodeVector;
+    typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
+    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+
+    // typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename TDenseSpace::MatrixType TDenseMatrixType;
+
+    typedef typename TDenseSpace::MatrixPointerType TDenseMatrixPointerType;
+
+    // typedef typename BaseType::TSchemeType TSchemeType;
+
+    // typedef typename BaseType::DofsArrayType DofsArrayType;
+
+    // typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+    // typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
+    // typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+
+    // typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+
+    // typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+
+    // typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+
+    // typedef typename ComplexSparseSpaceType::MatrixType TSolutionMatrixType;
+
 
     /// Pointer definition of MonolithicMappingProcess
-    KRATOS_CLASS_POINTER_DEFINITION(MonolithicMappingProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(PMLDirectionProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MonolithicMappingProcess(
-        ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination,
-        MatrixType& rMappingMatrix
-        ) : mrModelPartOrigin(rModelPartOrigin),
-        mrModelPartDestination(rModelPartDestination),
-        mrMappingMatrix(rMappingMatrix)
+    PMLDirectionProcess(
+        ModelPart& rModelPartPML,
+        ModelPart& rModelPartInterface,
+        ModelPart& rModelPartBoundary,
+        typename TLinearSolver::Pointer plinear_solver
+        ) : mrModelPartPML(rModelPartPML),
+        mrModelPartInterface(rModelPartInterface),
+        mrModelPartBoundary(rModelPartBoundary)
     {
         KRATOS_TRY
+        
+        // Check that there is at least one element and node in the model
+        const auto n_nodes = mrModelPartPML.NumberOfNodes();
+        const auto n_elems = mrModelPartPML.NumberOfElements();
+
+        KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
+        KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
+
+        // Set build level
+
+        mrModelPartPML.GetProcessInfo()[BUILD_LEVEL] = 401; 
+
+        // Generate a linear strategy
+        typename SchemeType::Pointer pScheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
+        typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
+
+        bool CalculateReactions = false;
+        bool ReformDofAtEachIteration = false;
+        bool CalculateNormDxFlag = false;
+
+        BuilderSolverTypePointer pBuilderSolver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver > >(plinear_solver);
+        mpSolvingStrategy = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
+            mrModelPartPML,
+            pScheme,
+            plinear_solver,
+            pBuilderSolver,
+            CalculateReactions,
+            ReformDofAtEachIteration,
+            CalculateNormDxFlag);
+        
+
+
+        mpSolvingStrategy->SetEchoLevel(0);
+
+
+
+        // mpK = TSparseSpace::CreateEmptyMatrixPointer();
+        
+        // mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+        // mpDx = TSparseSpace::CreateEmptyVectorPointer();
+
+
+
+        //TODO: check flag DO_EXPENSIVE_CHECKS
+        mpSolvingStrategy->Check();
 
         KRATOS_CATCH("")
     }
 
     /// Destructor.
-    ~MonolithicMappingProcess() override = default;
+    ~PMLDirectionProcess() override = default;
+
 
     ///@}
-    ///@name Access
+    ///@name Operators
     ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
+    void operator()(){
+        Execute();
+    }
 
     ///@}
     ///@name Friends
@@ -106,55 +181,73 @@ public:
 
     void Execute() override
     {
-        std::cout << "execute nice process!!\n";
-        // KRATOS_WATCH(mrMappingMatrix)
-        const std::size_t n_nodes_dest = mrMappingMatrix.size1();
-        std::map<std::size_t, std::size_t> matrix_id_map;
-        for( std::size_t i=0; i<mrModelPartOrigin.Nodes().size(); ++i ) {
-            std::size_t id = mrModelPartOrigin.NodesArray()[i]->Id();
-            matrix_id_map[id] = i;
-            // std::cout << "inserting id=" << id << "i=" << i << std::endl;
-            // matrix_id_set.insert(std::make_pair(id, i));
+        KRATOS_TRY
+
+        ModelPart::NodesContainerType& rPMLNodes = mrModelPartPML.Nodes();
+        ModelPart::NodesContainerType& rInterfaceNodes = mrModelPartInterface.Nodes();
+        ModelPart::NodesContainerType& rBoundaryNodes = mrModelPartBoundary.Nodes();
+        
+        for ( ModelPart::NodesContainerType::iterator it_node = rInterfaceNodes.begin();
+                it_node != rInterfaceNodes.end() ; ++it_node)
+        {
+            it_node->SetValue(PRESCRIBED_POTENTIAL, -1);
+        }
+        
+        for ( ModelPart::NodesContainerType::iterator it_node = rBoundaryNodes.begin();
+                it_node != rBoundaryNodes.end() ; ++it_node)
+        {
+            it_node->SetValue(PRESCRIBED_POTENTIAL, 1);
         }
 
-        for( auto& condition : mrModelPartOrigin.Conditions() ) {
-            const std::size_t n_nodes = condition.GetGeometry().size();
-            NodeVector destination_nodes;
-            std::vector<std::size_t> destination_nodes_matrix_id;
-            std::vector<std::size_t> origin_nodes_matrix_id;
 
-            for( std::size_t i=0; i<n_nodes_dest; ++i ) {
-                double tmp = 0;
-                // KRATOS_WATCH(condition.GetGeometry()[i])
-                // std::cout << matrix_id_map[condition.GetGeometry()[i].Id()] << std::endl;
-                for( std::size_t j=0; j<n_nodes; ++j ){
-                    const size_t this_id = matrix_id_map[condition.GetGeometry()[j].Id()];
-                    tmp += mrMappingMatrix(i,this_id);
-                    origin_nodes_matrix_id.push_back(this_id);
-                }
+        mpSolvingStrategy->Solve();
+        // TSystemMatrixType& r_K  = *mpK;
+        // TSystemVectorType& r_RHS  = *mpRHS;
+        // TSystemVectorType& r_Dx = *mpDx;
 
-                //append to list of "geometry nodes" for the condition
-                if( std::abs(1-tmp) < std::numeric_limits<double>::epsilon()*10000 ) {
-                    const std::size_t dest_id = mrModelPartDestination.NodesArray()[i]->Id();
-                    destination_nodes.push_back(mrModelPartDestination.pGetNode(dest_id));
-                    destination_nodes_matrix_id.push_back(i);
-                }
+        // //setting up the list of the DOFs to be solved
+        // BuiltinTimer setup_dofs_time;
+        // pBuilderSolver->SetUpDofSet(p_scheme, rModelPartPML);
+        // KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+        //     << setup_dofs_time.ElapsedSeconds() << std::endl;
 
-            }
-            // KRATOS_WATCH(nodes)
-            condition.SetValue(MAPPING_NODES, destination_nodes);
 
-            //now write the mapping factors
-            const size_t n_destination_nodes = destination_nodes.size();
-            Matrix mapping_factors(n_destination_nodes, n_nodes);
-            for( std::size_t i=0; i<n_destination_nodes; ++i ) {
-                for( std::size_t j=0; j<n_nodes; ++j ) {
-                    mapping_factors(i,j) = mrMappingMatrix(destination_nodes_matrix_id[i], origin_nodes_matrix_id[j]);
-                }
-            }
-            // KRATOS_WATCH(mapping_factors)
-            condition.SetValue(MAPPING_FACTOR, mapping_factors);
-        }
+        // //shaping correctly the system
+        // BuiltinTimer setup_system_time;
+        // pBuilderSolver->SetUpSystem(rModelPartPML);
+        // KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+        //     << setup_system_time.ElapsedSeconds() << std::endl;
+
+        // //setting up the Vectors involved to the correct size
+        // BuiltinTimer system_matrix_resize_time;
+        // pBuilderSolver->ResizeAndInitializeVectors(pScheme, r_K, r_RHS, r_Dx, rModelPartPML);
+
+        // if (mpDx->size() != pBuilderSolver->GetEquationSystemSize())
+        //     mpDx->resize(pBuilderSolver->GetEquationSystemSize(), false);
+
+        // KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+        //     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+     
+
+        // //set up system matrices
+
+        // //set up the stiffness matrix and rhs
+        // TSparseSpace::SetToZero(r_tmp_RHS);
+        // pBuilderSolver->Build(pScheme, rModelPartPML, r_K, r_RHS);
+        // //DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_K, r_tmp_RHS, fixed_dofs, 1.0);
+
+
+
+
+
+
+
+
+
+
+
+
+        KRATOS_CATCH("")
     }
 
     ///@}
@@ -174,13 +267,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "MonolithicMappingProcess";
+        return "PMLDirectionProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "MonolithicMappingProcess";
+        rOStream << "PMLDirectionProcess";
     }
 
     /// Print object's data.
@@ -239,10 +332,16 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    ModelPart& mrModelPartPML;
+    ModelPart& mrModelPartInterface;
+    ModelPart& mrModelPartBoundary;
 
-    ModelPart& mrModelPartOrigin;              // The main model part
-    ModelPart& mrModelPartDestination;
-    MatrixType& mrMappingMatrix;
+    typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
+
+    // TSystemVectorPointerType mpRHS; /// The RHS vector
+    // TSystemVectorPointerType mpDx; /// The solution vector
+    // TSystemMatrixPointerType mpK; /// The stiffness matrix (real part)
+    
 
     ///@}
     ///@name Private Operators
@@ -285,22 +384,6 @@ private:
 //     return rOStream;
 // }
 
-}
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    MonolithicMappingProcess& operator=(MonolithicMappingProcess const& rOther) = delete;
-
-    /// Copy constructor.
-    MonolithicMappingProcess(MonolithicMappingProcess const& rOther) = delete;
-
-
-    ///@}
-
-}; // Class MonolithicMappingProcess
-
 ///@}
 
 ///@name Type Definitions
@@ -325,6 +408,8 @@ private:
 //
 //     return rOStream;
 // }
+
+};
 
 }
 #endif /* KRATOS_MONOLITHIC_MAPPING_PROCESS_H_INCLUDED defined */
