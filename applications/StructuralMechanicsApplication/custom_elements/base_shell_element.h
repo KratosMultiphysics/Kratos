@@ -244,13 +244,13 @@ protected:
         const bool CalculateResidualVectorFlag
     );
 
-    void BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
 
     virtual void SetupOrientationAngles();
 
