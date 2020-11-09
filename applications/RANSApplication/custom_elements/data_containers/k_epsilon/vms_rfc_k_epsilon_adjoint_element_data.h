@@ -20,6 +20,7 @@
 
 // Application includes
 #include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_adjoint_state_derivatives.h"
+#include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_adjoint_sensitivity_derivatives.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/k_adjoint_element_data.h"
 // #include "custom_elements/data_containers/vms_adjoint_element_data.h"
@@ -34,6 +35,8 @@ class VMSRFCKEpsilonAdjintElementData
 
     template <class TStateDerivativesType>
     using StabilizationStateDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointUtilities::StabilizationStateDerivatives<TDim, TNumNodes, TStateDerivativesType>;
+
+    using StabilizationSensitivityDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointUtilities::StabilizationSensitivityDerivatives<TDim, TNumNodes>;
 
     constexpr static unsigned int TEquation1Offset = TDim + 1;
     constexpr static unsigned int TEquation2Offset = TDim + 2;
@@ -88,7 +91,13 @@ public:
 
         class SensitivityDerivatives
         {
+        public:
+            ///@name Public type definitions
+            ///@{
 
+            using ShapeDerivatives = typename StabilizationSensitivityDerivatives::ShapeDerivatives<typename KEpsilonAdjointElementData::KAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives, TEquation1Offset>;
+
+            ///@}
         };
 
         ///@}
@@ -141,7 +150,13 @@ public:
 
         class SensitivityDerivatives
         {
+        public:
+            ///@name Public type definitions
+            ///@{
 
+            using ShapeDerivatives = typename StabilizationSensitivityDerivatives::ShapeDerivatives<typename KEpsilonAdjointElementData::EpsilonAdjointSensitivityDerivatives<TDim, TNumNodes>::ShapeDerivatives, TEquation2Offset>;
+
+            ///@}
         };
 
         ///@}

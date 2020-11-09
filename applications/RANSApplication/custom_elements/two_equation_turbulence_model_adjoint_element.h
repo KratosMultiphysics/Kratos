@@ -24,6 +24,7 @@
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "includes/properties.h"
+#include "utilities/geometrical_sensitivity_utility.h"
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
@@ -625,6 +626,7 @@ public:
         KRATOS_TRY
 
         if (rSensitivityVariable == SHAPE_SENSITIVITY) {
+            CalculateShapeDerivatives(rOutput, rCurrentProcessInfo);
         } else {
             KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
                          << " not supported." << std::endl;
@@ -676,12 +678,74 @@ protected:
     ///@{
     ///@}
 private:
-    ///@name Member Variables
+    ///@name Member Operations
     ///@{
 
-    ///@}
-    ///@name Unaccessible methods
-    ///@{
+    static constexpr unsigned int TShapeDerivativesSize = TDim * TNumNodes;
+
+    void CalculateShapeDerivatives(
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        if (rOutput.size1() != TShapeDerivativesSize ||
+            rOutput.size2() != TElementLocalSize)
+            rOutput.resize(TShapeDerivativesSize, TElementLocalSize, false);
+
+        rOutput.clear();
+
+        typename TurbulenceEquation1Data::SensitivityDerivatives::ShapeDerivatives turbulence_equation_1(this->GetGeometry());
+        typename TurbulenceEquation2Data::SensitivityDerivatives::ShapeDerivatives turbulence_equation_2(this->GetGeometry());
+
+        turbulence_equation_1.Initialize(rOutput, rCurrentProcessInfo);
+        turbulence_equation_2.Initialize(rOutput, rCurrentProcessInfo);
+
+        const auto integration_method = TurbulenceEquation1Data::GetIntegrationMethod();
+
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        RansCalculationUtilities::CalculateGeometryData(this->GetGeometry(), integration_method, gauss_weights, shape_functions, shape_derivatives);
+
+        for (IndexType g = 0; g < gauss_weights.size(); ++g) {
+            const Vector& N = row(shape_functions, g);
+            const Matrix& dNdX = shape_derivatives[g];
+            const double weight = gauss_weights[g];
+
+            turbulence_equation_1.CalculateGaussPointData(weight, N, dNdX);
+            turbulence_equation_2.CalculateGaussPointData(weight, N, dNdX);
+
+            Geometry<Point>::JacobiansType J;
+            this->GetGeometry().Jacobian(J, integration_method);
+            const auto& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+
+            GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_deriv;
+            const Matrix& rJ = J[g];
+            const Matrix& rDN_De = DN_De[g];
+            const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
+            GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
+
+            ShapeParameter deriv;
+            for (deriv.NodeIndex = 0; deriv.NodeIndex < TNumNodes; ++deriv.NodeIndex) {
+                for (deriv.Direction = 0; deriv.Direction < TDim; ++deriv.Direction) {
+
+                    double detJ_deriv;
+                    geom_sensitivity.CalculateSensitivity(deriv, detJ_deriv, dNdX_deriv);
+                    const double weight_deriv = detJ_deriv * inv_detJ * weight;
+
+                    turbulence_equation_1.CalculateResidualDerivatives(rOutput, deriv, weight, N, dNdX, weight_deriv,  detJ_deriv, dNdX_deriv);
+                    turbulence_equation_2.CalculateResidualDerivatives(rOutput, deriv, weight, N, dNdX, weight_deriv,  detJ_deriv, dNdX_deriv);
+                }
+            }
+        }
+
+        turbulence_equation_1.Finalize(rOutput, rCurrentProcessInfo);
+        turbulence_equation_2.Finalize(rOutput, rCurrentProcessInfo);
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
 };
