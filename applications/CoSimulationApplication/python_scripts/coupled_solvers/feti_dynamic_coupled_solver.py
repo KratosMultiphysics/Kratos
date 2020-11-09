@@ -102,8 +102,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         self.mapper = mapper_create_fct(self.model_part_origin_interface, self.model_part_destination_interface, self.mapper_parameters.Clone())
 
         # get interface modelparts created by the mapper modeler
-        self.modelpart_interface_origin_from_mapper = self.mapper.GetInterfaceModelPart(0)
-        self.modelpart_interface_destination_from_mapper = self.mapper.GetInterfaceModelPart(1)
+        self.modelpart_interface_origin_from_mapper = self.mapper.GetInterfaceModelPartOrigin()
+        self.modelpart_interface_destination_from_mapper = self.mapper.GetInterfaceModelPartDestination()
 
         # Get time integration parameters
         self.is_implicit = [True, True]

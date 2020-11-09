@@ -161,9 +161,14 @@ public:
         KRATOS_ERROR << "This mapper doesn't implement \"GetMappingMatrix\"!" << std::endl;
     }
 
-    virtual ModelPart& GetInterfaceModelPart(IndexType ModelPartIndex)
+    virtual ModelPart& GetInterfaceModelPartOrigin()
     {
-        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPart\"!" << std::endl;
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPartOrigin\"!" << std::endl;
+    }
+
+    virtual ModelPart& GetInterfaceModelPartDestination()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPartDestination\"!" << std::endl;
     }
 
     ///@}
