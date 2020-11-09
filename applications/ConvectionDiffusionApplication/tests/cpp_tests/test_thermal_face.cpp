@@ -91,7 +91,8 @@ namespace Testing
         Condition::Pointer p_condition = test_model_part.pGetCondition(1);
         Vector RHS = ZeroVector(3);
         Matrix LHS = ZeroMatrix(3,3);
-        p_condition->CalculateLocalSystem(LHS, RHS, test_model_part.GetProcessInfo());
+        const auto& rConstProcessRef = test_model_part.GetProcessInfo();
+        p_condition->CalculateLocalSystem(LHS, RHS, rConstProcessRef);
 
         std::vector<double> expected_RHS = {-1486.82, -1486.82};
         std::vector<double> expected_LHS = {11.5051, 5.75253,
@@ -136,7 +137,8 @@ namespace Testing
         Condition::Pointer p_condition = test_model_part.pGetCondition(1);
         Vector RHS = ZeroVector(3);
         Matrix LHS = ZeroMatrix(3,3);
-        p_condition->CalculateLocalSystem(LHS, RHS, test_model_part.GetProcessInfo());
+        const auto& rConstProcessInfoRef = test_model_part.GetProcessInfo();
+        p_condition->CalculateLocalSystem(LHS, RHS, rConstProcessInfoRef);
 
         std::vector<double> expected_RHS = {-495.606, -495.606, -495.606};
         std::vector<double> expected_LHS = {2.87627, 1.43813, 1.43813,
@@ -183,7 +185,9 @@ namespace Testing
         Condition::Pointer p_condition = test_model_part.pGetCondition(1);
         Vector RHS = ZeroVector(4);
         Matrix LHS = ZeroMatrix(4,4);
-        p_condition->CalculateLocalSystem(LHS, RHS, test_model_part.GetProcessInfo());
+        const auto& rConstProcessInfoRef = test_model_part.GetProcessInfo();
+
+        p_condition->CalculateLocalSystem(LHS, RHS, rConstProcessInfoRef);
 
         std::vector<double> expected_RHS = {-743.41, -743.41, -743.41, -743.41};
         std::vector<double> expected_LHS = {3.83502, 1.91751, 0.958756, 1.91751,

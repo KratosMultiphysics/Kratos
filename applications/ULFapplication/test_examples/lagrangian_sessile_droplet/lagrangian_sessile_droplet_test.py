@@ -29,6 +29,7 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ULFApplication import *
 #from KratosMultiphysics.StructuralApplication import *
+#from KratosMultiphysics.PFEMApplication import *
 #from KratosMultiphysics.ALEApplication import *
 
 ## defining variables to be used

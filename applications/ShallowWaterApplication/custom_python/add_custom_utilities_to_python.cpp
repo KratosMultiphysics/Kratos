@@ -76,9 +76,9 @@ namespace Python
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
         ;
 
-    py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
+    py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")
         .def(py::init<ModelPart&, Parameters>())
-        .def("EstimateDt", &EstimateDtShallow::EstimateDt)
+        .def("Execute", &EstimateTimeStepUtility::Execute)
         ;
 
     py::class_< ReplicateModelPartUtility > (m, "ReplicateModelPartUtility")

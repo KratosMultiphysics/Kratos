@@ -82,13 +82,13 @@ public:
         return Kratos::make_intrusive<EulerianConvectionDiffusionElement>(NewId, pGeom, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+	void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ protected:
 
     double ComputeH(BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
 
-    void GetNodalValues(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
+    void GetNodalValues(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) const;
 
     double CalculateTau(const ElementVariables& rVariables, double norm_vel, double h);
 

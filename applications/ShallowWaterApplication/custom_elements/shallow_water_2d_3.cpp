@@ -121,6 +121,26 @@ void ShallowWater2D3::GetValuesVector(Vector& rValues, int Step) const
     }
 }
 
+void ShallowWater2D3::GetFirstDerivativesVector(Vector& rValues, int Step) const
+{
+    if (rValues.size() != 9)
+        rValues.resize(9, false);
+
+    const GeometryType& r_geom = this->GetGeometry();
+    size_t counter = 0;
+    for (size_t i = 0; i < 3; i++)
+    {
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
+    }
+}
+
+void ShallowWater2D3::GetSecondDerivativesVector(Vector& rValues, int Step) const
+{
+    KRATOS_ERROR << "ShallowWater2D3: This method is not supported by the formulation" << std::endl;
+}
+
 void ShallowWater2D3::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -147,8 +167,6 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     data.GetNodalData(GetGeometry(), DN_DX);
 
-    AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
-
     AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
     AddSourceTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
@@ -164,17 +182,27 @@ void ShallowWater2D3::CalculateLocalSystem(
     rLeftHandSideMatrix *= area;
 }
 
-void ShallowWater2D3::AddInertiaTerms(
-    MatrixType& rLHS,
-    VectorType& rRHS,
-    const ElementData& rData,
-    const array_1d<double,3>& rN,
-    const BoundedMatrix<double,3,2>& rDN_DX)
+void ShallowWater2D3::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
+    if(rMassMatrix.size1() != 9)
+        rMassMatrix.resize(9, 9, false);
+
+    // Struct to pass around the data
+    ElementData data;
+    data.InitializeData(rCurrentProcessInfo);
+
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+
+    data.GetNodalData(GetGeometry(), DN_DX);
+
     BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
-    ComputeMassMatrix(mass_matrix, rData, rN, rDN_DX);
-    rLHS += rData.dt_inv * mass_matrix;
-    rRHS += rData.dt_inv * prod(mass_matrix, rData.prev_unk);
+    ComputeMassMatrix(mass_matrix, data, N, DN_DX);
+    rMassMatrix = area * mass_matrix;
 }
 
 void ShallowWater2D3::AddGradientTerms(
@@ -310,8 +338,6 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         const auto h = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
         const auto f = rGeometry[i].FastGetSolutionStepValue(MOMENTUM);
         const auto v = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
-        const auto hn = rGeometry[i].FastGetSolutionStepValue(HEIGHT, 1);
-        const auto fn = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, 1);
         const auto n = rGeometry[i].FastGetSolutionStepValue(MANNING);
 
         height += h;
@@ -324,19 +350,16 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         depth[j] = 0;
         rain[j]  = 0;
         unknown[j]  = f[0];
-        prev_unk[j]  = fn[0];
         j++;
 
         depth[j] = 0;
         rain[j]  = 0;
         unknown[j]  = f[1];
-        prev_unk[j]  = fn[1];
         j++;
 
         depth[j] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
         rain[j]  = rGeometry[i].FastGetSolutionStepValue(RAIN);
         unknown[j]  = h;
-        prev_unk[j]  = hn;
         j++;
 
         double aux_wet_fraction, aux_effective_height;
@@ -443,32 +466,6 @@ void ShallowWater2D3::ComputeMassMatrix(
         rHeightMatrix(block+2, block+2) += lumping_factor * rData.wet_fraction;
 
         // TODO: add consistent mass matrix with stabilization
-    }
-}
-
-void ShallowWater2D3::CalculateMassMatrix(
-    MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rMassMatrix.size1() != 9)
-        rMassMatrix.resize(9, 9, false);
-
-    rMassMatrix = ZeroMatrix(9,9);
-
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
-
-    const double lumping_factor = area / 3.0;
-    for (size_t i = 0; i < 3; ++i)
-    {
-        const size_t block = 3 * i;
-        rMassMatrix(block, block) += lumping_factor;
-        rMassMatrix(block+1, block+1) += lumping_factor;
-        rMassMatrix(block+2, block+2) += lumping_factor;
-
-        // TODO: add consistent mass matrix
     }
 }
 
@@ -698,22 +695,18 @@ void ShallowWater2D3::AlgebraicResidual(
     double height_acc = 0.0;
     double rain = 0.0;
 
-    // auto& r_geom = GetGeometry();
+    auto& r_geom = GetGeometry();
     for (size_t i = 0; i < 3; ++i)
     {
-        // TODO: use accelerations from the scheme
-        // flow_acc += r_geom[i].FastGetSolutionStepValue(ACCELERATION);
-        // height_acc += r_geom[i].FastGetSolutionStepValue(VELOCITY_Z);
+        flow_acc += r_geom[i].FastGetSolutionStepValue(ACCELERATION);
+        height_acc += r_geom[i].FastGetSolutionStepValue(VERTICAL_VELOCITY);
 
         const size_t block = 3 * i;
-        flow_acc[0] += rData.unknown[block] - rData.prev_unk[block];
-        flow_acc[1] += rData.unknown[block + 1] - rData.prev_unk[block + 1];
-        height_acc += rData.unknown[block + 2] - rData.prev_unk[block + 2];
         rain += rData.rain[block + 2];
     }
     const double lumping_factor = 1.0 / 3.0;
-    flow_acc *= rData.dt_inv * lumping_factor;
-    height_acc *= rData.dt_inv * lumping_factor;
+    flow_acc *= lumping_factor;
+    height_acc *= lumping_factor;
     rain *= lumping_factor;
 
     const double c2 = rData.gravity * rData.effective_height;

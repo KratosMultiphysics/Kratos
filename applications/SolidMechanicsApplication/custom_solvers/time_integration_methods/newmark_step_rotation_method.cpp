@@ -82,10 +82,7 @@ namespace Kratos
 
    }
 
-    template class NewmarkStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>, double>;
     template class NewmarkStepRotationMethod< Variable<array_1d<double, 3>>, array_1d<double,3>>;
     template class NewmarkStepRotationMethod< Variable<double>, double >;
 
 }  // namespace Kratos.
-
-
