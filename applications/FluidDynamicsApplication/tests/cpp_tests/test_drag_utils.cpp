@@ -234,6 +234,82 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(drag_force_center[2], 0.0, 1e-6);
 	    }
 
+	    /**
+	     * Checks the body fitted base moment computation utility.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(ComputeBodyFittedBaseMoment, FluidDynamicsApplicationFastSuite)
+		{
+            // Create a test element inside a modelpart
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
+            GenerateTestModelPart(model_part);
+            Element::Pointer p_element = model_part.pGetElement(1);
+
+            // Initialize the fluid element
+            const auto& r_process_info = model_part.GetProcessInfo();
+            p_element->Initialize(r_process_info);
+
+            // Set the reaction values manually. Note that the body fitted drag utilities assume
+            // that the REACTION has been already computed. Since this is assumed to be done by
+            // the builder and solver, which is out of the scope of this test, we do it manually.
+            model_part.GetNode(1).FastGetSolutionStepValue(REACTION_X) = 5.0;
+            model_part.GetNode(1).FastGetSolutionStepValue(REACTION_Y) = 10.0;
+            model_part.GetNode(2).FastGetSolutionStepValue(REACTION_X) = -20.0;
+            model_part.GetNode(2).FastGetSolutionStepValue(REACTION_Y) = -40.0;
+
+            // reference point
+            array_1d<double,3> ref_point;
+            ref_point(0) = 0.0;
+            ref_point(1) = 0.0;
+            ref_point(2) = 0.0;
+
+            // Call the body fitted drag utility
+            DragUtilities drag_utilities;
+            array_1d<double, 3> base_moment = drag_utilities.CalculateBodyFittedBaseMoment(model_part.GetSubModelPart("DragModelPart"), ref_point);
+
+            // Check computed values
+            KRATOS_WATCH_VECTOR_WITH_PRECISION(base_moment, 16);
+            KRATOS_CHECK_NEAR(base_moment[0], 0.0, 1e-6);
+            KRATOS_CHECK_NEAR(base_moment[1], 0.0, 1e-6);
+            KRATOS_CHECK_NEAR(base_moment[2], 40.0, 1e-6);
+	    }
+
+	    /**
+	     * Checks the embedded base moment computation utility.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedBaseMoment, FluidDynamicsApplicationFastSuite)
+		{
+            bool is_embedded = true;
+
+            // Create a test element inside a modelpart
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
+            GenerateTestModelPart(model_part, is_embedded);
+
+            // Initialize the fluid element
+            const auto& r_process_info = model_part.GetProcessInfo();
+            for (auto& r_elem : model_part.Elements()) {
+                r_elem.Initialize(r_process_info);
+            }
+
+            // reference point
+            array_1d<double,3> ref_point;
+            ref_point(0) = 0.0;
+            ref_point(1) = 0.0;
+            ref_point(2) = 0.0;
+
+            // Call the embedded drag utility
+            DragUtilities drag_utilities;
+            array_1d<double, 3> base_moment = drag_utilities.CalculateEmbeddedBaseMoment(model_part, ref_point);
+
+            // Check computed values
+            KRATOS_WATCH_VECTOR_WITH_PRECISION(base_moment, 16);
+            KRATOS_CHECK_NEAR(base_moment[0], 0.0, 1e-2);
+            KRATOS_CHECK_NEAR(base_moment[1], 0.0, 1e-4);
+            KRATOS_CHECK_NEAR(base_moment[2], 0.238125, 1e-6);
+	    }
+
+
 
     } // namespace Testing
 }  // namespace Kratos.
