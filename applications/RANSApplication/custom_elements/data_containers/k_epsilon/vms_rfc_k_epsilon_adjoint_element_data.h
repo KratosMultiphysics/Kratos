@@ -55,7 +55,7 @@ public:
 
         static GeometryData::IntegrationMethod GetIntegrationMethod()
         {
-            return GeometryData::GI_GAUSS_2;
+            return GeometryData::GI_GAUSS_1;
         }
 
         ///@}
@@ -114,7 +114,7 @@ public:
 
         static GeometryData::IntegrationMethod GetIntegrationMethod()
         {
-            return GeometryData::GI_GAUSS_2;
+            return GeometryData::GI_GAUSS_1;
         }
 
         ///@}

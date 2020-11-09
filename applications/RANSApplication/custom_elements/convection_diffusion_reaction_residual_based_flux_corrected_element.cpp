@@ -339,7 +339,7 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 GeometryData::IntegrationMethod ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::GI_GAUSS_1;
 }
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
