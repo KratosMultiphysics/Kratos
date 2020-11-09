@@ -124,8 +124,6 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
 
   int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-  void CleanMemory() override;
-
   void GetValuesVector(Vector& values, int Step = 0) override;
 
   void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
