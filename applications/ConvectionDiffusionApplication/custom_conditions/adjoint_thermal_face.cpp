@@ -51,7 +51,7 @@ Condition::Pointer AdjointThermalFace::Create(
 void AdjointThermalFace::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Delegating LHS matrix to base class
     ThermalFace::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -62,7 +62,7 @@ void AdjointThermalFace::CalculateLocalSystem(
 
 void AdjointThermalFace::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const Geometry<Node<3>>& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -75,7 +75,7 @@ void AdjointThermalFace::CalculateRightHandSide(
     noalias(rRightHandSideVector) = ZeroVector(num_nodes);
 }
 
-void AdjointThermalFace::GetValuesVector(Vector& rValues, int Step)
+void AdjointThermalFace::GetValuesVector(Vector& rValues, int Step) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -93,7 +93,7 @@ void AdjointThermalFace::GetValuesVector(Vector& rValues, int Step)
 
 void AdjointThermalFace::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -110,7 +110,7 @@ void AdjointThermalFace::EquationIdVector(
 }
 
 void AdjointThermalFace::GetDofList(
-    DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+    DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const 
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -126,7 +126,7 @@ void AdjointThermalFace::GetDofList(
     }
 }
 
-int AdjointThermalFace::Check(const ProcessInfo& rProcessInfo)
+int AdjointThermalFace::Check(const ProcessInfo& rProcessInfo) const 
 {
     KRATOS_TRY
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;

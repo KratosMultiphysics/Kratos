@@ -248,7 +248,7 @@ void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
 }
 
-void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -257,7 +257,7 @@ void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentPro
     }
 }
 
-void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -266,7 +266,7 @@ void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProce
     }
 }
 
-void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -277,7 +277,7 @@ void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessIn
     }
 }
 
-void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
