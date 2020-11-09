@@ -505,7 +505,7 @@ def ReadElementConnectivities(interface_file,line,ElemsNr):
     elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
     i = 0
     while line:
-	if line == "\n":
+        if line == "\n":
             line = interface_file.readline()
         else:
             elem_connectivities[i*4+0] = int(line.split()[0])
