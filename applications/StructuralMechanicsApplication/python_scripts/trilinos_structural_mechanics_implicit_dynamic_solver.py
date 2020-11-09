@@ -24,7 +24,7 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method" : "implicit",
             "scheme_type"             : "bossak",
@@ -32,7 +32,7 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
             "rayleigh_alpha"          : 0.0,
             "rayleigh_beta"           : 0.0
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

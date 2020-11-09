@@ -17,6 +17,11 @@ file( GLOB KRATOS_MAPPING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/*.cpp
 )
 
+## define test sources (cpp tests)
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+ 	file(GLOB KRATOS_MAPPING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
 ## If we have mpi support, use it
 if(${USE_MPI} MATCHES ON )
@@ -29,14 +34,15 @@ if(${USE_MPI} MATCHES ON )
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
     )
 
-    set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} ${MPI_LIBRARIES})
+    set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} KratosMPICore)
     set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} ${TRILINOS_LIBRARIES})
+
+    ## define test sources (cpp mpi tests)
+    if(${KRATOS_BUILD_TESTING} MATCHES ON)
+         file(GLOB KRATOS_MAPPING_APPLICATION_TESTING_SOURCES ${KRATOS_MAPPING_APPLICATION_TESTING_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/mpi/*.cpp)
+    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${USE_MPI} MATCHES ON )
 
-## define test sources (cpp tests)
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
- 	file(GLOB_RECURSE KRATOS_MAPPING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Mapping python interface sources
 file(GLOB_RECURSE KRATOS_MAPPING_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
@@ -66,6 +72,7 @@ if(USE_COTIRE MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/interpolative_mapper_base.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/interface_vector_container_mpi.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosMappingCore)
     cotire(KratosMappingApplication)
 endif(USE_COTIRE MATCHES ON)

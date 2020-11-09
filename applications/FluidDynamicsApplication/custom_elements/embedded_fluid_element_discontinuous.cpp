@@ -219,7 +219,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
 // Inquiry
 
 template <class TBaseElement>
-int EmbeddedFluidElementDiscontinuous<TBaseElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int EmbeddedFluidElementDiscontinuous<TBaseElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int out = EmbeddedDiscontinuousElementData::Check(*this, rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)

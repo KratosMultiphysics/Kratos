@@ -31,11 +31,11 @@ class CustomScipyBaseSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[CustomScipyBaseSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic"
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####
@@ -60,7 +60,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         return KratosMultiphysics.LinearSolver()
 
     def _create_mechanical_solution_strategy(self):
-        if self.settings["block_builder"].GetBool():
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             warn_msg = "In case an eigenvalue problem is computed an elimantion builder shall be used to ensure boundary conditions are applied correctly!"
             KratosMultiphysics.Logger.PrintWarning("CustomScipyBaseSolver", warn_msg)
 

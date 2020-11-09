@@ -74,22 +74,22 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
-        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self.__GetFileName("map_scalar")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self._GetFileName("map_scalar")))
 
     def test_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_destination.Nodes, KM.TEMPERATURE)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
-        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, GetFilePath(self.__GetFileName("inverse_map_scalar")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, GetFilePath(self._GetFileName("inverse_map_scalar")))
 
     def test_Map_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_origin.Nodes, KM.FORCE)
         self.mapper.Map(KM.FORCE, KM.VELOCITY)
-        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self.__GetFileName("map_vector")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self._GetFileName("map_vector")))
 
     def test_InverseMap_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_destination.Nodes, KM.VELOCITY)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
-        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, GetFilePath(self.__GetFileName("inverse_map_vector")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, GetFilePath(self._GetFileName("inverse_map_vector")))
 
     def test_SWAP_SIGN_Map_scalar(self):
         val = 1.234
@@ -264,7 +264,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
             self.assertAlmostEqual(val[1], exp_value[1])
             self.assertAlmostEqual(val[2], exp_value[2])
 
-    def __GetFileName(self, file_appendix):
+    def _GetFileName(self, file_appendix):
         return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
 
 def SetHistoricalNonUniformSolutionScalar(nodes, variable):

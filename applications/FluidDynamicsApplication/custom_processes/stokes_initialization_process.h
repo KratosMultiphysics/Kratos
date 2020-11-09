@@ -124,15 +124,14 @@ public:
         bool ReformDofSetFlag = false;
         bool CalculateNormDxFlag = false;
         bool MoveMeshFlag = false;
-        mpSolutionStrategy = StrategyPointerType( 
-            new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(r_stokes_part,
-                                                                                                                            pScheme,
-                                                                                                                            mpLinearSolver,
-                                                                                                                            pBuildAndSolver,
-                                                                                                                            ReactionFlag,
-                                                                                                                            ReformDofSetFlag,
-                                                                                                                            CalculateNormDxFlag,
-                                                                                                                            MoveMeshFlag) );
+        mpSolutionStrategy = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
+            r_stokes_part,
+            pScheme,
+            pBuildAndSolver,
+            ReactionFlag,
+            ReformDofSetFlag,
+            CalculateNormDxFlag,
+            MoveMeshFlag) );
         mpSolutionStrategy->SetEchoLevel(0);
         mpSolutionStrategy->Check();
 
@@ -186,8 +185,8 @@ public:
 
     void SetConditions(ModelPart& rStokesPart, ModelPart::ConditionsContainerType::Pointer pConditions)
     {
-        
-        ModelPart& r_stokes_part = mrReferenceModelPart.GetModel().GetModelPart("StokesModelPart");    
+
+        ModelPart& r_stokes_part = mrReferenceModelPart.GetModel().GetModelPart("StokesModelPart");
         rStokesPart.SetConditions(pConditions);
         r_stokes_part.GetCommunicator().LocalMesh().SetConditions(pConditions);
     }

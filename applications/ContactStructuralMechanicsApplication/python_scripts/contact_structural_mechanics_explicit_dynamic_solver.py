@@ -97,7 +97,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
             return self.delta_time
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = auxiliar_methods_solvers.AuxiliarExplicitContactSettings()
-        this_defaults.RecursivelyAddMissingParameters(super(ContactExplicitMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.RecursivelyAddMissingParameters(super(ContactExplicitMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults

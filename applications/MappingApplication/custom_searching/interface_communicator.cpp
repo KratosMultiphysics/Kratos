@@ -57,7 +57,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     // only if some points did not find a neighbor or dont have a valid
     // projection, more search iterations are necessary
     mMeshesAreConforming = 1;
-    ConductSearchIteration(rOptions, rpInterfaceInfo);
+    ConductSearchIteration(rOptions, rpInterfaceInfo, rComm);
 
     while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm)) {
         mSearchRadius *= increase_factor;
@@ -66,12 +66,12 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         // for the initial given search radius.
         mMeshesAreConforming = 0;
 
-        KRATOS_WARNING_IF("Mapper", mEchoLevel >= 1 && rComm.MyPID() == 0)
+        KRATOS_WARNING_IF("Mapper", mEchoLevel >= 1)
             << "search radius was increased, another search iteration is conducted\n"
             << "search iteration " << num_iteration << " / "<< max_search_iterations << " | "
             << "search radius " << mSearchRadius << std::endl;
 
-        ConductSearchIteration(rOptions, rpInterfaceInfo);
+        ConductSearchIteration(rOptions, rpInterfaceInfo, rComm);
     }
 
     FinalizeSearch();
@@ -245,7 +245,7 @@ void InterfaceCommunicator::InitializeBinsSearchStructure()
     }
 }
 
-void InterfaceCommunicator::ConductLocalSearch()
+void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 {
     SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
@@ -257,10 +257,15 @@ void InterfaceCommunicator::ConductLocalSearch()
         std::vector<double> neighbor_distances(num_interface_obj_bin);
         auto interface_obj(Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0)));
 
+        int sum_num_results = 0;
+        int sum_num_searched_objects = 0;
+
         for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) { // loop the ranks
             // #pragma omp parallel for // TODO this requires to make some things thread-local!
             // it makes more sense to omp this loop even though it is not the outermost one ...
             for (IndexType i=0; i<r_interface_infos_rank.size(); ++i) {
+                sum_num_searched_objects++;
+
                 auto& r_interface_info = r_interface_infos_rank[i];
 
                 interface_obj->Coordinates() = r_interface_info->Coordinates();
@@ -273,6 +278,8 @@ void InterfaceCommunicator::ConductLocalSearch()
                 const SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
                     interface_obj, search_radius, results_itr,
                     distance_itr, num_interface_obj_bin);
+
+                sum_num_results += number_of_results;
 
                 for (IndexType j=0; j<number_of_results; ++j) {
                     r_interface_info->ProcessSearchResult(*(neighbor_results[j]), neighbor_distances[j]);
@@ -288,15 +295,27 @@ void InterfaceCommunicator::ConductLocalSearch()
                 }
             }
         }
+
+        if (mEchoLevel > 1) {
+            const auto& r_data_comm = rComm.GetDataCommunicator();
+            sum_num_results = r_data_comm.Sum(sum_num_results, 0);
+            sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+
+            const double avg_num_results = sum_num_results / static_cast<double>(sum_num_searched_objects);
+
+            KRATOS_INFO_IF("Mapper", mEchoLevel > 1) << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
+            KRATOS_WARNING_IF("Mapper", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
+        }
     }
 }
 
 void InterfaceCommunicator::ConductSearchIteration(const Kratos::Flags& rOptions,
-                            const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
+                            const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                            const Communicator& rComm)
 {
     InitializeSearchIteration(rOptions, rpInterfaceInfo);
 
-    ConductLocalSearch();
+    ConductLocalSearch(rComm);
 
     FinalizeSearchIteration(rpInterfaceInfo);
 }

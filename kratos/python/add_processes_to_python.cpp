@@ -28,6 +28,7 @@
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" // TODO: To be removed
@@ -143,6 +144,16 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<const DataCommunicator&, ModelPart&>())
     .def("ClearNeighbours",&FindGlobalNodalNeighboursProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalNeighboursProcess::GetNeighbourIds)
+    ;
+
+    typedef FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> FindGlobalNodalNeighboursForConditionsProcess;
+    py::class_<FindGlobalNodalNeighboursForConditionsProcess, FindGlobalNodalNeighboursForConditionsProcess::Pointer, Process>
+        (m,"FindGlobalNodalNeighboursForConditionsProcess")
+    .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
+        return std::unique_ptr<FindGlobalNodalNeighboursForConditionsProcess>(new FindGlobalNodalNeighboursForConditionsProcess(rDataComm, rModelPart, NEIGHBOUR_CONDITION_NODES));
+    }))
+    .def("ClearNeighbours",&FindGlobalNodalNeighboursForConditionsProcess::ClearNeighbours)
+    .def("GetNeighbourIds",&FindGlobalNodalNeighboursForConditionsProcess::GetNeighbourIds)
     ;
 
     py::class_<FindGlobalNodalElementalNeighboursProcess, FindGlobalNodalElementalNeighboursProcess::Pointer, Process>

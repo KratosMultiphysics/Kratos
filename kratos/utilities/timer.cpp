@@ -108,22 +108,26 @@ Timer::Timer(){}
 
 void Timer::Start(std::string const& rIntervalName)
 {
-    const auto it_internal_name = msInternalNameDatabase.find(rIntervalName);
+    GetLabelsStackInstance().push_back(rIntervalName);
+    auto full_name = CreateFullLabel();
+    const auto it_internal_name = msInternalNameDatabase.find(full_name);
     if(it_internal_name == msInternalNameDatabase.end()) {
-        const std::string internal_name = GetInternalName(rIntervalName);
-        msInternalNameDatabase.insert(std::pair<std::string, std::string>(rIntervalName, internal_name));
+        const std::string internal_name = GetInternalName(full_name);
+        msInternalNameDatabase.insert(std::pair<std::string, std::string>(full_name, internal_name));
         msTimeTable[internal_name].SetStartTime(GetTime());
         ++msCounter;
     }
-    const std::string& r_name = msInternalNameDatabase[rIntervalName];
+    const std::string& r_name = msInternalNameDatabase[full_name];
     ContainerType::iterator it_time_data = msTimeTable.find(r_name);
     it_time_data->second.SetStartTime(GetTime());
 }
 
 void Timer::Stop(std::string const& rIntervalName)
 {
+    auto full_name = CreateFullLabel();
+    GetLabelsStackInstance().pop_back();
     const double stop_time = GetTime();
-    const std::string& r_name = msInternalNameDatabase[rIntervalName];
+    const std::string& r_name = msInternalNameDatabase[full_name];
     ContainerType::iterator it_time_data = msTimeTable.find(r_name);
 
     if(it_time_data == msTimeTable.end())

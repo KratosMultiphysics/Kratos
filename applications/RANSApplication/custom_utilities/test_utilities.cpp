@@ -23,6 +23,9 @@
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 
+// Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
+
 // Include base h
 #include "test_utilities.h"
 
@@ -139,27 +142,6 @@ void RandomFillNodalHistoricalVariable(
     }
 }
 
-template <>
-ModelPart::NodesContainerType& GetContainer(
-    ModelPart& rModelPart)
-{
-    return rModelPart.Nodes();
-}
-
-template <>
-ModelPart::ConditionsContainerType& GetContainer(
-    ModelPart& rModelPart)
-{
-    return rModelPart.Conditions();
-}
-
-template <>
-ModelPart::ElementsContainerType& GetContainer(
-    ModelPart& rModelPart)
-{
-    return rModelPart.Elements();
-}
-
 template <class TContainerType, class TDataType>
 void RandomFillContainerVariable(
     ModelPart& rModelPart,
@@ -167,7 +149,7 @@ void RandomFillContainerVariable(
     const double MinValue,
     const double MaxValue)
 {
-    TContainerType& container = GetContainer<TContainerType>(rModelPart);
+    auto& container = RansCalculationUtilities::GetContainer<TContainerType>(rModelPart);
     for (auto& item : container) {
         std::stringstream seed;
         seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
@@ -182,7 +164,7 @@ void TestEquationIdVector(
     ModelPart& rModelPart)
 {
     auto eqn_ids = std::vector<IndexType>{};
-    for (const auto& r_item : GetContainer<TContainerType>(rModelPart)) {
+    for (const auto& r_item : RansCalculationUtilities::GetContainer<TContainerType>(rModelPart)) {
         r_item.EquationIdVector(eqn_ids, rModelPart.GetProcessInfo());
         KRATOS_CHECK_EQUAL(eqn_ids.size(), r_item.GetGeometry().PointsNumber());
         const auto& r_geometry = r_item.GetGeometry();
@@ -198,7 +180,7 @@ void TestGetDofList(
     const Variable<double>& rVariable)
 {
     auto dofs = Element::DofsVectorType{};
-    for (const auto& r_item : GetContainer<TContainerType>(rModelPart)) {
+    for (const auto& r_item : RansCalculationUtilities::GetContainer<TContainerType>(rModelPart)) {
         r_item.GetDofList(dofs, rModelPart.GetProcessInfo());
         KRATOS_CHECK_EQUAL(dofs.size(), r_item.GetGeometry().PointsNumber());
         const auto& r_geometry = r_item.GetGeometry();
@@ -223,51 +205,51 @@ template void TestGetDofList<ModelPart::ConditionsContainerType>(
     ModelPart&,
     const Variable<double>&);
 
-template void RandomFillNodalHistoricalVariable<double>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillNodalHistoricalVariable<double>(
     ModelPart&,
     const Variable<double>&,
     const double,
     const double,
     const int);
 
-template void RandomFillNodalHistoricalVariable<array_1d<double, 3>>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillNodalHistoricalVariable<array_1d<double, 3>>(
     ModelPart&,
     const Variable<array_1d<double, 3>>&,
     const double,
     const double,
     const int);
 
-template void RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>(
     ModelPart&,
     const Variable<array_1d<double, 3>>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
     ModelPart&,
     const Variable<array_1d<double, 3>>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(
     ModelPart&,
     const Variable<array_1d<double, 3>>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::NodesContainerType, double>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::NodesContainerType, double>(
     ModelPart&,
     const Variable<double>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>(
     ModelPart&,
     const Variable<double>&,
     const double,
     const double);
 
-template void RandomFillContainerVariable<ModelPart::ElementsContainerType, double>(
+template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ElementsContainerType, double>(
     ModelPart&,
     const Variable<double>&,
     const double,

@@ -74,10 +74,6 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
-
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
-
     /*@} */
     /**@name Life Cycle
      */
@@ -129,7 +125,6 @@ public:
             new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
                 *mpmesh_model_part,
                 pscheme,
-                pNewLinearSolver,
                 builderSolver,
                 m_compute_reactions,
                 m_reform_dof_set_at_each_step,

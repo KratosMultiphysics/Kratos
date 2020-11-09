@@ -5,9 +5,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
-
 import os, subprocess
 
 class CoSimulationTestCase(KratosUnittest.TestCase):
@@ -23,13 +20,12 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
         with open(full_parameter_file_name, 'r') as parameter_file:
             self.cosim_parameters = KM.Parameters(parameter_file.read())
 
-        if not using_pykratos:
-            # To avoid many prints
-            echo_level = self.cosim_parameters["problem_data"]["echo_level"].GetInt()
-            if (echo_level == 0):
-                KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
-            else:
-                KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
+        # To avoid many prints
+        echo_level = self.cosim_parameters["problem_data"]["echo_level"].GetInt()
+        if (echo_level == 0):
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
+        else:
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
         self.addCleanup(kratos_utils.DeleteTimeFiles, self.problem_dir_name)
 

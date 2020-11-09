@@ -14,7 +14,7 @@
         "num_coupling_iterations" : 20,
         "convergence_criteria" : [
             {
-                "type"          : "absolute_norm_residual",
+                "type"          : "absolute_norm_energy_conjugate",
                 "solver"        : "fem_fem_test_domainA",
                 "criteria_composition" : "energy_conjugate",
                 "criteria_options" : ["domain_difference","swap_second_domain_data_sign"],
@@ -22,7 +22,8 @@
                 "conjugate_data_name" : "load",
                 "solver_domain_two" : "fem_fem_test_domainB",
                 "abs_tolerance" : 1e-5,
-                "ignore_first_convergence" : true
+                "ignore_first_convergence" : true,
+                "use_wrapper" : false
             }
         ],
         "data_transfer_operators" : {

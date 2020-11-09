@@ -40,7 +40,6 @@ PYBIND11_MODULE(KratosMappingApplication, m)
         ;
 
     AddCustomMappersToPython(m);
-	
     AddCustomUtilitiesToPython(m);
 }
 

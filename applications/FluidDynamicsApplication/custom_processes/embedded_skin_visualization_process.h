@@ -129,13 +129,6 @@ public:
     ///@{
 
     /**
-     * @brief Get the Default Settings object
-     * Static method to get the default settings inside the contructor
-     * @return Parameters The parameters object containing the default settings
-     */
-    static Parameters GetDefaultSettings();
-
-    /**
      * @brief Create a And Prepare Visualization Model Part object
      * This method creates the visualization model part and prepares it for the computation
      * @param rModel The model container
@@ -251,6 +244,21 @@ public:
     void ExecuteAfterOutputStep() override;
 
     int Check() override;
+
+    /**
+     * @brief Get the Default Settings object
+     * Static method to get the default settings inside the contructor
+     * @return Parameters The parameters object containing the default settings
+     */
+    static Parameters StaticGetDefaultParameters();
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        return StaticGetDefaultParameters();
+    }
 
     ///@}
     ///@name Access
@@ -401,7 +409,7 @@ private:
         const double WeightI,
         const double WeightJ,
         const std::vector<const Variable<TDataType>*>& rVariablesList);
-    
+
     /**
      * Copies the non-interface nodes from the origin model part to the visualization one
      */

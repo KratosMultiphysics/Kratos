@@ -117,6 +117,8 @@ class GiDDamOutputProcess(Process):
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
 
         if settings.Has('result_file_configuration'):
             sub_settings_where_var_is = settings['result_file_configuration']
@@ -377,11 +379,11 @@ class GiDDamOutputProcess(Process):
         self.multifile_flag = self.__get_gidpost_flag(param,"MultiFileFlag", self.__multi_file_flag)
 
         if self.body_output or self.node_output:
-            self.body_io = GidIO( self.volume_file_name,
-                                    self.post_mode,
-                                    self.multifile_flag,
-                                    self.write_deformed_mesh,
-                                    self.write_conditions)
+            self.body_io = GidIO(self.volume_file_name,
+                                 self.post_mode,
+                                 self.multifile_flag,
+                                 self.write_deformed_mesh,
+                                 self.write_conditions)
 
         if self.skin_output or self.num_planes > 0:
             self.cut_io = GidIO(self.cut_file_name,

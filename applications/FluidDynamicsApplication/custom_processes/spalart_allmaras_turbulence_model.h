@@ -180,7 +180,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrSpalartModelPart,pScheme,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         mpSolutionStrategy->SetEchoLevel(0);
         mpSolutionStrategy->Check();
     }

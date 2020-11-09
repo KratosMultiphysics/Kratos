@@ -18,19 +18,15 @@ class FormfindingMechanicalSolver(MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        if not custom_settings.Has("use_computing_model_part"):
-            custom_settings.AddEmptyValue("use_computing_model_part")
-        custom_settings["use_computing_model_part"].SetBool(False) # must be False for FormFinding!
-
         # Construct the base solver.
         super().__init__(main_model_part, custom_settings)
-        custom_settings["projection_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["projection_settings"])
+        custom_settings["projection_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["projection_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("::[FormfindingMechanicalSolver]:: ", "Construction finished")
 
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "printing_format"             : "all",
             "write_formfound_geometry_file"    : true,
@@ -46,7 +42,7 @@ class FormfindingMechanicalSolver(MechanicalSolver):
                 "check_local_space_dimension" : false
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
 
@@ -62,7 +58,6 @@ class FormfindingMechanicalSolver(MechanicalSolver):
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
 
@@ -74,7 +69,6 @@ class FormfindingMechanicalSolver(MechanicalSolver):
         return StructuralMechanicsApplication.FormfindingStrategy(
                                                                 computing_model_part,
                                                                 mechanical_scheme,
-                                                                linear_solver,
                                                                 mechanical_convergence_criterion,
                                                                 builder_and_solver,
                                                                 formfinding_model_part,

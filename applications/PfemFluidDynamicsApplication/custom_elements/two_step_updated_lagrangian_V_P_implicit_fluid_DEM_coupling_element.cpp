@@ -56,7 +56,7 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Initialize
 }
 
 template <unsigned int TDim>
-int TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+int TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
   KRATOS_TRY;
 

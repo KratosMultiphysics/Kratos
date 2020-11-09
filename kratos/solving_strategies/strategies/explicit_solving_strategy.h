@@ -24,6 +24,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -93,10 +94,9 @@ public:
         Parameters ThisParameters)
         : mpModelPart(&rModelPart)
     {
-        const bool rebuild_level = ThisParameters.Has("rebuild_level") ? ThisParameters["rebuild_level"].GetInt() : 0;
-        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
-        SetMoveMeshFlag(move_mesh_flag);
-        SetRebuildLevel(rebuild_level);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
         mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
 
@@ -458,6 +458,25 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "explicit_solving_strategy" : "explicit_solving_strategy",
+            "move_mesh_flag"            : false,
+            "rebuild_level"             : 0,
+            "echo_level"                : 1,
+            "explicit_builder_settings" : {
+                "name": "explicit_builder"
+            }
+        })");
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -530,6 +549,33 @@ protected:
     virtual inline double GetDeltaTime()
     {
         return GetModelPart().GetProcessInfo().GetValue(DELTA_TIME);
+    }
+
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        const bool rebuild_level = ThisParameters["rebuild_level"].GetInt();
+        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
+        SetMoveMeshFlag(move_mesh_flag);
+        SetRebuildLevel(rebuild_level);
     }
 
     ///@}

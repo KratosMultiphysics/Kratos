@@ -92,6 +92,7 @@ namespace Kratos
                 || geometry_type == "GeometrySurfaceVariationNodes"
                 || geometry_type == "GeometryCurveNodes"
                 || geometry_type == "GeometryCurveVariationNodes") {
+                GetPointsAt(geometry_list, geometry_type, rParameters["parameters"], sub_model_part);
             }
             else {
                 CreateQuadraturePointGeometries(
@@ -273,6 +274,117 @@ namespace Kratos
         buffer << infile.rdbuf();
 
         return Parameters(buffer.str());
+    }
+
+    ///@}
+    ///@name Get Points at Boundaries
+    ///@{
+
+    /// Searches points at boundaries of nurbs geometries.
+    void IgaModeler::GetPointsAt(
+        GeometriesArrayType& rGeometryList,
+        const std::string& rGeometryType,
+        const Parameters rParameters,
+        ModelPart& rModelPart) const
+    {
+        for (auto& geom : rGeometryList) {
+
+            // local_coordinates 0->Beginn
+            //                   1->End
+            //                  -1->All nodes in this dimension
+            Vector local_coordinates = rParameters["local_parameters"].GetVector();
+
+            if (rGeometryType == "GeometryCurveNodes") {
+                KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 1) << "Geometry #" << geom.Id()
+                    << " needs to have a dimension of 1 for type GeometryCurveNodes. Dimension: " << geom.Dimension()
+                    << ". Geometry" << geom << std::endl;
+
+                SizeType number_of_cps = geom.size();
+
+                IndexType t_start = 0;
+                IndexType t_end = number_of_cps;
+
+                if (local_coordinates[0] >= 0) {
+                    t_start = local_coordinates[0] * (number_of_cps - 1);
+                    t_end = local_coordinates[0] * (number_of_cps - 1) + 1;
+                }
+
+                for (IndexType i = t_start; i < t_end; ++i) {
+                    rModelPart.AddNode(geom.pGetPoint(i));
+                }
+            }
+            else if (rGeometryType == "GeometryCurveVariationNodes") {
+                KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 1) << "Geometry #" << geom.Id()
+                    << " needs to have a dimension of 1 for type GeometryCurveVariationNodes. Dimension: " << geom.Dimension()
+                    << ". Geometry" << geom << std::endl;
+
+                SizeType number_of_cps = geom.size();
+
+                KRATOS_ERROR_IF(number_of_cps < 3)
+                    << "GetPointsAt: Not enough control points to get second row of nodes."
+                    << std::endl;
+
+                if (local_coordinates[0] == 0) {
+                    rModelPart.AddNode(geom.pGetPoint(1));
+                }
+                else if (local_coordinates[0] == 1) {
+                    rModelPart.AddNode(geom.pGetPoint(number_of_cps - 1));
+                }
+                else {
+                    KRATOS_ERROR << "GetPointsAt: GeometrySurfaceVariationNodes and local coordinates: " << local_coordinates[0]
+                        << " is no available option. Only 0 and 1 are possible with this combination." << std::endl;
+                }
+            }
+            else if (rGeometryType == "GeometrySurfaceNodes"
+                || rGeometryType == "GeometrySurfaceVariationNodes") {
+                KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 2) << "Geometry #" << geom.Id()
+                    << " needs to have a dimension of 2 for type " << rGeometryType << ". Dimension: "
+                    << geom.Dimension() << ". Geometry" << geom << std::endl;
+
+                SizeType number_of_cps_u = geom.PointsNumberInDirection(0);
+                SizeType number_of_cps_v = geom.PointsNumberInDirection(1);
+
+                IndexType u_start = 0;
+                IndexType u_end = number_of_cps_u;
+                IndexType v_start = 0;
+                IndexType v_end = number_of_cps_v;
+
+                if (rGeometryType == "GeometrySurfaceNodes") {
+                    if (local_coordinates[0] >= 0) {
+                        u_start = local_coordinates[0] * (number_of_cps_u - 1);
+                        u_end = local_coordinates[0] * (number_of_cps_u - 1) + 1;
+                    }
+                    if (local_coordinates[1] >= 0) {
+                        v_start = local_coordinates[1] * (number_of_cps_v - 1);
+                        v_end = local_coordinates[1] * (number_of_cps_v - 1) + 1;
+                    }
+                }
+                else if (rGeometryType == "GeometrySurfaceVariationNodes") {
+                    if (local_coordinates[0] == 0) {
+                        u_start = 1;
+                        u_end = 2;
+                    }
+                    if (local_coordinates[0] == 1) {
+                        u_start = number_of_cps_u - 2;
+                        u_end = number_of_cps_u - 1;
+                    }
+                    if (local_coordinates[1] == 0) {
+                        v_start = 1;
+                        v_end = 2;
+                    }
+                    if (local_coordinates[1] == 1) {
+                        v_start = number_of_cps_v - 2;
+                        v_end = number_of_cps_v - 1;
+                    }
+                }
+
+                for (IndexType i = u_start; i < u_end; ++i) {
+                    for (IndexType j = v_start; j < v_end; ++j) {
+                        rModelPart.AddNode(geom(i + j * number_of_cps_u));
+                    }
+                }
+            }
+        }
     }
 
     ///@}

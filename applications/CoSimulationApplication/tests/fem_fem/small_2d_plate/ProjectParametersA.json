@@ -22,6 +22,9 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
+        "linear_solver_settings"             : {
+            "solver_type" : "LinearSolversApplication.sparse_qr"
+        },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -50,7 +53,6 @@
                 "model_part_name"         : "Structure.LineLoad2D_right_edge",
 				"entity_name"             : "PointLoadCondition3D1N",
                 "entity_type"             : "condition",
-                "add_to_existing_model_part" : true,
 				"properties_id"           : 0
 			}
 		}],

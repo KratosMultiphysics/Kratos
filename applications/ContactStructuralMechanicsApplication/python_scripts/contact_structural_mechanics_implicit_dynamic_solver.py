@@ -137,7 +137,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     def _create_builder_and_solver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             linear_solver = self.get_linear_solver()
-            if self.settings["block_builder"].GetBool():
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
                 builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
                     # We use the elimination builder and solver
@@ -177,13 +177,12 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     def _create_contact_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         self.mechanical_scheme = self.get_solution_scheme()
-        self.linear_solver = self.get_linear_solver()
         self.mechanical_convergence_criterion = self.get_convergence_criterion()
         self.builder_and_solver = self.get_builder_and_solver()
-        return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+        return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = auxiliar_methods_solvers.AuxiliarContactSettings()
-        this_defaults.RecursivelyAddMissingParameters(super(ContactImplicitMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.RecursivelyAddMissingParameters(super(ContactImplicitMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults

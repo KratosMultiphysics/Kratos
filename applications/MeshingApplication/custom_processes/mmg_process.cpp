@@ -307,6 +307,13 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
         }
     }
 
+    /* Save to file */
+    const bool save_to_file = mThisParameters["save_external_files"].GetBool();
+    if (GetMmgVersion() == "5.5" && mDiscretization == DiscretizationOption::ISOSURFACE && save_to_file) {
+        InitializeSolDataDistance();
+        SaveSolutionToFile(true);
+    }
+
     // We release the memory
     FreeMemory();
 
@@ -510,7 +517,15 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     }
 
     /* Save to file */
-    if (save_to_file) SaveSolutionToFile(true);
+    if (save_to_file) {
+        if (GetMmgVersion() == "5.5") {
+            if (mDiscretization != DiscretizationOption::ISOSURFACE) {
+                SaveSolutionToFile(true);
+            }
+        } else {
+            SaveSolutionToFile(true);
+        }
+    }
 
     // Some information
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
@@ -1226,6 +1241,19 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     const SizeType final_num = mrThisModelPart.Nodes().size();
     KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+std::string MmgProcess<TMMGLibrary>::GetMmgVersion()
+{
+    KRATOS_TRY;
+
+    return mMmgUtilities.GetMmgVersion();
 
     KRATOS_CATCH("");
 }

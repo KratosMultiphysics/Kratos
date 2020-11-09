@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -141,12 +142,9 @@ public:
         Parameters ThisParameters
         )
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
@@ -621,6 +619,20 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name"       : "builder_and_solver",
+            "echo_level" : 1
+        })" );
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -724,6 +736,30 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
+    }
 
     ///@}
     ///@name Protected  Access

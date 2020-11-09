@@ -98,17 +98,11 @@ public:
      * @param ThisParameters Parameters with the Rayleigh variable
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
-        : DerivedBaseType(0.0)
+        : DerivedBaseType()
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                   : "ResidualBasedPseudoStaticDisplacementScheme",
-            "rayleigh_beta_variable" : "RAYLEIGH_BETA"
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mpRayleighBeta = &KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString());
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -308,6 +302,24 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                   : "pseudo_static_scheme",
+            "rayleigh_beta_variable" : "RAYLEIGH_BETA"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = DerivedBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -447,6 +459,16 @@ protected:
             rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        DerivedBaseType::AssignSettings(ThisParameters);
+        mpRayleighBeta = &KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString());
     }
 
     ///@}

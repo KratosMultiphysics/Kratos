@@ -129,13 +129,13 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             conv_crit.Check()
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "convergence_accelerators" : [],
             "convergence_criteria"     : [],
             "num_coupling_iterations"  : 10
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
 
         return this_defaults
 

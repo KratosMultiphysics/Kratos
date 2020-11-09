@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger
 import KratosMultiphysics.DEMApplication as DEM
@@ -15,7 +14,7 @@ def GetGlobalVariableByName(variable_name):
     modules = [Kratos, DEM, SDEM]
     for mod in modules:
         try:
-            return getattr(mod, variable_name) #TODO: this could use KratosMultiphysics.KratosGlobals.GetVariable(var_name)
+            return Kratos.KratosGlobals.GetVariable(variable_name)
         except Exception:
             pass
     names = [mod.__name__ for mod in modules]
@@ -341,6 +340,14 @@ class VariablesManager:
         # fluid coupling variables
         self.coupling_fluid_vars = []
         self.coupling_fluid_vars += [Kratos.MATERIAL_ACCELERATION]
+        self.coupling_fluid_vars += [Kratos.MASS_SOURCE]
+        self.coupling_fluid_vars += [SDEM.EXACT_VELOCITY]
+        self.coupling_fluid_vars += [SDEM.VECTORIAL_ERROR]
+        self.coupling_fluid_vars += [SDEM.ERROR_X]
+        self.coupling_fluid_vars += [SDEM.ERROR_Y]
+        self.coupling_fluid_vars += [SDEM.ERROR_Z]
+        self.coupling_fluid_vars += [SDEM.SCALAR_ERROR]
+        self.coupling_fluid_vars += [SDEM.EXACT_PRESSURE]
 
         self.coupling_fluid_vars += [Kratos.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
 
