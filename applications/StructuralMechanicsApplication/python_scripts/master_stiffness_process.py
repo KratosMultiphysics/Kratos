@@ -1,127 +1,181 @@
 import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from math import cos, sin 
 
+def Factory(parameters, model):
+    if not isinstance(parameters, KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    return MasterStiffnessMatrixProcess(model, parameters["Parameters"])
 
+## All the processes python should be derived from "Process"
 class MasterStiffnessMatrixProcess(KratosMultiphysics.Process):
     """
     This process allows the user to obtain the Stiffness Matrices of two Master nodes related to two specific Slave surfaces.\n
     Example:\n
     Master = MasterStiffnessMatrixProcess(model, parameters)\n
     Master.Run()\n
+
+    Public member variables:
+    model -- the container of the different model parts.
+    parameters -- Kratos parameters containing solver parameters.
     """
-    #KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) #In case we want to avoid printing
 
     def __init__(self, model, parameters):
-        """
-        It is needed to provide the parameters, with a "list_values" of the infinitesimal displacement/rotations, "list_of_master_coordinates" as a Matrix, and "processes_sub_model_part_list" which contains the names of the two slaves srufaces\n.
-        """
-        KratosMultiphysics.Process.__init__(self)
-        self.parameters = parameters
-        self.value = self.parameters["list_of_values"].GetVector()
-        self.master_coor = self.parameters["list_of_master_coordinates"].GetMatrix()
-        self.slave_surface_name = self.parameters["solver_settings"]["processes_sub_model_part_list"].GetStringArray()
-        self.number_master_nodes = len(self.slave_surface_name)
-        self.dim = self.parameters["solver_settings"]["domain_size"].GetInt()
-        self.ValidateData()
-            
-    def ValidateData(self):
-        """
-        Validates the Data for this specific process.
-        """
-        if (type(self.parameters) != KratosMultiphysics.Parameters):
-            raise Exception("Expected input -parameters- should be a Parameters object, encapsulating a json string.")
-        if (type(self.value) != KratosMultiphysics.Vector):
-            raise Exception("Expected input -value- should be a list.")
-        if (type(self.master_coor) != KratosMultiphysics.Matrix):
-            raise Exception("Expected input -master_coor- should be a list.")
-        if (type(self.slave_surface_name) != list):
-            raise Exception("Expected input -slave_surface_name- should be a list.")
-        if (len(self.value)!=2 or self.master_coor.Size1()!=2 or self.master_coor.Size2()!=3 or len(self.slave_surface_name)!=2):
-            raise Exception("Lists parameters should provide 2 surfaces information (length 2) for a 3D coordinate system.")
+        """ The default constructor of the class
 
-    def ChangeVectorValues(self,DoF,n):
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver parameters.
+        """
+        
+        KratosMultiphysics.Process.__init__(self)
+        
+        default_parameters = KratosMultiphysics.Parameters("""{
+                "model_part_list": ["Surface_name_1","Surface_name_2"],
+                "list_of_master_coordinates": [[0.0,0.0,0.0],[0.0,0.0,0.0]]
+            }""")
+
+        # Add missing settings that the user did not provide but that
+        # are necessary for this process
+        parameters.ValidateAndAssignDefaults(default_parameters)
+
+        self.parameters = parameters
+        self.model_part = model["Structure"]
+        self.Value()
+        self.inf_rot = 1e-5#Infinitesimal rotation
+        self.master_coor = self.parameters["list_of_master_coordinates"].GetMatrix()
+        self.slave_surface_name = self.parameters["model_part_list"].GetStringArray()
+        self.number_master_nodes = len(self.slave_surface_name)
+        self.dim = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+    
+    def ExecuteInitializeSolutionStep(self):
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.ChangeVectorValues()
+
+    def ExecuteFinalizeSolutionStep(self):
+        """ This method is executed in order to finalize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.MasterStiffnessVector()
+
+    def Value(self): #Still need to make cheaper and decide the final criterion.
+        '''
+        Gives an infinitesimal displacement for the 3D model part
+        '''
+        minimum = 1e30
+        maximum = -1e30
+        for node in self.model_part.Nodes:
+            if min(node.X,node.Y,node.Z) < minimum:
+                minimum = min(node.X,node.Y,node.Z)
+            if max(node.X,node.Y,node.Z) > maximum:
+                maximum = max(node.X,node.Y,node.Z)
+        self.value = 1e-5*(maximum - minimum) 
+
+    def ChangeVectorValues(self):
         """
         Similar to AddVector/ScalarValueProcess, specific for MasterStiffnessMatrixProcess.\n
         Produces an infinitesimal displacement/rotation on each direction.\n
         It is needed to provide "DoF", which stands for the loop on DoFs and n to recognize which surface Stiffness Matrix to obtain.
         """
-        
-        if n==1 and DoF==0:
-            self.slave_surface_name.reverse()
-        slave_submodel_part_name = "Structure."+self.slave_surface_name[0]#Slave surface, the one we want to obtain the stiffness from.
-        fixed_submodel_part_name = "Structure."+self.slave_surface_name[1]#Fixed surface.
-        
-        for i in range(self.parameters["output_processes"]["gid_output"].size()):
-            gid_output = self.parameters["output_processes"]["gid_output"][i]
-            gid_output_model_part_name = gid_output["Parameters"]["model_part_name"].GetString()
-            if gid_output_model_part_name=="Structure.computing_domain":# Erasing ".computing_domain" from gid_output
-                gid_output["Parameters"]["model_part_name"].SetString("Structure")
-        for i in range(self.parameters["output_processes"]["vtk_output"].size()):
-            vtk_output = self.parameters["output_processes"]["vtk_output"][i]
-            vtk_output_model_part_name = vtk_output["Parameters"]["model_part_name"].GetString()
-            if vtk_output_model_part_name=="Structure.computing_domain":# Erasing ".computing_domain" from vtk_output
-                vtk_output["Parameters"]["model_part_name"].SetString("Structure")
-                
-        #Iterating through the entire list of constraints 
-        for j in range(self.parameters["processes"]["constraints_process_list"].size()):
-            constraints_process_list = self.parameters["processes"]["constraints_process_list"][j] 
-            current_submodel_part_name = constraints_process_list["Parameters"]["model_part_name"].GetString()
-            #------------------- I am working to change this part --------------------------
-            #------------------- I am working to change this part --------------------------
-            if current_submodel_part_name==slave_submodel_part_name: # Forcing to change the displacement vector only in slave surface
-                if DoF==0:
-                    constraints_process_list["Parameters"]["value"].SetVector([self.value[n], 0.0, 0.0]) #Setting the new vector of displacements.
-                elif DoF==1:
-                    constraints_process_list["Parameters"]["value"].SetVector([0.0, self.value[n], 0.0]) #Setting the new vector of displacements.
-                elif DoF==2:
-                    constraints_process_list["Parameters"]["value"].SetVector([0.0, 0.0, self.value[n]]) #Setting the new vector of displacements.
-                elif DoF==3:
-                    constraints_process_list["Parameters"]["value"][0].SetDouble(0.0) #Since for the rotation we give double values and strings. We have to Set them separately
-                    constraints_process_list["Parameters"]["value"][1].SetString("((y-"+str(self.master_coor[n,1])+")*cos("+str(self.value[n])+")-(z-"+str(self.master_coor[n,2])+")*sin("+str(self.value[n])+"))+("+str(self.master_coor[n,1])+"-y)")
-                    constraints_process_list["Parameters"]["value"][2].SetString("((y-"+str(self.master_coor[n,1])+")*sin("+str(self.value[n])+")+(z-"+str(self.master_coor[n,2])+")*cos("+str(self.value[n])+"))+("+str(self.master_coor[n,2])+"-z)")
-                elif DoF==4:
-                    constraints_process_list["Parameters"]["value"][0].SetString("((x-"+str(self.master_coor[n,0])+")*cos("+str(self.value[n])+")+(z-"+str(self.master_coor[n,2])+")*sin("+str(self.value[n])+"))+("+str(self.master_coor[n,0])+"-x)")#Since for the rotation we give double values and strings. We have to Set them separately
-                    constraints_process_list["Parameters"]["value"][1].SetDouble(0.0)
-                    constraints_process_list["Parameters"]["value"][2].SetString("(-(x-"+str(self.master_coor[n,0])+")*sin("+str(self.value[n])+")+(z-"+str(self.master_coor[n,2])+")*cos("+str(self.value[n])+"))+("+str(self.master_coor[n,2])+"-z)")
-                elif DoF==5:
-                    constraints_process_list["Parameters"]["value"][0].SetString("((x-"+str(self.master_coor[n,0])+")*cos("+str(self.value[n])+")-(y-"+str(self.master_coor[n,1])+")*sin("+str(self.value[n])+"))+("+str(self.master_coor[n,0])+"-x)")#Since for the rotation we give double values and strings. We have to Set them separately
-                    constraints_process_list["Parameters"]["value"][1].SetString("((x-"+str(self.master_coor[n,0])+")*sin("+str(self.value[n])+")+(y-"+str(self.master_coor[n,1])+")*cos("+str(self.value[n])+"))+("+str(self.master_coor[n,1])+"-y)")
-                    constraints_process_list["Parameters"]["value"][2].SetDouble(0.0) 
-            elif current_submodel_part_name==fixed_submodel_part_name: # Enforcing to change the displacement vector only in fixed surface
-                constraints_process_list["Parameters"]["value"].SetVector([0.0, 0.0, 0.0]) #Setting the fixed vector of displacements.
-            #------------------- I am working to change this part --------------------------
-            #------------------- I am working to change this part --------------------------
+        current_step = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)-1
+        # self.n = 0 obtaining the stiffness matrix for the first slave surface; self.n = 1 obtaining the stiffness matrix for the second slave surface.
+        self.n = 0
+        if current_step>5:
+            self.n = 1
 
-    def MasterStiffnessVector(self,DoF,n):
+        self.DoF = current_step-(2*self.dim*self.n) #Local surface DoF
+
+        if self.n==1 and self.DoF==0: #To flip the surface list name for the second surface 
+            self.slave_surface_name.reverse()
+        
+        slave_submodel_part = self.model_part.GetSubModelPart(self.slave_surface_name[0])#Slave surface.
+        fixed_submodel_part = self.model_part.GetSubModelPart(self.slave_surface_name[1])#Fixed surface.
+        #Setting the infinitesimal displacement/rotation and fixed boundary condition 
+        if self.DoF<3: # Displacement DoF(0-2)
+            for node in slave_submodel_part.Nodes: #Slave surface
+                disp = KratosMultiphysics.Vector(3,0)
+                disp[self.DoF] = self.value
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,disp)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+            for node in fixed_submodel_part.Nodes: #Fixed surface
+                disp = KratosMultiphysics.Vector(3,0)
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,disp)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+        else:# Rotation DoF(3-5)
+            R = self.ComputeRotationMatrix()
+            v = KratosMultiphysics.Vector(3)
+            for node in slave_submodel_part.Nodes: #Slave surface
+                v[0] = node.X0 - self.master_coor[self.n,0]
+                v[1] = node.Y0 - self.master_coor[self.n,1]
+                v[2] = node.Z0 - self.master_coor[self.n,2]
+                disp = R*v-v
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,disp)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+            for node in fixed_submodel_part.Nodes: #Fixed surface
+                disp = KratosMultiphysics.Vector(3,0)
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,disp)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+
+    def ComputeRotationMatrix(self):
+        """
+        This function computes the rotation matrix for the current DoF.
+        """
+        R = KratosMultiphysics.Matrix(3,3) 
+        u = KratosMultiphysics.Vector(3,0)
+        u[self.DoF-3] = 1 #Rx=[1,0,0], Ry=[0,1,0], Rz=[0,0,1]
+        R[0,0] = cos(self.inf_rot)+u[0]**2*(1-cos(self.inf_rot)) 
+        R[0,1] = u[0]*u[1]*(1-cos(self.inf_rot))-u[2]*sin(self.inf_rot)
+        R[0,2] = u[0]*u[2]*(1-cos(self.inf_rot))+u[1]*sin(self.inf_rot)
+        R[1,0] = u[1]*u[0]*(1-cos(self.inf_rot))+u[2]*sin(self.inf_rot)
+        R[1,1] = cos(self.inf_rot)+u[1]**2*(1-cos(self.inf_rot))
+        R[1,2] = u[1]*u[2]*(1-cos(self.inf_rot))-u[0]*sin(self.inf_rot)
+        R[2,0] = u[2]*u[0]*(1-cos(self.inf_rot))-u[1]*sin(self.inf_rot)
+        R[2,1] = u[2]*u[1]*(1-cos(self.inf_rot))+u[0]*sin(self.inf_rot)
+        R[2,2] = cos(self.inf_rot)+u[2]**2*(1-cos(self.inf_rot))
+        return R
+
+    def MasterStiffnessVector(self):
         """
         Obtains the Stiffness column Vector of the current DoF of the n surface.
         """
-        slave_model_part = self.model["Structure."+self.slave_surface_name[0]] #Read model part (Slave surface)
+        
+        slave_model_part = self.model_part.GetSubModelPart(self.slave_surface_name[0]) #Read model part (Slave surface)
 
-        if DoF==0: #Only initialize once the master stiffness matrix for each slave surface
+        if self.DoF==0: #Only initialize once the master stiffness matrix for each slave surface
             self.master_stiffness = KratosMultiphysics.Matrix(2*self.dim,2*self.dim,0)#Initialize Master Stiffness Matrix
 
         #Initializaing results Matrices an Vectors
         slave_num_nodes = slave_model_part.NumberOfNodes()
-        slave_deformed_coordinates = KratosMultiphysics.Matrix(slave_num_nodes,self.dim)
-        slave_displacement = KratosMultiphysics.Matrix(slave_num_nodes,self.dim)
+        slave_undeformed_coordinates = KratosMultiphysics.Matrix(slave_num_nodes,self.dim)
         slave_reaction = KratosMultiphysics.Matrix(slave_num_nodes,self.dim)
         counter=0
         for node in slave_model_part.Nodes:
-            deformed_coordinates = (node.X,node.Y,node.Z) #Deformed coordinates of the slave surface
+            undeformed_coordinates = (node.X0,node.Y0,node.Z0) #Deformed coordinates of the slave surface
             for i in range(self.dim):
-                slave_deformed_coordinates[counter,i] = deformed_coordinates[i]
-                slave_displacement[counter,i] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[i] #Displacements of the slave surface
+                slave_undeformed_coordinates[counter,i] = undeformed_coordinates[i]
                 slave_reaction[counter,i] = node.GetSolutionStepValue(KratosMultiphysics.REACTION)[i] #Reactions of the slave surface
             counter+=1
-        
-        slave_undeformed_coordinates = slave_deformed_coordinates-slave_displacement #Undeformed coordinates
 
         r = KratosMultiphysics.Matrix(slave_num_nodes,self.dim) # Initialize Position vector r
 
         for i in range(slave_num_nodes):
             for j in range(self.dim):
-                r[i,j]=slave_undeformed_coordinates[i,j]-self.master_coor[n,j] # Assign position vector r
+                r[i,j]=slave_undeformed_coordinates[i,j]-self.master_coor[self.n,j] # Assign position vector r
 
         #Calculating the moments about the master node
         moments = KratosMultiphysics.Matrix(slave_num_nodes,self.dim)
@@ -139,31 +193,11 @@ class MasterStiffnessMatrixProcess(KratosMultiphysics.Process):
                 resultant[j+self.dim]+=moments[i,j] #Resultant moments assembling
 
         #------ Stiffness calculation
-        for i in range(self.dim*2):
-            self.master_stiffness[i,DoF] = resultant[i]/self.value[n]
+        for i in range(self.dim):
+            self.master_stiffness[i,self.DoF] = resultant[i]/self.value
+            self.master_stiffness[i+3,self.DoF] = resultant[i+3]/self.inf_rot
 
-
-    def RunSimulation(self):
-        """
-        Initialize a new model.\n
-        Instantiation of StructuralMechanicsAnalysis.\n
-        Runs the simulation.\n
-        """
-        simulation = StructuralMechanicsAnalysis(self.model, self.parameters)
-        simulation.Run()
-
-    def Run(self):
-        """
-        Runs the different simulations needed to compute the stiffness matrix of two master nodes related to two slave surfaces.\n
-        ChangeVectorValues(w): Changes the vector values for the displacement/rotation of the current DoF and slave surface (n).\n
-        RunSimulation(): Instance a new model and runs a simulation (StructuralMechanicsAnalysis) with the new parameters.\n
-        MasterStiffnessVector(): Obtains the stiffness vector for the current DoF and slave surface(n).
-        """
-        for n in range(self.number_master_nodes): #Loop in both slave surfaces.
-            for DoF in range(6):
-                self.model = KratosMultiphysics.Model()
-                self.ChangeVectorValues(DoF,n) 
-                self.RunSimulation()
-                self.MasterStiffnessVector(DoF,n)
-            KratosMultiphysics.Logger.Print(self.slave_surface_name[0],"\n",self.master_stiffness, label="Master Stiffness Matrix") 
-            
+        if self.DoF==5:
+            KratosMultiphysics.Logger.Print(self.slave_surface_name[0],"\n",self.master_stiffness, label="Master Stiffness Matrix")
+        
+        
