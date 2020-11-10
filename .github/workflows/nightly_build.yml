@@ -57,7 +57,7 @@ jobs:
   windows-nightly:
     runs-on: windows-latest
     env:
-      KRATOS_BUILD_TYPE: Release
+      KRATOS_BUILD_TYPE: Custom
 
     steps:
     - uses: actions/checkout@v2
