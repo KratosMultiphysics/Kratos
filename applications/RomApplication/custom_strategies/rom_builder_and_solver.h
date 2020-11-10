@@ -451,9 +451,6 @@ public:
                     double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*it_el);
                 }
             }
 
@@ -481,9 +478,6 @@ public:
                     double h_rom_weight = it->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*it);
                 }
             }
 
