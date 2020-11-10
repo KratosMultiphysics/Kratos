@@ -7,9 +7,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
 import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
 import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
-import math
-import os
-import KratosMultiphysics.MeshingApplication as MeshingApplication
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 import KratosMultiphysics.DEMApplication as KratosDEM
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
@@ -46,7 +43,7 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         else: # 3D
             self.number_of_nodes_element = 4
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
-            
+
         self.FEM_Solution.Initialize()
 
 

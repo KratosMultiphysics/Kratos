@@ -128,7 +128,6 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
     def _create_DEM_coupled_newton_raphson_strategy(self, DEM_strategy):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._get_solution_scheme()
-        linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
         return KratosFemDem.ResidualBasedDEMCoupledNewtonRaphsonStrategy(computing_model_part,

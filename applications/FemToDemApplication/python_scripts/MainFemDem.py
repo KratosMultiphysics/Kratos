@@ -88,8 +88,8 @@ class FEM_Solution(MainSolidFEM.Solution):
                 self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part,
                                                                self.ProjectParameters["solver_settings"])
             else:
-                self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part, 
-                                                               self.ProjectParameters["solver_settings"], 
+                self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part,
+                                                               self.ProjectParameters["solver_settings"],
                                                                DEMStrategy)
         elif self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemStaticSolver":
             import KratosMultiphysics.FemToDemApplication.FemDemStaticSolver as FemDemStaticSolver
@@ -97,8 +97,8 @@ class FEM_Solution(MainSolidFEM.Solution):
                 self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part,
                                                                self.ProjectParameters["solver_settings"])
             else:
-                self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part, 
-                                                               self.ProjectParameters["solver_settings"], 
+                self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part,
+                                                               self.ProjectParameters["solver_settings"],
                                                                DEMStrategy)
         #### Output settings start ####
         self.problem_path = os.getcwd()
