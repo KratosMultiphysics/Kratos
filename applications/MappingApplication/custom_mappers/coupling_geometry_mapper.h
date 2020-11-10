@@ -137,7 +137,8 @@ public:
     {
         mpModeler->PrepareGeometryModel();
 
-        mMapperLocalSystems.clear();
+        mMapperLocalSystemsProjector.clear();
+        mMapperLocalSystemsSlave.clear();
 
 
         this->InitializeInterface();
