@@ -32,7 +32,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         # Time control starts        
         self.KratosPrintInfo(timer.ctime())
         # Measure process time
-        self.t0p = timer.clock()
+        self.t0p = timer.process_time()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####
@@ -326,7 +326,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         self.KratosPrintInfo(" ")
         #### END SOLUTION ####
         # Measure process time
-        tfp = timer.clock()
+        tfp = timer.process_time()
         # Measure wall time
         tfw = timer.time()
         KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
@@ -372,12 +372,12 @@ class FEM_Solution(MainSolidFEM.Solution):
     #============================================================================================================================    
     def StartTimeMeasuring(self):
         # Measure process time
-        time_ip = timer.clock()
+        time_ip = timer.process_time()
         return time_ip
     #============================================================================================================================
     def StopTimeMeasuring(self, time_ip, process, report):
         # Measure process time
-        time_fp = timer.clock()
+        time_fp = timer.process_time()
         if( report ):
             used_time = time_fp - time_ip
             print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
