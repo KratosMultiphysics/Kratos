@@ -79,6 +79,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if parameters["solver_settings"].Has("constitutive_laws_list"):
             self.constitutive_laws_names     = parameters["solver_settings"]["constitutive_laws_list"]
             self.AddMaterialVariables()
+        else:
+            self.AddAllMaterialVariables()
+
 
     def _CreateSolver(self):
         """Create the solver
@@ -408,6 +411,51 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
             elif (self.constitutive_laws_names[i].GetString()!="None"):
                 print("ERROR: THE CONSTITUTIVE LAW PROVIDED FOR THIS SUBMODEL PART IS NOT IN THE PFEM FLUID DATABASE")
+
+
+    def AddAllMaterialVariables(self):
+        print("ATTENTION! YOU ARE ADDING ALL MATERIAL VARIABLES, PLEASE UPDATE YOUR PROJECTPARAMETERS.JSON")
+
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.DENSITY):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)        
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.COHESION):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.COHESION)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.YIELDED):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DIAMETER):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DIAMETER)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
 
                     
     def AddPfemVariables(self):
