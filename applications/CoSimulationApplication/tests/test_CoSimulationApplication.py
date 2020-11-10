@@ -76,7 +76,6 @@ def AssembleTestSuites():
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
     validationSuite = suites['validation']
-    nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
     # the Win-CI is currently too slow to run tests
@@ -84,6 +83,7 @@ def AssembleTestSuites():
         suite_to_add_tests_to = validationSuite
     else:
         suite_to_add_tests_to = nightSuite
+    suite_to_add_tests_to.addTest(TestMokFSI('test_mok_fsi_mvqn'))
     suite_to_add_tests_to.addTest(TestMokFSI('test_mok_fsi_aitken'))
     suite_to_add_tests_to.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
 
