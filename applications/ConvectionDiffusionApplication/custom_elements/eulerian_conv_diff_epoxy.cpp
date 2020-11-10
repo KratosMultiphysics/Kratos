@@ -617,12 +617,30 @@ namespace Kratos
     double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeDegreeOfCure(double DegreeOfCure, double Temperature)
     {
 
-        double A_1 = 1184;
-        double A_2 = 68380;
-        double E_1 = 60700;
-        double E_2 = 48250;
-        double m_factor = 0.314;
-        double n_factor = 1.664;
+        double A_1 = GetProperties().Has(KAMAL_SOUROUR_A_1)
+            ? GetProperties()[KAMAL_SOUROUR_A_1]
+            //: 1184;
+            : KRATOS_ERROR << "KAMAL_SOUROUR_A_1 is not defined.";
+        double A_2 = GetProperties().Has(KAMAL_SOUROUR_A_2)
+            ? GetProperties()[KAMAL_SOUROUR_A_2]
+            //: 68380;
+            : KRATOS_ERROR << "KAMAL_SOUROUR_A_2 is not defined."; 
+        double E_1 = GetProperties().Has(KAMAL_SOUROUR_E_1)
+            ? GetProperties()[KAMAL_SOUROUR_E_1]
+            //: 60700;
+            : KRATOS_ERROR << "KAMAL_SOUROUR_E_1 is not defined."; 
+        double E_2 = GetProperties().Has(KAMAL_SOUROUR_E_2)
+            ? GetProperties()[KAMAL_SOUROUR_E_2]
+            //: 48250;
+            : KRATOS_ERROR << "KAMAL_SOUROUR_E_2 is not defined."; 
+        double m_factor = GetProperties().Has(KAMAL_SOUROUR_M_FACTOR)
+            ? GetProperties()[KAMAL_SOUROUR_M_FACTOR]
+            //: 0.314;
+            : KRATOS_ERROR << "KAMAL_SOUROUR_M_FACTOR is not defined."; 
+        double n_factor = GetProperties().Has(KAMAL_SOUROUR_N_FACTOR)
+            ? GetProperties()[KAMAL_SOUROUR_N_FACTOR]
+            //: 1.664;
+            : KRATOS_ERROR << "KAMAL_SOUROUR_N_FACTOR is not defined."; 
 
         double rate_of_conversion = ((A_1 * exp(-E_1 / (8.3145 * Temperature)))
             + ((A_2 * exp(-E_2 / (8.3145 * Temperature))) * pow(DegreeOfCure, m_factor))) * pow((1 - DegreeOfCure), n_factor);
@@ -638,8 +656,14 @@ namespace Kratos
             ? GetProperties()[GLASS_TRANSITION_TEMPERATURE_0]
             //: -44.143;
             : KRATOS_ERROR << "GLASS_TRANSITION_TEMPERATURE_0 is not defined.";
-        double Tginf = 67.688;
-        double lamda = 0.288;
+        double Tginf = GetProperties().Has(GLASS_TRANSITION_TEMPERATURE_INF)
+            ? GetProperties()[GLASS_TRANSITION_TEMPERATURE_INF]
+            : KRATOS_ERROR << "GLASS_TRANSITION_TEMPERATURE_INF is not defined.";
+           //: 67.688;
+        double lamda = GetProperties().Has(GLASS_TRANSITION_TEMPERATURE_LAMBDA)
+            ? GetProperties()[GLASS_TRANSITION_TEMPERATURE_LAMBDA]
+            : KRATOS_ERROR << "GLASS_TRANSITION_TEMPERATURE_LAMBDA is not defined.";
+            //: 0.288;
 
         double glass_transition_temperature = ((Tg0 + 273.15) + (Tginf - Tg0) * ((lamda * DegreeOfCure) / (1 - (1 - lamda) * DegreeOfCure)))-273.15;
 
