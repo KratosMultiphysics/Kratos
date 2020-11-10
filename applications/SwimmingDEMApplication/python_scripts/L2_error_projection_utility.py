@@ -74,6 +74,6 @@ class L2ErrorProjectionUtility:
                 node.AddDof(var)
 
     def Solve(self):
-        print("\nSolving for the fluid acceleration...")
+        print("\nSolving for the L2 error projection...")
         sys.stdout.flush()
         self.l2_projector_strategy.Solve()
