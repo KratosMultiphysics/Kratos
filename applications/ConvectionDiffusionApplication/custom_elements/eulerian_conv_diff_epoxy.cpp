@@ -634,7 +634,10 @@ namespace Kratos
     double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeGlassTransitionTemperature(
         double DegreeOfCure)
     {
-        double Tg0 = -44.143;
+        double Tg0 = GetProperties().Has(GLASS_TRANSITION_TEMPERATURE_0)
+            ? GetProperties()[GLASS_TRANSITION_TEMPERATURE_0]
+            //: -44.143;
+            : KRATOS_ERROR << "GLASS_TRANSITION_TEMPERATURE_0 is not defined.";
         double Tginf = 67.688;
         double lamda = 0.288;
 
