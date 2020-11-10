@@ -77,7 +77,7 @@ int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo) const
     KRATOS_CATCH("");
 }
 
-void SpalartAllmaras::Initialize()
+void SpalartAllmaras::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -86,7 +86,7 @@ void SpalartAllmaras::Initialize()
     KRATOS_CATCH( "" )
 }
 
-void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
@@ -149,7 +149,7 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     // Obtain required constants
     const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
@@ -267,13 +267,13 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
     noalias( rRightHandSideVector ) -= prod(MassMatrix,TimeTerm);
 }
 
-void SpalartAllmaras::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::CalculateRightHandSide(VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     MatrixType TempMatrix;
     this->CalculateLocalSystem(TempMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
-void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
@@ -285,7 +285,7 @@ void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo 
 }
 
 
-void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
@@ -296,7 +296,7 @@ void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, P
         rResult[i] = GetGeometry()[i].GetDof(TURBULENT_VISCOSITY).EquationId();
 }
 
-void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step)
+void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step) const 
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 

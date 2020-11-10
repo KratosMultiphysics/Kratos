@@ -252,7 +252,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+    int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         // Base check
         Condition::Check(rCurrentProcessInfo);
