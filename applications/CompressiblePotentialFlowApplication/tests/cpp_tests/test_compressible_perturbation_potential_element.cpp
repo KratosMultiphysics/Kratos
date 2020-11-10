@@ -72,7 +72,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementRHS, Compr
     // Compute RHS
     Vector RHS = ZeroVector(3);
 
-    pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{146.2643261263345,-122.1426284341492,-24.12169769218525};
 
@@ -94,7 +95,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHS, Compr
     // Compute LHS
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
 
     std::array<double, 9> reference{ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037,
                                      -0.1306215050744058, 0.6710758508914103,-0.5404543458170046,
@@ -126,7 +128,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHS, C
     Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
 
     // Compute original RHS and LHS
-    pElement->CalculateLocalSystem(LHS_original, RHS_original, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
 
     double delta = 1e-3;
     for(unsigned int i = 0; i < number_of_nodes; i++){
@@ -136,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHS, C
         Vector RHS_pinged = ZeroVector(number_of_nodes);
         Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
         // Compute pinged LHS and RHS
-        pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, model_part.GetProcessInfo());
+        pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
 
         for(unsigned int k = 0; k < number_of_nodes; k++){
             // Compute the finite difference estimate of the sensitivity
@@ -200,7 +203,8 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHS, C
     // Compute RHS and LHS
     Vector RHS = ZeroVector(6);
 
-    pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{146.2643261263345,-0,-0,-0,-122.1426284341492,-24.12169769218525};
 
@@ -224,7 +228,8 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHS, C
     // Compute LHS
     Matrix LHS = ZeroMatrix(6, 6);
 
-    pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
 
     // Check the LHS values
     std::array<double,36> reference{0.06114278464441542,-0.1306215050744058,0.06947872042999037,0,0,0,

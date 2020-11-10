@@ -47,20 +47,20 @@ Condition::Pointer AdjointPotentialWallCondition<TPrimalCondition>::Clone(IndexT
 }
 
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::Initialize()
+void AdjointPotentialWallCondition<TPrimalCondition>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    mpPrimalCondition->Initialize();
+    mpPrimalCondition->Initialize(rCurrentProcessInfo);
 }
 
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void AdjointPotentialWallCondition<TPrimalCondition>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     mpPrimalCondition->Data() = this->Data();
     mpPrimalCondition->Set(Flags(*this));
     mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
 }
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step)
+void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -93,7 +93,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rV
 
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                            ProcessInfo &rCurrentProcessInfo)
+                            const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType RHS;
     this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -123,7 +123,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::CalculateSensitivityMatrix
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                             VectorType &rRightHandSideVector,
-                            ProcessInfo &rCurrentProcessInfo)
+                            const ProcessInfo &rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != TNumNodes)
         rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
@@ -134,7 +134,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLocalSystem(Matri
 
 /// Check that all data required by this condition is available and reasonable
 template <class TPrimalCondition>
-int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -164,7 +164,7 @@ int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rC
 
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::EquationIdVector(EquationIdVectorType& rResult,
-                                ProcessInfo& rCurrentProcessInfo)
+                                const ProcessInfo& rCurrentProcessInfo) const
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
@@ -191,7 +191,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::EquationIdVector(EquationI
 
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::GetDofList(DofsVectorType& ConditionDofList,
-                        ProcessInfo& CurrentProcessInfo)
+                        const ProcessInfo& CurrentProcessInfo) const
 {
     if (ConditionDofList.size() != TNumNodes)
     ConditionDofList.resize(TNumNodes);
@@ -217,7 +217,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetDofList(DofsVectorType&
 }
 
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     mpPrimalCondition -> FinalizeSolutionStep(rCurrentProcessInfo);
 }

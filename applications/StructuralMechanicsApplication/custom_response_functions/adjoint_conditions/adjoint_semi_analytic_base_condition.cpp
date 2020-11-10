@@ -179,7 +179,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ProcessInfo process_info = rCurrentProcessInfo;
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType local_size = number_of_nodes * dimension;
@@ -194,13 +193,13 @@ namespace Kratos
             const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
             Vector RHS;
             Vector perturbed_RHS;
-            this->CalculateRightHandSide(RHS, process_info);
+            this->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
             const auto design_variable_value = this->pGetPrimalCondition()->GetValue(rDesignVariable);
 
             // perturb design variable
             this->pGetPrimalCondition()->SetValue(rDesignVariable, (design_variable_value + delta));
-            this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, process_info);
+            this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, rCurrentProcessInfo);
 
             row(rOutput, 0) = (perturbed_RHS - RHS) / delta;
 
@@ -224,7 +223,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ProcessInfo process_info = rCurrentProcessInfo;
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
         const SizeType local_size = number_of_nodes * dimension;
@@ -232,7 +230,7 @@ namespace Kratos
         Vector perturbed_RHS = Vector(0);
         const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
-        this->CalculateRightHandSide(RHS, process_info);
+        this->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
         if (rDesignVariable == SHAPE_SENSITIVITY) {
             const std::vector<const FiniteDifferenceUtility::array_1d_component_type*> coord_directions = {&SHAPE_SENSITIVITY_X, &SHAPE_SENSITIVITY_Y, &SHAPE_SENSITIVITY_Z};
@@ -245,12 +243,12 @@ namespace Kratos
             IndexType index = 0;
 
             Vector RHS;
-            pGetPrimalCondition()->CalculateRightHandSide(RHS, process_info);
+            pGetPrimalCondition()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
             for(auto& node_i : mpPrimalCondition->GetGeometry()) {
                 for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i) {
                     // Get pseudo-load contribution from utility
                     FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalCondition(), RHS, *coord_directions[coord_dir_i],
-                                                                                node_i, delta, derived_RHS, process_info);
+                                                                                node_i, delta, derived_RHS, rCurrentProcessInfo);
 
                     KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
 
@@ -274,7 +272,7 @@ namespace Kratos
                 disturbance[dir_i] += delta;
                 this->pGetPrimalCondition()->SetValue(rDesignVariable, disturbance);
 
-                this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, process_info);
+                this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, rCurrentProcessInfo);
                 row(rOutput, dir_i) = (perturbed_RHS - RHS) / delta;
 
                 disturbance[dir_i] -= delta;

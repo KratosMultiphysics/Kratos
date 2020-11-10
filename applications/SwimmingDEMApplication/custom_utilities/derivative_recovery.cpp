@@ -444,49 +444,6 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-//template <std::size_t TDim>
-//void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
-//{
-//    mCalculatingTheGradient = true;
-
-//    if (mFirstGradientRecovery){
-//        std::cout << "Constructing first-step neighbour clouds for gradient recovery...\n";
-//        SetNeighboursAndWeights(r_model_part);
-//        mFirstGradientRecovery = false;
-//        std::cout << "Finished constructing neighbour clouds for gradient recovery.\n";
-//    }
-
-//    if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
-//        CalculateGradient(r_model_part, scalar_container, gradient_container);
-//    }
-
-//    // Solving least squares problem (Zhang, 2006)
-
-//    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-//        GlobalPointersVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
-//        unsigned int n_neigh = neigh_nodes.size();
-
-//        if (!n_neigh){ // we keep the defualt value
-//            continue;
-//        }
-
-//        array_1d <double, 3>& recovered_gradient = inode->FastGetSolutionStepValue(gradient_container);
-//        recovered_gradient = ZeroVector(3);
-//        const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
-
-//        for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-//            const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
-
-//            for (unsigned int d = 0; d < TDim; ++d){
-//                recovered_gradient[d] += nodal_weights[3 * i_neigh + d] * neigh_nodal_value;
-//            }
-//        }
-//    }
-
-//    mCalculatingTheGradient = false;
-//}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container)
 {
@@ -1270,13 +1227,9 @@ template class DerivativeRecovery<3>;
 
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
 
 
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
 
 }  // namespace Kratos.

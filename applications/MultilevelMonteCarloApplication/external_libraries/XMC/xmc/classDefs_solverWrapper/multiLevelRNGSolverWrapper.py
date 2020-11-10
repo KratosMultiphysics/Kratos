@@ -1,7 +1,4 @@
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from xmc.distributedEnvironmentFramework import *
 
 import numpy as np
 import xmc.solverWrapper as sw
@@ -9,14 +6,14 @@ import time
 
 class MultiLevelRNGSolverWrapper(sw.SolverWrapper):
     """
-    solveWrapper type whose solve method accepts a standard normal 
-    random number and scales it by an index-dependent mean and 
+    solveWrapper type whose solve method accepts a standard normal
+    random number and scales it by an index-dependent mean and
     variance
 
-    Constructor arguements - 
+    Constructor arguements -
     solverWrapperIndex - Index-space position of the solverWrapper instance
     rates - list of length 4 whose first and last two entries are respectively
-    the constant and rate required to compute the mean and variance using the 
+    the constant and rate required to compute the mean and variance using the
     equation mean (or) variance = constant * exp (-rate*level)
     """
     # TODO update documentation above ('rates' is of length 6)
@@ -45,5 +42,5 @@ class MultiLevelRNGSolverWrapper(sw.SolverWrapper):
         if isinstance(self.outputDimension,int):
             sample = [sample]*self.outputDimension
         else: # list of integers
-            sample = [[sample]*dim for dim in self.outputDimension] 
+            sample = [[sample]*dim for dim in self.outputDimension]
         return sample,totalTime

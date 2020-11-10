@@ -3,7 +3,7 @@ BOOK: Parts
 CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: surfaces volumes elements
+GROUPALLOW: surfaces volumes nodes elements
 QUESTION: Constitutive_Law#CB#(LinearElasticPlaneStrainSolid2DLaw,LinearElasticPlaneStressSolid2DLaw,LinearElasticSolid3DLaw,SimoJuDamagePlaneStrain2DLaw,SimoJuDamagePlaneStress2DLaw,SimoJuDamage3DLaw,ModifiedMisesDamagePlaneStrain2DLaw,ModifiedMisesDamagePlaneStress2DLaw,ModifiedMisesDamage3DLaw)
 VALUE: LinearElasticPlaneStrainSolid2DLaw
 DEPENDENCIES: (LinearElasticPlaneStrainSolid2DLaw,HIDE,Thickness,1.0,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Fracture_Energy,#CURRENT#,HIDE,Strength_Ratio,#CURRENT#,HIDE,Residual_Strength,#CURRENT#,HIDE,Softening_Slope,#CURRENT#)(LinearElasticPlaneStressSolid2DLaw,RESTORE,Thickness,#CURRENT#,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Fracture_Energy,#CURRENT#,HIDE,Strength_Ratio,#CURRENT#,HIDE,Residual_Strength,#CURRENT#,HIDE,Softening_Slope,#CURRENT#)(LinearElasticSolid3DLaw,HIDE,Thickness,#CURRENT#,RESTORE,Intrinsic_Permeability_ZZ,#CURRENT#,RESTORE,Intrinsic_Permeability_YZ,#CURRENT#,RESTORE,Intrinsic_Permeability_ZX,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Fracture_Energy,#CURRENT#,HIDE,Strength_Ratio,#CURRENT#,HIDE,Residual_Strength,#CURRENT#,HIDE,Softening_Slope,#CURRENT#)(SimoJuDamagePlaneStrain2DLaw,HIDE,Thickness,1.0,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Fracture_Energy,#CURRENT#,RESTORE,Strength_Ratio,#CURRENT#,HIDE,Residual_Strength,#CURRENT#,HIDE,Softening_Slope,#CURRENT#)(SimoJuDamagePlaneStress2DLaw,RESTORE,Thickness,#CURRENT#,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Fracture_Energy,#CURRENT#,RESTORE,Strength_Ratio,#CURRENT#,HIDE,Residual_Strength,#CURRENT#,HIDE,Softening_Slope,#CURRENT#)(SimoJuDamage3DLaw,HIDE,Thickness,#CURRENT#,RESTORE,Intrinsic_Permeability_ZZ,#CURRENT#,RESTORE,Intrinsic_Permeability_YZ,#CURRENT#,RESTORE,Intrinsic_Permeability_ZX,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Fracture_Energy,#CURRENT#,RESTORE,Strength_Ratio,#CURRENT#,HIDE,Residual_Strength,#CURRENT#,HIDE,Softening_Slope,#CURRENT#)(ModifiedMisesDamagePlaneStrain2DLaw,HIDE,Thickness,1.0,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,HIDE,Fracture_Energy,#CURRENT#,RESTORE,Strength_Ratio,#CURRENT#,RESTORE,Residual_Strength,#CURRENT#,RESTORE,Softening_Slope,#CURRENT#)(ModifiedMisesDamagePlaneStress2DLaw,RESTORE,Thickness,#CURRENT#,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,HIDE,Fracture_Energy,#CURRENT#,RESTORE,Strength_Ratio,#CURRENT#,RESTORE,Residual_Strength,#CURRENT#,RESTORE,Softening_Slope,#CURRENT#)(ModifiedMisesDamage3DLaw,HIDE,Thickness,#CURRENT#,RESTORE,Intrinsic_Permeability_ZZ,#CURRENT#,RESTORE,Intrinsic_Permeability_YZ,#CURRENT#,RESTORE,Intrinsic_Permeability_ZX,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,HIDE,Fracture_Energy,#CURRENT#,RESTORE,Strength_Ratio,#CURRENT#,RESTORE,Residual_Strength,#CURRENT#,RESTORE,Softening_Slope,#CURRENT#)
@@ -70,7 +70,7 @@ END CONDITION
 CONDITION: Interface_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: surfaces volumes elements
+GROUPALLOW: surfaces volumes nodes elements
 QUESTION: Link#CB#(true,false)
 VALUE: false
 QUESTION: Constitutive_Law#CB#(BilinearCohesivePlaneStrain2DLaw,BilinearCohesivePlaneStress2DLaw,BilinearCohesive3DLaw,ExponentialCohesivePlaneStrain2DLaw,ExponentialCohesivePlaneStress2DLaw,ExponentialCohesive3DLaw)
@@ -266,7 +266,7 @@ END CONDITION
 CONDITION: Face_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines surfaces faces
+GROUPALLOW: lines surfaces nodes faces
 QUESTION: FACE_LOAD_X#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Face_Load_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Face_Load_X,#CURRENT#)
@@ -305,7 +305,7 @@ END CONDITION
 CONDITION: Normal_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines surfaces faces
+GROUPALLOW: lines surfaces nodes faces
 QUESTION: NORMAL_LOAD#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,Normal_Load_Distribution,Uniform,HIDE,Normal_Pressure_Value,0.0,HIDE,Imposed_Normal_Load,Constant)(true,RESTORE,Normal_Load_Distribution,#CURRENT#,RESTORE,Normal_Pressure_Value,#CURRENT#,RESTORE,Imposed_Normal_Load,#CURRENT#)
@@ -345,7 +345,7 @@ END CONDITION
 CONDITION: Normal_Fluid_Flux
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines surfaces faces
+GROUPALLOW: lines surfaces nodes faces
 QUESTION: Value
 VALUE: 0.0
 HELP: Units in IS for 2D cases: m2/s. Units in IS for 3D cases: m/s. A positive value corresponds to an outflow.
@@ -359,7 +359,7 @@ END CONDITION
 CONDITION: Interface_Face_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: lines surfaces elements
+GROUPALLOW: lines surfaces nodes elements
 QUESTION: FACE_LOAD_X#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Face_Load_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Face_Load_X,#CURRENT#)
@@ -398,7 +398,7 @@ END CONDITION
 CONDITION: Interface_Normal_Fluid_Flux
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: lines surfaces elements
+GROUPALLOW: lines surfaces nodes elements
 QUESTION: Value
 VALUE: 0.0
 HELP: Units in IS for 2D cases: m2/s. Units in IS for 3D cases: m/s. A positive value corresponds to an outflow.

@@ -158,7 +158,7 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 		ModelPart& r_computing_model_part = mrModelPart.GetSubModelPart(computing_model_part_name);
 
 		// Property to be used in the generation
-		Properties::Pointer p_property = mrModelPart.GetParentModelPart()->pGetProperties(0);
+		Properties::Pointer p_property = mrModelPart.GetParentModelPart().pGetProperties(0);
 
 		unsigned int condition_id = 0;
 		for (unsigned int i = 0; i < mListOfSubModelParts.size(); i++) {

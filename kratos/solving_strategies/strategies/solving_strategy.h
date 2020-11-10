@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -124,8 +125,9 @@ public:
     explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : mpModelPart(&rModelPart)
     {
-        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
-        SetMoveMeshFlag(move_mesh_flag);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -403,6 +405,61 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name"                         : "solving_strategy",
+            "move_mesh_flag"               : false,
+            "echo_level"                   : 1,
+            "build_level"                  : 2
+        })");
+        return default_parameters;
+    }
+  
+    /**
+     * @brief This method returns the LHS matrix
+     * @return The LHS matrix
+     */
+    virtual TSystemMatrixType& GetSystemMatrix()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSystemMatrix not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
+     */
+    virtual TSystemVectorType& GetSystemVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSystemVector not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    virtual TSystemVectorType& GetSolutionVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSolutionVector not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -459,6 +516,36 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        // By default mesh is not moved
+        mMoveMeshFlag = ThisParameters["move_mesh_flag"].GetBool();
+
+        // Be default the minimal information is shown
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
+
+        // By default the matrices are rebuilt at each iteration
+        mRebuildLevel = ThisParameters["build_level"].GetInt();
+    }
 
     ///@}
     ///@name Protected  Access

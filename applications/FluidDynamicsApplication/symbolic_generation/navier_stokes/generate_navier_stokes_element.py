@@ -52,25 +52,37 @@ info_msg += "\t - Pseudo-compressibility: " + str(artificial_compressibility) + 
 info_msg += "\t - Divide mass conservation by rho: " + str(divide_by_rho) + "\n"
 print(info_msg)
 
-if (dim_to_compute == "2D"):
-    dim_vector = [2]
-elif (dim_to_compute == "3D"):
-    dim_vector = [3]
-elif (dim_to_compute == "Both"):
-    dim_vector = [2,3]
+if formulation == "NavierStokes":
+    if (dim_to_compute == "2D"):
+        dim_vector = [2]
+        nnodes_vector = [3] # tria
+    elif (dim_to_compute == "3D"):
+        dim_vector = [3]
+        nnodes_vector = [4] # tet
+    elif (dim_to_compute == "Both"):
+        dim_vector = [2, 3] # tria, tet
+elif formulation == "Stokes":
+    # all linear elements
+    if (dim_to_compute == "2D"):
+        dim_vector = [2, 2]
+        nnodes_vector = [3, 4] # tria, quad
+    elif (dim_to_compute == "3D"):
+        dim_vector = [3, 3, 3]
+        nnodes_vector = [4, 6, 8] # tet, prism, hex
+    elif (dim_to_compute == "Both"):
+        dim_vector = [2, 2, 3, 3, 3]
+        nnodes_vector = [3, 4, 4, 6, 8] # tria, quad, tet, prism, hex
 
 ## Initialize the outstring to be filled with the template .cpp file
 print("Reading template file \'"+ template_filename + "\'\n")
 templatefile = open(template_filename)
 outstring = templatefile.read()
 
-for dim in dim_vector:
+for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     if(dim == 2):
-        nnodes = 3
         strain_size = 3
     elif(dim == 3):
-        nnodes = 4
         strain_size = 6
 
     impose_partion_of_unity = False
@@ -133,7 +145,7 @@ for dim in dim_vector:
         stab_norm_a = 0.0
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
-        stab_norm_a = sqrt(stab_norm_a) 
+        stab_norm_a = sqrt(stab_norm_a)
         tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
         tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
     else:
@@ -252,12 +264,8 @@ for dim in dim_vector:
     lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
 
     ## Replace the computed RHS and LHS in the template outstring
-    if(dim == 2):
-        outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
-        outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
-    elif(dim == 3):
-        outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
-        outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
+    outstring = outstring.replace("//substitute_lhs_" + str(dim) + 'D' + str(nnodes) + 'N', lhs_out)
+    outstring = outstring.replace("//substitute_rhs_" + str(dim) + 'D' + str(nnodes) + 'N', rhs_out)
 
 ## Write the modified template
 print("Writing output file \'" + output_filename + "\'")

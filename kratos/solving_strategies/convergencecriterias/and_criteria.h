@@ -95,10 +95,15 @@ public:
     /**
      * @brief Default constructor. (with parameters)
      * @details It takes two different convergence criteria in order to work
+     * @param ThisParameters The configuration parameters
      */
-    explicit And_Criteria(Kratos::Parameters Settings)
+    explicit And_Criteria(Kratos::Parameters ThisParameters)
         :BaseType()
     {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
         KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
     }
 
@@ -323,6 +328,33 @@ public:
         return check1 + check2;
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                     : "and_criteria",
+            "first_criterion_settings" : {
+                "name"                            : "residual_criteria",
+                "residual_absolute_tolerance"     : 1.0e-4,
+                "residual_relative_tolerance"     : 1.0e-9
+            },
+            "second_criterion_settings" : {
+                "name"                            : "displacement_criteria",
+                "displacement_relative_tolerance" : 1.0e-4,
+                "displacement_absolute_tolerance" : 1.0e-9
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
     }
 
     /**

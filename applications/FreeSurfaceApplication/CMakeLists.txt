@@ -3,7 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosFreeSurfaceApplication ****")
 
 include(pybind11Tools)
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # generate variables with the sources
 set( KRATOS_FREE_SURFACE_APPLICATION_CORE_SOURCES

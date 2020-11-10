@@ -52,10 +52,10 @@ namespace MPMParticleGeneratorUtility
     Matrix MP33ShapeFunctions();
 
     /// Get integration weights of the geometry for the given integration method
-    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
+    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
 
     /// Get integration method and shape function values for the given element
-    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
     /**
@@ -154,6 +154,12 @@ namespace MPMParticleGeneratorUtility
                         else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
+                    else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
+                        if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)) {
+                            element_type_name = "UpdatedLagrangianPQ";
+                            KRATOS_ERROR_IF(IsAxisSymmetry) << "PQMPM is not implemented for axisymmetric elements yet." << std::endl;
+                        }
+                    }
 
                     // Get new element
                     const Element& new_element = KratosComponents<Element>::Get(element_type_name);
@@ -235,7 +241,8 @@ namespace MPMParticleGeneratorUtility
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions
      */
-    void GenerateMaterialPointCondition(    ModelPart& rBackgroundGridModelPart,
+    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GenerateMaterialPointCondition(
+                                            ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
 

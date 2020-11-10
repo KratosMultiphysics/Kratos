@@ -12,18 +12,19 @@ def Factory(settings, model):
     return PlanarSurfaceInParabolaBenchmark(model, settings["Parameters"])
 
 class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
-    def __init__(self, model, settings):
-        # The base class sets the model_part, variables and benchmark_settings
-        super(PlanarSurfaceInParabolaBenchmark, self).__init__(model, settings)
+    """Planar surface in parabola benchark.
 
-        benchmark_default_settings = KM.Parameters("""
-            {
-                "depth"     : 1.0,
-                "amplitude" : 1.0
-            }
-            """
-            )
-        self.benchmark_settings.ValidateAndAssignDefaults(benchmark_default_settings)
+    O. Delestre, C. Lucas, P.-A. Ksinant, F. Darboux, C. Laguerre, T.N.T. Vo, F. James, S. Cordier
+    SWASHES: a compilation of Shallow Water Analytic Solutions for Hydraulic and Environmental Studies
+    International Journal for Numerical Methods in Fluids, Wiley, 2013, 72 (3), pp.269-300
+    """
+
+    def __init__(self, model, settings):
+        """Constructor of the benchmark.
+
+        The base class validates the settings and sets the model_part, the variables and the benchmark_settings
+        """
+        super().__init__(model, settings)
 
         self.h0 = self.benchmark_settings["depth"].GetDouble()
         self.a = self.benchmark_settings["amplitude"].GetDouble()
@@ -32,11 +33,21 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
         self.C = self.__C()
         self.L = self.__L()
 
-    def Topography(self, coordinates):
+    @classmethod
+    def _GetBenchmarkDefaultSettings(cls):
+        return KM.Parameters("""
+            {
+                "depth"     : 1.0,
+                "amplitude" : 1.0
+            }
+            """
+            )
+
+    def _Topography(self, coordinates):
         x = coordinates.X
         return self.h0 * (1/self.a**2 * (x - 0.5*self.L)**2 - 1.0)
 
-    def Height(self, coordinates, time):
+    def _Height(self, coordinates, time):
         x = coordinates.X
         x0 = self.__x0(time)
         x1 = self.__x1(time)
@@ -45,7 +56,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
         else:
             return 0.0
 
-    def Velocity(self, coordinates, time):
+    def _Velocity(self, coordinates, time):
         x = coordinates.X
         x0 = self.__x0(time)
         x1 = self.__x1(time)
@@ -55,10 +66,12 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
             return [0.0, 0.0, 0.0]
 
     def Check(self):
-        super(PlanarSurfaceInParabolaBenchmark, self).Check()
+        """This method checks if the input values have physical sense."""
+
+        super().Check()
         label = self.__class__.__name__
         if self.g <= 0:
-            msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z compontent in the ProcessInfo."
+            msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z component in the ProcessInfo."
             raise Exception(msg)
         elif self.L <= 0:
             msg = label + "The length must be a positive value. Please, check the Parameters."

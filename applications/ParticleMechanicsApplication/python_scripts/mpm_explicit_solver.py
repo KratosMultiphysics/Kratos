@@ -21,14 +21,17 @@ class MPMExplicitSolver(MPMSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMExplicitSolver]:: ", "Construction is finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method"   : "explicit",
             "scheme_type"   : "central_difference",
             "stress_update" : "usf",
-            "is_fix_explicit_mp_on_grid_edge" : false
+            "is_fix_explicit_mp_on_grid_edge" : false,
+            "is_pqmpm"      : false,
+            "is_make_normal_mp_if_pqmpm_fails" : true,
+            "pqmpm_subpoint_min_volume_fraction" : 0.0
         }""")
-        this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultParameters())
         return this_defaults
 
 
@@ -56,9 +59,20 @@ class MPMExplicitSolver(MPMSolver):
         is_compressible = self.settings["compressible"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_COMPRESSIBLE, is_compressible)
 
+        # Check whether the partitioned quadrature mpm (PQMPM) is used
+        is_pqmpm = self.settings["is_pqmpm"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM, is_pqmpm)
+        is_make_normal_mp_if_pqmpm_fails = self.settings["is_make_normal_mp_if_pqmpm_fails"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, is_make_normal_mp_if_pqmpm_fails)
+        pqmpm_subpoint_min_volume_fraction = self.settings["pqmpm_subpoint_min_volume_fraction"].GetDouble()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, pqmpm_subpoint_min_volume_fraction)
+
         # Check if we are fixing MPs that lie directly on the edge of grid elements
-        is_fix_explicit_mp_on_grid_edge = self.settings["is_fix_explicit_mp_on_grid_edge"].GetBool()
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, is_fix_explicit_mp_on_grid_edge)
+        if is_pqmpm:
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, False)
+        else:
+            is_fix_explicit_mp_on_grid_edge = self.settings["is_fix_explicit_mp_on_grid_edge"].GetBool()
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, is_fix_explicit_mp_on_grid_edge)
 
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()

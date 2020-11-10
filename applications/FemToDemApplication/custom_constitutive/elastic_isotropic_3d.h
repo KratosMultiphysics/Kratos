@@ -49,7 +49,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class ElasticIsotropic3D 
+class ElasticIsotropic3DFEMDEM 
     : public ConstitutiveLaw
 {
 public:
@@ -72,8 +72,8 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
     
-    /// Counted pointer of ElasticIsotropic3D
-    KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3D );
+    /// Counted pointer of ElasticIsotropic3DFEMDEM
+    KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3DFEMDEM );
 
     ///@}
     ///@name Lyfe Cycle
@@ -82,7 +82,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    ElasticIsotropic3D();
+    ElasticIsotropic3DFEMDEM();
 
     /**
      * @brief Clone method
@@ -92,12 +92,12 @@ public:
     /**
      * Copy constructor.
      */
-    ElasticIsotropic3D (const ElasticIsotropic3D& rOther);
+    ElasticIsotropic3DFEMDEM (const ElasticIsotropic3DFEMDEM& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~ElasticIsotropic3D() override;
+    ~ElasticIsotropic3DFEMDEM() override;
 
     ///@}
     ///@name Operators
@@ -383,6 +383,6 @@ private:
     }
 
 
-}; // Class ElasticIsotropic3D
+}; // Class ElasticIsotropic3DFEMDEM
 }  // namespace Kratos.
 #endif // KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED  defined

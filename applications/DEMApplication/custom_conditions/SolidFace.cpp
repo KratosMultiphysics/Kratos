@@ -146,7 +146,7 @@ void SolidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 }
 
 
-void SolidFace3D::FinalizeSolutionStep(ProcessInfo& r_process_info)
+void SolidFace3D::FinalizeSolutionStep(const ProcessInfo& r_process_info)
 {
 
 
