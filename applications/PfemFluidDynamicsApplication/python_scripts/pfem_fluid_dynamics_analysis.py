@@ -354,7 +354,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
         
         for i in range(self.constitutive_laws_names.size()):
-            if self.constitutive_laws_names[i].GetString()=="FrictionalViscoplasticLaw":
+            if (self.constitutive_laws_names[i].GetString()=="FrictionalViscoplastic2DLaw" or self.constitutive_laws_names[i].GetString()=="FrictionalViscoplastic3DLaw"):
                 print("self.constitutive_laws_names() ",self.constitutive_laws_names[i])
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE)
@@ -364,15 +364,15 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
-            if self.constitutive_laws_names[i].GetString()=="NewtonianLaw":
+            elif (self.constitutive_laws_names[i].GetString()=="Newtonian2DLaw" or self.constitutive_laws_names[i].GetString()=="Newtonian3DLaw"):
                 print("self.constitutive_laws_names ",self.constitutive_laws_names[i])
-            if self.constitutive_laws_names[i].GetString()=="HypoelasticLaw":
+            elif (self.constitutive_laws_names[i].GetString()=="Hypoelastic2DLaw" or self.constitutive_laws_names[i].GetString()=="Hypoelastic3DLaw"):
                 print("self.constitutive_laws_names ",self.constitutive_laws_names[i])
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
-            if self.constitutive_laws_names[i].GetString()=="BinghamLaw":
+            elif (self.constitutive_laws_names[i].GetString()=="Bingham2DLaw" or self.constitutive_laws_names[i].GetString()=="Bingham3DLaw"):
                 print("self.constitutive_laws_names ",self.constitutive_laws_names[i])
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
@@ -382,9 +382,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
-                else:
-                    print("REPEATED")
-            if self.constitutive_laws_names[i].GetString()=="MuIRheologyLaw":
+            elif (self.constitutive_laws_names[i].GetString()=="PapanastasiouMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="PapanastasiouMuIRheology3DLaw"):
                 print("self.constitutive_laws_names ",self.constitutive_laws_names[i])
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
@@ -404,6 +402,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
+            elif (self.constitutive_laws_names[i].GetString()!="None"):
+                print("ERROR: THE CONSTITUTIVE LAW PROVIDED FOR THIS SUBMODEL PART IS NOT IN THE PFEM FLUID DATABASE")
+
                     
     def AddPfemVariables(self):
         print("Add   Pfem Variables in pfem_fluid_analysis")
