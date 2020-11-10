@@ -37,7 +37,7 @@ cmake                                                ^
   -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
   -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
   -DINSTALL_RUNKRATOS=OFF                            ^
-  -DCMAKE_CXX_FLAGS="/Ot /we4661 /we4804"            ^
+  -DCMAKE_CXX_FLAGS="/Ox /we4661 /we4804"            ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
   -DUSE_COTIRE=ON                                    || goto :error
 
