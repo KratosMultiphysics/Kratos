@@ -101,6 +101,7 @@ class PfemFluidSolver(PythonSolver):
             },
         "bodies_list": [],
         "problem_domain_sub_model_part_list": [],
+        "constitutive_laws_list": [],
         "processes_sub_model_part_list": [],
         "constraints_process_list": [],
         "loads_process_list"       : [],
@@ -270,6 +271,9 @@ class PfemFluidSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
+        if (abs(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) < 1e-5 * delta_time):
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
 
 
     def CheckAndPrepareModelProcess(self, params):
