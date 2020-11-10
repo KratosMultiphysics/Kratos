@@ -25,6 +25,7 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.1)
+        model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, 1.0e2)
 
         model_part.SetBufferSize(2)
 
