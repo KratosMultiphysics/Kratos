@@ -135,9 +135,7 @@ namespace Kratos
     void StructureMpmModeler::UpdateGeometryModel()
     {
         Model* p_model_mpm = (mIsOriginMpm) ? mpModelOrigin : mpModelDest;
-        Model* p_model_fem = (mIsOriginMpm) ? mpModelDest : mpModelOrigin;
         const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
-        const IndexType fem_index = 1 - mpm_index;
 
         ModelPart& coupling_model_part = (mpModelOrigin->HasModelPart("coupling"))
             ? mpModelOrigin->GetModelPart("coupling")
