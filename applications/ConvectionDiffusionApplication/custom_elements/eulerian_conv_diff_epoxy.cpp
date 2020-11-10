@@ -684,8 +684,8 @@ namespace Kratos
         double sigma = 107.6;
         double sigma_T = -0.454;
 
-        double specific_heat_capacity = Crub + Crub_alpha * DegreeOfCure + Crub_T * Temperature + (Cglass + Cglass_T * Temperature - Crub - Crub_alpha * DegreeOfCure - Crub_T * Temperature) /
-            (1 + exp(Cw * (Temperature - GlassTransitionTemperature - sigma - sigma_T * Temperature)));
+        double specific_heat_capacity = (Crub + Crub_alpha * DegreeOfCure + Crub_T * Temperature + (Cglass + Cglass_T * Temperature - Crub - Crub_alpha * DegreeOfCure - Crub_T * Temperature) /
+            (1 + exp(Cw * (Temperature - GlassTransitionTemperature - sigma - sigma_T * Temperature))))*1000;
 
         return specific_heat_capacity;
     }
@@ -728,14 +728,13 @@ namespace Kratos
         double degree_of_cure_current,
         double delta_time)
     {
-        double total_heat_of_reaction = 117/1000;
+        double total_heat_of_reaction = 117.0/1000.0;
 
-        const double density = GetProperties()[DENSITY];
-        const double volume = GetGeometry().DomainSize();
-        const double specific_heat = GetProperties()[SPECIFIC_HEAT];
+        const double density = m_adjusted_density;
+        const double specific_heat = m_specific_heat_capacity;
 
-        double heat_flux = ((degree_of_cure_current - degree_of_cure_previous)/delta_time)
-            * total_heat_of_reaction * density * volume;
+        double heat_flux = (degree_of_cure_current - degree_of_cure_previous)
+            * total_heat_of_reaction * density;
 
         return heat_flux;
 
