@@ -90,8 +90,8 @@ namespace Kratos
         // Assuming that the conditions don't have K, the remaining content of rSensitivityMatrix \frac{\partial F}{\partial s}
 
         Vector adjoint_variables;
-        const auto& rConstAdjointConditionRef = rAdjointCondition;
-        rConstAdjointConditionRef.GetValuesVector(adjoint_variables); // = 0.5*u
+        const auto& r_const_adjoint_condition_ref = rAdjointCondition;
+        r_const_adjoint_condition_ref.GetValuesVector(adjoint_variables); // = 0.5*u
 
         KRATOS_ERROR_IF(adjoint_variables.size() != rSensitivityMatrix.size2())
              << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
@@ -141,8 +141,8 @@ namespace Kratos
         // Assuming that the conditions don't have K, the remaining content of rSensitivityMatrix \frac{\partial F}{\partial s}
 
         Vector adjoint_variables;
-        const auto& rConstAdjointCondRef = rAdjointCondition;
-        rConstAdjointCondRef.GetValuesVector(adjoint_variables); // = 0.5*u
+        const auto& r_const_adjoint_condition_ref = rAdjointCondition;
+        r_const_adjoint_condition_ref.GetValuesVector(adjoint_variables); // = 0.5*u
 
         KRATOS_ERROR_IF(adjoint_variables.size() != rSensitivityMatrix.size2())
             << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
@@ -173,8 +173,8 @@ namespace Kratos
 
         for (auto& elem_i : rModelPart.Elements())
         {
-            const auto& rConstElemRef = elem_i;
-            rConstElemRef.GetValuesVector(disp,0);
+            const auto& r_const_elem_ref = elem_i;
+            r_const_elem_ref.GetValuesVector(disp,0);
 
             elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
@@ -203,5 +203,4 @@ namespace Kratos
     }
 
 } // namespace Kratos.
-
 

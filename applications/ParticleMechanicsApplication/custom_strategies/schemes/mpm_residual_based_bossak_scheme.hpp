@@ -428,11 +428,11 @@ public:
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-        const auto& rConstElemRef = rCurrentElement;
+        const auto& r_const_elem_ref = rCurrentElement;
 
         // Basic operations for the element considered
         rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        rConstElemRef.EquationIdVector(EquationId,rCurrentProcessInfo);
+        r_const_elem_ref.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
@@ -467,10 +467,10 @@ public:
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-        const auto& rConstCondRef = rCurrentCondition;
+        const auto& r_const_cond_ref = rCurrentCondition;
 
         rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        rConstCondRef.EquationIdVector(EquationId,rCurrentProcessInfo);
+        r_const_cond_ref.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
@@ -503,9 +503,9 @@ public:
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-        const auto& rConstCondRef = rCurrentCondition;
+        const auto& r_const_cond_ref = rCurrentCondition;
         rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        rConstCondRef.EquationIdVector(EquationId,rCurrentProcessInfo);
+        r_const_cond_ref.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
@@ -538,5 +538,4 @@ protected:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME defined */
-
 

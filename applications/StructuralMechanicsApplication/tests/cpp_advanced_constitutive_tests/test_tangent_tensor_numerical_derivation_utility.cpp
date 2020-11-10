@@ -146,8 +146,8 @@ void Create3DGeometryTetrahedra(
     )
 {
     const auto& process_info = rThisModelPart.GetProcessInfo();
-    rThisModelPart.GetProcessInfo()[STEP] = 2;
-    rThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] = 2;
+    process_info[STEP] = 2;
+    process_info[NL_ITERATION_NUMBER] = 2;
 
     // Create nodes and elements
     Properties::Pointer p_elem_prop = rThisModelPart.pGetProperties(1);

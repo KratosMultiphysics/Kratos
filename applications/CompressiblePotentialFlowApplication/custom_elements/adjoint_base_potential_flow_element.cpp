@@ -264,8 +264,8 @@ namespace Kratos
 
         KRATOS_TRY
 
-        const auto& ConstElemRef = *mpPrimalElement;
-        int Check = ConstElemRef.Check(rCurrentProcessInfo);
+        const auto& const_elem_ref = *mpPrimalElement;
+        int Check = const_elem_ref.Check(rCurrentProcessInfo);
 
         if (Check != 0)
         {
@@ -364,4 +364,3 @@ namespace Kratos
     template class AdjointBasePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.
-

@@ -1831,19 +1831,19 @@ int ModelPart::Check(const ProcessInfo& rCurrentProcessInfo) const
     int err = 0;
     for (ElementConstantIterator elem_iterator = ElementsBegin(); elem_iterator != ElementsEnd(); elem_iterator++)
     {
-        const auto& rElem = *elem_iterator;
-        err = rElem.Check(rCurrentProcessInfo);
+        const auto& r_elem = *elem_iterator;
+        err = r_elem.Check(rCurrentProcessInfo);
     }
     for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
     {
-        const auto& rCond = *condition_iterator;
-        err = rCond.Check(rCurrentProcessInfo);
+        const auto& r_cond = *condition_iterator;
+        err = r_cond.Check(rCurrentProcessInfo);
     }
     for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin();
             constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
     {
-        const auto& rConstraint = *constraint_iterator;
-        err = rConstraint.Check(rCurrentProcessInfo);
+        const auto& r_constraint = *constraint_iterator;
+        err = r_constraint.Check(rCurrentProcessInfo);
     }
     return err;
     KRATOS_CATCH("");

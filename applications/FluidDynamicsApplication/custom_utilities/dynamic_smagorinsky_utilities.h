@@ -583,7 +583,7 @@ private:
                            Vector& rResidual,
                            const ProcessInfo& rCurrentProcessInfo)
     {
-        const auto& rConstElemRef = rElement;
+        const auto& r_const_elem_ref = rElement;
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Dynamic stabilization terms
@@ -591,7 +591,7 @@ private:
 
         // Dynamic Terms
         rElement.CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
-        rConstElemRef.GetSecondDerivativesVector(rAuxVector,0);
+        r_const_elem_ref.GetSecondDerivativesVector(rAuxVector,0);
 
         noalias(rResidual) -= prod(rMassMatrix,rAuxVector);
 
