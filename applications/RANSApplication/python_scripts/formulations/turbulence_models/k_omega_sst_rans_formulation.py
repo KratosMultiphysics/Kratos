@@ -45,7 +45,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             "wall_distance_calculation_settings":
             {
                 "max_levels"                       : 100,
-                "max_distance"                     : "max",
+                "max_distance"                     : 1e+30,
                 "echo_level"                       : 0,
                 "distance_variable_name"           : "DISTANCE",
                 "nodal_area_variable_name"         : "NODAL_AREA",
