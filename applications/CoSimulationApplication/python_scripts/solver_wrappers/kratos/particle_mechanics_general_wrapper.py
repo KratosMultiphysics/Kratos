@@ -16,10 +16,4 @@ class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the ParticleMechanicsApplication of Kratos"""
 
     def _CreateAnalysisStage(self):
-        #TODO add point load here for point load modelpart
-        #print(self.model.Info())
-        #for mp in self.model.GetModelParts():
-        #    print(mp)
-        #    #grid_mp = self.model.GetModelPart("Background_Grid")
-        #    mp.AddNodalSolutionStepVariable(KratosMultiphysics.POINT_LOAD)
         return ParticleMechanicsAnalysis(self.model, self.project_parameters)
