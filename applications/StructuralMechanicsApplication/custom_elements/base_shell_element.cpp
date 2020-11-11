@@ -290,7 +290,7 @@ void BaseShellElement::BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProce
 
 void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -302,7 +302,7 @@ void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 
 void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -314,7 +314,7 @@ void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 }
 
 void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true; // TODO check is this can be false => see solids
@@ -325,14 +325,14 @@ void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // TODO unify implementation and move it to BaseClass
 }
 
 void BaseShellElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
 )
 {
     const std::size_t matrix_size = GetNumberOfDofs();

@@ -138,7 +138,8 @@ int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rC
 {
     KRATOS_TRY;
 
-    int Check = mpPrimalCondition->Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
+    const auto& r_const_cond_ref = *mpPrimalCondition;
+    int Check = r_const_cond_ref.Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
 
     if (Check != 0)
     {
@@ -264,4 +265,3 @@ template class AdjointPotentialWallCondition<PotentialWallCondition<2,2>>;
 
 
 }  // namespace Kratos.
-

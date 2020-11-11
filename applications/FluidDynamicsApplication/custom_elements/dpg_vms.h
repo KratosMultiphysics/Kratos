@@ -157,7 +157,7 @@ public:
     /// Call at teh begining of each step, ita decides if element is cutted or no!
     /**
       */
-    void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override
     {
 // 	for (unsigned int jj = 0; jj < 4; jj++){
 // 	      this->GetGeometry()[jj].FastGetSolutionStepValue(WET_VOLUME ) = 0.0;
@@ -168,7 +168,7 @@ public:
     /// Call at teh begining of each iteration, ita decides if element is cutted or no!
     /**
       */
-    void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
 	  // Calculate this element's geometric parameters
 	  double Area;
@@ -220,7 +220,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
 //         this->IsCutted();
         unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -260,7 +260,7 @@ public:
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
       	if( this->is_cutted == 1)
 	{
@@ -345,7 +345,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();
       if( this->is_cutted == 0)
@@ -443,7 +443,7 @@ public:
      */
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();
       if( this->is_cutted == 0){
@@ -690,7 +690,7 @@ public:
     }
 
     /// Implementation of FinalizeNonLinearIteration to compute enriched pressure.
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();
       if( this->is_cutted == 0)
@@ -743,7 +743,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
 
-    void GetFirstDerivativesVector(Vector& values, int Step) override
+    void GetFirstDerivativesVector(Vector& values, int Step) const override
     {
 // 	this->IsCutted();
 	if( this->is_cutted == 0)
@@ -772,7 +772,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
 
-      void GetSecondDerivativesVector(Vector& values, int Step) override
+      void GetSecondDerivativesVector(Vector& values, int Step) const override
       {
 // 	this->IsCutted();
 	if( this->is_cutted == 0)
