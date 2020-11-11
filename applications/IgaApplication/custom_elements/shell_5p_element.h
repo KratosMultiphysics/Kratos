@@ -371,6 +371,9 @@ private:
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
+    //The St. Venant Kirchhoff 5P Material Tangent
+    BoundedMatrix<double, 8, 8> mC;
+
     ///@}
     ///@name Operations
     ///@{
@@ -426,6 +429,10 @@ private:
     using Matrix3d = BoundedMatrix<double, 3, 3>;
     using Matrix32d = BoundedMatrix<double, 3, 2>;
     using Matrix23d = BoundedMatrix<double, 2, 3>;
+
+
+    void CalculateSVKMaterialTangent();
+
 
     //void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
     //void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix);

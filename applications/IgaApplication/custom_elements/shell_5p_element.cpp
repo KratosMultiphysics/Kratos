@@ -87,6 +87,8 @@ namespace Kratos
 			mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(m_N, point_number));
 		}
 
+		CalculateSVKMaterialTangent();
+
 		KRATOS_CATCH("");
 	}
 
@@ -141,8 +143,7 @@ namespace Kratos
 
 			double integration_weight =
 				r_integration_points[point_number].Weight()
-				* m_dA_vector[point_number]
-				* GetProperties()[THICKNESS]; // divide by onehalf?
+				* m_dA_vector[point_number]; 
 
 			// LEFT HAND SIDE MATRIX
 			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
@@ -155,7 +156,7 @@ namespace Kratos
 					variation_variables,
 					constitutive_variables);
 				//Matrix temp = prod(trans(BOperator), constitutive_variables.ConstitutiveMatrix);  //defined useless temporary due to ublas prod(prod( not working
-				rLeftHandSideMatrix = rLeftHandSideMatrix + integration_weight * (prod(prod<MatrixType>(trans(BOperator), constitutive_variables.ConstitutiveMatrix), BOperator)+ Kg);
+				rLeftHandSideMatrix = rLeftHandSideMatrix + integration_weight * (prod(prod<MatrixType>(trans(BOperator), mC), BOperator)+ Kg);
 			}
 			// RIGHT HAND SIDE VECTOR
 			if (CalculateResidualVectorFlag == true) 
@@ -253,8 +254,8 @@ namespace Kratos
 		MathUtils<double>::CrossProduct(a3, rKinematicVariables.a1, rKinematicVariables.a2);
 		m_dA_vector[IntegrationPointIndex] = norm_2(a3);
 
-		array_1d<double, 3> axi1 = rKinematicVariables.a1 / norm_2(rKinematicVariables.a1);
-		array_1d<double, 3> axi2 = rKinematicVariables.a2 / norm_2(rKinematicVariables.a2);
+		const array_1d<double, 3> axi1 = rKinematicVariables.a1 / norm_2(rKinematicVariables.a1);
+		const array_1d<double, 3> axi2 = rKinematicVariables.a2 / norm_2(rKinematicVariables.a2);
 
 		MathUtils<double>::CrossProduct(a3, axi1, axi2);
 
@@ -263,10 +264,10 @@ namespace Kratos
 		array_1d<double, 3> axi2bar;
 		MathUtils<double>::CrossProduct(axi2bar, a3, axi1bar);
 
-		array_1d<double, 3> a1Cart = .70710678118654752440 * (axi1bar - axi2bar);
-		array_1d<double, 3> a2Cart = .70710678118654752440 * (axi1bar + axi2bar);
+		const array_1d<double, 3> a1Cart = .70710678118654752440 * (axi1bar - axi2bar);
+		const array_1d<double, 3> a2Cart = .70710678118654752440 * (axi1bar + axi2bar);
 
-		Matrix J = ZeroMatrix(2, 2);
+		Matrix J(2, 2);
 
 		J(0, 0) = inner_prod(rKinematicVariables.a1, a1Cart);
 		J(1, 0) = inner_prod(rKinematicVariables.a2, a1Cart);
@@ -304,19 +305,21 @@ namespace Kratos
 
 		subrange(strain_vector, 6, 7) = rActualKinematic.transShear - reference_TransShear[IntegrationPointIndex];
 		noalias(rThisConstitutiveVariables.StrainVector) = strain_vector;
+		noalias(rThisConstitutiveVariables.StressVector) = prod(mC,strain_vector);
 
-		rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector); //this is the input parameter
-		rValues.SetStressVector(rThisConstitutiveVariables.StressVector);    //this is an ouput parameter
-		rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.ConstitutiveMatrix); //this is an ouput parameter
+		//rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector); //this is the input parameter
+		//rValues.SetStressVector(rThisConstitutiveVariables.StressVector);    //this is an ouput parameter
+		//rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.ConstitutiveMatrix); //TODO Alex this can not work
 
-		mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
-		double thickness = this->GetProperties().GetValue(THICKNESS);
+
+		//mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+
+		//double thickness = this->GetProperties().GetValue(THICKNESS);
 	    //	noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(thickness, 2) / 12);   //TODO this does not work for general material laws especially including shear
 
 		//Local Cartesian Forces and Moments and Shear Forces
-		noalias(rThisConstitutiveVariables.StressVector) = prod(
-			rThisConstitutiveVariables.ConstitutiveMatrix, rThisConstitutiveVariables.StrainVector);
+		noalias(rThisConstitutiveVariables.StressVector) = prod(mC, rThisConstitutiveVariables.StrainVector);
 	}
 
 	Matrix Shell5pElement::CalculateStrainDisplacementOperator(
@@ -597,8 +600,6 @@ namespace Kratos
 
 	int Shell5pElement::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
-		
-
 			// Verify that the constitutive law exists
 			if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
 			{
@@ -620,6 +621,27 @@ namespace Kratos
 	}
 
 
+	void Shell5pElement::CalculateSVKMaterialTangent(	)
+	{
+		const double nu = this->GetProperties()[POISSON_RATIO];
+		const double Emodul =  this->GetProperties()[YOUNG_MODULUS];
+		const double thickness = this->GetProperties().GetValue(THICKNESS);
+		//membrane
+		const double fac1 = thickness * Emodul / (1 - nu * nu);
+		mC(0, 0) = mC(1, 1) = fac1;
+		mC(2, 2) = fac1 * (1 - nu) * 0.5;
+		mC(1, 0) = mC(0, 1) = fac1 * nu;
+
+		// bending
+		const double fac2 = thickness * thickness * fac1 / 12 ;
+		mC(3, 3) = mC(4, 4) = fac2;
+		mC(5, 5) = fac2 * (1 - nu) * 0.5;
+		mC(3, 4) = mC(4, 3) = fac2 * nu;
+
+		//trans shear
+		const double fac3 = thickness * Emodul * 0.5 / (1 + nu);
+		mC(6, 6) = mC(7, 7) = fac3;
+	}
 
 	//void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) //update before next iteration
 	//{
