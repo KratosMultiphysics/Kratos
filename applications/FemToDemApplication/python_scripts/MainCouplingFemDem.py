@@ -2,6 +2,7 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 
 import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
 import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
@@ -9,7 +10,6 @@ import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as
 import math
 import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.SolidMechanicsApplication as Solid
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 import KratosMultiphysics.DEMApplication as KratosDEM
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
@@ -324,12 +324,12 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").AddNode(node, 0)
             max_id += 1
             cond = self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").CreateNewCondition(
-                                                                            "PointLoadCondition2D1N",
+                                                                            "PointLoadCondition3D1N",
                                                                             max_id,
                                                                             [node.Id],
                                                                             props)
             self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
-            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(Solid.FORCE_LOAD, [0.0,0.0,0.0])
+            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(KratosSMA.POINT_LOAD, [0.0,0.0,0.0])
 
 #FindNeighboursIfNecessary===================================================================================================================================
     def FindNeighboursIfNecessary(self):
@@ -550,12 +550,12 @@ class MainCoupledFemDem_Solution:
 
 #UpdateDEMVariables============================================================================================================================
     def UpdateDEMVariables(self):
-        update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
+        update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part)
         update_de_kinematics_process.Execute()
 
 #TransferNodalForcesToFEM============================================================================================================================
     def TransferNodalForcesToFEM(self):
-        tranfer_nodal_forces_process = KratosFemDem.TransferNodalForcesToFem(self.FEM_Solution.main_model_part, self.SpheresModelPart)
+        tranfer_nodal_forces_process = KratosFemDem.TransferNodalForcesToFem(self.FEM_Solution.main_model_part, False)
         tranfer_nodal_forces_process.Execute()
 
 #WritePostListFile============================================================================================================================
@@ -574,8 +574,17 @@ class MainCoupledFemDem_Solution:
         # open general Displ/Reaction File
         self.PlotFile = open("PlotFile.txt","w")
         self.PlotFile.write("This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!\n\n")
-        self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
+        if self.domain_size == 2:
+            self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
+        else:
+            self.PlotFile.write("       time           displ_x        displ_y      displ_z        Reaction_x     Reaction_y     Reaction_z    \n")
         self.PlotFile.close()
+
+        self.PlotFileIter = open("iterations.txt","w")
+        self.PlotFileIter.write("This file prints the number of iterations at each time step\n\n")
+        self.PlotFileIter.write("       time           ITER\n")
+        self.PlotFileIter.close()
+
         self.TimePreviousPlotting = 0.0
         self.plot_files_nodes_list    = []
         self.plot_files_elements_list = []
@@ -626,6 +635,15 @@ class MainCoupledFemDem_Solution:
         total_reaction_z     = 0.0
         interval = self.FEM_Solution.ProjectParameters["interval_of_watching"].GetDouble()
 
+        self.PlotFileIter = open("iterations.txt", "a")
+        max_iter = self.FEM_Solution.ProjectParameters["solver_settings"]["max_iteration"].GetInt()
+        iterations = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]
+        if iterations < max_iter:
+            self.PlotFileIter.write("    " + "{0:.4e}".format(time).rjust(11) + "        " + str(iterations) + "\n")
+        else:
+            self.PlotFileIter.write("    " + "{0:.4e}".format(time).rjust(11) + "        " + str(iterations) + "  MAX iterations reached!" + "\n")
+        self.PlotFileIter.close()
+
         if self.FEM_Solution.time - self.TimePreviousPlotting >= interval:
             if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size() > 0:
                 if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][0].IsInt():
@@ -669,7 +687,6 @@ class MainCoupledFemDem_Solution:
                         "    " + "{0:.4e}".format(total_reaction_x).rjust(11) + "    " + "{0:.4e}".format(total_reaction_y).rjust(11) + "    " +
                         "{0:.4e}".format(total_reaction_z).rjust(11) + "\n")
                 self.PlotFile.close()
-
 
             # Print the selected nodes files
             if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
@@ -936,6 +953,8 @@ class MainCoupledFemDem_Solution:
         props = KratosMultiphysics.Properties(max_id_properties + 1)
         self.created_props_id = max_id_properties + 1
         props[KratosDEM.FRICTION] =  -0.5773502691896257
+        props[KratosDEM.STATIC_FRICTION] =  -0.5773502691896257
+        props[KratosDEM.DYNAMIC_FRICTION] =  -0.5773502691896257
         props[KratosDEM.WALL_COHESION] = 0.0
         props[KratosDEM.COMPUTE_WEAR] = False
         props[KratosDEM.SEVERITY_OF_WEAR] = 0.001

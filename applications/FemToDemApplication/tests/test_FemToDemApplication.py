@@ -6,6 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Small femdem cases
 import main_coupling_for_testing
 import main_coupling_total_lagrangian_for_testing
+import main_coupling_for_testing_face_load
 import main_coupling_for_testing_tables
 import main_coupling_fracture_3_point_for_testing
 import main_coupling_free_fall_testing
@@ -23,6 +24,7 @@ def AssembleTestSuites():
     smallSuite.addTest(main_coupling_fracture_3_point_for_testing.TestAnalytics("fracture_3_point")) #defined inside main_coupling_fracture_3_point_for_testing
     smallSuite.addTest(main_coupling_free_fall_testing.TestAnalytics("free_fall")) #defined inside main_coupling_fracture_3_point_for_testing
     smallSuite.addTest(main_fsi_aitken_for_testing.TestAnalytics("two_dimensional_fsi")) #defined inside main_fsi_aitken_for_testing
+    smallSuite.addTest(main_coupling_for_testing_face_load.TestAnalytics("face_load")) #defined inside main_coupling_for_testing_face_load
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

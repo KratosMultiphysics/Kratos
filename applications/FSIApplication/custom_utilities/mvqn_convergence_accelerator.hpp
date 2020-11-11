@@ -19,11 +19,11 @@
 
 // Project includes
 #include "includes/ublas_interface.h"
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "utilities/svd_utils.h"
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -46,10 +46,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief MVQN (MultiVectorQuasiNewton method) acceleration scheme
+/** @brief MVQN acceleration scheme
+ * MultiVectorQuasiNewton convergence accelerator from Bogaers et al. 2016
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
  */
-template<class TSpace>
-class MVQNFullJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
+template<class TSparseSpace, class TDenseSpace>
+class MVQNFullJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -57,7 +60,7 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( MVQNFullJacobianConvergenceAccelerator );
 
-    typedef ConvergenceAccelerator<TSpace>                                 BaseType;
+    typedef ConvergenceAccelerator<TSparseSpace, TDenseSpace>              BaseType;
     typedef typename BaseType::Pointer                              BaseTypePointer;
 
     typedef typename BaseType::VectorType                                VectorType;
@@ -65,6 +68,8 @@ public:
 
     typedef typename BaseType::MatrixType                                MatrixType;
     typedef typename BaseType::MatrixPointerType                  MatrixPointerType;
+
+    typedef typename TDenseSpace::MatrixType                        DenseMatrixType;
 
     ///@}
     ///@name Life Cycle
@@ -75,8 +80,7 @@ public:
      * MVQN convergence accelerator Json settings constructor
      * @param rConvAcceleratorParameters Json string encapsulating the settings
      */
-    MVQNFullJacobianConvergenceAccelerator(
-        Parameters &rConvAcceleratorParameters)
+    explicit MVQNFullJacobianConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
         Parameters mvqn_default_parameters(R"(
         {
@@ -88,6 +92,7 @@ public:
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
 
+        mProblemSize = 0;
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
         mAbsCutOff = rConvAcceleratorParameters["abs_cut_off_tol"].GetDouble();
         mConvergenceAcceleratorIteration = 0;
@@ -104,6 +109,7 @@ public:
         const double OmegaInitial = 0.825,
         const double AbsCutOff = 1e-8)
     {
+        mProblemSize = 0;
         mOmega_0 = OmegaInitial;
         mAbsCutOff = AbsCutOff;
         mConvergenceAcceleratorIteration = 0;
@@ -154,7 +160,7 @@ public:
     {
         KRATOS_TRY;
 
-        mProblemSize = TSpace::Size(rResidualVector);
+        mProblemSize = TSparseSpace::Size(rResidualVector);
 
         VectorPointerType pAuxResidualVector(new VectorType(rResidualVector));
         VectorPointerType pAuxIterationGuess(new VectorType(rIterationGuess));
@@ -164,7 +170,7 @@ public:
         if (mConvergenceAcceleratorIteration == 0) {
             if (mConvergenceAcceleratorFirstCorrectionPerformed == false) {
                 // The very first correction of the problem is done with a fixed point iteration
-                TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
+                TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
 
                 // Initialize the Jacobian approximation matrix as minus the diagonal matrix
                 // Note that this is exclusively done in the very fist iteration
@@ -176,8 +182,8 @@ public:
             } else {
                 // Fist step correction is done with the previous step Jacobian
                 VectorType AuxVec(mProblemSize);
-                TSpace::Mult(*mpJac_n, *mpResidualVector_1, AuxVec);
-                TSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
+                TSparseSpace::Mult(*mpJac_n, *mpResidualVector_1, AuxVec);
+                TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
             }
         } else {
             if (mConvergenceAcceleratorIteration == 1) {
@@ -207,14 +213,14 @@ public:
 
             // Compute the jacobian approximation
             std::size_t data_cols = mpObsMatrixV->size2();
-            MatrixType aux2(data_cols, data_cols);
+            DenseMatrixType aux2(data_cols, data_cols);
             noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
 
             // Perform the observation matrix V Singular Value Decomposition (SVD) such that
             // matrix V (m x n) is equal to the SVD matrices product V = u_svd * w_svd * v_svd
-            MatrixType u_svd; // Orthogonal matrix (m x m)
-            MatrixType w_svd; // Rectangular diagonal matrix (m x n)
-            MatrixType v_svd; // Orthogonal matrix (n x n)
+            DenseMatrixType u_svd; // Orthogonal matrix (m x m)
+            DenseMatrixType w_svd; // Rectangular diagonal matrix (m x n)
+            DenseMatrixType v_svd; // Orthogonal matrix (n x n)
             std::string svd_type = "Jacobi"; // SVD decomposition type
             double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
             SVDUtils<double>::SingularValueDecomposition(aux2, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
@@ -269,8 +275,8 @@ public:
 
             // Perform the correction
             VectorType AuxVec(mProblemSize);
-            TSpace::Mult(*mpJac_k1, *mpResidualVector_1, AuxVec);
-            TSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
+            TSparseSpace::Mult(*mpJac_k1, *mpResidualVector_1, AuxVec);
+            TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
         }
 
         KRATOS_CATCH( "" );

@@ -169,6 +169,19 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<MMGLibrary TMMGLibrary>
+std::string MmgIO<TMMGLibrary>::GetMmgVersion()
+{
+    KRATOS_TRY;
+
+    return mMmgUtilities.GetMmgVersion();
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class MmgIO<MMGLibrary::MMG2D>;
 template class MmgIO<MMGLibrary::MMG3D>;
 template class MmgIO<MMGLibrary::MMGS>;

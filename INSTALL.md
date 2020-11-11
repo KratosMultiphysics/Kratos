@@ -119,7 +119,7 @@ Compilation Type. Options are `Release`,`RelWithDebInfo`,`Debug`,`FullDebug`,`Cu
 
 **Debug**: Debug build with no optimization flags.
 
-**FullDebug**: Debug build with no optimization falgs, extended debug info and extremly low performance.
+**FullDebug**: Debug build with no optimization flags, extended debug info and extremly low performance.
 
 **Custom**: No flags are automatically added.
 

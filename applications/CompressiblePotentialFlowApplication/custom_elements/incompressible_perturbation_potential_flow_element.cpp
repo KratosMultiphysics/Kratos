@@ -161,7 +161,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolu
 // Inquiry
 
 template <int Dim, int NumNodes>
-int IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
