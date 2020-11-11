@@ -41,9 +41,8 @@ set( KRATOS_MESHING_APPLICATION_CORE
 set(KRATOS_MESHING_APPLICATION_CORE_PMMG "")
 if(${INCLUDE_PMMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_CORE_PMMG ${KRATOS_MESHING_APPLICATION_CORE_PMMG}
-    #${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/pmmg_utilities.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/pmmg_process.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/custom_io/pmmg_io.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/pmmg_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/pmmg_process.cpp
 )
 endif(${INCLUDE_PMMG} MATCHES ON)
 
@@ -155,7 +154,6 @@ if(${INCLUDE_PMMG} MATCHES ON)
         endif(${INCLUDE_MMG} MATCHES OFF)
     ENDIF(NOT DEFINED INCLUDE_MMG)
 
-
     add_definitions( -DINCLUDE_PMMG )
     ## find Metis for ParMmg
     if(NOT DEFINED USE_METIS_5)
@@ -176,6 +174,7 @@ if(${INCLUDE_PMMG} MATCHES ON)
         include_directories(${PARMETIS_INCLUDE_DIR})
         link_directories(${PARMETIS_LIBRARIES})
     endif(${USE_METIS_5} MATCHES ON)
+
     IF (PMMG_ROOT)
         IF(NOT DEFINED PMMG_LIBRARY_EXTENSION)
             IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
