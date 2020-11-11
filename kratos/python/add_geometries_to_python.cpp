@@ -121,9 +121,10 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("IntegrationPointsNumber", [](GeometryType& self)
         { return(self.IntegrationPointsNumber()); })
     // Quadrature points
-    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
-        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
-        { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
+    .def("CreateQuadraturePointGeometries", [](
+        GeometryType& self, GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
+        { IntegrationInfo integration_info;
+          return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info)); })
     // Normal
     .def("Normal", [](GeometryType& self)
         { const auto& r_type = self.GetGeometryType();

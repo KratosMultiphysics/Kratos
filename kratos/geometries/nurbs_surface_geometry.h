@@ -135,17 +135,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     NurbsSurfaceGeometry& operator=(const NurbsSurfaceGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -157,17 +147,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator with different point type
     template<class TOtherContainerPointType>
     NurbsSurfaceGeometry& operator=(
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
@@ -232,13 +212,13 @@ public:
     ///@name Get and Set functions
     ///@{
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeU() const
     {
         return mPolynomialDegreeU;
     }
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeV() const
     {
         return mPolynomialDegreeV;
@@ -260,15 +240,13 @@ public:
         return mKnotsV;
     }
 
-    /* @return Gives the size of the knot vector in u-direction.
-    */
+    /// @return Gives the size of the knot vector in u-direction.
     SizeType NumberOfKnotsU() const
     {
         return mKnotsU.size();
     }
 
-    /* @return Gives the size of the knot vector in v-direction.
-    */
+    /// @return Gives the size of the knot vector in v-direction.
     SizeType NumberOfKnotsV() const
     {
         return mKnotsV.size();
@@ -327,7 +305,7 @@ public:
      * @param return vector of span intervals.
      * @param index of direction: 0: U; 1: V.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const override
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
@@ -430,7 +408,8 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const SizeType points_in_u = PolynomialDegreeU() + 1;
         const SizeType points_in_v = PolynomialDegreeV() + 1;

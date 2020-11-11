@@ -11,6 +11,7 @@
 
 // Project includes
 #include "iga_modeler.h"
+#include "integration/integration_info.h"
 
 
 namespace Kratos
@@ -132,8 +133,9 @@ namespace Kratos
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
+            IntegrationInfo integration_info;
             rGeometryList[i].CreateQuadraturePointGeometries(
-                geometries, shape_function_derivatives_order);
+                geometries, shape_function_derivatives_order, integration_info);
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;

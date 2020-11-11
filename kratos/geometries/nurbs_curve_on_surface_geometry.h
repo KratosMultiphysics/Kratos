@@ -26,6 +26,9 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 #include "utilities/curve_axis_intersection.h"
+#include "integration/integration_info.h"
+
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos {
 
@@ -103,17 +106,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     NurbsCurveOnSurfaceGeometry& operator=(const NurbsCurveOnSurfaceGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -122,17 +115,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator with different point type
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType>
     NurbsCurveOnSurfaceGeometry& operator=(
         NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherCurveContainerPointType, TOtherSurfaceContainerPointType> const & rOther)
@@ -175,31 +158,30 @@ public:
         return mpNurbsCurve->PointsNumberInDirection(LocalDirectionIndex);
     }
 
+    /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
+    NurbsInterval DomainInterval() const
+    {
+        return mpNurbsCurve->DomainInterval();
+    }
+
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
-    {
-        auto interval = mpNurbsCurve->DomainInterval();
-        this->Spans(rSpans, interval.GetT0(), interval.GetT1());
-    }
-
-    /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
-     * @return vector of interval limitations.
-     */
-    void Spans(std::vector<double>& rSpans,
-        double Start, double End) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
         mpNurbsSurface->Spans(surface_spans_u, 0);
         mpNurbsSurface->Spans(surface_spans_v, 1);
 
-        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
-            rSpans,
-            *(mpNurbsCurve.get()), Start, End,
+        // compute axis intersection with external limits
+        CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
+            rSpans, *(mpNurbsCurve.get()),
+            mpNurbsCurve->DomainInterval().GetT0(), mpNurbsCurve->DomainInterval().GetT1(),
             surface_spans_u, surface_spans_v,
             1e-6);
     }
@@ -234,6 +216,47 @@ public:
             global_space_derivatives, rPoint, 1);
         return norm_2(global_space_derivatives[1]);
     }
+    ///@name IsInside
+    ///@{
+
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mpNurbsCurve->IsInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mpNurbsCurve->SetInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    /////@}
+    /////@name Spatial Operations
+    /////@{
+
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
+
+        return (success)
+            ? 1
+            : 0;
+    }
 
     ///@}
     ///@name Integration Points
@@ -244,15 +267,23 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        mpNurbsSurface->PolynomialDegreeU();
-
-        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
-            + mpNurbsSurface->PolynomialDegreeV() + 1;
+        const SizeType points_per_span = (rIntegrationInfo.NumberOfIntegrationPointsPerSpan() != 0)
+            ? rIntegrationInfo.NumberOfIntegrationPointsPerSpan()
+            : mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
 
         std::vector<double> spans;
-        Spans(spans);
+        if (rIntegrationInfo.HasSpansInDirection(0)) {
+            spans = rIntegrationInfo.GetSpans(0);
+            if (spans.size() < 1) {
+                this->Spans(spans);
+            }
+        }
+        else {
+            this->Spans(spans);
+        }
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);
@@ -266,13 +297,13 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         double StartParameter, double EndParameter) const
     {
-        mpNurbsSurface->PolynomialDegreeU();
-
         const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
-        std::vector<double> spans;
-        Spans(spans, StartParameter, EndParameter);
+        std::vector<double> spans(2);
+        spans[0] = StartParameter;
+        spans[1] = EndParameter;
+        Spans(spans);
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);
@@ -375,6 +406,12 @@ public:
     ///@}
     ///@name Operation within Global Space
     ///@{
+
+    /// Provides the center of the underlying surface
+    Point Center() const override
+    {
+        return mpNurbsSurface->Center();
+    }
 
     /*
     * @brief This method maps from dimension space to working space.

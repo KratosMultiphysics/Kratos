@@ -23,97 +23,105 @@
 
 namespace Kratos
 {
-    template<int TDimension, class TPointType> class NurbsCurveGeometry;
-    template<int TDimension, class TPointType> class NurbsSurfaceGeometry;
-    namespace ProjectionNurbsGeometryUtilities
+template<class TPointType> class Geometry;
+template<int TDimension, class TPointType> class NurbsSurfaceGeometry;
+namespace ProjectionNurbsGeometryUtilities
+{
+    typedef array_1d<double, 3> CoordinatesArrayType;
+
+    /*
+    * @brief Returns the projection of a point onto a Nurbs curve
+    *        geometry using the Newton-Rapshon iterative method
+    * @param rParameterLocalCoordinates Intial guess for the Newton-Rapshon algorithm
+    *        overwritten by the local coordinates of the projected point onto
+    *        the Nurbs curve geometry
+    * @param rPoint The point to be projected onto the Nurbs curve geometry
+    *        This is overwritten by the Cartesian coordinates of the projected
+    *        point in case the projection is successful 
+    * @param rResult The projection onto the Nurbs curve geometry
+    * @param rNurbsCurve The Nurbs curve geometry onto which the point is 
+    *        to be projected
+    * @param MaxIterations Maximum number of iterations for the Newton-Rapshon 
+    *        algorithm
+    * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
+    */
+    template <class TPointType>
+    bool NewtonRaphsonCurve(
+        CoordinatesArrayType& rParameterLocalCoordinates,
+        const CoordinatesArrayType& rPointGlobal,
+        CoordinatesArrayType& rResultLocal,
+        const Geometry<TPointType>& rGeometry,
+        const int MaxIterations = 20,
+        const double Accuracy = 1e-6)
     {
-        typedef array_1d<double, 3> CoordinatesArrayType;
+        // Intialize variables
+        double residual, delta_t;
 
-        /*
-        * @brief Returns the projection of a point onto a Nurbs curve
-        *        geometry using the Newton-Rapshon iterative method
-        * @param rParameterLocalCoordinates Intial guess for the Newton-Rapshon algorithm
-        *        overwritten by the local coordinates of the projected point onto
-        *        the Nurbs curve geometry
-        * @param rPoint The point to be projected onto the Nurbs curve geometry
-        *        This is overwritten by the Cartesian coordinates of the projected
-        *        point in case the projection is successful 
-        * @param rResult The projection onto the Nurbs curve geometry
-        * @param rNurbsCurve The Nurbs curve geometry onto which the point is 
-        *        to be projected
-        * @param MaxIterations Maximum number of iterations for the Newton-Rapshon 
-        *        algorithm
-        * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
-        */
-        template <int TDimension, class TPointType>
-        bool NewtonRaphsonCurve(
-            CoordinatesArrayType& rParameterLocalCoordinates,
-            const CoordinatesArrayType& rPointGlobal,
-            CoordinatesArrayType& rResultLocal,
-            const NurbsCurveGeometry<TDimension, TPointType>& rNurbsCurve,
-            const int MaxIterations = 20,
-            const double Accuracy = 1e-6)
+        std::vector<array_1d<double, 3>> derivatives(3);
+        array_1d<double, 3> distance_vector;
+
+        bool projection_reset_to_boundary = false;
+
+        // Loop over all Newton-Raphson iterations
+        for (int i = 0; i < MaxIterations; ++i) 
         {
-            // Intialize variables
-            double residual, delta_t;
+            // Compute the position, the base and the acceleration vector
+            rGeometry.GlobalSpaceDerivatives(
+                derivatives,
+                rParameterLocalCoordinates,
+                2);
+            rResultLocal = derivatives[0];
 
-            // Loop over all Newton-Raphson iterations
-            for (int i = 0; i < MaxIterations; ++i) 
-            {
-                // Compute the position, the base and the acceleration vector
-                std::vector<array_1d<double, 3>> derivatives;
-                rNurbsCurve.GlobalSpaceDerivatives(
-                    derivatives,
-                    rParameterLocalCoordinates,
-                    2);
-                rResultLocal = derivatives[0];
+            // Compute the distance vector between the point and its 
+            // projection on the curve
+            distance_vector = rResultLocal - rPointGlobal;
+            if (norm_2(distance_vector) < Accuracy)
+                return true;
 
-                // Compute the distance vector between the point and its 
-                // projection on the curve
-                array_1d<double, 3> distance_vector = rResultLocal - rPointGlobal;
-                if (norm_2(distance_vector) < Accuracy)
-                    return true;
+            // Compute the residual
+            residual = inner_prod(distance_vector, derivatives[1]);
+            if (std::abs(residual) < Accuracy)
+                return true;
 
-                // Compute the residual
-                residual = inner_prod(distance_vector, derivatives[1]);
-                if (std::abs(residual) < Accuracy)
-                    return true;
+            // Compute the increment
+            delta_t = residual / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
 
-                // Compute the increment
-                delta_t = residual / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
+            // Increment the parametric coordinate
+            rParameterLocalCoordinates[0] -= delta_t;
 
-                // Increment the parametric coordinate
-                rParameterLocalCoordinates[0] -= delta_t;
+            // Check if the increment is too small and if yes return true
+            if (norm_2(delta_t*derivatives[1]) < Accuracy)
+                return true;
 
-                // Check if the increment is too small and if yes return true
-                if (norm_2(delta_t*derivatives[1]) < Accuracy)
-                    return true;
-
-                // Check if the parameter gets out of its interval of definition and if so clamp it 
-                // back to the boundaries
-                rNurbsCurve.DomainInterval().IsInside(rParameterLocalCoordinates[0]);
+            // Check if the parameter gets out of its interval of definition and if so clamp it 
+            // back to the boundaries
+            int check = rGeometry.SetInsideLocalSpace(rParameterLocalCoordinates);
+            if (check == 0) {
+                if (projection_reset_to_boundary) { return false; }
+                else { projection_reset_to_boundary = true; }
             }
+        }
 
-            // Return false if the Newton-Raphson iterations did not converge
-            return false;
+        // Return false if the Newton-Raphson iterations did not converge
+        return false;
     }
 
-        /*
-        * @brief Returns the projection of a point onto a Nurbs surface
-        *        geometry using the Newton-Rapshon iterative method
-        * @param rParameterLocalCoordinates Intial guess for the Newton-Rapshon algorithm
-        *        overwritten by the local coordinates of the projected point onto
-        *        the Nurbs surface geometry
-        * @param rPoint The point to be projected onto the Nurbs surface geometry
-        *        This is overwritten by the Cartesian coordinates of the projected
-        *        point in case the projection is successful 
-        * @param rResult The projection onto the Nurbs surface geometry
-        * @param rNurbsCurve The Nurbs curve geometry onto which the point is 
-        *        to be projected
-        * @param MaxIterations Maximum number of iterations for the Newton-Rapshon 
-        *        algorithm
-        * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
-        */
+    /*
+    * @brief Returns the projection of a point onto a Nurbs surface
+    *        geometry using the Newton-Rapshon iterative method
+    * @param rParameterLocalCoordinates Intial guess for the Newton-Rapshon algorithm
+    *        overwritten by the local coordinates of the projected point onto
+    *        the Nurbs surface geometry
+    * @param rPoint The point to be projected onto the Nurbs surface geometry
+    *        This is overwritten by the Cartesian coordinates of the projected
+    *        point in case the projection is successful 
+    * @param rResult The projection onto the Nurbs surface geometry
+    * @param rNurbsCurve The Nurbs curve geometry onto which the point is 
+    *        to be projected
+    * @param MaxIterations Maximum number of iterations for the Newton-Rapshon 
+    *        algorithm
+    * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
+    */
     template <int TDimension, class TPointType>
     bool NewtonRaphsonSurface(
         CoordinatesArrayType& rParameterLocalCoordinates,
@@ -225,7 +233,7 @@ namespace Kratos
 
         return false;
     }
-    }
+}
 } // namespace Kratos
 
 #endif // KRATOS_PROJECTION_NURBS_GEOMETRY_UTILITIES_H_INCLUDED
