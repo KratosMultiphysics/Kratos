@@ -11,15 +11,10 @@
 //
 
 // System includes
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "includes/kratos_filesystem.h"
 
 // Include base h
