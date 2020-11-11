@@ -186,7 +186,7 @@ public:
     ///@name Get and Set functions
     ///@{
 
-    /* 
+    /*
     * @brief Knot vector is defined to have a multiplicity of p
     *        at the beginning and end (NOT: p + 1).
     * @return knot vector.
@@ -236,7 +236,7 @@ public:
         return mWeights;
     }
 
-    /* 
+    /*
     * @brief Provides the natural boundaries of the NURBS/B-Spline curve.
     * @return domain interval.
     */
@@ -307,7 +307,8 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info;
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -589,7 +590,7 @@ public:
         return rResult;
     }
 
-    /** 
+    /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
     * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2

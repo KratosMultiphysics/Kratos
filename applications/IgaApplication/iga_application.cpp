@@ -46,6 +46,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
+    KRATOS_REGISTER_MODELER("IgaCosimModeler", mIgaCosimModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
