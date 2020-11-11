@@ -1879,9 +1879,6 @@ private:
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_elem);
                 }
             }
 
@@ -1902,9 +1899,6 @@ private:
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_cond);
                 }
             }
         }
