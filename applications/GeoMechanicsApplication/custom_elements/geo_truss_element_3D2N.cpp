@@ -683,7 +683,7 @@ void GeoTrussElement3D2N::WriteTransformationCoordinates(
 void GeoTrussElement3D2N::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
@@ -707,9 +707,11 @@ void GeoTrussElement3D2N::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-void GeoTrussElement3D2N::AddExplicitContribution(
-    const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+void GeoTrussElement3D2N::
+    AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {

@@ -72,8 +72,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:   
-    
+protected:
+
     struct NormalFluxFICVariables
     {
         double DtPressureCoefficient;
@@ -83,9 +83,9 @@ protected:
         array_1d<double,TNumNodes> DtPressureVector;
         BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
     };
-    
+
     // Member Variables
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
