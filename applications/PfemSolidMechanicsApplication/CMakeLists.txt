@@ -5,7 +5,7 @@ message("**** configuring KratosPfemSolidMechanicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ContactMechanicsApplication )
@@ -16,7 +16,7 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ContactMechanicsApplicat
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${KRATOS_SOURCE_DIR}/external_libraries/triangle/)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 

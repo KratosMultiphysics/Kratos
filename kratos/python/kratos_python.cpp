@@ -50,6 +50,7 @@
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
 #include "add_strategies_to_python.h"
+#include "add_convergence_accelerators_to_python.h"
 #include "add_geometrical_utilities_to_python.h"
 #include "add_other_utilities_to_python.h"
 #include "add_variable_utils_to_python.h"
@@ -117,6 +118,7 @@ PYBIND11_MODULE(Kratos, m)
     AddFactoriesToPython(m);
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
+    AddConvergenceAcceleratorsToPython(m);
     AddGeometricalUtilitiesToPython(m);
     AddOtherUtilitiesToPython(m);
     AddVariableUtilsToPython(m);

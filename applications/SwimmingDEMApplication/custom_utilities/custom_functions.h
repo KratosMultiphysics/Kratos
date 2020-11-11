@@ -166,9 +166,9 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
         std::cout << "The stationarity condition tolerance is " << "\n";
-        KRATOS_WATCH(tol)
+        KRATOS_INFO("SwimmingDEM") << tol << std::endl;
         std::cout << "The stationarity residual is now " << "\n";
-        KRATOS_WATCH(max_pressure_change_rate)
+        KRATOS_INFO("SwimmingDEM") << max_pressure_change_rate << std::endl;
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
 
         return max_pressure_change_rate <= tol;

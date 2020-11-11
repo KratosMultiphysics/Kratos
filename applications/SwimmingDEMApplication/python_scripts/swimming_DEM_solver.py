@@ -189,7 +189,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.ConstructDerivativeRecoverer()
         self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
-        super(SwimmingDEMSolver, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def ConstructStationarityTool(self):
         self.stationarity = False
@@ -345,12 +345,7 @@ class SwimmingDEMSolver(PythonSolver):
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_solver.main_model_part,
-            SDP.FunctionsCalculator(self.fluid_domain_dimension))
-
-        self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
+        self.derivative_recovery_counter.SetActivation(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
             self.recovery.Recover()
