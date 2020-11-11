@@ -56,4 +56,5 @@ class ApplySlipProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         # Recompute the normals if needed
         if self.avoid_recomputing_normals == False:
-            KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, True)
+            consider_unit_normal = True
+            KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, consider_unit_normal)
