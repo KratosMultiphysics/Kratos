@@ -384,14 +384,16 @@ namespace Kratos
 
         if (IsImplicit)
         {
-            block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(domain_nodes.size()); i++)
+            {
+                IndexType equation_id = domain_nodes[i]->GetDof(DISPLACEMENT_X).EquationId();
+                array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
+                for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
                 {
-                    IndexType equation_id = rNode.GetDof(DISPLACEMENT_X).EquationId();
-                    array_1d<double, 3>& r_nodal_quantity = rNode.FastGetSolutionStepValue(rVariable);
-                    for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
-                        r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                    r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
                 }
-            );
+            }
         }
         else
         {
