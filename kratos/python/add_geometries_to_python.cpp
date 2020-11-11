@@ -243,6 +243,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPointsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsU)
         .def("NumberOfControlPointsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsV)
         .def("NumberOfControlPointsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsW)
+        .def("GlobalCoordinates", &NurbsVolumeGeometry<NodeContainerType>::GlobalCoordinates)
         ;
 
     // NurbsSurfaceGeometry3D
