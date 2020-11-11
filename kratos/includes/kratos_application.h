@@ -433,7 +433,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const PeriodicCondition mPeriodicConditionCorner;
 
     // General elements must be defined
-    const MeshElement mElement;
+    const MeshElement mElement2D1N;
     const MeshElement mElement2D2N;
     const MeshElement mElement2D3N;
     const MeshElement mElement2D6N;
@@ -441,6 +441,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement2D8N;
     const MeshElement mElement2D9N;
 
+    const MeshElement mElement3D1N;
     const MeshElement mElement3D2N;
     const MeshElement mElement3D3N;
     const MeshElement mElement3D4N;

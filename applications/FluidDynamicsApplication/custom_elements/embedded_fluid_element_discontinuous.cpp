@@ -68,12 +68,12 @@ Element::Pointer EmbeddedFluidElementDiscontinuous<TBaseElement>::Create(
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::Initialize()
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     // Call the base element initialize method to set the constitutive law
-    TBaseElement::Initialize();
+    TBaseElement::Initialize(rCurrentProcessInfo);
 
     // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
     if (!this->Has(ELEMENTAL_DISTANCES)) {
@@ -98,7 +98,7 @@ template <class TBaseElement>
 void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize){
@@ -219,7 +219,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
 // Inquiry
 
 template <class TBaseElement>
-int EmbeddedFluidElementDiscontinuous<TBaseElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int EmbeddedFluidElementDiscontinuous<TBaseElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int out = EmbeddedDiscontinuousElementData::Check(*this, rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
