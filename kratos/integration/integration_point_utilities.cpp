@@ -75,9 +75,9 @@ namespace Kratos
         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
         double U0, double U1, double V0, double V1, double W0, double W1)
     {
-        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1 || PointsInW )
-            << "PointsInU and ~V need to be bigger than 0, but are PointsInU:"
-            << PointsInU << ", PointsInV: " << PointsInV << " and PointsInW:" << PointsInW << std::endl;
+        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1 || PointsInW < 1)
+            << "PointsInU, -V and -W need to be bigger than 0 - PointsInU:"
+            << PointsInU << ", PointsInV:" << PointsInV << " and PointsInW:" << PointsInW << std::endl;
 
         const double distance_u = U1 - U0;
         const double length_u = std::abs(U1 - U0);

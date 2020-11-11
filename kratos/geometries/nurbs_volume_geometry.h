@@ -630,6 +630,10 @@ public:
      * @brief Computes jacobian matrix at the given coordinates.
      * @param rCoordinates Coordinates to be evaluated.
      * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
+     * @todo Refactor such that addional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
+     *       find the correct knotspans and to set the shape_function_member variables 'mFirstNonzeroControlPointU,-V,-W'.
+     * @note This function is only required to compute e.g. the volume of the geometry. During an IGA-Analysis the corresponding function
+     *       of the base class is called.
      **/
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates ) const override
     {
@@ -642,23 +646,21 @@ public:
         Matrix shape_functions_gradients(points_number, local_space_dimension);
         ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
 
-        NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 1);
+        // Get control point indices
+        NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 0);
         shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU,mKnotsV,mKnotsW,
             rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        std::vector<array_1d<int,3>> indices = shape_function_container.NonzeroControlPointIndices();
-        SizeType number_of_cp = shape_function_container.NumberOfNonzeroControlPoints();
 
         SizeType number_cp_u = NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size());
         SizeType number_cp_v = NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size());
         SizeType number_cp_w = NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeW, mKnotsW.size());
 
+        std::vector<int> cp_indices = shape_function_container.ControlPointIndices(number_cp_u, number_cp_v, number_cp_w);
+        SizeType number_of_cp = shape_function_container.NumberOfNonzeroControlPoints();
+
         rResult.clear();
         for (IndexType i = 0; i < number_of_cp; ++i ) {
-            SizeType global_cp_index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-                                    number_cp_u, number_cp_v, number_cp_w,
-                                    indices[i][0], indices[i][1], indices[i][2]);
-
-            const array_1d<double, 3>& r_coordinates = (*this)[global_cp_index].Coordinates();
+            const array_1d<double, 3>& r_coordinates = (*this)[cp_indices[i]].Coordinates();
             for(IndexType k = 0; k< working_space_dimension; ++k) {
                 const double value = r_coordinates[k];
                 for(IndexType m = 0; m < local_space_dimension; ++m) {
