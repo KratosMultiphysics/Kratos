@@ -47,6 +47,19 @@ L2ErrorProjection()
 
 virtual ~L2ErrorProjection(){}
 
+void ComputeDofsErrors(ModelPart& r_model_part)
+{
+    const unsigned int n_nodes = r_model_part.Nodes().size();
+    for (unsigned int inode = 1; inode <= n_nodes; ++inode){
+
+        auto& r_vectorial_error = r_model_part.GetNode(inode).FastGetSolutionStepValue(VECTORIAL_ERROR);
+        r_vectorial_error = r_model_part.GetNode(inode).FastGetSolutionStepValue(VELOCITY) - r_model_part.GetNode(inode).FastGetSolutionStepValue(EXACT_VELOCITY);
+
+        auto& r_scalar_error = r_model_part.GetNode(inode).FastGetSolutionStepValue(SCALAR_ERROR);
+        r_scalar_error = r_model_part.GetNode(inode).FastGetSolutionStepValue(PRESSURE) - r_model_part.GetNode(inode).FastGetSolutionStepValue(EXACT_PRESSURE);
+    }
+}
+
 double GetL2VectorProjection(ModelPart& r_model_part)
 {
     const unsigned int n_elements = r_model_part.Elements().size();

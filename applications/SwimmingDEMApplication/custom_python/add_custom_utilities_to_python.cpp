@@ -493,6 +493,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<L2ErrorProjection> (m, "L2ErrorProjection")
         .def(py::init<>())
+        .def("ComputeDofsErrors", &L2ErrorProjection::ComputeDofsErrors)
         .def("GetL2VectorProjection", &L2ErrorProjection::GetL2VectorProjection)
         .def("GetL2ScalarProjection", &L2ErrorProjection::GetL2ScalarProjection)
         ;

@@ -45,23 +45,22 @@ class L2ErrorProjectionUtility:
         self.SetStrategy()
 
     def ProjectL2(self):
-        self.ComputeVelocityError()
-        self.ComputePressureError()
+        self.ComputeDofsErrors(self.error_model_part)
         self.Solve()
 
-        self.velocity_error_projected = SDEM.L2ErrorProjection().GetL2VectorProjection(self.error_model_part)
-        self.pressure_error_projected = SDEM.L2ErrorProjection().GetL2ScalarProjection(self.error_model_part)
+        self.velocity_error_projected = self.VectorL2Projection(self.error_model_part)
+        self.pressure_error_projected = self.ScalarL2Projection(self.error_model_part)
+
         return self.velocity_error_projected/self.u_characteristic, self.pressure_error_projected/self.p_characteristic, self.error_model_part
 
-    def ComputeVelocityError(self):
-        for node in self.error_model_part.Nodes:
-            vectorial_error = Vector(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) - node.GetSolutionStepValue(SDEM.EXACT_VELOCITY))
-            node.SetSolutionStepValue(SDEM.VECTORIAL_ERROR, vectorial_error)
+    def ComputeDofsErrors(self, error_model_part):
+        SDEM.L2ErrorProjection().ComputeDofsErrors(self.error_model_part)
 
-    def ComputePressureError(self):
-        for node in self.error_model_part.Nodes:
-            scalar_error = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) - node.GetSolutionStepValue(SDEM.EXACT_PRESSURE)
-            node.SetSolutionStepValue(SDEM.SCALAR_ERROR, scalar_error)
+    def VectorL2Projection(self, error_model_part):
+        return SDEM.L2ErrorProjection().GetL2VectorProjection(self.error_model_part)
+
+    def ScalarL2Projection(self, error_model_part):
+        return SDEM.L2ErrorProjection().GetL2ScalarProjection(self.error_model_part)
 
     def SetStrategy(self):
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
