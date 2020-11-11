@@ -24,7 +24,7 @@
 #include "spaces/ublas_space.h"
 #include "co_simulation_application_variables.h"
 #include "includes/variables.h"
-
+#include "utilities/parallel_utilities.h"
 #include "linear_solvers/linear_solver.h"
 
 

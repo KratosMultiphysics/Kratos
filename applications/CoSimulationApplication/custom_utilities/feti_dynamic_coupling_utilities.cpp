@@ -373,47 +373,44 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        auto domain_nodes = pDomain->NodesArray();
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-        KRATOS_ERROR_IF_NOT(rCorrection.size() == domain_nodes.size() * dim)
+        KRATOS_ERROR_IF_NOT(rCorrection.size() == pDomain->NumberOfNodes() * dim)
             << "AddCorrectionToDomain | Correction dof size does not match domain dofs\n"
             << "Correction size = " << rCorrection.size() << "\n"
-            << "Domain dof size = " << domain_nodes.size() * dim << "\n"
+            << "Domain dof size = " << pDomain->NumberOfNodes() * dim << "\n"
             << "\n\n\nModel part:\n" << *pDomain << "\n";
 
         if (IsImplicit)
         {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(domain_nodes.size()); i++)
-            {
-                IndexType equation_id = domain_nodes[i]->GetDof(DISPLACEMENT_X).EquationId();
-                array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
-                for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+            block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
                 {
-                    r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                    IndexType equation_id = rNode.GetDof(DISPLACEMENT_X).EquationId();
+                    array_1d<double, 3>& r_nodal_quantity = rNode.FastGetSolutionStepValue(rVariable);
+                    for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                        r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
                 }
-            }
+            );
         }
         else
         {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(domain_nodes.size()); i++)
-            {
-                if (domain_nodes[i]->Has(EXPLICIT_EQUATION_ID))
+            block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
                 {
-                    const double nodal_mass = domain_nodes[i]->GetValue(NODAL_MASS);
-                    if (nodal_mass > numerical_limit)
+                    if (rNode.Has(EXPLICIT_EQUATION_ID))
                     {
-                        IndexType equation_id = domain_nodes[i]->GetValue(EXPLICIT_EQUATION_ID);
-                        array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
-                        for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                        const double nodal_mass = rNode.GetValue(NODAL_MASS);
+                        if (nodal_mass > numerical_limit)
                         {
-                            r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                            IndexType equation_id = rNode.GetValue(EXPLICIT_EQUATION_ID);
+                            array_1d<double, 3>& r_nodal_quantity = rNode.FastGetSolutionStepValue(rVariable);
+                            for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                            {
+                                r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                            }
                         }
                     }
                 }
-            }
+            );
         }
 
         KRATOS_CATCH("")
@@ -448,25 +445,22 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        auto interface_nodes = rInterface.NodesArray();
-
-        if (rContainer.size() != interface_nodes.size() * nDOFs)
-            rContainer.resize(interface_nodes.size() * nDOFs);
+        if (rContainer.size() != rInterface.NumberOfNodes() * nDOFs)
+            rContainer.resize(rInterface.NumberOfNodes() * nDOFs);
         rContainer.clear();
 
-        KRATOS_ERROR_IF_NOT(interface_nodes[0]->Has(INTERFACE_EQUATION_ID))
+        KRATOS_ERROR_IF_NOT(rInterface.NodesArray()[0]->Has(INTERFACE_EQUATION_ID))
             << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The interface nodes do not have an interface equation ID.\n"
             << "This is created by the mapper.\n";
 
         // Fill up container
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(interface_nodes.size()); ++i)
-        {
-            IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-
-            array_1d<double, 3>& r_quantity = interface_nodes[i]->FastGetSolutionStepValue(rVariable);
-            for (size_t dof = 0; dof < nDOFs; dof++)  rContainer[nDOFs * interface_id + dof] = r_quantity[dof];
-        }
+        block_for_each(rInterface.Nodes(), [&](Node<3>& rNode)
+            {
+                IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
+                array_1d<double, 3>& r_quantity = rNode.FastGetSolutionStepValue(rVariable);
+                for (size_t dof = 0; dof < nDOFs; dof++)  rContainer[nDOFs * interface_id + dof] = r_quantity[dof];
+            }
+        );
 
         KRATOS_CATCH("")
     }
@@ -477,23 +471,21 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        auto interface_nodes = rInterface.NodesArray();
-
-        if (rContainer.size() != interface_nodes.size())
-            rContainer.resize(interface_nodes.size());
+        if (rContainer.size() != rInterface.NumberOfNodes())
+            rContainer.resize(rInterface.NumberOfNodes());
         else rContainer.clear();
 
-        KRATOS_ERROR_IF_NOT(interface_nodes[0]->Has(INTERFACE_EQUATION_ID))
+        KRATOS_ERROR_IF_NOT(rInterface.NodesArray()[0]->Has(INTERFACE_EQUATION_ID))
             << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The interface nodes do not have an interface equation ID.\n"
             << "This is created by the mapper.\n";
 
         // Fill up container
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(interface_nodes.size()); ++i)
-        {
-            IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-            rContainer[interface_id] = interface_nodes[i]->FastGetSolutionStepValue(rVariable);
-        }
+        block_for_each(rInterface.Nodes(), [&](Node<3>& rNode)
+            {
+                IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
+                rContainer[interface_id] = rNode.FastGetSolutionStepValue(rVariable);
+            }
+        );
 
         KRATOS_CATCH("")
     }
@@ -594,23 +586,24 @@ namespace Kratos
 
         const SizeType interface_dofs = rProjector.size1();
         const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
         auto domain_nodes = rDomain.NodesArray();
+        Matrix result(rUnitResponse.size1(), rUnitResponse.size2(), 0.0);
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
-        {
-            for (size_t j = 0; j < domain_nodes.size(); ++j)
+        IndexPartition<>(interface_dofs).for_each([&](SizeType i)
             {
-                const double nodal_mass = domain_nodes[j]->GetValue(NODAL_MASS);
-                if (nodal_mass > numerical_limit)
+                for (size_t j = 0; j < domain_nodes.size(); ++j)
                 {
-                    IndexType domain_id = domain_nodes[j]->GetValue(EXPLICIT_EQUATION_ID);
-                    #pragma omp critical
-                    for (size_t dof = 0; dof < dim; ++dof) rUnitResponse.insert_element(domain_id + dof, i, rProjector(i, domain_id + dof) / nodal_mass);
+                    const double nodal_mass = domain_nodes[j]->GetValue(NODAL_MASS);
+                    if (nodal_mass > numerical_limit)
+                    {
+                        IndexType domain_id = domain_nodes[j]->GetValue(EXPLICIT_EQUATION_ID);
+                        for (size_t dof = 0; dof < dim; ++dof) result(domain_id + dof, i) =  rProjector(i, domain_id + dof) / nodal_mass;
+                    }
                 }
             }
-        }
+        );
+
+        rUnitResponse = CompressedMatrix(result);
 
         KRATOS_CATCH("")
     }
@@ -640,20 +633,18 @@ namespace Kratos
         const int omp_nest = omp_get_nested();
         omp_set_nested(0); // disable omp nesting, forces solvers to be serial
 
-        #pragma omp parallel
-        {
-            Vector solution(system_dofs);
-            Vector projector_transpose_column(system_dofs);
-            auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
-
-            #pragma omp for
-            for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
+        IndexPartition<>(interface_dofs).for_each([&](SizeType i)
             {
+                Vector solution(system_dofs);
+                Vector projector_transpose_column(system_dofs);
+                auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
+
                 for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
                 solver->Solve(effective_mass, solution, projector_transpose_column);
                 for (size_t j = 0; j < system_dofs; ++j) result(j, i) = solution[j]; // dense matrix for result so we can parallel access
             }
-        }
+        );
+
         omp_set_nested(omp_nest);
         rUnitResponse = CompressedMatrix(result);
 
