@@ -75,9 +75,9 @@ namespace Kratos
         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
         double U0, double U1, double V0, double V1, double W0, double W1)
     {
-        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1)
+        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1 || PointsInW )
             << "PointsInU and ~V need to be bigger than 0, but are PointsInU:"
-            << PointsInU << " and PointsInV: " << PointsInV << std::endl;
+            << PointsInU << ", PointsInV: " << PointsInV << " and PointsInW:" << PointsInW << std::endl;
 
         const double distance_u = U1 - U0;
         const double length_u = std::abs(U1 - U0);
@@ -99,7 +99,7 @@ namespace Kratos
                     (*rIntegrationPointsBegin).Weight() =
                         integration_point_list_u[u][1] * length_u *
                         integration_point_list_v[v][1] * length_v *
-                        integration_point_list_w[w][1] * length_w;  
+                        integration_point_list_w[w][1] * length_w;
 
                     rIntegrationPointsBegin++;
                 }
