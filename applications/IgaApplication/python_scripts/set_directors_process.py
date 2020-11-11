@@ -39,6 +39,7 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
 
     def ExecuteInitialize(self):
+        print("ExecuteInitialize")
         director = KratosMultiphysics.Vector(3) 
         director[0] = 0
         director[1] = 0
@@ -58,6 +59,7 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
 
 
     def TangentSpaceFromStereographicProjection(director):
+        print("TangentSpaceFromStereographicProjection")
         BLA = KratosMultiphysics.Matrix(3,2) 
         y = KratosMultiphysics.Vector(2) 
         st =  np.sign(tloc[2])
@@ -86,6 +88,7 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
         return dirTang
 
     def ExecuteFinalizeSolutionStep(self):
+        print("ExecuteFinalizeSolutionStep")
         for node in self.model_part.Nodes:
             director = node.GetValue(IGA.DIRECTOR)
             inc2d = node.GetSolutionStepValue(IGA.DIRECTORINC)
