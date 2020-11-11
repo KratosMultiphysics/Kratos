@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "includes/kratos_parameters.h"
 #include "includes/process_info.h"
 
@@ -49,15 +49,14 @@ virtual ~L2ErrorProjection(){}
 
 void ComputeDofsErrors(ModelPart& r_model_part)
 {
-    const unsigned int n_nodes = r_model_part.Nodes().size();
-    for (unsigned int inode = 1; inode <= n_nodes; ++inode){
+    block_for_each(r_model_part.Nodes(), [&](Node<3>& r_node)
+    {
+        auto& r_vectorial_error = r_node.FastGetSolutionStepValue(VECTORIAL_ERROR);
+        r_vectorial_error = r_node.FastGetSolutionStepValue(VELOCITY) - r_node.FastGetSolutionStepValue(EXACT_VELOCITY);
 
-        auto& r_vectorial_error = r_model_part.GetNode(inode).FastGetSolutionStepValue(VECTORIAL_ERROR);
-        r_vectorial_error = r_model_part.GetNode(inode).FastGetSolutionStepValue(VELOCITY) - r_model_part.GetNode(inode).FastGetSolutionStepValue(EXACT_VELOCITY);
-
-        auto& r_scalar_error = r_model_part.GetNode(inode).FastGetSolutionStepValue(SCALAR_ERROR);
-        r_scalar_error = r_model_part.GetNode(inode).FastGetSolutionStepValue(PRESSURE) - r_model_part.GetNode(inode).FastGetSolutionStepValue(EXACT_PRESSURE);
-    }
+        auto& r_scalar_error = r_node.FastGetSolutionStepValue(SCALAR_ERROR);
+        r_scalar_error = r_node.FastGetSolutionStepValue(PRESSURE) - r_node.FastGetSolutionStepValue(EXACT_PRESSURE);
+    });
 }
 
 double GetL2VectorProjection(ModelPart& r_model_part)
