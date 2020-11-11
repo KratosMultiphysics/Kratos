@@ -576,10 +576,10 @@ private:
     SizeType mEchoLevel = 0;                                               /// The echo level of the utilities
     bool mRemoveRegions = false;                                           /// Cutting-out specified regions during surface remeshing
     DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
-    std::map<int, int> mGlobalToLocalNodePreMap;                           /// Map of nodal global ids to local ids before remeshing
-    std::map<int, int> mGlobalToLocalElemPreMap;                           /// Map of elemental global ids to local ids before remeshing
-    std::map<int, int> mGlobalToLocalCondPreMap;                           /// Map of condition global ids to local ids before remeshing
-    std::map<int, int> mLocalToGlobalNodePostMap;                          /// Map of nodal local ids to global ids after remeshing
+    std::unordered_map<int, int> mGlobalToLocalNodePreMap;                           /// Map of nodal global ids to local ids before remeshing
+    std::unordered_map<int, int> mGlobalToLocalElemPreMap;                           /// Map of elemental global ids to local ids before remeshing
+    std::unordered_map<int, int> mGlobalToLocalCondPreMap;                           /// Map of condition global ids to local ids before remeshing
+    std::unordered_map<int, int> mLocalToGlobalNodePostMap;                          /// Map of nodal local ids to global ids after remeshing
 
     ///@}
     ///@name Private Operators
