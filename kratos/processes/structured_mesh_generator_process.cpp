@@ -40,6 +40,7 @@ namespace Kratos
         		mNumberOfDivisions[i] = TheParameters["number_of_divisions"].GetInt();
 			}
 		} else{
+			KRATOS_ERROR_IF( TheParameters["number_of_divisions"].size() != mrGeometry.LocalSpaceDimension() ) << "When the number of divisions of the structured mesher is provided as a vector, the size of the vector ("<<TheParameters["number_of_divisions"].size()<<") must coincide with the dimensions of the geometry provided ("<<mrGeometry.LocalSpaceDimension()<<")." << std::endl;
 			for (size_t i = 0; i < TheParameters["number_of_divisions"].size(); i++) {
 				mNumberOfDivisions[i] = TheParameters["number_of_divisions"][i].GetInt();
 			}

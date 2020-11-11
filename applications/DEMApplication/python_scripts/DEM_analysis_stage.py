@@ -334,31 +334,25 @@ class DEMAnalysisStage(AnalysisStage):
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
     
     def HomogenizationUtilitiesInitialize(self):
+        
+        lower_corner_coordinates = [0] * self.DEM_parameters["Dimension"].GetInt()
+        higher_corner_coordinates = [0] * self.DEM_parameters["Dimension"].GetInt()
 
-        lower_corner_coordinates = Array3()
-        higher_corner_coordinates = Array3()
+        for i in range(self.DEM_parameters["Dimension"].GetInt()):
+            lower_corner_coordinates[i] = self.creator_destructor.GetLowNode()[i]
+            higher_corner_coordinates[i] = self.creator_destructor.GetHighNode()[i]
 
-        lower_corner_coordinates[0] = self.creator_destructor.GetLowNode()[0]
-        lower_corner_coordinates[1] = self.creator_destructor.GetLowNode()[1]
-        lower_corner_coordinates[2] = self.creator_destructor.GetLowNode()[2]
-        higher_corner_coordinates[0] = self.creator_destructor.GetHighNode()[0]
-        higher_corner_coordinates[1] = self.creator_destructor.GetHighNode()[1]
-        higher_corner_coordinates[2] = self.creator_destructor.GetHighNode()[2]
-
-        print(lower_corner_coordinates)
-        print(higher_corner_coordinates)
         #element_size = int(input("Enter element size:"))
         element_size = 10
 
-        number_of_divisions = Vector(3)
-        number_of_divisions[0] = math.ceil((higher_corner_coordinates[0]-lower_corner_coordinates[0])/element_size)
-        number_of_divisions[1] = math.ceil((higher_corner_coordinates[1]-lower_corner_coordinates[1])/element_size)
-        number_of_divisions[2] = math.ceil((higher_corner_coordinates[2]-lower_corner_coordinates[2])/element_size)
-        higher_corner_coordinates[0] = lower_corner_coordinates [0] + number_of_divisions[0] * element_size
-        higher_corner_coordinates[1] = lower_corner_coordinates [1] + number_of_divisions[1] * element_size
-        higher_corner_coordinates[2] = lower_corner_coordinates [2] + number_of_divisions[2] * element_size
-        #provisional fins que es fassin divisions diferents per demensio al meshing_utilities
-        #number_of_divisions = int(input("Enter number of divisions:"))
+        number_of_divisions = [0] * self.DEM_parameters["Dimension"].GetInt()
+
+        for i in range(self.DEM_parameters["Dimension"].GetInt()):
+            number_of_divisions[i] = math.ceil((higher_corner_coordinates[i]-lower_corner_coordinates[i])/element_size)
+            higher_corner_coordinates[i] = lower_corner_coordinates [i] + number_of_divisions[i] * element_size
+
+        print(lower_corner_coordinates)
+        print(higher_corner_coordinates)
 
         if self.DEM_parameters["Dimension"].GetInt() == 2:
             homogenization_mesher = meshing_utilities.RectangularRegularMesher(self.homogenization_model_part,
