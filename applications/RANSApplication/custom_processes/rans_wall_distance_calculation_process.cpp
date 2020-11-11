@@ -69,19 +69,6 @@ RansWallDistanceCalculationProcess::RansWallDistanceCalculationProcess(
 {
     KRATOS_TRY
 
-    if (rParameters.Has("max_distance")) {
-        if (rParameters["max_distance"].IsString()) {
-            if (rParameters["max_distance"].GetString() == "max") {
-                rParameters["max_distance"].SetDouble(std::numeric_limits<double>::max());
-            }
-            else {
-                KRATOS_ERROR << "Unsupported \"max_distance\" value. Supports "
-                                "only \"max\". [ max_distance = "
-                             << rParameters["max_distance"].GetString() << " ]\n";
-            }
-        }
-    }
-
     rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mMaxLevels = rParameters["max_levels"].GetInt();
