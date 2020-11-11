@@ -445,7 +445,7 @@ class CustomProcessTest(UnitTest.TestCase):
                     "main_model_part_name"             : "test",
                     "wall_model_part_name"             : "test.Slip2D.Slip2D_walls",
                     "echo_level"                       : 0,
-                    "max_distance"                     : "max",
+                    "max_distance"                     : 1e+30,
                     "max_levels"                       : 14,
                     "re_calculate_at_each_time_step"   : false
                 }
