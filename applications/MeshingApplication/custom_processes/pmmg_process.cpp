@@ -7,7 +7,9 @@
 //  License:         BSD License
 //                   license: MeshingApplication/license.txt
 //
-//  Main authors:    Marc Nunez, Carlos Roig, Vicente Mataix Ferrandiz
+//  Main authors:    Marc Nunez
+//                   Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes

@@ -7,7 +7,9 @@
 //  License:         BSD License
 //                   license: MeshingApplication/license.txt
 //
-//  Main authors:    Marc Nunez, Carlos Roig, Vicente Mataix Ferrandiz
+//  Main authors:    Marc Nunez
+//                   Carlos Roig
+//                   Vicente Mataix Ferrandizz
 //
 
 #if !defined(KRATOS_PMMG_PROCESS)
@@ -77,6 +79,8 @@ namespace Kratos
  * @brief This class is a remesher which uses the PMMG library
  * @details This class is a remesher which uses the PMMG library. The class uses a class for the 2D and 3D cases.
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
+ * @author Marc Nunez
+ * @author Carlos Roig
  * @author Vicente Mataix Ferrandiz
  */
 template<PMMGLibrary TPMMGLibrary>
