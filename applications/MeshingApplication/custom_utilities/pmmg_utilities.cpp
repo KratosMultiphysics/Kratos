@@ -48,7 +48,7 @@ namespace Kratos
 {
 
 template<>
-const SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeConditions() const
+SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeConditions() const
 {
     return NumberOfTriangles;
 }
@@ -57,7 +57,7 @@ const SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeConditions() co
 /***********************************************************************************/
 
 template<>
-const SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberSecondTypeConditions() const
+SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberSecondTypeConditions() const
 {
     return NumberOfQuadrilaterals;
 }
@@ -66,7 +66,7 @@ const SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberSecondTypeConditions() c
 /***********************************************************************************/
 
 template<>
-const SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeElements() const
+SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeElements() const
 {
     return NumberOfTetrahedra;
 }
@@ -75,7 +75,7 @@ const SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeElements() cons
 /***********************************************************************************/
 
 template<>
-const SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberSecondTypeElements() const
+SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberSecondTypeElements() const
 {
     return NumberOfPrism;
 }

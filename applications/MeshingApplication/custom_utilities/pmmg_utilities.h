@@ -92,22 +92,22 @@ struct PMMGMeshInfo
     /**
      * @brief It returns the number of the first type of conditions
      */
-    const SizeType NumberFirstTypeConditions() const;
+    SizeType NumberFirstTypeConditions() const;
 
     /**
      * @brief It returns the number of the second type of conditions
      */
-    const SizeType NumberSecondTypeConditions() const;
+    SizeType NumberSecondTypeConditions() const;
 
     /**
      * @brief It returns the number of the first type of elements
      */
-    const SizeType NumberFirstTypeElements() const;
+    SizeType NumberFirstTypeElements() const;
 
     /**
      * @brief It returns the number of the second type of elements
      */
-    const SizeType NumberSecondTypeElements() const;
+    SizeType NumberSecondTypeElements() const;
 };
 
 /**
