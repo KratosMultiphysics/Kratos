@@ -2,26 +2,28 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 
-import KratosMultiphysics.FemToDemApplication.MainFEM_for_PFEM_coupling as FEM
 import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
-import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
+import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
 import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
-import math
-import os
-import KratosMultiphysics.MeshingApplication as MeshingApplication
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
+import KratosMultiphysics.DEMApplication as KratosDEM
+import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
+import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
 
 def Wait():
     input("Press Something")
 
 #============================================================================================================================
-class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCoupledFemDem_Solution):
+class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Solution):
 #============================================================================================================================
     def __init__(self, Model, path = ""):
+        self.model = Model
         # Initialize solutions
-        self.FEM_Solution = FEM.FEM_for_PFEM_coupling_Solution(Model, path)
         self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, path)
+        self.DEM_Solution.Initialize()
+        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path, self.DEM_Solution.solver)
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
@@ -34,7 +36,6 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         self.echo_level = 0
         self.is_slave = False
 
-
 #============================================================================================================================
     def Initialize(self):
         if self.domain_size == 2:
@@ -42,8 +43,9 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         else: # 3D
             self.number_of_nodes_element = 4
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
+
         self.FEM_Solution.Initialize()
-        self.DEM_Solution.Initialize()
+
 
         nodes = self.FEM_Solution.main_model_part.Nodes
         utils = KratosMultiphysics.VariableUtils()
@@ -66,7 +68,7 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
                                                                            self.DEMParameters)
 
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
 
         if self.DoRemeshing:
             self.InitializeMMGvariables()
@@ -87,7 +89,7 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         else:
             self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
         self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = self.DEMFEM_contact
-        
+
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -124,7 +126,7 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         self.FEM_Solution.KratosPrintInfo("   / ____/___   ____ ___  |__ \  / __ \ ___   ____ ___ ")
         self.FEM_Solution.KratosPrintInfo("  / /_   / _ \ / __ `__ \ __/ / / / / // _ \ / __ `__ \ ")
         self.FEM_Solution.KratosPrintInfo(" / __/  /  __// / / / / // __/ / /_/ //  __// / / / / /")
-        self.FEM_Solution.KratosPrintInfo("/_/     \___//_/ /_/ /_//____//_____/ \___//_/ /_/ /_/ Application")
+        self.FEM_Solution.KratosPrintInfo("/_/     \___//_/ /_/ /_//____//_____/ \___//_/ /_/ /_/ 2 Way-Coupled Application")
         self.FEM_Solution.KratosPrintInfo("                           Developed by Alejandro Cornejo")
         self.FEM_Solution.KratosPrintInfo("")
 
@@ -144,6 +146,117 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         else:
             self.CreateInitialSkin = self.FEM_Solution.ProjectParameters["create_initial_skin"].GetBool()
 
+        if self.CreateInitialSkin:
+            self.ComputeSkinSubModelPart()
+            if self.DEMFEM_contact:
+                self.TransferFEMSkinToDEM()
+            KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
+
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
+
+
+#============================================================================================================================
+    def InitializeSolutionStep(self):
+        # Modified for the remeshing
+        self.FEM_Solution.delta_time = self.ComputeDeltaTime()
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
+        self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
+        self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
+        self.FEM_Solution.step = self.FEM_Solution.step + 1
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
+
+        self.FindNeighboursIfNecessary()
+        self.PerformRemeshingIfNecessary()
+
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
+
+        self.FEM_Solution.InitializeSolutionStep()
+
+#============================================================================================================================
+    def SolveSolutionStep(self):  # Method to perform the coupling FEM <-> DEM
+
+        self.FEM_Solution.clock_time = self.FEM_Solution.StartTimeMeasuring()
+
+        #### SOLVE FEM #########################################
+        self.FEM_Solution.solver.InitializeSolutionStep()
+        self.FEM_Solution.solver.Predict()
+        self.FEM_Solution.solver.SolveSolutionStep()
+        self.FEM_Solution.solver.FinalizeSolutionStep()
+        ########################################################
+
+        self.ExecuteBeforeGeneratingDEM()
+        self.GenerateDEM() # we create the new DEM of this time step
+        self.ExecuteAfterGeneratingDEM()
+        self.BeforeSolveDEMOperations()
+
+
+#============================================================================================================================
+    def FinalizeSolutionStep(self):
+
+        self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
+
+        # Print required info
+        self.PrintPlotsFiles()
+        
+        # MODIFIED FOR THE REMESHING
+        self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
+
+        # processes to be executed at the end of the solution step
+        self.FEM_Solution.model_processes.ExecuteFinalizeSolutionStep()
+
+        # processes to be executed before witting the output
+        self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        # self.FEM_Solution.GraphicalOutputPrintOutput()
+
+        # processes to be executed after writting the output
+        self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
+
+        if self.DoRemeshing:
+             self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
+        
+        if not self.is_slave:
+            self.PrintResults()
+
+#InitializeDummyNodalForces============================================================================================================================
+    def InitializeDummyNodalForces(self):
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeDummyNodalForces")
+
+        # we fill the submodel part with the nodes and dummy conditions
+        max_id = self.GetMaximumConditionId()
+        props = self.FEM_Solution.main_model_part.Properties[0]
+        self.FEM_Solution.main_model_part.CreateSubModelPart("ContactForcesDEMConditions")
+        self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").CreateSubModelPart("ContactForcesDEMConditions")
+        for node in self.FEM_Solution.main_model_part.Nodes:
+            self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").AddNode(node, 0)
+            max_id += 1
+            cond = self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").CreateNewCondition(
+                                                                            "PointLoadCondition3D1N",
+                                                                            max_id,
+                                                                            [node.Id],
+                                                                            props)
+            self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
+            self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").GetSubModelPart("ContactForcesDEMConditions").AddCondition(cond)
+            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(KratosSMA.POINT_LOAD, [0.0,0.0,0.0])
+
+#TransferFEMSkinToDEM============================================================================================================================
+    def TransferFEMSkinToDEM(self):
+        fem_skin_mp = self.FEM_Solution.main_model_part.GetSubModelPart("SkinDEMModelPart")
+
+        if self.DEM_Solution.rigid_face_model_part.HasSubModelPart("SkinTransferredFromStructure"):
+            self.EraseConditionsAndNodesSubModelPart()
+            dem_walls_mp = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
+            dem_walls_mp.SetValue(KratosDEM.RIGID_BODY_OPTION, False)
+            props = self.DEM_Solution.rigid_face_model_part.GetProperties(self.created_props_id,0)
+            DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
+        else: # have to create it
+            props = self.CreateFEMPropertiesForDEFEContact()
+            dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
+            dem_walls_mp.SetValue(KratosDEM.RIGID_BODY_OPTION, False)
+            dem_walls_mp.AddProperties(props)
+            DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)

@@ -55,19 +55,19 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
   {
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
     KRATOS_CATCH("");
   }
 
   template <unsigned int TDim>
-  int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
 
@@ -143,7 +143,10 @@ namespace Kratos
     const auto &r_properties = this->GetProperties();
     const auto &r_geometry = this->GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+
+    //WARNING THIS MUST BE REMOVED ASAP
+    const_cast<TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    //mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
@@ -1326,7 +1329,9 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                                                                   VectorType &rRightHandSideVector,
+                                                                                                   const ProcessInfo &rCurrentProcessInfo)
   {
 
     GeometryType &rGeom = this->GetGeometry();
