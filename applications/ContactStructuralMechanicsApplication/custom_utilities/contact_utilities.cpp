@@ -211,6 +211,25 @@ bool ContactUtilities::CheckActivity(
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool ContactUtilities::CheckModelPartHasRotationDoF(ModelPart& rModelPart)
+{
+    auto& r_nodes_array = rModelPart.Nodes();
+    for(auto& r_node : r_nodes_array) {
+        const auto& r_dofs = r_node.GetDofs();
+        for (auto it_dof = r_dofs.begin(); it_dof != r_dofs.end(); ++it_dof) {
+            const auto& r_variable = (**it_dof).GetVariable();
+            if (r_variable == ROTATION_X || r_variable == ROTATION_Y || r_variable == ROTATION_Z) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ContactUtilities::CleanContactModelParts(ModelPart& rModelPart)
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();

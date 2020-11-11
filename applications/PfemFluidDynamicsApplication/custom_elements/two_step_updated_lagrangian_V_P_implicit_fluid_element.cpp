@@ -55,19 +55,19 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
   {
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
     KRATOS_CATCH("");
   }
 
   template <unsigned int TDim>
-  int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
 
@@ -143,7 +143,10 @@ namespace Kratos
     const auto &r_properties = this->GetProperties();
     const auto &r_geometry = this->GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+
+    //WARNING THIS MUST BE REMOVED ASAP
+    const_cast<TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    //mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
@@ -1207,6 +1210,32 @@ namespace Kratos
         rElementalVariables.UpdatedDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
     rElementalVariables.UpdatedTotalCauchyStress[2] = rElementalVariables.UpdatedDeviatoricCauchyStress[2];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
+    if (this->GetProperties().Has(YIELD_SHEAR) && this->Has(YIELDED))
+    {
+      double tolerance = 1e-10;
+      if (this->GetProperties()[YIELD_SHEAR] > tolerance)
+      {
+        double TauNorm = sqrt(0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
+                              0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
+                              rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2]);
+
+        if (TauNorm > this->GetProperties()[YIELD_SHEAR])
+        {
+          this->SetValue(YIELDED, true);
+        }
+        else
+        {
+          this->SetValue(YIELDED, false);
+        }
+      }
+      else
+      {
+        this->SetValue(YIELDED, false);
+      }
+    }
+
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
     const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
@@ -1256,6 +1285,36 @@ namespace Kratos
     rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.UpdatedDeviatoricCauchyStress[4];
     rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.UpdatedDeviatoricCauchyStress[5];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
+    if (this->GetProperties().Has(YIELD_SHEAR) && this->Has(YIELDED))
+    {
+      double tolerance = 1e-10;
+      if (this->GetProperties()[YIELD_SHEAR] > tolerance)
+      {
+
+        double TauNorm = sqrt(2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
+                              2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
+                              2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2] +
+                              4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.UpdatedDeviatoricCauchyStress[3] +
+                              4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.UpdatedDeviatoricCauchyStress[4] +
+                              4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.UpdatedDeviatoricCauchyStress[5]);
+
+        if (TauNorm > this->GetProperties()[YIELD_SHEAR])
+        {
+          this->SetValue(YIELDED, true);
+        }
+        else
+        {
+          this->SetValue(YIELDED, false);
+        }
+      }
+      else
+      {
+        this->SetValue(YIELDED, false);
+      }
+    }
+
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
     const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
@@ -1270,7 +1329,9 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                                                                   VectorType &rRightHandSideVector,
+                                                                                                   const ProcessInfo &rCurrentProcessInfo)
   {
 
     GeometryType &rGeom = this->GetGeometry();

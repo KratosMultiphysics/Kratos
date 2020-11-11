@@ -64,7 +64,7 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     const size_t element_size = TNumNodes*3;
     if(rResult.size() != element_size)
@@ -83,7 +83,7 @@ void SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResult,
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     const size_t element_size = TNumNodes*3;
     if(rElementalDofList.size() != element_size)
@@ -105,7 +105,7 @@ template< size_t TNumNodes, ElementFramework TFramework >
 void SWE<TNumNodes, TFramework>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize of the Left and Right Hand side
     constexpr size_t element_size = TNumNodes*3;
@@ -161,14 +161,14 @@ void SWE<TNumNodes, TFramework>::CalculateLocalSystem(
 template< size_t TNumNodes, ElementFramework TFramework >
 void SWE<TNumNodes, TFramework>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void SWE<TNumNodes, TFramework>::GetValueOnIntegrationPoints(
+void SWE<TNumNodes, TFramework>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)

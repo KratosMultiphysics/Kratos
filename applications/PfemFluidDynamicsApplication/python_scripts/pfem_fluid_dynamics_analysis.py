@@ -88,11 +88,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self._solver.PrepareModelPart()
 
         # Add dofs (always after importing the model part)
-        if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-                self._solver.AddDofs()
-        else:
-            self._solver.AddDofs()
+        self._solver.AddDofs()
 
         #print model_part and properties
         if (self.echo_level>1):
@@ -257,10 +253,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         """This function performs the ExecuteBeforeSolutionLoop
         of the graphical_output
         """
-        # writing a initial state results file or single file (if no restart)
-        if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-                self.graphical_output.ExecuteBeforeSolutionLoop()
+        # writing a initial state results file or single file
+        self.graphical_output.ExecuteBeforeSolutionLoop()
 
     def GraphicalOutputExecuteInitializeSolutionStep(self):
         """This function performs the ExecuteInitializeSolutionStep
