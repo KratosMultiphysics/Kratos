@@ -340,7 +340,7 @@ void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
         normal /= norm_2(normal);
 
         // Finding parent element to retrieve viscous stresses
-        // Note that we assume in here that the shear stress are constant inside the element
+        // Note that we assume in here that the shear stress is constant inside the element
         auto& r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
         KRATOS_ERROR_IF(r_neighbours.size() > 1) << "A condition was assigned more than one parent element." << std::endl;
         KRATOS_ERROR_IF(r_neighbours.size() == 0) << "A condition was NOT assigned a parent element. "
@@ -350,11 +350,8 @@ void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
         auto& r_parent = r_neighbours[0];
         Vector shear_stress;
         r_parent.Calculate(FLUID_STRESS, shear_stress, rCurrentProcessInfo);
-        // NOTE THAT THIS ONLY WORKS IN 2D!!!!!!
         array_1d<double,3> shear_stress_n;
-        shear_stress_n[0] = shear_stress[0] * normal[0] + shear_stress[2] * normal[1];
-        shear_stress_n[1] = shear_stress[2] * normal[0] + shear_stress[1] * normal[1];
-        shear_stress_n[2] = 0.0;
+        ProjectViscousStress(shear_stress, normal, shear_stress_n);
 
         // Loop the Gauss pts
         for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
@@ -364,8 +361,7 @@ void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
             for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                 p += r_N[i_node] * r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
             }
-            //rOutput += w * (p * normal - shear_stress_n);
-            rOutput += w * p * normal;
+            rOutput += w * (p * normal - shear_stress_n);
         }
     } else {
         Condition::Calculate(rVariable, rOutput, rCurrentProcessInfo);
@@ -523,7 +519,27 @@ void NavierStokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
     An *= 0.5;
 }
 
+template<>
+void NavierStokesWallCondition<2,2>::ProjectViscousStress(
+    const Vector& rViscousStress,
+    const array_1d<double,3> rNormal,
+    array_1d<double,3> rProjectedViscousStress)
+{
+    rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[2] * rNormal[1];
+    rProjectedViscousStress[1] = rViscousStress[2] * rNormal[0] + rViscousStress[1] * rNormal[1];
+    rProjectedViscousStress[2] = 0.0;
+}
 
+template<>
+void NavierStokesWallCondition<3,3>::ProjectViscousStress(
+    const Vector& rViscousStress,
+    const array_1d<double,3> rNormal,
+    array_1d<double,3> rProjectedViscousStress)
+{
+    rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[3] * rNormal[1] + rViscousStress[5] * rNormal[2];
+    rProjectedViscousStress[1] = rViscousStress[3] * rNormal[0] + rViscousStress[1] * rNormal[1] + rViscousStress[4] * rNormal[2];
+    rProjectedViscousStress[2] = rViscousStress[5] * rNormal[0] + rViscousStress[4] * rNormal[1] + rViscousStress[2] * rNormal[2];
+}
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSContribution(  BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,

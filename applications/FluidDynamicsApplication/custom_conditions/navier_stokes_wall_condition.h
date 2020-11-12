@@ -440,6 +440,19 @@ private:
     void ComputeGaussPointBehrSlipRHSContribution(  array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                     const ConditionDataStruct& rDataStruct );
 
+    /**
+     * @brief Project the viscous stress
+     * Provided a viscous stress tensor (in Voigt notation) and a unit normal vector,
+     * this method calculates and returns the projection of the shear stress onto the normal
+     * @param rViscousStress The viscous stress in Voigt notation
+     * @param rNormal The unit normal vector to project onto
+     * @param rProjectedViscousStress The projected viscous stress
+     */
+    void ProjectViscousStress(
+        const Vector& rViscousStress,
+        const array_1d<double,3> rNormal,
+        array_1d<double,3> rProjectedViscousStress);
+
     ///@}
     ///@name Private  Access
     ///@{
