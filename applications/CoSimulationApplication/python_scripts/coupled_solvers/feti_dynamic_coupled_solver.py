@@ -62,7 +62,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # solve domain B
         solverB = self.solver_wrappers_vector[1]
         for sub_timestep in range(1,self.timestep_ratio+1):
-            print('Sub timestep ',sub_timestep,' of ',self.timestep_ratio)
             if sub_timestep > 1:
                 self.solverB_time = solverB.AdvanceInTime(self.solverB_time)
                 solverB.InitializeSolutionStep()
