@@ -544,6 +544,79 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
         KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
+{
+    typedef std::size_t IndexType;
+    IndexType col_divider = 3;
+
+    //*************************************************************************
+    //compute reference solution - serial mode
+    const auto all_connectivities = ElementConnectivities();
+    SparseContiguousRowGraph<IndexType> Agraph(40);
+
+    IndexPartition<IndexType>(all_connectivities.size()).for_each([&](IndexType i)    {
+        std::vector<IndexType> row_ids = all_connectivities[i];
+        std::vector<IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
+        Agraph.AddEntries(row_ids, col_ids);
+    });
+    Agraph.Finalize();
+
+    CsrMatrix<double, IndexType> A(Agraph);
+
+    A.BeginAssemble();   
+    for(const auto& c : all_connectivities){   
+        std::vector<IndexType> row_ids = c;
+        std::vector<IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
+        Matrix data(row_ids.size(),col_ids.size(),1.0);
+        A.Assemble(data,row_ids, col_ids);
+    }
+    A.FinalizeAssemble();
+
+    auto reference_A_map = A.ToMap();
+
+    //constructing transpose Map to later verify TransposeSPMV
+    MatrixMapType reference_transpose_A_map;
+    for(const auto& item : reference_A_map)
+    {
+        const IndexType I = item.first.first;
+        const IndexType J = item.first.second;
+        const IndexType value = item.second;
+        reference_transpose_A_map[{J,I}] = value;
+    }
+
+    // //here we test SPMV by a vector of 1s
+    SystemVector<> y(A.size1()); //destination vector
+    y.SetValue(0.0);
+
+    SystemVector<> x(A.size2()); //origin vector
+    x.SetValue(1.0);
+
+    A.SpMV(y,x);
+
+    //test TransposeSpMV
+    y.SetValue(1.0);
+    x.SetValue(0.0);
+    A.TransposeSpMV(x,y); //x += Atranspose*y
+
+    SystemVector<> xtranspose_spmv_ref(A.size2()); //origin vector
+    xtranspose_spmv_ref.SetValue(0.0);
+    for(const auto& item : reference_transpose_A_map)
+    {
+        const IndexType I = item.first.first;
+        const IndexType J = item.first.second;
+        const IndexType Atranspose_ij = item.second;
+        xtranspose_spmv_ref[I] += Atranspose_ij*y[J];
+    }
+    KRATOS_WATCH(x)
+    KRATOS_WATCH(xtranspose_spmv_ref)
+    for(IndexType i=0; i<x.size(); ++i)
+    {
+        KRATOS_CHECK_NEAR(x[i], xtranspose_spmv_ref[i], 1e-14);
+    }
+
+}
+
+
 
 } // namespace Testing
 } // namespace Kratos
