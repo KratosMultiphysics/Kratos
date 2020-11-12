@@ -297,7 +297,7 @@ namespace Kratos
             break;
 
         default:
-            KRATOS_ERROR << "FetiDynamicCouplingUtilities:: The equilibrium variable must be either DISPLACEMENT, VELOCITY or ACCELERATION.";
+            KRATOS_ERROR << "FetiDynamicCouplingUtilities:: Invalid 'equilibrium_variable'";
             break;
         }
 
