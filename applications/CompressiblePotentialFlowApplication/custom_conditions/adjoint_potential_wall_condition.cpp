@@ -60,7 +60,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::InitializeSolutionStep(con
     mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
 }
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step)
+void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -134,11 +134,12 @@ void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLocalSystem(Matri
 
 /// Check that all data required by this condition is available and reasonable
 template <class TPrimalCondition>
-int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
-    int Check = mpPrimalCondition->Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
+    const auto& r_const_cond_ref = *mpPrimalCondition;
+    int Check = r_const_cond_ref.Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
 
     if (Check != 0)
     {
@@ -264,4 +265,3 @@ template class AdjointPotentialWallCondition<PotentialWallCondition<2,2>>;
 
 
 }  // namespace Kratos.
-

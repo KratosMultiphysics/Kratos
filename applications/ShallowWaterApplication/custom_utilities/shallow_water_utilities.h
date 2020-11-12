@@ -85,6 +85,8 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    void ComputeEnergy(ModelPart& rModelPart);
+
     void ComputeAccelerations(ModelPart& rModelPart);
 
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
