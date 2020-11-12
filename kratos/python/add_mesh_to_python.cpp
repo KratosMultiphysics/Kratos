@@ -315,26 +315,26 @@ void ElementCalculateSensitivityMatrix(Element& dummy,
     dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
 }
 
-void ElementGetFirstDerivativesVector1(Element& dummy,
+void ElementGetFirstDerivativesVector1(const Element& dummy,
         Vector& rOutput)
 {
     dummy.GetFirstDerivativesVector(rOutput,0);
 }
 
-void ElementGetFirstDerivativesVector2(Element& dummy,
+void ElementGetFirstDerivativesVector2(const Element& dummy,
         Vector& rOutput,
         int step)
 {
     dummy.GetFirstDerivativesVector(rOutput,step);
 }
 
-void ElementGetSecondDerivativesVector1(Element& dummy,
+void ElementGetSecondDerivativesVector1(const Element& dummy,
         Vector& rOutput)
 {
     dummy.GetSecondDerivativesVector(rOutput,0);
 }
 
-void ElementGetSecondDerivativesVector2(Element& dummy,
+void ElementGetSecondDerivativesVector2(const Element& dummy,
         Vector& rOutput,
         int step)
 {

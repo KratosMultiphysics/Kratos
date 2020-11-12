@@ -9,10 +9,10 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsAppli
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DamApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/DamApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_DAM_APPLICATION_CORE_SOURCES
@@ -71,7 +71,7 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
 
 if(${USE_DAM_MPI} MATCHES ON)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
+    include_directories( ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(${TRILINOS_INCLUDE_DIR})
 
     ## Define python interface sources
