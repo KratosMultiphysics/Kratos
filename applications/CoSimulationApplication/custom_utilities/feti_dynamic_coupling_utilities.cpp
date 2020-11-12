@@ -216,7 +216,7 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart& rInterfaceMP = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
-        const SystemMatrixType* pK = (solverIndex == SolverIndex::Origin) ? mpKOrigin : mpKDestination;
+        const SparseMatrixType* pK = (solverIndex == SolverIndex::Origin) ? mpKOrigin : mpKDestination;
         const double projector_entry = (solverIndex == SolverIndex::Origin) ? 1.0 : -1.0;
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
