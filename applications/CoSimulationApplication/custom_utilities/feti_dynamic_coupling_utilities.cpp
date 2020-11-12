@@ -206,10 +206,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ModelPart& rMP = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
+        ModelPart& rInterfaceMP = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
         const SystemMatrixType* pK = (solverIndex == SolverIndex::Origin) ? mpKOrigin : mpKDestination;
         const double projector_entry = (solverIndex == SolverIndex::Origin) ? 1.0 : -1.0;
-        auto interface_nodes = rMP.NodesArray();
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
@@ -223,37 +222,32 @@ namespace Kratos
         {
             // Explicit - we use the nodes with mass in the domain and ordering is just the node index in the model part
             ModelPart& rDomain = (solverIndex == SolverIndex::Origin) ? *mpOriginDomain : *mpDestinationDomain;
-            for (auto node_it : rDomain.NodesArray())
+            for (auto& rNode : rDomain.Nodes())
             {
-                const double nodal_mass = node_it->GetValue(NODAL_MASS);
+                const double nodal_mass = rNode.GetValue(NODAL_MASS);
                 if (nodal_mass > numerical_limit)
                 {
-                    node_it->SetValue(EXPLICIT_EQUATION_ID, domain_dofs);
+                    rNode.SetValue(EXPLICIT_EQUATION_ID, domain_dofs);
                     domain_dofs += dim;
                 }
             }
         }
 
-        if (rProjector.size1() != interface_nodes.size() * dim ||
-            rProjector.size2() != domain_dofs)
-            rProjector.resize(interface_nodes.size() * dim, domain_dofs, false);
-        rProjector.clear();
+        Matrix temp(rInterfaceMP.NumberOfNodes() * dim, domain_dofs, 0.0);
 
-        IndexType interface_equation_id;
-        IndexType domain_equation_id;
-
-        for (size_t i = 0; i < interface_nodes.size(); i++)
-        {
-            interface_equation_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-            domain_equation_id = (is_implicit)
-                ? interface_nodes[i]->GetDof(DISPLACEMENT_X).EquationId()
-                : interface_nodes[i]->GetValue(EXPLICIT_EQUATION_ID);
-
-            for (size_t dof_dim = 0; dof_dim < dim; dof_dim++)
+        block_for_each(rInterfaceMP.Nodes(), [&](Node<3>& rNode)
             {
-                rProjector(interface_equation_id*dim + dof_dim, domain_equation_id + dof_dim) = projector_entry;
+                IndexType interface_equation_id = rNode.GetValue(INTERFACE_EQUATION_ID);
+                IndexType domain_equation_id = (is_implicit)
+                    ? rNode.GetDof(DISPLACEMENT_X).EquationId()
+                    : rNode.GetValue(EXPLICIT_EQUATION_ID);
+                for (size_t dof_dim = 0; dof_dim < dim; dof_dim++) {
+                    temp(interface_equation_id * dim + dof_dim, domain_equation_id + dof_dim) = projector_entry;
+                }
             }
-        }
+        );
+
+        rProjector = CompressedMatrix(temp);
 
         // Incorporate force mapping matrix into projector if it is the origin
         // since the lagrangian multipliers are defined on the destination and need
@@ -440,19 +434,18 @@ namespace Kratos
 
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-        ModelPart& r_interface = mrDestinationInterfaceModelPart;
-        auto interface_nodes = r_interface.NodesArray();
-        for (size_t i = 0; i < interface_nodes.size(); ++i)
-        {
-            IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-
-            array_1d<double, 3>& lagrange = interface_nodes[i]->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-            lagrange.clear();
-            for (size_t dof = 0; dof < dim; dof++)
+        block_for_each(mrDestinationInterfaceModelPart.Nodes(), [&](Node<3>& rNode)
             {
-                lagrange[dof] = -1.0*rLagrange[interface_id * dim + dof];
+                IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
+
+                array_1d<double, 3>& lagrange = rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                lagrange.clear();
+                for (size_t dof = 0; dof < dim; dof++)
+                {
+                    lagrange[dof] = -1.0 * rLagrange[interface_id * dim + dof];
+                }
             }
-        }
+        );
 
         KRATOS_CATCH("")
     }
@@ -467,7 +460,10 @@ namespace Kratos
             rContainer.resize(rInterface.NumberOfNodes() * nDOFs);
         rContainer.clear();
 
-        KRATOS_ERROR_IF_NOT(rInterface.NodesArray()[0]->Has(INTERFACE_EQUATION_ID))
+        KRATOS_ERROR_IF(rInterface.NumberOfNodes() == 0)
+            << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The following interface model part has no nodes!\n" << rInterface;
+
+        KRATOS_ERROR_IF_NOT(rInterface.NodesBegin()->Has(INTERFACE_EQUATION_ID))
             << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The interface nodes do not have an interface equation ID.\n"
             << "This is created by the mapper.\n";
 
@@ -476,7 +472,7 @@ namespace Kratos
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 array_1d<double, 3>& r_quantity = rNode.FastGetSolutionStepValue(rVariable);
-                for (size_t dof = 0; dof < nDOFs; dof++)  rContainer[nDOFs * interface_id + dof] = r_quantity[dof];
+                for (size_t dof = 0; dof < nDOFs; dof++) rContainer[nDOFs * interface_id + dof] = r_quantity[dof];
             }
         );
 
@@ -493,7 +489,10 @@ namespace Kratos
             rContainer.resize(rInterface.NumberOfNodes());
         else rContainer.clear();
 
-        KRATOS_ERROR_IF_NOT(rInterface.NodesArray()[0]->Has(INTERFACE_EQUATION_ID))
+        KRATOS_ERROR_IF(rInterface.NumberOfNodes() == 0)
+            << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The following interface model part has no nodes!\n" << rInterface;
+
+        KRATOS_ERROR_IF_NOT(rInterface.NodesBegin()->Has(INTERFACE_EQUATION_ID))
             << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The interface nodes do not have an interface equation ID.\n"
             << "This is created by the mapper.\n";
 
@@ -604,17 +603,17 @@ namespace Kratos
 
         const SizeType interface_dofs = rProjector.size1();
         const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        auto domain_nodes = rDomain.NodesArray();
+
         Matrix result(rUnitResponse.size1(), rUnitResponse.size2(), 0.0);
 
         IndexPartition<>(interface_dofs).for_each([&](SizeType i)
             {
-                for (size_t j = 0; j < domain_nodes.size(); ++j)
+                for (auto& rNode : rDomain.Nodes())
                 {
-                    const double nodal_mass = domain_nodes[j]->GetValue(NODAL_MASS);
+                    const double nodal_mass = rNode.GetValue(NODAL_MASS);
                     if (nodal_mass > numerical_limit)
                     {
-                        IndexType domain_id = domain_nodes[j]->GetValue(EXPLICIT_EQUATION_ID);
+                        IndexType domain_id = rNode.GetValue(EXPLICIT_EQUATION_ID);
                         for (size_t dof = 0; dof < dim; ++dof) result(domain_id + dof, i) =  rProjector(i, domain_id + dof) / nodal_mass;
                     }
                 }
