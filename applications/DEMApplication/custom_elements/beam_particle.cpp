@@ -45,11 +45,11 @@ namespace Kratos {
 
         SphericContinuumParticle::Initialize(r_process_info);
 
-        double distance = GetProperties()[BEAM_ELEMENTS_DISTANCE];
+        double distance = GetProperties()[BEAM_PARTICLES_DISTANCE];
 
         if (distance)
         {
-            double contact_area = GetProperties()[BEAM_CROSS_SECTION];
+            double contact_area = GetProperties()[CROSS_AREA];
 
             if (IsSkin()) distance *= 0.5;
 
@@ -57,10 +57,10 @@ namespace Kratos {
             SetMass(GetDensity() * distance * contact_area);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                const double a = std::sqrt(12.0 * GetProperties()[BEAM_MOMENT_OF_INERTIA_PER_METER_Y] - 1.0);
-                const double b = std::sqrt(12.0 * GetProperties()[BEAM_MOMENT_OF_INERTIA_PER_METER_Z] - 1.0);
+                const double a = std::sqrt(12.0 * GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_Y] - 1.0);
+                const double b = std::sqrt(12.0 * GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_Z] - 1.0);
 
-                GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = GetProperties()[BEAM_MOMENT_OF_INERTIA_PER_METER_X] * GetDensity() * distance * contact_area;
+                GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_X] * GetDensity() * distance * contact_area;
                 GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.083333333 * (a * a + distance * distance) * GetDensity() * distance * contact_area;
                 GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.083333333 * (b * b + distance * distance) * GetDensity() * distance * contact_area;
             }
@@ -165,8 +165,8 @@ namespace Kratos {
             const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
 
             if (i < (int)mContinuumInitialNeighborsSize) {
-                double area = this->GetProperties()[BEAM_CROSS_SECTION];
-                double other_area = data_buffer.mpOtherParticle->GetProperties()[BEAM_CROSS_SECTION];
+                double area = this->GetProperties()[CROSS_AREA];
+                double other_area = data_buffer.mpOtherParticle->GetProperties()[CROSS_AREA];
                 calculation_area = std::max(area, other_area);
                 mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el,
                                                                              kt_el_0,

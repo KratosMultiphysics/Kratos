@@ -60,16 +60,20 @@ namespace Kratos {
 
         void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
+        DEMContinuumConstitutiveLaw::Pointer mBeamConstitutiveLaw;
+
         private:
 
         void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericContinuumParticle);
+            rSerializer.save("mBeamConstitutiveLaw", mBeamConstitutiveLaw);
         }
 
         void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericContinuumParticle);
+            rSerializer.save("mBeamConstitutiveLaw", mBeamConstitutiveLaw);
         }
 
 }; // Class BeamParticle

@@ -23,11 +23,11 @@ namespace Kratos {
     void DEM_KDEM_Beam::Check(Properties::Pointer pProp) const {
         DEMContinuumConstitutiveLaw::Check(pProp);
 
-        if(!pProp->Has(BEAM_CROSS_SECTION)) {
+        if(!pProp->Has(CROSS_AREA)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_CROSS_SECTION should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable CROSS_AREA should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(BEAM_CROSS_SECTION) = 1.0;
+            pProp->GetValue(CROSS_AREA) = 1.0;
         }
 
         if(!pProp->Has(BEAM_LENGTH)) {
@@ -37,46 +37,46 @@ namespace Kratos {
             pProp->GetValue(BEAM_LENGTH) = 1.0;
         }
 
-        if(!pProp->Has(BEAM_ELEMENTS_DISTANCE)) {
+        if(!pProp->Has(BEAM_PARTICLES_DISTANCE)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_ELEMENTS_DISTANCE should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_PARTICLES_DISTANCE should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(BEAM_ELEMENTS_DISTANCE) = 0.0;
+            pProp->GetValue(BEAM_PARTICLES_DISTANCE) = 0.0;
         }
 
-        if(!pProp->Has(BEAM_PLANAR_MOMENT_OF_INERTIA_XX)) {
+        if(!pProp->Has(I22)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_PLANAR_MOMENT_OF_INERTIA_XX should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable I22 should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(BEAM_PLANAR_MOMENT_OF_INERTIA_XX) = 1.0;
+            pProp->GetValue(I22) = 1.0;
         }
 
-        if(!pProp->Has(BEAM_PLANAR_MOMENT_OF_INERTIA_YY)) {
+        if(!pProp->Has(I33)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_PLANAR_MOMENT_OF_INERTIA_YY should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable I33 should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(BEAM_PLANAR_MOMENT_OF_INERTIA_YY) = 1.0;
+            pProp->GetValue(I33) = 1.0;
         }
 
-        if(!pProp->Has(BEAM_MOMENT_OF_INERTIA_PER_METER_X)) {
+        if(!pProp->Has(BEAM_INERTIA_ROT_UNIT_LENGHT_X)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_MOMENT_OF_INERTIA_PER_METER_X should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_INERTIA_ROT_UNIT_LENGHT_X should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(BEAM_MOMENT_OF_INERTIA_PER_METER_X) = 0.0;
+            pProp->GetValue(BEAM_INERTIA_ROT_UNIT_LENGHT_X) = 0.0;
         }
 
-        if(!pProp->Has(BEAM_MOMENT_OF_INERTIA_PER_METER_Y)) {
+        if(!pProp->Has(BEAM_INERTIA_ROT_UNIT_LENGHT_Y)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_MOMENT_OF_INERTIA_PER_METER_Y should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_INERTIA_ROT_UNIT_LENGHT_Y should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(BEAM_MOMENT_OF_INERTIA_PER_METER_Y) = 1.0;
+            pProp->GetValue(BEAM_INERTIA_ROT_UNIT_LENGHT_Y) = 1.0;
         }
 
-        if(!pProp->Has(BEAM_MOMENT_OF_INERTIA_PER_METER_Z)) {
+        if(!pProp->Has(BEAM_INERTIA_ROT_UNIT_LENGHT_Z)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_MOMENT_OF_INERTIA_PER_METER_Z should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable BEAM_INERTIA_ROT_UNIT_LENGHT_Z should be present in the properties when using DEM_KDEM_Beam. 1.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(BEAM_MOMENT_OF_INERTIA_PER_METER_Z) = 1.0;
+            pProp->GetValue(BEAM_INERTIA_ROT_UNIT_LENGHT_Z) = 1.0;
         }
     }
 
@@ -94,11 +94,11 @@ namespace Kratos {
 
         kn_el = equiv_young * calculation_area / initial_dist;
 
-        const double Inertia_Ixx = 0.5 * (element1->GetProperties()[BEAM_PLANAR_MOMENT_OF_INERTIA_XX] + element2->GetProperties()[BEAM_PLANAR_MOMENT_OF_INERTIA_XX]);
-        const double Inertia_Iyy = 0.5 * (element1->GetProperties()[BEAM_PLANAR_MOMENT_OF_INERTIA_YY] + element2->GetProperties()[BEAM_PLANAR_MOMENT_OF_INERTIA_YY]);
+        const double Inertia_Iyy = 0.5 * (element1->GetProperties()[I22] + element2->GetProperties()[I22]);
+        const double Inertia_Izz = 0.5 * (element1->GetProperties()[I33] + element2->GetProperties()[I33]);
 
-        kt_el_0 = 3.0 * equiv_young * Inertia_Iyy / (calculation_area * initial_dist);
-        kt_el_1 = 3.0 * equiv_young * Inertia_Ixx / (calculation_area * initial_dist);
+        kt_el_0 = 3.0 * equiv_young * Inertia_Izz / (calculation_area * initial_dist);
+        kt_el_1 = 3.0 * equiv_young * Inertia_Iyy / (calculation_area * initial_dist);
 
         KRATOS_CATCH("")
     }
@@ -116,7 +116,7 @@ namespace Kratos {
 
         const double equiv_mass  = 0.5 * (element1->GetMass() + element2->GetMass());
 
-        const double beam_total_mass = element1->GetProperties()[BEAM_LENGTH] * element1->GetProperties()[BEAM_CROSS_SECTION] * element1->GetDensity();
+        const double beam_total_mass = element1->GetProperties()[BEAM_LENGTH] * element1->GetProperties()[CROSS_AREA] * element1->GetDensity();
         const double aux_mass = beam_total_mass / equiv_mass;
 
         const double equiv_gamma = 0.5 * (element1->GetProperties()[DAMPING_GAMMA] + element2->GetProperties()[DAMPING_GAMMA]);
@@ -257,12 +257,12 @@ namespace Kratos {
 
         const double equiv_shear   = equiv_young / (2.0 * (1 + equiv_poisson));
 
-        const double Inertia_Ixx = 0.5 * (element->GetProperties()[BEAM_PLANAR_MOMENT_OF_INERTIA_XX] + neighbor->GetProperties()[BEAM_PLANAR_MOMENT_OF_INERTIA_XX]);
-        const double Inertia_Iyy = 0.5 * (element->GetProperties()[BEAM_PLANAR_MOMENT_OF_INERTIA_YY] + neighbor->GetProperties()[BEAM_PLANAR_MOMENT_OF_INERTIA_YY]);
-        const double Inertia_J  = Inertia_Ixx + Inertia_Iyy;
+        const double Inertia_Iyy = 0.5 * (element->GetProperties()[I22] + neighbor->GetProperties()[I22]);
+        const double Inertia_Izz = 0.5 * (element->GetProperties()[I33] + neighbor->GetProperties()[I33]);
+        const double Inertia_J = Inertia_Iyy + Inertia_Izz;
 
-        const double k_rot_x = equiv_young * Inertia_Ixx * norm_distance / distance;
-        const double k_rot_y = equiv_young * Inertia_Iyy * norm_distance / distance;
+        const double k_rot_x = equiv_young * Inertia_Iyy * norm_distance / distance;
+        const double k_rot_y = equiv_young * Inertia_Izz * norm_distance / distance;
         const double k_tor   = equiv_shear * Inertia_J  / distance;
 
         ElasticLocalRotationalMoment[0] = -k_rot_x * LocalDeltaRotatedAngle[0];
@@ -273,16 +273,16 @@ namespace Kratos {
 
         const double equiv_gamma = 0.5 * (element->GetProperties()[DAMPING_GAMMA] + neighbor->GetProperties()[DAMPING_GAMMA]);
 
-        const double a = std::sqrt(12.0 * element->GetProperties()[BEAM_MOMENT_OF_INERTIA_PER_METER_Y] - 1.0);
-        const double b = std::sqrt(12.0 * element->GetProperties()[BEAM_MOMENT_OF_INERTIA_PER_METER_Z] - 1.0);
+        const double a = std::sqrt(12.0 * element->GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_Y] - 1.0);
+        const double b = std::sqrt(12.0 * element->GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_Z] - 1.0);
 
         const double equiv_mass  = 0.5 * (element->GetMass() + neighbor->GetMass());
-        const double beam_total_mass = element->GetProperties()[BEAM_LENGTH] * element->GetProperties()[BEAM_CROSS_SECTION] * element->GetDensity();
+        const double beam_total_mass = element->GetProperties()[BEAM_LENGTH] * element->GetProperties()[CROSS_AREA] * element->GetDensity();
         const double aux_mass = beam_total_mass / equiv_mass;
 
         const double equiv_moment_of_inertiaX = 0.083333333 * (a * a + distance * distance) * equiv_mass;
         const double equiv_moment_of_inertiaY = 0.083333333 * (b * b + distance * distance) * equiv_mass;
-        const double equiv_moment_of_inertiaZ = element->GetProperties()[BEAM_MOMENT_OF_INERTIA_PER_METER_X] * equiv_mass;
+        const double equiv_moment_of_inertiaZ = element->GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_X] * equiv_mass;
 
         const double visc_param_rot_x = equiv_gamma * aux_mass * norm_length * sqrt(equiv_moment_of_inertiaX * k_rot_x);
         const double visc_param_rot_y = equiv_gamma * aux_mass * norm_length * sqrt(equiv_moment_of_inertiaY * k_rot_y);
