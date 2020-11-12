@@ -17,6 +17,8 @@
 // Project includes
 #include "feti_dynamic_coupling_utilities.h"
 #include "factories/linear_solver_factory.h"
+#include "includes/variables.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -77,9 +79,15 @@ namespace Kratos
         << "FetiDynamicCouplingUtilities::EquilibrateDomains | Origin and destination domains have not been set.\n"
         << "Please call 'SetOriginAndDestinationDomainsWithInterfaceModelParts' from python before calling 'EquilibrateDomains'.\n";
 
-        KRATOS_ERROR_IF(mpSolver == nullptr)
+        KRATOS_ERROR_IF_NOT(mpSolver)
             << "FetiDynamicCouplingUtilities::EquilibrateDomains | The linear solver has not been set.\n"
             << "Please call 'SetLinearSolver' from python before calling 'EquilibrateDomains'.\n";
+
+        KRATOS_ERROR_IF(mpOriginDomain->NumberOfElements() == 0)
+            << "FetiDynamicCouplingUtilities::EquilibrateDomains | The origin model part has not elements!\n" << *mpOriginDomain;
+
+        KRATOS_ERROR_IF(mpDestinationDomain->NumberOfElements() == 0)
+            << "FetiDynamicCouplingUtilities::EquilibrateDomains | The destination model part has not elements!\n" << *mpDestinationDomain;
 
         const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
@@ -709,6 +717,42 @@ namespace Kratos
             else
                 KRATOS_INFO("FetiDynamicCouplingUtilities") << "DESTINATION interface " << rVariable.Name() << "\n" << interface_kinematics << std::endl;
         }
+    }
+
+    void FetiDynamicCouplingUtilities::SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart& rInterfaceOrigin,
+        ModelPart& rInterFaceDestination)
+    {
+        mpOriginDomain = &(rInterfaceOrigin.GetModel().GetModelPart("Structure"));
+        mpDestinationDomain = &(rInterFaceDestination.GetModel().GetModelPart("Structure"));
+
+        // Check the timesteps and timestep ratio line up
+        const double dt_origin = mpOriginDomain->GetProcessInfo().GetValue(DELTA_TIME);
+        const double dt_destination = mpDestinationDomain->GetProcessInfo().GetValue(DELTA_TIME);
+        const double actual_timestep_ratio = dt_origin / dt_destination;
+        KRATOS_ERROR_IF(std::abs(mTimestepRatio - actual_timestep_ratio) > 1e-9)
+            << "The timesteps of each domain does not correspond to the timestep ratio specified in the CoSim parameters file."
+            << "\nSpecified ratio = " << mTimestepRatio
+            << "\nActual ratio = " << actual_timestep_ratio
+            << "\n\tOrigin timestep = " << dt_origin
+            << "\n\tDestination timestep = " << dt_destination << std::endl;
+    }
+
+    void FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrixImplicit(SystemMatrixType& rK,
+        const IndexType SolverIndex)
+    {
+        if (SolverIndex == 0) mpKOrigin = &rK;
+        else if (SolverIndex == 1) mpKDestination = &rK;
+        else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, Index must be 0 or 1";
+
+        this->SetEffectiveStiffnessMatrixExplicit(SolverIndex);
+    };
+
+    Variable< array_1d<double, 3> >& FetiDynamicCouplingUtilities::GetEquilibriumVariable()
+    {
+        if (mEquilibriumVariableString == "VELOCITY") return VELOCITY;
+        else if (mEquilibriumVariableString == "DISPLACEMENT") return DISPLACEMENT;
+        else if (mEquilibriumVariableString == "ACCELERATION") return ACCELERATION;
+        else KRATOS_ERROR << "'equilibrium_variable' has invalid value. It must be either DISPLACEMENT, VELOCITY or ACCELERATION.\n";
     }
 
 

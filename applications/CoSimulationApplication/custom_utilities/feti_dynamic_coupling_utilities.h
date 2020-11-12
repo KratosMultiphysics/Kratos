@@ -23,8 +23,6 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "co_simulation_application_variables.h"
-#include "includes/variables.h"
-#include "utilities/parallel_utilities.h"
 #include "linear_solvers/linear_solver.h"
 
 
@@ -62,32 +60,10 @@ namespace Kratos
         FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin, ModelPart & rInterFaceDestination,
             const Parameters JsonParameters);
 
-        void SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart & rInterfaceOrigin,
-            ModelPart & rInterFaceDestination)
-        {
-            mpOriginDomain = &(rInterfaceOrigin.GetModel().GetModelPart("Structure"));
-            mpDestinationDomain = &(rInterFaceDestination.GetModel().GetModelPart("Structure"));
+        void SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart& rInterfaceOrigin,
+            ModelPart& rInterFaceDestination);
 
-            // Check the timesteps and timestep ratio line up
-            const double dt_origin = mpOriginDomain->GetProcessInfo().GetValue(DELTA_TIME);
-            const double dt_destination = mpDestinationDomain->GetProcessInfo().GetValue(DELTA_TIME);
-            const double actual_timestep_ratio = dt_origin / dt_destination;
-            KRATOS_ERROR_IF(std::abs(mTimestepRatio - actual_timestep_ratio) > 1e-9)
-                << "The timesteps of each domain does not correspond to the timestep ratio specified in the CoSim parameters file."
-                << "\nSpecified ratio = " << mTimestepRatio
-                << "\nActual ratio = " << actual_timestep_ratio
-                << "\n\tOrigin timestep = " << dt_origin
-                << "\n\tDestination timestep = " << dt_destination << std::endl;
-        }
-
-        void SetEffectiveStiffnessMatrixImplicit(SystemMatrixType& rK, const IndexType SolverIndex)
-        {
-            if (SolverIndex == 0) mpKOrigin = &rK;
-            else if (SolverIndex == 1) mpKDestination = &rK;
-            else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, Index must be 0 or 1";
-
-            this->SetEffectiveStiffnessMatrixExplicit(SolverIndex);
-        };
+        void SetEffectiveStiffnessMatrixImplicit(SystemMatrixType& rK, const IndexType SolverIndex);
 
         void SetEffectiveStiffnessMatrixExplicit(const IndexType SolverIndex)
         {
@@ -189,13 +165,7 @@ namespace Kratos
 
         void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const SolverIndex solverIndex);
 
-        Variable< array_1d<double, 3> >& GetEquilibriumVariable()
-        {
-            if (mEquilibriumVariableString == "VELOCITY") return VELOCITY;
-            else if (mEquilibriumVariableString == "DISPLACEMENT") return DISPLACEMENT;
-            else if (mEquilibriumVariableString == "ACCELERATION") return ACCELERATION;
-            else KRATOS_ERROR << "'equilibrium_variable' has invalid value. It must be either DISPLACEMENT, VELOCITY or ACCELERATION.\n";
-        }
+        Variable< array_1d<double, 3> >& GetEquilibriumVariable();
 
     };  // namespace FetiDynamicCouplingUtilities.
 
