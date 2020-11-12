@@ -26,11 +26,11 @@
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
-#include <EpetraExt_MatrixMatrix.h>
+#include "EpetraExt_MatrixMatrix.h"
 #include "EpetraExt_CrsMatrixIn.h"
-#include <EpetraExt_VectorIn.h>
-#include <EpetraExt_RowMatrixOut.h>
-#include <EpetraExt_MultiVectorOut.h>
+#include "EpetraExt_VectorIn.h"
+#include "EpetraExt_RowMatrixOut.h"
+#include "EpetraExt_MultiVectorOut.h"
 
 // Project includes
 #include "includes/define.h"
