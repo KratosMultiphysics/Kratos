@@ -8,13 +8,13 @@ namespace Kratos
 //***************************************************************************************************************
 void ModifyViscosityLikeEinstein(double & viscosity, const double solid_fraction)
 {
-    viscosity *= (1.0 + 2.5 * solid_fraction);
+    viscosity *= 1.0 + 2.5 * solid_fraction;
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
 void ModifyViscosityLikeLiu(double & viscosity, const double solid_fraction)
 {
-    viscosity *= (1.0 + 1.022 * solid_fraction + 1.358 * solid_fraction * solid_fraction * solid_fraction);
+    viscosity *= 1.0 + 1.022 * solid_fraction + 1.358 * std::pow(solid_fraction, 3);
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -434,6 +434,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ApplyExp
     if (*r_current_variable == PARTICLE_VEL_FILTERED){
         ApplyExponentialTimeFiltering(r_model_part, PARTICLE_VEL_FILTERED, TIME_AVERAGED_ARRAY_3);
     }
+
+    else if (*r_current_variable == FLUID_FRACTION){
+        ApplyExponentialTimeFiltering(r_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
+
+    }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -546,6 +551,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 {
     if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // hold the current value in an auxiliary variable
         CopyValues(r_fluid_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
+        Clear(r_fluid_model_part, FLUID_FRACTION);
     }
 
     Vector shape_function_values_at_point;
