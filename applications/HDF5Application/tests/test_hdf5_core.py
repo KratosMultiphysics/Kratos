@@ -205,7 +205,7 @@ class TestFileIO(KratosUnittest.TestCase):
         obj = file_io._FilenameGetter(settings)
         with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
             obj.Get(_SurrogateModelPart())
-            self.assertEqual(p.call_args_list, [call('file_1'), call('file_2')])
+            self.assertEqual(p.call_args_list, [call('file_2'), call('file_3')])
 
     def test_Create_Settings(self):
         settings = ParametersWrapper()
