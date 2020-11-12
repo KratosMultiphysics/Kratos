@@ -56,6 +56,7 @@ namespace Kratos
         static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
 
         enum class SolverIndex { Origin, Destination };
+        enum class EquilibriumVariable { Displacement, Velocity, Acceleration};
 
         FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin, ModelPart & rInterFaceDestination,
             const Parameters JsonParameters);
@@ -109,8 +110,7 @@ namespace Kratos
         CompressedMatrix mProjectorDestination;
         bool mIsLinearSetupComplete = false;
 
-
-        std::string mEquilibriumVariableString;
+        EquilibriumVariable mEquilibriumVariable;
 
         LinearSolverSharedPointerType mpSolver = nullptr;
 

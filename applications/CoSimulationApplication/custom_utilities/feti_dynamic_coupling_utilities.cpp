@@ -43,14 +43,18 @@ namespace Kratos
         const double destination_beta = mParameters["destination_newmark_beta"].GetDouble();
         const double destination_gamma = mParameters["destination_newmark_gamma"].GetDouble();
         const double timestep_ratio = mParameters["timestep_ratio"].GetDouble();
-        mEquilibriumVariableString = mParameters["equilibrium_variable"].GetString();
+
+        const std::string equilibrium_variable = mParameters["equilibrium_variable"].GetString();
+        if (equilibrium_variable == "VELOCITY") mEquilibriumVariable = EquilibriumVariable::Velocity;
+        else if (equilibrium_variable == "DISPLACEMENT") mEquilibriumVariable = EquilibriumVariable::Displacement;
+        else if (equilibrium_variable == "ACCELERATION") mEquilibriumVariable = EquilibriumVariable::Acceleration;
+        else KRATOS_ERROR << "'equilibrium_variable' has invalid value. It must be either DISPLACEMENT, VELOCITY or ACCELERATION.\n";
 
         KRATOS_ERROR_IF(origin_beta < 0.0 || origin_beta > 1.0) << "'origin_newmark_beta' has invalid value. It must be between 0 and 1.\n";
         KRATOS_ERROR_IF(origin_gamma < 0.0 || origin_gamma > 1.0) << "'origin_newmark_gamma' has invalid value. It must be between 0 and 1.\n";
         KRATOS_ERROR_IF(destination_beta < 0.0 || destination_beta > 1.0) << "'destination_beta' has invalid value. It must be between 0 and 1.\n";
         KRATOS_ERROR_IF(destination_gamma < 0.0 || destination_gamma > 1.0) << "'destination_gamma' has invalid value. It must be between 0 and 1.\n";
         KRATOS_ERROR_IF(timestep_ratio < 0.0 || std::abs(timestep_ratio - double(int(timestep_ratio))) > numerical_limit) << "'timestep_ratio' has invalid value. It must be a positive integer.\n";
-        KRATOS_ERROR_IF(mEquilibriumVariableString != "VELOCITY" && mEquilibriumVariableString != "DISPLACEMENT" && mEquilibriumVariableString != "ACCELERATION") << "'equilibrium_variable' has invalid value. It must be either DISPLACEMENT, VELOCITY or ACCELERATION.\n";
 
         // Limit only to implicit average acceleration or explicit central difference
         KRATOS_ERROR_IF(origin_beta != 0.0 && origin_beta != 0.25) << "origin_beta must be 0.0 or 0.25";
@@ -273,26 +277,28 @@ namespace Kratos
         double origin_kinematic_coefficient = 0.0;
         double dest_kinematic_coefficient = 0.0;
 
-        if (mEquilibriumVariableString == "ACCELERATION")
+        switch (mEquilibriumVariable)
         {
-            origin_kinematic_coefficient = 1.0;
-            dest_kinematic_coefficient = 1.0;
-        }
-        else if (mEquilibriumVariableString == "VELOCITY")
-        {
-            origin_kinematic_coefficient = origin_gamma * origin_dt;
-            dest_kinematic_coefficient = dest_gamma * dest_dt;
-        }
-        else if (mEquilibriumVariableString == "DISPLACEMENT")
-        {
+        case EquilibriumVariable::Displacement:
             KRATOS_ERROR_IF(mIsImplicitOrigin == false || mIsImplicitDestination == false)
                 << "CAN ONLY DO DISPLACEMENT COUPLING FOR IMPLICIT-IMPLICIT";
             origin_kinematic_coefficient = origin_gamma * origin_gamma * origin_dt * origin_dt;
             dest_kinematic_coefficient = dest_gamma * dest_gamma * dest_dt * dest_dt;
-        }
-        else
-        {
+            break;
+
+        case EquilibriumVariable::Velocity:
+            origin_kinematic_coefficient = origin_gamma * origin_dt;
+            dest_kinematic_coefficient = dest_gamma * dest_dt;
+            break;
+
+        case EquilibriumVariable::Acceleration:
+            origin_kinematic_coefficient = 1.0;
+            dest_kinematic_coefficient = 1.0;
+            break;
+
+        default:
             KRATOS_ERROR << "FetiDynamicCouplingUtilities:: The equilibrium variable must be either DISPLACEMENT, VELOCITY or ACCELERATION.";
+            break;
         }
 
         CompressedMatrix h_origin(rOriginProjector.size1(), rOriginUnitResponse.size2(),0.0);
@@ -748,10 +754,9 @@ namespace Kratos
 
     Variable< array_1d<double, 3> >& FetiDynamicCouplingUtilities::GetEquilibriumVariable()
     {
-        if (mEquilibriumVariableString == "VELOCITY") return VELOCITY;
-        else if (mEquilibriumVariableString == "DISPLACEMENT") return DISPLACEMENT;
-        else if (mEquilibriumVariableString == "ACCELERATION") return ACCELERATION;
-        else KRATOS_ERROR << "'equilibrium_variable' has invalid value. It must be either DISPLACEMENT, VELOCITY or ACCELERATION.\n";
+        if (mEquilibriumVariable == EquilibriumVariable::Velocity) return VELOCITY;
+        else if (mEquilibriumVariable == EquilibriumVariable::Displacement) return DISPLACEMENT;
+        else if (mEquilibriumVariable == EquilibriumVariable::Acceleration) return ACCELERATION;
     }
 
 
