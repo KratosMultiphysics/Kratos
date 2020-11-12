@@ -680,7 +680,7 @@ namespace Kratos
             {
                 Vector solution(system_dofs);
                 Vector projector_transpose_column(system_dofs);
-                auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
+                auto solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(solver_parameters);
 
                 for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
                 solver->Solve(effective_mass, solution, projector_transpose_column);
