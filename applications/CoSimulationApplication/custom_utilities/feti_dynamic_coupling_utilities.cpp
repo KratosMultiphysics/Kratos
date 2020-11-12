@@ -21,6 +21,7 @@
 #include "includes/variables.h"
 #include "spaces/ublas_space.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 
 
 namespace Kratos
@@ -107,7 +108,7 @@ namespace Kratos
         SolverIndex solver_index = SolverIndex::Origin;
 
         // 1 - calculate unbalanced interface free kinematics
-        Vector unbalanced_interface_free_kinematics(destination_interface_dofs);
+        DenseVectorType unbalanced_interface_free_kinematics(destination_interface_dofs);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
 
         if (!mIsLinear || !mIsLinearSetupComplete)
@@ -141,7 +142,7 @@ namespace Kratos
         }
 
         // 5 - Calculate lagrange mults
-        Vector lagrange_vector(destination_interface_dofs);
+        DenseVectorType lagrange_vector(destination_interface_dofs);
         DetermineLagrangianMultipliers(lagrange_vector, mCondensationMatrix, unbalanced_interface_free_kinematics);
         if (mParameters["is_disable_coupling"].GetBool()) lagrange_vector.clear();
         if (mParameters["is_disable_coupling"].GetBool()) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
@@ -180,7 +181,7 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::CalculateUnbalancedInterfaceFreeKinematics(
-        Vector& rUnbalancedKinematics,const bool IsEquilibriumCheck)
+        DenseVectorType& rUnbalancedKinematics,const bool IsEquilibriumCheck)
 	{
         KRATOS_TRY
 
@@ -197,11 +198,11 @@ namespace Kratos
 
         // Interpolate origin kinematics to the current sub-timestep
         const double time_ratio = double(mSubTimestepIndex) / double(mTimestepRatio);
-        Vector interpolated_origin_kinematics = (IsEquilibriumCheck) ? mFinalOriginInterfaceKinematics
+        DenseVectorType interpolated_origin_kinematics = (IsEquilibriumCheck) ? mFinalOriginInterfaceKinematics
             : time_ratio * mFinalOriginInterfaceKinematics + (1.0 - time_ratio) * mInitialOriginInterfaceKinematics;
         SparseMatrixType expanded_mapper;
         GetExpandedMappingMatrix(expanded_mapper, dim);
-        Vector mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
+        DenseVectorType mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
         TSparseSpace::Mult(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics);
 
         // Determine kinematics difference
@@ -310,13 +311,11 @@ namespace Kratos
         }
 
         SparseMatrixType h_origin(rOriginProjector.size1(), rOriginUnitResponse.size2(),0.0);
-        // @Peter here you should use the SpacematrixMulUtilit, see the CouplingGeomMapper
-        // TSparseSpace::Mult(rOriginProjector, rOriginUnitResponse,h_origin);
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(rOriginProjector, rOriginUnitResponse,h_origin);
         h_origin *= origin_kinematic_coefficient;
 
         SparseMatrixType h_destination(rDestinationProjector.size1(), rDestinationUnitResponse.size2(), 0.0);
-        // @Peter here you should use the SpacematrixMulUtilit, see the CouplingGeomMapper
-        // TSparseSpace::Mult(rDestinationProjector, rDestinationUnitResponse, h_destination);
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(rDestinationProjector, rDestinationUnitResponse, h_destination);
         h_destination *= dest_kinematic_coefficient;
 
         rCondensationMatrix = h_origin + h_destination;
@@ -328,7 +327,7 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DetermineLagrangianMultipliers
-    (Vector& rLagrangeVec, SparseMatrixType& rCondensationMatrix, Vector& rUnbalancedKinematics)
+    (DenseVectorType& rLagrangeVec, SparseMatrixType& rCondensationMatrix, DenseVectorType& rUnbalancedKinematics)
     {
         KRATOS_TRY
 
@@ -344,7 +343,7 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::ApplyCorrectionQuantities(
-        const Vector& rLagrangeVec, const SparseMatrixType& rUnitResponse,
+        DenseVectorType& rLagrangeVec, const SparseMatrixType& rUnitResponse,
         const SolverIndex solverIndex)
     {
         KRATOS_TRY
@@ -356,9 +355,8 @@ namespace Kratos
         const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         // Apply acceleration correction
-        Vector accel_corrections(rUnitResponse.size1(), 0.0);
-        // @Peter you shouldn't use Vector directly but same as for the matrix, use the typedef of the space
-        // TSparseSpace::Mult(rUnitResponse, rLagrangeVec, accel_corrections);
+        DenseVectorType accel_corrections(rUnitResponse.size1());
+        TSparseSpace::Mult(rUnitResponse, rLagrangeVec, accel_corrections);
         AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
 
         // Apply velocity correction
@@ -402,7 +400,7 @@ namespace Kratos
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::AddCorrectionToDomain(
         ModelPart* pDomain, const Variable<array_1d<double, 3>>& rVariable,
-        const Vector& rCorrection, const bool IsImplicit)
+        const DenseVectorType& rCorrection, const bool IsImplicit)
     {
         KRATOS_TRY
 
@@ -450,7 +448,7 @@ namespace Kratos
     }
 
     template<class TSparseSpace, class TDenseSpace>
-    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::WriteLagrangeMultiplierResults(const Vector& rLagrange)
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::WriteLagrangeMultiplierResults(const DenseVectorType& rLagrange)
     {
         KRATOS_TRY
 
@@ -475,7 +473,7 @@ namespace Kratos
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetInterfaceQuantity(
         ModelPart& rInterface, const Variable<array_1d<double, 3>>& rVariable,
-        Vector& rContainer, const SizeType nDOFs)
+        DenseVectorType& rContainer, const SizeType nDOFs)
     {
         KRATOS_TRY
 
@@ -505,7 +503,7 @@ namespace Kratos
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetInterfaceQuantity(
         ModelPart& rInterface, const Variable<double>& rVariable,
-        Vector& rContainer, const SizeType nDOFs)
+        DenseVectorType& rContainer, const SizeType nDOFs)
     {
         KRATOS_TRY
 
@@ -615,8 +613,7 @@ namespace Kratos
             SparseMatrixType expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
             GetExpandedMappingMatrix(expanded_mapper, DOFs);
             SparseMatrixType temp(expanded_mapper.size1(), rProjector.size2(), 0.0);
-            // @Peter here you should use the SpacematrixMulUtilit, see the CouplingGeomMapper
-            // TSparseSpace::Mult(expanded_mapper, rProjector, temp);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(expanded_mapper, rProjector, temp);
             rProjector = temp;
         }
 
@@ -684,8 +681,8 @@ namespace Kratos
 
         IndexPartition<>(interface_dofs).for_each([&](SizeType i)
             {
-                Vector solution(system_dofs);
-                Vector projector_transpose_column(system_dofs);
+                DenseVectorType solution(system_dofs);
+                DenseVectorType projector_transpose_column(system_dofs);
                 auto solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(solver_parameters);
 
                 for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
@@ -728,7 +725,7 @@ namespace Kratos
         {
             const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
             const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
-            Vector interface_kinematics(origin_interface_dofs);
+            DenseVectorType interface_kinematics(origin_interface_dofs);
 
             ModelPart& r_interface = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
 
