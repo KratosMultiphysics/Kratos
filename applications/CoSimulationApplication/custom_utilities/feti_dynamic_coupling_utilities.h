@@ -28,7 +28,8 @@
 
 namespace Kratos
 {
-    class KRATOS_API(CO_SIMULATION_APPLICATION) FetiDynamicCouplingUtilities
+    template<class TSparseSpace, class TDenseSpace>
+    class FetiDynamicCouplingUtilities
     {
     public:
         typedef std::size_t SizeType;
@@ -39,18 +40,23 @@ namespace Kratos
         typedef Geometry<NodeType> GeometryType;
         typedef typename GeometryType::Pointer GeometryPointerType;
 
-        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-        typedef typename SparseSpaceType::MatrixType SystemMatrixType;
 
-        typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-
-        typedef Matrix DenseMappingMatrixType;
-
-        typedef typename SparseSpaceType::MatrixType MappingMatrixType;
-
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+        typedef typename TSparseSpace::MatrixType SparseMatrixType;
+        typedef Matrix DenseMatrixType;
+        typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
         typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
+
+        //typedef UblasSpace<double, SparseMatrixType, boost::numeric::ublas::vector<double>> SparseSpaceType;
+
+
+        //typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+
+        //typedef Matrix DenseMappingMatrixType;
+
+        //typedef typename SparseSpaceType::MatrixType MappingMatrixType;
+
+        //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
 
         /// The definition of the numerical limit
         static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -64,14 +70,14 @@ namespace Kratos
         void SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart& rInterfaceOrigin,
             ModelPart& rInterFaceDestination);
 
-        void SetEffectiveStiffnessMatrixImplicit(SystemMatrixType& rK, const IndexType SolverIndex);
+        void SetEffectiveStiffnessMatrixImplicit(SparseMatrixType& rK, const IndexType SolverIndex);
 
         void SetEffectiveStiffnessMatrixExplicit(const IndexType SolverIndex)
         {
             if (SolverIndex == 0) mSubTimestepIndex = 1;
         };
 
-        void SetMappingMatrix(CompressedMatrix& rMappingMatrix)
+        void SetMappingMatrix(SparseMatrixType& rMappingMatrix)
         {
             mpMappingMatrix = &rMappingMatrix;
         };
@@ -92,22 +98,22 @@ namespace Kratos
         ModelPart* mpOriginDomain = nullptr;
         ModelPart* mpDestinationDomain = nullptr;
 
-        SystemMatrixType* mpKOrigin = nullptr;
-        SystemMatrixType* mpKDestination = nullptr;
+        SparseMatrixType* mpKOrigin = nullptr;
+        SparseMatrixType* mpKDestination = nullptr;
 
-        CompressedMatrix* mpMappingMatrix = nullptr;
-        CompressedMatrix* mpMappingMatrixForce = nullptr;
+        SparseMatrixType* mpMappingMatrix = nullptr;
+        SparseMatrixType* mpMappingMatrixForce = nullptr;
 
         // Origin quantities
         Vector mInitialOriginInterfaceKinematics;
         Vector mFinalOriginInterfaceKinematics;
-        CompressedMatrix mProjectorOrigin;
-        CompressedMatrix mUnitResponseOrigin;
+        SparseMatrixType mProjectorOrigin;
+        SparseMatrixType mUnitResponseOrigin;
 
         // Quantities to store for a linear system
-        CompressedMatrix mCondensationMatrix;
-        CompressedMatrix mUnitResponseDestination;
-        CompressedMatrix mProjectorDestination;
+        SparseMatrixType mCondensationMatrix;
+        SparseMatrixType mUnitResponseDestination;
+        SparseMatrixType mProjectorDestination;
         bool mIsLinearSetupComplete = false;
 
         EquilibriumVariable mEquilibriumVariable;
@@ -132,28 +138,28 @@ namespace Kratos
         void GetInterfaceQuantity(ModelPart& rInterface, const Variable<double>& rVariable,
             Vector& rContainer, const SizeType nDOFs);
 
-        void GetExpandedMappingMatrix(CompressedMatrix& rExpandedMappingMat, const SizeType nDOFs);
+        void GetExpandedMappingMatrix(SparseMatrixType& rExpandedMappingMat, const SizeType nDOFs);
 
-        void ComposeProjector(CompressedMatrix& rProjector, const SolverIndex solverIndex);
+        void ComposeProjector(SparseMatrixType& rProjector, const SolverIndex solverIndex);
 
-        void DetermineDomainUnitAccelerationResponse(SystemMatrixType* pK,
-            const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse, const SolverIndex solverIndex);
+        void DetermineDomainUnitAccelerationResponse(SparseMatrixType* pK,
+            const SparseMatrixType& rProjector, SparseMatrixType& rUnitResponse, const SolverIndex solverIndex);
 
-        void DetermineDomainUnitAccelerationResponseExplicit(CompressedMatrix& rUnitResponse,
-            const CompressedMatrix& rProjector, ModelPart& rDomain, const SolverIndex solverIndex);
+        void DetermineDomainUnitAccelerationResponseExplicit(SparseMatrixType& rUnitResponse,
+            const SparseMatrixType& rProjector, ModelPart& rDomain, const SolverIndex solverIndex);
 
-        void DetermineDomainUnitAccelerationResponseImplicit(CompressedMatrix& rUnitResponse,
-            const CompressedMatrix& rProjector, SystemMatrixType* pK, const SolverIndex solverIndex);
+        void DetermineDomainUnitAccelerationResponseImplicit(SparseMatrixType& rUnitResponse,
+            const SparseMatrixType& rProjector, SparseMatrixType* pK, const SolverIndex solverIndex);
 
-        void CalculateCondensationMatrix(CompressedMatrix& rCondensationMatrix,
-            const CompressedMatrix& rOriginUnitResponse, const CompressedMatrix& rDestinationUnitResponse,
-            const CompressedMatrix& rOriginProjector, const CompressedMatrix& rDestinationProjector);
+        void CalculateCondensationMatrix(SparseMatrixType& rCondensationMatrix,
+            const SparseMatrixType& rOriginUnitResponse, const SparseMatrixType& rDestinationUnitResponse,
+            const SparseMatrixType& rOriginProjector, const SparseMatrixType& rDestinationProjector);
 
         void DetermineLagrangianMultipliers(Vector& rLagrangeVec,
-            CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedKinematics);
+            SparseMatrixType& rCondensationMatrix, Vector& rUnbalancedKinematics);
 
         void ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-            const CompressedMatrix& rUnitResponse, const SolverIndex solverIndex);
+            const SparseMatrixType& rUnitResponse, const SolverIndex solverIndex);
 
         void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,
@@ -161,7 +167,7 @@ namespace Kratos
 
         void WriteLagrangeMultiplierResults(const Vector& rLagrange);
 
-        void ApplyMappingMatrixToProjector(CompressedMatrix& rProjector, const SizeType DOFs);
+        void ApplyMappingMatrixToProjector(SparseMatrixType& rProjector, const SizeType DOFs);
 
         void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const SolverIndex solverIndex);
 

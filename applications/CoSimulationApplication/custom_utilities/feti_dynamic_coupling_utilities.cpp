@@ -23,7 +23,8 @@
 
 namespace Kratos
 {
-    FetiDynamicCouplingUtilities::FetiDynamicCouplingUtilities(ModelPart& rInterfaceOrigin,
+    template<class TSparseSpace,class TDenseSpace>
+    FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::FetiDynamicCouplingUtilities(ModelPart& rInterfaceOrigin,
         ModelPart& rInterFaceDestination, Parameters JsonParameters)
         :mrOriginInterfaceModelPart(rInterfaceOrigin), mrDestinationInterfaceModelPart(rInterFaceDestination),
         mParameters(JsonParameters)
@@ -71,7 +72,8 @@ namespace Kratos
         mSubTimestepIndex = 1;
     }
 
-	void FetiDynamicCouplingUtilities::EquilibrateDomains()
+    template<class TSparseSpace, class TDenseSpace>
+	void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::EquilibrateDomains()
 	{
         KRATOS_TRY
 
@@ -174,8 +176,9 @@ namespace Kratos
 	}
 
 
-	void FetiDynamicCouplingUtilities::CalculateUnbalancedInterfaceFreeKinematics(Vector& rUnbalancedKinematics,
-        const bool IsEquilibriumCheck)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::CalculateUnbalancedInterfaceFreeKinematics(
+        Vector& rUnbalancedKinematics,const bool IsEquilibriumCheck)
 	{
         KRATOS_TRY
 
@@ -194,10 +197,10 @@ namespace Kratos
         const double time_ratio = double(mSubTimestepIndex) / double(mTimestepRatio);
         Vector interpolated_origin_kinematics = (IsEquilibriumCheck) ? mFinalOriginInterfaceKinematics
             : time_ratio * mFinalOriginInterfaceKinematics + (1.0 - time_ratio) * mInitialOriginInterfaceKinematics;
-        CompressedMatrix expanded_mapper(mpMappingMatrix->size1() * dim, mpMappingMatrix->size2() * dim, 0.0);
+        SparseMatrixType expanded_mapper;
         GetExpandedMappingMatrix(expanded_mapper, dim);
         Vector mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
-        axpy_prod(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics,false);
+        TSparseSpace::Mult(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics,false);
 
         // Determine kinematics difference
         rUnbalancedKinematics += mapped_interpolated_origin_kinematics;
@@ -206,7 +209,9 @@ namespace Kratos
 	}
 
 
-    void FetiDynamicCouplingUtilities::ComposeProjector(CompressedMatrix& rProjector, const SolverIndex solverIndex)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::ComposeProjector(
+        SparseMatrixType& rProjector, const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
@@ -237,7 +242,7 @@ namespace Kratos
             }
         }
 
-        Matrix temp(rInterfaceMP.NumberOfNodes() * dim, domain_dofs, 0.0);
+        DenseMatrixType temp(rInterfaceMP.NumberOfNodes() * dim, domain_dofs, 0.0);
 
         block_for_each(rInterfaceMP.Nodes(), [&](Node<3>& rNode)
             {
@@ -251,7 +256,7 @@ namespace Kratos
             }
         );
 
-        rProjector = CompressedMatrix(temp);
+        rProjector = SparseMatrixType(temp);
 
         // Incorporate force mapping matrix into projector if it is the origin
         // since the lagrangian multipliers are defined on the destination and need
@@ -262,10 +267,11 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::CalculateCondensationMatrix(
-        CompressedMatrix& rCondensationMatrix,
-        const CompressedMatrix& rOriginUnitResponse, const CompressedMatrix& rDestinationUnitResponse,
-        const CompressedMatrix& rOriginProjector, const CompressedMatrix& rDestinationProjector)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::CalculateCondensationMatrix(
+        SparseMatrixType& rCondensationMatrix,
+        const SparseMatrixType& rOriginUnitResponse, const SparseMatrixType& rDestinationUnitResponse,
+        const SparseMatrixType& rOriginProjector, const SparseMatrixType& rDestinationProjector)
     {
         KRATOS_TRY
 
@@ -301,12 +307,12 @@ namespace Kratos
             break;
         }
 
-        CompressedMatrix h_origin(rOriginProjector.size1(), rOriginUnitResponse.size2(),0.0);
-        axpy_prod(rOriginProjector, rOriginUnitResponse,h_origin,false); // optimised for sparse matrix prod
+        SparseMatrixType h_origin(rOriginProjector.size1(), rOriginUnitResponse.size2(),0.0);
+        TSparseSpace::Mult(rOriginProjector, rOriginUnitResponse,h_origin,false); // optimised for sparse matrix prod
         h_origin *= origin_kinematic_coefficient;
 
-        CompressedMatrix h_destination(rDestinationProjector.size1(), rDestinationUnitResponse.size2(), 0.0);
-        axpy_prod(rDestinationProjector, rDestinationUnitResponse, h_destination, false); // optimised for sparse matrix prod
+        SparseMatrixType h_destination(rDestinationProjector.size1(), rDestinationUnitResponse.size2(), 0.0);
+        TSparseSpace::Mult(rDestinationProjector, rDestinationUnitResponse, h_destination, false); // optimised for sparse matrix prod
         h_destination *= dest_kinematic_coefficient;
 
         rCondensationMatrix = h_origin + h_destination;
@@ -316,8 +322,9 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::DetermineLagrangianMultipliers(Vector& rLagrangeVec,
-        CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedKinematics)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DetermineLagrangianMultipliers
+    (Vector& rLagrangeVec, SparseMatrixType& rCondensationMatrix, Vector& rUnbalancedKinematics)
     {
         KRATOS_TRY
 
@@ -331,8 +338,10 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-        const CompressedMatrix& rUnitResponse, const SolverIndex solverIndex)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::ApplyCorrectionQuantities(
+        const Vector& rLagrangeVec, const SparseMatrixType& rUnitResponse,
+        const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
@@ -344,7 +353,7 @@ namespace Kratos
 
         // Apply acceleration correction
         Vector accel_corrections(rUnitResponse.size1(), 0.0);
-        axpy_prod(rUnitResponse, rLagrangeVec, accel_corrections,false);
+        TSparseSpace::Mult(rUnitResponse, rLagrangeVec, accel_corrections,false);
         AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
 
         // Apply velocity correction
@@ -385,9 +394,10 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::AddCorrectionToDomain(ModelPart* pDomain,
-        const Variable<array_1d<double, 3>>& rVariable, const Vector& rCorrection,
-        const bool IsImplicit)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::AddCorrectionToDomain(
+        ModelPart* pDomain, const Variable<array_1d<double, 3>>& rVariable,
+        const Vector& rCorrection, const bool IsImplicit)
     {
         KRATOS_TRY
 
@@ -434,7 +444,8 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void FetiDynamicCouplingUtilities::WriteLagrangeMultiplierResults(const Vector& rLagrange)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::WriteLagrangeMultiplierResults(const Vector& rLagrange)
     {
         KRATOS_TRY
 
@@ -456,7 +467,8 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void FetiDynamicCouplingUtilities::GetInterfaceQuantity(
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetInterfaceQuantity(
         ModelPart& rInterface, const Variable<array_1d<double, 3>>& rVariable,
         Vector& rContainer, const SizeType nDOFs)
     {
@@ -485,7 +497,8 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void FetiDynamicCouplingUtilities::GetInterfaceQuantity(
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetInterfaceQuantity(
         ModelPart& rInterface, const Variable<double>& rVariable,
         Vector& rContainer, const SizeType nDOFs)
     {
@@ -513,8 +526,9 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void FetiDynamicCouplingUtilities::GetExpandedMappingMatrix(
-        CompressedMatrix& rExpandedMappingMat, const SizeType nDOFs)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetExpandedMappingMatrix(
+        SparseMatrixType& rExpandedMappingMat, const SizeType nDOFs)
     {
         KRATOS_TRY
 
@@ -540,8 +554,9 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponse(
-        SystemMatrixType* pK, const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse,
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DetermineDomainUnitAccelerationResponse(
+        SparseMatrixType* pK, const SparseMatrixType& rProjector, SparseMatrixType& rUnitResponse,
         const SolverIndex solverIndex)
     {
         KRATOS_TRY
@@ -570,8 +585,9 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::ApplyMappingMatrixToProjector(
-        CompressedMatrix& rProjector, const SizeType DOFs)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::ApplyMappingMatrixToProjector(
+        SparseMatrixType& rProjector, const SizeType DOFs)
     {
         KRATOS_TRY
 
@@ -581,7 +597,7 @@ namespace Kratos
             // No force map specified, we use the transpose of the displacement mapper
             // This corresponds to conservation mapping (energy conserved, but approximate force mapping)
             // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
-            CompressedMatrix expanded_mapper(DOFs * mpMappingMatrix->size1(), DOFs * mpMappingMatrix->size2(), 0.0);
+            SparseMatrixType expanded_mapper(DOFs * mpMappingMatrix->size1(), DOFs * mpMappingMatrix->size2(), 0.0);
             GetExpandedMappingMatrix(expanded_mapper, DOFs);
             rProjector = prod(expanded_mapper, rProjector);
         }
@@ -591,10 +607,10 @@ namespace Kratos
             // Force map has been specified, and we use this.
             // This corresponds to consistent mapping (energy not conserved, but proper force mapping)
             // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
-            CompressedMatrix expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
+            SparseMatrixType expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
             GetExpandedMappingMatrix(expanded_mapper, DOFs);
-            CompressedMatrix temp(expanded_mapper.size1(), rProjector.size2(), 0.0);
-            axpy_prod(expanded_mapper, rProjector, temp,false);
+            SparseMatrixType temp(expanded_mapper.size1(), rProjector.size2(), 0.0);
+            TSparseSpace::Mult(expanded_mapper, rProjector, temp,false);
             rProjector = temp;
         }
 
@@ -602,15 +618,17 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseExplicit(CompressedMatrix& rUnitResponse,
-        const CompressedMatrix& rProjector, ModelPart& rDomain, const SolverIndex solverIndex)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DetermineDomainUnitAccelerationResponseExplicit(
+        SparseMatrixType& rUnitResponse, const SparseMatrixType& rProjector,
+        ModelPart& rDomain, const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
         const SizeType interface_dofs = rProjector.size1();
         const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-        Matrix result(rUnitResponse.size1(), rUnitResponse.size2(), 0.0);
+        DenseMatrixType result(rUnitResponse.size1(), rUnitResponse.size2(), 0.0);
 
         IndexPartition<>(interface_dofs).for_each([&](SizeType i)
             {
@@ -626,14 +644,16 @@ namespace Kratos
             }
         );
 
-        rUnitResponse = CompressedMatrix(result);
+        rUnitResponse = SparseMatrixType(result);
 
         KRATOS_CATCH("")
     }
 
 
-    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseImplicit(CompressedMatrix& rUnitResponse,
-        const CompressedMatrix& rProjector, SystemMatrixType* pK, const SolverIndex solverIndex)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DetermineDomainUnitAccelerationResponseImplicit(
+        SparseMatrixType& rUnitResponse, const SparseMatrixType& rProjector,
+        SparseMatrixType* pK, const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
@@ -645,10 +665,10 @@ namespace Kratos
             : mParameters["destination_newmark_beta"].GetDouble();
         const double dt = (solverIndex == SolverIndex::Origin) ? mpOriginDomain->GetProcessInfo()[DELTA_TIME]
             : mpDestinationDomain->GetProcessInfo()[DELTA_TIME];
-        CompressedMatrix effective_mass = (*pK) * (dt * dt * beta);
+        SparseMatrixType effective_mass = (*pK) * (dt * dt * beta);
 
         //auto start = std::chrono::system_clock::now();
-        Matrix result(rUnitResponse.size1(), rUnitResponse.size2(),0.0);
+        DenseMatrixType result(rUnitResponse.size1(), rUnitResponse.size2(),0.0);
 
         Parameters solver_parameters(mParameters["linear_solver_settings"]);
         if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
@@ -669,7 +689,7 @@ namespace Kratos
         );
 
         omp_set_nested(omp_nest);
-        rUnitResponse = CompressedMatrix(result);
+        rUnitResponse = SparseMatrixType(result);
 
         //auto end = std::chrono::system_clock::now();
         //auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -694,8 +714,9 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable,
-        const SolverIndex solverIndex)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::PrintInterfaceKinematics(
+        const Variable< array_1d<double, 3> >& rVariable, const SolverIndex solverIndex)
     {
         if (mParameters["echo_level"].GetInt() > 2)
         {
@@ -724,8 +745,9 @@ namespace Kratos
         }
     }
 
-    void FetiDynamicCouplingUtilities::SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart& rInterfaceOrigin,
-        ModelPart& rInterFaceDestination)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::SetOriginAndDestinationDomainsWithInterfaceModelParts(
+        ModelPart& rInterfaceOrigin, ModelPart& rInterFaceDestination)
     {
         mpOriginDomain = &(rInterfaceOrigin.GetModel().GetModelPart("Structure"));
         mpDestinationDomain = &(rInterFaceDestination.GetModel().GetModelPart("Structure"));
@@ -742,8 +764,9 @@ namespace Kratos
             << "\n\tDestination timestep = " << dt_destination << std::endl;
     }
 
-    void FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrixImplicit(SystemMatrixType& rK,
-        const IndexType SolverIndex)
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::SetEffectiveStiffnessMatrixImplicit(
+        SparseMatrixType& rK, const IndexType SolverIndex)
     {
         if (SolverIndex == 0) mpKOrigin = &rK;
         else if (SolverIndex == 1) mpKDestination = &rK;
@@ -752,7 +775,8 @@ namespace Kratos
         this->SetEffectiveStiffnessMatrixExplicit(SolverIndex);
     };
 
-    Variable< array_1d<double, 3> >& FetiDynamicCouplingUtilities::GetEquilibriumVariable()
+    template<class TSparseSpace, class TDenseSpace>
+    Variable< array_1d<double, 3> >& FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetEquilibriumVariable()
     {
         if (mEquilibriumVariable == EquilibriumVariable::Velocity) return VELOCITY;
         else if (mEquilibriumVariable == EquilibriumVariable::Displacement) return DISPLACEMENT;
@@ -760,7 +784,8 @@ namespace Kratos
     }
 
 
-    void FetiDynamicCouplingUtilities::SetOriginInitialKinematics()
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::SetOriginInitialKinematics()
     {
         KRATOS_TRY
 

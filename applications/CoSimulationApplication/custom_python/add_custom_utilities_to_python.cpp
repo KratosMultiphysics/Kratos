@@ -17,32 +17,36 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "spaces/ublas_space.h"
 #include "custom_utilities/feti_dynamic_coupling_utilities.h"
 
 namespace Kratos{
 
 namespace Python{
 
-    typedef std::size_t IndexType;
-
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
-        pybind11::class_< FetiDynamicCouplingUtilities>(m, "FetiDynamicCouplingUtilities")
+        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+        typedef FetiDynamicCouplingUtilities<SparseSpaceType, LocalSpaceType> FetiDynamicCouplingUtilitiesType;
+
+        pybind11::class_< FetiDynamicCouplingUtilitiesType>(m, "FetiDynamicCouplingUtilities")
             .def(pybind11::init<ModelPart&, ModelPart&, Parameters>())
             .def("SetOriginAndDestinationDomainsWithInterfaceModelParts",
-                &FetiDynamicCouplingUtilities::SetOriginAndDestinationDomainsWithInterfaceModelParts)
+                &FetiDynamicCouplingUtilitiesType::SetOriginAndDestinationDomainsWithInterfaceModelParts)
             .def("SetEffectiveStiffnessMatrixImplicit",
-                &FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrixImplicit)
+                &FetiDynamicCouplingUtilitiesType::SetEffectiveStiffnessMatrixImplicit)
             .def("SetEffectiveStiffnessMatrixExplicit",
-                &FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrixExplicit)
+                &FetiDynamicCouplingUtilitiesType::SetEffectiveStiffnessMatrixExplicit)
             .def("EquilibrateDomains",
-                &FetiDynamicCouplingUtilities::EquilibrateDomains)
+                &FetiDynamicCouplingUtilitiesType::EquilibrateDomains)
             .def("SetOriginInitialKinematics",
-                &FetiDynamicCouplingUtilities::SetOriginInitialKinematics)
+                &FetiDynamicCouplingUtilitiesType::SetOriginInitialKinematics)
             .def("SetMappingMatrix",
-                &FetiDynamicCouplingUtilities::SetMappingMatrix)
+                &FetiDynamicCouplingUtilitiesType::SetMappingMatrix)
             .def("SetLinearSolver",
-                &FetiDynamicCouplingUtilities::SetLinearSolver)
+                &FetiDynamicCouplingUtilitiesType::SetLinearSolver)
             ;
     }
 
