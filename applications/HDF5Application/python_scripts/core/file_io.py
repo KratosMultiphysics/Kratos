@@ -110,18 +110,18 @@ class _FilenameGetter(object):
             self.model_part = model_part
             self.file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, self.filename, {"<time>": self.time_format})
 
+        new_file_name = self.file_name_data_collector.GetFileName()
+
         if (self.max_files_to_keep is not None):
-            list_of_file_names = self.file_name_data_collector.GetSortedFileNamesList(["<time>"])
-            if (len(list_of_file_names) >= self.max_files_to_keep):
-                # remove files from the second file in case the mesh is only written to the initial file
-                # then we need to always have that initial file.
-                for file_name in list_of_file_names[1:len(list_of_file_names) - self.max_files_to_keep + 2]:
-                    kratos_utils.DeleteFileIfExisting(file_name)
+            if os.path.isdir(os.path.dirname(new_file_name)):
+                list_of_file_names = self.file_name_data_collector.GetSortedFileNamesList(["<time>"])
+                if (len(list_of_file_names) >= self.max_files_to_keep):
+                    # remove files from the second file in case the mesh is only written to the initial file
+                    # then we need to always have that initial file.
+                    for file_name in list_of_file_names[1:len(list_of_file_names) - self.max_files_to_keep + 2]:
+                        kratos_utils.DeleteFileIfExisting(file_name)
 
-        return self.file_name_data_collector.GetFileName()
-
-    def GetFileNamePattern(self):
-        return self.filename
+        return new_file_name
 
 
 class _FilenameGetterWithDirectoryInitialization(object):
@@ -130,8 +130,8 @@ class _FilenameGetterWithDirectoryInitialization(object):
         self.filename_getter = _FilenameGetter(settings)
 
     def Get(self, model_part=None):
-        self._InitializeDirectory(self.filename_getter.GetFileNamePattern())
         file_name = self.filename_getter.Get(model_part)
+        self._InitializeDirectory(file_name)
         return file_name
 
     @staticmethod
