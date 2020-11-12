@@ -329,7 +329,7 @@ void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
     if (rVariable == DRAG_FORCE) {
         const auto& r_geom = GetGeometry();
         const auto& r_integration_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const int n_gauss = r_integration_points.size();
+        unsigned int n_gauss = r_integration_points.size();
         Vector det_J_vect = ZeroVector(n_gauss);
         r_geom.DeterminantOfJacobian(det_J_vect, GeometryData::GI_GAUSS_2);
         const auto N_container = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
