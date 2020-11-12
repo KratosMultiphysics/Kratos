@@ -179,9 +179,12 @@ class TestFileIO(KratosUnittest.TestCase):
         settings['file_access_mode'] = 'exclusive'
         settings['max_files_to_keep'] = 4
         obj = file_io._FilenameGetter(settings)
-        with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
-            obj.Get(_SurrogateModelPart())
-            self.assertEqual(p.call_count, 0)
+        with patch("os.path.isdir", autospec=True) as mock_dir:
+            mock_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_count, 0)
+            self.assertEqual(mock_dir.call_args_list, [])
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
     def test_FileIOMaxFilesToKeepTruncateNoDeletion(self, mock_class):
@@ -191,9 +194,12 @@ class TestFileIO(KratosUnittest.TestCase):
         settings['file_access_mode'] = 'truncate'
         settings['max_files_to_keep'] = 4
         obj = file_io._FilenameGetter(settings)
-        with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
-            obj.Get(_SurrogateModelPart())
-            self.assertEqual(p.call_count, 0)
+        with patch("os.path.isdir", autospec=True) as mock_dir:
+            mock_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_count, 0)
+            self.assertEqual(mock_dir.call_count, 1)
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
     def test_FileIOMaxFilesToKeepTruncateDeletion(self, mock_class):
@@ -203,9 +209,12 @@ class TestFileIO(KratosUnittest.TestCase):
         settings['file_access_mode'] = 'truncate'
         settings['max_files_to_keep'] = 4
         obj = file_io._FilenameGetter(settings)
-        with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
-            obj.Get(_SurrogateModelPart())
-            self.assertEqual(p.call_args_list, [call('file_2'), call('file_3')])
+        with patch("os.path.isdir", autospec=True) as mock_dir:
+            mock_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_args_list, [call('file_2'), call('file_3')])
+            self.assertEqual(mock_dir.call_count, 1)
 
     def test_Create_Settings(self):
         settings = ParametersWrapper()
