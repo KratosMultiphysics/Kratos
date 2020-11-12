@@ -221,8 +221,8 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
     def PrepareModelPart(self):
         self.CloneThermalModelPart()
-        self.fluid_solver.PrepareModelPart()
         self.thermal_solver.PrepareModelPart()
+        self.fluid_solver.PrepareModelPart()
 
 
     def AddMaterialVariables(self):
