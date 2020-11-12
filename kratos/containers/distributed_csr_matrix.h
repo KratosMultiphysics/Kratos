@@ -19,6 +19,7 @@
 #include "containers/csr_matrix.h"
 #include "containers/distributed_sparse_graph.h"
 #include "containers/distributed_vector_importer.h"
+#include "containers/distributed_vector_exporter.h"
 #include "includes/key_hash.h"
 #include "utilities/atomic_utilities.h"
 
@@ -238,7 +239,7 @@ public:
         return mDiagBlock.nnz();
     }
 
-    const DataCommunicator& GetComm(){
+    const DataCommunicator& GetComm() const{
         return mrComm;
     }
 
@@ -306,6 +307,28 @@ public:
         auto off_diag_x = mpVectorImporter->ImportData(x);
         mOffDiagBlock.SpMV(y.GetLocalData(),off_diag_x);
         mDiagBlock.SpMV(y.GetLocalData(),x.GetLocalData());
+    }
+
+    // y += A^t*x  -- where A is *this    
+    DistributedVectorExporter<TIndexType>* TransposeSpMV(DistributedSystemVector<TDataType,TIndexType>& y, 
+                       const DistributedSystemVector<TDataType,TIndexType>& x, 
+                       DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
+                       ) const
+    {
+        mDiagBlock.TransposeSpMV(y.GetLocalData(),x.GetLocalData());
+
+        DenseVector<double> non_local_transpose_data = ZeroVector(mOffDiagBlock.size2());
+
+        mOffDiagBlock.TransposeSpMV(non_local_transpose_data,x.GetLocalData());
+
+        if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight 
+        {
+            //constructing the exporter requires communication, so the efficiency of the TransposeSpMV can be increased by passing a constructed exporter
+            pTransposeExporter = new DistributedVectorExporter<TIndexType>(GetComm(),mOffDiagonalGlobalIds,y.GetNumbering()); 
+        }
+        pTransposeExporter->Apply(y,non_local_transpose_data);
+
+        return pTransposeExporter;
     }
 
 

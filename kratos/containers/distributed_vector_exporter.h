@@ -9,13 +9,14 @@
 //
 //  Main authors:    Riccardo Rossi
 //
-#if !defined(KRATOS_DISTRIBUTED_VECTOR_IMPORTER_H_INCLUDED )
-#define  KRATOS_DISTRIBUTED_VECTOR_IMPORTER_H_INCLUDED
+#if !defined(KRATOS_DISTRIBUTED_VECTOR_EXPORTER_H_INCLUDED )
+#define  KRATOS_DISTRIBUTED_VECTOR_EXPORTER_H_INCLUDED
 
 
 // System includes
 #include <string>
 #include <iostream>
+#include <functional>
 
 
 // External includes
@@ -51,9 +52,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Provides a DistributedVectorImporter which implements FEM assemble capabilities
-template<class TDataType=double, class TIndexType=std::size_t>
-class DistributedVectorImporter
+/// Provides a DistributedVectorExporter which implements FEM assemble capabilities
+template<class TIndexType=std::size_t>
+class DistributedVectorExporter
 {
 public:
     ///@name Type Definitions
@@ -61,8 +62,8 @@ public:
     typedef TIndexType IndexType;
     typedef int MpiIndexType;
 
-    /// Pointer definition of DistributedVectorImporter
-    KRATOS_CLASS_POINTER_DEFINITION(DistributedVectorImporter);
+    /// Pointer definition of DistributedVectorExporter
+    KRATOS_CLASS_POINTER_DEFINITION(DistributedVectorExporter);
 
     ///@}
     ///@name Life Cycle
@@ -70,7 +71,7 @@ public:
 
     /// Default constructor.
     template< class TGlobalIndicesVectorType>
-    DistributedVectorImporter(
+    DistributedVectorExporter(
         const DataCommunicator& rComm,
         const TGlobalIndicesVectorType& rGlobalIndices,
         const DistributedNumbering<IndexType>& rNumbering)
@@ -78,25 +79,23 @@ public:
         mrComm(rComm)
     {
         mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >(rNumbering);
-        mImportedDataSize = rGlobalIndices.size();
-        std::unordered_map<int, std::vector<IndexType>> to_recv_by_color; //do not need to store this
+        std::unordered_map<int, std::vector<IndexType>> to_send_remote_local_id; //do not need to store this
 
         for(unsigned int local_i=0; local_i<rGlobalIndices.size(); ++local_i)
         {
             IndexType global_i = rGlobalIndices[local_i];
             MpiIndexType owner_rank = mpNumbering->OwnerRank(global_i);
             IndexType remote_local_i = mpNumbering->RemoteLocalId(global_i, owner_rank);
-
-            mlocal_i_by_color[owner_rank].push_back(local_i);
-            to_recv_by_color[owner_rank].push_back(remote_local_i);
+            mposition_within_data[owner_rank].push_back(local_i);
+            to_send_remote_local_id[owner_rank].push_back(remote_local_i);
         }
+        mto_recv_local_id[GetComm().Rank()] = std::move(to_send_remote_local_id[GetComm().Rank()]); //for the current rank do a memcopy
 
-        mIdOfLocallyOwnedTerms = mlocal_i_by_color[GetComm().Rank()];
-        mLocallyOwnedIds = to_recv_by_color[GetComm().Rank()];
+        
 
         //compute communication plan
         std::vector<MpiIndexType> send_list;
-        for(const auto& item : to_recv_by_color)
+        for(const auto& item : to_send_remote_local_id)
         {
             MpiIndexType cpu_id = item.first;
             if(cpu_id != GetComm().Rank())
@@ -104,66 +103,70 @@ public:
         }
         mvector_comm_colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, rComm);
 
-        //ensure that we have lists for all colors;
-        for(auto color : mvector_comm_colors)
-        {
-            if(color >= 0) //-1 would imply no communication
-            {
-                mlocal_i_by_color[color]; //note that here we touch the entry and we create it if not existing
-                to_recv_by_color[color];
-            }
-        }
-
         //communicate the remote_local_id so that the other node knows what to send
         for(auto color : mvector_comm_colors)
         {
             if(color >= 0) //-1 would imply no communication
             {
                 //NOTE: this can be made nonblocking 
-                mto_send_by_color[color] = rComm.SendRecv(to_recv_by_color[color], color, color); //TODO, we know all the sizes, we shall use that!
+                mto_recv_local_id[color] = rComm.SendRecv(to_send_remote_local_id[color], color, color); //TODO, we know all the sizes, we shall use that!
             }
         }
+
+        //ensure that entries exist for each color involved
+        for(auto color : mvector_comm_colors)
+        {
+            if(color >= 0)
+            {
+                //create if they do not exist
+                mto_recv_local_id[color]; 
+                mposition_within_data[color];
+            }
+        }
+        mto_recv_local_id[GetComm().Rank()]; //create if it does not exist
+        mposition_within_data[GetComm().Rank()]; //create if it does not exist
+
+        
     }
 
     ///this function returns a local array containing the values identified by the rGlobalIndices list passed in the constructor
-    DenseVector<TDataType> ImportData(const DistributedSystemVector<TDataType, TIndexType>& data_vector) const
+    template< class TLocalVectorType, class TApplyFunctorType=std::plus<typename TLocalVectorType::value_type>>
+    void Apply(DistributedSystemVector<typename TLocalVectorType::value_type, TIndexType>& rDestinationVector, 
+               const TLocalVectorType& rLocalDataVector
+               ) const
     {
-        DenseVector<TDataType> ImportedData(mImportedDataSize);
-
-        std::vector<TDataType> send_buffer;
-        std::vector<TDataType> recv_buffer;
+        std::vector<typename TLocalVectorType::value_type> send_buffer;
+        std::vector<typename TLocalVectorType::value_type> recv_buffer;
         for(auto color : mvector_comm_colors)
         {
             if(color >= 0) //-1 would imply no communication
             {
-                const auto& local_ids = mlocal_i_by_color.find(color)->second;
-                const auto& to_send_ids = mto_send_by_color.find(color)->second; 
-
-                send_buffer.resize(to_send_ids.size());
+                const auto& local_ids = mto_recv_local_id.find(color)->second;
+                const auto& position_within_data = mposition_within_data.find(color)->second;
                 recv_buffer.resize(local_ids.size());
-
-                for(IndexType i=0; i<to_send_ids.size(); ++i)
-                    send_buffer[i] = data_vector(to_send_ids[i]);
+                send_buffer.resize(0);
+                for(IndexType i=0; i<position_within_data.size(); ++i)
+                    send_buffer.push_back(rLocalDataVector[position_within_data[i]]);
 
                 //NOTE: this can be made nonblocking
-                GetComm().SendRecv(send_buffer, color, 0, recv_buffer, color, 0); //TODO, we know all the sizes, we shall use that!
+                GetComm().SendRecv(send_buffer, color, 0, recv_buffer, color, 0); 
 
-                //write the recv_data onto the output
+                //Apply the remotely received data
                 for(IndexType i=0; i<recv_buffer.size(); ++i)
-                    ImportedData(local_ids[i]) = recv_buffer[i];
+                {
+                    rDestinationVector[local_ids[i]] = TApplyFunctorType()(rDestinationVector[local_ids[i]],recv_buffer[i]);
+                }
             }
         }
-        //treat local data
-        for(IndexType i=0; i<mLocallyOwnedIds.size(); ++i )
-
-            ImportedData(mIdOfLocallyOwnedTerms[i]) = data_vector( mLocallyOwnedIds[i] );
-
-        return ImportedData;
-
+        //treat local datas (no communication is needed)
+        const auto& local_ids = mto_recv_local_id.find(GetComm().Rank())->second;
+        const auto& position_within_data = mposition_within_data.find(GetComm().Rank())->second;
+        for(IndexType i=0; i<position_within_data.size(); ++i)
+            rDestinationVector[local_ids[i]] = TApplyFunctorType()( rDestinationVector[local_ids[i]], rLocalDataVector[position_within_data[i]] );
     }
 
     /// Destructor.
-    virtual ~DistributedVectorImporter(){}
+    virtual ~DistributedVectorExporter(){}
 
     ///@}
     ///@name Operators
@@ -195,12 +198,12 @@ public:
     virtual std::string Info() const
     {
     std::stringstream buffer;
-    buffer << "DistributedVectorImporter" ;
+    buffer << "DistributedVectorExporter" ;
     return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedVectorImporter";}
+    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedVectorExporter";}
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
@@ -260,12 +263,8 @@ private:
     const DataCommunicator& mrComm;
     typename DistributedNumbering<IndexType>::UniquePointer mpNumbering;
 
-
-    IndexType mImportedDataSize;
-    std::unordered_map<int, std::vector<IndexType>> mto_send_by_color;
-    std::unordered_map<MpiIndexType, std::vector<IndexType>> mlocal_i_by_color;
-    std::vector<IndexType> mLocallyOwnedIds;
-    std::vector<IndexType> mIdOfLocallyOwnedTerms;
+    std::unordered_map<int, std::vector<IndexType>> mto_recv_local_id;
+    std::unordered_map<int, std::vector<IndexType>> mposition_within_data;
     std::vector<int> mvector_comm_colors;
 
     ///@}
@@ -293,14 +292,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    DistributedVectorImporter& operator=(DistributedVectorImporter const& rOther){}
+    DistributedVectorExporter& operator=(DistributedVectorExporter const& rOther){}
 
     /// Copy constructor.
-    DistributedVectorImporter(DistributedVectorImporter const& rOther){}
+    DistributedVectorExporter(DistributedVectorExporter const& rOther){}
 
     ///@}
 
-}; // Class DistributedVectorImporter
+}; // Class DistributedVectorExporter
 
 ///@}
 
@@ -314,17 +313,17 @@ private:
 
 
 /// input stream function
-template<class TDataType, class TIndexType>
+template<class TIndexType>
 inline std::istream& operator >> (std::istream& rIStream,
-                DistributedVectorImporter<TDataType,TIndexType>& rThis)
+                DistributedVectorExporter<TIndexType>& rThis)
                 {
                     return rIStream;
                 }
 
 /// output stream function
-template<class TDataType, class TIndexType>
+template<class TIndexType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const DistributedVectorImporter<TDataType,TIndexType>& rThis)
+                const DistributedVectorExporter<TIndexType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -338,6 +337,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DISTRIBUTED_VECTOR_IMPORTER_H_INCLUDED  defined
+#endif // KRATOS_DISTRIBUTED_VECTOR_EXPORTER_H_INCLUDED  defined
 
 

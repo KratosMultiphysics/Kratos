@@ -191,6 +191,8 @@ public:
     template<class TVec1, class TVec2>
     void SpMV(TVec1& y, const TVec2& x) const
     {
+        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between transpose matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between transpose matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
         IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
             IndexType row_begin = index1_data()[i];
             IndexType row_end   = index1_data()[i+1];
@@ -199,6 +201,23 @@ public:
                 y(i) += value_data()[k] * x(col);
             }  
         });
+    }
+
+    // y += A^t*x  -- where A is *this    
+    template<class TVec1, class TVec2>
+    void TransposeSpMV(TVec1& y, const TVec2& x) const
+    {
+        KRATOS_ERROR_IF(size2() != y.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size1() != x.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and input vector size " << x.size() << std::endl;
+        for(IndexType i=0; i<size1(); ++i)
+        {
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType j = index2_data()[k];
+                y(j) += value_data()[k] * x(i);
+            }  
+        }
     }
 
     ///@}

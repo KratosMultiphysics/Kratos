@@ -458,6 +458,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     KRATOS_CHECK_NEAR(x[2] ,  4 , 1e-14 );
     KRATOS_CHECK_NEAR(x[3] ,  2 , 1e-14 );
 
+
     //Test SPMV 
     DistributedCsrMatrix<double, IndexType> A(Agraph);
     A.BeginAssemble();   
@@ -587,9 +588,21 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
         KRATOS_CHECK_NEAR(y[i_local], yserial(i_global), 1e-14);
     }
 
+    //check TransposeSpMV
+    x.SetValue(0.0);
+    y.SetValue(1.0);
+    A.TransposeSpMV(x,y);
+
+    std::vector<double> reference_transpose_spmv_res{20,8,16,20,8,32,28,4,52,16,8,24,12};
+    for(unsigned int i=0; i<x.LocalSize(); ++i)
+    {
+        IndexType global_i = x.GetNumbering().GlobalId(i);
+        KRATOS_CHECK_NEAR(x[i] ,  reference_transpose_spmv_res[global_i] , 1e-14 );
+    }
+
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
 
@@ -634,7 +647,6 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSu
     for(unsigned int i=0; i<c.LocalSize(); ++i)
         KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
 }
-
 
 
 } // namespace Testing
