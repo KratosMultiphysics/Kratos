@@ -355,22 +355,25 @@ public:
 
     static void Mult(const compressed_matrix<TDataType>& rA, const compressed_matrix<TDataType>& rB, compressed_matrix<TDataType>& rC, const bool TransposeA=false, const bool TransposeB=false)
     {
-        compressed_matrix<TDataType>& r_matrix_A = rA;
-        compressed_matrix<TDataType>& r_matrix_B = rB;
+        const compressed_matrix<TDataType>* r_matrix_A = &rA;
+        const compressed_matrix<TDataType>* r_matrix_B = &rB;
+
+        Kratos::unique_ptr<compressed_matrix<TDataType>> t_A;
+        Kratos::unique_ptr<compressed_matrix<TDataType>> t_B;
 
         if (TransposeA) {
-            compressed_matrix<TDataType> tA(rA.size2(), rA.size1());
-            SparseMatrixMultiplicationUtility::TransposeMatrix<compressed_matrix<TDataType>, compressed_matrix<TDataType>>(tA, rA, 1.0);
-            r_matrix_A = tA;
+            t_A = Kratos::make_unique<compressed_matrix<TDataType>>(rA.size2(), rA.size1());
+            SparseMatrixMultiplicationUtility::TransposeMatrix<compressed_matrix<TDataType>, compressed_matrix<TDataType>>(*t_A, rA, 1.0);
+            r_matrix_A = t_A.get();
         }
 
         if (TransposeB) {
-            compressed_matrix<TDataType> tB(rB.size2(), rB.size1());
-            SparseMatrixMultiplicationUtility::TransposeMatrix<compressed_matrix<TDataType>, compressed_matrix<TDataType>>(tB, rB, 1.0);
-            r_matrix_B = tB;
+            t_B = Kratos::make_unique<compressed_matrix<TDataType>>(rB.size2(), rB.size1());
+            SparseMatrixMultiplicationUtility::TransposeMatrix<compressed_matrix<TDataType>, compressed_matrix<TDataType>>(*t_B, rB, 1.0);
+            r_matrix_B = t_B.get();
         }
 
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(r_matrix_A, r_matrix_B, rC);
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(*r_matrix_A, *r_matrix_B, rC);
     }
 
     template< class TOtherMatrixType >
