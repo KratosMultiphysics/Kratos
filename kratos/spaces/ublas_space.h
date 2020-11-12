@@ -353,9 +353,24 @@ public:
 #endif
     }
 
-    static void Mult(const compressed_matrix<TDataType>& rA, const compressed_matrix<TDataType>& rB, compressed_matrix<TDataType>& rC)
+    static void Mult(const compressed_matrix<TDataType>& rA, const compressed_matrix<TDataType>& rB, compressed_matrix<TDataType>& rC, const bool TransposeA=false, const bool TransposeB=false)
     {
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(rA, rB, rC);
+        compressed_matrix<TDataType>& r_matrix_A = rA;
+        compressed_matrix<TDataType>& r_matrix_B = rB;
+
+        if (TransposeA) {
+            compressed_matrix<TDataType> tA(rA.size2(), rA.size1());
+            SparseMatrixMultiplicationUtility::TransposeMatrix<compressed_matrix<TDataType>, compressed_matrix<TDataType>>(tA, rA, 1.0);
+            r_matrix_A = tA;
+        }
+
+        if (TransposeB) {
+            compressed_matrix<TDataType> tB(rB.size2(), rB.size1());
+            SparseMatrixMultiplicationUtility::TransposeMatrix<compressed_matrix<TDataType>, compressed_matrix<TDataType>>(tB, rB, 1.0);
+            r_matrix_B = tB;
+        }
+
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(r_matrix_A, r_matrix_B, rC);
     }
 
     template< class TOtherMatrixType >
