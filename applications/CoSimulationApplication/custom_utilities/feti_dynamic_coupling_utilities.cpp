@@ -671,6 +671,35 @@ namespace Kratos
     }
 
 
+    void FetiDynamicCouplingUtilities::PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable,
+        const bool IsOrigin)
+    {
+        if (mParameters["echo_level"].GetInt() > 2)
+        {
+            const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+            const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
+            Vector interface_kinematics(origin_interface_dofs);
+
+            ModelPart& r_interface = (IsOrigin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
+
+            block_for_each(r_interface.Nodes(), [&](Node<3>& rNode)
+                {
+                    IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
+                    array_1d<double, 3>& vel = rNode.FastGetSolutionStepValue(rVariable);
+
+                    for (size_t dof = 0; dof < dim_origin; dof++)
+                    {
+                        interface_kinematics[interface_id * dim_origin + dof] = vel[dof];
+                    }
+                }
+            );
+
+            KRATOS_INFO("FetiDynamicCouplingUtilities") << "Interface " << rVariable.Name() << ", is origin = " << IsOrigin
+                << "\n" << interface_kinematics << std::endl;;
+        }
+    }
+
+
     void FetiDynamicCouplingUtilities::SetOriginInitialKinematics()
     {
         KRATOS_TRY

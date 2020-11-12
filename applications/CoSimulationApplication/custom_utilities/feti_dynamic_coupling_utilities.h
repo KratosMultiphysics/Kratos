@@ -185,30 +185,7 @@ namespace Kratos
 
         void ApplyMappingMatrixToProjector(CompressedMatrix& rProjector, const SizeType DOFs);
 
-        // Printing method for debugging
-        void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const bool IsOrigin)
-        {
-            const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-            const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
-            Vector interface_velocities(origin_interface_dofs);
-
-            ModelPart& r_interface = (IsOrigin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
-
-            auto interface_nodes = r_interface.NodesArray();
-            for (size_t i = 0; i < interface_nodes.size(); i++)
-            {
-                IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-                array_1d<double, 3>& vel = interface_nodes[i]->FastGetSolutionStepValue(rVariable);
-
-                for (size_t dof = 0; dof < dim_origin; dof++)
-                {
-                    interface_velocities[interface_id * dim_origin + dof] = vel[dof];
-                }
-            }
-
-            std::cout << "\n\nInterface " << rVariable.Name() << ", is origin = " << IsOrigin
-                << "\n" << interface_velocities << "\n\n";
-        }
+        void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const bool IsOrigin);
 
         Variable< array_1d<double, 3> >& GetEquilibriumVariable()
         {
