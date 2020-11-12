@@ -189,7 +189,7 @@ void ShellThickElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProc
     mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
-void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18)) {
         rMassMatrix.resize(18, 18, false);

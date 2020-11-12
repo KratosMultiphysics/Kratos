@@ -25,7 +25,7 @@ namespace Kratos
  */
 template <>
 void NavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      ProcessInfo& rCurrentProcessInfo)
+                                                      const ProcessInfo& rCurrentProcessInfo) const 
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -48,7 +48,7 @@ void NavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rRes
  */
 template <>
 void NavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      ProcessInfo& rCurrentProcessInfo)
+                                                      const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -71,7 +71,7 @@ void NavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rRes
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -141,7 +141,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                   ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -160,7 +160,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLeftHandSide(MatrixType
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                    ProcessInfo& rCurrentProcessInfo)
+                                    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -225,7 +225,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
  * @param rCurrentProcessInfo reference to the ProcessInfo
  */
 template<unsigned int TDim, unsigned int TNumNodes>
-int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
@@ -277,7 +277,7 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
  */
 template <>
 void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -299,7 +299,7 @@ void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofLis
 
 template <>
 void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;

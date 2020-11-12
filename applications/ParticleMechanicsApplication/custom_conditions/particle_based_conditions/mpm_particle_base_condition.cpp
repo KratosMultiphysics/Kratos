@@ -253,7 +253,7 @@ void MPMParticleBaseCondition::CalculateAll(
 //***********************************************************************
 //***********************************************************************
 
-int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);

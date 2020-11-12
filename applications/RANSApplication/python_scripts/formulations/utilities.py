@@ -50,10 +50,6 @@ def GetKratosObjectPrototype(type_name):
             "KratosMultiphysics.RANSApplication.BossakRelaxationScalarScheme",
             "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIBossakRelaxationScalarScheme"
         ],
-        "RansWallDistanceCalculationProcess": [
-            "KratosMultiphysics.RANSApplication.RansWallDistanceCalculationProcess",
-            "KratosMultiphysics.RANSApplication.TrilinosExtension.TrilinosRansWallDistanceCalculationProcess"
-        ],
         "ResidualBasedSimpleSteadyScheme": [
             "KratosMultiphysics.FluidDynamicsApplication.ResidualBasedSimpleSteadyScheme",
             "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosResidualBasedSimpleSteadyScheme"
