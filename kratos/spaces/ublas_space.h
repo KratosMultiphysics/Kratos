@@ -36,6 +36,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/matrix_market_interface.h"
 #include "utilities/dof_updater.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos
 {
@@ -350,6 +351,11 @@ public:
 #else
         ParallelProductNoAdd(rA, rX, rY);
 #endif
+    }
+
+    static void Mult(const compressed_matrix<TDataType>& rA, const compressed_matrix<TDataType>& rB, compressed_matrix<TDataType>& rC)
+    {
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(rA, rB, rC);
     }
 
     template< class TOtherMatrixType >
