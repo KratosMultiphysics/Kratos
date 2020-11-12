@@ -92,17 +92,17 @@ namespace Testing
         }
 
         // Set expected solution
-        std::vector<double> expected_RHS = {1.66667, 1.66667, 1.66667};
+        std::vector<double> expected_RHS = {5.0/3.0, 5.0/3.0, 5.0/3.0};
         Matrix expected_LHS(3, 3);
-        expected_LHS(0, 0) = 1.33333;
-        expected_LHS(0, 1) = 0.166667;
-        expected_LHS(0, 2) = 0.166667;
-        expected_LHS(1, 0) = 0.166667;
-        expected_LHS(1, 1) = 1.08333;
-        expected_LHS(1, 2) = 0.416667;
-        expected_LHS(2, 0) = 0.166667;
-        expected_LHS(2, 1) = 0.416667;
-        expected_LHS(2, 2) = 1.08333;
+        expected_LHS(0, 0) = 1.333333333333;
+        expected_LHS(0, 1) = 5.0/30.0;
+        expected_LHS(0, 2) = 5.0/30.0;
+        expected_LHS(1, 0) = 5.0/30.0;
+        expected_LHS(1, 1) = 1.083333333333;
+        expected_LHS(1, 2) = 0.416666666666;
+        expected_LHS(2, 0) = 5.0/30.0;
+        expected_LHS(2, 1) = 5.0/30.0;
+        expected_LHS(2, 2) = 1.083333333333;
 
         // Test CalculateLocalSystem
         auto p_element = r_test_model_part.pGetElement(1);
@@ -145,23 +145,23 @@ namespace Testing
         }
 
         // Set expected solution
-        std::vector<double> expected_RHS = {0.416667, 0.416667, 0.416667, 0.416667};
+        std::vector<double> expected_RHS = {0.416666666666, 0.416666666666, 0.416666666666, 0.416666666666};
         Matrix expected_LHS(4, 4);
-        expected_LHS(0, 0) = 0.416667;
+        expected_LHS(0, 0) = 0.416666666666;
         expected_LHS(0, 1) = -4.19267e-10;
         expected_LHS(0, 2) = -4.19267e-10;
         expected_LHS(0, 3) = -4.19267e-10;
         expected_LHS(1, 0) = -4.19267e-10;
         expected_LHS(1, 1) = 0.25;
-        expected_LHS(1, 2) = 0.0833333;
-        expected_LHS(1, 3) = 0.0833333;
+        expected_LHS(1, 2) = 0.083333333333;
+        expected_LHS(1, 3) = 0.083333333333;
         expected_LHS(2, 0) = -4.19267e-10;
-        expected_LHS(2, 1) = 0.0833333;
+        expected_LHS(2, 1) = 0.083333333333;
         expected_LHS(2, 2) = 0.25;
-        expected_LHS(2, 3) = 0.0833333;
+        expected_LHS(2, 3) = 0.083333333333;
         expected_LHS(3, 0) = -4.19267e-10;
-        expected_LHS(3, 1) = 0.0833333;
-        expected_LHS(3, 2) = 0.0833333;
+        expected_LHS(3, 1) = 0.083333333333;
+        expected_LHS(3, 2) = 0.083333333333;
         expected_LHS(3, 3) = 0.25;
 
         // Test CalculateLocalSystem
