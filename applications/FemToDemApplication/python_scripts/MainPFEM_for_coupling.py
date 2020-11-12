@@ -44,7 +44,7 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         # Time control starts
         self.KratosPrintInfo(timer.ctime())
         # Measure process time
-        self.t0p = timer.clock()
+        self.t0p = timer.process_time()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####

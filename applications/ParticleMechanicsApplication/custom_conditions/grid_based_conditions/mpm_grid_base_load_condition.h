@@ -124,7 +124,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal accelerations
@@ -134,7 +134,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * This function provides a more general interface to the element.
@@ -192,7 +192,7 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHS,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -202,7 +202,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Check if Rotational Dof existant
