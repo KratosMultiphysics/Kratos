@@ -202,7 +202,7 @@ namespace Kratos
         SparseMatrixType expanded_mapper;
         GetExpandedMappingMatrix(expanded_mapper, dim);
         Vector mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
-        TSparseSpace::Mult(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics,false);
+        TSparseSpace::Mult(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics);
 
         // Determine kinematics difference
         rUnbalancedKinematics += mapped_interpolated_origin_kinematics;
@@ -310,11 +310,13 @@ namespace Kratos
         }
 
         SparseMatrixType h_origin(rOriginProjector.size1(), rOriginUnitResponse.size2(),0.0);
-        TSparseSpace::Mult(rOriginProjector, rOriginUnitResponse,h_origin,false); // optimised for sparse matrix prod
+        // @Peter here you should use the SpacematrixMulUtilit, see the CouplingGeomMapper
+        // TSparseSpace::Mult(rOriginProjector, rOriginUnitResponse,h_origin);
         h_origin *= origin_kinematic_coefficient;
 
         SparseMatrixType h_destination(rDestinationProjector.size1(), rDestinationUnitResponse.size2(), 0.0);
-        TSparseSpace::Mult(rDestinationProjector, rDestinationUnitResponse, h_destination, false); // optimised for sparse matrix prod
+        // @Peter here you should use the SpacematrixMulUtilit, see the CouplingGeomMapper
+        // TSparseSpace::Mult(rDestinationProjector, rDestinationUnitResponse, h_destination);
         h_destination *= dest_kinematic_coefficient;
 
         rCondensationMatrix = h_origin + h_destination;
@@ -355,7 +357,8 @@ namespace Kratos
 
         // Apply acceleration correction
         Vector accel_corrections(rUnitResponse.size1(), 0.0);
-        TSparseSpace::Mult(rUnitResponse, rLagrangeVec, accel_corrections,false);
+        // @Peter you shouldn't use Vector directly but same as for the matrix, use the typedef of the space
+        // TSparseSpace::Mult(rUnitResponse, rLagrangeVec, accel_corrections);
         AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
 
         // Apply velocity correction
@@ -612,7 +615,8 @@ namespace Kratos
             SparseMatrixType expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
             GetExpandedMappingMatrix(expanded_mapper, DOFs);
             SparseMatrixType temp(expanded_mapper.size1(), rProjector.size2(), 0.0);
-            TSparseSpace::Mult(expanded_mapper, rProjector, temp,false);
+            // @Peter here you should use the SpacematrixMulUtilit, see the CouplingGeomMapper
+            // TSparseSpace::Mult(expanded_mapper, rProjector, temp);
             rProjector = temp;
         }
 
@@ -783,6 +787,7 @@ namespace Kratos
         if (mEquilibriumVariable == EquilibriumVariable::Velocity) return VELOCITY;
         else if (mEquilibriumVariable == EquilibriumVariable::Displacement) return DISPLACEMENT;
         else if (mEquilibriumVariable == EquilibriumVariable::Acceleration) return ACCELERATION;
+        else KRATOS_ERROR << "Wrong variable!" << std::endl;
     }
 
 
