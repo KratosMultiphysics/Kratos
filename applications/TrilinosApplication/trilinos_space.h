@@ -26,6 +26,7 @@
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
+#include <EpetraExt_MatrixMatrix.h>
 #include "EpetraExt_CrsMatrixIn.h"
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
@@ -221,6 +222,12 @@ public:
         //y = A*x
         bool transpose_flag = false;
         rA.Multiply(transpose_flag, rX, rY);
+    }
+
+    static void Mult(const MatrixType& rA, const MatrixType& rB, MatrixType& rC, const bool TransposeA=false, const bool TransposeB=false)
+    {
+        // rC = rA*rB
+        EpetraExt::MatrixMatrix::Multiply(rA, TransposeA, rB, TransposeB, rC);
     }
 
     static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
