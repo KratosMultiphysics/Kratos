@@ -84,7 +84,8 @@ namespace Kratos
         for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             Vector& r_element_values_vector = *(mHighOrderValues.begin() + i);
-            (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 0);
+            const Element& r_const_element = *(mrModelPart.ElementsBegin() + i);
+            r_const_element.GetValuesVector(r_element_values_vector, 0);
         }
 
         // Nodal limiting values
@@ -111,7 +112,8 @@ namespace Kratos
         for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             Vector& r_element_values_vector = *(mLowOrderValues.begin() + i);
-            (mrModelPart.ElementsBegin() + i)->GetValuesVector(r_element_values_vector, 0);
+            const Element& r_const_element = *(mrModelPart.ElementsBegin() + i);
+            r_const_element.GetValuesVector(r_element_values_vector, 0);
         }
 
         // Nodal values

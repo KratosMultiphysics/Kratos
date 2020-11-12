@@ -111,18 +111,19 @@ Element::Pointer SolidElement::Clone( IndexType NewId, NodesArrayType const& rTh
 
 
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
-      {
-	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+    {
+        NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 
-	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR << " constitutive law not has the correct size solid element " << std::endl;
-
-      }
+	      if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+        {
+            KRATOS_ERROR << " constitutive law not has the correct size solid element " << std::endl;
+        }
+    }
 
     for(SizeType i=0; i<mConstitutiveLawVector.size(); i++)
-      {
-	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
-      }
+    {
+	      NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+    }
 
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
@@ -1254,7 +1255,7 @@ void SolidElement::InitializeExplicitContributions()
 
 void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
                                            const Variable<VectorType>& rRHSVariable,
-                                           Variable<array_1d<double,3> >& rDestinationVariable,
+                                           const Variable<array_1d<double,3> >& rDestinationVariable,
                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

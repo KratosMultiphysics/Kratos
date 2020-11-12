@@ -225,7 +225,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // Check row sum of pre-computed mapping matrices only
     if (precompute_mapping_matrix || dual_mortar) {
         const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
-        MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true);
+        const double row_sum_tolerance = mMapperSettings["row_sum_tolerance"].GetDouble();
+        MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true, row_sum_tolerance);
     }
 }
 
