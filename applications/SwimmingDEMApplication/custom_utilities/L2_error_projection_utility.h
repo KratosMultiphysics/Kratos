@@ -62,11 +62,10 @@ void ComputeDofsErrors(ModelPart& r_model_part)
 double GetL2VectorProjection(ModelPart& r_model_part)
 {
     const unsigned int n_elements = r_model_part.Elements().size();
-    double total_area = 0.0, interpolator = 0.0, result = 0.0, error_x = 0.0, error_y = 0.0, error_z = 0.0;
+    double modulus, total_area = 0.0, interpolator = 0.0, result = 0.0, error_x = 0.0, error_y = 0.0, error_z = 0.0;
     const unsigned int dim = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     Matrix NContainer;
     array_1d<double, 3> scalar_product;
-    std::vector<double> error;
 
     for (unsigned int i = 0; i < n_elements; ++i){
 
@@ -87,17 +86,14 @@ double GetL2VectorProjection(ModelPart& r_model_part)
             for (unsigned int j = 0; j < NumNodes; ++j){
                 error_x += rGeom[j].FastGetSolutionStepValue(ERROR_X) * N[j];
                 error_y += rGeom[j].FastGetSolutionStepValue(ERROR_Y) * N[j];
+                error_z += 0.0;
                 if (dim == 3) error_z += rGeom[j].FastGetSolutionStepValue(ERROR_Z) * N[j];
             }
-            error.push_back(error_x);
-            error.push_back(error_y);
-            if (dim == 3) error.push_back(error_z);
-
-            result += std::pow(SWIMMING_MODULUS_3(error),2) * DetJ[gss] * IntegrationPoints[gss].Weight();
-            error.clear();
+            modulus = std::sqrt(std::pow(error_x,2)+std::pow(error_y,2)+std::pow(error_z,2));
+            result += std::pow(modulus,2) * DetJ[gss] * IntegrationPoints[gss].Weight();
             error_x = 0.0;
             error_y = 0.0;
-            if (dim == 3) error_z = 0.0;
+            error_z = 0.0;
         }
         interpolator += result;
         result = 0.0;
