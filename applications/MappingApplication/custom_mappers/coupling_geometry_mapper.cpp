@@ -23,7 +23,6 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
 #include "factories/linear_solver_factory.h"
-#include "utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos {
 
@@ -215,7 +214,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
             }
         }
 
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(*mpMappingMatrixSlave, *mpMappingMatrixProjector, *mpMappingMatrix);
+        TSparseSpace::Mult(*mpMappingMatrixSlave, *mpMappingMatrixProjector, *mpMappingMatrix);
     }
     else {
         MappingMatrixUtilities::InitializeSystemVector<TSparseSpace, TDenseSpace>(mpTempVector, mpInterfaceVectorContainerDestination->GetModelPart().NumberOfNodes());
