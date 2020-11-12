@@ -58,7 +58,7 @@ Condition::Pointer ThermalFace::Create(
 
 void ThermalFace::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -84,7 +84,7 @@ void ThermalFace::EquationIdVector(
 
 void ThermalFace::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
@@ -111,7 +111,7 @@ void ThermalFace::GetDofList(
 void ThermalFace::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -123,7 +123,7 @@ void ThermalFace::CalculateLocalSystem(
 
 void ThermalFace::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -160,7 +160,7 @@ void ThermalFace::CalculateLeftHandSide(
 
 void ThermalFace::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

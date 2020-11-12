@@ -7,9 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_MESH_ERROR_CALCULATION_UTILITIES_H_INCLUDED )
-#define  KRATOS_MESH_ERROR_CALCULATION_UTILITIES_H_INCLUDED
-
+#if !defined(KRATOS_MESH_ERROR_CALCULATION_UTILITIES_H_INCLUDED)
+#define KRATOS_MESH_ERROR_CALCULATION_UTILITIES_H_INCLUDED
 
 // System includes
 
@@ -50,14 +49,13 @@ namespace Kratos
   class MeshErrorCalculationUtilities
   {
   public:
-
     ///@name Type Definitions
     ///@{
-    typedef ModelPart::ElementsContainerType                  ElementsContainerType;
-    typedef ModelPart::NodesContainerType                        NodesContainerType;
-    typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
+    typedef ModelPart::ElementsContainerType ElementsContainerType;
+    typedef ModelPart::NodesContainerType NodesContainerType;
+    typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
 
-    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
     ///@}
@@ -70,11 +68,9 @@ namespace Kratos
     /// Destructor.
     ~MeshErrorCalculationUtilities(){};
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -83,201 +79,203 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-
-    void NodalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rNodalError,std::vector<int>& rIds,const Variable<double> &rVariable)
+    void NodalErrorCalculation(ModelPart &rModelPart, std::vector<double> &rNodalError, std::vector<int> &rIds, const Variable<double> &rVariable)
     {
       KRATOS_TRY
 
       std::vector<double> ElementalError;
-      std::vector<int>    elems_ids;
+      std::vector<int> elems_ids;
 
-      ElementalErrorCalculation(rModelPart,ElementalError,elems_ids,rVariable);
+      ElementalErrorCalculation(rModelPart, ElementalError, elems_ids, rVariable);
 
-      if( !rNodalError.size() )
-	rNodalError.resize(rModelPart.NumberOfNodes()+1);
+      if (!rNodalError.size())
+        rNodalError.resize(rModelPart.NumberOfNodes() + 1);
 
-      std::fill( rNodalError.begin(), rNodalError.end(), 100 );
+      std::fill(rNodalError.begin(), rNodalError.end(), 100);
 
-      if( !rIds.size() )
-	rIds.resize(MesherUtilities::GetMaxNodeId(rModelPart)+1);
+      if (!rIds.size())
+        rIds.resize(MesherUtilities::GetMaxNodeId(rModelPart) + 1);
 
-      std::fill( rIds.begin(), rIds.end(), 0 );
+      std::fill(rIds.begin(), rIds.end(), 0);
 
-      double NodalMeanError  = 0;
+      double NodalMeanError = 0;
 
-      int id=1;
-      for(auto& i_node : rModelPart.Nodes())
-	{
-	  if( i_node.IsNot(NEW_ENTITY) ){// && i_node.IsNot(STRUCTURE)){
+      int id = 1;
+      for (auto &i_node : rModelPart.Nodes())
+      {
+        if (i_node.IsNot(NEW_ENTITY))
+        { // && i_node.IsNot(STRUCTURE)){
 
-	    ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+          ElementWeakPtrVectorType &nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
 
-	    NodalMeanError  = 0;
-	    for(auto& i_nelem : nElements)
-            {
-              NodalMeanError += ElementalError[elems_ids[i_nelem.Id()]];
-            }
+          NodalMeanError = 0;
+          for (auto &i_nelem : nElements)
+          {
+            NodalMeanError += ElementalError[elems_ids[i_nelem.Id()]];
+          }
 
-	    rIds[i_node.Id()]   = id;
-	    rNodalError[id]  = NodalMeanError / double(nElements.size());
+          rIds[i_node.Id()] = id;
+          rNodalError[id] = NodalMeanError / double(nElements.size());
+        }
+        else
+        {
 
-	  }
-	  else{
+          rIds[i_node.Id()] = id;
+          rNodalError[id] = 0;
+        }
 
-	    rIds[i_node.Id()]=id;
-	    rNodalError[id] = 0;
-	  }
+        id++;
+      }
 
-	  id++;
-	}
-
-      KRATOS_CATCH( "" )
+      KRATOS_CATCH("")
     }
 
-
     //**************************************************************************
     //**************************************************************************
 
-
-    void ElementalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rElementalError,std::vector<int>& rIds,const Variable<double> &rVariable)
+    void ElementalErrorCalculation(ModelPart &rModelPart, std::vector<double> &rElementalError, std::vector<int> &rIds, const Variable<double> &rVariable)
     {
       KRATOS_TRY
 
-      ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+      const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-
-      std::vector<double>  ElementVariable(MesherUtilities::GetMaxElementId(rModelPart)+1);
-      std::fill( ElementVariable.begin(), ElementVariable.end(), 0 );
+      std::vector<double> ElementVariable(MesherUtilities::GetMaxElementId(rModelPart) + 1);
+      std::fill(ElementVariable.begin(), ElementVariable.end(), 0);
 
       std::vector<int> elems_ids;
-      elems_ids.resize(MesherUtilities::GetMaxElementId(rModelPart)+1); //mesh 0
-      std::fill( elems_ids.begin(), elems_ids.end(), 0 );
+      elems_ids.resize(MesherUtilities::GetMaxElementId(rModelPart) + 1); //mesh 0
+      std::fill(elems_ids.begin(), elems_ids.end(), 0);
 
       double VariableMax = std::numeric_limits<double>::min();
       double VariableMin = std::numeric_limits<double>::max();
 
       std::vector<double> Value(1);
 
-      unsigned int id=1;
-      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ++ie)
-	{
-	  (ie)->GetValueOnIntegrationPoints(rVariable,Value,CurrentProcessInfo);
+      unsigned int id = 1;
+      for (ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ++ie)
+      {
+        (ie)->CalculateOnIntegrationPoints(rVariable, Value, CurrentProcessInfo);
 
-	  elems_ids[ie->Id()] = id;
-	  ElementVariable[id] = Value[0];
+        elems_ids[ie->Id()] = id;
+        ElementVariable[id] = Value[0];
 
-	  if(ElementVariable[id]>VariableMax)
-	    VariableMax = ElementVariable[id];
+        if (ElementVariable[id] > VariableMax)
+          VariableMax = ElementVariable[id];
 
-	  if(ElementVariable[id]<VariableMin)
-	    VariableMin = ElementVariable[id];
+        if (ElementVariable[id] < VariableMin)
+          VariableMin = ElementVariable[id];
 
-	  // if( ElementVariable[id] == 0 )
-	  //   std::cout<<" ELEMENT ["<<ie->Id()<<"] : "<<ElementVariable[id]<<std::endl;
+        // if( ElementVariable[id] == 0 )
+        //   std::cout<<" ELEMENT ["<<ie->Id()<<"] : "<<ElementVariable[id]<<std::endl;
 
-	  id++;
-	}
+        id++;
+      }
 
+      std::vector<double> NodalError(rModelPart.NumberOfNodes() + 1);
+      std::fill(NodalError.begin(), NodalError.end(), 0);
 
-      std::vector<double> NodalError(rModelPart.NumberOfNodes()+1);
-      std::fill( NodalError.begin(), NodalError.end(), 0 );
+      std::vector<int> nodes_ids(MesherUtilities::GetMaxNodeId(rModelPart) + 1); //mesh 0
+      std::fill(nodes_ids.begin(), nodes_ids.end(), 0);
 
-      std::vector<int> nodes_ids (MesherUtilities::GetMaxNodeId(rModelPart)+1); //mesh 0
-      std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
-
-      double PatchSize  = 0;
+      double PatchSize = 0;
       double PatchError = 0;
 
-      double Size  = 0;
+      double Size = 0;
       double Error = 0;
 
-      id=1;
-      for(auto& i_node : rModelPart.Nodes())
+      id = 1;
+      for (auto &i_node : rModelPart.Nodes())
       {
 
-        if(i_node.IsNot(NEW_ENTITY) ){// && i_node->IsNot(STRUCTURE)){
+        if (i_node.IsNot(NEW_ENTITY))
+        { // && i_node->IsNot(STRUCTURE)){
 
-          PatchSize  = 0;
+          PatchSize = 0;
           PatchError = 0;
 
-          ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+          ElementWeakPtrVectorType &nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
 
-          for(auto& i_nelem : nElements)
+          for (auto &i_nelem : nElements)
           {
 
-            Geometry<Node<3> >& rGeometry = i_nelem.GetGeometry();
+            Geometry<Node<3>> &rGeometry = i_nelem.GetGeometry();
 
-            Size   = rGeometry.DomainSize();  //Area(); or Volume();
-            Error  = ElementVariable[elems_ids[i_nelem.Id()]] * Size;
+            Size = rGeometry.DomainSize(); //Area(); or Volume();
+            Error = ElementVariable[elems_ids[i_nelem.Id()]] * Size;
 
-            PatchSize  += Size;
+            PatchSize += Size;
             PatchError += Error;
           }
 
-          if(PatchSize!=0){
-            nodes_ids[i_node.Id()]=id;
-            NodalError[id] = PatchError/PatchSize;
+          if (PatchSize != 0)
+          {
+            nodes_ids[i_node.Id()] = id;
+            NodalError[id] = PatchError / PatchSize;
             //std::cout<<" Node ["<<i_node->Id()<<"] : ( NodalError: "<<NodalError[id]<<", PatchError: "<<" PatchSize:"<<PatchSize<<std::endl;
           }
-          else{
-            std::cout<<" WARNING : Size surrounding node: "<<i_node.Id()<<" is null "<<std::endl;
+          else
+          {
+            std::cout << " WARNING : Size surrounding node: " << i_node.Id() << " is null " << std::endl;
           }
-
         }
-        else{
-          nodes_ids[i_node.Id()]=id;
-          NodalError[id]=0;
+        else
+        {
+          nodes_ids[i_node.Id()] = id;
+          NodalError[id] = 0;
         }
 
         id++;
       }
 
-      rElementalError.resize(MesherUtilities::GetMaxElementId(rModelPart)+1);
-      std::fill( rElementalError.begin(), rElementalError.end(), 100 );
+      rElementalError.resize(MesherUtilities::GetMaxElementId(rModelPart) + 1);
+      std::fill(rElementalError.begin(), rElementalError.end(), 100);
 
-      rIds.resize(MesherUtilities::GetMaxElementId(rModelPart)+1); //mesh 0
-      std::fill( rIds.begin(), rIds.end(), 0 );
+      rIds.resize(MesherUtilities::GetMaxElementId(rModelPart) + 1); //mesh 0
+      std::fill(rIds.begin(), rIds.end(), 0);
 
       double VariableVariation = VariableMax - VariableMin;
 
-      if(VariableVariation == 0){
-	VariableVariation = 1;
-	std::cout<<"   WARNING: "<<rVariable<<" min-max errors are the same ( MinVar= "<<VariableMin<<", MaxVar= "<<VariableMax<<" )"<<std::endl;
+      if (VariableVariation == 0)
+      {
+        VariableVariation = 1;
+        std::cout << "   WARNING: " << rVariable << " min-max errors are the same ( MinVar= " << VariableMin << ", MaxVar= " << VariableMax << " )" << std::endl;
       }
-      else{
+      else
+      {
 
-	if( GetEchoLevel() > 0 )
-	  std::cout<<"   Variable errors ( MinVar= "<<VariableMin<<", MaxVar= "<<VariableMax<<" )"<<std::endl;
+        if (GetEchoLevel() > 0)
+          std::cout << "   Variable errors ( MinVar= " << VariableMin << ", MaxVar= " << VariableMax << " )" << std::endl;
 
-	id=1;
-	for(auto& i_elem : rModelPart.Elements())
+        id = 1;
+        for (auto &i_elem : rModelPart.Elements())
         {
-          PointsArrayType& vertices=i_elem.GetGeometry().Points();
+          PointsArrayType &vertices = i_elem.GetGeometry().Points();
 
           PatchError = 0;
 
-          unsigned int NumberOfVertices =vertices.size();
-          for(unsigned int i=0; i<NumberOfVertices; ++i)
+          unsigned int NumberOfVertices = vertices.size();
+          for (unsigned int i = 0; i < NumberOfVertices; ++i)
           {
             PatchError += NodalError[nodes_ids[vertices[i].Id()]];
           }
 
-          if(NumberOfVertices!=0){
+          if (NumberOfVertices != 0)
+          {
             PatchError /= double(NumberOfVertices);
           }
-          else{
-            std::cout<<" ERROR ME: Number of Vertices of the Element: "<<i_elem.Id()<<" is null "<<std::endl;
+          else
+          {
+            std::cout << " ERROR ME: Number of Vertices of the Element: " << i_elem.Id() << " is null " << std::endl;
           }
 
-          rIds[i_elem.Id()]=id;
-          rElementalError[id] = fabs( ( PatchError - ElementVariable[id] ) / VariableVariation ) * 100;
+          rIds[i_elem.Id()] = id;
+          rElementalError[id] = fabs((PatchError - ElementVariable[id]) / VariableVariation) * 100;
 
           id++;
         }
       }
 
-      KRATOS_CATCH( "" )
-
+      KRATOS_CATCH("")
     }
 
     /**
@@ -306,7 +304,6 @@ namespace Kratos
     ///@name Friends
     ///@{
     ///@}
-
 
   protected:
     ///@name Protected static Member Variables

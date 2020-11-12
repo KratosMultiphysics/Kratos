@@ -233,7 +233,7 @@ void BaseLoadCondition::GetSecondDerivativesVector(
 
 void BaseLoadCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Calculation flags
@@ -249,7 +249,7 @@ void BaseLoadCondition::CalculateRightHandSide(
 void BaseLoadCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     //calculation flags
@@ -264,7 +264,7 @@ void BaseLoadCondition::CalculateLocalSystem(
 
 void BaseLoadCondition::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rMassMatrix.size1() != 0) {
@@ -277,7 +277,7 @@ void BaseLoadCondition::CalculateMassMatrix(
 
 void BaseLoadCondition::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rDampingMatrix.size1() != 0) {

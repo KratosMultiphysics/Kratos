@@ -5,6 +5,9 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.testing.utilities  import ReadModelPart
 
+from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
+from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
+
 
 class CustomProcessTest(UnitTest.TestCase):
     @classmethod
@@ -20,6 +23,7 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
@@ -436,30 +440,14 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSApplication",
                 "python_module" : "cpp_process_factory",
-                "process_name"  : "ApplyFlagProcess",
-                "Parameters" : {
-                    "model_part_name"                : "test.Slip2D.Slip2D_walls",
-                    "echo_level"                     : 0,
-                    "flag_variable_name"             : "STRUCTURE",
-                    "flag_variable_value"            : true,
-                    "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
-                }
-            },
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
                 "process_name"  : "WallDistanceCalculationProcess",
                 "Parameters" : {
-                    "model_part_name"                  : "test",
-                    "max_iterations"                   : 10,
+                    "main_model_part_name"             : "test",
+                    "wall_model_part_name"             : "test.Slip2D.Slip2D_walls",
                     "echo_level"                       : 0,
-                    "wall_flag_variable_name"          : "STRUCTURE",
-                    "wall_flag_variable_value"         : true,
-                    "re_calculate_at_each_time_step"   : false,
-                    "correct_distances_using_neighbors": true,
-                    "linear_solver_settings" : {
-                        "solver_type"     : "amgcl"
-                    }
+                    "max_distance"                     : 1e+30,
+                    "max_levels"                       : 14,
+                    "re_calculate_at_each_time_step"   : false
                 }
             }
         ]''')
@@ -469,6 +457,14 @@ class CustomProcessTest(UnitTest.TestCase):
         test_file_name = "wall_distance_calculation_test_output"
         CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
         # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+
+        CheckAndPrepareModelProcess(self.model_part,
+                                    Kratos.Parameters("""{
+            "volume_model_part_name": "Parts_fluid",
+            "skin_parts" : ["AutomaticInlet2D_inlet", "Outlet2D_outlet", "Slip2D"],
+            "assign_neighbour_elements_to_conditions": true
+        }""")).Execute()
+        CalculateNormalsOnConditions(self.model_part)
 
         factory = KratosProcessFactory(self.model)
         self.process_list = factory.ConstructListOfProcesses(settings)

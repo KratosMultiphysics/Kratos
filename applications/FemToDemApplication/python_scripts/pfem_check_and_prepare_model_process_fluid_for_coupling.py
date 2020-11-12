@@ -1,7 +1,7 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.PfemFluidDynamicsApplication.pfem_check_and_prepare_model_process_fluid as pfem_check_and_prepare_model_process_fluid
+import KratosMultiphysics.PfemFluidDynamicsApplication.pfem_check_and_prepare_fluid_model_process as pfem_check_and_prepare_model_process_fluid
 import time as timer
 
 def Wait():
@@ -11,14 +11,14 @@ def StartTimeMeasuring():
     """This function starts time calculation
     """
     # Measure process time
-    time_ip = timer.clock()
+    time_ip = timer.process_time()
     return time_ip
 
 def StopTimeMeasuring(time_ip, process, report):
     """This function ends time calculation
     """
     # Measure process time
-    time_fp = timer.clock()
+    time_fp = timer.process_time()
     if( report ):
         used_time = time_fp - time_ip
         print("::[PFEM_FLUID_MODEL]:: [ %.2f" % round(used_time, 2), "s", process, " ] ")
@@ -40,6 +40,7 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
         main_model_part -- The ModelPart to be used
         Parameters -- The settings for the process
         """
+        KratosMultiphysics.Process.__init__(self)
         self.main_model_part = main_model_part
         self.FEM_model_part  = FEM_model_part
 

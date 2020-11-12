@@ -108,12 +108,13 @@ namespace Testing
         auto p_element = r_test_model_part.pGetElement(1);
         Vector RHS = ZeroVector(3);
         Matrix LHS = ZeroMatrix(3,3);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        
+        const auto& r_process_info = r_test_model_part.GetProcessInfo();
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
         KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
 
         // Test CalculateRightHandSide
-        const auto& r_process_info = r_test_model_part.GetProcessInfo();
         p_element->CalculateRightHandSide(RHS, r_process_info);
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
     }
@@ -167,12 +168,12 @@ namespace Testing
         auto p_element = r_test_model_part.pGetElement(1);
         Vector RHS = ZeroVector(4);
         Matrix LHS = ZeroMatrix(4,4);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        const auto& r_process_info = r_test_model_part.GetProcessInfo();
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
         KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
 
         // Test CalculateRightHandSide
-        const auto& r_process_info = r_test_model_part.GetProcessInfo();
         p_element->CalculateRightHandSide(RHS, r_process_info);
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
     }

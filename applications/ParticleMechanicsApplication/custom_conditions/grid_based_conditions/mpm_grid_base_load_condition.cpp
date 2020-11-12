@@ -132,9 +132,9 @@ namespace Kratos
     void MPMGridBaseLoadCondition::GetFirstDerivativesVector(
         Vector& rValues,
         int Step
-        )
+        ) const
     {
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int matrix_size = number_of_nodes * dimension;
@@ -161,9 +161,9 @@ namespace Kratos
     void MPMGridBaseLoadCondition::GetSecondDerivativesVector(
         Vector& rValues,
         int Step
-        )
+        ) const
     {
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int matrix_size = number_of_nodes * dimension;
@@ -252,7 +252,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+    int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         // Base check
         Condition::Check(rCurrentProcessInfo);
@@ -289,7 +289,7 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::AddExplicitContribution(const VectorType& rRHS,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
