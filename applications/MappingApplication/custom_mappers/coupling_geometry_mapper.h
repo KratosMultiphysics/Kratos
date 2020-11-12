@@ -331,6 +331,7 @@ private:
             "modeler_name"                  : "UNSPECIFIED",
             "modeler_parameters"            : {},
             "consistency_scaling"           : true,
+            "row_sum_tolerance"             : 1e-12,
             "linear_solver_settings"        : {}
         })");
     }
