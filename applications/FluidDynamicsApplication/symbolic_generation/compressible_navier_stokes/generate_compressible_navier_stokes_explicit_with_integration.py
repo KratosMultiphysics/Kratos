@@ -1,8 +1,6 @@
+from sympy import *
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
-
-from sympy import *
-import pprint
 
 from params_dict import params
 import generate_convective_flux
@@ -60,9 +58,12 @@ def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
 
     return mat_N
 
-do_simplifications = False
-mode = "c"                  # Output mode to a c++ file
-is_explicit = True          # Explicit or implicit time integration
+mode = "c"                          # Output mode to a c++ file
+is_explicit = True                  # Explicit (True) or implicit (False) time integration
+do_simplifications = False          # Simplify resulting differenctiations
+dim_vector = [2,3]                  # Spatial dimensions to be computed  
+shock_capturing = True              # Add physics-based shock capturing contribution
+subscales_vector = ["ASGS","OSS"]   # Subscales types to be computed
 
 ## Initialize the outstring to be filled with the template .cpp file
 if not is_explicit:
@@ -83,13 +84,9 @@ else:
     err_msg +=  "\t- compressible_navier_stokes_explicit_cpp_template_with_integration.cpp --> compressible_navier_stokes_explicit.cpp"
     raise Exception(err_msg)
 
-dim_vector = [2]
-# dim_vector = [2,3]
-subscales_vector = ["ASGS","OSS"]
-# shock_capturing = "Isotropic"
-shock_capturing = "Anisotropic"
-
 for dim in dim_vector:
+    print("\nComputing dimension: " + str(dim) + "D\n")
+
     # Change dimension accordingly
     params["dim"] = dim
 
@@ -118,8 +115,14 @@ for dim in dim_vector:
     w = DefineMatrix('w',n_nodes,block_size)	 # Variables field test
 
     # External terms definition
+    m_ext = DefineVector('m_ext',n_nodes)        # Mass source term
     r_ext = DefineVector('r_ext',n_nodes)        # Thermal sink/source term
     f_ext = DefineMatrix('f_ext',n_nodes,dim)    # Forcing term 
+
+    # Nodal artificial magnitudes
+    mu_sc_nodes = DefineVector('mu_sc_nodes',n_nodes) # Nodal artificial dynamic viscosity
+    beta_sc_nodes = DefineVector('beta_sc_nodes',n_nodes) # Nodal artificial bulk viscosity
+    lamb_sc_nodes = DefineVector('lamb_sc_nodes',n_nodes) # Nodal artificial bulk viscosity
 
     # Definition of other symbols
     if not is_explicit:
@@ -127,14 +130,11 @@ for dim in dim_vector:
         bdf0 = Symbol('bdf0')
         bdf1 = Symbol('bdf1')
         bdf2 = Symbol('bdf2')
-    k_sc = Symbol('k_sc', positive = True) # Shock capturing thermal diffusivity (TODO: Change to alpha)
-    nu_sc = Symbol('nu_sc', positive = True) # Shock capturing kinematic viscosity
-    k_st = Symbol('k_st', positive = True) # Stabilization thermal diffusivity approximation (TODO: Change to alpha)
-    nu_st = Symbol('nu_st', positive = True) # Stabilization kinematic viscosity approximation
-    
+
     ### Construction of the variational equation
     Ug = DefineVector('Ug',block_size) # Dofs vector
     H = DefineMatrix('H',block_size,dim) # Gradient of U
+    mg = Symbol('mg') # Mass source term
     f = DefineVector('f',dim) # Body force vector
     rg = Symbol('rg') # Thermal source/sink term
     V = DefineVector('V',block_size) # Test function
@@ -145,20 +145,19 @@ for dim in dim_vector:
 
     ## Calculate the Gauss point residual
     ## Matrix Computation
-    S = generate_source_term.computeS(f, rg, params)
-    A = generate_convective_flux.computeA(Ug, params)
-    if shock_capturing == "Isotropic":
-        G = generate_diffusive_flux.ComputeDiffusiveFluxIsotropicShockCapturing(Ug, H, params, nu_sc, k_sc)
-    elif shock_capturing == "Anisotropic":
-        lin_m = DefineVector('lin_m', dim) # Linearized momentum used in the anisotropic shock capturing matrices calculation
-        lin_m_norm = Symbol('lin_m_norm', positive = True) # Linearized momentum norm. This has to be defined as a separated symbol to check it is non-zero.
-        G = generate_diffusive_flux.ComputeDiffusiveFluxAnisotropicShockCapturing(Ug, H, params, nu_sc, k_sc, nu_st, k_st, lin_m, lin_m_norm)
+    S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
+    A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
+    if shock_capturing:
+        mu_sc = Symbol('mu_sc', positive = True) # Artificial dynamic viscosity for shock capturing
+        beta_sc = Symbol('beta_sc', positive = True) # Artificial bulk viscosity for shock capturing
+        lamb_sc = Symbol('lamb_sc', positive = True) # Artificial thermal conductivity for shock capturing
+        G = generate_diffusive_flux.ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(Ug, H, params, beta_sc, lamb_sc, mu_sc)
     else:
-        raise Exception("Wrong shock capturing method: \'" + shock_capturing + "\'. Available options are: \'Isotropic\' and \'Anisotropic\'")
-    Tau = generate_stabilization_matrix.computeTau(params) # TODO: SOURCE TERMS CONSTANTS ARE NOT ADDED YET!
+        G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
+    Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
 
     ## Non-linear operator definition
-    print("\nCompute Non-linear operator\n")
+    print("\nCompute non-linear operator\n")
     L = Matrix(zeros(block_size,1))
     for j in range(dim):
         # Convective operator product (A x grad(U))
@@ -178,7 +177,7 @@ for dim in dim_vector:
     res = - acc - L
 
     ## Non-linear adjoint operator definition
-    print("\nCompute Non-linear Adjoint operator\n")
+    print("\nCompute non-linear adjoint operator\n")
     L_adj = Matrix(zeros(block_size,1))
     for j in range(dim):
         Q_j = Q.col(j)
@@ -224,7 +223,7 @@ for dim in dim_vector:
     n5 = L_adj.transpose() * subscales
 
     # Variational formulation (Galerkin functional)
-    print("\nCompute Variational Formulation\n")
+    print("\nCompute variational formulation\n")
     if not is_explicit:
         rv = n1 + n2 + n3 + n4 + n5 # Implicit case (includes the inertial term n1)
     else:
@@ -249,6 +248,7 @@ for dim in dim_vector:
         U_gauss = U.transpose() * N
         f_gauss = f_ext.transpose() * N
         r_gauss = (r_ext.transpose()*N)[0]
+        mass_gauss = (m_ext.transpose()*N)[0]
         if not is_explicit:
             # In the implicit case, calculate the time derivatives with the BDF2 formula
             acc_gauss = (bdf0 * U + bdf1 * Un + bdf2 * Unn).transpose()*N
@@ -266,6 +266,7 @@ for dim in dim_vector:
         SubstituteMatrixValue(res_gauss, H, grad_U)
         SubstituteMatrixValue(res_gauss, f, f_gauss)
         SubstituteScalarValue(res_gauss, rg, r_gauss)
+        SubstituteScalarValue(res_gauss, mg, mass_gauss)
 
         ## Add the projection contributions
         for i_node in range(n_nodes):
@@ -290,7 +291,7 @@ for dim in dim_vector:
         rv_tot = Matrix(zeros(1,1))
 
         print("\nSubscales type: " + subscales_type)
-        print("\nSubstitution of the discretized values at the gauss points")
+        print("\n- Substitution of the discretized values at the gauss points")
         for i_gauss in range(n_gauss):
             print("\tGauss point: " + str(i_gauss))
             rv_gauss = rv.copy()
@@ -315,6 +316,10 @@ for dim in dim_vector:
             w_gauss = w.transpose() * N
             f_gauss = f_ext.transpose() * N
             r_gauss = (r_ext.transpose()*N)[0]
+            mass_gauss = (m_ext.transpose()*N)[0]
+            mu_sc_gauss = (mu_sc_nodes.transpose()*N)[0]
+            beta_sc_gauss = (beta_sc_nodes.transpose()*N)[0]
+            lamb_sc_gauss = (lamb_sc_nodes.transpose()*N)[0]
             if not is_explicit:
                 # In the implicit case, calculate the time derivatives with the BDF2 formula
                 acc_gauss = (bdf0 * U + bdf1 * Un + bdf2 * Unn).transpose()*N
@@ -324,8 +329,7 @@ for dim in dim_vector:
                 acc_gauss = dUdt.transpose()*N
 
             ## Gauss pt. stabilization matrix calculation
-            #TODO: SHOULD WE ADD THE SC MAGNITUDES IN HERE?????
-            tau_gauss = generate_stabilization_matrix.computeTauOnGaussPoint(params, U_gauss, f_gauss, r_gauss)
+            tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss)
 
             ## If OSS, residual projections interpolation
             if subscales_type == "OSS":
@@ -344,6 +348,10 @@ for dim in dim_vector:
             SubstituteMatrixValue(rv_gauss, Tau, tau_gauss)
             SubstituteMatrixValue(rv_gauss, f, f_gauss)
             SubstituteScalarValue(rv_gauss, rg, r_gauss)
+            SubstituteScalarValue(rv_gauss, mg, mass_gauss)
+            SubstituteScalarValue(rv_gauss, mu_sc, mu_sc_gauss)
+            SubstituteScalarValue(rv_gauss, beta_sc, beta_sc_gauss)
+            SubstituteScalarValue(rv_gauss, lamb_sc, lamb_sc_gauss)
             if subscales_type == "OSS":
                 SubstituteMatrixValue(rv_gauss, res_proj, res_proj_gauss)
 
@@ -359,17 +367,17 @@ for dim in dim_vector:
                     testfunc[i*(dim+2)+j] = w[i,j]
 
         ## Compute LHS and RHS
-        print("\nCompute RHS\n")
+        print("\n- Compute RHS")
         rhs = Compute_RHS(rv_tot.copy(), testfunc, do_simplifications)
         rhs_out = OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode)
 
         if not is_explicit:
-            print("\nCompute LHS\n")
+            print("\n- Compute LHS")
             lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS
             lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
 
         ## Reading and filling the template file
-        print("\nSubstituting outstring in " + template_filename + " \n")
+        print("\n- Substituting outstring in " + template_filename + " \n")
         outstring = outstring.replace("//substitute_rhs_" + str(dim) + "D_" + subscales_type, rhs_out)
         if not is_explicit:
             outstring = outstring.replace("//substitute_lhs_" + str(dim) + "D_" + subscales_type, lhs_out)
@@ -409,4 +417,4 @@ print("\nWriting " + output_filename + " \n")
 out = open(output_filename,'w')
 out.write(outstring)
 out.close()
-print("\nCompressible Navier Stokes Explicit Element Generated\n")
+print("\n" + output_filename + " generated\n")

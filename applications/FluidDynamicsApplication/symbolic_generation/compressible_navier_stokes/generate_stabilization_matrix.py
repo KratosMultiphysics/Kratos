@@ -1,11 +1,12 @@
+from sympy import *
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
-from sympy import *
-import pprint
+def ComputeStabilizationMatrix(params):
+    """This function calculates the stabilization matrix"""
 
-def computeTau(params):
-    print("\nCompute Stabilization Matrix\n")
+    print("\nCompute stabilization matrix\n")
+
     dim = params["dim"]      # Spatial dimensions
     Tau = zeros(dim+2,dim+2) # Stabilization Matrix
 
@@ -19,8 +20,10 @@ def computeTau(params):
     Tau[dim + 1, dim + 1] = tau3
     return(Tau)
 
-def computeTauOnGaussPoint(params, U_gauss, f_gauss, r_gauss):
-    print("\t- Compute Stabilization Matrix on Gauss pt.")
+def ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss):
+    """This function calculates the stabilization matrix on a Gauss point"""
+
+    print("\t- Compute stabilization matrix on Gauss pt.")
 
     # Calculate auxiliary values
     rho_g = U_gauss[0]
@@ -52,7 +55,9 @@ def computeTauOnGaussPoint(params, U_gauss, f_gauss, r_gauss):
 
     return(Tau)
 
-def printTau(Tau, params):
+def PrintStabilizationMatrix(Tau, params):
+    """Auxiliary function to print the stabilization matrix"""
+
     print("The Stabilization term matrix is:\n")
     dim = params["dim"]
     for i in range (0,dim+2):

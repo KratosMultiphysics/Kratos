@@ -12,18 +12,22 @@
 
 // System includes
 
+
 // External includes
+
 
 // Project includes
 #include "includes/checks.h"
+#include "utilities/element_size_calculator.h"
 
 // Application includes
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 
+
 namespace Kratos {
 
 template <>
-void CompressibleNavierStokesExplicit<2>::EquationIdVector(
+void CompressibleNavierStokesExplicit<2,3>::EquationIdVector(
     EquationIdVectorType &rResult,
     const ProcessInfo &rCurrentProcessInfo) const
 {
@@ -53,7 +57,7 @@ void CompressibleNavierStokesExplicit<2>::EquationIdVector(
 }
 
 template <>
-void CompressibleNavierStokesExplicit<3>::EquationIdVector(
+void CompressibleNavierStokesExplicit<3,4>::EquationIdVector(
     EquationIdVectorType &rResult,
     const ProcessInfo &rCurrentProcessInfo) const
 {
@@ -84,7 +88,7 @@ void CompressibleNavierStokesExplicit<3>::EquationIdVector(
 }
 
 template <>
-void CompressibleNavierStokesExplicit<2>::GetDofList(
+void CompressibleNavierStokesExplicit<2,3>::GetDofList(
     DofsVectorType &ElementalDofList,
     const ProcessInfo &rCurrentProcessInfo) const
 {
@@ -114,7 +118,7 @@ void CompressibleNavierStokesExplicit<2>::GetDofList(
 }
 
 template <>
-void CompressibleNavierStokesExplicit<3>::GetDofList(
+void CompressibleNavierStokesExplicit<3,4>::GetDofList(
     DofsVectorType &ElementalDofList,
     const ProcessInfo &rCurrentProcessInfo) const
 {
@@ -144,8 +148,8 @@ void CompressibleNavierStokesExplicit<3>::GetDofList(
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-int CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Check(const ProcessInfo &rCurrentProcessInfo)
+template <unsigned int TDim, unsigned int TNumNodes>
+int CompressibleNavierStokesExplicit<TDim, TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -177,8 +181,8 @@ int CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Check(const P
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Calculate(
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
     const Variable<double>& rVariable,
     double& Output,
     const ProcessInfo& rCurrentProcessInfo)
@@ -188,27 +192,50 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Calculate(
         CalculateDensityProjection(rCurrentProcessInfo);
     } else if (rVariable == TOTAL_ENERGY_PROJECTION) {
         CalculateTotalEnergyProjection(rCurrentProcessInfo);
+    } else if (rVariable == VELOCITY_DIVERGENCE) {
+        Output = CalculateMidPointVelocityDivergence();
+    } else if (rVariable == SOUND_VELOCITY) {
+        Output = CalculateMidPointSoundVelocity();
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Calculate(
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
     const Variable<array_1d<double, 3 > >& rVariable,
     array_1d<double, 3 > & Output,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Lumped projection terms
-    if (rVariable == MOMENTUM_PROJECTION) {
+    if (rVariable == DENSITY_GRADIENT) {
+        Output = CalculateMidPointDensityGradient();
+    } else if (rVariable == TEMPERATURE_GRADIENT) {
+        Output = CalculateMidPointTemperatureGradient();
+    } else if (rVariable == VELOCITY_ROTATIONAL) {
+        Output = CalculateMidPointVelocityRotational();
+    } else if (rVariable == MOMENTUM_PROJECTION) {
         CalculateMomentumProjection(rCurrentProcessInfo);
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnIntegrationPoints(
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix & Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == VELOCITY_GRADIENT) {
+        Output = CalculateMidPointVelocityGradient();
+    } else {
+        KRATOS_ERROR << "Variable not implemented." << std::endl;
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -239,6 +266,16 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = sc;
         }
+    } else if (rVariable == ARTIFICIAL_CONDUCTIVITY) {
+        const double k_star = this->GetValue(ARTIFICIAL_CONDUCTIVITY);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = k_star;
+        }
+    } else if (rVariable == ARTIFICIAL_BULK_VISCOSITY) {
+        const double beta_star = this->GetValue(ARTIFICIAL_BULK_VISCOSITY);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = beta_star;
+        }
     } else if (rVariable == SHOCK_CAPTURING_VISCOSITY) {
         const double nu_sc = this->GetValue(SHOCK_CAPTURING_VISCOSITY);
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
@@ -249,13 +286,18 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = lambda_sc;
         }
+    } else if (rVariable == VELOCITY_DIVERGENCE) {
+        const double div_v = CalculateMidPointVelocityDivergence();
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = div_v;
+        }
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnIntegrationPoints(
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double,3>>& rVariable,
     std::vector<array_1d<double,3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -272,7 +314,12 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
             rOutput[i_gauss] = tot_ener_grad;
         }
     } else if (rVariable == DENSITY_GRADIENT) {
-        const auto& rho_grad = this->GetValue(DENSITY_GRADIENT);
+        const auto& rho_grad = CalculateMidPointDensityGradient();
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = rho_grad;
+        }
+    } else if (rVariable == TEMPERATURE_GRADIENT) {
+        const auto& rho_grad = CalculateMidPointTemperatureGradient();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rho_grad;
         }
@@ -281,13 +328,18 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = pres_grad;
         }
+    } else if (rVariable == VELOCITY_ROTATIONAL) {
+        const auto rot_v = CalculateMidPointVelocityRotational();
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = rot_v;
+        }
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnIntegrationPoints(
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -308,8 +360,8 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateOnI
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::FillElementData(
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
     ElementDataStruct &rData,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -318,7 +370,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::FillElementD
     GeometryUtils::CalculateGeometryData(r_geometry, rData.DN_DX, rData.N, rData.volume);
 
     // Compute element size
-    rData.h = CalculateElementSize(rData.DN_DX);
+    rData.h = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rData.DN_DX);
 
     // Database access to all of the variables needed
     Properties &r_properties = this->GetProperties();
@@ -349,9 +401,13 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::FillElementD
             rData.ResProj(i, 0) = r_node.GetValue(DENSITY_PROJECTION);
             rData.dUdt(i, 0) = r_node.GetValue(DENSITY_TIME_DERIVATIVE);
             rData.U(i, TDim + 1) = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+            rData.ResProj(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_PROJECTION);
             rData.dUdt(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_TIME_DERIVATIVE);
             rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
-            rData.ResProj(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_PROJECTION);
+            rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
+            rData.mu_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+            rData.beta_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
+            rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
         }
     } else {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -370,32 +426,370 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::FillElementD
             rData.U(i, TDim + 1) = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
             rData.dUdt(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_TIME_DERIVATIVE);
             rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
+            rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
+            rData.mu_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+            rData.beta_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
+            rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
         }
 
     }
-
-    // Shock capturing values
-    rData.nu_sc = this->GetValue(SHOCK_CAPTURING_VISCOSITY);
-    rData.lambda_sc = this->GetValue(SHOCK_CAPTURING_CONDUCTIVITY);
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
-double CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateElementSize(const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX)
+template <unsigned int TDim, unsigned int TNumNodes>
+array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointDensityGradient() const
 {
-    double h = 0.0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        double h_inv = 0.0;
-        for (unsigned int k = 0; k < TDim; ++k) {
-            h_inv += rDN_DX(i,k) * rDN_DX(i,k);
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    array_1d<double,3> midpoint_grad_rho = ZeroVector(TDim);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        for (int d1 = 0; d1 < TDim; ++d1) {
+            midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
         }
-        h += 1.0/h_inv;
     }
-    h = sqrt(h) / static_cast<double>(TNumNodes);
-    return h;
+
+    return midpoint_grad_rho;
+}
+
+// TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT
+// TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT
+// TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT
+// TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT
+// TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT
+// TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT
+// TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT
+template <unsigned int TDim, unsigned int TNumNodes>
+array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointTemperatureGradient() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    const double c_v = GetProperties()[SPECIFIC_HEAT];
+    array_1d<double,3> midpoint_grad_temp = ZeroVector(TDim);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+        const array_1d<double, 3> vel = r_mom / r_rho;
+        const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(vel, vel)) / c_v;
+        for (int d1 = 0; d1 < TDim; ++d1) {
+            midpoint_grad_temp[d1] += node_dNdX(d1) * temp;
+        }
+    }
+
+    return midpoint_grad_temp;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointSoundVelocity() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+
+    // Calculate midpoint magnitudes
+    double midpoint_rho = 0.0;
+    double midpoint_tot_ener = 0.0;
+    array_1d<double,TDim> midpoint_mom = ZeroVector(TDim);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+        midpoint_rho += r_rho;
+        midpoint_tot_ener += r_tot_ener;
+        for (int d1 = 0; d1 < TDim; ++d1) {
+            midpoint_mom[d1] += r_mom(d1);
+        }
+    }
+    midpoint_rho /= n_nodes;
+    midpoint_mom /= n_nodes;
+    midpoint_tot_ener /= n_nodes;
+
+    // Calculate midpoint speed of sound
+    const auto& r_prop = GetProperties();
+    const double c_v = r_prop.GetValue(SPECIFIC_HEAT);
+    const double gamma = r_prop.GetValue(HEAT_CAPACITY_RATIO);
+    const double temp = (midpoint_tot_ener / midpoint_rho - inner_prod(midpoint_mom, midpoint_mom) / (2 * std::pow(midpoint_rho, 2))) / c_v;
+    double midpoint_c = std::sqrt(gamma * (gamma - 1.0) * c_v * temp);
+    return midpoint_c;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointVelocityDivergence() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    double midpoint_rho = 0.0;
+    double midpoint_div_mom = 0.0;
+    array_1d<double,TDim> midpoint_mom = ZeroVector(TDim);
+    array_1d<double,TDim> midpoint_grad_rho = ZeroVector(TDim);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        midpoint_rho += r_rho;
+        for (int d1 = 0; d1 < TDim; ++d1) {
+            midpoint_mom[d1] += r_mom(d1);
+            midpoint_div_mom += node_dNdX(d1) * r_mom(d1);
+            midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
+        }
+    }
+    midpoint_rho /= n_nodes;
+    midpoint_mom /= n_nodes;
+
+    // Calculate velocity divergence
+    // Note that the formulation is written in conservative variables. Hence we do div(mom/rho).
+    double midpoint_div_v = (midpoint_rho * midpoint_div_mom - inner_prod(midpoint_mom, midpoint_grad_rho)) / std::pow(midpoint_rho, 2);
+    return midpoint_div_v;
 }
 
 template <>
-void CompressibleNavierStokesExplicit<2>::CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo)
+array_1d<double,3> CompressibleNavierStokesExplicit<2,3>::CalculateMidPointVelocityRotational() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    double midpoint_rho = 0.0;
+    double midpoint_dmy_dx = 0.0;
+    double midpoint_dmx_dy = 0.0;
+    double midpoint_rho_dx = 0.0;
+    double midpoint_rho_dy = 0.0;
+    array_1d<double,3> midpoint_mom = ZeroVector(3);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        midpoint_rho += r_rho;
+        midpoint_mom += r_mom;
+        midpoint_dmy_dx += r_mom[1] * node_dNdX[0];
+        midpoint_dmx_dy += r_mom[0] * node_dNdX[1];
+        midpoint_rho_dx += r_rho * node_dNdX[0];
+        midpoint_rho_dy += r_rho * node_dNdX[1];
+    }
+    midpoint_rho /= n_nodes;
+    midpoint_mom /= n_nodes;
+
+    // Calculate velocity rotational
+    // Note that the formulation is written in conservative variables. Hence we do rot(mom/rho).
+    const double dvy_dx = (midpoint_dmy_dx * midpoint_rho - midpoint_mom[1] * midpoint_rho_dx) / std::pow(midpoint_rho, 2);
+    const double dvx_dy = (midpoint_dmx_dy * midpoint_rho - midpoint_mom[0] * midpoint_rho_dy) / std::pow(midpoint_rho, 2);
+    array_1d<double,3> midpoint_rot_v;
+    midpoint_rot_v[0] = 0.0;
+    midpoint_rot_v[1] = 0.0;
+    midpoint_rot_v[2] = dvy_dx - dvx_dy;
+    return midpoint_rot_v;
+}
+
+template <>
+array_1d<double,3> CompressibleNavierStokesExplicit<3,4>::CalculateMidPointVelocityRotational() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    double midpoint_rho = 0.0;
+    double midpoint_dmx_dy = 0.0;
+    double midpoint_dmx_dz = 0.0;
+    double midpoint_dmy_dx = 0.0;
+    double midpoint_dmy_dz = 0.0;
+    double midpoint_dmz_dx = 0.0;
+    double midpoint_dmz_dy = 0.0;
+    double midpoint_rho_dx = 0.0;
+    double midpoint_rho_dy = 0.0;
+    double midpoint_rho_dz = 0.0;
+    array_1d<double,3> midpoint_mom = ZeroVector(3);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        midpoint_rho += r_rho;
+        midpoint_mom += r_mom;
+        midpoint_dmx_dy += r_mom[0] * node_dNdX[1];
+        midpoint_dmx_dz += r_mom[0] * node_dNdX[2];
+        midpoint_dmy_dx += r_mom[1] * node_dNdX[0];
+        midpoint_dmy_dz += r_mom[1] * node_dNdX[2];
+        midpoint_dmz_dx += r_mom[2] * node_dNdX[0];
+        midpoint_dmz_dy += r_mom[2] * node_dNdX[1];
+        midpoint_rho_dx += r_rho * node_dNdX[0];
+        midpoint_rho_dy += r_rho * node_dNdX[1];
+        midpoint_rho_dz += r_rho * node_dNdX[2];
+    }
+    midpoint_rho /= n_nodes;
+    midpoint_mom /= n_nodes;
+
+    // Calculate velocity rotational
+    // Note that the formulation is written in conservative variables. Hence we do rot(mom/rho).
+    const double rho_pow = std::pow(midpoint_rho, 2);
+    const double dvz_dy = (midpoint_dmz_dy * midpoint_rho - midpoint_mom[2] * midpoint_rho_dy) / rho_pow;
+    const double dvy_dz = (midpoint_dmy_dz * midpoint_rho - midpoint_mom[1] * midpoint_rho_dz) / rho_pow;
+    const double dvx_dz = (midpoint_dmx_dz * midpoint_rho - midpoint_mom[0] * midpoint_rho_dz) / rho_pow;
+    const double dvz_dx = (midpoint_dmz_dx * midpoint_rho - midpoint_mom[2] * midpoint_rho_dx) / rho_pow;
+    const double dvy_dx = (midpoint_dmy_dx * midpoint_rho - midpoint_mom[1] * midpoint_rho_dx) / rho_pow;
+    const double dvx_dy = (midpoint_dmx_dy * midpoint_rho - midpoint_mom[0] * midpoint_rho_dy) / rho_pow;
+    array_1d<double,3> midpoint_rot_v;
+    midpoint_rot_v[0] = dvz_dy - dvy_dz;
+    midpoint_rot_v[1] = dvx_dz - dvz_dx;
+    midpoint_rot_v[2] = dvy_dx - dvx_dy;
+    return midpoint_rot_v;
+}
+
+template <>
+BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 3>::CalculateMidPointVelocityGradient() const
+{
+    KRATOS_TRY
+
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    double midpoint_rho = 0.0;
+    double midpoint_dmx_dx = 0.0;
+    double midpoint_dmx_dy = 0.0;
+    double midpoint_dmy_dx = 0.0;
+    double midpoint_dmy_dy = 0.0;
+    double midpoint_rho_dx = 0.0;
+    double midpoint_rho_dy = 0.0;
+    array_1d<double,3> midpoint_mom = ZeroVector(3);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        midpoint_rho += r_rho;
+        midpoint_mom += r_mom;
+        midpoint_dmx_dx += r_mom[0] * node_dNdX[0];
+        midpoint_dmx_dy += r_mom[0] * node_dNdX[1];
+        midpoint_dmy_dx += r_mom[1] * node_dNdX[0];
+        midpoint_dmy_dy += r_mom[1] * node_dNdX[1];
+        midpoint_rho_dx += r_rho * node_dNdX[0];
+        midpoint_rho_dy += r_rho * node_dNdX[1];
+    }
+    midpoint_rho /= n_nodes;
+    midpoint_mom /= n_nodes;
+
+    // Calculate velocity gradient
+    // Note that the formulation is written in conservative variables. Hence we do grad(mom/rho).
+    BoundedMatrix<double, 3, 3> midpoint_grad_v = ZeroMatrix(3, 3);
+    midpoint_grad_v(0,0) = (midpoint_dmx_dx * midpoint_rho - midpoint_mom[0] * midpoint_rho_dx);
+    midpoint_grad_v(0,1) = (midpoint_dmx_dy * midpoint_rho - midpoint_mom[0] * midpoint_rho_dy);
+    midpoint_grad_v(1,0) = (midpoint_dmy_dx * midpoint_rho - midpoint_mom[1] * midpoint_rho_dx);
+    midpoint_grad_v(1,1) = (midpoint_dmy_dy * midpoint_rho - midpoint_mom[1] * midpoint_rho_dy);
+    midpoint_grad_v /= std::pow(midpoint_rho, 2);
+
+    return midpoint_grad_v;
+
+    KRATOS_CATCH("")
+}
+
+template <>
+BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<3, 4>::CalculateMidPointVelocityGradient() const
+{
+    KRATOS_TRY
+
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    double midpoint_rho = 0.0;
+    double midpoint_dmx_dx = 0.0;
+    double midpoint_dmx_dy = 0.0;
+    double midpoint_dmx_dz = 0.0;
+    double midpoint_dmy_dx = 0.0;
+    double midpoint_dmy_dy = 0.0;
+    double midpoint_dmy_dz = 0.0;
+    double midpoint_dmz_dx = 0.0;
+    double midpoint_dmz_dy = 0.0;
+    double midpoint_dmz_dz = 0.0;
+    double midpoint_rho_dx = 0.0;
+    double midpoint_rho_dy = 0.0;
+    double midpoint_rho_dz = 0.0;
+    array_1d<double,3> midpoint_mom = ZeroVector(3);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        midpoint_rho += r_rho;
+        midpoint_mom += r_mom;
+        midpoint_dmx_dx += r_mom[0] * node_dNdX[0];
+        midpoint_dmx_dy += r_mom[0] * node_dNdX[1];
+        midpoint_dmx_dz += r_mom[0] * node_dNdX[2];
+        midpoint_dmy_dx += r_mom[1] * node_dNdX[0];
+        midpoint_dmy_dy += r_mom[1] * node_dNdX[1];
+        midpoint_dmy_dz += r_mom[1] * node_dNdX[2];
+        midpoint_dmz_dx += r_mom[2] * node_dNdX[0];
+        midpoint_dmz_dy += r_mom[2] * node_dNdX[1];
+        midpoint_dmz_dz += r_mom[2] * node_dNdX[2];
+        midpoint_rho_dx += r_rho * node_dNdX[0];
+        midpoint_rho_dy += r_rho * node_dNdX[1];
+        midpoint_rho_dz += r_rho * node_dNdX[2];
+    }
+    midpoint_rho /= n_nodes;
+    midpoint_mom /= n_nodes;
+
+    // Calculate velocity gradient
+    // Note that the formulation is written in conservative variables. Hence we do grad(mom/rho).
+    BoundedMatrix<double, 3, 3> midpoint_grad_v;
+    midpoint_grad_v(0,0) = (midpoint_dmx_dx * midpoint_rho - midpoint_mom[0] * midpoint_rho_dx);
+    midpoint_grad_v(0,1) = (midpoint_dmx_dy * midpoint_rho - midpoint_mom[0] * midpoint_rho_dy);
+    midpoint_grad_v(0,2) = (midpoint_dmx_dz * midpoint_rho - midpoint_mom[0] * midpoint_rho_dz);
+    midpoint_grad_v(1,0) = (midpoint_dmy_dx * midpoint_rho - midpoint_mom[1] * midpoint_rho_dx);
+    midpoint_grad_v(1,1) = (midpoint_dmy_dy * midpoint_rho - midpoint_mom[1] * midpoint_rho_dy);
+    midpoint_grad_v(1,2) = (midpoint_dmy_dz * midpoint_rho - midpoint_mom[1] * midpoint_rho_dz);
+    midpoint_grad_v(2,0) = (midpoint_dmz_dx * midpoint_rho - midpoint_mom[2] * midpoint_rho_dx);
+    midpoint_grad_v(2,1) = (midpoint_dmz_dy * midpoint_rho - midpoint_mom[2] * midpoint_rho_dy);
+    midpoint_grad_v(2,2) = (midpoint_dmz_dz * midpoint_rho - midpoint_mom[2] * midpoint_rho_dz);
+    midpoint_grad_v /= std::pow(midpoint_rho, 2);
+
+    return midpoint_grad_v;
+
+    KRATOS_CATCH("")
+}
+
+template <>
+void CompressibleNavierStokesExplicit<2,3>::CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -408,7 +802,6 @@ void CompressibleNavierStokesExplicit<2>::CalculateMomentumProjection(const Proc
 
     // Substitute the formulation symbols by the data structure values
     const BoundedMatrix<double, n_nodes, 2> &f_ext = data.f_ext;
-    const double c_v = data.c_v;
     const double gamma = data.gamma;
 
     // Solution vector values and time derivatives from nodal data
@@ -427,18 +820,12 @@ void CompressibleNavierStokesExplicit<2>::CalculateMomentumProjection(const Proc
     const double &U_2_2 = data.U(2, 2);
     const double &U_2_3 = data.U(2, 3);
 
-    const double &dUdt_0_0 = data.dUdt(0, 0);
     const double &dUdt_0_1 = data.dUdt(0, 1);
     const double &dUdt_0_2 = data.dUdt(0, 2);
-    const double &dUdt_0_3 = data.dUdt(0, 3);
-    const double &dUdt_1_0 = data.dUdt(1, 0);
     const double &dUdt_1_1 = data.dUdt(1, 1);
     const double &dUdt_1_2 = data.dUdt(1, 2);
-    const double &dUdt_1_3 = data.dUdt(1, 3);
-    const double &dUdt_2_0 = data.dUdt(2, 0);
     const double &dUdt_2_1 = data.dUdt(2, 1);
     const double &dUdt_2_2 = data.dUdt(2, 2);
-    const double &dUdt_2_3 = data.dUdt(2, 3);
 
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
@@ -472,7 +859,7 @@ void CompressibleNavierStokesExplicit<2>::CalculateMomentumProjection(const Proc
 }
 
 template <>
-void CompressibleNavierStokesExplicit<3>::CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<3,4>::CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -485,7 +872,6 @@ void CompressibleNavierStokesExplicit<3>::CalculateMomentumProjection(const Proc
 
     // Substitute the formulation symbols by the data structure values
     const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
-    const double c_v = data.c_v;
     const double gamma = data.gamma;
 
     // Solution vector values and time derivatives from nodal data
@@ -512,26 +898,18 @@ void CompressibleNavierStokesExplicit<3>::CalculateMomentumProjection(const Proc
     const double &U_3_3 = data.U(3, 3);
     const double &U_3_4 = data.U(3, 4);
 
-    const double &dUdt_0_0 = data.dUdt(0, 0);
     const double &dUdt_0_1 = data.dUdt(0, 1);
     const double &dUdt_0_2 = data.dUdt(0, 2);
     const double &dUdt_0_3 = data.dUdt(0, 3);
-    const double &dUdt_0_4 = data.dUdt(0, 4);
-    const double &dUdt_1_0 = data.dUdt(1, 0);
     const double &dUdt_1_1 = data.dUdt(1, 1);
     const double &dUdt_1_2 = data.dUdt(1, 2);
     const double &dUdt_1_3 = data.dUdt(1, 3);
-    const double &dUdt_1_4 = data.dUdt(1, 4);
-    const double &dUdt_2_0 = data.dUdt(2, 0);
     const double &dUdt_2_1 = data.dUdt(2, 1);
     const double &dUdt_2_2 = data.dUdt(2, 2);
     const double &dUdt_2_3 = data.dUdt(2, 3);
-    const double &dUdt_2_4 = data.dUdt(2, 4);
-    const double &dUdt_3_0 = data.dUdt(3, 0);
     const double &dUdt_3_1 = data.dUdt(3, 1);
     const double &dUdt_3_2 = data.dUdt(3, 2);
     const double &dUdt_3_3 = data.dUdt(3, 3);
-    const double &dUdt_3_4 = data.dUdt(3, 4);
 
     // Hardcoded shape functions gradients for linear tetrahedra element
     // This is explicitly done to minimize the matrix acceses
@@ -571,7 +949,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateMomentumProjection(const Proc
 }
 
 template <>
-void CompressibleNavierStokesExplicit<2>::CalculateDensityProjection(const ProcessInfo& rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<2,3>::CalculateDensityProjection(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -582,42 +960,21 @@ void CompressibleNavierStokesExplicit<2>::CalculateDensityProjection(const Proce
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const double h = data.h;
-    const array_1d<double, n_nodes> &r_ext = data.r_ext;
-    const BoundedMatrix<double, n_nodes, 2> &f_ext = data.f_ext;
-    const double mu = data.mu;
-    const double lambda = data.lambda;
-    const double c_v = data.c_v;
-    const double gamma = data.gamma;
+    const array_1d<double, n_nodes> &m_ext = data.m_ext;
 
     // Solution vector values and time derivatives from nodal data
     // This is intentionally done in this way to limit the matrix acceses
     // The notation U_i_j DOF j value in node i
-    const double &U_0_0 = data.U(0, 0);
     const double &U_0_1 = data.U(0, 1);
     const double &U_0_2 = data.U(0, 2);
-    const double &U_0_3 = data.U(0, 3);
-    const double &U_1_0 = data.U(1, 0);
     const double &U_1_1 = data.U(1, 1);
     const double &U_1_2 = data.U(1, 2);
-    const double &U_1_3 = data.U(1, 3);
-    const double &U_2_0 = data.U(2, 0);
     const double &U_2_1 = data.U(2, 1);
     const double &U_2_2 = data.U(2, 2);
-    const double &U_2_3 = data.U(2, 3);
 
     const double &dUdt_0_0 = data.dUdt(0, 0);
-    const double &dUdt_0_1 = data.dUdt(0, 1);
-    const double &dUdt_0_2 = data.dUdt(0, 2);
-    const double &dUdt_0_3 = data.dUdt(0, 3);
     const double &dUdt_1_0 = data.dUdt(1, 0);
-    const double &dUdt_1_1 = data.dUdt(1, 1);
-    const double &dUdt_1_2 = data.dUdt(1, 2);
-    const double &dUdt_1_3 = data.dUdt(1, 3);
     const double &dUdt_2_0 = data.dUdt(2, 0);
-    const double &dUdt_2_1 = data.dUdt(2, 1);
-    const double &dUdt_2_2 = data.dUdt(2, 2);
-    const double &dUdt_2_3 = data.dUdt(2, 3);
 
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
@@ -647,11 +1004,10 @@ void CompressibleNavierStokesExplicit<2>::CalculateDensityProjection(const Proce
 }
 
 template <>
-void CompressibleNavierStokesExplicit<3>::CalculateDensityProjection(const ProcessInfo& rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<3,4>::CalculateDensityProjection(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    constexpr unsigned int dim = 3;
     constexpr unsigned int n_nodes = 4;
 
     // Struct to pass around the data
@@ -659,58 +1015,28 @@ void CompressibleNavierStokesExplicit<3>::CalculateDensityProjection(const Proce
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const double h = data.h;
-    const array_1d<double, n_nodes> &r_ext = data.r_ext;
-    const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
-    const double mu = data.mu;
-    const double lambda = data.lambda;
-    const double c_v = data.c_v;
-    const double gamma = data.gamma;
+    const array_1d<double, n_nodes> &m_ext = data.m_ext;
 
     // Solution vector values and time derivatives from nodal data
     // This is intentionally done in this way to limit the matrix acceses
     // The notation U_i_j DOF j value in node i
-    const double &U_0_0 = data.U(0, 0);
     const double &U_0_1 = data.U(0, 1);
     const double &U_0_2 = data.U(0, 2);
     const double &U_0_3 = data.U(0, 3);
-    const double &U_0_4 = data.U(0, 4);
-    const double &U_1_0 = data.U(1, 0);
     const double &U_1_1 = data.U(1, 1);
     const double &U_1_2 = data.U(1, 2);
     const double &U_1_3 = data.U(1, 3);
-    const double &U_1_4 = data.U(1, 4);
-    const double &U_2_0 = data.U(2, 0);
     const double &U_2_1 = data.U(2, 1);
     const double &U_2_2 = data.U(2, 2);
     const double &U_2_3 = data.U(2, 3);
-    const double &U_2_4 = data.U(2, 4);
-    const double &U_3_0 = data.U(3, 0);
     const double &U_3_1 = data.U(3, 1);
     const double &U_3_2 = data.U(3, 2);
     const double &U_3_3 = data.U(3, 3);
-    const double &U_3_4 = data.U(3, 4);
 
     const double &dUdt_0_0 = data.dUdt(0, 0);
-    const double &dUdt_0_1 = data.dUdt(0, 1);
-    const double &dUdt_0_2 = data.dUdt(0, 2);
-    const double &dUdt_0_3 = data.dUdt(0, 3);
-    const double &dUdt_0_4 = data.dUdt(0, 4);
     const double &dUdt_1_0 = data.dUdt(1, 0);
-    const double &dUdt_1_1 = data.dUdt(1, 1);
-    const double &dUdt_1_2 = data.dUdt(1, 2);
-    const double &dUdt_1_3 = data.dUdt(1, 3);
-    const double &dUdt_1_4 = data.dUdt(1, 4);
     const double &dUdt_2_0 = data.dUdt(2, 0);
-    const double &dUdt_2_1 = data.dUdt(2, 1);
-    const double &dUdt_2_2 = data.dUdt(2, 2);
-    const double &dUdt_2_3 = data.dUdt(2, 3);
-    const double &dUdt_2_4 = data.dUdt(2, 4);
     const double &dUdt_3_0 = data.dUdt(3, 0);
-    const double &dUdt_3_1 = data.dUdt(3, 1);
-    const double &dUdt_3_2 = data.dUdt(3, 2);
-    const double &dUdt_3_3 = data.dUdt(3, 3);
-    const double &dUdt_3_4 = data.dUdt(3, 4);
 
     // Hardcoded shape functions gradients for linear tetrahedra element
     // This is explicitly done to minimize the matrix acceses
@@ -746,7 +1072,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateDensityProjection(const Proce
 }
 
 template <>
-void CompressibleNavierStokesExplicit<2>::CalculateTotalEnergyProjection(const ProcessInfo& rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<2,3>::CalculateTotalEnergyProjection(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -757,12 +1083,8 @@ void CompressibleNavierStokesExplicit<2>::CalculateTotalEnergyProjection(const P
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const double h = data.h;
     const array_1d<double, n_nodes> &r_ext = data.r_ext;
     const BoundedMatrix<double, n_nodes, 2> &f_ext = data.f_ext;
-    const double mu = data.mu;
-    const double lambda = data.lambda;
-    const double c_v = data.c_v;
     const double gamma = data.gamma;
 
     // Solution vector values and time derivatives from nodal data
@@ -781,17 +1103,8 @@ void CompressibleNavierStokesExplicit<2>::CalculateTotalEnergyProjection(const P
     const double &U_2_2 = data.U(2, 2);
     const double &U_2_3 = data.U(2, 3);
 
-    const double &dUdt_0_0 = data.dUdt(0, 0);
-    const double &dUdt_0_1 = data.dUdt(0, 1);
-    const double &dUdt_0_2 = data.dUdt(0, 2);
     const double &dUdt_0_3 = data.dUdt(0, 3);
-    const double &dUdt_1_0 = data.dUdt(1, 0);
-    const double &dUdt_1_1 = data.dUdt(1, 1);
-    const double &dUdt_1_2 = data.dUdt(1, 2);
     const double &dUdt_1_3 = data.dUdt(1, 3);
-    const double &dUdt_2_0 = data.dUdt(2, 0);
-    const double &dUdt_2_1 = data.dUdt(2, 1);
-    const double &dUdt_2_2 = data.dUdt(2, 2);
     const double &dUdt_2_3 = data.dUdt(2, 3);
 
     // Hardcoded shape functions gradients for linear triangular element
@@ -822,7 +1135,7 @@ void CompressibleNavierStokesExplicit<2>::CalculateTotalEnergyProjection(const P
 }
 
 template <>
-void CompressibleNavierStokesExplicit<3>::CalculateTotalEnergyProjection(const ProcessInfo& rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<3,4>::CalculateTotalEnergyProjection(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -833,12 +1146,8 @@ void CompressibleNavierStokesExplicit<3>::CalculateTotalEnergyProjection(const P
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const double h = data.h;
     const array_1d<double, n_nodes> &r_ext = data.r_ext;
     const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
-    const double mu = data.mu;
-    const double lambda = data.lambda;
-    const double c_v = data.c_v;
     const double gamma = data.gamma;
 
     // Solution vector values and time derivatives from nodal data
@@ -865,25 +1174,9 @@ void CompressibleNavierStokesExplicit<3>::CalculateTotalEnergyProjection(const P
     const double &U_3_3 = data.U(3, 3);
     const double &U_3_4 = data.U(3, 4);
 
-    const double &dUdt_0_0 = data.dUdt(0, 0);
-    const double &dUdt_0_1 = data.dUdt(0, 1);
-    const double &dUdt_0_2 = data.dUdt(0, 2);
-    const double &dUdt_0_3 = data.dUdt(0, 3);
     const double &dUdt_0_4 = data.dUdt(0, 4);
-    const double &dUdt_1_0 = data.dUdt(1, 0);
-    const double &dUdt_1_1 = data.dUdt(1, 1);
-    const double &dUdt_1_2 = data.dUdt(1, 2);
-    const double &dUdt_1_3 = data.dUdt(1, 3);
     const double &dUdt_1_4 = data.dUdt(1, 4);
-    const double &dUdt_2_0 = data.dUdt(2, 0);
-    const double &dUdt_2_1 = data.dUdt(2, 1);
-    const double &dUdt_2_2 = data.dUdt(2, 2);
-    const double &dUdt_2_3 = data.dUdt(2, 3);
     const double &dUdt_2_4 = data.dUdt(2, 4);
-    const double &dUdt_3_0 = data.dUdt(3, 0);
-    const double &dUdt_3_1 = data.dUdt(3, 1);
-    const double &dUdt_3_2 = data.dUdt(3, 2);
-    const double &dUdt_3_3 = data.dUdt(3, 3);
     const double &dUdt_3_4 = data.dUdt(3, 4);
 
     // Hardcoded shape functions gradients for linear tetrahedra element
@@ -920,7 +1213,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateTotalEnergyProjection(const P
 }
 
 template <>
-void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
+void CompressibleNavierStokesExplicit<2,3>::CalculateRightHandSideInternal(
     BoundedVector<double, 12> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -934,12 +1227,16 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
 
     // Substitute the formulation symbols by the data structure values
     const double h = data.h;
-    const array_1d<double, n_nodes> &r_ext = data.r_ext;
-    const BoundedMatrix<double, n_nodes, 2> &f_ext = data.f_ext;
+    const array_1d<double, n_nodes>& r_ext = data.r_ext;
+    const array_1d<double, n_nodes>& m_ext = data.m_ext;
+    const array_1d<double, n_nodes>& mu_sc_nodes = data.mu_sc_nodes;
+    const array_1d<double, n_nodes>& beta_sc_nodes = data.beta_sc_nodes;
+    const array_1d<double, n_nodes>& lamb_sc_nodes = data.lamb_sc_nodes;
+    const BoundedMatrix<double, n_nodes, 2>& f_ext = data.f_ext;
     const double mu = data.mu;
-    const double lambda = data.lambda;
     const double c_v = data.c_v;
     const double gamma = data.gamma;
+    const double lambda = data.lambda;
 
     // Stabilization parameters
     const double stab_c1 = 12.0;
@@ -949,104 +1246,56 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
     // Solution vector values and time derivatives from nodal data
     // This is intentionally done in this way to limit the matrix acceses
     // The notation U_i_j DOF j value in node i
-    const double &U_0_0 = data.U(0, 0);
-    const double &U_0_1 = data.U(0, 1);
-    const double &U_0_2 = data.U(0, 2);
-    const double &U_0_3 = data.U(0, 3);
-    const double &U_1_0 = data.U(1, 0);
-    const double &U_1_1 = data.U(1, 1);
-    const double &U_1_2 = data.U(1, 2);
-    const double &U_1_3 = data.U(1, 3);
-    const double &U_2_0 = data.U(2, 0);
-    const double &U_2_1 = data.U(2, 1);
-    const double &U_2_2 = data.U(2, 2);
-    const double &U_2_3 = data.U(2, 3);
+    const double& U_0_0 = data.U(0, 0);
+    const double& U_0_1 = data.U(0, 1);
+    const double& U_0_2 = data.U(0, 2);
+    const double& U_0_3 = data.U(0, 3);
+    const double& U_1_0 = data.U(1, 0);
+    const double& U_1_1 = data.U(1, 1);
+    const double& U_1_2 = data.U(1, 2);
+    const double& U_1_3 = data.U(1, 3);
+    const double& U_2_0 = data.U(2, 0);
+    const double& U_2_1 = data.U(2, 1);
+    const double& U_2_2 = data.U(2, 2);
+    const double& U_2_3 = data.U(2, 3);
 
-    const double &dUdt_0_0 = data.dUdt(0, 0);
-    const double &dUdt_0_1 = data.dUdt(0, 1);
-    const double &dUdt_0_2 = data.dUdt(0, 2);
-    const double &dUdt_0_3 = data.dUdt(0, 3);
-    const double &dUdt_1_0 = data.dUdt(1, 0);
-    const double &dUdt_1_1 = data.dUdt(1, 1);
-    const double &dUdt_1_2 = data.dUdt(1, 2);
-    const double &dUdt_1_3 = data.dUdt(1, 3);
-    const double &dUdt_2_0 = data.dUdt(2, 0);
-    const double &dUdt_2_1 = data.dUdt(2, 1);
-    const double &dUdt_2_2 = data.dUdt(2, 2);
-    const double &dUdt_2_3 = data.dUdt(2, 3);
-
-    // Shock capturing parameters
-    double nu_sc = 0.0;
-    double nu_st = 0.0;
-    double k_sc = 0.0;
-    double k_st = 0.0;
-    double lin_m_norm = 1.0; // This is intentionally set to a non-zero number to avoid dividing by zero
-    array_1d<double, 2> lin_m = ZeroVector(2);
-    if (data.ShockCapturing) {
-        nu_sc = data.nu_sc;
-        k_sc = data.lambda_sc;
-
-        const double rho_avg = (U_0_0 + U_1_0 + U_2_0) / 3.0;
-        array_1d<double, 2> v_avg;
-        v_avg[0] = (U_0_1 / U_0_0 + U_1_1 / U_1_0 + U_2_1 / U_2_0) / 3.0;
-        v_avg[1] = (U_0_2 / U_0_0 + U_1_2 / U_1_0 + U_2_2 / U_2_0) / 3.0;
-        const double v_avg_norm = norm_2(v_avg);
-        const double tot_ener_avg = (U_0_3 + U_1_3 + U_2_3) / 3.0;
-        const double c_avg = gamma * (gamma - 1.0) * ((tot_ener_avg / rho_avg) - 0.5 * std::pow(v_avg_norm, 2));
-
-        // Source terms midpoint values
-        double r_ext_avg = 0.0;
-        array_1d<double, 2> f_ext_avg = ZeroVector(2);
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            f_ext_avg[0] += f_ext(i_node, 0);
-            f_ext_avg[1] += f_ext(i_node, 1);
-            r_ext_avg += r_ext[i_node];
-        }
-        f_ext_avg /= n_nodes;
-        r_ext_avg /= n_nodes;
-        const double f_ext_avg_norm = norm_2(f_ext_avg);
-
-        const double alpha = lambda / (rho_avg * gamma * c_v);
-        const double aux_1 = std::pow(r_ext_avg, 2) + 2.0 * std::pow(c_avg, 2) * std::pow(f_ext_avg_norm, 2) + std::sqrt(std::pow(r_ext_avg, 4) + 4.0 * std::pow(c_avg, 2) * std::pow(f_ext_avg_norm, 2) * std::pow(r_ext_avg, 2));
-        const double aux_2 = 2.0 * std::pow(c_avg, 4);
-        const double tau_rho = (stab_c2 * (v_avg_norm + c_avg)/ h) + (stab_c3 * std::sqrt(aux_1 / aux_2));
-        const double tau_m_avg = 1.0 / ((4.0 * stab_c1 * mu / 3.0 / rho_avg / std::pow(h, 2)) + tau_rho);
-        const double tau_et_avg = 1.0 / ((stab_c1 * alpha / std::pow(h, 2)) + tau_rho);
-
-        nu_st = std::max(0.0, nu_sc - tau_m_avg * std::pow(v_avg_norm, 2));
-        k_st = std::max(0.0, k_sc - tau_et_avg * std::pow(v_avg_norm, 2));
-
-        lin_m[0] = (U_0_1 + U_1_1 + U_2_1) / 3.0;
-        lin_m[1] = (U_0_2 + U_1_2 + U_2_2) / 3.0;
-        const double zero_tol = 1.0e-12;
-        const double aux = norm_2(lin_m);
-        lin_m_norm = aux > zero_tol ? aux : 1.0;
-    }
+    const double& dUdt_0_0 = data.dUdt(0, 0);
+    const double& dUdt_0_1 = data.dUdt(0, 1);
+    const double& dUdt_0_2 = data.dUdt(0, 2);
+    const double& dUdt_0_3 = data.dUdt(0, 3);
+    const double& dUdt_1_0 = data.dUdt(1, 0);
+    const double& dUdt_1_1 = data.dUdt(1, 1);
+    const double& dUdt_1_2 = data.dUdt(1, 2);
+    const double& dUdt_1_3 = data.dUdt(1, 3);
+    const double& dUdt_2_0 = data.dUdt(2, 0);
+    const double& dUdt_2_1 = data.dUdt(2, 1);
+    const double& dUdt_2_2 = data.dUdt(2, 2);
+    const double& dUdt_2_3 = data.dUdt(2, 3);
 
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
+    const double& DN_DX_0_0 = data.DN_DX(0, 0);
+    const double& DN_DX_0_1 = data.DN_DX(0, 1);
+    const double& DN_DX_1_0 = data.DN_DX(1, 0);
+    const double& DN_DX_1_1 = data.DN_DX(1, 1);
+    const double& DN_DX_2_0 = data.DN_DX(2, 0);
+    const double& DN_DX_2_1 = data.DN_DX(2, 1);
 
     if (data.UseOSS) {
         // Projections container accesses
-        const double &ResProj_0_0 = data.ResProj(0, 0);
-        const double &ResProj_0_1 = data.ResProj(0, 1);
-        const double &ResProj_0_2 = data.ResProj(0, 2);
-        const double &ResProj_0_3 = data.ResProj(0, 3);
-        const double &ResProj_1_0 = data.ResProj(1, 0);
-        const double &ResProj_1_1 = data.ResProj(1, 1);
-        const double &ResProj_1_2 = data.ResProj(1, 2);
-        const double &ResProj_1_3 = data.ResProj(1, 3);
-        const double &ResProj_2_0 = data.ResProj(2, 0);
-        const double &ResProj_2_1 = data.ResProj(2, 1);
-        const double &ResProj_2_2 = data.ResProj(2, 2);
-        const double &ResProj_2_3 = data.ResProj(2, 3);
+        const double& ResProj_0_0 = data.ResProj(0, 0);
+        const double& ResProj_0_1 = data.ResProj(0, 1);
+        const double& ResProj_0_2 = data.ResProj(0, 2);
+        const double& ResProj_0_3 = data.ResProj(0, 3);
+        const double& ResProj_1_0 = data.ResProj(1, 0);
+        const double& ResProj_1_1 = data.ResProj(1, 1);
+        const double& ResProj_1_2 = data.ResProj(1, 2);
+        const double& ResProj_1_3 = data.ResProj(1, 3);
+        const double& ResProj_2_0 = data.ResProj(2, 0);
+        const double& ResProj_2_1 = data.ResProj(2, 1);
+        const double& ResProj_2_2 = data.ResProj(2, 2);
+        const double& ResProj_2_3 = data.ResProj(2, 3);
 
         //substitute_rhs_2D_OSS
     } else {
@@ -1060,7 +1309,7 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
 }
 
 template<>
-void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
+void CompressibleNavierStokesExplicit<3,4>::CalculateRightHandSideInternal(
     BoundedVector<double, 20> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -1074,12 +1323,16 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
 
     // Substitute the formulation symbols by the data structure values
     const double h = data.h;
-    const array_1d<double, n_nodes> &r_ext = data.r_ext;
-    const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
+    const array_1d<double, n_nodes>& r_ext = data.r_ext;
+    const array_1d<double, n_nodes>& m_ext = data.m_ext;
+    const array_1d<double, n_nodes>& mu_sc_nodes = data.mu_sc_nodes;
+    const array_1d<double, n_nodes>& beta_sc_nodes = data.beta_sc_nodes;
+    const array_1d<double, n_nodes>& lamb_sc_nodes = data.lamb_sc_nodes;
+    const BoundedMatrix<double, n_nodes, 3>& f_ext = data.f_ext;
     const double mu = data.mu;
-    const double lambda = data.lambda;
     const double c_v = data.c_v;
     const double gamma = data.gamma;
+    const double lambda = data.lambda;
 
     // Stabilization parameters
     const double stab_c1 = 12.0;
@@ -1089,137 +1342,86 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
     // Solution vector values and time derivatives from nodal data
     // This is intentionally done in this way to limit the matrix acceses
     // The notation U_i_j DOF j value in node i
-    const double &U_0_0 = data.U(0, 0);
-    const double &U_0_1 = data.U(0, 1);
-    const double &U_0_2 = data.U(0, 2);
-    const double &U_0_3 = data.U(0, 3);
-    const double &U_0_4 = data.U(0, 4);
-    const double &U_1_0 = data.U(1, 0);
-    const double &U_1_1 = data.U(1, 1);
-    const double &U_1_2 = data.U(1, 2);
-    const double &U_1_3 = data.U(1, 3);
-    const double &U_1_4 = data.U(1, 4);
-    const double &U_2_0 = data.U(2, 0);
-    const double &U_2_1 = data.U(2, 1);
-    const double &U_2_2 = data.U(2, 2);
-    const double &U_2_3 = data.U(2, 3);
-    const double &U_2_4 = data.U(2, 4);
-    const double &U_3_0 = data.U(3, 0);
-    const double &U_3_1 = data.U(3, 1);
-    const double &U_3_2 = data.U(3, 2);
-    const double &U_3_3 = data.U(3, 3);
-    const double &U_3_4 = data.U(3, 4);
+    const double& U_0_0 = data.U(0, 0);
+    const double& U_0_1 = data.U(0, 1);
+    const double& U_0_2 = data.U(0, 2);
+    const double& U_0_3 = data.U(0, 3);
+    const double& U_0_4 = data.U(0, 4);
+    const double& U_1_0 = data.U(1, 0);
+    const double& U_1_1 = data.U(1, 1);
+    const double& U_1_2 = data.U(1, 2);
+    const double& U_1_3 = data.U(1, 3);
+    const double& U_1_4 = data.U(1, 4);
+    const double& U_2_0 = data.U(2, 0);
+    const double& U_2_1 = data.U(2, 1);
+    const double& U_2_2 = data.U(2, 2);
+    const double& U_2_3 = data.U(2, 3);
+    const double& U_2_4 = data.U(2, 4);
+    const double& U_3_0 = data.U(3, 0);
+    const double& U_3_1 = data.U(3, 1);
+    const double& U_3_2 = data.U(3, 2);
+    const double& U_3_3 = data.U(3, 3);
+    const double& U_3_4 = data.U(3, 4);
 
-    const double &dUdt_0_0 = data.dUdt(0, 0);
-    const double &dUdt_0_1 = data.dUdt(0, 1);
-    const double &dUdt_0_2 = data.dUdt(0, 2);
-    const double &dUdt_0_3 = data.dUdt(0, 3);
-    const double &dUdt_0_4 = data.dUdt(0, 4);
-    const double &dUdt_1_0 = data.dUdt(1, 0);
-    const double &dUdt_1_1 = data.dUdt(1, 1);
-    const double &dUdt_1_2 = data.dUdt(1, 2);
-    const double &dUdt_1_3 = data.dUdt(1, 3);
-    const double &dUdt_1_4 = data.dUdt(1, 4);
-    const double &dUdt_2_0 = data.dUdt(2, 0);
-    const double &dUdt_2_1 = data.dUdt(2, 1);
-    const double &dUdt_2_2 = data.dUdt(2, 2);
-    const double &dUdt_2_3 = data.dUdt(2, 3);
-    const double &dUdt_2_4 = data.dUdt(2, 4);
-    const double &dUdt_3_0 = data.dUdt(3, 0);
-    const double &dUdt_3_1 = data.dUdt(3, 1);
-    const double &dUdt_3_2 = data.dUdt(3, 2);
-    const double &dUdt_3_3 = data.dUdt(3, 3);
-    const double &dUdt_3_4 = data.dUdt(3, 4);
-
-    // Shock capturing parameters
-    double nu_sc = 0.0;
-    double nu_st = 0.0;
-    double k_sc = 0.0;
-    double k_st = 0.0;
-    double lin_m_norm = 1.0; // This is intentionally set to a non-zero number to avoid dividing by zero
-    array_1d<double, 3> lin_m = ZeroVector(3);
-    if (data.ShockCapturing) {
-        nu_sc = data.nu_sc;
-        k_sc = data.lambda_sc;
-
-        const double rho_avg = (U_0_0 + U_1_0 + U_2_0 + U_3_0) / 4.0;
-        array_1d<double, 3> v_avg;
-        v_avg[0] = (U_0_1 / U_0_0 + U_1_1 / U_1_0 + U_2_1 / U_2_0 + U_3_1 / U_3_0 ) / 4.0;
-        v_avg[1] = (U_0_2 / U_0_0 + U_1_2 / U_1_0 + U_2_2 / U_2_0 + U_3_2 / U_3_0 ) / 4.0;
-        v_avg[2] = (U_0_3 / U_0_0 + U_1_3 / U_1_0 + U_2_3 / U_2_0 + U_3_3 / U_3_0 ) / 4.0;
-        const double v_avg_norm = norm_2(v_avg);
-        const double tot_ener_avg = (U_0_4 + U_1_4 + U_2_4 + U_3_4) / 4.0;
-        const double c_avg = gamma * (gamma - 1.0) * ((tot_ener_avg / rho_avg) - 0.5 * std::pow(v_avg_norm, 2));
-
-        // Source terms midpoint values
-        double r_ext_avg = 0.0;
-        array_1d<double, 3> f_ext_avg = ZeroVector(3);
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            f_ext_avg[0] += f_ext(i_node, 0);
-            f_ext_avg[1] += f_ext(i_node, 1);
-            f_ext_avg[2] += f_ext(i_node, 2);
-            r_ext_avg += r_ext[i_node];
-        }
-        f_ext_avg /= n_nodes;
-        r_ext_avg /= n_nodes;
-        const double f_ext_avg_norm = norm_2(f_ext_avg);
-
-        const double alpha = lambda / (rho_avg * gamma * c_v);
-        const double aux_1 = std::pow(r_ext_avg, 2) + 2.0 * std::pow(c_avg, 2) * std::pow(f_ext_avg_norm, 2) + std::sqrt(std::pow(r_ext_avg, 4) + 4.0 * std::pow(c_avg, 2) * std::pow(f_ext_avg_norm, 2) * std::pow(r_ext_avg, 2));
-        const double aux_2 = 2.0 * std::pow(c_avg, 4);
-        const double tau_rho = (stab_c2 * (v_avg_norm + c_avg)/ h) + (stab_c3 * std::sqrt(aux_1 / aux_2));
-        const double tau_m_avg = 1.0 / ((4.0 * stab_c1 * mu / 3.0 / rho_avg / std::pow(h, 2)) + tau_rho);
-        const double tau_et_avg = 1.0 / ((stab_c1 * alpha / std::pow(h, 2)) + tau_rho);
-
-        nu_st = std::max(0.0, nu_sc - tau_m_avg * std::pow(v_avg_norm, 2));
-        k_st = std::max(0.0, k_sc - tau_et_avg * std::pow(v_avg_norm, 2));
-
-        lin_m[0] = (U_0_1 + U_1_1 + U_2_1 + U_3_1) / 4.0;
-        lin_m[1] = (U_0_2 + U_1_2 + U_2_2 + U_3_2) / 4.0;
-        lin_m[2] = (U_0_3 + U_1_3 + U_2_3 + U_3_3) / 4.0;
-        const double zero_tol = 1.0e-12;
-        const double aux = norm_2(lin_m);
-        lin_m_norm = aux > zero_tol ? aux : 1.0;
-    }
+    const double& dUdt_0_0 = data.dUdt(0, 0);
+    const double& dUdt_0_1 = data.dUdt(0, 1);
+    const double& dUdt_0_2 = data.dUdt(0, 2);
+    const double& dUdt_0_3 = data.dUdt(0, 3);
+    const double& dUdt_0_4 = data.dUdt(0, 4);
+    const double& dUdt_1_0 = data.dUdt(1, 0);
+    const double& dUdt_1_1 = data.dUdt(1, 1);
+    const double& dUdt_1_2 = data.dUdt(1, 2);
+    const double& dUdt_1_3 = data.dUdt(1, 3);
+    const double& dUdt_1_4 = data.dUdt(1, 4);
+    const double& dUdt_2_0 = data.dUdt(2, 0);
+    const double& dUdt_2_1 = data.dUdt(2, 1);
+    const double& dUdt_2_2 = data.dUdt(2, 2);
+    const double& dUdt_2_3 = data.dUdt(2, 3);
+    const double& dUdt_2_4 = data.dUdt(2, 4);
+    const double& dUdt_3_0 = data.dUdt(3, 0);
+    const double& dUdt_3_1 = data.dUdt(3, 1);
+    const double& dUdt_3_2 = data.dUdt(3, 2);
+    const double& dUdt_3_3 = data.dUdt(3, 3);
+    const double& dUdt_3_4 = data.dUdt(3, 4);
 
     // Hardcoded shape functions gradients for linear tetrahedra element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_0_2 = data.DN_DX(0, 2);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_1_2 = data.DN_DX(1, 2);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
-    const double &DN_DX_2_2 = data.DN_DX(2, 2);
-    const double &DN_DX_3_0 = data.DN_DX(3, 0);
-    const double &DN_DX_3_1 = data.DN_DX(3, 1);
-    const double &DN_DX_3_2 = data.DN_DX(3, 2);
+    const double& DN_DX_0_0 = data.DN_DX(0, 0);
+    const double& DN_DX_0_1 = data.DN_DX(0, 1);
+    const double& DN_DX_0_2 = data.DN_DX(0, 2);
+    const double& DN_DX_1_0 = data.DN_DX(1, 0);
+    const double& DN_DX_1_1 = data.DN_DX(1, 1);
+    const double& DN_DX_1_2 = data.DN_DX(1, 2);
+    const double& DN_DX_2_0 = data.DN_DX(2, 0);
+    const double& DN_DX_2_1 = data.DN_DX(2, 1);
+    const double& DN_DX_2_2 = data.DN_DX(2, 2);
+    const double& DN_DX_3_0 = data.DN_DX(3, 0);
+    const double& DN_DX_3_1 = data.DN_DX(3, 1);
+    const double& DN_DX_3_2 = data.DN_DX(3, 2);
 
     if (data.UseOSS) {
         // Projections container accesses
-        const double &ResProj_0_0 = data.ResProj(0, 0);
-        const double &ResProj_0_1 = data.ResProj(0, 1);
-        const double &ResProj_0_2 = data.ResProj(0, 2);
-        const double &ResProj_0_3 = data.ResProj(0, 3);
-        const double &ResProj_0_4 = data.ResProj(0, 4);
-        const double &ResProj_1_0 = data.ResProj(1, 0);
-        const double &ResProj_1_1 = data.ResProj(1, 1);
-        const double &ResProj_1_2 = data.ResProj(1, 2);
-        const double &ResProj_1_3 = data.ResProj(1, 3);
-        const double &ResProj_1_4 = data.ResProj(1, 4);
-        const double &ResProj_2_0 = data.ResProj(2, 0);
-        const double &ResProj_2_1 = data.ResProj(2, 1);
-        const double &ResProj_2_2 = data.ResProj(2, 2);
-        const double &ResProj_2_3 = data.ResProj(2, 3);
-        const double &ResProj_2_4 = data.ResProj(2, 4);
-        const double &ResProj_3_0 = data.ResProj(3, 0);
-        const double &ResProj_3_1 = data.ResProj(3, 1);
-        const double &ResProj_3_2 = data.ResProj(3, 2);
-        const double &ResProj_3_3 = data.ResProj(3, 3);
-        const double &ResProj_3_4 = data.ResProj(3, 4);
+        const double& ResProj_0_0 = data.ResProj(0, 0);
+        const double& ResProj_0_1 = data.ResProj(0, 1);
+        const double& ResProj_0_2 = data.ResProj(0, 2);
+        const double& ResProj_0_3 = data.ResProj(0, 3);
+        const double& ResProj_0_4 = data.ResProj(0, 4);
+        const double& ResProj_1_0 = data.ResProj(1, 0);
+        const double& ResProj_1_1 = data.ResProj(1, 1);
+        const double& ResProj_1_2 = data.ResProj(1, 2);
+        const double& ResProj_1_3 = data.ResProj(1, 3);
+        const double& ResProj_1_4 = data.ResProj(1, 4);
+        const double& ResProj_2_0 = data.ResProj(2, 0);
+        const double& ResProj_2_1 = data.ResProj(2, 1);
+        const double& ResProj_2_2 = data.ResProj(2, 2);
+        const double& ResProj_2_3 = data.ResProj(2, 3);
+        const double& ResProj_2_4 = data.ResProj(2, 4);
+        const double& ResProj_3_0 = data.ResProj(3, 0);
+        const double& ResProj_3_1 = data.ResProj(3, 1);
+        const double& ResProj_3_2 = data.ResProj(3, 2);
+        const double& ResProj_3_3 = data.ResProj(3, 3);
+        const double& ResProj_3_4 = data.ResProj(3, 4);
 
         //substitute_rhs_3D_OSS
     } else {
@@ -1233,7 +1435,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
 }
 
 template <>
-void CompressibleNavierStokesExplicit<2>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<2,3>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
 {
     constexpr IndexType dim = 2;
     constexpr IndexType n_nodes = 3;
@@ -1261,7 +1463,7 @@ void CompressibleNavierStokesExplicit<2>::AddExplicitContribution(const ProcessI
 }
 
 template <>
-void CompressibleNavierStokesExplicit<3>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<3,4>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
 {
     constexpr IndexType dim = 3;
     constexpr IndexType n_nodes = 4;
@@ -1289,7 +1491,7 @@ void CompressibleNavierStokesExplicit<3>::AddExplicitContribution(const ProcessI
 }
 
 template <>
-void CompressibleNavierStokesExplicit<2>::CalculateMassMatrix(
+void CompressibleNavierStokesExplicit<2,3>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -1319,7 +1521,7 @@ void CompressibleNavierStokesExplicit<2>::CalculateMassMatrix(
 }
 
 template <>
-void CompressibleNavierStokesExplicit<3>::CalculateMassMatrix(
+void CompressibleNavierStokesExplicit<3,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -1359,7 +1561,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateMassMatrix(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class CompressibleNavierStokesExplicit<2>;
-template class CompressibleNavierStokesExplicit<3>;
+template class CompressibleNavierStokesExplicit<2,3>;
+template class CompressibleNavierStokesExplicit<3,4>;
 
 }

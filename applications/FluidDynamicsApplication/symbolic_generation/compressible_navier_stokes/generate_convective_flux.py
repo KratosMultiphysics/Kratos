@@ -1,12 +1,11 @@
+from sympy import *
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
-from sympy import *
-import pprint
+def ComputeEulerJacobianMatrix(dofs, params):
+    """This function calculates the Euler Jacobian matrix for convection"""
 
-## Computation of the Convective Matrix
-def computeA(dofs, params):
-    print("\nCompute Convective Matrix \n")
+    print("\nCompute Euler Jacobian matrix \n")
 
     ## Auxiliary variables
     dim = params["dim"]
