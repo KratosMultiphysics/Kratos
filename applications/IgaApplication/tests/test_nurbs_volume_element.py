@@ -15,7 +15,7 @@ def drange(start, stop, step):
         yield r
         r += step
 
-class NurbsVolumeElementTests(KratosUnittest.TestCase):
+class TestNurbsVolumeElement(KratosUnittest.TestCase):
     def create_geometry(model_part, order_u, order_v_w, length):
         nodes = KM.NodesVector()
         # Create control points
@@ -75,7 +75,7 @@ class NurbsVolumeElementTests(KratosUnittest.TestCase):
         volume_properties.SetValue(KM.CONSTITUTIVE_LAW, cl)
 
         # Create a nurbs volume
-        volume = NurbsVolumeElementTests.create_geometry(model_part, order_u, order_v_w, length)
+        volume = TestNurbsVolumeElement.create_geometry(model_part, order_u, order_v_w, length)
 
         # Create quadrature_point_geometries
         quadrature_point_geometries = KM.GeometriesVector()
@@ -151,7 +151,7 @@ class NurbsVolumeElementTests(KratosUnittest.TestCase):
         polynomial_degree_u = 4
         polynomial_degree_v_w = 2
         length = 5.0
-        volume = NurbsVolumeElementTests.solve_cantilever(polynomial_degree_u, polynomial_degree_v_w, length)
+        volume = TestNurbsVolumeElement.solve_cantilever(polynomial_degree_u, polynomial_degree_v_w, length)
 
         # Check control points
         self.assertAlmostEqual(volume[4].GetSolutionStepValue(KM.DISPLACEMENT_X),-0.00034683918083963053)
