@@ -52,8 +52,6 @@ namespace Kratos {
 
         virtual void Initialize(const ProcessInfo& r_process_info) override;
 
-        virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
-
         virtual void ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
                                                    const ProcessInfo& r_process_info,
                                                    array_1d<double, 3>& rElasticForce,
@@ -61,8 +59,6 @@ namespace Kratos {
                                                    double& RollingResistance) override;
 
         void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
-
-        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
 
         private:
 

@@ -95,26 +95,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void BeamParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
-    {
-
-        KRATOS_TRY
-
-        mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case someone is overwriting the radius in Python
-        mPartialRepresentativeVolume = 0.0;
-        double& elastic_energy = this->GetElasticEnergy();
-        elastic_energy = 0.0;
-        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    (*mStressTensor)(i,j) = 0.0;
-                }
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
     void BeamParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                      const ProcessInfo& r_process_info,
                                                      array_1d<double, 3>& rElasticForce,
@@ -361,30 +341,7 @@ namespace Kratos {
 
         GetTranslationalIntegrationScheme().Move(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         if (rotation_option) {
-            GetRotationalIntegrationScheme().RotateBeam(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void BeamParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
-
-        KRATOS_TRY
-
-        ComputeReactions();
-
-        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-
-        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-
-            //Divide Stress Tensor by the total volume:
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    (*mStressTensor)(i,j) /= rRepresentative_Volume;
-                }
-            }
-
-            SymmetrizeStressTensor();
+            GetRotationalIntegrationScheme().CalculateRotationalMotionOfRigidBodyElementNode(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         }
 
         KRATOS_CATCH("")
