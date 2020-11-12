@@ -103,7 +103,7 @@ namespace Kratos
         SparseMatrixType mProjectorDestination;
         bool mIsLinearSetupComplete = false;
 
-        EquilibriumVariable mEquilibriumVariable;
+        EquilibriumVariable mEquilibriumVariable = EquilibriumVariable::Velocity;
 
         LinearSolverSharedPointerType mpSolver = nullptr;
 
