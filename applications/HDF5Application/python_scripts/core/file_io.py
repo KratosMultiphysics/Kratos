@@ -83,6 +83,13 @@ class _FilenameGetter(object):
     def __init__(self, settings):
         self.filename = settings['file_name']
         self.model_part = None
+
+        if (self.filename.find("<rank>") != -1):
+            raise Exception("Flag \"<rank>\" is not allowed to be used in HDF5 output file namings. Please remove it [ filename = \"" + self.filename + "\" ].")
+
+        if (self.filename.find("<step>") != -1):
+            raise Exception("Flag \"<step>\" is not allowed to be used in HDF5 output file namings. Please remove it [ filename = \"" + self.filename + "\" ].")
+
         if (not self.filename.endswith(".h5")):
             self.filename += ".h5"
 
@@ -104,12 +111,17 @@ class _FilenameGetter(object):
             self.file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, self.filename, {"<time>": self.time_format})
 
         if (self.max_files_to_keep is not None):
-            list_of_file_names = self.file_name_data_collector.GetSortedFileNamesList(["<time>", "<step>", "<rank>"])
+            list_of_file_names = self.file_name_data_collector.GetSortedFileNamesList(["<time>"])
             if (len(list_of_file_names) >= self.max_files_to_keep):
-                for file_name in list_of_file_names[:len(list_of_file_names) - self.max_files_to_keep + 1]:
+                # remove files from the second file in case the mesh is only written to the initial file
+                # then we need to always have that initial file.
+                for file_name in list_of_file_names[1:len(list_of_file_names) - self.max_files_to_keep + 2]:
                     kratos_utils.DeleteFileIfExisting(file_name)
 
         return self.file_name_data_collector.GetFileName()
+
+    def GetFileNamePattern(self):
+        return self.filename
 
 
 class _FilenameGetterWithDirectoryInitialization(object):
@@ -118,8 +130,8 @@ class _FilenameGetterWithDirectoryInitialization(object):
         self.filename_getter = _FilenameGetter(settings)
 
     def Get(self, model_part=None):
+        self._InitializeDirectory(self.filename_getter.GetFileNamePattern())
         file_name = self.filename_getter.Get(model_part)
-        self._InitializeDirectory(file_name)
         return file_name
 
     @staticmethod
