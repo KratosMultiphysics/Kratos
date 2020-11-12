@@ -14,7 +14,7 @@ def Create(settings, models, solver_name):
 
 class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, models, solver_name):
-        
+
         """This class is implements a non-conforming FETI-based coupling approach to be used within the CoSim environment"""
         super().__init__(settings, models, solver_name)
 
