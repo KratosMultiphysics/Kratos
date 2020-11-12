@@ -19,9 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/model.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
 #include "co_simulation_application_variables.h"
 #include "linear_solvers/linear_solver.h"
 

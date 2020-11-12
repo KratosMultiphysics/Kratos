@@ -17,7 +17,9 @@
 // Project includes
 #include "feti_dynamic_coupling_utilities.h"
 #include "factories/linear_solver_factory.h"
+#include "containers/model.h"
 #include "includes/variables.h"
+#include "spaces/ublas_space.h"
 #include "utilities/parallel_utilities.h"
 
 
@@ -806,5 +808,8 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+template class FetiDynamicCouplingUtilities< UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>, UblasSpace<double, Matrix, Vector> >;
 
 } // namespace Kratos.
