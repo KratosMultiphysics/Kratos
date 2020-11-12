@@ -57,6 +57,8 @@ namespace Kratos
         /// The definition of the numerical limit
         static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
 
+        enum class SolverIndex { Origin, Destination };
+
         FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin, ModelPart & rInterFaceDestination,
             const Parameters JsonParameters);
 
@@ -156,16 +158,16 @@ namespace Kratos
 
         void GetExpandedMappingMatrix(CompressedMatrix& rExpandedMappingMat, const SizeType nDOFs);
 
-        void ComposeProjector(CompressedMatrix& rProjector, const bool IsOrigin);
+        void ComposeProjector(CompressedMatrix& rProjector, const SolverIndex solverIndex);
 
         void DetermineDomainUnitAccelerationResponse(SystemMatrixType* pK,
-            const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse, const bool IsOrigin);
+            const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse, const SolverIndex solverIndex);
 
         void DetermineDomainUnitAccelerationResponseExplicit(CompressedMatrix& rUnitResponse,
-            const CompressedMatrix& rProjector, ModelPart& rDomain, const bool IsOrigin);
+            const CompressedMatrix& rProjector, ModelPart& rDomain, const SolverIndex solverIndex);
 
         void DetermineDomainUnitAccelerationResponseImplicit(CompressedMatrix& rUnitResponse,
-            const CompressedMatrix& rProjector, SystemMatrixType* pK, const bool IsOrigin);
+            const CompressedMatrix& rProjector, SystemMatrixType* pK, const SolverIndex solverIndex);
 
         void CalculateCondensationMatrix(CompressedMatrix& rCondensationMatrix,
             const CompressedMatrix& rOriginUnitResponse, const CompressedMatrix& rDestinationUnitResponse,
@@ -175,7 +177,7 @@ namespace Kratos
             CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedKinematics);
 
         void ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-            const CompressedMatrix& rUnitResponse, const bool IsOrigin);
+            const CompressedMatrix& rUnitResponse, const SolverIndex solverIndex);
 
         void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,
@@ -185,7 +187,7 @@ namespace Kratos
 
         void ApplyMappingMatrixToProjector(CompressedMatrix& rProjector, const SizeType DOFs);
 
-        void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const bool IsOrigin);
+        void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const SolverIndex solverIndex);
 
         Variable< array_1d<double, 3> >& GetEquilibriumVariable()
         {

@@ -88,6 +88,8 @@ namespace Kratos
 
         const SizeType destination_interface_dofs = dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes();
 
+        SolverIndex solver_index = SolverIndex::Origin;
+
         // 1 - calculate unbalanced interface free kinematics
         Vector unbalanced_interface_free_kinematics(destination_interface_dofs);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
@@ -95,17 +97,23 @@ namespace Kratos
         if (!mIsLinear || !mIsLinearSetupComplete)
         {
             // 2 - Construct projection matrices
-            if (mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
+            if (mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, solver_index);
+
+            solver_index = SolverIndex::Destination;
             const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
             if (mProjectorDestination.size1() != destination_interface_dofs || mProjectorDestination.size2() != destination_dofs)
                 mProjectorDestination.resize(destination_interface_dofs, destination_dofs);
-            ComposeProjector(mProjectorDestination, false);
+            ComposeProjector(mProjectorDestination, solver_index);
+
 
             // 3 - Determine domain response to unit loads
-            if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, true);
+            solver_index = SolverIndex::Origin;
+            if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, solver_index);
+
+            solver_index = SolverIndex::Destination;
             if (mUnitResponseDestination.size1() != mProjectorDestination.size2() || mUnitResponseDestination.size2() != mProjectorDestination.size1())
                 mUnitResponseDestination.resize(mProjectorDestination.size2(), mProjectorDestination.size1());
-            DetermineDomainUnitAccelerationResponse(mpKDestination, mProjectorDestination, mUnitResponseDestination, false);
+            DetermineDomainUnitAccelerationResponse(mpKDestination, mProjectorDestination, mUnitResponseDestination, solver_index);
 
             // 4 - Calculate condensation matrix
             if (mCondensationMatrix.size1() != destination_interface_dofs || mCondensationMatrix.size2() != destination_interface_dofs)
@@ -125,9 +133,11 @@ namespace Kratos
         // 6 - Apply correction quantities
         if (mSubTimestepIndex == mTimestepRatio) {
             SetOriginInitialKinematics(); // the final free kinematics of A is the initial free kinematics of A for the next timestep
-            ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
+            solver_index = SolverIndex::Origin;
+            ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, solver_index);
         }
-        ApplyCorrectionQuantities(lagrange_vector, mUnitResponseDestination, false);
+        solver_index = SolverIndex::Destination;
+        ApplyCorrectionQuantities(lagrange_vector, mUnitResponseDestination, solver_index);
 
         // 7 - Optional check of equilibrium
         if (mIsCheckEquilibrium && !mParameters["is_disable_coupling"].GetBool() && mSubTimestepIndex == mTimestepRatio)
@@ -184,16 +194,16 @@ namespace Kratos
 	}
 
 
-    void FetiDynamicCouplingUtilities::ComposeProjector(CompressedMatrix& rProjector, const bool IsOrigin)
+    void FetiDynamicCouplingUtilities::ComposeProjector(CompressedMatrix& rProjector, const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
-        ModelPart& rMP = (IsOrigin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
-        const SystemMatrixType* pK = (IsOrigin) ? mpKOrigin : mpKDestination;
-        const double projector_entry = (IsOrigin) ? 1.0 : -1.0;
+        ModelPart& rMP = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
+        const SystemMatrixType* pK = (solverIndex == SolverIndex::Origin) ? mpKOrigin : mpKDestination;
+        const double projector_entry = (solverIndex == SolverIndex::Origin) ? 1.0 : -1.0;
         auto interface_nodes = rMP.NodesArray();
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        const bool is_implicit = (IsOrigin) ? mIsImplicitOrigin : mIsImplicitDestination;
+        const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         SizeType domain_dofs = 0;
         if (is_implicit)
@@ -204,7 +214,7 @@ namespace Kratos
         else
         {
             // Explicit - we use the nodes with mass in the domain and ordering is just the node index in the model part
-            ModelPart& rDomain = (IsOrigin) ? *mpOriginDomain : *mpDestinationDomain;
+            ModelPart& rDomain = (solverIndex == SolverIndex::Origin) ? *mpOriginDomain : *mpDestinationDomain;
             for (auto node_it : rDomain.NodesArray())
             {
                 const double nodal_mass = node_it->GetValue(NODAL_MASS);
@@ -240,7 +250,7 @@ namespace Kratos
         // Incorporate force mapping matrix into projector if it is the origin
         // since the lagrangian multipliers are defined on the destination and need
         // to be mapped back later
-        if (IsOrigin) ApplyMappingMatrixToProjector(rProjector, dim);
+        if (solverIndex == SolverIndex::Origin) ApplyMappingMatrixToProjector(rProjector, dim);
 
         KRATOS_CATCH("")
     }
@@ -314,15 +324,15 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-        const CompressedMatrix& rUnitResponse, const bool IsOrigin)
+        const CompressedMatrix& rUnitResponse, const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
-        ModelPart* pDomainModelPart = (IsOrigin) ? mpOriginDomain : mpDestinationDomain;
-        const double gamma = (IsOrigin) ? mParameters["origin_newmark_gamma"].GetDouble()
+        ModelPart* pDomainModelPart = (solverIndex == SolverIndex::Origin) ? mpOriginDomain : mpDestinationDomain;
+        const double gamma = (solverIndex == SolverIndex::Origin) ? mParameters["origin_newmark_gamma"].GetDouble()
             : mParameters["destination_newmark_gamma"].GetDouble();
         const double dt = pDomainModelPart->GetProcessInfo().GetValue(DELTA_TIME);
-        const bool is_implicit = (IsOrigin) ? mIsImplicitOrigin : mIsImplicitDestination;
+        const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         // Apply acceleration correction
         Vector accel_corrections(rUnitResponse.size1(), 0.0);
@@ -519,13 +529,13 @@ namespace Kratos
 
     void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponse(
         SystemMatrixType* pK, const CompressedMatrix& rProjector, CompressedMatrix& rUnitResponse,
-        const bool isOrigin)
+        const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
         const SizeType interface_dofs = rProjector.size1();
         const SizeType system_dofs = rProjector.size2();
-        const bool is_implicit = (isOrigin) ? mIsImplicitOrigin : mIsImplicitDestination;
+        const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         if (rUnitResponse.size1() != system_dofs ||
             rUnitResponse.size2() != interface_dofs)
@@ -535,12 +545,12 @@ namespace Kratos
 
         if (is_implicit)
         {
-            DetermineDomainUnitAccelerationResponseImplicit(rUnitResponse, rProjector, pK, isOrigin);
+            DetermineDomainUnitAccelerationResponseImplicit(rUnitResponse, rProjector, pK, solverIndex);
         }
         else
         {
-            ModelPart& r_domain = (isOrigin) ? *mpOriginDomain : *mpDestinationDomain;
-            DetermineDomainUnitAccelerationResponseExplicit(rUnitResponse, rProjector, r_domain, isOrigin);
+            ModelPart& r_domain = (solverIndex == SolverIndex::Origin) ? *mpOriginDomain : *mpDestinationDomain;
+            DetermineDomainUnitAccelerationResponseExplicit(rUnitResponse, rProjector, r_domain, solverIndex);
         }
 
         KRATOS_CATCH("")
@@ -580,7 +590,7 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseExplicit(CompressedMatrix& rUnitResponse,
-        const CompressedMatrix& rProjector, ModelPart& rDomain, const bool isOrigin)
+        const CompressedMatrix& rProjector, ModelPart& rDomain, const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
@@ -610,7 +620,7 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseImplicit(CompressedMatrix& rUnitResponse,
-        const CompressedMatrix& rProjector, SystemMatrixType* pK, const bool isOrigin)
+        const CompressedMatrix& rProjector, SystemMatrixType* pK, const SolverIndex solverIndex)
     {
         KRATOS_TRY
 
@@ -618,9 +628,9 @@ namespace Kratos
         const SizeType system_dofs = rProjector.size2();
 
         // Convert system stiffness matrix to mass matrix
-        const double beta = (isOrigin) ? mParameters["origin_newmark_beta"].GetDouble()
+        const double beta = (solverIndex == SolverIndex::Origin) ? mParameters["origin_newmark_beta"].GetDouble()
             : mParameters["destination_newmark_beta"].GetDouble();
-        const double dt = (isOrigin) ? mpOriginDomain->GetProcessInfo()[DELTA_TIME]
+        const double dt = (solverIndex == SolverIndex::Origin) ? mpOriginDomain->GetProcessInfo()[DELTA_TIME]
             : mpDestinationDomain->GetProcessInfo()[DELTA_TIME];
         CompressedMatrix effective_mass = (*pK) * (dt * dt * beta);
 
@@ -672,7 +682,7 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable,
-        const bool IsOrigin)
+        const SolverIndex solverIndex)
     {
         if (mParameters["echo_level"].GetInt() > 2)
         {
@@ -680,7 +690,7 @@ namespace Kratos
             const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
             Vector interface_kinematics(origin_interface_dofs);
 
-            ModelPart& r_interface = (IsOrigin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
+            ModelPart& r_interface = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
 
             block_for_each(r_interface.Nodes(), [&](Node<3>& rNode)
                 {
@@ -694,8 +704,10 @@ namespace Kratos
                 }
             );
 
-            KRATOS_INFO("FetiDynamicCouplingUtilities") << "Interface " << rVariable.Name() << ", is origin = " << IsOrigin
-                << "\n" << interface_kinematics << std::endl;;
+            if (solverIndex == SolverIndex::Origin)
+                KRATOS_INFO("FetiDynamicCouplingUtilities") << "ORIGIN interface " << rVariable.Name() << "\n" << interface_kinematics << std::endl;
+            else
+                KRATOS_INFO("FetiDynamicCouplingUtilities") << "DESTINATION interface " << rVariable.Name() << "\n" << interface_kinematics << std::endl;
         }
     }
 
