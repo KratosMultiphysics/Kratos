@@ -76,9 +76,6 @@ public:
         GeometryPointer pSlaveGeometry)
         : BaseType(PointsArrayType(), &(pMasterGeometry->GetGeometryData()))
     {
-        KRATOS_DEBUG_ERROR_IF(pMasterGeometry->Dimension() != pSlaveGeometry->Dimension())
-            << "Geometries of different dimensional size!" << std::endl;
-
         mpGeometries.resize(2);
 
         mpGeometries[0] = pMasterGeometry;
