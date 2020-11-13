@@ -2108,7 +2108,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     const double viscosity = 1.0/(1.0/positive_viscosity + 1.0/negative_viscosity);
 
     // Stabilization parameters
-    const double coefficient = 1.0;
+    const double cut_stabilization_coefficient = 1.0;
     const double stab_c1 = 4.0;
     const double stab_c2 = 2.0;
     const double dyn_tau = rData.DynamicTau;
@@ -2134,7 +2134,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 
         const double v_conv_norm = norm_2(vconv);
 
-        const double penalty_coefficient = coefficient *
+        const double penalty_coefficient = cut_stabilization_coefficient *
             density * 1.0 / (dyn_tau * density / dt + stab_c1 * viscosity / h_elem / h_elem +
                                 stab_c2 * density * v_conv_norm / h_elem) * element_volume / cut_area;
 

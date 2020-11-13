@@ -204,7 +204,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if (self._reinitialization_type == "variational"):
                 self._GetDistanceReinitializationProcess().Execute()
             elif (self._reinitialization_type == "parallel"):
-                layers = int(0.005*self.main_model_part.NumberOfElements()) # this parameer is essential
+                adjusting_parameter = 0.005
+                layers = int(adjusting_parameter*self.main_model_part.NumberOfElements()) # this parameter is essential
                 max_distance = 1.0 # use this parameter to define the redistancing range
                 # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
                 self._GetDistanceReinitializationProcess().CalculateDistances(
