@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                 May 2018 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemApplication     $
+//   Created by:          $Author:      JMCarbonell $
+//   Last modified by:    $Co-Author:               $
+//   Date:                $Date:           May 2018 $
+//   Revision:            $Revision:            0.0 $
 //
 //
 

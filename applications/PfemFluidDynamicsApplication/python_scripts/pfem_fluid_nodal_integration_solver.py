@@ -118,7 +118,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_ERROR_XX)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_VOLUME)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_CAUCHY_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_DEVIATORIC_CAUCHY_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS)

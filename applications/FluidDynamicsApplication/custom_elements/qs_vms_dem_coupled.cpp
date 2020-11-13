@@ -69,16 +69,17 @@ Element::Pointer QSVMSDEMCoupled<TElementData>::Create(IndexType NewId,GeometryT
 // Inquiry
 
 template< class TElementData >
-int QSVMSDEMCoupled<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int QSVMSDEMCoupled<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     int out = QSVMS<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    for(unsigned int i=0; i<NumNodes; ++i)
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        const auto& rNode = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
     }
@@ -111,7 +112,7 @@ void QSVMSDEMCoupled<TElementData>::Calculate(
 template < class TElementData >
 void QSVMSDEMCoupled<TElementData>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     QSVMS<TElementData>::EquationIdVector(rResult, rCurrentProcessInfo);
 }
@@ -134,7 +135,7 @@ void QSVMSDEMCoupled<TElementData>::PrintInfo(std::ostream& rOStream) const
 template<class TElementData>
 void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);

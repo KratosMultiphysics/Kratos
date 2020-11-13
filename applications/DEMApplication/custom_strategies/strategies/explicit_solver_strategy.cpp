@@ -107,7 +107,7 @@ namespace Kratos {
                 }
             }
 
-            if (!found) KRATOS_THROW_ERROR(std::logic_error, "This particle could not find its properties!!", "");
+            KRATOS_ERROR_IF_NOT(found) << "This particle could not find its properties!!" << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -639,9 +639,7 @@ namespace Kratos {
         double force_reduction_factor = 1.0;
         if (virtual_mass_option) {
             force_reduction_factor = virtual_mass_coeff;
-            if ((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) {
-                KRATOS_THROW_ERROR(std::runtime_error, "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= ", virtual_mass_coeff)
-            }
+            KRATOS_ERROR_IF((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) << "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= "<< virtual_mass_coeff << std::endl;
         }
 
         bool rotation_option = r_process_info[ROTATION_OPTION];

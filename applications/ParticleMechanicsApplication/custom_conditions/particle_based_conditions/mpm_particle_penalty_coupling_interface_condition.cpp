@@ -229,7 +229,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
 
 }
 
-int MPMParticlePenaltyCouplingInterfaceCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int MPMParticlePenaltyCouplingInterfaceCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     MPMParticlePenaltyDirichletCondition::Check(rCurrentProcessInfo);
 
