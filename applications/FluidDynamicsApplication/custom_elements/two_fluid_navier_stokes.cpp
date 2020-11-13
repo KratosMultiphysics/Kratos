@@ -1982,20 +1982,20 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
 }
 
 template <>
-ModifiedShapeFunctions::Pointer TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ModifiedShapeFunctionsUtility(
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ModifiedShapeFunctionsUtility(
     const GeometryType::Pointer pGeometry,
     const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+    auto p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
     return p_modified_sh_func;
 }
 
 template <>
-ModifiedShapeFunctions::Pointer TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> >::ModifiedShapeFunctionsUtility(
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> >::ModifiedShapeFunctionsUtility(
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
+    auto p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
     return p_modified_sh_func;
 }
 
