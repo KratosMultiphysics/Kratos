@@ -17,6 +17,7 @@ class TimeBasedAsciiFileWriterUtility(object):
         default_settings = KratosMultiphysics.Parameters('''{
             "file_name"  : "",
             "folder_name": "",
+            "path_type"  : "relative",
             "write_buffer_size" : -1
         }''')
         # write_buffer_size: -1 means we use the system default
@@ -31,6 +32,7 @@ class TimeBasedAsciiFileWriterUtility(object):
         # file name and folder path specifications and check
         self.file_name = params["file_name"].GetString()
         self.folder_name = params["folder_name"].GetString()
+        self.path_type = params["path_type"].GetString()
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
@@ -132,33 +134,38 @@ class TimeBasedAsciiFileWriterUtility(object):
         # check if relative path was erroneously specified in file name
         raw_path, raw_file_name = os.path.split(self.file_name)
 
-        if self.folder_name != "":
-            if raw_path != "":
-                # assign the default value
-                self.folder_name = "TimeBasedAsciiResults"
+        if self.path_type == "relative":
+            if self.folder_name != "":
+                if raw_path != "":
+                    # assign the default value
+                    self.folder_name = "TimeBasedAsciiResults"
 
-                warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
-                warn_msg += 'Use parameter "folder_name" to specify correctly\n'
-                warn_msg += 'Using the default relative path "' + self.folder_name + '" instead'
-                KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
+                    warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
+                    warn_msg += 'Use parameter "folder_name" to specify correctly\n'
+                    warn_msg += 'Using the default relative path "' + self.folder_name + '" instead'
+                    KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
 
-            subfolders = os.path.normpath(self.folder_name).split(os.sep)
+                subfolders = os.path.normpath(self.folder_name).split(os.sep)
 
-            absolute_folder_path = os.getcwd()
-            relative_folder_path = ""
-            for folder in subfolders:
-                absolute_folder_path = os.path.join(absolute_folder_path, folder)
-                relative_folder_path = os.path.join(relative_folder_path, folder)
+                absolute_folder_path = os.getcwd()
+                relative_folder_path = ""
+                for folder in subfolders:
+                    absolute_folder_path = os.path.join(absolute_folder_path, folder)
+                    relative_folder_path = os.path.join(relative_folder_path, folder)
 
-            self.file_name = os.path.join(relative_folder_path, raw_file_name)
+                self.file_name = os.path.join(relative_folder_path, raw_file_name)
 
-        else:
-            if raw_path != "":
-                warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
-                warn_msg += 'Use the parameter "folder_name" to specify correctly\n'
-                warn_msg += 'Using the current directory instead'
-                KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
             else:
+                if raw_path != "":
+                    warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
+                    warn_msg += 'Use the parameter "folder_name" to specify correctly\n'
+                    warn_msg += 'Using the current directory instead'
+                    KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
+                absolute_folder_path = os.getcwd()
+                self.file_name = raw_file_name
+
+        elif self.path_type == "PyCOMPSs":
+            if raw_path == "":
                 self.file_name = raw_file_name
             absolute_folder_path = os.getcwd()
 
