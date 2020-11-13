@@ -71,7 +71,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         }
     }
     else {
-        KRATOS_ERROR_IF(sf_values_slave.size1() != sf_values_master.size1())
+        KRATOS_DEBUG_ERROR_IF(sf_values_slave.size1() != sf_values_master.size1())
             << "Coupling Geometry Mapper | origin and destination shape functions have different first sizes!"
             << "\nOrigin shape functions =\n\t" << sf_values_master
             << "\nDestination shape functions =\n\t" << sf_values_slave << std::endl;
