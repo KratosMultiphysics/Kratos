@@ -158,9 +158,9 @@ class TimeBasedAsciiFileWriterUtility(object):
                 warn_msg += 'Use the parameter "folder_name" to specify correctly\n'
                 warn_msg += 'Using the current directory instead'
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
-
+            else:
+                self.file_name = raw_file_name
             absolute_folder_path = os.getcwd()
-            self.file_name = raw_file_name
 
         # make sure that the absolute path to the desired output folder exists
         if not os.path.isdir(absolute_folder_path):
