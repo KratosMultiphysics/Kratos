@@ -24,7 +24,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/distributed_system_vector.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
@@ -125,13 +124,22 @@ public:
         }
         mto_recv_local_id[GetComm().Rank()]; //create if it does not exist
         mposition_within_data[GetComm().Rank()]; //create if it does not exist
+    }
 
-        
+    /// Copy constructor.
+    DistributedVectorExporter(DistributedVectorExporter const& rOther)
+        : 
+        mrComm(rOther.mrComm),
+        mpNumbering(Kratos::make_unique<DistributedNumbering<TIndexType>>(*rOther.mpNumbering)),
+        mto_recv_local_id(rOther.mto_recv_local_id),
+        mposition_within_data(rOther.mposition_within_data),
+        mvector_comm_colors(rOther.mvector_comm_colors)
+    {
     }
 
     ///this function returns a local array containing the values identified by the rGlobalIndices list passed in the constructor
-    template< class TLocalVectorType, class TApplyFunctorType=std::plus<typename TLocalVectorType::value_type>>
-    void Apply(DistributedSystemVector<typename TLocalVectorType::value_type, TIndexType>& rDestinationVector, 
+    template< class TDistributedVectorType, class TLocalVectorType, class TApplyFunctorType=std::plus<typename TLocalVectorType::value_type>>
+    void Apply(TDistributedVectorType& rDestinationVector, 
                const TLocalVectorType& rLocalDataVector
                ) const
     {
@@ -293,9 +301,6 @@ private:
 
     /// Assignment operator.
     DistributedVectorExporter& operator=(DistributedVectorExporter const& rOther){}
-
-    /// Copy constructor.
-    DistributedVectorExporter(DistributedVectorExporter const& rOther){}
 
     ///@}
 
