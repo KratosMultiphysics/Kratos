@@ -238,20 +238,8 @@ public:
             << mpGeometries.size() << " geometries." << std::endl;
 
         if (Index == 0){
-            if (mpGeometries.size() > 1) {
-                KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[1]->Dimension())
-                    << "Dimension of new master geometry does not coincide with the other geometries. "
-                    << "Dimension of new geometry: " << pGeometry->Dimension()
-                    << ", dimension of coupling geometry: " << mpGeometries[1]->Dimension() << std::endl;
-            }
-
             this->SetGeometryData(&(pGeometry->GetGeometryData()));
         }
-
-        KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
-            << "Dimension of new entity does not coincide with this coupling geometry. "
-            << "Dimension of new geometry: " << pGeometry->Dimension()
-            << ", dimension of coupling geometry: " << this->Dimension() << std::endl;
 
         mpGeometries[Index] = pGeometry;
     }
@@ -262,14 +250,6 @@ public:
      */
     IndexType AddGeometryPart(GeometryPointer pGeometry) override
     {
-        KRATOS_DEBUG_ERROR_IF(mpGeometries[0]->Dimension() != pGeometry->Dimension())
-            << "Geometries of different dimensional size!" << std::endl;
-
-        KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
-            << "Dimension of new entity does not coincide with this coupling geometry. "
-            << "Dimension of new geometry: " << pGeometry->Dimension()
-            << ", dimension of coupling geometry: " << this->Dimension() << std::endl;
-
         const IndexType new_index = mpGeometries.size();
 
         mpGeometries.push_back(pGeometry);
