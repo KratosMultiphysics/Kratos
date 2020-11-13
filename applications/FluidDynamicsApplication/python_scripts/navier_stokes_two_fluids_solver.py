@@ -72,7 +72,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
             "distance_reinitialization" : "variational",
-            "distance_smoothing" : false
+            "distance_smoothing" : false,
+            "distance_smoothing_coefficient" : 1.0
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesTwoFluidsSolver, cls).GetDefaultParameters())
@@ -110,6 +111,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._distance_smoothing = False
         if (self.settings.Has("distance_smoothing")):
             self._distance_smoothing = self.settings["distance_smoothing"].GetBool()
+            smoothing_coefficient = self.settings["distance_smoothing_coefficient"].GetDouble()
+            self.main_model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, smoothing_coefficient)
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -158,9 +161,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             computing_model_part,
             computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
-        # Elemental neighbours calculation
+        # Finding nodal and elemental neighbors
         data_communicator = computing_model_part.GetCommunicator().GetDataCommunicator()
-        neighbour_search = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
+        neighbour_search = KratosMultiphysics.FindGlobalNodalNeighboursProcess(
             data_communicator,
             computing_model_part)
         neighbour_search.Execute()
@@ -194,6 +197,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     self.settings["bfecc_number_substeps"].GetInt())
             else:
                 self._GetLevelSetConvectionProcess().Execute()
+
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
             # Recompute the distance field according to the new level-set position
             if (self._reinitialization_type == "variational"):

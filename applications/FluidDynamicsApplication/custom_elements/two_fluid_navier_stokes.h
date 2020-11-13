@@ -439,7 +439,7 @@ private:
      * @param pGeometry Pointer to the element geometry
      * @param rDistances Distance at the nodes
      */
-    ModifiedShapeFunctions::Pointer ModifiedShapeFunctionsUtility(
+    ModifiedShapeFunctions::UniquePointer ModifiedShapeFunctionsUtility(
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances);
 

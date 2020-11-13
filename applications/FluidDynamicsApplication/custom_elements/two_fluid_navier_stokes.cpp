@@ -2004,7 +2004,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
         const Matrix& rInterfaceShapeFunctions,
         Vector& rInterfaceCurvature)
 {
-    auto p_geom = this->pGetGeometry();
+    auto geom = this->GetGeometry();
     const unsigned int n_gpt = rInterfaceShapeFunctions.size1();
 
     rInterfaceCurvature.resize(n_gpt, false);
@@ -2012,7 +2012,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
     for (unsigned int gpt = 0; gpt < n_gpt; ++gpt){
         double curvature = 0.0;
         for (unsigned int i = 0; i < NumNodes; ++i){
-            curvature += rInterfaceShapeFunctions(gpt,i) * (*p_geom)[i].FastGetSolutionStepValue(CURVATURE);
+            curvature += rInterfaceShapeFunctions(gpt,i) * geom[i].FastGetSolutionStepValue(CURVATURE);
         }
         rInterfaceCurvature[gpt] = curvature;
     }
@@ -2096,8 +2096,8 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     }
     const double element_volume = positive_volume + negative_volume;
 
-    auto p_geom = this->pGetGeometry();
-    const double h_elem = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(*p_geom);
+    auto geom = this->GetGeometry();
+    const double h_elem = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(geom);
 
     double cut_area = 0.0;
     for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
@@ -2142,7 +2142,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 
             for (unsigned int j = 0; j < NumNodes; ++j){
 
-                const array_1d<double, 3> pressure_gradient_j = (*p_geom)[j].FastGetSolutionStepValue(PRESSURE_GRADIENT);
+                const array_1d<double, 3> pressure_gradient_j = geom[j].FastGetSolutionStepValue(PRESSURE_GRADIENT);
 
                 for (unsigned int dim = 0; dim < Dim; ++dim){
                     kee(i, j) += penalty_coefficient * rInterfaceWeights[gp] *
