@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
 from test_mpi_metrics import TestMPIMetrics
+from test_mpi_parmmg import TestMPIParMmg
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -24,6 +25,7 @@ def AssembleTestSuites():
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
     smallMPISuite.addTest(TestMPIMetrics('test_mpi_hessian'))
+    smallMPISuite.addTest(TestMPIParMmg('test_mpi_sphere'))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
