@@ -298,8 +298,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
-    if (mLastInterfaceUpdateTime != mrModelPartOrigin.GetProcessInfo().GetValue(TIME)) this->UpdateInterface(MappingOptions, 0.0);
-
     for (const auto var_ext : {"_X", "_Y", "_Z"}) {
         const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
         const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
