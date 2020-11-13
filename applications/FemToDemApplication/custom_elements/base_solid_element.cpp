@@ -343,7 +343,7 @@ void BaseSolidElement::GetValuesVector(
 void BaseSolidElement::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -364,7 +364,7 @@ void BaseSolidElement::GetFirstDerivativesVector(
 void BaseSolidElement::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -1854,7 +1854,7 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 void BaseSolidElement::CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize)
 {
     KRATOS_TRY;

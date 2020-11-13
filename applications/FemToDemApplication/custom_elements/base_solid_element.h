@@ -669,7 +669,7 @@ public:
     void CalculateRayleighDampingMatrix(
         Element& rElement,
         Element::MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const std::size_t MatrixSize);
 
     ///@}
