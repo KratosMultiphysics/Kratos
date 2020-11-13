@@ -7,9 +7,9 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsAppli
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/ContactStructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/ContactStructuralMechanicsApplication )
 
 ## ContactStructuralMechanics Core sources
 file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE

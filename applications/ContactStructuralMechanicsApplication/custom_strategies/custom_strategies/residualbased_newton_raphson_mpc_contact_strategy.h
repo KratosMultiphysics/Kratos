@@ -126,6 +126,41 @@ public:
      * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of iterations
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    ResidualBasedNewtonRaphsonMPCContactStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+        IndexType MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false,
+        Parameters ThisParameters =  Parameters(R"({})")
+        )
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        mThisParameters(ThisParameters)
+    {
+        KRATOS_TRY;
+
+        // We create the contact criteria
+        mpMPCContactCriteria = Kratos::make_shared<TMPCContactCriteriaType>();
+
+        Parameters default_parameters = GetDefaultParameters();
+        mThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
@@ -198,7 +233,6 @@ public:
     /**
      * Destructor.
      */
-
     ~ResidualBasedNewtonRaphsonMPCContactStrategy() override
     = default;
 

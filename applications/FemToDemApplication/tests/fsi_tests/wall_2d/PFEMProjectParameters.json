@@ -1,0 +1,248 @@
+{
+    "problem_data"         : {
+        "problem_name"   : "fsi_tests/wall_2d/PFEMfsi",
+        "start_time"     : 0.0,
+        "end_time"       : 1.0,
+        "echo_level"     : 0,
+        "parallel_type"  : "OpenMP",
+        "threads"        : 1,
+        "gravity_vector" : [0.0,-9.81,0.0]
+    },
+    "solver_settings"      : {
+        "solver_type"                        : "pfem_fluid_solver",
+        "model_part_name"                    : "PfemFluidModelPart",
+        "physics_type"                       : "fluid",
+        "domain_size"                        : 2,
+        "time_stepping"                      : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.001
+        },
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "fsi_tests/wall_2d/PFEMfsi"
+        },
+        "maximum_pressure_iterations"        : 7,
+        "velocity_tolerance"                 : 1e-5,
+        "pressure_tolerance"                 : 1e-5,
+        "echo_level"                         : 1,
+        "velocity_linear_solver_settings"    : {
+            "solver_type"         : "bicgstab",
+            "max_iteration"       : 5000,
+            "tolerance"           : 1e-9,
+            "preconditioner_type" : "ilu0",
+            "scaling"             : false
+        },
+        "pressure_linear_solver_settings"    : {
+            "solver_type"         : "bicgstab",
+            "max_iteration"       : 5000,
+            "tolerance"           : 1e-9,
+            "preconditioner_type" : "ilu0",
+            "scaling"             : false
+        },
+        "bodies_list"                        : [{
+            "body_type"  : "Fluid",
+            "body_name"  : "Body1",
+            "parts_list" : ["Parts_Parts_Auto1"]
+        },{
+            "body_type"  : "Rigid",
+            "body_name"  : "Body2",
+            "parts_list" : ["Parts_Parts_Auto2"]
+        },{
+            "body_type"  : "Rigid",
+            "body_name"  : "Body3",
+            "parts_list" : ["FEMDEM_boundary"]
+        }],
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2","FEMDEM_boundary"],
+        "processes_sub_model_part_list"      : ["VELOCITY_Velocity_Auto1"],
+        "material_import_settings"           : {
+            "materials_filename" : "fsi_tests/wall_2d/PFEMFluidMaterials.json"
+        }
+    },
+    "problem_process_list" : [{
+        "help"          : "This process applies meshing to the problem domains",
+        "kratos_module" : "KratosMultiphysics.PfemFluidDynamicsApplication",
+        "python_module" : "remesh_fluid_domains_process",
+        "process_name"  : "RemeshFluidDomainsProcess",
+        "Parameters"    : {
+            "model_part_name"                   : "PfemFluidModelPart",
+            "meshing_control_type"              : "step",
+            "meshing_frequency"                 : 1.0,
+            "meshing_before_output"             : true,
+            "update_conditions_on_free_surface" : {
+                "update_conditions" : false
+            },
+            "meshing_domains"                   : [{
+                "model_part_name"      : "Body1",
+                "python_module"        : "fluid_meshing_domain",
+                "alpha_shape"          : 1.25,
+                "offset_factor"        : 0.0,
+                "meshing_strategy"     : {
+                    "python_module"                 : "fluid_meshing_strategy",
+                    "meshing_frequency"             : 0,
+                    "remesh"                        : true,
+                    "refine"                        : true,
+                    "reconnect"                     : false,
+                    "transfer"                      : false,
+                    "constrained"                   : false,
+                    "mesh_smoothing"                : false,
+                    "variables_smoothing"           : false,
+                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
+                    "reference_condition_type"      : "CompositeCondition2D2N"
+                },
+                "spatial_bounding_box" : {
+                    "use_bounding_box" : false,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1000.0,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
+                "spatial_refining_box" : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.01,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1000.0,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
+                "refining_parameters"  : {
+                    "critical_size"       : 0.0,
+                    "threshold_variable"  : "PLASTIC_STRAIN",
+                    "reference_threshold" : 0.0,
+                    "error_variable"      : "NORM_ISOCHORIC_STRESS",
+                    "reference_error"     : 0.0,
+                    "add_nodes"           : false,
+                    "insert_nodes"        : true,
+                    "remove_nodes"        : {
+                        "apply_removal" : true,
+                        "on_distance"   : true,
+                        "on_threshold"  : false,
+                        "on_error"      : false
+                    },
+                    "remove_boundary"     : {
+                        "apply_removal" : false,
+                        "on_distance"   : false,
+                        "on_threshold"  : false,
+                        "on_error"      : false
+                    },
+                    "refine_elements"     : {
+                        "apply_refinement" : true,
+                        "on_distance"      : true,
+                        "on_threshold"     : false,
+                        "on_error"         : false
+                    },
+                    "refine_boundary"     : {
+                        "apply_refinement" : false,
+                        "on_distance"      : false,
+                        "on_threshold"     : false,
+                        "on_error"         : false
+                    }
+                }
+            },{
+                "model_part_name"      : "Body2",
+                "python_module"        : "fluid_meshing_domain",
+                "alpha_shape"          : 1.25,
+                "offset_factor"        : 0.0,
+                "meshing_strategy"     : {
+                    "python_module"                 : "fluid_meshing_strategy",
+                    "meshing_frequency"             : 0,
+                    "remesh"                        : false,
+                    "refine"                        : false,
+                    "reconnect"                     : false,
+                    "transfer"                      : false,
+                    "constrained"                   : false,
+                    "mesh_smoothing"                : false,
+                    "variables_smoothing"           : false,
+                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
+                    "reference_condition_type"      : "CompositeCondition2D2N"
+                },
+                "spatial_bounding_box" : {
+                    "use_bounding_box" : false,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1000.0,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
+                "spatial_refining_box" : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.01,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1000.0,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
+                "refining_parameters"  : {
+                    "critical_size"       : 0.0,
+                    "threshold_variable"  : "PLASTIC_STRAIN",
+                    "reference_threshold" : 0.0,
+                    "error_variable"      : "NORM_ISOCHORIC_STRESS",
+                    "reference_error"     : 0.0,
+                    "add_nodes"           : false,
+                    "insert_nodes"        : true,
+                    "remove_nodes"        : {
+                        "apply_removal" : true,
+                        "on_distance"   : true,
+                        "on_threshold"  : false,
+                        "on_error"      : false
+                    },
+                    "remove_boundary"     : {
+                        "apply_removal" : false,
+                        "on_distance"   : false,
+                        "on_threshold"  : false,
+                        "on_error"      : false
+                    },
+                    "refine_elements"     : {
+                        "apply_refinement" : true,
+                        "on_distance"      : true,
+                        "on_threshold"     : false,
+                        "on_error"         : false
+                    },
+                    "refine_boundary"     : {
+                        "apply_refinement" : false,
+                        "on_distance"      : false,
+                        "on_threshold"     : false,
+                        "on_error"         : false
+                    }
+                }
+            }]
+        }
+    }],
+    "processes"            : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [],
+        "auxiliar_process_list"    : []
+    },
+    "output_configuration" : {
+        "result_file_configuration" : {
+            "gidpost_flags"               : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "MultipleFiles"
+            },
+            "file_label"                  : "time",
+            "output_control_type"         : "time",
+            "output_frequency"            : 0.01,
+            "body_output"                 : true,
+            "node_output"                 : true,
+            "skin_output"                 : false,
+            "plane_output"                : [],
+            "nodal_results"               : ["VELOCITY","PRESSURE"],
+            "gauss_point_results"         : [],
+            "nodal_nonhistorical_results" : []
+        },
+        "point_data_configuration"  : []
+    }
+}
