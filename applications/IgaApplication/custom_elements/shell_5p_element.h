@@ -396,8 +396,7 @@ private:
 
     // Computes the cartesian derivatives from curvilinear ones
     Matrix CalculateCartesianDerivatives(
-        IndexType IntegrationPointIndex,
-        const KinematicVariables& rKinematicVariables);
+        IndexType IntegrationPointIndex);
 
     Matrix CalculateStrainDisplacementOperator(
         IndexType IntegrationPointIndex,

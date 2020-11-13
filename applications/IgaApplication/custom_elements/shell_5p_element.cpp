@@ -1,4 +1,4 @@
-﻿//    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -54,7 +54,7 @@ namespace Kratos
 
 		for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
 		{
-			m_cart_deriv[point_number]= CalculateCartesianDerivatives(point_number, kinematic_variables );
+			m_cart_deriv[point_number]= CalculateCartesianDerivatives(point_number );
 
 			CalculateKinematics(
 				point_number,
@@ -245,19 +245,24 @@ namespace Kratos
 
 	/* Transforms derivatives to obtain cartesian quantities  */
 	Matrix Shell5pElement::CalculateCartesianDerivatives(
-		IndexType IntegrationPointIndex,
-		const KinematicVariables& rKinematicVariables
+		IndexType IntegrationPointIndex
 	)
 	{
 		std::cout << "CalculateCartesianDerivatives" << std::endl;
 		const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
 		array_1d<double, 3> a3;
-		MathUtils<double>::CrossProduct(a3, rKinematicVariables.a1, rKinematicVariables.a2);
+		Matrix J0;
+		GetGeometry().Jacobian(J0, IntegrationPointIndex);
+
+		const array_1d<double, 3> a1 = column(J0, 0);
+		const array_1d<double, 3> a2 = column(J0, 1);
+
+		MathUtils<double>::CrossProduct(a3, a1, a2);
 		m_dA_vector[IntegrationPointIndex] = norm_2(a3);
 
-		const array_1d<double, 3> axi1 = rKinematicVariables.a1 / norm_2(rKinematicVariables.a1);
-		const array_1d<double, 3> axi2 = rKinematicVariables.a2 / norm_2(rKinematicVariables.a2);
+		const array_1d<double, 3> axi1 = a1 / norm_2(a1);
+		const array_1d<double, 3> axi2 = a2 / norm_2(a2);
 
 		MathUtils<double>::CrossProduct(a3, axi1, axi2);
 
@@ -271,11 +276,11 @@ namespace Kratos
 
 		Matrix J(2, 2);
 
-		J(0, 0) = inner_prod(rKinematicVariables.a1, a1Cart);
-		J(1, 0) = inner_prod(rKinematicVariables.a2, a1Cart);
-		J(0, 1) = inner_prod(rKinematicVariables.a1, a2Cart);
-		J(1, 1) = inner_prod(rKinematicVariables.a2, a2Cart);
-
+		J(0, 0) = inner_prod(a1, a1Cart);
+		J(1, 0) = inner_prod(a2, a1Cart);
+		J(0, 1) = inner_prod(a1, a2Cart);
+		J(1, 1) = inner_prod(a2, a2Cart);
+		
 		double detJ;
 		Matrix invJ;
 		MathUtils<double>::InvertMatrix2(J, invJ, detJ);
@@ -297,16 +302,16 @@ namespace Kratos
 		rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 		array_1d<double, 8> strain_vector;
-		subrange(strain_vector,0,2) = rActualKinematic.metric;
+		subrange(strain_vector,0,3) = rActualKinematic.metric;
 		strain_vector(0) -= 1.0; //TODO this is unnecessary if TODO from calculatekinematics is done
 		strain_vector(1) -= 1.0;
 
 		strain_vector(0) *= 0.5;
 		strain_vector(1) *= 0.5;
 
-		subrange(strain_vector,3,5) = rActualKinematic.curvature - reference_Curvature[IntegrationPointIndex];
+		subrange(strain_vector,3,6) = rActualKinematic.curvature - reference_Curvature[IntegrationPointIndex];
 
-		subrange(strain_vector, 6, 7) = rActualKinematic.transShear - reference_TransShear[IntegrationPointIndex];
+		subrange(strain_vector, 6, 8) = rActualKinematic.transShear - reference_TransShear[IntegrationPointIndex];
 		noalias(rThisConstitutiveVariables.StrainVector) = strain_vector;
 		noalias(rThisConstitutiveVariables.StressVector) = prod(mC,strain_vector);
 
@@ -456,11 +461,12 @@ namespace Kratos
 
 				noalias(subrange(Kg, i, 3, j4, 2)) = prod(Temp, BLAJ);
 
+				noalias(subrange(Kg, i1, i1 + 3, j4, j4 + 2)) = prod(Temp, BLAJ);
 				Temp = S[3] * dN1j * WI1 + S[4] * dN2j * WI2 + S[5] * (dN1j * WI2 + dN2j * WI1); // bending_{,disp,dir}*M
 	
 				Temp += ractVar.P * Ni * (dN1j * S[6] + dN2j * S[7]);// shear_{,disp,dir}*Q
 
-				noalias(subrange(Kg, i4, 2, j1, 3)) = prod(BLAI_T, Temp);
+				noalias(subrange(Kg, i4, i4 + 2, j1, j1 + 3)) = prod(BLAI_T, Temp);
 
 				Temp = Ni * Nj * kg2directorshear;  // shear_{,dir,dir}*Q
 
@@ -470,7 +476,7 @@ namespace Kratos
 				Temp += ractVar.S1 * NdN1 * S[3] + ractVar.S2 * NdN2 * S[4] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * S[5];  // bending_{,dir,dir}*M
 
 				const Matrix23d Temp2 = prod(BLAI_T, Temp); //useless temp due to ublas prodprod
-				noalias(subrange(Kg, i4, 2, j4, 2)) = prod(Temp2, BLAJ);
+				noalias(subrange(Kg, i4, i4 + 2, j4, j4 + 2)) = prod(Temp2, BLAJ);
 			}
 			const double kgT = -inner_prod(r_geometry[i].GetValue(DIRECTOR), 
 				                     prod(WI1, rActKin.a1) * S[3] +
@@ -612,21 +618,21 @@ namespace Kratos
 	{
 		std::cout << "Check" << std::endl;
 			// Verify that the constitutive law exists
-			if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
-			{
-				KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
-			}
-			else
-			{
-				// Verify that the constitutive law has the correct dimension
-				KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
-					<< "THICKNESS not provided for element " << this->Id() << std::endl;
-
-				// Check strain size
-				KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
-					<< "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
-					<< this->Id() << std::endl;
-			}
+		//	if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
+		//	{
+		//		KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+		//	}
+		//	else
+		//	{
+		//		// Verify that the constitutive law has the correct dimension
+		//		KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
+		//			<< "THICKNESS not provided for element " << this->Id() << std::endl;
+		//
+		//		// Check strain size
+		//		KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
+		//			<< "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
+		//			<< this->Id() << std::endl;
+		//	}
 			std::cout << "EndCheck" << std::endl;
 		return 0;
 	}
@@ -638,6 +644,7 @@ namespace Kratos
 		const double nu = this->GetProperties()[POISSON_RATIO];
 		const double Emodul =  this->GetProperties()[YOUNG_MODULUS];
 		const double thickness = this->GetProperties().GetValue(THICKNESS);
+		mC = ZeroMatrix(8, 8);
 		//membrane
 		const double fac1 = thickness * Emodul / (1 - nu * nu);
 		mC(0, 0) = mC(1, 1) = fac1;
