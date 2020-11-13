@@ -57,10 +57,4 @@ void GidIOBase::SetData(int data) {
 
 GidIOBase* GidIOBase::mpInstance = nullptr;
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-// GidIO default instantiation
-template class GidIO<GidGaussPointsContainer,GidMeshContainer>;
-
 } // namespace Kratos.
