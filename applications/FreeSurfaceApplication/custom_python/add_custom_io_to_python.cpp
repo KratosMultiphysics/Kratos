@@ -64,12 +64,12 @@ void MatrixPrintOnGaussPoints( GidIOType& dummy, const Variable<Matrix>& rVariab
 
 void (GidIOType::*pointer_to_double_write_nodal_results)(
     Variable<double> const& rVariable,
-    GidIOType::NodesContainerType& rNodes, double SolutionTag,
-    std::size_t SolutionStepNumber ) = &GidIOType::WriteNodalResults;
+    const GidIOType::NodesContainerType& rNodes, const double SolutionTag,
+    const std::size_t SolutionStepNumber ) = &GidIOType::WriteNodalResults;
 void (GidIOType::*pointer_to_array1d_write_nodal_results)(
     Variable<array_1d<double, 3> > const& rVariable,
-    GidIOType::NodesContainerType& rNodes, double SolutionTag,
-    std::size_t SolutionStepNumber) = &GidIOType::WriteNodalResults;
+    const GidIOType::NodesContainerType& rNodes, const double SolutionTag,
+    const std::size_t SolutionStepNumber) = &GidIOType::WriteNodalResults;
 
 
 //         void (GidIOType::*pointer_to_double_write_nodal_results)( Variable<double> const& rVariable,
