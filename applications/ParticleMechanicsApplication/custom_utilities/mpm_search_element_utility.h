@@ -24,14 +24,11 @@
 #include "utilities/quadrature_points_utility.h"
 
 #include "particle_mechanics_application_variables.h"
-//#include "geometries/geometry_shape_function_container.h"
-//#include "custom_geometries/quadrature_point_partitioned_geometry.h"
 
 #include "geometries/geometry.h"
 #include "includes/model_part.h"
 
 #include "pqmpm_partition_utilities.h"
-
 
 namespace Kratos
 {
