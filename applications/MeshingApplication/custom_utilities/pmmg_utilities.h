@@ -21,6 +21,12 @@
 
 // Project includes
 #include "meshing_application.h"
+#include "includes/key_hash.h"
+#include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
+#include "processes/fast_transfer_between_model_parts_process.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
@@ -191,6 +197,10 @@ public:
     ///@name Operators
     ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     /**
      * @brief This method sets the echo level
      * @param[in] EchoLevel Sets the echo level
@@ -203,7 +213,7 @@ public:
      */
     SizeType GetEchoLevel();
 
-      /**
+    /**
      * @brief This method sets the discretization method
      * @param[in] Discretization Sets the discretization method
      */
@@ -281,7 +291,113 @@ public:
      */
     void BlockElement(const IndexType iElement);
 
-     /**
+    /**
+     * @brief It creates the new node
+     * @details Each call to this function increments the internal counter of the PMMG mesh data structure, extracts the coordinates of the current vertex and creates the new node with the extracted coordinates.
+     * @param[in,out] rModelPart The model part which owns the new node
+     * @param[in] iNode The index of the new node
+     * @param[out] Ref PMMG point reference
+     * @param[out] IsRequired PMMG required entity (0 or 1)
+     * @return pNode The pointer to the new node created
+     */
+    NodeType::Pointer CreateNode(
+        ModelPart& rModelPart,
+        IndexType iNode,
+        int& Ref,
+        int& IsRequired
+        );
+
+    /**
+     * @brief It creates the new condition (first type, depends if the library work in 2D/3D/Surfaces)
+     * @details Each call to this function increments the internal counter of the PMMG mesh data structure and extracts the vertices of the current  edge.
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rMapPointersRefCondition The pointer to the condition of reference
+     * @param[in] CondId The id of the new condition
+     * @param[out] Ref PMMG edge reference
+     * @param[out] IsRequired PMMG required entity (0 or 1)
+     * @param[in] SkipCreation Skips the creation of the new condition
+     * @return pCondition The pointer to the new condition created
+     */
+    Condition::Pointer CreateFirstTypeCondition(
+        ModelPart& rModelPart,
+        std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
+        const IndexType CondId,
+        int& Ref,
+        int& IsRequired,
+        bool SkipCreation
+        );
+
+    /**
+     * @brief It creates the new condition (second type, depends if the library work in 2D/3D/Surfaces)
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rMapPointersRefCondition The pointer to the condition of reference
+     * @param[in] CondId The id of the condition
+     * @param[out] Ref PMMG edge reference
+     * @param[out] IsRequired PMMG required entity (0 or 1)
+     * @return pCondition The pointer to the new condition created
+     */
+    Condition::Pointer CreateSecondTypeCondition(
+        ModelPart& rModelPart,
+        std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
+        const IndexType CondId,
+        int& Ref,
+        int& IsRequired,
+        bool SkipCreation
+        );
+
+    /**
+     * @brief It creates the new element (first type, depends if the library work in 2D/3D/Surfaces)
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rMapPointersRefElement The pointer to the element of reference
+     * @param[in] ElemId The id of the element
+     * @param[out] Ref PMMG edge reference
+     * @param[out] IsRequired PMMG required entity (0 or 1)
+     * @return pElement The pointer to the new condition created
+     */
+    Element::Pointer CreateFirstTypeElement(
+        ModelPart& rModelPart,
+        std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
+        const IndexType ElemId,
+        int& Ref,
+        int& IsRequired,
+        bool SkipCreation
+        );
+
+    /**
+     * @brief It creates the new element (second type, depends if the library work in 2D/3D/Surfaces)
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rMapPointersRefElement The pointer to the element of reference
+     * @param[in] ElemId The id of the element
+     * @param[out] Ref PMMG edge reference
+     * @param[out] IsRequired PMMG required entity (0 or 1)
+     * @return pElement The pointer to the new condition created
+     */
+    Element::Pointer CreateSecondTypeElement(
+        ModelPart& rModelPart,
+        std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
+        const IndexType ElemId,
+        int& Ref,
+        int& IsRequired,
+        bool SkipCreation
+        );
+
+    /**
+     * @brief Initialisation of mesh and sol structures
+     * @details Initialisation of mesh and sol structures args of InitMesh:
+     * -# MMG5_ARG_start we start to give the args of a variadic func
+     * -# MMG5_ARG_ppMesh next arg will be a pointer over a MMG5_pMesh
+     * -# &mmgMesh pointer toward your MMG5_pMesh (that store your mesh)
+     * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
+     * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
+     */
+    void InitMesh();
+
+    /**
+     * @brief Here the verbosity is set
+     */
+    void InitVerbosity();
+
+    /**
      * @brief Here the API mode is set using the API
      * @param[in] API Mode sets the mode in which the parallel communicator works
      */
@@ -334,7 +450,7 @@ public:
      */
     void CheckMeshData();
 
-      /**
+    /**
      * @brief This sets the output mesh
      * @param[in] rInputName The input name
      */
@@ -499,14 +615,126 @@ public:
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
      * @param[in,out] rModelPart The model part of interest to study
      */
+    void ReorderAllIds(ModelPart& rModelPart);
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method generates mesh data from an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rColors Where the sub model parts IDs are stored
+     * @param[in,out] rColorMapCondition Auxiliar color map for conditions
+     * @param[in,out] rColorMapElement Auxiliar color map for elements
+     * @param[in] Framework The framework considered
+     * @param[in] CollapsePrismElements If the prisms elements are going to be collapsed
+     */
+    void GenerateMeshDataFromModelPart(
+        ModelPart& rModelPart,
+        std::unordered_map<IndexType,std::vector<std::string>>& rColors,
+        ColorsMapType& rColorMapCondition,
+        ColorsMapType& rColorMapElement,
+        const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN,
+        const bool CollapsePrismElements = false
+        );
+
+    /**
+     * @brief This method generates the interface data for the parallel communicator
+     * @param[in,out] rModelPart The model part with the kratos communicator.
+     */
+    void GenerateParallelInterfaces(
+        ModelPart& rModelPart
+    );
+
+    /**
+     * @brief This method prints the interface data for the parallel communicator
+     * @param[in,out] rModelPart The model part with the kratos communicator.
+     */
+    void PrintParallelInterfaces(
+        ModelPart& rModelPart
+    );
+
+    /**
+     * @brief This method generates the maps of reference for conditions and elements
+     * @param[in] rModelPart The model part of interest to study
+     * @param[in] rColorMapCondition Auxiliar color map for conditions
+     * @param[in] rColorMapElement Auxiliar color map for elements
+     * @param[in,out] rRefCondition The conditions of reference
+     * @param[in,out] rRefElement The elements of reference
+     */
+    void GenerateReferenceMaps(
+        ModelPart& rModelPart,
+        const ColorsMapType& rColorMapCondition,
+        const ColorsMapType& rColorMapElement,
+        std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rRefElement
+        );
+
+    /**
+     * @brief This method generates solution (metric) data from an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void GenerateSolDataFromModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method generates displacement data from an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void GenerateDisplacementDataFromModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method writes mesh data to an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in] rColors Where the sub model parts IDs are stored
+     * @param[in] rDofs Storage for the dof of the node
+     * @param[in] rPMMGMeshInfo The resulting mesh data
+     * @param[in] rMapPointersRefCondition The map of the conditions by reference (color)
+     * @param[in] rMapPointersRefElement The map of the elements by reference (color)
+     */
+    void WriteMeshDataToModelPart(
+        ModelPart& rModelPart,
+        const std::unordered_map<IndexType,std::vector<std::string>>& rColors,
+        const NodeType::DofsContainerType& rDofs,
+        const PMMGMeshInfo<TPMMGLibrary>& rPMMGMeshInfo,
+        std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement
+        );
+
+    /**
+     * @brief This method writes sol data to an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void WriteSolDataToModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method writes the maps of reference for conditions and elements from an existing json
+     * @param[in] rModelPart The model part of interest to study
+     * @param[in] rFilename The name of the files
+     * @param[in,out] rRefCondition The conditions of reference
+     * @param[in,out] rRefElement The elements of reference
+     */
+    void WriteReferenceEntitities(
+        ModelPart& rModelPart,
+        const std::string& rFilename,
+        std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rRefElement
+        );
+
+    /**
+     * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+
+    /**
+     * @brief This function assigns the flags and clears the auxiliar sub model part for flags
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+
+    std::unordered_map<int, int> GetNodalLocalToGlobalMap();
 
     ///@}
     ///@name Access
     ///@{
+
 
     ///@}
     ///@name Inquiry
@@ -589,6 +817,24 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Sets a flag according to a given status over all submodelparts
+     * @param rFlag flag to be set
+     * @param FlagValue flag value to be set
+     */
+    void ResursivelyAssignFlagEntities(
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool FlagValue
+        )
+    {
+        // We call it recursively
+        for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Conditions());
+            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Elements());
+            ResursivelyAssignFlagEntities(r_sub_model_part, rFlag, FlagValue);
+        }
+    }
 
     ///@}
     ///@name Private  Access

@@ -16,21 +16,32 @@
 #define KRATOS_PMMG_PROCESS
 
 // System includes
+#include <unordered_set>
+#include <unordered_map>
+
+// External includes
+// The includes related with the PMMG library
+// #include "mmg/libmmg.h"
 
 // Project includes
 #include "processes/process.h"
+#include "includes/key_hash.h"
+#include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 #include "custom_utilities/pmmg_utilities.h"
+#include "containers/variables_list.h"
+#include "meshing_application.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
 **  Copyright (c) Bx INP/Inria/UBordeaux, 2017- .
 **
-**  parmmg is free software: you can redistribute it and/or modify it
+**  mmg is free software: you can redistribute it and/or modify it
 **  under the terms of the GNU Lesser General Public License as published
 **  by the Free Software Foundation, either version 3 of the License, or
 **  (at your option) any later version.
 **
-**  parmmg is distributed in the hope that it will be useful, but WITHOUT
+**  mmg is distributed in the hope that it will be useful, but WITHOUT
 **  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 **  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
 **  License for more details.
@@ -79,8 +90,6 @@ namespace Kratos
  * @brief This class is a remesher which uses the PMMG library
  * @details This class is a remesher which uses the PMMG library. The class uses a class for the 2D and 3D cases.
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
- * @author Marc Nunez
- * @author Carlos Roig
  * @author Vicente Mataix Ferrandiz
  */
 template<PMMGLibrary TPMMGLibrary>
@@ -202,6 +211,16 @@ public:
      */
     void ExecuteFinalize() override;
 
+    /**
+     * @brief This sets the output mesh in a .mdpa format
+     */
+    void OutputMdpa();
+
+    /**
+     * @brief Ths function removes superfluous (defined by "not belonging to an element") nodes from the model part
+     */
+    void CleanSuperfluousNodes();
+
     ///@}
     ///@name Access
     ///@{
@@ -279,6 +298,19 @@ private:
 
     ParMmgUtilities<TPMMGLibrary> mPMmmgUtilities;                     /// The PMMG utilities class
 
+    std::string mFilename;                                           /// I/O file name
+    IndexType mEchoLevel;                                            /// The echo level
+
+    FrameworkEulerLagrange mFramework;                               /// The framework
+
+    DiscretizationOption mDiscretization;                            /// The discretization option
+    bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
+
+    std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
+
+    std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference element
+    std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -287,7 +319,169 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This converts the framework string to an enum
+     * @param rString The string
+     * @return FrameworkEulerLagrange: The equivalent enum
+     */
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& rString)
+    {
+        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
+            return FrameworkEulerLagrange::LAGRANGIAN;
+        else if(rString == "Eulerian" || rString == "EULERIAN")
+            return FrameworkEulerLagrange::EULERIAN;
+        else if(rString == "ALE")
+            return FrameworkEulerLagrange::ALE;
+        else
+            return FrameworkEulerLagrange::EULERIAN;
+    }
 
+    /**
+     * @brief This converts the discretization string to an enum
+     * @param rString The string
+     * @return DiscretizationOption: The equivalent enum
+     */
+    static inline DiscretizationOption ConvertDiscretization(const std::string& rString)
+    {
+        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
+            return DiscretizationOption::LAGRANGIAN;
+        else if(rString == "Standard" || rString == "STANDARD")
+            return DiscretizationOption::STANDARD;
+        else if(rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface")
+            return DiscretizationOption::ISOSURFACE;
+        else
+            return DiscretizationOption::STANDARD;
+    }
+
+    /**
+     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
+     */
+    void InitializeMeshData();
+
+    /**
+     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
+     */
+    void InitializeSolDataMetric();
+
+    /**
+     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
+     */
+    void InitializeSolDataDistance();
+
+    /**
+     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
+     */
+    void InitializeDisplacementData();
+
+    /**
+     * @brief We execute the MMg library and build the new model part from the old model part
+     */
+    void ExecuteRemeshing();
+
+    /**
+     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     */
+    void InitializeElementsAndConditions();
+
+    /**
+     * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
+     * @param PostOutput If the file to save is after or before remeshing
+     */
+    void SaveSolutionToFile(const bool PostOutput);
+
+    /**
+     * @brief It frees the memory used during all the process
+     */
+    void FreeMemory();
+
+    /**
+     * @brief It sets to zero the entity data, using the variables from the orginal model part
+     * @param rNewModelPart The new container
+     * @param rOldModelPart The old container
+     * @tparam TContainerType The container type
+     * @todo Interpolate values in the future
+     */
+    template<class TContainerType>
+    void SetToZeroEntityData(
+        TContainerType& rNewContainer,
+        const TContainerType& rOldContainer
+        )
+    {
+        // Firts we generate the variable list
+        std::unordered_set<std::string> list_variables;
+        const auto it_begin_old = rOldContainer.begin();
+        auto& data = it_begin_old->Data();
+        for(auto i = data.begin() ; i != data.end() ; ++i) {
+            list_variables.insert((i->first)->Name());
+        }
+
+        for (auto& var_name : list_variables) {
+            if (KratosComponents<Variable<bool>>::Has(var_name)) {
+                const Variable<bool>& r_var = KratosComponents<Variable<bool>>::Get(var_name);
+                VariableUtils().SetNonHistoricalVariable(r_var, false, rNewContainer);
+            } else if (KratosComponents<Variable<double>>::Has(var_name)) {
+                const Variable<double>& r_var = KratosComponents<Variable<double>>::Get(var_name);
+                VariableUtils().SetNonHistoricalVariable(r_var, 0.0, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
+                const Variable<array_1d<double, 3>>& r_var = KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name);
+                const array_1d<double, 3> aux_value = ZeroVector(3);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(var_name)) {
+                const Variable<array_1d<double, 4>>& r_var = KratosComponents<Variable<array_1d<double, 4>>>::Get(var_name);
+                const array_1d<double, 4> aux_value = ZeroVector(4);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(var_name)) {
+                const Variable<array_1d<double, 6>>& r_var = KratosComponents<Variable<array_1d<double, 6>>>::Get(var_name);
+                const array_1d<double, 6> aux_value = ZeroVector(6);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(var_name)) {
+                const Variable<array_1d<double, 9>>& r_var = KratosComponents<Variable<array_1d<double, 9>>>::Get(var_name);
+                const array_1d<double, 9> aux_value = ZeroVector(9);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
+                const Variable<Vector>& r_var = KratosComponents<Variable<Vector>>::Get(var_name);
+                Vector aux_value = ZeroVector(it_begin_old->GetValue(r_var).size());
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
+                const Variable<Matrix>& r_var = KratosComponents<Variable<Matrix>>::Get(var_name);
+                const Matrix& ref_matrix = it_begin_old->GetValue(r_var);
+                Matrix aux_value = ZeroMatrix(ref_matrix.size1(), ref_matrix.size2());
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            }
+        }
+    }
+
+    /**
+     * @brief This method collapses the prisms elements into triangles
+     */
+    void CollapsePrismsToTriangles();
+
+    /**
+     * @brief This method extrudes the triangles elements into prisms
+     * @param rOldModelPart The old model part
+     */
+    void ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart);
+
+    /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    void ClearConditionsDuplicatedGeometries();
+
+    /**
+     * @brief This function creates an before/after remesh output file
+     * @param rOldModelPart The old model part before remesh
+     */
+    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
+
+    /**
+     * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions
+     * @param rModelPart The modelpart to be marked
+     */
+    void MarkConditionsSubmodelParts(ModelPart& rModelPart);
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
     Parameters GetDefaultParameters();
 
     ///@}
