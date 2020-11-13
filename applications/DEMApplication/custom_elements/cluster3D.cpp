@@ -55,7 +55,7 @@ namespace Kratos {
         mListOfRadii.clear();
     }
 
-    void Cluster3D::Initialize(ProcessInfo& r_process_info) {
+    void Cluster3D::Initialize(const ProcessInfo& r_process_info) {
 
         RigidBodyElement3D::Initialize(r_process_info);
 

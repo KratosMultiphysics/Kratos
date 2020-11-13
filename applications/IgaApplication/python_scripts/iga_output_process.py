@@ -1,11 +1,11 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.IgaApplication as KratosIga
+import KratosMultiphysics.IgaApplication
 
+import KratosMultiphysics.kratos_utilities
 
 def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not (isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return IgaOutputProcess(model, settings["Parameters"])
 
@@ -48,7 +48,7 @@ class IgaOutputProcess(KratosMultiphysics.Process):
         elif output_file_label == "step":
             self.output_label_is_time = False
         else:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
+            msg = '{} Error: Unknown value "{}" read for parameter "file_label"'.format(self.__class__.__name__,output_file_label)
             raise Exception(msg)
 
         output_control_type = self.params["output_control_type"].GetString()
@@ -98,14 +98,14 @@ class IgaOutputProcess(KratosMultiphysics.Process):
             for variable in self.integration_point_results_scalar:
                 output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnGaussPoints\nValues\n")
                 for element in self.model_part.Elements:
-                    value = element.Calculate(variable, self.model_part.ProcessInfo)
+                    value = element.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)[0]
                     output_file.write(str(element.Id) + "  " + str(value) + "\n")
                 output_file.write("End Values\n")
 
             for variable in self.integration_point_results_vector:
                 output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\nValues\n")
                 for element in self.model_part.Elements:
-                    value = element.Calculate(variable, self.model_part.ProcessInfo)
+                    value = element.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)[0]
                     output_file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
                 output_file.write("End Values\n")
 
@@ -134,19 +134,18 @@ def CreateVariablesListFromInput(param):
     '''Parse a list of variables from input.'''
     scalar_variables = []
     vector_variables = []
-    addmissible_scalar_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
-    addmissible_vector_types = ["Array", "Vector"]
+    admissible_scalar_types = ["Bool", "Integer", "Unsigned Integer", "Double"]
+    admissible_vector_types = ["Array", "Vector"]
+
+    variable_list = KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(param)
 
     # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-    for i in range(param.size()):
-        var_name = param[i].GetString()
-        variable = KratosMultiphysics.KratosGlobals.GetVariable(var_name)
-        var_type = KratosMultiphysics.KratosGlobals.GetVariableType(var_name)
-        if var_type in addmissible_scalar_types:
+    for variable in variable_list:
+        if KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name()) in admissible_scalar_types:
             scalar_variables.append(variable)
-        elif var_type in addmissible_vector_types:
+        elif KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name()) in admissible_vector_types:
             vector_variables.append(variable)
         else:
-            raise Exception("unsupported variables type: " + var_type)
+            raise Exception("unsupported variables type: " + str(type(variable)))
 
     return scalar_variables, vector_variables

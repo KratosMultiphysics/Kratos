@@ -50,9 +50,9 @@ public:
 
     void Initialize() override;
 
-    void InitializeSolutionStep(ProcessInfo& r_process_info ) override;
+    void InitializeSolutionStep(const ProcessInfo& r_process_info ) override;
 
-    void FinalizeSolutionStep(ProcessInfo& r_process_info ) override;
+    void FinalizeSolutionStep(const ProcessInfo& r_process_info ) override;
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info) override;
 

@@ -15,10 +15,10 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     def Initialize(self):
-        super(DEM3D_RestitutionTestSolution, self).Initialize()
+        super().Initialize()
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
@@ -28,11 +28,6 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
-
-    @classmethod
-    def CheckRestitution(self, reference, restitution_coefficient, tolerance):
-        if not (reference < abs(restitution_coefficient*tolerance) and reference > abs(restitution_coefficient/tolerance)):
-            raise ValueError('Incorrect value for COEFFICIENT_OF_RESTITUTION: expected value was '+ str(reference) + ' but received ' + str(restitution_coefficient))
 
     def Finalize(self):
         tolerance = 1.0001
@@ -45,8 +40,8 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             Logger.PrintInfo("ref:",self.coeff)
             Logger.PrintInfo("upper bound:",restitution_coefficient*tolerance)
             Logger.PrintInfo("lower bound:",restitution_coefficient/tolerance)
-            self.CheckRestitution(self.coeff, restitution_coefficient, tolerance)
-        super(DEM3D_RestitutionTestSolution, self).Finalize()
+            self.assertAlmostEqual(self.coeff, restitution_coefficient, delta=tolerance)
+        super().Finalize()
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):

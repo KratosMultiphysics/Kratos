@@ -89,8 +89,6 @@ class MeshingStrategy(object):
         self.number_of_elements   = 0
         self.number_of_conditions = 0
 
-        print(self._class_prefix()+" Ready")
-
     #
     def GetMeshers(self):
 

@@ -42,7 +42,7 @@ namespace Kratos {
     // Destructor
     SingleSphereCluster3D::~SingleSphereCluster3D() {}
 
-    void SingleSphereCluster3D::Initialize(ProcessInfo& r_process_info) {
+    void SingleSphereCluster3D::Initialize(const ProcessInfo& r_process_info) {
 
         RigidBodyElement3D::Initialize(r_process_info); //Skipping the Cluster3D level intentionally!! We should unifiy this when we code ECCENTRICITY and SCALES for Cluster3D
 

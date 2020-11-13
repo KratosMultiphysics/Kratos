@@ -22,6 +22,7 @@
 #include "custom_elements/shell_5p_element.h"
 
 //conditions
+#include "custom_conditions/output_condition.h"
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/penalty_coupling_condition.h"
 
@@ -104,6 +105,7 @@ private:
     const Shell5pElement mShell5pElement;
 
     //Conditions
+    const OutputCondition mOutputCondition;
     const LoadCondition mLoadCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
 
