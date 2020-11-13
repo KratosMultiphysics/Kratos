@@ -2012,7 +2012,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
     for (unsigned int gpt = 0; gpt < n_gpt; ++gpt){
         double curvature = 0.0;
         for (unsigned int i = 0; i < NumNodes; ++i){
-            curvature += rInterfaceShapeFunctions(gpt,i) * geom[i].FastGetSolutionStepValue(CURVATURE);
+            curvature += rInterfaceShapeFunctions(gpt,i) * geom[i].GetValue(CURVATURE);
         }
         rInterfaceCurvature[gpt] = curvature;
     }

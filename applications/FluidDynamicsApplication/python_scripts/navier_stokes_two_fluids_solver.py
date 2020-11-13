@@ -139,8 +139,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_GRADIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CURVATURE)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
@@ -455,7 +453,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return distance_gradient_process
 
     def _CreateDistanceCurvatureProcess(self):
-        distance_curvature_process = KratosMultiphysics.ComputeNodalNormalDivergenceProcess(
+        distance_curvature_process = KratosMultiphysics.ComputeNonHistoricalNodalNormalDivergenceProcess(
                 self.main_model_part,
                 KratosMultiphysics.DISTANCE_GRADIENT,
                 KratosCFD.CURVATURE,
