@@ -204,7 +204,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if (self._reinitialization_type == "variational"):
                 self._GetDistanceReinitializationProcess().Execute()
             elif (self._reinitialization_type == "parallel"):
-                adjusting_parameter = 0.005
+                adjusting_parameter = 0.05
                 layers = int(adjusting_parameter*self.main_model_part.NumberOfElements()) # this parameter is essential
                 max_distance = 1.0 # use this parameter to define the redistancing range
                 # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
@@ -240,6 +240,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
+
         if self._TimeBufferIsInitialized():
             self._GetSolutionStrategy().FinalizeSolutionStep()
             self._GetAccelerationLimitationUtility().Execute()
