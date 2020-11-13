@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-void BaseSolidElement::Initialize()
+void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -252,7 +252,7 @@ Element::Pointer BaseSolidElement::Clone (
 void BaseSolidElement::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     KRATOS_TRY;
 
@@ -288,7 +288,7 @@ void BaseSolidElement::EquationIdVector(
 void BaseSolidElement::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     KRATOS_TRY;
 
@@ -319,7 +319,7 @@ void BaseSolidElement::GetDofList(
 void BaseSolidElement::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
