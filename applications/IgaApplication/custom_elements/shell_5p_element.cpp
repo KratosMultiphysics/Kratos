@@ -459,7 +459,7 @@ namespace Kratos
 				Matrix3d Temp = S[3] * dN1i * WJ1 + S[4] * dN2i * WJ2 + S[5] * (dN1i * WJ2 + dN2i * WJ1); // bending_{,dir,disp}*M
 				Temp += ractVar.P * Nj * (dN1i * S[6] + dN2i * S[7]);  // shear_{,dir,disp}*Q
 
-				noalias(subrange(Kg, i, 3, j4, 2)) = prod(Temp, BLAJ);
+				noalias(subrange(Kg, i4, i4 + 3, j4, j4 + 2)) = prod(Temp, BLAJ);
 
 				noalias(subrange(Kg, i1, i1 + 3, j4, j4 + 2)) = prod(Temp, BLAJ);
 				Temp = S[3] * dN1j * WI1 + S[4] * dN2j * WI2 + S[5] * (dN1j * WI2 + dN2j * WI1); // bending_{,disp,dir}*M
