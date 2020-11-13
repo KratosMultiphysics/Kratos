@@ -24,8 +24,8 @@
 #include "utilities/quadrature_points_utility.h"
 
 #include "particle_mechanics_application_variables.h"
-#include "geometries/geometry_shape_function_container.h"
-#include "custom_geometries/quadrature_point_partitioned_geometry.h"
+//#include "geometries/geometry_shape_function_container.h"
+//#include "custom_geometries/quadrature_point_partitioned_geometry.h"
 
 #include "geometries/geometry.h"
 #include "includes/model_part.h"
@@ -37,12 +37,6 @@ namespace Kratos
 {
 namespace MPMSearchElementUtility
 {
-    // Standard types
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
-    typedef Node<3> NodeType;
-    typedef typename ModelPart::GeometryType GeometryType;
-
     // Standard types
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;

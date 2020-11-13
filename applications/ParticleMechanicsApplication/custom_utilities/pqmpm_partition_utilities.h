@@ -17,8 +17,8 @@
 
 
 
-#include "includes/define.h"
-#include "utilities/quadrature_points_utility.h"
+//#include "includes/define.h"
+//#include "utilities/quadrature_points_utility.h"
 
 #include "particle_mechanics_application_variables.h"
 #include "geometries/geometry_shape_function_container.h"
@@ -26,11 +26,6 @@
 
 #include "geometries/geometry.h"
 #include "includes/model_part.h"
-
-#include "boost/geometry/geometry.hpp"
-#include "boost/geometry/geometries/register/point.hpp"
-#include "boost/geometry/geometries/register/ring.hpp"
-
 
 #include "boost/geometry/geometry.hpp"
 #include "boost/geometry/geometries/register/point.hpp"
@@ -91,7 +86,6 @@ namespace Kratos
 
         IntegrationPoint<3> KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CreateSubPoint(const array_1d<double, 3>& rGlobalCoords, const double rVolumeFraction,
             const GeometryType& rBackgroundGridElementGeom, Vector& rN, Matrix& rDN_De);
-
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) Determine2DSubPoint(const GeometryType& rGridElement, const std::vector<array_1d<double, 3>>& rMasterDomainPoints,
             array_1d<double, 3>& rSubPointCoord, double& rSubPointVolume);
