@@ -49,10 +49,11 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
 
     KRATOS_TRY;
 
+    const auto zero_vector = ZeroVector(3);
     // Set to zero
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
         rNode.SetValue(NODAL_AREA, 0.0);
-        rNode.FastGetSolutionStepValue(PRESSURE_GRADIENT).clear();
+        rNode.SetValue(PRESSURE_GRADIENT, zero_vector);
     });
 
     // Current domain size
@@ -121,7 +122,7 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
                 const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
 
                 for(unsigned int i_node=0; i_node<number_of_nodes; ++i_node) {
-                    array_1d<double, 3>& r_gradient = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE_GRADIENT);
+                    array_1d<double, 3>& r_gradient = r_geometry[i_node].GetValue(PRESSURE_GRADIENT);
                     for(unsigned int k=0; k<num_dim; ++k) {
                         #pragma omp atomic
                         r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];
@@ -138,7 +139,7 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
 
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
         if (rNode.GetValue(NODAL_AREA) > 1.0e-12){
-            rNode.FastGetSolutionStepValue(PRESSURE_GRADIENT) /= rNode.GetValue(NODAL_AREA);}
+            rNode.GetValue(PRESSURE_GRADIENT) /= rNode.GetValue(NODAL_AREA);}
     });
 
     KRATOS_CATCH("")

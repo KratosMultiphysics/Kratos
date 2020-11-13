@@ -4,7 +4,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import math
 import os
 
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
+# from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -17,8 +17,6 @@ class TestConsistentLevelsetNodalGradient(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_GRADIENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
         KratosMultiphysics.ModelPartIO(GetFilePath("DistanceSmoothingTest/two_dim_symmetrical_square")).ReadModelPart(model_part)
 
@@ -42,37 +40,38 @@ class TestConsistentLevelsetNodalGradient(KratosUnittest.TestCase):
         KratosCFD.CalulateLevelsetConsistentNodalGradientProcess(model_part).Execute()
 
         node = (model_part.Nodes)[3]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE_GRADIENT_X), -4.0)
+        self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE_GRADIENT_X), -4.0)
         node = (model_part.Nodes)[7]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE_GRADIENT_Y), 2.0)
+        self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE_GRADIENT_Y), 2.0)
         node = (model_part.Nodes)[30]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE_GRADIENT_X), 2.0)
+        self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE_GRADIENT_X), 2.0)
         node = (model_part.Nodes)[38]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE_GRADIENT_Y), -4.0)
+        self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE_GRADIENT_Y), -4.0)
 
-        gid_output = GiDOutputProcess(model_part,
-                                   "consistent_gradient_test_2D",
-                                   KratosMultiphysics.Parameters("""
-                                       {
-                                           "result_file_configuration" : {
-                                               "gidpost_flags": {
-                                                   "GiDPostMode": "GiD_PostBinary",
-                                                   "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                   "WriteConditionsFlag": "WriteConditions",
-                                                   "MultiFileFlag": "SingleFile"
-                                               },
-                                               "nodal_results"       : ["DISTANCE","PRESSURE_GRADIENT","PRESSURE"]
-                                           }
-                                       }
-                                       """)
-                                   )
+        # gid_output = GiDOutputProcess(model_part,
+        #                            "consistent_gradient_test_2D",
+        #                            KratosMultiphysics.Parameters("""
+        #                                {
+        #                                    "result_file_configuration" : {
+        #                                        "gidpost_flags": {
+        #                                            "GiDPostMode": "GiD_PostBinary",
+        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                                            "WriteConditionsFlag": "WriteConditions",
+        #                                            "MultiFileFlag": "SingleFile"
+        #                                        },
+        #                                        "nodal_results"       : ["DISTANCE","PRESSURE"],
+        #                                        "nodal_nonhistorical_results": ["PRESSURE_GRADIENT"]
+        #                                    }
+        #                                }
+        #                                """)
+        #                            )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -2142,7 +2142,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 
             for (unsigned int j = 0; j < NumNodes; ++j){
 
-                const array_1d<double, 3> pressure_gradient_j = geom[j].FastGetSolutionStepValue(PRESSURE_GRADIENT);
+                const array_1d<double, 3> pressure_gradient_j = geom[j].GetValue(PRESSURE_GRADIENT);
 
                 for (unsigned int dim = 0; dim < Dim; ++dim){
                     kee(i, j) += penalty_coefficient * rInterfaceWeights[gp] *
