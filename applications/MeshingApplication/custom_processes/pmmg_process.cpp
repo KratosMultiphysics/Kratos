@@ -70,7 +70,6 @@ ParMmgProcess<TPMMGLibrary>::ParMmgProcess(
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-
     mFilename = mThisParameters["filename"].GetString();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
 
@@ -289,6 +288,91 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
 
     // Generate the maps of reference
     mPMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
+    // Writing the new mesh data on the model part
+    const IndexType rank = mrThisModelPart.GetCommunicator().GetDataCommunicator().Rank();
+    const IndexType size = mrThisModelPart.GetCommunicator().GetDataCommunicator().Size();
+
+    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+
+
+    if (rank>0) {
+        mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(mpRefCondition, 0);
+    }
+    else {
+        std::vector<std::unordered_map<IndexType,Condition::Pointer>> ReceiveBuffer(size);
+        ReceiveBuffer[0] = mpRefCondition;
+        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
+            std::unordered_map<IndexType,Condition::Pointer> RecvObject;
+            mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, i_rank);
+            ReceiveBuffer[i_rank] = RecvObject;
+        }
+
+        for (auto& ref_condition : ReceiveBuffer) {
+            for (auto& t : ref_condition) {
+
+                if (mpRefCondition.find(t.first) == mpRefCondition.end()) {
+                    mpRefCondition[t.first] = t.second;
+                }
+            }
+        }
+    }
+
+    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+
+    if (rank==0) {
+        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
+            mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(mpRefCondition, i_rank);
+        }
+    }
+    else {
+        std::unordered_map<IndexType,Condition::Pointer> RecvObject;
+        mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, 0);
+        mpRefCondition = RecvObject;
+    }
+
+    //SYNC ELEMENT POINTER MAP
+    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+
+    if (rank>0) {
+        mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(mpRefElement, 0);
+    }
+    else {
+        std::vector<std::unordered_map<IndexType,Element::Pointer>> ReceiveBuffer(size);
+        ReceiveBuffer[0] = mpRefElement;
+        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
+            std::unordered_map<IndexType,Element::Pointer> RecvObject;
+            mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, i_rank);
+            ReceiveBuffer[i_rank] = RecvObject;
+        }
+
+        for (auto& ref_condition : ReceiveBuffer) {
+            for (auto& t : ref_condition) {
+
+                if (mpRefElement.find(t.first) == mpRefElement.end()) {
+                    mpRefElement[t.first] = t.second;
+                }
+            }
+        }
+    }
+
+    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+
+    if (rank==0) {
+        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
+            mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(mpRefElement, i_rank);
+        }
+    }
+    else {
+        std::unordered_map<IndexType,Element::Pointer> RecvObject;
+        mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, 0);
+        mpRefElement = RecvObject;
+    }
+    // std::unordered_map<IndexType,Condition::Pointer> SendRecvObject;
+    // if (rank==0) {
+    //     SendRecvObject = mpRefCondition;
+    // }
+    // mrThisModelPart.GetCommunicator().GetDataCommunicator().Broadcast(SendRecvObject, 0);
+    // mpRefCondition = SendRecvObject;
 }
 
 /***********************************************************************************/
@@ -394,7 +478,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
         mPMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
     }
 
-     // We create an auxiliar mesh for debugging purposes
+    // We create an auxiliar mesh for debugging purposes
     if (mThisParameters["debug_result_mesh"].GetBool()) {
         CreateDebugPrePostRemeshOutput(r_old_model_part);
     }
@@ -459,16 +543,17 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
-    const int rank = mrThisModelPart.GetCommunicator().MyPID();
-    const std::string file_name = mFilename + "_7step=" + std::to_string(step) + (PostOutput ? ".o" : "");
+    // const int rank = mrThisModelPart.GetCommunicator().MyPID();
+    const std::string file_name = mFilename + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
+    // const std::string file_name = mFilename + "_rank_" + std::to_string(rank) + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
 
+    // Automatically save the mesh
     if (PostOutput) {
-        // Automatically save the mesh
         mPMmmgUtilities.OutputMesh(file_name);
 
         // Automatically save the solution
         mPMmmgUtilities.OutputSol(file_name);
-    }
+    }//
 
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files

@@ -103,19 +103,10 @@ struct PMMGMeshInfo
     SizeType NumberFirstTypeConditions() const;
 
     /**
-     * @brief It returns the number of the second type of conditions
-     */
-    SizeType NumberSecondTypeConditions() const;
-
-    /**
      * @brief It returns the number of the first type of elements
      */
     SizeType NumberFirstTypeElements() const;
 
-    /**
-     * @brief It returns the number of the second type of elements
-     */
-    SizeType NumberSecondTypeElements() const;
 };
 
 /**
@@ -256,22 +247,10 @@ public:
     IndexVectorType CheckFirstTypeConditions();
 
     /**
-     * @brief Returns a vector of ids of repeated conditions
-     * @details For 3D meshes it returns the ids of repeated quadrilaterals found in the PMMG mesh data structure. Otherwise, it returns an empty vector.
-     */
-    IndexVectorType CheckSecondTypeConditions();
-
-    /**
      * @brief Returns a vector of ids of repeated elements
      * @details For 2D and surface meshes it returns the ids of repeated triangles found in the PMMG mesh data structure. In 3D it returns ids of tetrahedra.
      */
     IndexVectorType CheckFirstTypeElements();
-
-    /**
-     * @brief Returns a vector of ids of repeated elements
-     * @details For 3D meshes it returns the ids of repeated prisms found in the PMMG mesh data structure. Otherwise, it returns an empty vector.
-     */
-    IndexVectorType CheckSecondTypeElements();
 
     /**
      * @brief It blocks certain nodes before remesh the model
@@ -328,24 +307,6 @@ public:
         );
 
     /**
-     * @brief It creates the new condition (second type, depends if the library work in 2D/3D/Surfaces)
-     * @param[in,out] rModelPart The model part of interest to study
-     * @param[in,out] rMapPointersRefCondition The pointer to the condition of reference
-     * @param[in] CondId The id of the condition
-     * @param[out] Ref PMMG edge reference
-     * @param[out] IsRequired PMMG required entity (0 or 1)
-     * @return pCondition The pointer to the new condition created
-     */
-    Condition::Pointer CreateSecondTypeCondition(
-        ModelPart& rModelPart,
-        std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
-        const IndexType CondId,
-        int& Ref,
-        int& IsRequired,
-        bool SkipCreation
-        );
-
-    /**
      * @brief It creates the new element (first type, depends if the library work in 2D/3D/Surfaces)
      * @param[in,out] rModelPart The model part of interest to study
      * @param[in,out] rMapPointersRefElement The pointer to the element of reference
@@ -355,24 +316,6 @@ public:
      * @return pElement The pointer to the new condition created
      */
     Element::Pointer CreateFirstTypeElement(
-        ModelPart& rModelPart,
-        std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
-        const IndexType ElemId,
-        int& Ref,
-        int& IsRequired,
-        bool SkipCreation
-        );
-
-    /**
-     * @brief It creates the new element (second type, depends if the library work in 2D/3D/Surfaces)
-     * @param[in,out] rModelPart The model part of interest to study
-     * @param[in,out] rMapPointersRefElement The pointer to the element of reference
-     * @param[in] ElemId The id of the element
-     * @param[out] Ref PMMG edge reference
-     * @param[out] IsRequired PMMG required entity (0 or 1)
-     * @return pElement The pointer to the new condition created
-     */
-    Element::Pointer CreateSecondTypeElement(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
         const IndexType ElemId,
@@ -610,12 +553,6 @@ public:
      * @param[in,out] rDisplacement This array contains the components of the displacement vector
      */
     void GetDisplacementVector(array_1d<double, 3>& rDisplacement);
-
-    /**
-     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
-     * @param[in,out] rModelPart The model part of interest to study
-     */
-    void ReorderAllIds(ModelPart& rModelPart);
 
     /**
      * @brief This method generates mesh data from an existing model part

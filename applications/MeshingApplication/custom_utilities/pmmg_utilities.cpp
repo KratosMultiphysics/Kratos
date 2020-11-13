@@ -63,27 +63,9 @@ SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeConditions() const
 /***********************************************************************************/
 
 template<>
-SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberSecondTypeConditions() const
-{
-    return NumberOfQuadrilaterals;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
 SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeElements() const
 {
     return NumberOfTetrahedra;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberSecondTypeElements() const
-{
-    return NumberOfPrism;
 }
 
 template struct PMMGMeshInfo<PMMGLibrary::PMMG3D>;
@@ -213,44 +195,6 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckFirstTypeConditions()
 /***********************************************************************************/
 
 template<>
-IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckSecondTypeConditions()
-{
-    IndexVectorMapType quadrilateral_map;
-
-    IndexVectorType ids_quadrialteral(4);
-
-    IndexVectorType conditions_to_remove;
-
-    int np,ne,nprism,nt,nquad,na;
-    KRATOS_ERROR_IF(PMMG_Get_meshSize(mParMmgMesh,&np,&ne,&nprism,&nt,&nquad,&na) !=1 ) << "Unable to get mesh size" << std::endl;
-
-    for(int i = 0; i < nquad; ++i) {
-        int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
-
-        KRATOS_ERROR_IF(PMMG_Get_quadrilateral(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &prop_id, &is_required) != 1 ) << "Unable to get quadrilateral" << std::endl;
-
-        ids_quadrialteral[0] = mLocalToGlobalNodePostMap[vertex_0];
-        ids_quadrialteral[1] = mLocalToGlobalNodePostMap[vertex_1];
-        ids_quadrialteral[2] = mLocalToGlobalNodePostMap[vertex_2];
-        ids_quadrialteral[3] = mLocalToGlobalNodePostMap[vertex_3];
-
-        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-        std::sort(ids_quadrialteral.begin(), ids_quadrialteral.end());
-
-        auto& r_count = quadrilateral_map[ids_quadrialteral];
-        r_count += 1;
-
-        if (r_count > 1)
-            conditions_to_remove.push_back(i + 1);
-    }
-
-    return conditions_to_remove;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
 IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckFirstTypeElements()
 {
     IndexVectorMapType triangle_map;
@@ -287,47 +231,6 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckFirstTypeElements()
 
 /***********************************************************************************/
 /***********************************************************************************/
-
-template<>
-IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckSecondTypeElements()
-{
-    IndexVectorMapType prism_map;
-
-    IndexVectorType ids_prisms(6);
-
-    IndexVectorType elements_to_remove;
-
-    int np,ne,nprism,nt,nquad,na;
-    KRATOS_ERROR_IF(PMMG_Get_meshSize(mParMmgMesh,&np,&ne,&nprism,&nt,&nquad,&na) !=1 ) << "Unable to get mesh size" << std::endl;
-
-    for(int i = 0; i < nprism; ++i) {
-        int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5, prop_id, is_required;
-
-        KRATOS_ERROR_IF(PMMG_Get_prism(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &prop_id, &is_required) != 1 ) << "Unable to get prism" << std::endl;
-
-        ids_prisms[0] = mLocalToGlobalNodePostMap[vertex_0];
-        ids_prisms[1] = mLocalToGlobalNodePostMap[vertex_1];
-        ids_prisms[2] = mLocalToGlobalNodePostMap[vertex_2];
-        ids_prisms[3] = mLocalToGlobalNodePostMap[vertex_3];
-        ids_prisms[4] = mLocalToGlobalNodePostMap[vertex_4];
-        ids_prisms[5] = mLocalToGlobalNodePostMap[vertex_5];
-
-        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-        std::sort(ids_prisms.begin(), ids_prisms.end());
-
-        auto& r_count = prism_map[ids_prisms];
-        r_count += 1;
-
-        if (r_count > 1)
-            elements_to_remove.push_back(i + 1);
-    }
-
-    return elements_to_remove;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::BlockNode(const IndexType iNode)
@@ -443,52 +346,6 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeConditio
 /***********************************************************************************/
 
 template<>
-Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateSecondTypeCondition(
-    ModelPart& rModelPart,
-    std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
-    const IndexType CondId,
-    int& Ref,
-    int& IsRequired,
-    bool SkipCreation
-    )
-{
-    Condition::Pointer p_condition = nullptr;
-
-    int vertex_0, vertex_1, vertex_2, vertex_3;
-
-    KRATOS_ERROR_IF(PMMG_Get_quadrilateral(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get quadrilateral" << std::endl;
-
-    // Sometimes PMMG creates conditions where there are not, then we skip
-    if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
-        return p_condition;
-    }
-
-    // FIXME: This is not the correct solution to the problem, I asked in the PMMG Forum
-    if (mLocalToGlobalNodePostMap[vertex_0] == 0) SkipCreation = true;
-    if (mLocalToGlobalNodePostMap[vertex_1] == 0) SkipCreation = true;
-    if (mLocalToGlobalNodePostMap[vertex_2] == 0) SkipCreation = true;
-    if (mLocalToGlobalNodePostMap[vertex_3] == 0) SkipCreation = true;
-
-    if (!SkipCreation) {
-        std::vector<NodeType::Pointer> condition_nodes (4);
-        condition_nodes[0] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_0]);
-        condition_nodes[1] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_1]);
-        condition_nodes[2] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_2]);
-        condition_nodes[3] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_3]);
-
-        p_condition = rMapPointersRefCondition[Ref]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[Ref]->pGetProperties());
-    } else if (mEchoLevel > 2)
-        KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 1) << "Condition creation avoided" << std::endl;
-
-    if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area condition" << std::endl;
-    return p_condition;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
 Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
@@ -561,56 +418,6 @@ Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeElement(
         } else if (mEchoLevel > 2)
             KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
     }
-
-    if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
-    return p_element;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateSecondTypeElement(
-    ModelPart& rModelPart,
-    std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
-    const IndexType ElemId,
-    int& Ref,
-    int& IsRequired,
-    bool SkipCreation
-    )
-{
-    Element::Pointer p_element = nullptr;
-
-    int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5;
-
-    KRATOS_ERROR_IF(PMMG_Get_prism(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &Ref, &IsRequired) != 1 ) << "Unable to get prism" << std::endl;
-
-    // Sometimes PMMG creates elements where there are not, then we skip
-    if (rMapPointersRefElement[Ref].get() == nullptr) {
-        KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 1) << "Element. Null pointer returned" << std::endl;
-        return p_element;
-    }
-
-    // FIXME: This is not the correct solution to the problem, I asked in the PMMG Forum
-    if (mLocalToGlobalNodePostMap[vertex_0] == 0) SkipCreation = true;
-    if (mLocalToGlobalNodePostMap[vertex_1] == 0) SkipCreation = true;
-    if (mLocalToGlobalNodePostMap[vertex_2] == 0) SkipCreation = true;
-    if (mLocalToGlobalNodePostMap[vertex_3] == 0) SkipCreation = true;
-    if (mLocalToGlobalNodePostMap[vertex_4] == 0) SkipCreation = true;
-    if (mLocalToGlobalNodePostMap[vertex_5] == 0) SkipCreation = true;
-
-    if (!SkipCreation) {
-        std::vector<NodeType::Pointer> element_nodes (6);
-        element_nodes[0] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_0]);
-        element_nodes[1] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_1]);
-        element_nodes[2] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_2]);
-        element_nodes[3] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_3]);
-        element_nodes[4] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_4]);
-        element_nodes[5] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_5]);
-
-        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
-    } else if (mEchoLevel > 2)
-        KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
     return p_element;
@@ -726,10 +533,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetSolSizeTensor(const SizeType NumNo
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetDispSizeVector(const SizeType NumNodes)
 {
-    // TODO: Reactivate when dependency problem is solved
-//     KRATOS_ERROR_IF( PMMG_Set_iparameter(mParMmgMesh,mParMmgDisp,PMMG_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
-    // KRATOS_ERROR_IF( PMMG_Set_solSize(mParMmgMesh,mParMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
-    KRATOS_ERROR << "SetDispSizeVector Not Yet Implemented" << std::endl;
+    KRATOS_ERROR << "SetDispSizeVector not yet implemented in ParMmg" << std::endl;
 }
 
 /***********************************************************************************/
@@ -738,13 +542,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetDispSizeVector(const SizeType NumN
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckMeshData()
 {
-    KRATOS_ERROR << "CheckMeshData Not Yet Implemented" << std::endl;
-//     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-//         KRATOS_ERROR_IF( PMMG_Check(mParMmgMesh, mParMmgSol) != 1 ) << "Wrong solution data" << std::endl;
-//         KRATOS_ERROR_IF( PMMG_Chk_meshData(mParMmgMesh, mParMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
-//     } else {
-//         KRATOS_ERROR_IF( PMMG_Chk_meshData(mParMmgMesh, mParMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
-//     }
+    KRATOS_ERROR << "CheckMeshData not yet implemented in ParMmg" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1020,7 +818,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetConditions(
 
         if (blocked_1 && blocked_2 && blocked_3) BlockCondition(Index);
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
-        KRATOS_ERROR << "Not yet implemented" << std::endl;
+        KRATOS_ERROR << "Not yet implemented in ParMmg" << std::endl;
         //KRATOS_ERROR_IF( PMMG_Set_quadrilateral(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
     } else {
         const SizeType size_geometry = rGeometry.size();
@@ -1089,7 +887,6 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMetricTensor(
     const IndexType NodeId
     )
 {
-    // KRATOS_ERROR << "Not yet implemented" << std::endl;
     // The order is XX, XY, XZ, YY, YZ, ZZ
     KRATOS_ERROR_IF( PMMG_Set_tensorMet( mParMmgMesh, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], mGlobalToLocalNodePreMap[NodeId]) != 1 ) << "Unable to set tensor metric" << std::endl;
 }
@@ -1103,7 +900,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetDisplacementVector(
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR << "Not yet implemented" << std::endl;
+    KRATOS_ERROR << "Not yet implemented in ParMmg" << std::endl;
     // KRATOS_ERROR_IF( PMMG_Set_vectorSol(mParMmgDisp, rDisplacement[0], rDisplacement[1], rDisplacement[2], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
 }
 
@@ -1141,7 +938,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetMetricTensor(array_1d<double, 6>& 
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetDisplacementVector(array_1d<double, 3>& rDisplacement)
 {
-    KRATOS_ERROR << "Not yet implemented" << std::endl;
+    KRATOS_ERROR << "Not yet implemented in ParMmg" << std::endl;
     // KRATOS_ERROR_IF( PMMG_Get_vectorSol(mParMmgDisp, &rDisplacement[0], &rDisplacement[1], &rDisplacement[2]) != 1 ) << "Unable to get vector displacement" << std::endl;
 }
 
@@ -1185,7 +982,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     // The following nodes will be remeshed
     std::unordered_set<IndexType> total_nodes_to_remesh;
 
-    // Gathering LOCAL mesh info
+    /* Gathering LOCAL mesh info */
     PMMGMeshInfo<TPMMGLibrary> pmmg_mesh_info;
     if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
         /* Conditions */
@@ -1230,9 +1027,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
         "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
     }
 
-
     pmmg_mesh_info.NumberOfNodes = total_nodes_to_remesh.size();
-    // Reporting LOCAL mesh info
     SetMeshSize(pmmg_mesh_info);
 
     // We reorder the ids to avoid conflicts with the rest (using as reference the OLD_ENTITY)
@@ -1251,7 +1046,6 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     mGlobalToLocalElemPreMap = std::unordered_map<int, int>();
     mGlobalToLocalCondPreMap = std::unordered_map<int, int>();
 
-    // RESETING THE ID OF THE NODES (important for non consecutive meshes)
     IndexType counter_remesh = 0;
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
@@ -1529,26 +1323,21 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
     rModelPart.GetCommunicator().GhostMesh().Nodes().clear();
 
     std::vector<int> array_of_local_elements(size,0);
-    std::vector<int> array_of_local_conditions(size,0);
     std::vector<int> reduced_array_of_local_elements(size,0);
-    std::vector<int> reduced_array_of_local_conditions(size,0);
     if (rank != (size-1)) {
-        array_of_local_elements[rank+1]=rPMMGMeshInfo.NumberFirstTypeElements() + rPMMGMeshInfo.NumberSecondTypeElements();
-        array_of_local_conditions[rank+1]=rPMMGMeshInfo.NumberFirstTypeConditions() + rPMMGMeshInfo.NumberSecondTypeConditions();
+        array_of_local_elements[rank+1]=rPMMGMeshInfo.NumberFirstTypeElements();
     }
 
     rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(array_of_local_elements, reduced_array_of_local_elements);
-    rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(array_of_local_conditions, reduced_array_of_local_conditions);
 
     for (IndexType i = 1; i < size;i++){
         reduced_array_of_local_elements[i] += reduced_array_of_local_elements[i-1];
-        reduced_array_of_local_conditions[i] += reduced_array_of_local_conditions[i-1];
     }
 
-    std::unordered_map<int,int> local_to_partition_index;
+    std::unordered_map<int,int> local_id_to_partition_index;
 
     for (IndexType i_node = 1; i_node <= rPMMGMeshInfo.NumberOfNodes; ++i_node) {
-        PMMG_Get_vertexGloNum(mParMmgMesh,&mLocalToGlobalNodePostMap[i_node],&local_to_partition_index[i_node]);
+        PMMG_Get_vertexGloNum(mParMmgMesh,&mLocalToGlobalNodePostMap[i_node],&local_id_to_partition_index[i_node]);
     }
 
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
@@ -1569,7 +1358,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 
         NodeType::Pointer p_node = CreateNode(rModelPart, mLocalToGlobalNodePostMap[i_node], ref, is_required);
 
-        IndexType partition_index = local_to_partition_index[i_node];
+        IndexType partition_index = local_id_to_partition_index[i_node];
         p_node->FastGetSolutionStepValue(PARTITION_INDEX) = partition_index;
 
         KRATOS_ERROR_IF(partition_index<0) << "Negative partition index:: " << partition_index << " at node: " << p_node->Id() << std::endl;
@@ -1614,28 +1403,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 
             if (p_condition.get() != nullptr && ref != 0) {
                 created_conditions_vector.push_back(p_condition);
-                // rModelPart.AddCondition(p_condition);
                 if (ref != 0) first_color_cond[static_cast<IndexType>(ref)].push_back(id_to_use);// NOTE: ref == 0 is the MainModelPart
-                cond_id += 1;
-            }
-        }
-
-        IndexType counter_second_cond = 0;
-        const IndexVectorType second_condition_to_remove = CheckSecondTypeConditions();
-        for (IndexType i_cond = 1; i_cond <= rPMMGMeshInfo.NumberSecondTypeConditions(); ++i_cond) {
-            bool skip_creation = false;
-            if (counter_second_cond < second_condition_to_remove.size()) {
-                if (second_condition_to_remove[counter_second_cond] == i_cond) {
-                    skip_creation = true;
-                    counter_second_cond += 1;
-                }
-            }
-            Condition::Pointer p_condition = CreateSecondTypeCondition(rModelPart, rMapPointersRefCondition, cond_id+reduced_array_of_local_conditions[rank], ref, is_required, skip_creation);
-
-            if (p_condition.get() != nullptr && ref != 0) {
-                created_conditions_vector.push_back(p_condition);
-//                 rModelPart.AddCondition(p_condition);
-                if (ref != 0) second_color_cond[static_cast<IndexType>(ref)].push_back(cond_id+reduced_array_of_local_conditions[rank]);// NOTE: ref == 0 is the MainModelPart
                 cond_id += 1;
             }
         }
@@ -1661,27 +1429,6 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
             if (p_element.get() != nullptr) {
                 created_elements_vector.push_back(p_element);
                 if (ref != 0) first_color_elem[static_cast<IndexType>(ref)].push_back(elem_id+reduced_array_of_local_elements[rank]);// NOTE: ref == 0 is the MainModelPart
-                elem_id += 1;
-            }
-        }
-
-        IndexType counter_second_elem = 0;
-        const IndexVectorType second_elements_to_remove = CheckSecondTypeElements();
-        for (IndexType i_elem = 1; i_elem <= rPMMGMeshInfo.NumberSecondTypeElements(); ++i_elem) {
-            bool skip_creation = false;
-            if (counter_second_elem < second_elements_to_remove.size()) {
-                if (second_elements_to_remove[counter_second_elem] == i_elem) {
-                    skip_creation = true;
-                    counter_second_elem += 1;
-                }
-            }
-
-            Element::Pointer p_element = CreateSecondTypeElement(rModelPart, rMapPointersRefElement, elem_id+reduced_array_of_local_elements[rank], ref, is_required,skip_creation);
-
-            if (p_element.get() != nullptr) {
-                created_elements_vector.push_back(p_element);
-//                 rModelPart.AddElement(p_element);
-                if (ref != 0) second_color_elem[static_cast<IndexType>(ref)].push_back(elem_id+reduced_array_of_local_elements[rank]);// NOTE: ref == 0 is the MainModelPart
                 elem_id += 1;
             }
         }
@@ -1764,7 +1511,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
         }
 
         std::vector<IndexType> receive_nodes_all_ranks;
-        for (unsigned int i_rank=0; i_rank < size; i_rank++ ) {
+        for (IndexType i_rank=0; i_rank < size; i_rank++ ) {
             std::vector<IndexType> receive_nodes;
             if (i_rank != rank){
                receive_nodes = rModelPart.GetCommunicator().GetDataCommunicator().SendRecv(pi_to_vector_node[i_rank], i_rank, i_rank);
