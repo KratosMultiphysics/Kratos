@@ -771,25 +771,22 @@ namespace MPMSearchElementUtility
         if (working_dim == 3) Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
 
         // Prepare containers to hold all sub-points
-        const SizeType number_of_sub_material_points = intersected_geometries.size();
         PointerVector<Node<3>> nodes_list(number_of_nodes);
-        IntegrationPointsArrayType ips(number_of_sub_material_points);
-        Matrix N_matrix(number_of_sub_material_points, number_of_nodes, -1.0);
-        DenseVector<Matrix> DN_De_vector(number_of_sub_material_points);
+        IntegrationPointsArrayType ips(intersected_geometries.size());
+        Matrix N_matrix(intersected_geometries.size(), number_of_nodes, -1.0);
+        DenseVector<Matrix> DN_De_vector(intersected_geometries.size());
 
         // Temporary local containers
-        double sub_point_volume;
+        double sub_point_volume = 0.0;
         array_1d<double, 3> sub_point_position;
         IndexType active_node_index = 0;
         IndexType active_subpoint_index = 0;
+        IntegrationPoint<3> trial_subpoint;
 
         // Loop over all intersected grid elements and make subpoints in each
-        for (size_t i = 0; i < number_of_sub_material_points; ++i) {
+        for (size_t i = 0; i < intersected_geometries.size(); ++i) {
             Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
             Vector N(intersected_geometries[i]->PointsNumber());
-            sub_point_position.clear();
-            sub_point_volume = 0.0;
-            IntegrationPoint<3> trial_subpoint;
 
             if (working_dim == 2) {
                 Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
@@ -797,20 +794,28 @@ namespace MPMSearchElementUtility
             }
             else Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
 
-            trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
-                *intersected_geometries[i], N, DN_De);
-
             // Transfer local data to containers
-            if (trial_subpoint.Weight() > pqmpm_min_fraction) {
-                ips[active_subpoint_index] = trial_subpoint;
-                DN_De_vector[active_subpoint_index] = DN_De;
-                for (size_t j = 0; j < N.size(); ++j) {
-                    N_matrix(active_subpoint_index, active_node_index) = N[j];
-                    nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
-
-                    active_node_index += 1;
+            if (sub_point_volume / mp_volume_vec[0] > pqmpm_min_fraction) {
+                if (std::abs(sub_point_volume - mp_volume_vec[0]) < Tolerance) {
+                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                        pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                        rParentGeom);
+                    return;
                 }
-                active_subpoint_index += 1;
+                else {
+                    trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
+                        *intersected_geometries[i], N, DN_De);
+                    ips[active_subpoint_index] = trial_subpoint;
+                    DN_De_vector[active_subpoint_index] = DN_De;
+                    for (size_t j = 0; j < N.size(); ++j) {
+                        N_matrix(active_subpoint_index, active_node_index) = N[j];
+                        nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
+
+                        active_node_index += 1;
+                    }
+                    active_subpoint_index += 1;
+                }
+
             }
         }
         if (active_subpoint_index == 1) {
