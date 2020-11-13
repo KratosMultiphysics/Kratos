@@ -230,8 +230,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self._GetDistanceGradientProcess().Execute()
                 # curvature is calculated using nodal distance gradient
                 self._GetDistanceCurvatureProcess().Execute()
-                # it is needed to store one-sided PRESSURE_GRADIENT for stabilization purpose
-                self._GetOneSidePressureGradientProcess().Execute()
+                # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
+                self._GetConsistentNodalPressureGradientProcess().Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
@@ -350,10 +350,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._distance_curvature_process = self._CreateDistanceCurvatureProcess()
         return self._distance_curvature_process
 
-    def _GetOneSidePressureGradientProcess(self):
-        if not hasattr(self, '_one_sided_pressure_gradient_process'):
-            self._one_sided_pressure_gradient_process = self._CreateOneSidePressureGradientProcess()
-        return self._one_sided_pressure_gradient_process
+    def _GetConsistentNodalPressureGradientProcess(self):
+        if not hasattr(self, '_consistent_nodal_pressure_gradient_process'):
+            self._consistent_nodal_pressure_gradient_process = self._CreateConsistentNodalPressureGradientProcess()
+        return self._consistent_nodal_pressure_gradient_process
 
     def __CreateAccelerationLimitationUtility(self):
         maximum_multiple_of_g_acceleration_allowed = 5.0
@@ -461,8 +461,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         return distance_curvature_process
 
-    def _CreateOneSidePressureGradientProcess(self):
-        one_sided_pressure_gradient_process = KratosCFD.ComputeOneSideNodalPressureGradientProcess(
+    def _CreateConsistentNodalPressureGradientProcess(self):
+        consistent_nodal_pressure_gradient_process = KratosCFD.CalulateLevelsetConsistentNodalGradientProcess(
                 self.main_model_part)
 
-        return one_sided_pressure_gradient_process
+        return consistent_nodal_pressure_gradient_process

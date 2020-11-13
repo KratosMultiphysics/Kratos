@@ -10,8 +10,8 @@
 //  Main authors:    Mohammad R. Hashemi
 //
 
-#ifndef KRATOS_ONE_SIDE_PRESSURE_GRADIENT_H
-#define KRATOS_ONE_SIDE_PRESSURE_GRADIENT_H
+#ifndef KRATOS_LEVELSET_CONSISTENT_NODAL_GRADIENT_H
+#define KRATOS_LEVELSET_CONSISTENT_NODAL_GRADIENT_H
 
 // Project includes
 #include "processes/process.h"
@@ -43,14 +43,14 @@ namespace Kratos
 
 /// Utility to due the redistancing based on the time-dependednt Eikonal equation
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ComputeOneSideNodalPressureGradientProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalulateLevelsetConsistentNodalGradientProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of LumpedInterfacePositiveNegativePressureGradient
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeOneSideNodalPressureGradientProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(CalulateLevelsetConsistentNodalGradientProcess);
 
     ///@}
     ///@name Life Cycle
@@ -61,21 +61,21 @@ public:
      *
      * @param rModelPart Complete model part (including boundaries) for the process to operate on
      */
-    ComputeOneSideNodalPressureGradientProcess(
+    CalulateLevelsetConsistentNodalGradientProcess(
         ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    ComputeOneSideNodalPressureGradientProcess(
+    CalulateLevelsetConsistentNodalGradientProcess(
         ModelPart& rModelPart,
         Parameters Parameters);
 
     /// Constructor with Kratos model
-    ComputeOneSideNodalPressureGradientProcess(
+    CalulateLevelsetConsistentNodalGradientProcess(
         Model& rModel,
         Parameters Parameters);
 
     /// Destructor.
-    ~ComputeOneSideNodalPressureGradientProcess() override {}
+    ~CalulateLevelsetConsistentNodalGradientProcess() override {}
 
     ///@}
     ///@name Operators
@@ -106,12 +106,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ComputeOneSideNodalPressureGradientProcess";
+        buffer << "CalulateLevelsetConsistentNodalGradientProcess";
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "ComputeOneSideNodalPressureGradientProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "CalulateLevelsetConsistentNodalGradientProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -162,7 +162,7 @@ private:
 
     ///@}
 
-}; // Class ComputeOneSideNodalPressureGradientProcess
+}; // Class CalulateLevelsetConsistentNodalGradientProcess
 
 ///@}
 ///@name Type Definitions
@@ -178,6 +178,6 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_ONE_SIDE_PRESSURE_GRADIENT_H
+#endif // KRATOS_LEVELSET_CONSISTENT_NODAL_GRADIENT_H
 
 

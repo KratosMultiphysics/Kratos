@@ -16,7 +16,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "compute_one_side_nodal_pressure_gradient_process.h"
+#include "calulate_levelset_consistent_nodal_gradient_process.h"
 
 
 namespace Kratos
@@ -25,27 +25,27 @@ namespace Kratos
 /* Public functions *******************************************************/
 
 /// constructor
-ComputeOneSideNodalPressureGradientProcess::ComputeOneSideNodalPressureGradientProcess(
+CalulateLevelsetConsistentNodalGradientProcess::CalulateLevelsetConsistentNodalGradientProcess(
         ModelPart& rModelPart)
     : Process(), mrModelPart(rModelPart) {}
 
 /// Constructor with Kratos parameters.
-ComputeOneSideNodalPressureGradientProcess::ComputeOneSideNodalPressureGradientProcess(
+CalulateLevelsetConsistentNodalGradientProcess::CalulateLevelsetConsistentNodalGradientProcess(
     ModelPart& rModelPart,
     Parameters Parameters)
-    : ComputeOneSideNodalPressureGradientProcess(
+    : CalulateLevelsetConsistentNodalGradientProcess(
         rModelPart
     ){}
 
 /// Constructor with Kratos model
-ComputeOneSideNodalPressureGradientProcess::ComputeOneSideNodalPressureGradientProcess(
+CalulateLevelsetConsistentNodalGradientProcess::CalulateLevelsetConsistentNodalGradientProcess(
     Model& rModel,
     Parameters Parameters)
-    : ComputeOneSideNodalPressureGradientProcess(
+    : CalulateLevelsetConsistentNodalGradientProcess(
         rModel.GetModelPart(Parameters["model_part_name"].GetString())
     ){}
 
-void ComputeOneSideNodalPressureGradientProcess::Execute(){
+void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
 
     KRATOS_TRY;
 
@@ -67,9 +67,11 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
     // First element iterator
     const auto it_element_begin = mrModelPart.ElementsBegin();
 
+    const int elements_number = mrModelPart.Elements().size();
+
     // Iterate over the elements
     #pragma omp parallel for firstprivate(DN_DX, N, J0, InvJ0, detJ0, pressures, distances, grad)
-    for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
+    for(int i_elem = 0; i_elem < elements_number; ++i_elem) {
 
         const auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
@@ -93,12 +95,6 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
 
         if(nneg == 0 || npos == 0)
         {
-            if (N.size() != number_of_nodes){
-                N.resize(number_of_nodes);
-                pressures.resize(number_of_nodes);
-                distances.resize(number_of_nodes);
-            }
-
             // The integration points
             const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
             const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
