@@ -288,91 +288,46 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
 
     // Generate the maps of reference
     mPMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
-    // Writing the new mesh data on the model part
-    const IndexType rank = mrThisModelPart.GetCommunicator().GetDataCommunicator().Rank();
+
+    mpRefCondition=SyncMap(mpRefCondition);
+    mpRefElement=SyncMap(mpRefElement);
+}
+
+template<PMMGLibrary TPMMGLibrary>
+template<typename TPointerType>
+std::unordered_map<IndexType, TPointerType> ParMmgProcess<TPMMGLibrary>::SyncMap(std::unordered_map<IndexType, TPointerType> rRefEntityMap)
+{
     const IndexType size = mrThisModelPart.GetCommunicator().GetDataCommunicator().Size();
-
-    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
-
+    const IndexType rank = mrThisModelPart.GetCommunicator().GetDataCommunicator().Rank();
 
     if (rank>0) {
-        mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(mpRefCondition, 0);
+        mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(rRefEntityMap, 0);
     }
     else {
-        std::vector<std::unordered_map<IndexType,Condition::Pointer>> ReceiveBuffer(size);
-        ReceiveBuffer[0] = mpRefCondition;
         for (IndexType i_rank = 1; i_rank<size; i_rank++) {
-            std::unordered_map<IndexType,Condition::Pointer> RecvObject;
-            mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, i_rank);
-            ReceiveBuffer[i_rank] = RecvObject;
-        }
-
-        for (auto& ref_condition : ReceiveBuffer) {
-            for (auto& t : ref_condition) {
-
-                if (mpRefCondition.find(t.first) == mpRefCondition.end()) {
-                    mpRefCondition[t.first] = t.second;
+            std::unordered_map<IndexType, TPointerType> aux_recv_map;
+            mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(aux_recv_map, i_rank);
+            // Filling map from other ranks information
+            for (auto& t : aux_recv_map) {
+                if (rRefEntityMap.find(t.first) == rRefEntityMap.end()) {
+                    rRefEntityMap[t.first] = t.second;
                 }
             }
         }
     }
 
-    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
-
     if (rank==0) {
-        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
-            mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(mpRefCondition, i_rank);
+        for (IndexType i_rank = 1; i_rank < size; i_rank++) {
+            mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(rRefEntityMap, i_rank);
         }
     }
     else {
-        std::unordered_map<IndexType,Condition::Pointer> RecvObject;
-        mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, 0);
-        mpRefCondition = RecvObject;
+        std::unordered_map<IndexType, TPointerType> aux_recv_map;
+        mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(aux_recv_map, 0);
+        rRefEntityMap = aux_recv_map;
     }
 
-    //SYNC ELEMENT POINTER MAP
-    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
-
-    if (rank>0) {
-        mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(mpRefElement, 0);
-    }
-    else {
-        std::vector<std::unordered_map<IndexType,Element::Pointer>> ReceiveBuffer(size);
-        ReceiveBuffer[0] = mpRefElement;
-        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
-            std::unordered_map<IndexType,Element::Pointer> RecvObject;
-            mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, i_rank);
-            ReceiveBuffer[i_rank] = RecvObject;
-        }
-
-        for (auto& ref_condition : ReceiveBuffer) {
-            for (auto& t : ref_condition) {
-
-                if (mpRefElement.find(t.first) == mpRefElement.end()) {
-                    mpRefElement[t.first] = t.second;
-                }
-            }
-        }
-    }
-
-    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
-
-    if (rank==0) {
-        for (IndexType i_rank = 1; i_rank<size; i_rank++) {
-            mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(mpRefElement, i_rank);
-        }
-    }
-    else {
-        std::unordered_map<IndexType,Element::Pointer> RecvObject;
-        mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(RecvObject, 0);
-        mpRefElement = RecvObject;
-    }
-    // std::unordered_map<IndexType,Condition::Pointer> SendRecvObject;
-    // if (rank==0) {
-    //     SendRecvObject = mpRefCondition;
-    // }
-    // mrThisModelPart.GetCommunicator().GetDataCommunicator().Broadcast(SendRecvObject, 0);
-    // mpRefCondition = SendRecvObject;
+    return rRefEntityMap;
 }
 
 /***********************************************************************************/

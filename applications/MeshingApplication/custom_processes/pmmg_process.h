@@ -484,6 +484,10 @@ private:
      */
     Parameters GetDefaultParameters();
 
+    template<typename TPointerType>
+    std::unordered_map<IndexType, TPointerType> SyncMap(std::unordered_map<IndexType, TPointerType> rInputMap);
+
+
     ///@}
     ///@name Private  Access
     ///@{
