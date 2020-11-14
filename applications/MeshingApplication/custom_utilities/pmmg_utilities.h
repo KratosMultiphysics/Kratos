@@ -27,6 +27,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
+#include "custom_utilities/mmg_utilities.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
@@ -119,6 +120,7 @@ struct PMMGMeshInfo
  */
 template<PMMGLibrary TPMMGLibrary>
 class KRATOS_API(MESHING_APPLICATION) ParMmgUtilities
+    : public MmgUtilities<MMGLibrary::MMG3D>
 {
 public:
 
@@ -127,6 +129,8 @@ public:
 
     /// Pointer definition of ParMmgUtilities
     KRATOS_CLASS_POINTER_DEFINITION(ParMmgUtilities);
+
+    typedef MmgUtilities<MMGLibrary::MMG3D> BaseType;
 
     /// Node definition
     typedef Node <3>                                                   NodeType;
@@ -191,18 +195,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief This method sets the echo level
-     * @param[in] EchoLevel Sets the echo level
-     */
-    void SetEchoLevel(const SizeType EchoLevel);
-
-    /**
-     * @brief This method gets the echo level
-     * @return mEchoLevel Gets the echo level
-     */
-    SizeType GetEchoLevel();
 
     /**
      * @brief This method sets the discretization method
@@ -338,7 +330,7 @@ public:
     /**
      * @brief Here the verbosity is set
      */
-    void InitVerbosity();
+    void InitVerbosity(); // STAYS
 
     /**
      * @brief Here the API mode is set using the API
@@ -356,7 +348,7 @@ public:
      * @brief Here the verbosity is set using the API
      * @param[in] VerbosityPMMG The equivalent verbosity level in the PMMG API
      */
-    void InitVerbosityParameter(const IndexType VerbosityPMMG);
+    void InitVerbosityParameter(const IndexType VerbosityPMMG); // STAYS
 
     /**
      * @brief This sets the size of the mesh
@@ -738,7 +730,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mEchoLevel = 0;                                               /// The echo level of the utilities
     bool mRemoveRegions = false;                                           /// Cutting-out specified regions during surface remeshing
     DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
     std::unordered_map<int, int> mGlobalToLocalNodePreMap;                           /// Map of nodal global ids to local ids before remeshing

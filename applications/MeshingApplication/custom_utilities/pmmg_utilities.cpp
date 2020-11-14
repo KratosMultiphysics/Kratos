@@ -80,24 +80,6 @@ PMMG_pParMesh mParMmgMesh;      /// The mesh data from PMMG
 /***********************************************************************************/
 
 template<PMMGLibrary TPMMGLibrary>
-void ParMmgUtilities<TPMMGLibrary>::SetEchoLevel(const SizeType EchoLevel)
-{
-    mEchoLevel = EchoLevel;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<PMMGLibrary TPMMGLibrary>
-SizeType ParMmgUtilities<TPMMGLibrary>::GetEchoLevel()
-{
-    return mEchoLevel;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMGLibrary>& rPMMGMeshInfo)
 {
     int np,ne,nprism,nt,nquad,na;
@@ -112,9 +94,9 @@ void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMG
         rPMMGMeshInfo.NumberOfPrism = nprism;
     }
 
-    KRATOS_INFO_IF("ParMmgUtilities", mEchoLevel > 0) << "\tNodes created: " << rPMMGMeshInfo.NumberOfNodes << std::endl;
+    KRATOS_INFO_IF("ParMmgUtilities", GetEchoLevel() > 0) << "\tNodes created: " << rPMMGMeshInfo.NumberOfNodes << std::endl;
     if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
-        KRATOS_INFO_IF("ParMmgUtilities", mEchoLevel > 0) <<
+        KRATOS_INFO_IF("ParMmgUtilities", GetEchoLevel() > 0) <<
         "Conditions created: " << rPMMGMeshInfo.NumberOfTriangles + rPMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rPMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rPMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
         "Elements created: " << rPMMGMeshInfo.NumberOfTetrahedra + rPMMGMeshInfo.NumberOfPrism << "\n\tTetrahedron: " << rPMMGMeshInfo.NumberOfTetrahedra << "\tPrisms: " << rPMMGMeshInfo.NumberOfPrism << std::endl;
     }
@@ -126,33 +108,7 @@ void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMG
 template<PMMGLibrary TPMMGLibrary>
 IndexVectorType ParMmgUtilities<TPMMGLibrary>::FindDuplicateNodeIds(const ModelPart& rModelPart)
 {
-    DoubleVectorMapType node_map;
-
-    IndexVectorType nodes_to_remove_ids;
-
-    DoubleVectorType coords(Dimension);
-
-    auto& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    for(SizeType i = 0; i < r_nodes_array.size(); ++i) {
-        auto it_node = it_node_begin + i;
-
-        const array_1d<double, 3>& r_coordinates = it_node->Coordinates();
-
-        for(IndexType i_coord = 0; i_coord < Dimension; i_coord++)
-            coords[i_coord] = r_coordinates[i_coord];
-
-        auto& r_count = node_map[coords];
-        r_count += 1;
-
-        if (r_count > 1) {
-            nodes_to_remove_ids.push_back(it_node->Id());
-            KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 0) << "The mode " << it_node->Id() <<  " is repeated"<< std::endl;
-        }
-    }
-
-    return nodes_to_remove_ids;
+    return BaseType::FindDuplicateNodeIds(rModelPart);
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -307,7 +263,7 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeConditio
 
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 1) << "Condition. Null reference-pointer returned. Rank " <<
+            KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 1) << "Condition. Null reference-pointer returned. Rank " <<
                 DataCommunicator::GetDefault().Rank() << " Id: " << CondId << " Ref: " << Ref<< std::endl;
 
             return p_condition;
@@ -335,8 +291,8 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeConditio
 
         p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
         if (p_base_condition->Is(MARKER)) p_condition->Set(MARKER);
-    } else if (mEchoLevel > 2)
-        KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 1) << "Condition creation avoided" << std::endl;
+    } else if (GetEchoLevel() > 2)
+        KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 1) << "Condition creation avoided" << std::endl;
 
     if (p_condition != nullptr && Ref != 0) KRATOS_ERROR_IF(p_condition->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area condition with area " <<  p_condition->GetGeometry().Area()  << " and vertices: " << mLocalToGlobalNodePostMap[vertex_0] << " " << mLocalToGlobalNodePostMap[vertex_1] << " " << mLocalToGlobalNodePostMap[vertex_2]<< std::endl;
     return p_condition;
@@ -415,8 +371,8 @@ Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeElement(
             element_nodes[3] = rModelPart.pGetNode(mLocalToGlobalNodePostMap[vertex_3]);
 
             p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
-        } else if (mEchoLevel > 2)
-            KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
+        } else if (GetEchoLevel() > 2)
+            KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 1) << "Element creation avoided" << std::endl;
     }
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
@@ -449,13 +405,13 @@ void ParMmgUtilities<TPMMGLibrary>::InitVerbosity()
 {
     /* We set the PMMG verbosity */
     int verbosity_mmg;
-    if (mEchoLevel == 0)
+    if (GetEchoLevel() == 0)
         verbosity_mmg = -1;
-    else if (mEchoLevel == 1)
+    else if (GetEchoLevel() == 1)
         verbosity_mmg = 0; // NOTE: This way just the essential info from PMMG will be printed, but the custom message will appear
-    else if (mEchoLevel == 2)
+    else if (GetEchoLevel() == 2)
         verbosity_mmg = 3;
-    else if (mEchoLevel == 3)
+    else if (GetEchoLevel() == 3)
         verbosity_mmg = 5;
     else
         verbosity_mmg = 10;
@@ -962,7 +918,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     for (auto sub_model_part_name : sub_model_part_names) {
         ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
-        KRATOS_WARNING_IF("ParMmgUtilities", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
+        KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
         "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
         "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
         "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
@@ -1002,7 +958,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
         pmmg_mesh_info.NumberOfTriangles = num_tri;
         pmmg_mesh_info.NumberOfQuadrilaterals = num_quad;
 
-        KRATOS_INFO_IF("ParMmgUtilities", ((num_tri + num_quad) < r_conditions_array.size()) && mEchoLevel > 0) <<
+        KRATOS_INFO_IF("ParMmgUtilities", ((num_tri + num_quad) < r_conditions_array.size()) && GetEchoLevel() > 0) <<
         "Number of Conditions: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
 
         /* Elements */
@@ -1023,7 +979,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
         pmmg_mesh_info.NumberOfTetrahedra = num_tetra;
         pmmg_mesh_info.NumberOfPrism = num_prisms;
 
-        KRATOS_INFO_IF("ParMmgUtilities", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
+        KRATOS_INFO_IF("ParMmgUtilities", ((num_tetra + num_prisms) < r_elements_array.size()) && GetEchoLevel() > 0) <<
         "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
     }
 
