@@ -278,8 +278,11 @@ public:
     void FinalizeAssemble(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
 
-
-
+    void Assemble(TDataType Value, IndexType GlobalI, IndexType GlobalJ)
+    {
+        IndexType k = BinarySearch(index2_data(), index1_data()[GlobalI], index1_data()[GlobalI+1], GlobalJ);
+        AtomicAdd(value_data()[k], Value);
+    }
 
     template<class TMatrixType, class TIndexVectorType >
     void Assemble(
