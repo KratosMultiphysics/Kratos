@@ -276,16 +276,6 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = beta_star;
         }
-    } else if (rVariable == SHOCK_CAPTURING_VISCOSITY) {
-        const double nu_sc = this->GetValue(SHOCK_CAPTURING_VISCOSITY);
-        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
-            rOutput[i_gauss] = nu_sc;
-        }
-    } else if (rVariable == SHOCK_CAPTURING_CONDUCTIVITY) {
-        const double lambda_sc = this->GetValue(SHOCK_CAPTURING_CONDUCTIVITY);
-        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
-            rOutput[i_gauss] = lambda_sc;
-        }
     } else if (rVariable == VELOCITY_DIVERGENCE) {
         const double div_v = CalculateMidPointVelocityDivergence();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
