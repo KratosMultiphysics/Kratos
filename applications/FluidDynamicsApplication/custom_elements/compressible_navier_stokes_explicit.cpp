@@ -29,7 +29,7 @@ namespace Kratos {
 template <>
 void CompressibleNavierStokesExplicit<2,3>::EquationIdVector(
     EquationIdVectorType &rResult,
-    const ProcessInfo &rCurrentProcessInfo) const
+    const ProcessInfo &rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
@@ -59,7 +59,7 @@ void CompressibleNavierStokesExplicit<2,3>::EquationIdVector(
 template <>
 void CompressibleNavierStokesExplicit<3,4>::EquationIdVector(
     EquationIdVectorType &rResult,
-    const ProcessInfo &rCurrentProcessInfo) const
+    const ProcessInfo &rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
