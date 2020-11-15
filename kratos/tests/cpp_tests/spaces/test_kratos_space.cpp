@@ -29,7 +29,6 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
 {
     typedef std::size_t IndexType;
     typedef KratosSpace<double, CsrMatrix<double,IndexType> , SystemVector<double,IndexType>> SparseSpaceType;
-    typedef KratosSpace<double, DenseMatrix<double>, DenseVector<double>> LocalSpaceType;
 
     const IndexType size = 10;
 
@@ -57,7 +56,6 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormDenseMatrix, KratosCoreFastSuite)
 {
-    typedef std::size_t IndexType;
     typedef KratosSpace<double, DenseMatrix<double>, DenseVector<double>> LocalSpaceType;
 
     const std::size_t size = 10;
