@@ -51,13 +51,14 @@ namespace Kratos {
         /// Print object's data
         void PrintData(std::ostream& rOStream) const override {}
 
-        void SetInitialSphereContacts(const ProcessInfo& r_process_info) override;
         void CreateContinuumConstitutiveLaws() override;
         void ContactAreaWeighting() override;
         void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) override;
         double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) override;
 
         virtual void Initialize(const ProcessInfo& r_process_info) override;
+
+        virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 
         virtual void ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
                                                    const ProcessInfo& r_process_info,
@@ -67,9 +68,10 @@ namespace Kratos {
 
         void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
+        void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
+
         using SphericContinuumParticle::CalculateOnContinuumContactElements;
 
-        unsigned int mBeamInitialNeighborsSize;
         std::vector<Kratos::DEMBeamConstitutiveLaw::Pointer> mBeamConstitutiveLawArray;
 
         private:
@@ -77,13 +79,11 @@ namespace Kratos {
         void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericContinuumParticle);
-            rSerializer.save("mBeamInitialNeighborsSize",mBeamInitialNeighborsSize);
         }
 
         void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericContinuumParticle);
-            rSerializer.load("mBeamInitialNeighborsSize",mBeamInitialNeighborsSize);
         }
 
 }; // Class BeamParticle

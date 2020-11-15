@@ -16,23 +16,18 @@
 
 namespace Kratos {
 
-    BeamParticle::BeamParticle() : SphericContinuumParticle() {
-        mBeamInitialNeighborsSize = 0;
-    }
+    BeamParticle::BeamParticle() : SphericContinuumParticle() {}
 
-    BeamParticle::BeamParticle(IndexType NewId, GeometryType::Pointer pGeometry) : SphericContinuumParticle(NewId, pGeometry){
-        mBeamInitialNeighborsSize = 0;
-    }
+    BeamParticle::BeamParticle(IndexType NewId, GeometryType::Pointer pGeometry) : SphericContinuumParticle(NewId, pGeometry) {}
+
 
     BeamParticle::BeamParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : SphericContinuumParticle(NewId, pGeometry, pProperties){
-        mBeamInitialNeighborsSize = 0;
-    }
+    : SphericContinuumParticle(NewId, pGeometry, pProperties) {}
+
 
     BeamParticle::BeamParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-    : SphericContinuumParticle(NewId, ThisNodes){
-        mBeamInitialNeighborsSize = 0;
-    }
+    : SphericContinuumParticle(NewId, ThisNodes) {}
+
 
     BeamParticle::BeamParticle(Element::Pointer p_continuum_spheric_particle)
     {
@@ -48,68 +43,11 @@ namespace Kratos {
         return Element::Pointer(new BeamParticle(NewId, p_geom, pProperties));
     }
 
-    void BeamParticle::SetInitialSphereContacts(const ProcessInfo& r_process_info) {
-
-        std::vector<SphericContinuumParticle*> BeamInitialNeighborsElements;
-        std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
-        std::vector<int> DiscontinuumInitialNeighborsIds;
-        std::vector<double> DiscontinuumInitialNeighborsDeltas;
-        mIniNeighbourFailureId.clear(); // We will have to build this vector, we still don't know its size, it applies only to continuum particles
-        size_t continuum_ini_size    = 0;
-        size_t discontinuum_ini_size = 0;
-        unsigned int neighbours_size = mNeighbourElements.size();
-        mIniNeighbourIds.resize(neighbours_size);
-        mIniNeighbourDelta.resize(neighbours_size);
-
-        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-
-            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-            array_1d<double, 3> other_to_me_vect;
-            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-
-            double distance = DEM_MODULUS_3(other_to_me_vect);
-            double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
-            double initial_delta = radius_sum - distance;
-            int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
-            if ((r_other_continuum_group  == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
-
-                mIniNeighbourIds[continuum_ini_size]   = neighbour_iterator->Id();
-                mIniNeighbourDelta[continuum_ini_size] = initial_delta;
-                mIniNeighbourFailureId.push_back(0);
-                array_1d<double, 3> vector_of_zeros(3,0.0);
-                //mArrayOfOldDeltaDisplacements.push_back(vector_of_zeros);
-                //mArrayOfDeltaDisplacements.push_back(vector_of_zeros);
-                BeamInitialNeighborsElements.push_back(neighbour_iterator);
-                continuum_ini_size++;
-
-            } else {
-                DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
-                DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
-                DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
-                discontinuum_ini_size++;
-            }
-        }
-
-        mBeamInitialNeighborsSize = continuum_ini_size;
-        mInitialNeighborsSize = neighbours_size;
-
-        for (unsigned int j = 0; j < continuum_ini_size; j++) {
-            mNeighbourElements[j] = BeamInitialNeighborsElements[j];
-        }
-
-        for (unsigned int k = 0; k < discontinuum_ini_size; k++) {
-
-            mIniNeighbourIds[continuum_ini_size + k]   = DiscontinuumInitialNeighborsIds[k];
-            mIniNeighbourDelta[continuum_ini_size + k] = DiscontinuumInitialNeighborsDeltas[k];
-            mNeighbourElements[continuum_ini_size + k] = DiscontinuumInitialNeighborsElements[k];
-        }
-    }//SetInitialSphereContacts
-
     void BeamParticle::CreateContinuumConstitutiveLaws() {
 
-        mBeamConstitutiveLawArray.resize(mBeamInitialNeighborsSize);
+        mBeamConstitutiveLawArray.resize(mContinuumInitialNeighborsSize);
 
-        for (unsigned int i = 0; i < mBeamInitialNeighborsSize; i++) {
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             DEMBeamConstitutiveLaw::Pointer NewBeamConstitutiveLaw = GetProperties()[DEM_BEAM_CONSTITUTIVE_LAW_POINTER]-> Clone();
             mBeamConstitutiveLawArray[i] = NewBeamConstitutiveLaw;
             mBeamConstitutiveLawArray[i]->Initialize(this);
@@ -175,6 +113,25 @@ namespace Kratos {
         array_1d<double, 3> local_angular_velocity;
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
+
+        KRATOS_CATCH("")
+    }
+
+    void BeamParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
+    {
+        KRATOS_TRY
+
+        mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case someone is overwriting the radius in Python
+        mPartialRepresentativeVolume = 0.0;
+        double& elastic_energy = this->GetElasticEnergy();
+        elastic_energy = 0.0;
+        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    (*mStressTensor)(i,j) = 0.0;
+                }
+            }
+        }
 
         KRATOS_CATCH("")
     }
@@ -248,7 +205,7 @@ namespace Kratos {
             double calculation_area = 0.0;
             const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
 
-            if (i < (int)mBeamInitialNeighborsSize) {
+            if (i < (int)mContinuumInitialNeighborsSize) {
                 double area = this->GetProperties()[CROSS_AREA];
                 double other_area = data_buffer.mpOtherParticle->GetProperties()[CROSS_AREA];
                 calculation_area = std::max(area, other_area);
@@ -316,7 +273,7 @@ namespace Kratos {
             double LocalRelVel[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, RelVel, LocalRelVel);
 
-            if (i < (int)mBeamInitialNeighborsSize) {
+            if (i < (int)mContinuumInitialNeighborsSize) {
 
                 double equiv_visco_damp_coeff_normal;
                 double equiv_visco_damp_coeff_tangential_0;
@@ -410,7 +367,7 @@ namespace Kratos {
                                false,
                                i);
 
-                if (i < (int)mBeamInitialNeighborsSize) {
+                if (i < (int)mContinuumInitialNeighborsSize) {
 
                     mBeamConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this,
                                                                                    neighbour_iterator,
@@ -427,7 +384,7 @@ namespace Kratos {
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 
-            if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mBeamInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
+            if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 double total_local_elastic_contact_force[3] = {0.0};
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
@@ -456,4 +413,7 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
+
+    void BeamParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {}
+
 } // namespace Kratos
