@@ -118,7 +118,7 @@ public:
     void CreateStructureQuadraturePointGeometries(
         TLineGeometriesList& rInputLineGeometries,
         TQuadraturePointGeometriesList& rOuputQuadraturePointGeometries,
-        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4
+        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5
         )
     {
         for (IndexType i = 0; i < rInputLineGeometries.size(); ++i)
@@ -128,6 +128,21 @@ public:
                 rOuputQuadraturePointGeometries.push_back(qudrature_point_geometries[i]);
             }
         }
+
+        double fem_edge_length = 0.0;
+        double fem_edge_length_combined = 0.0;
+        Vector jac(1);
+        for (size_t i = 0; i < rOuputQuadraturePointGeometries.size(); i++)
+        {
+            rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac);
+            fem_edge_length += jac[0];
+            //KRATOS_WATCH(rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac))
+            //KRATOS_WATCH(rOuputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
+            fem_edge_length_combined += (jac[0] * rOuputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
+        }
+
+        KRATOS_WATCH(fem_edge_length_combined)
+        //KRATOS_WATCH(fem_edge_length)
     }
 
     template<SizeType TDimension, class TQuadraturePointGeometriesList>
@@ -142,7 +157,7 @@ public:
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
-
+        double mpm_edge_length = 0;
         // Loop over the submodelpart of rInitialModelPart
         for (IndexType i = 0; i < rInputQuadraturePointGeometries.size(); ++i)
         {
@@ -202,16 +217,25 @@ public:
                     points,
                     &r_geometry);
 
+                Vector jac(1);
                 if (!mIsOriginMpm)
                 {
                     // we need to set the jacobian of the mpm quad points to the interface jacobian
-                    //TODO @tobi this is kinda dodgy, we should figure out why the mapping matrix is singular
-                    Vector jac(1);
                     rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac);
-                    rOuputQuadraturePointGeometries[i]->SetValue(DETERMINANT_F, jac[0]);
+                    //KRATOS_WATCH(jac[0]);
+                    KRATOS_WATCH(rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
+                    KRATOS_WATCH(rOuputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
+                    double combined_weight = jac[0] * rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
+                    rOuputQuadraturePointGeometries[i]->SetValue(INTEGRATION_WEIGHT, jac[0]);
+                    //rOuputQuadraturePointGeometries[i]->SetValue(INTEGRATION_WEIGHT, combined_weight);
+
                 }
+                rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac);
+                mpm_edge_length += jac[0];
             }
         }
+
+        KRATOS_WATCH(mpm_edge_length)
     }
 
     template<SizeType TDimension,

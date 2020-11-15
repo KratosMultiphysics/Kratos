@@ -39,11 +39,6 @@ namespace Kratos
         else
         {
             KRATOS_ERROR << "Automatic interface creation is not implemented yet" << std::endl;
-            // Some future functionality to automatically determine interfaces?
-            // (Create interface sub model parts in origin and destination modelparts)
-            // (set strings to correct values)
-            //origin_interface_sub_model_part_name = ???
-            //destination_interface_sub_model_part_name = ???
         }
 
         ModelPart& background_grid_model_part = (p_model_mpm->HasModelPart("Background_Grid"))
@@ -61,7 +56,12 @@ namespace Kratos
         if (dim == 2)
         {
             CreateInterfaceLineCouplingConditions(r_fem_interface, interface_geoms);
-            //CreateInterfaceLineCouplingConditions(mpModelMpm->GetModelPart(destination_interface_sub_model_part_name));
+            double interface_length = 0.0;
+            for (size_t i = 0; i < interface_geoms.size(); i++)
+            {
+                interface_length += interface_geoms[i]->Length();
+            }
+            KRATOS_WATCH(interface_length)
         }
         else
         {
