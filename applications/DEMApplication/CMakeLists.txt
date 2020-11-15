@@ -54,7 +54,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_2D_dev_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_fabric_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_CL.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Beam_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_beam_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_soft_torque_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_CL.cpp

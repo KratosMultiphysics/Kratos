@@ -1,26 +1,45 @@
 
-#if !defined(DEM_KDEM_Beam_CL_H_INCLUDED)
-#define  DEM_KDEM_Beam_CL_H_INCLUDED
+#if !defined(DEM_BEAM_CONSTITUTIVE_LAW_H_INCLUDED)
+#define  DEM_BEAM_CONSTITUTIVE_LAW_H_INCLUDED
 
 /* Project includes */
-#include "DEM_continuum_constitutive_law.h"
-#include "DEM_KDEM_CL.h"
+#include "includes/define.h"
+#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "includes/serializer.h"
+
+
+#include "containers/flags.h"
+
+#include "custom_utilities/GeometryFunctions.h"
+#include "../custom_elements/discrete_element.h"
+#include "../custom_elements/Particle_Contact_Element.h"
+#include "containers/array_1d.h"
+
 
 namespace Kratos {
 
-    class KRATOS_API(DEM_APPLICATION) DEM_KDEM_Beam : public DEM_KDEM {
+    class Properties; //forward declaration
+    class SphericContinuumParticle; // forward declaration of spheric cont particle
+
+    class KRATOS_API(DEM_APPLICATION) DEMBeamConstitutiveLaw : public Flags {
+
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Beam);
+        KRATOS_CLASS_POINTER_DEFINITION(DEMBeamConstitutiveLaw);
 
-        DEM_KDEM_Beam() {}
+        DEMBeamConstitutiveLaw();
 
-        ~DEM_KDEM_Beam() {}
+        virtual void Initialize(SphericContinuumParticle* owner_sphere);
 
-        DEMContinuumConstitutiveLaw::Pointer Clone() const override;
+        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-        void Check(Properties::Pointer pProp) const override;
+        virtual void Check(Properties::Pointer pProp) const;
+
+        virtual std::string GetTypeOfLaw();
+
+        virtual ~DEMBeamConstitutiveLaw();
+
+        virtual DEMBeamConstitutiveLaw::Pointer Clone() const;
 
         virtual void CalculateElasticConstants(double& kn_el,
                                                double& kt_el_0,
@@ -30,7 +49,7 @@ namespace Kratos {
                                                double equiv_poisson,
                                                double calculation_area,
                                                SphericContinuumParticle* element1,
-                                               SphericContinuumParticle* element2) override;
+                                               SphericContinuumParticle* element2);
 
         virtual void CalculateViscoDampingCoeff(double& equiv_visco_damp_coeff_normal,
                                                 double& equiv_visco_damp_coeff_tangential_0,
@@ -67,7 +86,7 @@ namespace Kratos {
                                      double& equiv_visco_damp_coeff_tangential_0,
                                      double& equiv_visco_damp_coeff_tangential_1,
                                      double LocalRelVel[3],
-                                     double ViscoDampingLocalContactForce[3]) override;
+                                     double ViscoDampingLocalContactForce[3]);
 
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
                                            const double kn_el,
@@ -94,22 +113,28 @@ namespace Kratos {
                                                       double ElasticLocalRotationalMoment[3],
                                                       double ViscoLocalRotationalMoment[3],
                                                       double equiv_poisson,
-                                                      double indentation) override;
+                                                      double indentation);
+
+        virtual bool CheckRequirementsOfStressTensor();
 
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const override{
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
+        virtual void save(Serializer& rSerializer) const override {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) override{
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
+        virtual void load(Serializer& rSerializer) override {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags)
                     //rSerializer.load("MyMemberName",myMember);
         }
     };
 
+    //This definition is done here to avoid recursive inclusion of header files
+    KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, DEMBeamConstitutiveLaw::Pointer, DEM_BEAM_CONSTITUTIVE_LAW_POINTER)
+
 } /* namespace Kratos.*/
-#endif /* DEM_KDEM_Beam_H_INCLUDED  defined */
+#endif /* DEM_BEAM_CONSTITUTIVE_LAW_H_INCLUDED  defined */
+

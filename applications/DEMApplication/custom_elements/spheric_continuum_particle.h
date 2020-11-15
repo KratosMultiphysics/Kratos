@@ -86,9 +86,9 @@ namespace Kratos
             return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
         }
 
-        void SetInitialSphereContacts(const ProcessInfo& r_process_info);
+        virtual void SetInitialSphereContacts(const ProcessInfo& r_process_info);
         void SetInitialFemContacts();
-        void CreateContinuumConstitutiveLaws();
+        virtual void CreateContinuumConstitutiveLaws();
         void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
         void GetStressTensorFromNeighbourStep1();
         void GetStressTensorFromNeighbourStep2();

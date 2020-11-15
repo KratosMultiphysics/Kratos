@@ -36,7 +36,7 @@
 #include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
 #include "custom_constitutive/DEM_D_Conical_damage_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
-#include "custom_constitutive/DEM_KDEM_Beam_CL.h"
+#include "custom_constitutive/DEM_beam_constitutive_law.h"
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_KDEM_CamClay_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
@@ -60,6 +60,7 @@ KRATOS_CREATE_VARIABLE(std::string, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(DEMBeamConstitutiveLaw::Pointer, DEM_BEAM_CONSTITUTIVE_LAW_POINTER)
 
 //scheme
 KRATOS_CREATE_VARIABLE(std::string, DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME)
@@ -513,6 +514,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
+    KRATOS_REGISTER_VARIABLE(DEM_BEAM_CONSTITUTIVE_LAW_POINTER)
 
     //scheme
     KRATOS_REGISTER_VARIABLE(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME)
@@ -944,7 +946,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());
     Serializer::Register("DEM_KDEM", DEM_KDEM());
     Serializer::Register("DEM_KDEMFabric", DEM_KDEMFabric());
-    Serializer::Register("DEM_KDEM_Beam", DEM_KDEM_Beam());
+    Serializer::Register("DEMBeamConstitutiveLaw", DEMBeamConstitutiveLaw());
     Serializer::Register("DEM_KDEM_Rankine", DEM_KDEM_Rankine());
     Serializer::Register("DEM_KDEM_CamClay", DEM_KDEM_CamClay());
     Serializer::Register("DEM_Dempack_torque", DEM_Dempack_torque());
