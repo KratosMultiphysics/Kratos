@@ -289,13 +289,13 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
     // Generate the maps of reference
     mPMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
 
-    mpRefCondition=SyncMap(mpRefCondition);
-    mpRefElement=SyncMap(mpRefElement);
+    SyncMapAcrossRanks(mpRefCondition);
+    SyncMapAcrossRanks(mpRefElement);
 }
 
 template<PMMGLibrary TPMMGLibrary>
 template<typename TPointerType>
-std::unordered_map<IndexType, TPointerType> ParMmgProcess<TPMMGLibrary>::SyncMap(std::unordered_map<IndexType, TPointerType> rRefEntityMap)
+void ParMmgProcess<TPMMGLibrary>::SyncMapAcrossRanks(std::unordered_map<IndexType, TPointerType>& rRefEntityMap)
 {
     const IndexType size = mrThisModelPart.GetCommunicator().GetDataCommunicator().Size();
     const IndexType rank = mrThisModelPart.GetCommunicator().GetDataCommunicator().Rank();
@@ -326,8 +326,6 @@ std::unordered_map<IndexType, TPointerType> ParMmgProcess<TPMMGLibrary>::SyncMap
         mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(aux_recv_map, 0);
         rRefEntityMap = aux_recv_map;
     }
-
-    return rRefEntityMap;
 }
 
 /***********************************************************************************/

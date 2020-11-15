@@ -485,7 +485,7 @@ private:
     Parameters GetDefaultParameters();
 
     template<typename TPointerType>
-    std::unordered_map<IndexType, TPointerType> SyncMap(std::unordered_map<IndexType, TPointerType> rInputMap);
+    void SyncMapAcrossRanks(std::unordered_map<IndexType, TPointerType>& rInputMap);
 
 
     ///@}
