@@ -269,6 +269,23 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+        ModelPart& mrThisModelPart;                                      /// The model part to compute
+        Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
+        NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
+
+        std::string mFilename;                                           /// I/O file name
+        IndexType mEchoLevel;                                            /// The echo level
+
+        FrameworkEulerLagrange mFramework;                               /// The framework
+
+        DiscretizationOption mDiscretization;                            /// The discretization option
+        bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
+
+        std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
+
+        std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference element
+        std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -300,24 +317,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;                                      /// The model part to compute
-    Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
-    NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
-
     MmgUtilities<TMMGLibrary> mMmgUtilities;                         /// The MMG utilities class
-
-    std::string mFilename;                                           /// I/O file name
-    IndexType mEchoLevel;                                            /// The echo level
-
-    FrameworkEulerLagrange mFramework;                               /// The framework
-
-    DiscretizationOption mDiscretization;                            /// The discretization option
-    bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
-
-    std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
-
-    std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference element
-    std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
 
     ///@}
     ///@name Private Operators

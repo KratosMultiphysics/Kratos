@@ -19,14 +19,6 @@
 
 // Project includes
 #include "custom_processes/pmmg_process.h"
-#include "containers/model.h"
-// We indlude the internal variable interpolation process
-#include "custom_processes/nodal_values_interpolation_process.h"
-#include "custom_processes/internal_variables_interpolation_process.h"
-// Include the point locator
-#include "utilities/binbased_fast_point_locator.h"
-// Include the spatial containers needed for search
-#include "spatial_containers/spatial_containers.h" // kd-tree
 #include "includes/gid_io.h"
 #include "includes/model_part_io.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
@@ -64,8 +56,7 @@ template<PMMGLibrary TPMMGLibrary>
 ParMmgProcess<TPMMGLibrary>::ParMmgProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
-    ):mrThisModelPart(rThisModelPart),
-      mThisParameters(ThisParameters)
+    ): MmgProcess(rThisModelPart, ThisParameters)
 {
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -116,8 +107,8 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitialize()
     KRATOS_INFO_IF("ParMmgProcess", mEchoLevel > 0) << "We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, it is quite recommended to create more than one sub model part if you have more than one element or condition)" << std::endl;
 
     /* We restart the PMMG mesh and solution */
-    mPMmmgUtilities.SetEchoLevel(mEchoLevel);
-    mPMmmgUtilities.InitMesh();
+    mPMmgUtilities.SetEchoLevel(mEchoLevel);
+    mPMmgUtilities.InitMesh();
 
     KRATOS_CATCH("");
 }
@@ -218,7 +209,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteFinalize()
 
     // Iterate in the nodes
     auto& r_nodes_array = mrThisModelPart.Nodes();
-    auto local_to_global_nodes_map = mPMmmgUtilities.GetNodalLocalToGlobalMap();
+    auto local_to_global_nodes_map = mPMmgUtilities.GetNodalLocalToGlobalMap();
     for(int i = 1; i <= static_cast<int>(r_nodes_array.size()); ++i) {
 
         auto it_node = mrThisModelPart.pGetNode(local_to_global_nodes_map[i]);
@@ -231,7 +222,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteFinalize()
             TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
             // We set the metric
-            mPMmmgUtilities.GetMetricTensor(r_metric);
+            mPMmgUtilities.GetMetricTensor(r_metric);
         }
     }
 
@@ -266,17 +257,17 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
 {
     // We create a list of submodelparts to later reassign flags after remesh
     if (mThisParameters["preserve_flags"].GetBool()) {
-        mPMmmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
+        mPMmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
     }
 
     // The auxiliar color maps
     ColorsMapType aux_ref_cond, aux_ref_elem;
 
     // Actually generate mesh data
-    mPMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, false);
+    mPMmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, false);
 
     // Generate Interface data
-    mPMmmgUtilities.GenerateParallelInterfaces(mrThisModelPart);
+    mPMmgUtilities.GenerateParallelInterfaces(mrThisModelPart);
 
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     auto& r_nodes_array = mrThisModelPart.Nodes();
@@ -287,7 +278,7 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
         (**it_dof).FreeDof();
 
     // Generate the maps of reference
-    mPMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
+    mPMmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
 
     SyncMapAcrossRanks(mpRefCondition);
     SyncMapAcrossRanks(mpRefElement);
@@ -335,7 +326,7 @@ template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::InitializeSolDataMetric()
 {
     // We initialize the solution data with the given modelpart
-    mPMmmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+    mPMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
 }
 
 /***********************************************************************************/
@@ -364,14 +355,14 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     ModelPart& r_old_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
     // Calling the library functions
-    mPMmmgUtilities.PMMGLibCallMetric(mThisParameters);
+    mPMmgUtilities.PMMGLibCallMetric(mThisParameters);
 
     /* Save to file */
      if (save_to_file) SaveSolutionToFile(true);
 
     // Some information
     PMMGMeshInfo<TPMMGLibrary> mmg_mesh_info;
-    mPMmmgUtilities.PrintAndGetParMmgMeshInfo(mmg_mesh_info);
+    mPMmgUtilities.PrintAndGetParMmgMeshInfo(mmg_mesh_info);
 
 
     // First we empty the model part
@@ -421,14 +412,14 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
 
-    mPMmmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
+    mPMmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
 
     // Writing the new solution data on the model part
-    mPMmmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
+    mPMmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
 
     /* We assign flags and clear the auxiliar model parts created to reassing the flags */
     if (mThisParameters["preserve_flags"].GetBool()) {
-        mPMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
+        mPMmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
     }
 
     // We create an auxiliar mesh for debugging purposes
@@ -502,15 +493,15 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 
     // Automatically save the mesh
     if (PostOutput) {
-        mPMmmgUtilities.OutputMesh(file_name);
+        mPMmgUtilities.OutputMesh(file_name);
 
         // Automatically save the solution
-        mPMmmgUtilities.OutputSol(file_name);
+        mPMmgUtilities.OutputSol(file_name);
     }//
 
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files
-        mPMmmgUtilities.OutputReferenceEntitities(file_name, mpRefCondition, mpRefElement);
+        mPMmgUtilities.OutputReferenceEntitities(file_name, mpRefCondition, mpRefElement);
 
         // Writing the colors to a JSON
         AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(file_name, mColors);
@@ -524,7 +515,7 @@ template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::FreeMemory()
 {
     // Free the PMMG structures
-    mPMmmgUtilities.FreeAll();
+    mPMmgUtilities.FreeAll();
 
     // Free reference std::unordered_map
     mpRefElement.clear();

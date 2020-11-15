@@ -24,13 +24,8 @@
 // #include "mmg/libmmg.h"
 
 // Project includes
-#include "processes/process.h"
-#include "includes/key_hash.h"
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
 #include "custom_utilities/pmmg_utilities.h"
-#include "containers/variables_list.h"
-#include "meshing_application.h"
+#include "custom_processes/mmg_process.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
@@ -94,7 +89,7 @@ namespace Kratos
  */
 template<PMMGLibrary TPMMGLibrary>
 class KRATOS_API(MESHING_APPLICATION) ParMmgProcess
-    : public Process
+    : public MmgProcess<MMGLibrary::MMG3D>
 {
 public:
 
@@ -292,24 +287,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;                                      /// The model part to compute
-    Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
-    NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
-
-    ParMmgUtilities<TPMMGLibrary> mPMmmgUtilities;                     /// The PMMG utilities class
-
-    std::string mFilename;                                           /// I/O file name
-    IndexType mEchoLevel;                                            /// The echo level
-
-    FrameworkEulerLagrange mFramework;                               /// The framework
-
-    DiscretizationOption mDiscretization;                            /// The discretization option
-    bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
-
-    std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
-
-    std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference element
-    std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
+    ParMmgUtilities<TPMMGLibrary> mPMmgUtilities;                     /// The PMMG utilities class
 
     ///@}
     ///@name Private Operators
