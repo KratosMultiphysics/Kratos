@@ -55,7 +55,7 @@ namespace Kratos {
         virtual void CalculateContactArea(double radius,
                 double other_radius,
                 double& calculation_area) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateContactArea) should not be called.","")
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateContactArea) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual double CalculateContactArea(double radius,
@@ -91,7 +91,7 @@ namespace Kratos {
                                                 SphericContinuumParticle* element2,
                                                 const double kn_el,
                                                 const double kt_el) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
