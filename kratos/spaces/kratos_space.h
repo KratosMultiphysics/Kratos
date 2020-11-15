@@ -211,14 +211,7 @@ public:
 
     static TDataType TwoNorm(const Matrix& rA) // Frobenious norm
     {
-        TDataType aux_sum = TDataType();
-        #pragma omp parallel for reduction(+:aux_sum)
-        for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
-            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
-                aux_sum += std::pow(rA(i,j),2);
-            }
-        }
-        return std::sqrt(aux_sum);
+        return norm_frobenius(rA);
     }
 
     static TDataType TwoNorm(const CsrMatrix<TDataType> & rA) // Frobenious norm
@@ -228,9 +221,6 @@ public:
                 return std::pow(rA.value_data()[i],2);
             });
         return std::sqrt(sum2);
-
-        //TODO implement
-        //return rA.FrobeniusNorm();
     }
 
     /**
@@ -240,15 +230,14 @@ public:
      */
     static TDataType JacobiNorm(const Matrix& rA)
     {
-        TDataType aux_sum = TDataType();
-        #pragma omp parallel for reduction(+:aux_sum)
-        for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
-            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
-                if (i != j) {
-                    aux_sum += std::abs(rA(i,j));
-                }
-            }
-        }
+        TDataType aux_sum = IndexPartition<IndexType>(rA.size1())
+            .for_each<SumReduction<TDataType>>( [&](IndexType i){
+                TDataType row_sum = TDataType();
+                for (IndexType j=0; j<rA.size2(); ++j)
+                    if (i != j) 
+                        row_sum += std::abs(rA(i,j));
+                return row_sum;
+            });
         return aux_sum;
     }
 
@@ -436,16 +425,7 @@ public:
     template<class TOtherMatrixType>
     inline static void ResizeData(TOtherMatrixType& rA, SizeType m)
     {
-        rA.resize(m, false);
-        //            std::fill(rA.begin(), rA.end(), TDataType());
-#ifndef _OPENMP
-        std::fill(rA.begin(), rA.end(), TDataType());
-#else
-        DataType* vals = rA.value_data().begin();
-        #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<static_cast<int>(m); ++i)
-            vals[i] = TDataType();
-#endif
+        KRATOS_ERROR << "cannot be implemented with CsrMatrix" << std::endl;
     }
 
     //TODO: remove
@@ -465,15 +445,7 @@ public:
     template<class TOtherMatrixType>
     inline static void SetToZero(TOtherMatrixType& rA)
     {
-#ifndef _OPENMP
-        std::fill(rA.begin(), rA.end(), TDataType());
-#else
-        TDataType* vals = rA.value_data().begin();
-        const int size = rA.value_data().end() - rA.value_data().begin();
-        #pragma omp parallel for firstprivate(size)
-        for(int i=0; i<size; ++i)
-            vals[i] = TDataType();
-#endif
+        rA.SetValue(TDataType());
     }
 
     inline static void SetToZero(CsrMatrix<TDataType>& rA)
@@ -483,14 +455,7 @@ public:
 
     inline static void SetToZero(VectorType& rX)
     {
-#ifndef _OPENMP
-        std::fill(rX.begin(), rX.end(), TDataType());
-#else
-        const int size = rX.size();
-        #pragma omp parallel for firstprivate(size)
-        for(int i=0; i<size; ++i)
-            rX[i] = TDataType();
-#endif
+        rX.SetValue(TDataType());
     }
 
     template<class TOtherMatrixType, class TEquationIdVectorType>
