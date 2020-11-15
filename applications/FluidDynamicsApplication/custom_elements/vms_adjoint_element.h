@@ -200,7 +200,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override
     {
         this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     }
@@ -294,7 +294,7 @@ public:
     }
 
     /// Returns the adjoint values stored in this element's nodes.
-    void GetValuesVector(VectorType& rValues, int Step = 0) override
+    void GetValuesVector(VectorType& rValues, int Step = 0) const override
     {
         ArrayType values;
         this->GetValuesArray(values, Step);
@@ -303,9 +303,9 @@ public:
         std::copy(values.begin(), values.end(), rValues.begin());
     }
 
-    void GetValuesArray(ArrayType& rValues, int Step = 0)
+    void GetValuesArray(ArrayType& rValues, int Step = 0) const 
     {
-        GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& rGeom = this->GetGeometry();
         IndexType LocalIndex = 0;
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
         {
@@ -319,7 +319,7 @@ public:
     }
 
     /// Returns the adjoint velocity values stored in this element's nodes.
-    void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) override
+    void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) const override
     {
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
@@ -333,7 +333,7 @@ public:
     }
 
     /// Returns the adjoint acceleration values stored in this element's nodes.
-    void GetSecondDerivativesVector(VectorType& rValues, int Step = 0) override
+    void GetSecondDerivativesVector(VectorType& rValues, int Step = 0) const override
     {
         ArrayType values;
         this->GetSecondDerivativesArray(values, Step);
@@ -342,9 +342,9 @@ public:
         std::copy(values.begin(), values.end(), rValues.begin());
     }
 
-    void GetSecondDerivativesArray(ArrayType& rValues, int Step = 0)
+    void GetSecondDerivativesArray(ArrayType& rValues, int Step = 0) const 
     {
-        GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& rGeom = this->GetGeometry();
         IndexType LocalIndex = 0;
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
         {
@@ -358,7 +358,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
+                              const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -369,7 +369,7 @@ public:
     }
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& /*rCurrentProcessInfo*/) override
+                               const ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         if (rLeftHandSideMatrix.size1() != TFluidLocalSize ||
             rLeftHandSideMatrix.size2() != TFluidLocalSize)
@@ -379,7 +379,7 @@ public:
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& /*rCurrentProcessInfo*/) override
+                                const ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         KRATOS_TRY
 
@@ -407,7 +407,7 @@ public:
      * ACCELERATION.
      */
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
         this->CalculateFirstDerivativesLHS(LHS, rCurrentProcessInfo);
@@ -416,7 +416,7 @@ public:
     }
 
     virtual void CalculateFirstDerivativesLHS(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo)
     {
         this->CalculatePrimalGradientOfVMSSteadyTerm(rLeftHandSideMatrix, rCurrentProcessInfo);
         this->AddPrimalGradientOfVMSMassTerm(rLeftHandSideMatrix, ACCELERATION,
@@ -436,7 +436,7 @@ public:
      * \f]
      */
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+                                       const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
         this->CalculateSecondDerivativesLHS(LHS, rCurrentProcessInfo);
@@ -445,13 +445,13 @@ public:
     }
 
     void CalculateSecondDerivativesLHS(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       const ProcessInfo& rCurrentProcessInfo)
     {
         this->CalculateVMSMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
         rLeftHandSideMatrix = -trans(rLeftHandSideMatrix); // transpose
     }
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& /*rCurrentProcessInfo*/) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         KRATOS_TRY
 
@@ -462,7 +462,7 @@ public:
     }
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                ProcessInfo& /*rCurrentProcessInfo*/) override
+                                const ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         KRATOS_TRY
 
@@ -504,7 +504,7 @@ public:
     }
 
     void GetDofList(DofsVectorType& rElementalDofList,
-                    ProcessInfo& rCurrentProcessInfo) override
+                    const ProcessInfo& rCurrentProcessInfo) const override
     {
         DofsArrayType dofs;
         this->GetDofArray(dofs, rCurrentProcessInfo);
@@ -514,10 +514,10 @@ public:
     }
 
     void GetDofArray(DofsArrayType& rElementalDofList,
-                    ProcessInfo& /*rCurrentProcessInfo*/);
+                    const ProcessInfo& /*rCurrentProcessInfo*/) const ;
 
     void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& rCurrentProcessInfo) override
+                          const ProcessInfo& rCurrentProcessInfo) const override
     {
         EquationIdArrayType ids;
         this->EquationIdArray(ids, rCurrentProcessInfo);
@@ -526,7 +526,7 @@ public:
         std::copy(ids.begin(), ids.end(), rResult.begin());
     }
 
-    void EquationIdArray(EquationIdArrayType& rResult, ProcessInfo& /*rCurrentProcessInfo*/);
+    void EquationIdArray(EquationIdArrayType& rResult, const ProcessInfo& /*rCurrentProcessInfo*/) const ;
 
     ///@}
     ///@name Input and output

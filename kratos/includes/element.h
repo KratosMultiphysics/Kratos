@@ -374,7 +374,7 @@ public:
 
     /**
      * ELEMENTS inherited from this class must implement next methods
-     * Initialize, ResetConstitutiveLaw, CleanMemory
+     * Initialize, ResetConstitutiveLaw
      * if the element needs to perform any operation before any calculation is done
      * reset material and constitutive parameters
      * or clean memory deleting obsolete variables
@@ -404,13 +404,6 @@ public:
      * the elemental variables will be changed and reset using this method
      */
     virtual void ResetConstitutiveLaw()
-    {
-    }
-
-    /**
-     * deletes all obsolete data from memory
-     */
-    virtual void CleanMemory()
     {
     }
 
@@ -917,17 +910,6 @@ public:
     {
         KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<double >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        const auto& r_destination_variable = rDestinationVariable;
-        this->AddExplicitContribution(rRHSVector, rRHSVariable, r_destination_variable, rCurrentProcessInfo);
-    }
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the vector version)
@@ -946,17 +928,6 @@ public:
     {
          KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        const auto& r_destination_variable = rDestinationVariable;
-        this->AddExplicitContribution(rRHSVector, rRHSVariable, r_destination_variable, rCurrentProcessInfo);
-    }
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the matrix version)
@@ -974,17 +945,6 @@ public:
         )
     {
          KRATOS_ERROR << "Base element class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddExplicitContribution(
-        const MatrixType& rLHSMatrix,
-        const Variable<MatrixType>& rLHSVariable,
-        Variable<Matrix>& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        const auto& r_destination_variable = rDestinationVariable;
-        this->AddExplicitContribution(rLHSMatrix, rLHSVariable, r_destination_variable, rCurrentProcessInfo);
     }
 
     /**
