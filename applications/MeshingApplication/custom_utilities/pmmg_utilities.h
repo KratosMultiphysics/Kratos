@@ -197,30 +197,6 @@ public:
     ///@{
 
     /**
-     * @brief This method sets the discretization method
-     * @param[in] Discretization Sets the discretization method
-     */
-    void SetDiscretization(const DiscretizationOption Discretization);
-
-    /**
-     * @brief This method gets the discretization method
-     * @return mDiscretization Gets the discretization method
-     */
-    DiscretizationOption GetDiscretization();
-
-    /**
-     * @brief This method sets if the regions must be removed
-     * @param[in] RemoveRegions Sets if the regions must be removed
-     */
-    void SetRemoveRegions(const bool RemoveRegions);
-
-    /**
-     * @brief This method gets if the regions must be removed
-     * @return mRemoveRegions Gets if the regions must be removed
-     */
-    bool GetRemoveRegions();
-
-    /**
      * @brief It prints info about the current mesh
      * @param[in,out] rPMMGMeshInfo The number of nodes, conditions and elements
      */
@@ -230,37 +206,37 @@ public:
      * @brief Returns a vector of ids of spatially repeated nodes
      * @param[in,out] rModelPart The model part whose nodes are checked
      */
-    IndexVectorType FindDuplicateNodeIds(const ModelPart& rModelPart);
+    IndexVectorType FindDuplicateNodeIds(const ModelPart& rModelPart) override;
 
     /**
      * @brief Returns a vector of ids of repeated conditions
      * @details For 2D and surface meshes it returns the ids of repeated edges found in the PMMG mesh data structure. In 3D it returns ids of triangles.
      */
-    IndexVectorType CheckFirstTypeConditions();
+    IndexVectorType CheckFirstTypeConditions() override;
 
     /**
      * @brief Returns a vector of ids of repeated elements
      * @details For 2D and surface meshes it returns the ids of repeated triangles found in the PMMG mesh data structure. In 3D it returns ids of tetrahedra.
      */
-    IndexVectorType CheckFirstTypeElements();
+    IndexVectorType CheckFirstTypeElements() override;
 
     /**
      * @brief It blocks certain nodes before remesh the model
      * @param[in] iNode The index of the node
      */
-    void BlockNode(const IndexType iNode);
+    void BlockNode(const IndexType iNode) override;
 
     /**
      * @brief It blocks certain conditions before remesh the model
      * @param[in] iCondition The index of the condition
      */
-    void BlockCondition(const IndexType iCondition);
+    void BlockCondition(const IndexType iCondition) override;
 
     /**
      * @brief It blocks certain elements before remesh the model
      * @param[in] iElement The index of the element
      */
-    void BlockElement(const IndexType iElement);
+    void BlockElement(const IndexType iElement) override;
 
     /**
      * @brief It creates the new node
@@ -276,7 +252,7 @@ public:
         IndexType iNode,
         int& Ref,
         int& IsRequired
-        );
+        ) override;
 
     /**
      * @brief It creates the new condition (first type, depends if the library work in 2D/3D/Surfaces)
@@ -296,7 +272,7 @@ public:
         int& Ref,
         int& IsRequired,
         bool SkipCreation
-        );
+        ) override;
 
     /**
      * @brief It creates the new element (first type, depends if the library work in 2D/3D/Surfaces)
@@ -314,7 +290,7 @@ public:
         int& Ref,
         int& IsRequired,
         bool SkipCreation
-        );
+        ) override;
 
     /**
      * @brief Initialisation of mesh and sol structures
@@ -325,12 +301,12 @@ public:
      * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
      * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
      */
-    void InitMesh();
+    void InitMesh() override;
 
     /**
      * @brief Here the verbosity is set
      */
-    void InitVerbosity(); // STAYS
+    void InitVerbosity() override;
 
     /**
      * @brief Here the API mode is set using the API
@@ -348,7 +324,7 @@ public:
      * @brief Here the verbosity is set using the API
      * @param[in] VerbosityPMMG The equivalent verbosity level in the PMMG API
      */
-    void InitVerbosityParameter(const IndexType VerbosityPMMG); // STAYS
+    void InitVerbosityParameter(const IndexType VerbosityPMMG) override;
 
     /**
      * @brief This sets the size of the mesh
@@ -360,60 +336,60 @@ public:
      * @brief This sets the size of the solution for the scalar case
      * @param[in] NumNodes Number of nodes
      */
-    void SetSolSizeScalar(const SizeType NumNodes);
+    void SetSolSizeScalar(const SizeType NumNodes) override;
 
     /**
      * @brief This sets the size of the solution for the vector case
      * @param[in] NumNodes Number of nodes
      */
-    void SetSolSizeVector(const SizeType NumNodes);
+    void SetSolSizeVector(const SizeType NumNodes) override;
 
     /**
      * @brief This sets the size of the solution for the tensor case
      * @param[in] NumNodes Number of nodes
      */
-    void SetSolSizeTensor(const SizeType NumNodes);
+    void SetSolSizeTensor(const SizeType NumNodes) override;
 
     /**
      * @brief This sets the size of the displacement for lagrangian movement
      * @param[in] NumNodes Number of nodes
      */
-    void SetDispSizeVector(const SizeType NumNodes);
+    void SetDispSizeVector(const SizeType NumNodes) override;
 
     /**
      * @brief This checks the mesh data and prints if it is OK
      */
-    void CheckMeshData();
+    void CheckMeshData() override;
 
     /**
      * @brief This sets the output mesh
      * @param[in] rInputName The input name
      */
-    void InputMesh(const std::string& rInputName);
+    void InputMesh(const std::string& rInputName) override;
 
     /**
      * @brief This sets the output sol
      * @param[in] rInputName The input name
      */
-    void InputSol(const std::string& rInputName);
+    void InputSol(const std::string& rInputName) override;
 
     /**
      * @brief This sets the output mesh
      * @param[in] rOutputName The output name
      */
-    void OutputMesh(const std::string& rOutputName);
+    void OutputMesh(const std::string& rOutputName) override;
 
     /**
      * @brief This sets the output sol
      * @param[in] rOutputName The output name
      */
-    void OutputSol(const std::string& rOutputName);
+    void OutputSol(const std::string& rOutputName) override;
 
     /**
      * @brief This sets the output displacement
      * @param[in] rOutputName The output name
      */
-    void OutputDisplacement(const std::string& rOutputName);
+    void OutputDisplacement(const std::string& rOutputName) override;
 
     /**
      * @brief This method generates the maps of reference for conditions and elements from an existing json
@@ -425,12 +401,12 @@ public:
         const std::string& rOutputName,
         const std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
         const std::unordered_map<IndexType,Element::Pointer>& rRefElement
-        );
+        ) override;
 
     /**
      * @brief This frees the PMMG structures
      */
-    void FreeAll();
+    void FreeAll() override;
 
     /**
      * @brief This loads the solution
@@ -456,7 +432,7 @@ public:
         const double Z,
         const IndexType Color,
         const IndexType Index
-        );
+        ) override;
 
     /**
      * @brief This sets the conditions of the mesh
@@ -468,7 +444,7 @@ public:
         GeometryType& rGeometry,
         const IndexType Color,
         const IndexType Index
-        );
+        ) override;
 
     /**
      * @brief This sets elements of the mesh
@@ -480,7 +456,7 @@ public:
         GeometryType& rGeometry,
         const IndexType Color,
         const IndexType Index
-        );
+        ) override;
 
     /**
      * @brief This function is used to set the metric scalar
@@ -490,7 +466,7 @@ public:
     void SetMetricScalar(
         const double Metric,
         const IndexType NodeId
-        );
+        ) override;
 
     /**
      * @brief This function is used to set the metric vector (x, y, z)
@@ -500,7 +476,7 @@ public:
     void SetMetricVector(
         const array_1d<double, Dimension>& rMetric,
         const IndexType NodeId
-        );
+        ) override;
 
     /**
      * @brief This function is used to set the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
@@ -510,7 +486,7 @@ public:
     void SetMetricTensor(
         const TensorArrayType& rMetric,
         const IndexType NodeId
-        );
+        ) override;
 
     /**
      * @brief This function is used to set the displacement vector (x, y, z)
@@ -520,31 +496,31 @@ public:
     void SetDisplacementVector(
         const array_1d<double, 3>& rDisplacement,
         const IndexType NodeId
-        );
+        ) override;
 
     /**
      * @brief This function is used to retrieve the metric scalar
      * @param[in,out] rMetric The inverse of the size node
      */
-    void GetMetricScalar(double& rMetric);
+    void GetMetricScalar(double& rMetric) override;
 
     /**
      * @brief This function is used to retrieve the metric vector (x, y, z)
      * @param[in,out] rMetric This array contains the components of the metric vector
      */
-    void GetMetricVector(array_1d<double, Dimension>& rMetric);
+    void GetMetricVector(array_1d<double, Dimension>& rMetric) override;
 
     /**
      * @brief This function is used to retrieve the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param[in,out] rMetric This array contains the components of the metric tensor in the PMMG defined order
      */
-    void GetMetricTensor(TensorArrayType& rMetric);
+    void GetMetricTensor(TensorArrayType& rMetric) override;
 
     /**
      * @brief This function is used to retrieve the displacement vector (x, y, z)
      * @param[in,out] rDisplacement This array contains the components of the displacement vector
      */
-    void GetDisplacementVector(array_1d<double, 3>& rDisplacement);
+    void GetDisplacementVector(array_1d<double, 3>& rDisplacement) override;
 
     /**
      * @brief This method generates mesh data from an existing model part
@@ -562,7 +538,7 @@ public:
         ColorsMapType& rColorMapElement,
         const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN,
         const bool CollapsePrismElements = false
-        );
+        ) override;
 
     /**
      * @brief This method generates the interface data for the parallel communicator
@@ -594,19 +570,19 @@ public:
         const ColorsMapType& rColorMapElement,
         std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
         std::unordered_map<IndexType,Element::Pointer>& rRefElement
-        );
+        ) override;
 
     /**
      * @brief This method generates solution (metric) data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void GenerateSolDataFromModelPart(ModelPart& rModelPart);
+    void GenerateSolDataFromModelPart(ModelPart& rModelPart) override;
 
     /**
      * @brief This method generates displacement data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void GenerateDisplacementDataFromModelPart(ModelPart& rModelPart);
+    void GenerateDisplacementDataFromModelPart(ModelPart& rModelPart) override;
 
     /**
      * @brief This method writes mesh data to an existing model part
@@ -630,7 +606,7 @@ public:
      * @brief This method writes sol data to an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void WriteSolDataToModelPart(ModelPart& rModelPart);
+    void WriteSolDataToModelPart(ModelPart& rModelPart) override;
 
     /**
      * @brief This method writes the maps of reference for conditions and elements from an existing json
@@ -644,19 +620,19 @@ public:
         const std::string& rFilename,
         std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
         std::unordered_map<IndexType,Element::Pointer>& rRefElement
-        );
+        ) override;
 
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+    void CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart) override;
 
     /**
      * @brief This function assigns the flags and clears the auxiliar sub model part for flags
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+    void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart) override;
 
     std::unordered_map<int, int> GetNodalLocalToGlobalMap();
 
@@ -730,8 +706,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mRemoveRegions = false;                                           /// Cutting-out specified regions during surface remeshing
-    DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
     std::unordered_map<int, int> mGlobalToLocalNodePreMap;                           /// Map of nodal global ids to local ids before remeshing
     std::unordered_map<int, int> mGlobalToLocalElemPreMap;                           /// Map of elemental global ids to local ids before remeshing
     std::unordered_map<int, int> mGlobalToLocalCondPreMap;                           /// Map of condition global ids to local ids before remeshing

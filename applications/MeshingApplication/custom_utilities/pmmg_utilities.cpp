@@ -262,7 +262,7 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeConditio
     Condition::Pointer p_base_condition = nullptr;
 
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+        if (GetDiscretization() != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 1) << "Condition. Null reference-pointer returned. Rank " <<
                 DataCommunicator::GetDefault().Rank() << " Id: " << CondId << " Ref: " << Ref<< std::endl;
 
@@ -317,7 +317,7 @@ Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeElement(
 
     KRATOS_ERROR_IF(PMMG_Get_tetrahedron(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get tetrahedron" << std::endl;
 
-    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+    if (GetDiscretization() == DiscretizationOption::ISOSURFACE) {
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
         if (rMapPointersRefElement[Ref].get() == nullptr) {
             // KRATOS_INFO("ParMmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
@@ -340,7 +340,7 @@ Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeElement(
                     p_element->Set(INSIDE, true);
                 } else if (Ref == 3) {
                     p_element->Set(INSIDE, false);
-                    if (mRemoveRegions) p_element->Set(TO_ERASE, true);
+                    if (GetRemoveRegions()) p_element->Set(TO_ERASE, true);
                 }
             }
         }
@@ -388,10 +388,10 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh()
     mParMmgMesh = nullptr;
 
     // We init the PMMG mesh and sol
-    if (mDiscretization == DiscretizationOption::STANDARD) {
+    if (GetDiscretization() == DiscretizationOption::STANDARD) {
         PMMG_Init_parMesh( PMMG_ARG_start, PMMG_ARG_ppParMesh, &mParMmgMesh, PMMG_ARG_pMesh, PMMG_ARG_pMet, PMMG_ARG_dim, 3, PMMG_ARG_MPIComm, MPI_COMM_WORLD, PMMG_ARG_end);
     } else {
-        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(GetDiscretization()) << " not fully implemented" << std::endl;
     }
 
     InitVerbosity();
@@ -403,20 +403,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh()
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::InitVerbosity()
 {
-    /* We set the PMMG verbosity */
-    int verbosity_mmg;
-    if (GetEchoLevel() == 0)
-        verbosity_mmg = -1;
-    else if (GetEchoLevel() == 1)
-        verbosity_mmg = 0; // NOTE: This way just the essential info from PMMG will be printed, but the custom message will appear
-    else if (GetEchoLevel() == 2)
-        verbosity_mmg = 3;
-    else if (GetEchoLevel() == 3)
-        verbosity_mmg = 5;
-    else
-        verbosity_mmg = 10;
-
-    InitVerbosityParameter(verbosity_mmg);
+    BaseType::InitVerbosity();
 }
 
 /***********************************************************************************/
@@ -584,41 +571,7 @@ void ParMmgUtilities<TPMMGLibrary>::OutputReferenceEntitities(
     const std::unordered_map<IndexType,Element::Pointer>& rRefElement
     )
 {
-    /* ELEMENTS */
-    std::string element_name;
-    Parameters elem_reference_json;
-    for (auto& r_elem : rRefElement) {
-        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_elem.second), element_name);
-        const std::string name = std::to_string(r_elem.first);
-        elem_reference_json.AddEmptyValue(name);
-        elem_reference_json[name].SetString(element_name);
-    }
-
-    const std::string& r_elem_json_text = elem_reference_json.PrettyPrintJsonString();
-
-    std::filebuf elem_buffer;
-    elem_buffer.open(rOutputName + ".elem.ref.json",std::ios::out);
-    std::ostream elem_os(&elem_buffer);
-    elem_os << r_elem_json_text;
-    elem_buffer.close();
-
-    /* CONDITIONS */
-    std::string condition_name;
-    Parameters cond_reference_json;
-    for (auto& r_cond : rRefCondition) {
-        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_cond.second), condition_name);
-        const std::string name = std::to_string(r_cond.first);
-        cond_reference_json.AddEmptyValue(name);
-        cond_reference_json[name].SetString(condition_name);
-    }
-
-    const std::string& r_cond_json_text = cond_reference_json.PrettyPrintJsonString();
-
-    std::filebuf cond_buffer;
-    cond_buffer.open(rOutputName + ".cond.ref.json",std::ios::out);
-    std::ostream cond_os(&cond_buffer);
-    cond_os << r_cond_json_text;
-    cond_buffer.close();
+    BaseType::OutputReferenceEntitities(rOutputName, rRefCondition, rRefElement);
 }
 
 /***********************************************************************************/
@@ -1200,53 +1153,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateReferenceMaps(
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
 {
-    // Iterate in the nodes
-    auto& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    // Set size of the solution
-    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
-
-    if (it_node_begin->Has(r_tensor_variable)) {
-        SetSolSizeTensor(r_nodes_array.size());
-    } else {
-        SetSolSizeScalar(r_nodes_array.size());
-    }
-
-    // In case of considering metric tensor
-    if (it_node_begin->Has(r_tensor_variable)) {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-            if (!old_entity) {
-                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
-
-                // We get the metric
-                 const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
-
-                // We set the metric
-                SetMetricTensor(r_metric, it_node->Id());
-            }
-        }
-    } else {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-            if (!old_entity) {
-                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << it_node->Id() << std::endl;
-
-                // We get the metric
-                const double metric = it_node->GetValue(METRIC_SCALAR);
-
-                // We set the metric
-                SetMetricScalar(metric, it_node->Id());
-            }
-        }
-    }
+    BaseType::GenerateSolDataFromModelPart(rModelPart);
 }
 
 /***********************************************************************************/
@@ -1494,24 +1401,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
 {
-    // Iterate in the nodes
-    auto& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
-
-    // Auxilia metric
-    TensorArrayType metric;
-
-    // #pragma omp parallel for firstprivate(metric)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
-        // We get the metric
-        GetMetricTensor(metric);
-
-        it_node->SetValue(r_tensor_variable, metric);
-    }
+    BaseType::WriteSolDataToModelPart(rModelPart);
 }
 
 /***********************************************************************************/
@@ -1525,32 +1415,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteReferenceEntitities(
     std::unordered_map<IndexType,Element::Pointer>& rRefElement
     )
 {
-    // Getting auxiliar properties
-    auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
-
-    /* Elements */
-    std::ifstream elem_infile(rFilename + ".elem.ref.json");
-    KRATOS_ERROR_IF_NOT(elem_infile.good()) << "References elements file: " << rFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream elem_buffer;
-    elem_buffer << elem_infile.rdbuf();
-    Parameters elem_ref_json(elem_buffer.str());
-    for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
-        const std::size_t key = std::stoi(it_param.name());;
-        Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
-        rRefElement[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
-    }
-
-    /* Conditions */
-    std::ifstream cond_infile(rFilename + ".cond.ref.json");
-    KRATOS_ERROR_IF_NOT(cond_infile.good()) << "References conditions file: " << rFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream cond_buffer;
-    cond_buffer << cond_infile.rdbuf();
-    Parameters cond_ref_json(cond_buffer.str());
-    for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
-        const std::size_t key = std::stoi(it_param.name());;
-        Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
-        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
-    }
+    BaseType::WriteReferenceEntitities(rModelPart, rFilename, rRefCondition, rRefElement);
 }
 
 /***********************************************************************************/
@@ -1559,24 +1424,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteReferenceEntitities(
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
-    ModelPart& r_auxiliar_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
-
-    const auto& r_flags = KratosComponents<Flags>::GetComponents();
-
-    for (auto& r_flag : r_flags) {
-        const std::string name_sub_model = "FLAG_" + r_flag.first;
-        if (name_sub_model.find("NOT") == std::string::npos && name_sub_model.find("ALL") == std::string::npos) { // Avoiding inactive flags
-            r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
-            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
-            FastTransferBetweenModelPartsProcess(r_auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(r_flag.second)).Execute();
-            // If the number of elements transfered is 0 we remove the model part
-            if (r_auxiliar_sub_model_part.NumberOfNodes() == 0
-            && r_auxiliar_sub_model_part.NumberOfElements() == 0
-            && r_auxiliar_sub_model_part.NumberOfConditions() == 0) {
-                r_auxiliar_model_part.RemoveSubModelPart(name_sub_model);
-            }
-        }
-    }
+    BaseType::CreateAuxiliarSubModelPartForFlags(rModelPart);
 }
 
 /***********************************************************************************/
@@ -1585,20 +1433,7 @@ void ParMmgUtilities<TPMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
-    const auto& r_flags = KratosComponents<Flags>::GetComponents();
-
-    ModelPart& r_auxiliar_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
-    for (auto& r_flag : r_flags) {
-        const std::string name_sub_model = "FLAG_" + r_flag.first;
-        if (r_auxiliar_model_part.HasSubModelPart(name_sub_model)) {
-            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
-            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Nodes());
-            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Conditions());
-            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Elements());
-        }
-    }
-
-    rModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+   BaseType::AssignAndClearAuxiliarSubModelPartForFlags(rModelPart);
 }
 
 /***********************************************************************************/
