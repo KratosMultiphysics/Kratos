@@ -82,7 +82,7 @@ namespace Kratos {
                                                double calculation_area,
                                                SphericContinuumParticle* element1,
                                                SphericContinuumParticle* element2) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) should not be called.","")
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
