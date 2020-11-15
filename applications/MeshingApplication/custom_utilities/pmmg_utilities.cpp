@@ -50,21 +50,6 @@
 namespace Kratos
 {
 
-template<>
-SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeConditions() const
-{
-    return NumberOfTriangles;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-SizeType PMMGMeshInfo<PMMGLibrary::PMMG3D>::NumberFirstTypeElements() const
-{
-    return NumberOfTetrahedra;
-}
-
 template struct PMMGMeshInfo<PMMGLibrary::PMMG3D>;
 
 /***********************************************************************************/
