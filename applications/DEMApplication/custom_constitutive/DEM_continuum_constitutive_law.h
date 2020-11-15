@@ -123,7 +123,7 @@ namespace Kratos {
                                      double &equiv_visco_damp_coeff_tangential,
                                      double LocalRelVel[3],
                                      double ViscoDampingLocalContactForce[3]) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateForces) should not be called.","")
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateForces) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
@@ -137,7 +137,7 @@ namespace Kratos {
                                            int i_neighbour_count,
                                            int time_steps,
                                            const ProcessInfo& r_process_info) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateNormalForces) should not be called.","")
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateNormalForces) shouldn't be accessed, use derived class instead"<<std::endl;
         }
 
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
@@ -157,7 +157,7 @@ namespace Kratos {
                                                int i_neighbour_count,
                                                bool& sliding,
                                                const ProcessInfo& r_process_info) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateTangentialForces) should not be called.","")
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateTangentialForces) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
