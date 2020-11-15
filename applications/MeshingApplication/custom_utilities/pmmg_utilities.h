@@ -20,13 +20,6 @@
 // External includes
 
 // Project includes
-#include "meshing_application.h"
-#include "includes/key_hash.h"
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "utilities/variable_utils.h"
-#include "utilities/assign_unique_model_part_collection_tag_utility.h"
-#include "processes/fast_transfer_between_model_parts_process.h"
 #include "custom_utilities/mmg_utilities.h"
 
 // NOTE: The following contains the license of the PMMG library

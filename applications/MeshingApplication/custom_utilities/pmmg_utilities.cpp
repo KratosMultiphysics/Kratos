@@ -23,10 +23,7 @@
 #endif /* PMMG_INCLUDES defined */
 
 // Project includes
-#include "containers/model.h"
-#include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/pmmg_utilities.h"
-#include "meshing_application_variables.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
