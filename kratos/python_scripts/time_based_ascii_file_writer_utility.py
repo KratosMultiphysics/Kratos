@@ -135,13 +135,14 @@ class TimeBasedAsciiFileWriterUtility(object):
 
         if self.folder_name != "":
             if not pathlib.PurePath(raw_path).is_absolute() and not pathlib.PurePath(self.folder_name).is_absolute():
-                # Relative path contained in both "file_name" and "folder_name"
-                # Using the relative default relative path instead
-                self.folder_name = "TimeBasedAsciiResults"
-                warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
-                warn_msg += 'Use parameter "folder_name" to specify correctly\n'
-                warn_msg += 'Using the default relative path "' + self.folder_name + '" instead'
-                KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
+                # Relative path contained in "folder_name"
+                # If contained also in "file_name", then the relative default relative path instead
+                if raw_path != "":
+                    self.folder_name = "TimeBasedAsciiResults"
+                    warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
+                    warn_msg += 'Use parameter "folder_name" to specify correctly\n'
+                    warn_msg += 'Using the default relative path "' + self.folder_name + '" instead'
+                    KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
                 absolute_folder_path = os.getcwd()
                 relative_folder_path = ""
 
