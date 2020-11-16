@@ -64,14 +64,14 @@ namespace Kratos
  * sparse matrix formats (particularly CSR)
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
-template< class TIndexType >
+template< class TIndexType=std::size_t >
 class DistributedSparseGraph //: public SparseGraph
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType; 
-    typedef int MpiIndexType; 
+    typedef TIndexType IndexType;
+    typedef int MpiIndexType;
     typedef SparseContiguousRowGraph<IndexType> LocalGraphType; //using a map since we need it ordered
     typedef SparseGraph<IndexType> NonLocalGraphType; //using a map since we need it ordered
 
@@ -85,7 +85,7 @@ public:
     /// Default constructor.
     DistributedSparseGraph(const IndexType LocalSize,
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
-    : 
+    :
       mrComm(rComm),
       mLocalGraph(LocalSize)
     {
@@ -95,12 +95,12 @@ public:
         mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm,LocalSize);
     }
 
-    
+
     /// Destructor.
     virtual ~DistributedSparseGraph(){}
 
     inline const DataCommunicator& GetComm() const
-    { 
+    {
         return mrComm;
     }
 
@@ -110,13 +110,13 @@ public:
     }
 
     inline IndexType TotalSize() const{ //TODO discuss if this shall be called simply "Size"
-        return mpRowNumbering->TotalSize(); 
+        return mpRowNumbering->TotalSize();
     }
 
     inline IndexType LocalSize() const{
-        return mpRowNumbering->LocalSize(); 
+        return mpRowNumbering->LocalSize();
     }
-    
+
     bool Has(const IndexType GlobalI, const IndexType GlobalJ) const
     {
         return mLocalGraph.Has(GetRowNumbering().LocalId(GlobalI),GlobalJ);
@@ -127,7 +127,7 @@ public:
     {
         rMaxJ = 0;
         rMinJ = 0;
-        for(IndexType local_i = 0; local_i<mLocalGraph.Size();++local_i) 
+        for(IndexType local_i = 0; local_i<mLocalGraph.Size();++local_i)
         {
             for(auto J : mLocalGraph[local_i] ) //J here is the global index
             {
@@ -143,8 +143,8 @@ public:
         ComputeLocalMinMaxColumnIndex(MinJ,MaxJ);
         return GetComm().MaxAll(MaxJ);
     }
-    
- 
+
+
     ///@}
     ///@name Operators
     ///@{
