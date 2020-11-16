@@ -24,6 +24,11 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/system_vector.h"
+#include "containers/distributed_system_vector.h"
+#include "containers/csr_matrix.h"
+#include "containers/distributed_csr_matrix.h"
+#include "custom_utilities/mapper_local_system.h"
 
 
 namespace Kratos
@@ -47,12 +52,27 @@ public:
     /// Pointer definition of MappingMatrixBuilder
     KRATOS_CLASS_POINTER_DEFINITION(MappingMatrixBuilder);
 
+    using GraphType = typename std::conditional<IsDistributed, DistributedSparseGraph<std::size_t>, SparseGraph<>>::type;
+
+    using MappingMatrixType = typename std::conditional<IsDistributed,
+        DistributedCsrMatrix<>,
+        CsrMatrix<>>::type;
+    using MappingMatrixPointerType = Kratos::unique_ptr<MappingMatrixType>;
+
+    using InterfaceVectorType = typename std::conditional<IsDistributed,
+        DistributedSystemVector<>,
+        SystemVector<>>::type;
+    using InterfaceVectorPointerType = Kratos::unique_ptr<InterfaceVectorType>;
+
+    using MapperLocalSystemPointerVector = std::vector<Kratos::unique_ptr<MapperLocalSystem>>;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MappingMatrixBuilder();
+    MappingMatrixBuilder(const int EchoLevel)
+        : mEchoLevel(EchoLevel) { }
 
     /// Destructor.
     virtual ~MappingMatrixBuilder() = default;
@@ -67,6 +87,12 @@ public:
     ///@name Operations
     ///@{
 
+    void BuildMappingMatrix(
+        MapperLocalSystemPointerVector& rLocalSystems,
+        MappingMatrixPointerType& rpMappingMatrix,
+        InterfaceVectorPointerType& rpInterfaceVectorOrigin,
+        InterfaceVectorPointerType& rpInterfaceVectorDestination
+        );
 
     ///@}
 
@@ -74,6 +100,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    int mEchoLevel = 0;
 
     ///@}
     ///@name Private Operations

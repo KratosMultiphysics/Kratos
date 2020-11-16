@@ -24,7 +24,7 @@
 
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/mapper_typedefs.h"
-// #include "custom_utilities/mapping_matrix_utilities.h"
+#include "custom_utilities/mapping_matrix_builder.h"
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_utilities.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -74,9 +74,13 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krat
 
     const int echo_level = mMapperSettings["echo_level"].GetInt();
 
-    // MappingMatrixUtils::BuildMappingMatrix(mpMappingMatrix, mMapperLocalSystems);
-    // MappingMatrixUtils::InitializeInterfaceVector();
-    // MappingMatrixUtils::InitializeInterfaceVector();
+    MappingMatrixBuilder<TSparseSpace::IsDistributed()> matrix_builder(echo_level);
+    matrix_builder.BuildMappingMatrix(
+        mMapperLocalSystems,
+        mpMappingMatrix,
+        mpInterfaceVectorContainerOrigin->pGetVector(),
+        mpInterfaceVectorContainerDestination->pGetVector()
+    );
 
     // MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
     //     mpMappingMatrix,
