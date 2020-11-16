@@ -74,6 +74,10 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krat
 
     const int echo_level = mMapperSettings["echo_level"].GetInt();
 
+    // MappingMatrixUtils::BuildMappingMatrix(mpMappingMatrix, mMapperLocalSystems);
+    // MappingMatrixUtils::InitializeInterfaceVector();
+    // MappingMatrixUtils::InitializeInterfaceVector();
+
     // MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
     //     mpMappingMatrix,
     //     mpInterfaceVectorContainerOrigin->pGetVector(),
@@ -121,10 +125,10 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::MapInternal(
 {
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    // TSparseSpace::Mult(
-    //     *mpMappingMatrix,
-    //     mpInterfaceVectorContainerOrigin->GetVector(),
-    //     mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+    mpMappingMatrix->SpMV(
+        mpInterfaceVectorContainerDestination->GetVector(),
+        mpInterfaceVectorContainerOrigin->GetVector()
+    ); // rQd = rMdo * rQo
 
     mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 }
@@ -137,10 +141,10 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 {
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
-    // TSparseSpace::TransposeMult(
-    //     *mpMappingMatrix,
-    //     mpInterfaceVectorContainerDestination->GetVector(),
-    //     mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+    mpMappingMatrix->TransposeSpMV(
+        mpInterfaceVectorContainerOrigin->GetVector(),
+        mpInterfaceVectorContainerDestination->GetVector()
+    ); // rQd = rMdo * rQo
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 }

@@ -21,13 +21,16 @@
 // External includes
 
 // Project includes
+#include "containers/system_vector.h"
+#include "containers/distributed_system_vector.h"
 #include "containers/csr_matrix.h"
 #include "containers/distributed_csr_matrix.h"
 #include "mapper.h"
 #include "custom_searching/interface_communicator.h"
-#include "custom_utilities/interface_vector_container.h"
+#include "custom_utilities/interface_vec_container.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
+#include "custom_utilities/mapper_utilities.h"
 
 
 namespace Kratos
@@ -53,14 +56,16 @@ public:
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
 
-    typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
-    typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
-
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
     typedef typename std::conditional<TSparseSpace::IsDistributed(), DistributedCsrMatrix<>, CsrMatrix<>>::type TMappingMatrixType; // hack until usage of spaces is removed
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
+
+    typedef typename std::conditional<TSparseSpace::IsDistributed(), DistributedSystemVector<>, SystemVector<>>::type TInterfaceVectorType; // hack until usage of spaces is removed
+
+    using InterfaceVectorContainerType = InterfaceVecContainer<TInterfaceVectorType>;
+    using InterfaceVectorContainerPointerType = Kratos::unique_ptr<InterfaceVectorContainerType>;
 
     typedef Variable<double> ComponentVariableType;
 
