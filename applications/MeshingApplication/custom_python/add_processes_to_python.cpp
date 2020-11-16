@@ -167,6 +167,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ParMmgProcess<PMMGLibrary::PMMG3D>, ParMmgProcess<PMMGLibrary::PMMG3D>::Pointer, Process>(m, "ParMmgProcess3D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &ParMmgProcess<PMMGLibrary::PMMG3D>::OutputMdpa)
     ;
 #endif
 

@@ -81,7 +81,27 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         pmmg_process = KratosMultiphysics.MeshingApplication.ParMmgProcess3D(main_model_part.GetRootModelPart(), pmmg_parameters)
         pmmg_process.Execute()
 
-        KratosMultiphysics.ModelPartIO("remeshed_sphere_"+str(communicator.Rank()), KratosMultiphysics.IO.WRITE ).WriteModelPart(main_model_part)
+        pmmg_process.OutputMdpa()
+
+    # We check the solution
+        check_parameters = KratosMultiphysics.Parameters("""
+        {
+            "reference_file_name"   : "reference_file_name",
+            "output_file_name"      : "output_file_name",
+            "comparison_type"       : "deterministic"
+
+        }
+        """)
+        check_parameters["reference_file_name"].SetString("parmmg_eulerian_test/parmmg_sphere_reference_mdpa_rank_"+str(communicator.Rank())+".mdpa")
+        check_parameters["output_file_name"].SetString("output_"+str(communicator.Rank())+".mdpa")
+        check_files = CompareTwoFilesCheckProcess(check_parameters)
+
+        check_files.ExecuteInitialize()
+        check_files.ExecuteBeforeSolutionLoop()
+        check_files.ExecuteInitializeSolutionStep()
+        check_files.ExecuteFinalizeSolutionStep()
+        check_files.ExecuteFinalize()
+
 
         # We check the solution
         check_parameters = KratosMultiphysics.Parameters("""
@@ -93,7 +113,7 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         }
         """)
         check_parameters["reference_file_name"].SetString("parmmg_eulerian_test/parmmg_sphere_reference_mdpa_rank_"+str(communicator.Rank())+".mdpa")
-        check_parameters["output_file_name"].SetString("remeshed_sphere_"+str(communicator.Rank())+".mdpa")
+        check_parameters["output_file_name"].SetString("output_"+str(communicator.Rank())+".mdpa")
         check_files = CompareTwoFilesCheckProcess(check_parameters)
 
         check_files.ExecuteInitialize()
@@ -103,7 +123,7 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         check_files.ExecuteFinalize()
 
 
-        kratos_utilities.DeleteFileIfExisting("remeshed_sphere_"+str(communicator.Rank())+".mdpa")
+        kratos_utilities.DeleteFileIfExisting("output_"+str(communicator.Rank())+".mdpa")
         kratos_utilities.DeleteTimeFiles(os.getcwd())
 
 
