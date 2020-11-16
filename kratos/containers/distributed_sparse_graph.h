@@ -361,7 +361,7 @@ private:
     ///@name Member Variables
     ///@{
     typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering = nullptr;
-    DataCommunicator& mrComm;
+    const DataCommunicator& mrComm;
 
     LocalGraphType mLocalGraph;
     DenseVector<NonLocalGraphType> mNonLocalGraphs;
