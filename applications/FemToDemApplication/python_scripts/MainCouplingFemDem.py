@@ -163,7 +163,8 @@ class MainCoupledFemDem_Solution:
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
-
+        
+        self.FindNeighboursIfNecessary()
 
 #============================================================================================================================
     def RunMainTemporalLoop(self):
@@ -191,7 +192,7 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.step = self.FEM_Solution.step + 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
-        self.FindNeighboursIfNecessary()
+        # self.FindNeighboursIfNecessary()
         self.PerformRemeshingIfNecessary()
 
         if self.echo_level > 0:
@@ -484,6 +485,8 @@ class MainCoupledFemDem_Solution:
             # self.RemoveIsolatedFiniteElements()
             element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
             element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
+
+            self.FindNeighboursIfNecessary()
 
             if self.domain_size == 3:
                 # We assign the flag to recompute neighbours inside the 3D elements

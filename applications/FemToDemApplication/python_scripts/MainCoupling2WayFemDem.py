@@ -155,6 +155,8 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
+        
+        self.FindNeighboursIfNecessary()
 
 
 #============================================================================================================================
