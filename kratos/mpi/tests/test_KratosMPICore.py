@@ -17,6 +17,7 @@ import test_mpi_serializer
 import test_neighbours
 import test_nodal_elemental_neighbours
 import test_parallel_environment
+import test_mpi_processes
 
 # importing OpenMP tests in MPI scope.
 with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
@@ -51,6 +52,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_neighbours.TestNeighbours]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nodal_elemental_neighbours.TestNodalElementalNeighbours]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_parallel_environment.TestParallelEnvironment]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_processes.TestMPIProcesses]))
 
     # adding non-mpi tests also as mpi tests
     smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursProcess"))
