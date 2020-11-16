@@ -480,7 +480,8 @@ class MainCoupledFemDem_Solution:
         # If we want to compute sand production
         # self.CountErasedVolume()
 
-        if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
+        # if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
+        if KratosFemDem.FEMDEMCouplingUtilities().IsGenerateDEMRequired(self.FEM_Solution.main_model_part):
             dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
             dem_generator_process.Execute()
 
@@ -499,6 +500,11 @@ class MainCoupledFemDem_Solution:
             self.ComputeSkinSubModelPart()
             if self.DEMFEM_contact:
                 self.TransferFEMSkinToDEM()
+
+            # We reset the flag
+            utils = KratosMultiphysics.VariableUtils()
+            elements = self.FEM_Solution.main_model_part.Elements
+            utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, False, elements)
 
 
 #RemoveIsolatedFiniteElements============================================================================================================================
