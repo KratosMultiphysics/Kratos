@@ -334,18 +334,11 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
 
         if self.domain_size == 3:
-            # if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
-            # if KratosFemDem.FEMDEMCouplingUtilities().IsGenerateDEMRequired(self.FEM_Solution.main_model_part): # The neighbours have changed
             self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
             self.nodal_neighbour_finder.Execute()
-                # We reset the flag
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
         else: # 2D
-            # if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
             neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
             neighbour_elemental_finder.Execute()
-            # We reset the flag
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
 
 #PerformRemeshingIfNecessary============================================================================================================================
     def PerformRemeshingIfNecessary(self):
