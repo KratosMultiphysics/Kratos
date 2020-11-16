@@ -57,8 +57,8 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     auto sf_values_master = r_geometry_master.ShapeFunctionsValues();
     auto sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
     Vector det_jacobian;
-    r_geometry_slave.DeterminantOfJacobian(det_jacobian);
-    KRATOS_ERROR_IF(det_jacobian.size() != 1)
+    r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+    KRATOS_DEBUG_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
     //KRATOS_WATCH(det_jacobian[0]);
     det_jacobian[0] = r_geometry_slave.GetValue(INTEGRATION_WEIGHT);

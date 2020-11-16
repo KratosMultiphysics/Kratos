@@ -69,7 +69,7 @@ public:
     /// using base class functions
     using BaseType::Jacobian;
     using BaseType::DeterminantOfJacobian;
-    using BaseType::ShapeFunctionsValues; 
+    using BaseType::ShapeFunctionsValues;
     using BaseType::ShapeFunctionsLocalGradients;
     using BaseType::InverseOfJacobian;
 
@@ -197,6 +197,43 @@ public:
         rResult[0] = this->DeterminantOfJacobian(0, ThisMethod);
 
         return rResult;
+    }
+
+
+    /* @brief returns the respective segment length of this
+     *        quadrature point. Length of vector always 1.
+     * @param rResult vector of results of this quadrature point.
+     */
+    Vector& DeterminantOfJacobianParent(
+        Vector& rResult) const
+    {
+        if (rResult.size() != 1)
+            rResult.resize(1, false);
+
+        Matrix J;
+        this->GetGeometryParent().Jacobian(J, this->IntegrationPoints(0));
+
+        array_1d<double, 3> a_1 = column(J, 0);
+        array_1d<double, 3> a_2 = column(J, 1);
+
+        rResult[0] = norm_2(a_1 * mLocalTangentsU + a_2 * mLocalTangentsV);
+
+        return rResult;
+    }
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) override
+    {
+        if (rVariable == DETERMINANT_OF_JACOBIAN_PARENT)
+        {
+            DeterminantOfJacobianParent(rOutput);
+        }
     }
 
     ///@}
