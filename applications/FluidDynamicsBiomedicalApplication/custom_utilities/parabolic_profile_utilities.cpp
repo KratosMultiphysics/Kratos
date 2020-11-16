@@ -18,13 +18,13 @@
 
 namespace Kratos {
 
-void CalculateParabolicProfile::Main(ModelPart &rModelPart) 
+void CalculateParabolicProfile::ParabolicProfileMain(
+    ModelPart &rModelPart, 
+    const double ValueIn) 
 {
     const double max_dist = ComputeMaxDist(rModelPart);
-    ImposeParabolic(rModelPart, max_dist);
+    ImposeParabolic(rModelPart, max_dist, ValueIn);
 }
-
-
 
 double CalculateParabolicProfile::ComputeMaxDist(ModelPart &rModelPart) 
 //, ModelPart &rSkinModelPart)

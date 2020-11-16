@@ -67,7 +67,7 @@ public:
      * @param rModelPart Model part in where the parabolic profile is computed
      * @param rSkinModelPart Model part in where the parabolic profile is computed
      */
-    static void ComputeMaxDist(ModelPart &rModelPart);
+    static void ParabolicProfileMain(ModelPart &rModelPart, const ValueIn);
     //, ModelPart &rSkinModelPart);
 
     /**
@@ -79,6 +79,8 @@ public:
     static void ImposeParabolic(ModelPart &rModelPart);
     //, ModelPart &rSkinModelPart);
 
+    double ComputeMaxDist(ModelPart &rModelPart);
+    //, ModelPart &rSkinModelPart);
 
     // /**
     //  * @brief Calculate the Wall Shear Stress (WSS) using Gauss point
