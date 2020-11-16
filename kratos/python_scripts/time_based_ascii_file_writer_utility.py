@@ -178,12 +178,12 @@ class TimeBasedAsciiFileWriterUtility(object):
                 warn_msg += 'Using the current directory instead'
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
                 self.file_name = raw_file_name
+                absolute_folder_path = os.getcwd()
 
             elif pathlib.PurePath(raw_path).is_absolute():
                 # Absolute path contained in "file_name"
                 # Using the absolute path specified by "file_name"
-                KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
-            absolute_folder_path = os.getcwd()
+                absolute_folder_path = raw_path
 
         # make sure that the absolute path to the desired output folder exists
         if not os.path.isdir(absolute_folder_path):
