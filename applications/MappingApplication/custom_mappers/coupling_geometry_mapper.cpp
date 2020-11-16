@@ -60,8 +60,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
     KRATOS_DEBUG_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
-    //KRATOS_WATCH(det_jacobian[0]);
-    det_jacobian[0] = r_geometry_slave.GetValue(INTEGRATION_WEIGHT);
 
     //KRATOS_WATCH(r_geometry_slave.GetValue(INTEGRATION_WEIGHT));
 
@@ -72,7 +70,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) {
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
-                    * det_jacobian[integration_point_itr]* weight*weight;
+                    * det_jacobian[integration_point_itr]* weight;
                 KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
                     << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
             }
@@ -92,7 +90,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                 for (IndexType j = 0; j < sf_values_master.size2(); ++j) {
                     rLocalMappingMatrix(i, j) = sf_values_slave(integration_point_itr, i)
                         * sf_values_master(integration_point_itr, j)
-                        * det_jacobian[integration_point_itr]* weight*weight;
+                        * det_jacobian[integration_point_itr]* weight;
 
                     KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
                         << "ORIGIN SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;

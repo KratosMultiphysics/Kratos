@@ -24,9 +24,11 @@
 #include "geometries/geometry_data.h"
 #include "geometries/coupling_geometry.h"
 #include "geometries/line_2d_2.h"
+#include "geometries/quadrature_point_curve_on_surface_geometry.h"
 #include "utilities/quadrature_points_utility.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "particle_mechanics_application_variables.h"
+
 
 namespace Kratos
 {
@@ -191,7 +193,8 @@ public:
                 Matrix N_matrix(1, N.size());
                 SizeType non_zero_counter = 0;
                 for (IndexType i_N = 0; i_N < N.size(); ++i_N) {
-                    if (N[i_N] > 1e-10) {
+                    if (N[i_N] > 1e-9)
+                    {
                         N_matrix(0, non_zero_counter) = N[i_N];
                         for (IndexType j = 0; j < DN_De.size2(); j++) {
                             DN_De_non_zero(non_zero_counter, j) = DN_De(i_N, j);
@@ -210,32 +213,35 @@ public:
                     N_matrix,
                     DN_De_non_zero);
 
-                rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                    r_geometry.WorkingSpaceDimension(),
-                    r_geometry.LocalSpaceDimension(),
-                    data_container,
-                    points,
-                    &r_geometry);
+                Matrix jacci;
+                rInputQuadraturePointGeometries[i]->Jacobian(jacci, 0);
+                array_1d<double, 3> space_derivatives;
+                space_derivatives[0] = jacci(0, 0);
+                space_derivatives[1] = jacci(1, 0);
+                space_derivatives[2] = 0;
+                //std::vector<array_1d<double, 3>> space_derivatives (2);
+                //rInputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives, 0, 1);
 
-                Vector jac(1);
-                if (!mIsOriginMpm)
-                {
-                    // we need to set the jacobian of the mpm quad points to the interface jacobian
-                    rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac);
-                    //KRATOS_WATCH(jac[0]);
-                    KRATOS_WATCH(rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
-                    KRATOS_WATCH(rOuputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
-                    double combined_weight = jac[0] * rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
-                    rOuputQuadraturePointGeometries[i]->SetValue(INTEGRATION_WEIGHT, jac[0]);
-                    //rOuputQuadraturePointGeometries[i]->SetValue(INTEGRATION_WEIGHT, combined_weight);
+                Matrix inv;
+                r_geometry.InverseOfJacobian(inv, local_coordinates);
+                Vector local_tangent = prod(inv, space_derivatives);
+                rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
+                    points, local_tangent[0], local_tangent[1]);
 
-                }
-                rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac);
-                mpm_edge_length += jac[0];
+                #ifdef KRATOS_DEBUG
+                std::vector<array_1d<double, 3>> space_derivatives_check(2);
+                rOuputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives_check, 0, 1);
+                array_1d<double, 3> tangent_check = space_derivatives_check[1] * local_tangent[0] +
+                    space_derivatives_check[2] * local_tangent[1];
+
+                KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > 1e-9)
+                    << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
+                    << "\nFEM boundary line tangent = " << space_derivatives
+                    << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
+                #endif
+
             }
         }
-
-        KRATOS_WATCH(mpm_edge_length)
     }
 
     template<SizeType TDimension,
