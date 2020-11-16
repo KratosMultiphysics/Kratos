@@ -89,7 +89,10 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         for node in self.model_part.Nodes:
             director = node.GetValue(IGA.DIRECTOR)
-            inc2d = node.GetSolutionStepValue(IGA.DIRECTORINC)
+            inc2d3 = node.GetSolutionStepValue(IGA.DIRECTORINC)
+            inc2d = KratosMultiphysics.Vector(2) 
+            inc2d[0] =inc2d3[0]
+            inc2d[1] =inc2d3[1]
             print(inc2d)
             BLA = node.GetValue(IGA.DIRECTORTANGENTSPACE)
             print(BLA)
