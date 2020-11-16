@@ -296,6 +296,9 @@ private:
     
     array_1d<double, 3> GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration);
 
+    //Reference area inititalized before the entering the loop
+    Vector mReferenceArea;
+
     ///@}
     ///@name Operations
     ///@{

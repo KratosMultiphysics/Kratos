@@ -410,6 +410,9 @@ private:
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
+    //Reference area inititalized before the entering the loop
+    Vector mReferenceArea;
+
     ///@}
     ///@name Operations
     ///@{
@@ -518,6 +521,7 @@ private:
         rSerializer.save("T_hat_vector", m_T_hat_vector);
         rSerializer.save("reference_contravariant_base", m_reference_contravariant_base);
         rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
+        rSerializer.save("reference_area", mReferenceArea);
     }
 
     void load(Serializer& rSerializer) override
@@ -529,6 +533,7 @@ private:
         rSerializer.load("T_hat_vector", m_T_hat_vector);
         rSerializer.load("reference_contravariant_base", m_reference_contravariant_base);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
+        rSerializer.save("reference_area", mReferenceArea);
     }
 
     ///@}

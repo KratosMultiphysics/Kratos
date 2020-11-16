@@ -34,6 +34,39 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        const GeometryType& r_geometry = GetGeometry();
+
+        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+
+        // Prepare memory
+        if (mReferenceArea.size() != r_number_of_integration_points)
+            mReferenceArea.resize(r_number_of_integration_points);
+
+        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
+        {
+            const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
+
+            array_1d<double, 3> tangents;
+            GetGeometry().Calculate(LOCAL_TANGENT, tangents);
+            const SizeType number_of_nodes = r_geometry.size();
+            
+            Matrix J = ZeroMatrix(3, 2);
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+            {
+                for (unsigned int k = 0; k<3; k++)
+                {
+                    for (unsigned int m = 0; m<2; m++)
+                    {
+                        J(k, m) += (r_geometry[i]).Coordinates()[k] * r_DN_De(i, m);
+                    }
+                }
+            }
+
+            mReferenceArea[point_number] = norm_2(column(J, 0) * tangents[0] + column(J, 1) * tangents[1]);
+        }
+
+
+
         KRATOS_CATCH("")
     }
 
@@ -42,7 +75,8 @@ namespace Kratos
         const GeometryType& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
 
-        const Vector& t = GetProperties()[TANGENTS];
+        array_1d<double, 3> tangents;
+        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
 
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         array_1d<double, 3> actual_base_vector = ZeroVector(dimension);
@@ -64,7 +98,7 @@ namespace Kratos
             g2[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * r_DN_De(i, 1);
         }
 
-        actual_base_vector = g1 * t[0] + g2 * t[1];
+        actual_base_vector = g1 * tangents[0] + g2 * tangents[1];
 
         return actual_base_vector;
     }
@@ -98,7 +132,8 @@ namespace Kratos
             mReferenceBaseVector.resize(r_number_of_integration_points);
         
         //get properties
-        const Vector& t = GetProperties()[TANGENTS];
+        array_1d<double, 3> tangents;
+        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
         const double E = GetProperties()[YOUNG_MODULUS];
         const double A = GetProperties()[CROSS_AREA];
         const double prestress = GetProperties()[PRESTRESS_CAUCHY];
@@ -128,8 +163,8 @@ namespace Kratos
                 IndexType dirr = r % 3;
 
                 const double epsilon_var_r = actual_base_vector[dirr] *
-                    (r_DN_De(kr, 0) * t[0] 
-                    + r_DN_De(kr, 1) * t[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                    (r_DN_De(kr, 0) * tangents[0] 
+                    + r_DN_De(kr, 1) * tangents[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                 if (CalculateStiffnessMatrixFlag) {
                     for (IndexType s = 0; s < mat_size; s++)
@@ -140,16 +175,16 @@ namespace Kratos
 
                         const double epsilon_var_s =
                             actual_base_vector[dirs] *
-                            (r_DN_De(ks, 0) * t[0]
-                            + r_DN_De(ks, 1) * t[1])
+                            (r_DN_De(ks, 0) * tangents[0]
+                            + r_DN_De(ks, 1) * tangents[1])
                             / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                         rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s * reference_a * integration_weight;
 
                         if (dirr == dirs) {
                             const double epsilon_var_rs =
-                            (r_DN_De(kr, 0) * t[0] + r_DN_De(kr, 1) * t[1]) *
-                            (r_DN_De(ks, 0) * t[0] + r_DN_De(ks, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                            (r_DN_De(kr, 0) * tangents[0] + r_DN_De(kr, 1) * tangents[1]) *
+                            (r_DN_De(ks, 0) * tangents[0] + r_DN_De(ks, 1) * tangents[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
                      
                             rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight; 
                         }
@@ -185,7 +220,8 @@ namespace Kratos
             mReferenceBaseVector.resize(r_number_of_integration_points);
         
         //get properties
-        const Vector& t = GetProperties()[TANGENTS];
+        array_1d<double, 3> tangents;
+        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
         const double E = GetProperties()[YOUNG_MODULUS];
         const double A = GetProperties()[CROSS_AREA];
         const double prestress = GetProperties()[PRESTRESS_CAUCHY];
@@ -209,8 +245,8 @@ namespace Kratos
                 IndexType dirr = r % 3;
 
                 const double epsilon_var_r = mReferenceBaseVector[point_number][dirr] *
-                    (r_DN_De(kr, 0) * t[0] 
-                    + r_DN_De(kr, 1) * t[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                    (r_DN_De(kr, 0) * tangents[0] 
+                    + r_DN_De(kr, 1) * tangents[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                 for (IndexType s = 0; s < mat_size; s++)
                 {
@@ -220,16 +256,16 @@ namespace Kratos
 
                     const double epsilon_var_s =
                         mReferenceBaseVector[point_number][dirs] *
-                        (r_DN_De(ks, 0) * t[0]
-                        + r_DN_De(ks, 1) * t[1])
+                        (r_DN_De(ks, 0) * tangents[0]
+                        + r_DN_De(ks, 1) * tangents[1])
                         / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                     rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s * reference_a * integration_weight;
 
                     if (dirr == dirs) {
                         const double epsilon_var_rs =
-                        (r_DN_De(kr, 0) * t[0] + r_DN_De(kr, 1) * t[1]) *
-                        (r_DN_De(ks, 0) * t[0] + r_DN_De(ks, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                        (r_DN_De(kr, 0) * tangents[0] + r_DN_De(kr, 1) * tangents[1]) *
+                        (r_DN_De(ks, 0) * tangents[0] + r_DN_De(ks, 1) * tangents[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
                     
                         rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight; 
                     }
@@ -336,7 +372,7 @@ namespace Kratos
             double area = this->GetProperties().GetValue(CROSS_AREA);
             double density = this->GetProperties().GetValue(DENSITY);
 
-            double mass = area * density * norm_2(mReferenceBaseVector[point_number]) * integration_weight;
+            double mass = area * density * mReferenceArea[point_number] * integration_weight;
 
             if (rMassMatrix.size1() != mat_size)
                 rMassMatrix.resize(mat_size, mat_size, false);
@@ -537,8 +573,8 @@ namespace Kratos
         else
         {
             // Verify that the constitutive law has the correct dimension
-            KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
-                << "THICKNESS not provided for element " << this->Id() << std::endl;
+            // KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
+            //     << "THICKNESS not provided for element " << this->Id() << std::endl;
 
             // Check strain size
             KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)

@@ -29,6 +29,25 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        const GeometryType& r_geometry = GetGeometry();
+
+        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+
+        // Prepare memory
+        if (mReferenceArea.size() != r_number_of_integration_points)
+            mReferenceArea.resize(r_number_of_integration_points);
+
+        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
+        {
+            Matrix J;
+            GetGeometry().Jacobian(J, point_number);
+
+            array_1d<double, 3> a3_tilde;
+            MathUtils<double>::CrossProduct(a3_tilde, column(J, 0), column(J, 1));
+
+            mReferenceArea[point_number] = norm_2(a3_tilde);
+        }
+
         InitializeMaterial();
 
         KRATOS_CATCH("")
@@ -164,7 +183,7 @@ namespace Kratos
             {
                 transformed_prestress = prestress;
             }
-            
+
             constitutive_variables_membrane.StressVector += transformed_prestress;
 
             // LEFT HAND SIDE MATRIX
@@ -697,7 +716,7 @@ namespace Kratos
 
             double thickness = this->GetProperties().GetValue(THICKNESS);
             double density = this->GetProperties().GetValue(DENSITY);
-            double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
+            double mass = thickness * density * mReferenceArea[point_number] * integration_weight;
 
             if (rMassMatrix.size1() != mat_size)
                 rMassMatrix.resize(mat_size, mat_size, false);
@@ -976,14 +995,19 @@ namespace Kratos
             for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
                 
                 const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-                const double integration_weight_i = r_integration_points[point_number].Weight();
+                double integration_weight_i = r_integration_points[point_number].Weight();
 
                 // Compute Kinematics and Metric
                 KinematicVariables kinematic_variables(
                     GetGeometry().WorkingSpaceDimension());
                 CalculateKinematics(
                     point_number,
-                    kinematic_variables,shape_functions_gradients_i, ConfigurationType::Current);
+                    kinematic_variables,shape_functions_gradients_i, ConfigurationType::Reference);
+                
+                if(integration_weight_i == 0.0)
+                {
+                    integration_weight_i += 1e-9;
+                }
                 
                 base_1 += kinematic_variables.a1*integration_weight_i;
                 base_2 += kinematic_variables.a2*integration_weight_i;
