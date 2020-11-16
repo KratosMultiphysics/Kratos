@@ -116,11 +116,11 @@ ModelPart& CreateScalarVariableTestModelPart(
         BufferSize);
 
     if (DoInitializeElements) {
-        r_model_part.Elements().front().Initialize();
+        r_model_part.Elements().front().Initialize(r_model_part.GetProcessInfo());
     }
 
     if (DoInitializeConditions) {
-        r_model_part.Conditions().front().Initialize();
+        r_model_part.Conditions().front().Initialize(r_model_part.GetProcessInfo());
     }
 
     return r_model_part;

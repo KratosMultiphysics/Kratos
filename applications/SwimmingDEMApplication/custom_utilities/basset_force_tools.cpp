@@ -458,7 +458,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     }
 
     else {
-        KRATOS_THROW_ERROR(std::invalid_argument, "van Hinsberg's method is only implemented up to a number of exponentials m = 10.", m);
+        KRATOS_ERROR << "Van Hinsberg's method is only implemented up to a number of exponentials m = 10. m = "<< m << std::endl;
     }
 
     const double e = std::exp(1);

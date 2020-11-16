@@ -248,7 +248,7 @@ void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
 }
 
-void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -257,7 +257,7 @@ void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentPro
     }
 }
 
-void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -266,7 +266,7 @@ void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProce
     }
 }
 
-void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -277,7 +277,7 @@ void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessIn
     }
 }
 
-void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -290,7 +290,7 @@ void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo
 
 void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -302,7 +302,7 @@ void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 
 void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -314,7 +314,7 @@ void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 }
 
 void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true; // TODO check is this can be false => see solids
@@ -325,14 +325,14 @@ void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // TODO unify implementation and move it to BaseClass
 }
 
 void BaseShellElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
 )
 {
     const std::size_t matrix_size = GetNumberOfDofs();
