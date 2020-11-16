@@ -80,13 +80,14 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         # Creating output
         super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
 
+
         '''
         upper_membrane = self._GetSolver().GetComputingModelPart().GetSubModelPart('PointLoad3D_UpperMembrane')
         number_of_points = upper_membrane.NumberOfNodes()
         print('NUMBER OF NODES = ', number_of_points)
 
         from scipy.io import netcdf
-        ncf = netcdf.netcdf_file('UPPER_STRUCTURE.interface_deformfile.nc', 'w')
+        ncf = netcdf.netcdf_file('MEMBRANE_UP.interface_deformfile.nc', 'w')
         nops = 'no_of_points'
 
         ncf.createDimension(nops, number_of_points)
@@ -116,7 +117,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         number_of_points = lower_membrane.NumberOfNodes()
         print('NUMBER OF NODES = ', number_of_points)
 
-        ncf = netcdf.netcdf_file('LOWER_STRUCTURE.interface_deformfile.nc', 'w')
+        ncf = netcdf.netcdf_file('MEMBRANE_DOWN.interface_deformfile.nc', 'w')
         nops = 'no_of_points'
 
         ncf.createDimension(nops, number_of_points)
@@ -143,49 +144,47 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         ncf.close()
         '''
 
-        '''
-        with open('upper_membrane.tp','w') as up_file:
-            up_file.write('TITLE = "UPPER MEMBRANE STRUCTURE"\n')
-            up_file.write('VARIABLES  = "x", "y", "z"\n')
-            up_file.write('ZONE T="MEMBRANE_UP_STRUCTURE"\n')
-            upper_membrane = self._GetSolver().GetComputingModelPart()
-            number_of_points = upper_membrane.NumberOfNodes()
-            number_of_elements = upper_membrane.NumberOfElements()
-            up_file.write('N={0:4d}, E={1:4d}, F=FEBLOCK, ET=Quadrilateral\n'.format(number_of_points, number_of_elements))
+        # with open('upper_membrane.tp','w') as up_file:
+        #     up_file.write('TITLE = "UPPER MEMBRANE STRUCTURE"\n')
+        #     up_file.write('VARIABLES  = "x", "y", "z"\n')
+        #     up_file.write('ZONE T="MEMBRANE_UP_STRUCTURE"\n')
+        #     upper_membrane = self._GetSolver().GetComputingModelPart()
+        #     number_of_points = upper_membrane.NumberOfNodes()
+        #     number_of_elements = upper_membrane.NumberOfElements()
+        #     up_file.write('N={0:4d}, E={1:4d}, F=FEBLOCK, ET=Quadrilateral\n'.format(number_of_points, number_of_elements))
 
-            up_file.write('\n')
-            i = 0
-            for node in upper_membrane.Nodes:
-                up_file.write(' {0:17.10e}'.format(node.X))
-                i += 1
-                if i > 4.5:
-                    up_file.write('\n')
-                    i = 0
+        #     up_file.write('\n')
+        #     i = 0
+        #     for node in upper_membrane.Nodes:
+        #         up_file.write(' {0:17.10e}'.format(node.X))
+        #         i += 1
+        #         if i > 4.5:
+        #             up_file.write('\n')
+        #             i = 0
 
-            up_file.write('\n')
-            i = 0
-            for node in upper_membrane.Nodes:
-                up_file.write(' {0:17.10e}'.format(node.X))
-                i += 1
-                if i > 4.5:
-                    up_file.write('\n')
-                    i = 0
+        #     up_file.write('\n')
+        #     i = 0
+        #     for node in upper_membrane.Nodes:
+        #         up_file.write(' {0:17.10e}'.format(node.X))
+        #         i += 1
+        #         if i > 4.5:
+        #             up_file.write('\n')
+        #             i = 0
 
-            up_file.write('\n')
-            i = 0
-            for node in upper_membrane.Nodes:
-                up_file.write(' {0:17.10e}'.format(node.X))
-                i += 1
-                if i > 4.5:
-                    up_file.write('\n')
-                    i = 0
+        #     up_file.write('\n')
+        #     i = 0
+        #     for node in upper_membrane.Nodes:
+        #         up_file.write(' {0:17.10e}'.format(node.X))
+        #         i += 1
+        #         if i > 4.5:
+        #             up_file.write('\n')
+        #             i = 0
 
-            up_file.write('\n')
-            for elem in upper_membrane.Elements:
-                for node in elem.GetNodes():
-                    up_file.write(' {0:d}'.format(node.Id))
-                up_file.write('\n')
-        '''
+        #     up_file.write('\n')
+        #     for elem in upper_membrane.Elements:
+        #         for node in elem.GetNodes():
+        #             up_file.write(' {0:d}'.format(node.Id))
+        #         up_file.write('\n')
 
 
     def Check(self):

@@ -187,7 +187,7 @@ def ImportData(conn_name, identifier, factor):
         tau_parallel_sync()
         if tau_mpi_rank() == 0:
             new_displacements = factor*TauFunctions.ChangeFormatDisplacements(displacements)
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
+            #TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
             # with open('new_displacement_up' + str(step) + '.dat','w') as fname:
             #    for i in range(len(new_displacements)):
             #        fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))
@@ -199,7 +199,7 @@ def ImportData(conn_name, identifier, factor):
         tau_parallel_sync()
         if tau_mpi_rank() == 0:
             new_displacements = factor*TauFunctions.ChangeFormatDisplacements(displacements)
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_DOWN")
+            #TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_DOWN")
         tau_parallel_sync()
     else:
 

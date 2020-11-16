@@ -254,7 +254,7 @@ settings = {
 if rank == 0:
     CoSimIO.Connect(connection_name, settings)
 
-n_steps = 1
+n_steps = 5
 coupling_interface_imported = False
 
 factor = 1.0

@@ -6,6 +6,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
 # Other imports
 import subprocess, os
@@ -57,12 +58,15 @@ class TAUWrapper(CoSimulationSolverWrapper):
         self.time = wrapper_settings["start_time"].GetDouble()
         self.time_step = wrapper_settings["time_step"].GetDouble()
 
+        # print(' I AM HERE')
         # vtk_parameters = KM.Parameters("""{
-        #     "file_format"                  : "binary",
+        #     "model_part_name"              : "Structure",
+        #     "file_format"                  : "ascii",
         #     "output_precision"             : 7,
+        #     "output_frequency"             : 1,
         #     "output_control_type"          : "step",
         #     "output_sub_model_parts"       : false,
-        #     "save_output_files_in_folder"  : false,
+        #     "save_output_files_in_folder"  : true,
         #     "folder_name"                  : "vtk_output_mapper_up",
         #     "custom_name_prefix"           : "MEMBRANE_UP",
         #     "custom_name_postfix"          : "",
@@ -70,14 +74,15 @@ class TAUWrapper(CoSimulationSolverWrapper):
         #     "element_data_value_variables" : []
         # }""")
 
-        # self.vtk_io_up = KM.VtkOutput(self.model["UpperInterface"], vtk_parameters)
+        # self.vtk_io_up = VtkOutputProcess(self.model["UpperInterface"], vtk_parameters)
 
         # vtk_parameters = KM.Parameters("""{
-        #     "file_format"                  : "binary",
+        #     "file_format"                  : "ascii",
         #     "output_precision"             : 7,
+        #     "output_frequency"             : 1,
         #     "output_control_type"          : "step",
         #     "output_sub_model_parts"       : false,
-        #     "save_output_files_in_folder"  : false,
+        #     "save_output_files_in_folder"  : true,
         #     "folder_name"                  : "vtk_output_mapper_down",
         #     "custom_name_prefix"           : "MEMBRANE_DOWN",
         #     "custom_name_postfix"          : "",
@@ -85,7 +90,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
         #     "element_data_value_variables" : []
         # }""")
 
-        # self.vtk_io_down = KM.VtkOutput(self.model["LowerInterface"], vtk_parameters)
+        # self.vtk_io_down = VtkOutputProcess(self.model["LowerInterface"], vtk_parameters)
 
     def Initialize(self):
         print('TAUWrapper Initialize')
