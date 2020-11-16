@@ -269,22 +269,22 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-        ModelPart& mrThisModelPart;                                      /// The model part to compute
-        Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
-        NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
+    ModelPart& mrThisModelPart;                                      /// The model part to compute
+    Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
+    NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
 
-        std::string mFilename;                                           /// I/O file name
-        IndexType mEchoLevel;                                            /// The echo level
+    std::string mFilename;                                           /// I/O file name
+    IndexType mEchoLevel;                                            /// The echo level
 
-        FrameworkEulerLagrange mFramework;                               /// The framework
+    FrameworkEulerLagrange mFramework;                               /// The framework
 
-        DiscretizationOption mDiscretization;                            /// The discretization option
-        bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
+    DiscretizationOption mDiscretization;                            /// The discretization option
+    bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
 
-        std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
+    std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 
-        std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference element
-        std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
+    std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference element
+    std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
 
     ///@}
     ///@name Protected Operators
@@ -327,6 +327,47 @@ protected:
         else
             return DiscretizationOption::STANDARD;
     }
+
+    /**
+     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
+     */
+    virtual void InitializeMeshData();
+
+    /**
+     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
+     */
+    virtual void InitializeSolDataMetric();
+
+    /**
+     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
+     */
+    virtual void InitializeSolDataDistance();
+
+    /**
+     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
+     */
+    virtual void InitializeDisplacementData();
+
+    /**
+     * @brief We execute the MMg library and build the new model part from the old model part
+     */
+    virtual void ExecuteRemeshing();
+
+    /**
+     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     */
+    virtual void InitializeElementsAndConditions();
+
+    /**
+     * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
+     * @param PostOutput If the file to save is after or before remeshing
+     */
+    virtual void SaveSolutionToFile(const bool PostOutput);
+
+    /**
+     * @brief It frees the memory used during all the process
+     */
+    virtual void FreeMemory();
 
     /**
      * @brief It sets to zero the entity data, using the variables from the orginal model part
@@ -386,56 +427,15 @@ protected:
     }
 
     /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    virtual void ClearConditionsDuplicatedGeometries();
+
+    /**
      * @brief This function creates an before/after remesh output file
      * @param rOldModelPart The old model part before remesh
      */
     virtual void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
-
-    /**
-     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
-     */
-    virtual void InitializeMeshData();
-
-    /**
-     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
-     */
-    virtual void InitializeSolDataMetric();
-
-    /**
-     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
-     */
-    virtual void InitializeSolDataDistance();
-
-    /**
-     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
-     */
-    virtual void InitializeDisplacementData();
-
-    /**
-     * @brief We execute the MMg library and build the new model part from the old model part
-     */
-    virtual void ExecuteRemeshing();
-
-    /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
-     */
-    virtual void InitializeElementsAndConditions();
-
-    /**
-     * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
-     * @param PostOutput If the file to save is after or before remeshing
-     */
-    virtual void SaveSolutionToFile(const bool PostOutput);
-
-    /**
-     * @brief It frees the memory used during all the process
-     */
-    virtual void FreeMemory();
-
-    /**
-     * @brief This function removes the conditions with duplicated geometries
-     */
-    virtual void ClearConditionsDuplicatedGeometries();
 
     ///@}
     ///@name Protected  Access
