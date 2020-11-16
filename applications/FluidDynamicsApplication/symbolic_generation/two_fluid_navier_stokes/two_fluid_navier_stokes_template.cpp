@@ -53,7 +53,7 @@ Element::Pointer TwoFluidNavierStokes<TElementData>::Create(
     NodesArrayType const &ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<TwoFluidNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<TwoFluidNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template <class TElementData>
@@ -62,14 +62,14 @@ Element::Pointer TwoFluidNavierStokes<TElementData>::Create(
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<TwoFluidNavierStokes>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<TwoFluidNavierStokes>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -236,7 +236,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateRightHandSide(
     VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     MatrixType tmp;
     CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
@@ -245,7 +245,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateRightHandSide(
 // Public Inquiry
 
 template <class TElementData>
-int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
@@ -740,20 +740,20 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
 }
 
 template <>
-ModifiedShapeFunctions::Pointer TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ModifiedShapeFunctionsUtility(
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ModifiedShapeFunctionsUtility(
     const GeometryType::Pointer pGeometry,
     const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+    auto p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
     return p_modified_sh_func;
 }
 
 template <>
-ModifiedShapeFunctions::Pointer TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> >::ModifiedShapeFunctionsUtility(
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> >::ModifiedShapeFunctionsUtility(
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
+    auto p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
     return p_modified_sh_func;
 }
 
@@ -762,7 +762,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
         const Matrix& rInterfaceShapeFunctions,
         Vector& rInterfaceCurvature)
 {
-    GeometryType::Pointer p_geom = this->pGetGeometry();
+    auto geom = this->GetGeometry();
     const unsigned int n_gpt = rInterfaceShapeFunctions.size1();
 
     rInterfaceCurvature.resize(n_gpt, false);
@@ -770,7 +770,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
     for (unsigned int gpt = 0; gpt < n_gpt; ++gpt){
         double curvature = 0.0;
         for (unsigned int i = 0; i < NumNodes; ++i){
-            curvature += rInterfaceShapeFunctions(gpt,i) * (*p_geom)[i].FastGetSolutionStepValue(CURVATURE);
+            curvature += rInterfaceShapeFunctions(gpt,i) * geom[i].GetValue(CURVATURE);
         }
         rInterfaceCurvature[gpt] = curvature;
     }
@@ -854,8 +854,8 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     }
     const double element_volume = positive_volume + negative_volume;
 
-    GeometryType::Pointer p_geom = this->pGetGeometry();
-    const double h_elem = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(*p_geom);
+    auto geom = this->GetGeometry();
+    const double h_elem = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(geom);
 
     double cut_area = 0.0;
     for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
@@ -866,7 +866,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     const double viscosity = 1.0/(1.0/positive_viscosity + 1.0/negative_viscosity);
 
     // Stabilization parameters
-    const double coefficient = 1.0;
+    const double cut_stabilization_coefficient = 1.0;
     const double stab_c1 = 4.0;
     const double stab_c2 = 2.0;
     const double dyn_tau = rData.DynamicTau;
@@ -892,7 +892,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 
         const double v_conv_norm = norm_2(vconv);
 
-        const double penalty_coefficient = coefficient *
+        const double penalty_coefficient = cut_stabilization_coefficient *
             density * 1.0 / (dyn_tau * density / dt + stab_c1 * viscosity / h_elem / h_elem +
                                 stab_c2 * density * v_conv_norm / h_elem) * element_volume / cut_area;
 
@@ -900,7 +900,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 
             for (unsigned int j = 0; j < NumNodes; ++j){
 
-                const array_1d<double, 3> pressure_gradient_j = (*p_geom)[j].FastGetSolutionStepValue(PRESSURE_GRADIENT);
+                const array_1d<double, 3> pressure_gradient_j = geom[j].GetValue(PRESSURE_GRADIENT);
 
                 for (unsigned int dim = 0; dim < Dim; ++dim){
                     kee(i, j) += penalty_coefficient * rInterfaceWeights[gp] *
@@ -1026,9 +1026,10 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
 
 
 template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
-                                                                        std::vector<double> &rValues,
-                                                                        const ProcessInfo &rCurrentProcessInfo )
+void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rValues,
+    const ProcessInfo &rCurrentProcessInfo )
 {
     if (rVariable == DIVERGENCE){
 
@@ -1044,15 +1045,15 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
         GeometryData::ShapeFunctionsGradientsType DN_DX;
         rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::GI_GAUSS_2);
 
-        for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
+        for (unsigned int i_gauss = 0; i_gauss < num_gauss; ++i_gauss){
 
             const Matrix gp_DN_DX = DN_DX[i_gauss];
             double DVi_DXi = 0.0;
 
-            for(unsigned int nnode = 0; nnode < NumNodes; nnode++){
+            for(unsigned int nnode = 0; nnode < NumNodes; ++nnode){
 
                 const array_1d<double,3> vel = rGeom[nnode].GetSolutionStepValue(VELOCITY);
-                for(unsigned int ndim = 0; ndim < Dim; ndim++){
+                for(unsigned int ndim = 0; ndim < Dim; ++ndim){
                     DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
                 }
             }
