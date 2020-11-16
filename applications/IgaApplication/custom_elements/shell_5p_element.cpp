@@ -32,7 +32,6 @@ namespace Kratos
 	void Shell5pElement::Initialize()
 	{
 		KRATOS_TRY
-			std::cout << "Initialize" << std::endl;
 			const GeometryType& r_geometry = GetGeometry();
 
 		const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
@@ -71,7 +70,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-			const GeometryType& r_geometry = GetGeometry();
+		const GeometryType& r_geometry = GetGeometry();
 		const Properties& r_properties = GetProperties();
 
 		const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
@@ -103,7 +102,6 @@ namespace Kratos
 		const bool CalculateResidualVectorFlag
 	)
 	{
-		std::cout << "CalculateAll"<< std::endl;
 		KRATOS_TRY
 
 			const auto& r_geometry = GetGeometry();
@@ -113,17 +111,16 @@ namespace Kratos
 		const SizeType mat_size = number_of_nodes * 5;
 
 		const auto& r_integration_points = r_geometry.IntegrationPoints();
+		Matrix BOperator(8, mat_size);
 
 		for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 			// Compute Kinematics and Metric
 			KinematicVariables kinematic_variables;
 			VariationVariables variation_variables;
-			std::cout << kinematic_variables.a1 << std::endl;
 			CalculateKinematics(
 				point_number,
 				kinematic_variables,
 				variation_variables);
-			std::cout << kinematic_variables.a1 << std::endl;
 			// Create constitutive law parameters:
 			ConstitutiveLaw::Parameters constitutive_law_parameters(
 				GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -136,10 +133,9 @@ namespace Kratos
 				constitutive_law_parameters,
 				ConstitutiveLaw::StressMeasure_PK2);
 
-			// calculate B operator
-			Matrix BOperator = CalculateStrainDisplacementOperator(point_number,
+			BOperator = CalculateStrainDisplacementOperator(point_number,
 				kinematic_variables,
-				variation_variables);
+				variation_variables);		
 
 			double integration_weight =
 				r_integration_points[point_number].Weight()
@@ -155,8 +151,7 @@ namespace Kratos
 					kinematic_variables,
 					variation_variables,
 					constitutive_variables);
-				//Matrix temp = prod(trans(BOperator), constitutive_variables.ConstitutiveMatrix);  //defined useless temporary due to ublas prod(prod( not working
-				rLeftHandSideMatrix = rLeftHandSideMatrix + integration_weight * (prod(prod<MatrixType>(trans(BOperator), mC), BOperator)+ Kg);
+				rLeftHandSideMatrix = rLeftHandSideMatrix + integration_weight * (prod(prod<MatrixType>(trans(BOperator), mC), BOperator) + Kg);
 			}
 			// RIGHT HAND SIDE VECTOR
 			if (CalculateResidualVectorFlag == true) 
@@ -178,7 +173,6 @@ namespace Kratos
 		VariationVariables& rVar
 	)
 	{
-		std::cout << "CalculateKinematics" << std::endl;
 		Matrix J;
 		GetGeometry().Jacobian(J, IntegrationPointIndex);
 
@@ -248,9 +242,7 @@ namespace Kratos
 		IndexType IntegrationPointIndex
 	)
 	{
-		std::cout << "CalculateCartesianDerivatives" << std::endl;
 		const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-
 		array_1d<double, 3> a3;
 		Matrix J0;
 		GetGeometry().Jacobian(J0, IntegrationPointIndex);
@@ -285,7 +277,7 @@ namespace Kratos
 		Matrix invJ;
 		MathUtils<double>::InvertMatrix2(J, invJ, detJ);
 
-		return prod(invJ, r_DN_De);
+		return prod(invJ, trans(r_DN_De));
 	}
 
 	void Shell5pElement::CalculateConstitutiveVariables(
@@ -296,7 +288,6 @@ namespace Kratos
 		const ConstitutiveLaw::StressMeasure ThisStressMeasure
 	)
 	{
-		std::cout << "CalculateConstitutiveVariables" << std::endl;
 		rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 		rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 		rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -335,12 +326,10 @@ namespace Kratos
 		const KinematicVariables& rActualKinematic,
 		const VariationVariables& rVariations)
 	{
-		std::cout << "CalculateStrainDisplacementOperator" << std::endl;
 		const SizeType number_of_nodes = GetGeometry().size();
 		const SizeType num_dof = number_of_nodes * 5;
 
 		Matrix rB{ ZeroMatrix(8, num_dof) };
-
 		for (SizeType r = 0; r < number_of_nodes; r++)
 		{
 			SizeType kr = 5 * r;
@@ -417,7 +406,6 @@ namespace Kratos
 		const VariationVariables& ractVar,
 		const ConstitutiveVariables& rConstitutive)
 	{
-		std::cout << "CalculateGeometricStiffness" << std::endl;
 		const auto& r_geometry = GetGeometry();
 		const SizeType number_of_control_points = r_geometry.size();
 		const SizeType num_dof = number_of_control_points * 5;
@@ -499,7 +487,6 @@ namespace Kratos
 		Vector& rValues,
 		int Step)
 	{
-		std::cout << "GetValuesVector" << std::endl;
 		const unsigned int number_of_control_points = GetGeometry().size();
 		const unsigned int mat_size = number_of_control_points * 5;
 
@@ -521,7 +508,6 @@ namespace Kratos
 		Vector& rValues,
 		int Step)
 	{
-		std::cout << "GetFirstDerivativesVector" << std::endl;
 		const unsigned int number_of_control_points = GetGeometry().size();
 		const unsigned int mat_size = number_of_control_points * 3;
 
@@ -542,7 +528,6 @@ namespace Kratos
 		Vector& rValues,
 		int Step)
 	{
-		std::cout << "GetSecondDerivativesVector" << std::endl;
 		const unsigned int number_of_control_points = GetGeometry().size();
 		const unsigned int mat_size = number_of_control_points * 3;
 
@@ -564,7 +549,6 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo
 	)
 	{
-		std::cout << "EquationIdVector" << std::endl;
 		KRATOS_TRY;
 
 		const SizeType number_of_control_points = GetGeometry().size();
@@ -591,7 +575,6 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo
 	)
 	{
-		std::cout << "GetDofList" << std::endl;
 		KRATOS_TRY;
 
 		const SizeType number_of_control_points = GetGeometry().size();
@@ -616,31 +599,12 @@ namespace Kratos
 
 	int Shell5pElement::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
-		std::cout << "Check" << std::endl;
-			// Verify that the constitutive law exists
-		//	if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
-		//	{
-		//		KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
-		//	}
-		//	else
-		//	{
-		//		// Verify that the constitutive law has the correct dimension
-		//		KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
-		//			<< "THICKNESS not provided for element " << this->Id() << std::endl;
-		//
-		//		// Check strain size
-		//		KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
-		//			<< "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
-		//			<< this->Id() << std::endl;
-		//	}
-			std::cout << "EndCheck" << std::endl;
 		return 0;
 	}
 
 
 	void Shell5pElement::CalculateSVKMaterialTangent(	)
 	{
-		std::cout << "CalculateSVKMaterialTangent" << std::endl;
 		const double nu = this->GetProperties()[POISSON_RATIO];
 		const double Emodul =  this->GetProperties()[YOUNG_MODULUS];
 		const double thickness = this->GetProperties().GetValue(THICKNESS);
