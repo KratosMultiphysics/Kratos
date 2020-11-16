@@ -183,5 +183,47 @@ KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeKnotRefinementV, KratosCoreNurbsGeometriesF
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeKnotRefinementW, KratosCoreNurbsGeometriesFastSuite) {
+    auto volume_w = GenerateVolume(2);
+    std::vector<double> insert_knots = {0.1, 0.1, 0.22, 0.22, 0.7};
+    auto refined_volume_w = NurbsVolumeUtilities::KnotRefinementW(*volume_w, insert_knots);
+
+    // Check polynomial degree
+    KRATOS_CHECK_EQUAL(refined_volume_w->PolynomialDegreeU(),1);
+    KRATOS_CHECK_EQUAL(refined_volume_w->PolynomialDegreeV(),1);
+    KRATOS_CHECK_EQUAL(refined_volume_w->PolynomialDegreeW(),3);
+    // Check knot vectors
+    std::vector<double> knots_u_ref = {0, 1.0};
+    std::vector<double> knots_v_ref = {0, 1.0};
+    std::vector<double> knots_w_ref = {0, 0, 0, 0.1, 0.1, 0.2, 0.22, 0.22, 0.5, 0.7, 1.0, 1.0, 1.0};
+    KRATOS_CHECK_VECTOR_NEAR(refined_volume_w->KnotsU(), knots_u_ref, TOLERANCE);
+    KRATOS_CHECK_VECTOR_NEAR(refined_volume_w->KnotsV(), knots_v_ref, TOLERANCE);
+    KRATOS_CHECK_VECTOR_NEAR(refined_volume_w->KnotsW(), knots_w_ref, TOLERANCE);
+    // Check number of CP's
+    KRATOS_CHECK_EQUAL(refined_volume_w->NumberOfControlPointsU(),2);
+    KRATOS_CHECK_EQUAL(refined_volume_w->NumberOfControlPointsV(),2);
+    KRATOS_CHECK_EQUAL(refined_volume_w->NumberOfControlPointsW(),11);
+
+    // Check position of CP's
+    for( std::size_t i = 0; i < 4; ++i){
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+0][2], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+4][2], 0.1665, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+8][2], 0.26085, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+12][2], 0.37518, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+16][2], 0.39915599999999996, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+20][2], 0.41993519999999995, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+24][2], 0.470653875, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+28][2], 0.524266875, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+32][2], 0.624375, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+36][2], 0.7996, TOLERANCE);
+        KRATOS_CHECK_NEAR((*refined_volume_w)[i+40][2], 1.0, TOLERANCE);
+    }
+
+    // Check ID's
+    for( long unsigned int i = 0; i < refined_volume_w->size(); ++i){
+        KRATOS_CHECK_EQUAL((*refined_volume_w)[i].Id(), i+1);
+    }
+}
+
 } // End namespace testing
 } // End namespace kratos
