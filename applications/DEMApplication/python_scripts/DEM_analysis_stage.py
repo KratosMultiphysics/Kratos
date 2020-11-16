@@ -335,6 +335,8 @@ class DEMAnalysisStage(AnalysisStage):
     
     def HomogenizationUtilitiesInitialize(self):
         
+        bounding_box = self.procedures.SetBoundingBox(self.spheres_model_part, self.cluster_model_part, self.rigid_face_model_part, self.dem_inlet_model_part, self.creator_destructor)
+
         lower_corner_coordinates = [0] * self.DEM_parameters["Dimension"].GetInt()
         higher_corner_coordinates = [0] * self.DEM_parameters["Dimension"].GetInt()
 
@@ -343,16 +345,13 @@ class DEMAnalysisStage(AnalysisStage):
             higher_corner_coordinates[i] = self.creator_destructor.GetHighNode()[i]
 
         #element_size = int(input("Enter element size:"))
-        element_size = 10
+        element_size = 1.0
 
         number_of_divisions = [0] * self.DEM_parameters["Dimension"].GetInt()
 
         for i in range(self.DEM_parameters["Dimension"].GetInt()):
             number_of_divisions[i] = math.ceil((higher_corner_coordinates[i]-lower_corner_coordinates[i])/element_size)
             higher_corner_coordinates[i] = lower_corner_coordinates [i] + number_of_divisions[i] * element_size
-
-        print(lower_corner_coordinates)
-        print(higher_corner_coordinates)
 
         if self.DEM_parameters["Dimension"].GetInt() == 2:
             homogenization_mesher = meshing_utilities.RectangularRegularMesher(self.homogenization_model_part,
@@ -428,12 +427,24 @@ class DEMAnalysisStage(AnalysisStage):
     def GetProblemTypeFileName(self):
         return self.DEM_parameters["problem_name"].GetString()
 
+    def ReadHomogenizationModelPart(self,
+                                    starting_node_Id=0,
+                                    starting_element_Id=0,
+                                    starting_cond_Id=0):
+        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.homogenization_model_part)
+        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.homogenization_model_part)
+        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.homogenization_model_part)
+        return max_node_Id, max_elem_Id, max_cond_Id
+
     def ReadModelPartsFromRestartFile(self, model_part_import_settings):
         Logger.PrintInfo('DEM', 'Loading model parts from restart file...')
         DEMRestartUtility(self.model, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
         Logger.PrintInfo('DEM', 'Finished loading model parts from restart file.')
 
     def ReadModelPartsFromMdpaFile(self, max_node_id, max_elem_id, max_cond_id):
+        
+        self.ReadHomogenizationModelPart()
+
         def UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, model_part):
             max_node_id = max(max_node_id, self.creator_destructor.FindMaxNodeIdInModelPart(model_part))
             max_elem_id = max(max_elem_id, self.creator_destructor.FindMaxElementIdInModelPart(model_part))
@@ -466,7 +477,7 @@ class DEMAnalysisStage(AnalysisStage):
                 model_part_io = self.model_part_reader(file_path, max_node_id + 1, max_elem_id + 1, max_cond_id + 1)
 
             model_part_io.ReadModelPart(model_part)
-
+            
         ReadModelPart(self.spheres_model_part, self.GetDiscreteElementsInputFileTag(), max_node_id, max_elem_id, max_cond_id)
         max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.spheres_model_part)
         old_max_elem_id_spheres = max_elem_id
