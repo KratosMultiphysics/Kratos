@@ -228,7 +228,7 @@ public:
             rResult.resize(1, false);
 
         Matrix J;
-        this->GetGeometryParent().Jacobian(J, this->IntegrationPoints(0));
+        this->GetGeometryParent(0).Jacobian(J, this->IntegrationPoints()[0]);
 
         array_1d<double, 3> a_1 = column(J, 0);
         array_1d<double, 3> a_2 = column(J, 1);
