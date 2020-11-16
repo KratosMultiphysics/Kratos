@@ -129,6 +129,35 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Set with array_1d<double, 3>
+    void Set(
+        const Variable<array_1d<double, 3>>& rVariable,
+        const array_1d<double, 3>& rInput) override
+    {
+        if (rVariable == LOCAL_TANGENT)
+        {
+            mLocalTangentsU = rInput[0];
+            mLocalTangentsV = rInput[1];
+        }
+    }
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) override
+    {
+        if (rVariable == LOCAL_TANGENT)
+        {
+            rOutput[0] = mLocalTangentsU;
+            rOutput[1] = mLocalTangentsV;
+            rOutput[2] = 0.0;
+        }
+    }
+
+    ///@}
     ///@name Normal
     ///@{
 
