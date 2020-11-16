@@ -147,3 +147,5 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
+        
+        self.FindNeighboursIfNecessary()
