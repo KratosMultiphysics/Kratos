@@ -106,8 +106,7 @@ public:
     //     return *this;
     // }
 
-    /// Copy constructor. TODO: we need it otherwise the sendrecv does not work...
-    ///but i don't know why :-(
+    /// Copy constructor. 
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
         this->AddEntries(rOther);

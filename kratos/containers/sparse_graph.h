@@ -92,8 +92,7 @@ public:
     /// Destructor.
     virtual ~SparseGraph(){}
 
-    /// Copy constructor. TODO: we need it otherwise the sendrecv does not work...
-    ///but i don't know why :-(
+    /// Copy constructor. 
     SparseGraph(const SparseGraph& rOther)
     {
         this->mGraph = rOther.mGraph;

@@ -70,7 +70,7 @@ class DistributedSparseGraph //: public SparseGraph
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType; //note that this could be different from the one in the basetype
+    typedef TIndexType IndexType; 
     typedef int MpiIndexType; 
     typedef SparseContiguousRowGraph<IndexType> LocalGraphType; //using a map since we need it ordered
     typedef SparseGraph<IndexType> NonLocalGraphType; //using a map since we need it ordered

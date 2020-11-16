@@ -61,7 +61,7 @@ public:
     ///@{
     typedef TIndexType IndexType;
     typedef int MpiIndexType;
-    typedef typename CsrMatrix<double,IndexType>::MatrixMapType MatrixMapType;
+    typedef typename CsrMatrix<TDataType,IndexType>::MatrixMapType MatrixMapType;
 
     /// Pointer definition of DistributedCsrMatrix
     KRATOS_CLASS_POINTER_DEFINITION(DistributedCsrMatrix);
@@ -70,7 +70,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
     DistributedCsrMatrix(const DistributedSparseGraph<IndexType>& rSparseGraph)
         :
             mrComm(rSparseGraph.GetComm())
@@ -186,7 +185,7 @@ public:
 
         //mount importer for SpMV calculations
 
-        auto pimporter = Kratos::make_unique<DistributedVectorImporter<double,IndexType>>(GetComm(),mOffDiagonalGlobalIds, GetColNumbering()); 
+        auto pimporter = Kratos::make_unique<DistributedVectorImporter<TDataType,IndexType>>(GetComm(),mOffDiagonalGlobalIds, GetColNumbering()); 
         mpVectorImporter.swap(pimporter);
     }
 
@@ -286,17 +285,17 @@ public:
         return mrComm;
     }
 
-    inline CsrMatrix<double,IndexType>& GetDiagBlock(){
+    inline CsrMatrix<TDataType,IndexType>& GetDiagBlock(){
         return mDiagBlock;
     }
-    inline CsrMatrix<double,IndexType>& GetOffDiagBlock(){
+    inline CsrMatrix<TDataType,IndexType>& GetOffDiagBlock(){
         return mOffDiagBlock;
     }
 
-    inline const CsrMatrix<double,IndexType>& GetDiagBlock() const{
+    inline const CsrMatrix<TDataType,IndexType>& GetDiagBlock() const{
         return mDiagBlock;
     }
-    inline const CsrMatrix<double,IndexType>& GetOffDiagBlock() const{
+    inline const CsrMatrix<TDataType,IndexType>& GetOffDiagBlock() const{
         return mOffDiagBlock;
     }
 
@@ -361,7 +360,7 @@ public:
     {
         mDiagBlock.TransposeSpMV(y.GetLocalData(),x.GetLocalData());
 
-        DenseVector<double> non_local_transpose_data = ZeroVector(mOffDiagBlock.size2());
+        DenseVector<TDataType> non_local_transpose_data = ZeroVector(mOffDiagBlock.size2());
 
         mOffDiagBlock.TransposeSpMV(non_local_transpose_data,x.GetLocalData());
 
@@ -696,8 +695,8 @@ private:
     typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering;
     typename DistributedNumbering<IndexType>::UniquePointer mpColNumbering;
 
-    CsrMatrix<double,IndexType> mDiagBlock;
-    CsrMatrix<double,IndexType> mOffDiagBlock;
+    CsrMatrix<TDataType,IndexType> mDiagBlock;
+    CsrMatrix<TDataType,IndexType> mOffDiagBlock;
     MatrixMapType mNonLocalData; //data which is assembled locally and needs to be communicated to the owner
 
     //this map tells for an index J which does not belong to the local diagonal block which is the corresponding localJ
@@ -710,7 +709,7 @@ private:
     std::unordered_map< unsigned int, std::vector<TDataType*> > mPointersToRecvValues; //this contains direct pointers into the data contained in mNonLocalData, prepared so to speed up communications
     std::unordered_map< unsigned int, std::vector<TDataType*> > mPointersToSendValues; //this contains direct pointers into mDiagBlock and mOffDiagBlock, prepared so to speed up communication
 
-    std::unique_ptr<DistributedVectorImporter<double,IndexType>> mpVectorImporter;
+    std::unique_ptr<DistributedVectorImporter<TDataType,IndexType>> mpVectorImporter;
 
     ///@}
     ///@name Private Operators
