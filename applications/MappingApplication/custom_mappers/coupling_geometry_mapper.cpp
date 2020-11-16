@@ -35,7 +35,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     const auto& r_geometry_master = (mIsProjection)
         ? mpGeom->GetGeometryPart(0) // set to master  - get projected 'mass' matrix
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
-    const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
+    auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
 
     const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
         ? true

@@ -226,7 +226,7 @@ public:
                 r_geometry.InverseOfJacobian(inv, local_coordinates);
                 Vector local_tangent = prod(inv, space_derivatives);
                 rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
-                    points, local_tangent[0], local_tangent[1]);
+                    points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
 
                 #ifdef KRATOS_DEBUG
                 std::vector<array_1d<double, 3>> space_derivatives_check(2);
