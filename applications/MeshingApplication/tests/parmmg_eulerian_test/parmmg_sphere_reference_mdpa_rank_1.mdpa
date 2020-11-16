@@ -9,36 +9,35 @@ Begin Properties 1
 End Properties
 
 Begin Nodes
-	1	0.398333	-0.398333	0.503759
-	2	-1	1	-1
-	3	-1	1	2
-	4	1	1	2
-	5	1	1	-1
-	6	-1	-1	-1
-	7	1	-1	2
-	8	-1	-1	2
+	2	0.398333	-0.398333	0.503759
+	3	-1	1	-1
+	4	-1	1	2
+	5	1	1	2
+	6	1	1	-1
+	7	-1	-1	-1
+	8	1	-1	2
+	9	-1	-1	2
 End Nodes
 
 Begin Elements	Element3D4N
-	7	1	1	2	3	4	
-	8	1	5	2	6	1	
-	9	1	6	2	3	1	
-	10	1	7	1	4	5	
-	11	1	5	2	1	4	
-	12	1	7	1	8	4	
+	7	1	2	3	4	5	
+	8	1	6	3	7	2	
+	9	1	7	3	4	2	
+	10	1	8	2	5	6	
+	11	1	6	3	2	5	
+	12	1	8	2	9	5	
 End Elements
 
 Begin Conditions	SurfaceCondition3D3N
-	7	0	2	3	4	
-	8	0	5	6	2	
-	9	0	6	3	2	
-	10	0	7	5	4	
-	11	0	5	2	4	
-	12	0	7	4	8	
+	7	0	3	4	5	
+	8	0	6	7	3	
+	9	0	7	4	3	
+	10	0	8	6	5	
+	11	0	6	3	5	
+	12	0	8	5	9	
 End Conditions
 
 Begin NodalData	DISTANCE
-1	0	0
 2	0	0
 3	0	0
 4	0	0
@@ -46,10 +45,10 @@ Begin NodalData	DISTANCE
 6	0	0
 7	0	0
 8	0	0
+9	0	0
 End NodalData
 
 Begin NodalData	DISTANCE_GRADIENT_X
-1	0	0
 2	0	0
 3	0	0
 4	0	0
@@ -57,10 +56,10 @@ Begin NodalData	DISTANCE_GRADIENT_X
 6	0	0
 7	0	0
 8	0	0
+9	0	0
 End NodalData
 
 Begin NodalData	DISTANCE_GRADIENT_Y
-1	0	0
 2	0	0
 3	0	0
 4	0	0
@@ -68,10 +67,10 @@ Begin NodalData	DISTANCE_GRADIENT_Y
 6	0	0
 7	0	0
 8	0	0
+9	0	0
 End NodalData
 
 Begin NodalData	DISTANCE_GRADIENT_Z
-1	0	0
 2	0	0
 3	0	0
 4	0	0
@@ -79,10 +78,10 @@ Begin NodalData	DISTANCE_GRADIENT_Z
 6	0	0
 7	0	0
 8	0	0
+9	0	0
 End NodalData
 
 Begin NodalData	PARTITION_INDEX
-1	0	1
 2	0	1
 3	0	1
 4	0	1
@@ -90,6 +89,7 @@ Begin NodalData	PARTITION_INDEX
 6	0	1
 7	0	1
 8	0	1
+9	0	1
 End NodalData
 
 Begin SubModelPart	Outlet3D_Outlet_pressure_Auto1
@@ -98,10 +98,10 @@ Begin SubModelPart	Outlet3D_Outlet_pressure_Auto1
 	Begin SubModelPartTables
 	End SubModelPartTables
 	Begin SubModelPartNodes
-		3
 		4
-		7
+		5
 		8
+		9
 	End SubModelPartNodes
 	Begin SubModelPartElements
 	End SubModelPartElements
@@ -116,7 +116,6 @@ Begin SubModelPart	Parts_Parts_Fluid
 	Begin SubModelPartTables
 	End SubModelPartTables
 	Begin SubModelPartNodes
-		1
 		2
 		3
 		4
@@ -124,6 +123,7 @@ Begin SubModelPart	Parts_Parts_Fluid
 		6
 		7
 		8
+		9
 	End SubModelPartNodes
 	Begin SubModelPartElements
 		7
@@ -143,13 +143,13 @@ Begin SubModelPart	NoSlip3D_No_Slip_Auto1
 	Begin SubModelPartTables
 	End SubModelPartTables
 	Begin SubModelPartNodes
-		2
 		3
 		4
 		5
 		6
 		7
 		8
+		9
 	End SubModelPartNodes
 	Begin SubModelPartElements
 	End SubModelPartElements
@@ -167,9 +167,9 @@ Begin SubModelPart	AutomaticInlet3D_Automatic_inlet_velocity_Auto4
 	Begin SubModelPartTables
 	End SubModelPartTables
 	Begin SubModelPartNodes
-		2
-		5
+		3
 		6
+		7
 	End SubModelPartNodes
 	Begin SubModelPartElements
 	End SubModelPartElements

@@ -498,12 +498,12 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
     // const std::string file_name = mFilename + "_rank_" + std::to_string(rank) + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
 
     // Automatically save the mesh
-    if (PostOutput) {
-        mPMmgUtilities.OutputMesh(file_name);
+    // if (PostOutput) {
+    //     mPMmgUtilities.OutputMesh(file_name);
 
-        // Automatically save the solution
-        mPMmgUtilities.OutputSol(file_name);
-    }//
+    //     // Automatically save the solution
+    //     mPMmgUtilities.OutputSol(file_name);
+    // }//
 
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files

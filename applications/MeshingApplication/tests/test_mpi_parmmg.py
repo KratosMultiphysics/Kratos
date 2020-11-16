@@ -5,6 +5,7 @@ import KratosMultiphysics.MeshingApplication as MeshingApplication
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 import json
@@ -100,6 +101,10 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         check_files.ExecuteInitializeSolutionStep()
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
+
+
+        kratos_utilities.DeleteFileIfExisting("remeshed_sphere_"+str(communicator.Rank())+".mdpa")
+        kratos_utilities.DeleteTimeFiles(os.getcwd())
 
 
 

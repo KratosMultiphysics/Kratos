@@ -214,11 +214,6 @@ public:
     void OutputMdpa() override;
 
     /**
-     * @brief Ths function removes superfluous (defined by "not belonging to an element") nodes from the model part
-     */
-    void CleanSuperfluousNodes();
-
-    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
     */
     const Parameters GetDefaultParameters() const override;
