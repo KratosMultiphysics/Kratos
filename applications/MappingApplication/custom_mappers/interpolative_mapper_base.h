@@ -21,6 +21,8 @@
 // External includes
 
 // Project includes
+#include "containers/csr_matrix.h"
+#include "containers/distributed_csr_matrix.h"
 #include "mapper.h"
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
@@ -57,7 +59,7 @@ public:
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
+    typedef typename std::conditional<TSparseSpace::IsDistributed(), DistributedCsrMatrix<>, CsrMatrix<>>::type TMappingMatrixType; // hack until usage of spaces is removed
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
 
     typedef Variable<double> ComponentVariableType;
@@ -176,10 +178,10 @@ public:
     ///@name Access
     ///@{
 
-    TMappingMatrixType& GetMappingMatrix() override
-    {
-        return *mpMappingMatrix;
-    }
+    // TMappingMatrixType& GetMappingMatrix() override
+    // {
+    //     return *mpMappingMatrix;
+    // }
 
     ///@}
     ///@name Inquiry
