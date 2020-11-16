@@ -157,6 +157,17 @@ public:
         }
     }
 
+    /// Calculate with Vector
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) override
+    {
+        if (rVariable == DETERMINANT_OF_JACOBIAN_PARENT)
+        {
+            DeterminantOfJacobianParent(rOutput);
+        }
+    }
+
     ///@}
     ///@name Normal
     ///@{
@@ -224,6 +235,29 @@ public:
             rResult.resize(1, false);
 
         rResult[0] = this->DeterminantOfJacobian(0, ThisMethod);
+
+        return rResult;
+    }
+
+    /* @brief returns the respective segment length of this
+     *        quadrature point, computed on the parent of this geometry.
+     *        Required for reduced quadrature point geometries (Not all
+     *        nodes are part of this geometry - used for mapping).
+     * @param rResult vector of results of this quadrature point.
+     */
+    Vector& DeterminantOfJacobianParent(
+        Vector& rResult) const
+    {
+        if (rResult.size() != 1)
+            rResult.resize(1, false);
+
+        Matrix J;
+        this->GetGeometryParent(0).Jacobian(J, this->IntegrationPoints()[0]);
+
+        array_1d<double, 3> a_1 = column(J, 0);
+        array_1d<double, 3> a_2 = column(J, 1);
+
+        rResult[0] = norm_2(a_1 * mLocalTangentsU + a_2 * mLocalTangentsV);
 
         return rResult;
     }
