@@ -145,6 +145,6 @@ class TimeBasedAsciiFileWriterUtility(object):
             # default behaviour
             self.file_name = str(pathlib.PurePath(self.output_path,raw_file_name))
 
-        # make sure that the absolute path to the desired output folder exists
+        # make sure that the path to the desired output folder exists
         if not os.path.isdir(self.output_path) and not self.output_path == "":
             os.makedirs(self.output_path)
