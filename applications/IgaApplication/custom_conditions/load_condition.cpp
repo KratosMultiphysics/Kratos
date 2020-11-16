@@ -133,6 +133,86 @@ namespace Kratos
                     }
                 }
 
+                // Follower loads (has additional external stifness)
+                if (this->Has(FOLLOWER_LOAD))
+                {
+                    const double follower_load = this->GetValue(FOLLOWER_LOAD);
+                    const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(point_number);
+
+                    array_1d<double, 3> normal = r_geometry.Normal(point_number);
+                    normal = normal / norm_2(normal);
+
+                    for (IndexType i = 0; i < number_of_nodes; i++)
+                    {
+                        IndexType index = 3 * i;
+                        f[index]     += normal[0] * follower_load * r_N(point_number, i) * d_weight;
+                        f[index + 1] += normal[1] * follower_load * r_N(point_number, i) * d_weight;
+                        f[index + 2] += normal[2] * follower_load * r_N(point_number, i) * d_weight;
+                    }
+
+                    Matrix J;
+                    r_geometry.Jacobian(J, point_number);
+
+                    array_1d<double, 3> a1 = column(J, 0);
+                    array_1d<double, 3> a2 = column(J, 1);
+
+                    //formulate the cross product matrices a1x and a2x
+
+                    Matrix a1x = ZeroMatrix(3,3);
+                    Matrix a2x = ZeroMatrix(3,3);
+
+                    a1x(0,1) = -a1[2];
+                    a1x(0,2) = a1[1];
+                    a1x(1,2) = -a1[0];
+                    a1x(1,0) = -a1x(0,1);
+                    a1x(2,0) = -a1x(0,2);
+                    a1x(2,1) = -a1x(1,2);
+
+                    a2x(0,1) = -a2[2];
+                    a2x(0,2) = a2[1];
+                    a2x(1,2) = -a2[0];
+                    a2x(1,0) = -a2x(0,1);
+                    a2x(2,0) = -a2x(0,2);
+                    a2x(2,1) = -a2x(1,2);
+
+                    Matrix rN;
+                    if (rN.size1() != 3 || rN.size2() != mat_size)
+                        rN.resize(3, mat_size);
+                    noalias(rN) = ZeroMatrix(3, mat_size);
+                    
+                    Matrix rDN_DXi;
+                    if (rDN_DXi.size1() != 3 || rDN_DXi.size2() != mat_size)
+                        rDN_DXi.resize(3, mat_size);
+                    noalias(rDN_DXi) = ZeroMatrix(3, mat_size);
+
+                    Matrix rDN_DEta;
+                    if (rDN_DEta.size1() != 3 || rDN_DEta.size2() != mat_size)
+                        rDN_DEta.resize(3, mat_size);
+                    noalias(rDN_DEta) = ZeroMatrix(3, mat_size);
+
+                    for (IndexType i = 0; i < number_of_nodes; i++)
+                    {
+                        IndexType index = 3 * i;
+
+                        rN(0, index) = r_N(point_number, i);
+                        rN(1, index + 1) = r_N(point_number, i);
+                        rN(2, index + 2) = r_N(point_number, i);
+
+                        rDN_DXi(0, index) = r_DN_De(i, 0);
+                        rDN_DXi(1, index + 1) = r_DN_De(i, 0);
+                        rDN_DXi(2, index + 2) = r_DN_De(i, 0);
+
+                        rDN_DEta(0, index) = r_DN_De(i, 1);
+                        rDN_DEta(1, index + 1) = r_DN_De(i, 1);
+                        rDN_DEta(2, index + 2) = r_DN_De(i, 1);
+                    }
+
+                    rDN_DXi = prod(a2x, rDN_DXi);
+                    rDN_DEta = prod(a1x, rDN_DEta);
+                    
+                    noalias(rLeftHandSideMatrix) += integration_weight * follower_load * (prod(trans(rN),rDN_DXi) - prod(trans(rN),rDN_DEta));
+                }
+
                 // Pressure loads
                 if (this->Has(PRESSURE))
                 {
