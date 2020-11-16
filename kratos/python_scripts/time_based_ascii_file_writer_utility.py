@@ -17,7 +17,7 @@ class TimeBasedAsciiFileWriterUtility(object):
 
         default_settings = KratosMultiphysics.Parameters('''{
             "file_name"  : "",
-            "folder_name": "",
+            "output_path": "",
             "write_buffer_size" : -1
         }''')
         # write_buffer_size: -1 means we use the system default
@@ -27,11 +27,16 @@ class TimeBasedAsciiFileWriterUtility(object):
         self.model_part = model_part
         has_initial_write_buffer_size = params.Has("write_buffer_size")
 
+        if params.Has("folder_name"):
+            self.output_path = params["folder_name"].GetString()
+            params.AddValue("output_path",params["folder_name"])
+            params.RemoveValue("folder_name")
+            KratosMultiphysics.Logger.PrintWarning('TimeBasedAsciiFileWriterUtility', '"folder_name" key is deprecated. Use "output_path" instead.')
         params.ValidateAndAssignDefaults(default_settings)
 
         # file name and folder path specifications and check
         self.file_name = params["file_name"].GetString()
-        self.folder_name = params["folder_name"].GetString()
+        self.output_path = params["output_path"].GetString()
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
@@ -130,63 +135,16 @@ class TimeBasedAsciiFileWriterUtility(object):
         if not self.file_name.endswith(".dat"):
             self.file_name += ".dat"
 
-        # check if relative path was erroneously specified in file name
         raw_path, raw_file_name = os.path.split(self.file_name)
 
-        if self.folder_name != "":
-            if not pathlib.PurePath(raw_path).is_absolute() and not pathlib.PurePath(self.folder_name).is_absolute():
-                # Relative path contained in "folder_name"
-                # If contained also in "file_name", then the relative default relative path instead
-                if raw_path != "":
-                    self.folder_name = "TimeBasedAsciiResults"
-                    warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
-                    warn_msg += 'Use parameter "folder_name" to specify correctly\n'
-                    warn_msg += 'Using the default relative path "' + self.folder_name + '" instead'
-                    KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
-                absolute_folder_path = os.getcwd()
-                relative_folder_path = ""
-
-                subfolders = os.path.normpath(self.folder_name).split(os.sep)
-                for folder in subfolders:
-                    absolute_folder_path = os.path.join(absolute_folder_path, folder)
-                    relative_folder_path = os.path.join(relative_folder_path, folder)
-
-                self.file_name = os.path.join(relative_folder_path, raw_file_name)
-
-            elif not pathlib.PurePath(raw_path).is_absolute() and pathlib.PurePath(self.folder_name).is_absolute():
-                # Absolute path contained in "folder_name" and not in "file_name"
-                # Using the absolute path specified by the joint of "folder_name" and "file_name"
-                absolute_folder_path = pathlib.PurePath(self.folder_name).joinpath(raw_path)
-                self.file_name = pathlib.PurePath(absolute_folder_path).joinpath(raw_file_name)
-
-            elif pathlib.PurePath(raw_path).is_absolute() and not pathlib.PurePath(self.folder_name).is_absolute():
-                # Absolute path contained in "file_name" and not in "folder_name"
-                # Using the absolute path specified by "file_name"
-                self.folder_name = raw_path
-                absolute_folder_path = self.folder_name
-
-            elif pathlib.PurePath(raw_path).is_absolute() and pathlib.PurePath(self.folder_name).is_absolute():
-                # Absolute path contained in both "file_name" and "folder_name"
-                # Using the absolute path specified by "folder_name"
-                absolute_folder_path = self.folder_name
-                self.file_name = pathlib.PurePath(absolute_folder_path).joinpath(raw_file_name)
-
+        if self.output_path == "" and pathlib.PurePath(raw_path).is_absolute():
+            # Required to run with PyCOMPSs in distributed environement
+            # Absolute path already contained in "file_name"
+            self.output_path = pathlib.Path.cwd()
         else:
-            if not pathlib.PurePath(raw_path).is_absolute():
-                # Relative path contained in "file_name"
-                # Using the relative default relative path instead
-                warn_msg  = 'Relative path "'+ raw_path +'" contained in "file_name": "'+ self.file_name +'"\n'
-                warn_msg += 'Using the current directory instead'
-                KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
-                self.file_name = raw_file_name
-                absolute_folder_path = os.getcwd()
-
-            elif pathlib.PurePath(raw_path).is_absolute():
-                # Absolute path contained in "file_name"
-                # Using the absolute path specified by "file_name"
-                absolute_folder_path = raw_path
+            # default behaviour
+            self.file_name = str(pathlib.PurePath(self.output_path,raw_file_name))
 
         # make sure that the absolute path to the desired output folder exists
-        if not os.path.isdir(absolute_folder_path):
-            os.makedirs(absolute_folder_path)
-
+        if not os.path.isdir(self.output_path) and not self.output_path == "":
+            os.makedirs(self.output_path)
