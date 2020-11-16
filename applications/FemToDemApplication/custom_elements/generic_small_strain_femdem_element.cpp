@@ -98,7 +98,7 @@ Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Clone(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIteration(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY
@@ -281,7 +281,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
