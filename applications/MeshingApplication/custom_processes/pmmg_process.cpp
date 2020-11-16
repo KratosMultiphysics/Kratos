@@ -690,11 +690,9 @@ const Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
 {
     Parameters default_parameters = BaseType::GetDefaultParameters();
     auto advanced_parameters = default_parameters["advanced_parameters"];
-    advanced_parameters.AddInt("niter", 4);
-    advanced_parameters.AddInt("meshSize", 30000);
-    advanced_parameters.AddInt("metisRatio", 82);
-    advanced_parameters.AddDouble("hgradreq", 5.0);
-    advanced_parameters.AddInt("APImode", 0);
+    advanced_parameters.AddInt("number_of_iterations", 4);
+    advanced_parameters.AddInt("mesh_size", 30000);
+    advanced_parameters.AddInt("metis_ratio", 82);
 
     return default_parameters;
 }
