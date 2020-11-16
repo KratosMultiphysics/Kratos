@@ -219,6 +219,9 @@ public:
             // Initialize nodal values
             for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
                 r_node.SetValue(NODAL_AREA, 0.0);
+                r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
+                r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
+                r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
                 r_node.SetValue(DENSITY_GRADIENT, ZeroVector(3));
             }
 

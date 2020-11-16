@@ -326,8 +326,6 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D3N", mMonolithicWallCondition3D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D", mMonolithicWallCondition2D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D", mMonolithicWallCondition3D);
-    KRATOS_REGISTER_CONDITION("CompressibleNavierStokesWallCondition2D2N", mCompressibleNavierStokesWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("CompressibleNavierStokesWallCondition3D3N", mCompressibleNavierStokesWallCondition3D3N);
     KRATOS_REGISTER_CONDITION("NavierStokesWallCondition2D2N", mNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("NavierStokesWallCondition3D3N", mNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition2D2N", mTwoFluidNavierStokesWallCondition2D);
