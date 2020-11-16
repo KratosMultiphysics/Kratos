@@ -264,6 +264,7 @@ protected:
             this->mDamage = 0.98;
             // We set a "flag" to generate the DEM 
             // rCurrentProcessInfo[GENERATE_DEM] = true;
+            this->SetValue(GENERATE_DEM, true);
         }
     }
 
