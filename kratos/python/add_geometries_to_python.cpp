@@ -185,7 +185,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
-    // Calculate
+    // Set
     .def("Set", Set<bool>)
     .def("Set", Set<int>)
     .def("Set", Set<double>)

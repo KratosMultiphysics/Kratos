@@ -661,27 +661,27 @@ public:
     /// Set with array_1d<double, 2>
     virtual void Set(
         const Variable<array_1d<double, 2>>& rVariable,
-        const array_1d<double, 2> Input) {}
+        const array_1d<double, 2>& rInput) {}
 
     /// Set with array_1d<double, 3>
     virtual void Set(
         const Variable<array_1d<double, 3>>& rVariable,
-        const array_1d<double, 3> Input) {}
+        const array_1d<double, 3>& rInput) {}
 
     /// Set with array_1d<double, 6>
     virtual void Set(
         const Variable<array_1d<double, 6>>& rVariable,
-        const array_1d<double, 6> Input) {}
+        const array_1d<double, 6>& rInput) {}
 
     /// Set with Vector
     virtual void Set(
         const Variable<Vector>& rVariable,
-        const Vector Input) {}
+        const Vector& rInput) {}
 
     /// Set with Matrix
     virtual void Set(
         const Variable<Matrix>& rVariable,
-        const Matrix Input) {}
+        const Matrix& rInput) {}
 
     /* Calculate either provides get or calculates a certain value,
      * according to a variable.
