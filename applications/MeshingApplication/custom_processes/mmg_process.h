@@ -212,7 +212,7 @@ public:
     /**
      * @brief This sets the output mesh in a .mdpa format
      */
-    void OutputMdpa();
+    virtual void OutputMdpa();
 
     /**
      * @brief Ths function removes superfluous (defined by "not belonging to an element") nodes from the model part
@@ -295,6 +295,40 @@ protected:
     ///@{
 
     /**
+     * @brief This converts the framework string to an enum
+     * @param rString The string
+     * @return FrameworkEulerLagrange: The equivalent enum
+     */
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& rString)
+    {
+        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
+            return FrameworkEulerLagrange::LAGRANGIAN;
+        else if(rString == "Eulerian" || rString == "EULERIAN")
+            return FrameworkEulerLagrange::EULERIAN;
+        else if(rString == "ALE")
+            return FrameworkEulerLagrange::ALE;
+        else
+            return FrameworkEulerLagrange::EULERIAN;
+    }
+
+    /**
+     * @brief This converts the discretization string to an enum
+     * @param rString The string
+     * @return DiscretizationOption: The equivalent enum
+     */
+    static inline DiscretizationOption ConvertDiscretization(const std::string& rString)
+    {
+        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
+            return DiscretizationOption::LAGRANGIAN;
+        else if(rString == "Standard" || rString == "STANDARD")
+            return DiscretizationOption::STANDARD;
+        else if(rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface")
+            return DiscretizationOption::ISOSURFACE;
+        else
+            return DiscretizationOption::STANDARD;
+    }
+
+    /**
      * @brief It sets to zero the entity data, using the variables from the orginal model part
      * @param rNewModelPart The new container
      * @param rOldModelPart The old container
@@ -351,7 +385,57 @@ protected:
         }
     }
 
+    /**
+     * @brief This function creates an before/after remesh output file
+     * @param rOldModelPart The old model part before remesh
+     */
+    virtual void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
+    /**
+     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
+     */
+    virtual void InitializeMeshData();
+
+    /**
+     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
+     */
+    virtual void InitializeSolDataMetric();
+
+    /**
+     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
+     */
+    virtual void InitializeSolDataDistance();
+
+    /**
+     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
+     */
+    virtual void InitializeDisplacementData();
+
+    /**
+     * @brief We execute the MMg library and build the new model part from the old model part
+     */
+    virtual void ExecuteRemeshing();
+
+    /**
+     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     */
+    virtual void InitializeElementsAndConditions();
+
+    /**
+     * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
+     * @param PostOutput If the file to save is after or before remeshing
+     */
+    virtual void SaveSolutionToFile(const bool PostOutput);
+
+    /**
+     * @brief It frees the memory used during all the process
+     */
+    virtual void FreeMemory();
+
+    /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    virtual void ClearConditionsDuplicatedGeometries();
 
     ///@}
     ///@name Protected  Access
@@ -387,81 +471,6 @@ private:
     ///@{
 
     /**
-     * @brief This converts the framework string to an enum
-     * @param rString The string
-     * @return FrameworkEulerLagrange: The equivalent enum
-     */
-    static inline FrameworkEulerLagrange ConvertFramework(const std::string& rString)
-    {
-        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
-            return FrameworkEulerLagrange::LAGRANGIAN;
-        else if(rString == "Eulerian" || rString == "EULERIAN")
-            return FrameworkEulerLagrange::EULERIAN;
-        else if(rString == "ALE")
-            return FrameworkEulerLagrange::ALE;
-        else
-            return FrameworkEulerLagrange::EULERIAN;
-    }
-
-    /**
-     * @brief This converts the discretization string to an enum
-     * @param rString The string
-     * @return DiscretizationOption: The equivalent enum
-     */
-    static inline DiscretizationOption ConvertDiscretization(const std::string& rString)
-    {
-        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
-            return DiscretizationOption::LAGRANGIAN;
-        else if(rString == "Standard" || rString == "STANDARD")
-            return DiscretizationOption::STANDARD;
-        else if(rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface")
-            return DiscretizationOption::ISOSURFACE;
-        else
-            return DiscretizationOption::STANDARD;
-    }
-
-    /**
-     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
-     */
-    void InitializeMeshData();
-
-    /**
-     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
-     */
-    void InitializeSolDataMetric();
-
-    /**
-     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
-     */
-    void InitializeSolDataDistance();
-
-    /**
-     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
-     */
-    void InitializeDisplacementData();
-
-    /**
-     * @brief We execute the MMg library and build the new model part from the old model part
-     */
-    void ExecuteRemeshing();
-
-    /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
-     */
-    void InitializeElementsAndConditions();
-
-    /**
-     * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
-     * @param PostOutput If the file to save is after or before remeshing
-     */
-    void SaveSolutionToFile(const bool PostOutput);
-
-    /**
-     * @brief It frees the memory used during all the process
-     */
-    void FreeMemory();
-
-    /**
      * @brief This method collapses the prisms elements into triangles
      */
     void CollapsePrismsToTriangles();
@@ -471,17 +480,6 @@ private:
      * @param rOldModelPart The old model part
      */
     void ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart);
-
-    /**
-     * @brief This function removes the conditions with duplicated geometries
-     */
-    void ClearConditionsDuplicatedGeometries();
-
-    /**
-     * @brief This function creates an before/after remesh output file
-     * @param rOldModelPart The old model part before remesh
-     */
-    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     /**
      * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions

@@ -211,7 +211,7 @@ public:
     /**
      * @brief This sets the output mesh in a .mdpa format
      */
-    void OutputMdpa();
+    void OutputMdpa() override;
 
     /**
      * @brief Ths function removes superfluous (defined by "not belonging to an element") nodes from the model part
@@ -267,6 +267,52 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    /**
+     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
+     */
+    void InitializeMeshData() override;
+
+    /**
+     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
+     */
+    void InitializeSolDataMetric() override;
+
+    /**
+     * @brief We execute the MMg library and build the new model part from the old model part
+     */
+    void ExecuteRemeshing() override;
+
+    /**
+     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     */
+    void InitializeElementsAndConditions() override;
+
+    /**
+     * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
+     * @param PostOutput If the file to save is after or before remeshing
+     */
+    void SaveSolutionToFile(const bool PostOutput) override;
+
+    /**
+     * @brief It frees the memory used during all the process
+     */
+    void FreeMemory() override;
+
+    /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    void ClearConditionsDuplicatedGeometries() override;
+
+    /**
+     * @brief This function creates an before/after remesh output file
+     * @param rOldModelPart The old model part before remesh
+     */
+    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart) override;
+
+    template<typename TPointerType>
+    void SyncMapAcrossRanks(std::unordered_map<IndexType, TPointerType>& rInputMap);
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -303,97 +349,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This converts the framework string to an enum
-     * @param rString The string
-     * @return FrameworkEulerLagrange: The equivalent enum
-     */
-    static inline FrameworkEulerLagrange ConvertFramework(const std::string& rString)
-    {
-        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
-            return FrameworkEulerLagrange::LAGRANGIAN;
-        else if(rString == "Eulerian" || rString == "EULERIAN")
-            return FrameworkEulerLagrange::EULERIAN;
-        else if(rString == "ALE")
-            return FrameworkEulerLagrange::ALE;
-        else
-            return FrameworkEulerLagrange::EULERIAN;
-    }
-
-    /**
-     * @brief This converts the discretization string to an enum
-     * @param rString The string
-     * @return DiscretizationOption: The equivalent enum
-     */
-    static inline DiscretizationOption ConvertDiscretization(const std::string& rString)
-    {
-        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
-            return DiscretizationOption::LAGRANGIAN;
-        else if(rString == "Standard" || rString == "STANDARD")
-            return DiscretizationOption::STANDARD;
-        else if(rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface")
-            return DiscretizationOption::ISOSURFACE;
-        else
-            return DiscretizationOption::STANDARD;
-    }
-
-    /**
-     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
-     */
-    void InitializeMeshData();
-
-    /**
-     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
-     */
-    void InitializeSolDataMetric();
-
-    /**
-     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
-     */
-    void InitializeSolDataDistance();
-
-    /**
-     * @brief We execute the MMg library and build the new model part from the old model part
-     */
-    void ExecuteRemeshing();
-
-    /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
-     */
-    void InitializeElementsAndConditions();
-
-    /**
-     * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
-     * @param PostOutput If the file to save is after or before remeshing
-     */
-    void SaveSolutionToFile(const bool PostOutput);
-
-    /**
-     * @brief It frees the memory used during all the process
-     */
-    void FreeMemory();
-
-    /**
-     * @brief This function removes the conditions with duplicated geometries
-     */
-    void ClearConditionsDuplicatedGeometries();
-
-    /**
-     * @brief This function creates an before/after remesh output file
-     * @param rOldModelPart The old model part before remesh
-     */
-    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
-
-    /**
-     * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions
-     * @param rModelPart The modelpart to be marked
-     */
-    void MarkConditionsSubmodelParts(ModelPart& rModelPart);
-
-    template<typename TPointerType>
-    void SyncMapAcrossRanks(std::unordered_map<IndexType, TPointerType>& rInputMap);
-
 
     ///@}
     ///@name Private  Access

@@ -255,6 +255,8 @@ void ParMmgProcess<TPMMGLibrary>::operator()()
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
 {
+    KRATOS_TRY;
+
     // We create a list of submodelparts to later reassign flags after remesh
     if (mThisParameters["preserve_flags"].GetBool()) {
         mPMmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
@@ -282,12 +284,17 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
 
     SyncMapAcrossRanks(mpRefCondition);
     SyncMapAcrossRanks(mpRefElement);
+
+    KRATOS_CATCH("");
+
 }
 
 template<PMMGLibrary TPMMGLibrary>
 template<typename TPointerType>
 void ParMmgProcess<TPMMGLibrary>::SyncMapAcrossRanks(std::unordered_map<IndexType, TPointerType>& rRefEntityMap)
 {
+    KRATOS_TRY;
+
     const IndexType size = mrThisModelPart.GetCommunicator().GetDataCommunicator().Size();
     const IndexType rank = mrThisModelPart.GetCommunicator().GetDataCommunicator().Rank();
 
@@ -317,6 +324,8 @@ void ParMmgProcess<TPMMGLibrary>::SyncMapAcrossRanks(std::unordered_map<IndexTyp
         mrThisModelPart.GetCommunicator().GetDataCommunicator().Recv(aux_recv_map, 0);
         rRefEntityMap = aux_recv_map;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -325,8 +334,12 @@ void ParMmgProcess<TPMMGLibrary>::SyncMapAcrossRanks(std::unordered_map<IndexTyp
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::InitializeSolDataMetric()
 {
+    KRATOS_TRY;
+
     // We initialize the solution data with the given modelpart
     mPMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -335,6 +348,8 @@ void ParMmgProcess<TPMMGLibrary>::InitializeSolDataMetric()
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
 {
+    KRATOS_TRY;
+
     // Getting the parameters
     const bool save_to_file = mThisParameters["save_external_files"].GetBool();
 
@@ -450,6 +465,9 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     VariableUtils().ResetFlag(OLD_ENTITY, mrThisModelPart.Nodes());
     VariableUtils().ResetFlag(OLD_ENTITY, mrThisModelPart.Conditions());
     VariableUtils().ResetFlag(OLD_ENTITY, mrThisModelPart.Elements());
+
+    KRATOS_CATCH("");
+
 }
 
 /***********************************************************************************/
@@ -460,21 +478,7 @@ void ParMmgProcess<TPMMGLibrary>::InitializeElementsAndConditions()
 {
     KRATOS_TRY;
 
-    const auto& r_process_info = mrThisModelPart.GetProcessInfo();
-
-    // Iterate over conditions
-    auto& r_conditions_array = mrThisModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
-        (it_cond_begin + i)->Initialize(r_process_info);
-
-    // Iterate over elements
-    auto& r_elements_array = mrThisModelPart.Elements();
-    const auto it_elem_begin = r_elements_array.begin();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
-        (it_elem_begin + i)->Initialize(r_process_info);
+    BaseType::InitializeElementsAndConditions();
 
     KRATOS_CATCH("");
 }
@@ -485,6 +489,8 @@ void ParMmgProcess<TPMMGLibrary>::InitializeElementsAndConditions()
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 {
+    KRATOS_TRY;
+
     /* GET RESULTS */
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
     // const int rank = mrThisModelPart.GetCommunicator().MyPID();
@@ -506,6 +512,8 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
         // Writing the colors to a JSON
         AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(file_name, mColors);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -514,6 +522,8 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::FreeMemory()
 {
+    KRATOS_TRY;
+
     // Free the PMMG structures
     mPMmgUtilities.FreeAll();
 
@@ -523,6 +533,8 @@ void ParMmgProcess<TPMMGLibrary>::FreeMemory()
 
     // Clear the colors
     mColors.clear();
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -531,10 +543,14 @@ void ParMmgProcess<TPMMGLibrary>::FreeMemory()
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::OutputMdpa()
 {
+    KRATOS_TRY;
+
     const auto rank = mrThisModelPart.GetCommunicator().MyPID();
     std::ofstream output_file;
     ModelPartIO model_part_io("output_"+std::to_string(rank), IO::WRITE);
     model_part_io.WriteModelPart(mrThisModelPart);
+
+    KRATOS_CATCH("");
 }
 
 
@@ -544,57 +560,11 @@ void ParMmgProcess<TPMMGLibrary>::OutputMdpa()
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::ClearConditionsDuplicatedGeometries()
 {
-    // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
-    typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashMapType;
-    HashMapType faces_map;
+    KRATOS_TRY;
 
-    // Iterate over conditions
-    auto& r_conditions_array = mrThisModelPart.Conditions();
+    BaseType::ClearConditionsDuplicatedGeometries();
 
-    // Reset flag
-    VariableUtils().ResetFlag(TO_ERASE, r_conditions_array);
-
-    // Create map
-    for(auto& r_cond : r_conditions_array) {
-
-        GeometryType& r_geom = r_cond.GetGeometry();
-        DenseVector<IndexType> ids(r_geom.size());
-
-        for(IndexType i = 0; i < ids.size(); ++i) {
-            ids[i] = r_geom[i].Id();
-        }
-
-        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-        std::sort(ids.begin(), ids.end());
-
-        // Insert a pointer to the condition identified by the hash value ids
-        HashMapType::iterator it_face = faces_map.find(ids);
-        if(it_face != faces_map.end() ) { // Already defined vector
-            (it_face->second).push_back(r_cond.Id());
-        } else {
-            std::vector<IndexType> aux_cond_id(1);
-            aux_cond_id[0] = r_cond.Id();
-            faces_map.insert( HashMapType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
-        }
-    }
-
-    // We set the flag
-    SizeType counter = 1;
-    for (auto& r_face : faces_map) {
-        const auto& r_pairs = r_face.second;
-        for (auto i_id : r_pairs) {
-            auto p_cond = mrThisModelPart.pGetCondition(i_id);
-            if (p_cond->Is(MARKER) && counter < r_pairs.size()) { // Only remove dummy conditions repeated
-                p_cond->Set(TO_ERASE);
-                KRATOS_INFO_IF("ParMmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << i_id << " will be removed" << std::endl;
-                ++counter;
-            }
-            counter = 1;
-        }
-    }
-
-    // We remove the conditions marked to be removed
-    mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -603,83 +573,11 @@ void ParMmgProcess<TPMMGLibrary>::ClearConditionsDuplicatedGeometries()
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
-    Model& r_owner_model = mrThisModelPart.GetModel();
-    ModelPart& r_auxiliar_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
-    ModelPart& r_copy_old_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old_Copy", mrThisModelPart.GetBufferSize());
+    KRATOS_TRY;
 
-    Properties::Pointer p_prop_1 = r_auxiliar_model_part.pGetProperties(1);
-    Properties::Pointer p_prop_2 = r_auxiliar_model_part.pGetProperties(2);
+    BaseType::CreateDebugPrePostRemeshOutput(rOldModelPart);
 
-    // We just transfer nodes and elements
-    // Current model part
-    FastTransferBetweenModelPartsProcess transfer_process_current = FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
-    transfer_process_current.Set(MODIFIED); // We replicate, not transfer
-    transfer_process_current.Execute();
-
-    // Iterate over first elements
-    auto& r_elements_array_1 = r_auxiliar_model_part.Elements();
-    const auto it_elem_begin_1 = r_elements_array_1.begin();
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array_1.size()); ++i) {
-        auto it_elem = it_elem_begin_1 + i;
-        it_elem->SetProperties(p_prop_1);
-    }
-    // Old model part
-    FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(r_copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
-    transfer_process_current.Set(MODIFIED); // We replicate, not transfer
-    transfer_process_old.Execute();
-
-    // Iterate over second elements
-    auto& r_elements_array_2 = r_copy_old_model_part.Elements();
-    const auto it_elem_begin_2 = r_elements_array_2.begin();
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array_2.size()); ++i) {
-        auto it_elem = it_elem_begin_2 + i;
-        it_elem->SetProperties(p_prop_2);
-    }
-
-    // Reorder ids to ensure be consecuent
-    auto& r_auxiliar_nodes_array = r_auxiliar_model_part.Nodes();
-    const SizeType auxiliar_number_of_nodes = (r_auxiliar_nodes_array.end() - 1)->Id();
-    auto& r_copy_old_nodes_array = r_copy_old_model_part.Nodes();
-
-    for(IndexType i = 0; i < r_copy_old_nodes_array.size(); ++i) {
-        auto it_node = r_copy_old_nodes_array.begin() + i;
-        it_node->SetId(auxiliar_number_of_nodes + i + 1);
-    }
-
-    // Last transfer
-    FastTransferBetweenModelPartsProcess transfer_process_last = FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, r_copy_old_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
-    transfer_process_last.Set(MODIFIED);
-    transfer_process_last.Execute();
-
-    const int step = mrThisModelPart.GetProcessInfo()[STEP];
-    const double label = static_cast<double>(step);
-    GidIO<> gid_io("BEFORE_AND_AFTER_PMMG_MESH_STEP=" + std::to_string(step), GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
-
-    gid_io.InitializeMesh(label);
-    gid_io.WriteMesh(r_auxiliar_model_part.GetMesh());
-    gid_io.FinalizeMesh();
-    gid_io.InitializeResults(label, r_auxiliar_model_part.GetMesh());
-
-    // Remove auxiliar model parts
-    r_owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Auxiliar");
-    r_owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old_Copy");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<PMMGLibrary TPMMGLibrary>
-void ParMmgProcess<TPMMGLibrary>::MarkConditionsSubmodelParts(ModelPart& rModelPart)
-{
-    // Iterate over submodelparts
-    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
-        VariableUtils().SetFlag(MARKER, true, r_sub_model_part.Conditions());
-        MarkConditionsSubmodelParts(r_sub_model_part);
-    }
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -688,6 +586,8 @@ void ParMmgProcess<TPMMGLibrary>::MarkConditionsSubmodelParts(ModelPart& rModelP
 template<PMMGLibrary TPMMGLibrary>
 const Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
 {
+    KRATOS_TRY;
+
     Parameters default_parameters = BaseType::GetDefaultParameters();
     auto advanced_parameters = default_parameters["advanced_parameters"];
     advanced_parameters.AddInt("number_of_iterations", 4);
@@ -695,6 +595,8 @@ const Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
     advanced_parameters.AddInt("metis_ratio", 82);
 
     return default_parameters;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
