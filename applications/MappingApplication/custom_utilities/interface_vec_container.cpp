@@ -38,7 +38,7 @@ void InterfaceVecContainer<TVector>::UpdateSystemVectorFromModelPart(
     const auto nodes_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
     IndexPartition<>(num_nodes_local).for_each(
-        [&, nodes_begin, this](std::size_t i){
+        [&, this](std::size_t i){
             (*mpInterfaceVector)[i] = (nodes_begin + i)->FastGetSolutionStepValue(rVariable);
         }
     );
@@ -53,7 +53,7 @@ void InterfaceVecContainer<TVector>::UpdateModelPartFromSystemVector(
     const auto nodes_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
     IndexPartition<>(num_nodes_local).for_each(
-        [&, nodes_begin, this](std::size_t i){
+        [&, this](std::size_t i){
             (nodes_begin + i)->FastGetSolutionStepValue(rVariable) = (*mpInterfaceVector)[i];
         }
     );
