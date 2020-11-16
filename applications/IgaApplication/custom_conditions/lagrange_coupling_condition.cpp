@@ -39,7 +39,7 @@ namespace Kratos
         const SizeType number_of_nodes_master = r_geometry_master.size();
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        const SizeType mat_size = 6 * (number_of_nodes_master + number_of_nodes_slave);
+        const SizeType mat_size = 6 * number_of_nodes_master + 3 * number_of_nodes_slave;
 
         // Memory allocation
         if (CalculateStiffnessMatrixFlag) {
@@ -57,6 +57,11 @@ namespace Kratos
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry_master.IntegrationPoints();
+
+        // initial determinant of jacobian 
+        Vector determinat_jacobian_vector_initial(integration_points.size());
+        DeterminantOfJacobianInitial(r_geometry_master, determinat_jacobian_vector_initial);
+
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
             Matrix N_master = r_geometry_master.ShapeFunctionsValues();
@@ -66,8 +71,8 @@ namespace Kratos
             H.resize(number_of_nodes_master + number_of_nodes_slave);
 
             Vector HLambda;
-            HLambda.resize(number_of_nodes_master + number_of_nodes_slave);
-            HLambda = ZeroVector(number_of_nodes_master + number_of_nodes_slave);
+            HLambda.resize(number_of_nodes_master);
+            HLambda = ZeroVector(number_of_nodes_master);
 
             for (IndexType i = 0; i < number_of_nodes_master; i++)
             {
@@ -82,11 +87,11 @@ namespace Kratos
 
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
-            const double determinat_jacobian = r_geometry_master.DeterminantOfJacobian(point_number);
+            const double determinat_jacobian = determinat_jacobian_vector_initial[point_number];
 
             Matrix LHS = ZeroMatrix(mat_size, mat_size);
 
-            for (IndexType i = 0; i < number_of_nodes_master + number_of_nodes_slave; i++) //loop over Lagrange Multipliers
+            for (IndexType i = 0; i < number_of_nodes_master; i++) //loop over Lagrange Multipliers
 	        {
 		        for (IndexType j = 0; j < number_of_nodes_master + number_of_nodes_slave; j++) // lopp over shape functions of displacements
 		        {
@@ -162,14 +167,6 @@ namespace Kratos
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
                 }
-                for (IndexType i = 0; i < number_of_nodes_slave; i++)
-                {
-                    const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                    IndexType index = 3 * (i + 2*number_of_nodes_master + number_of_nodes_slave);
-                    u[index]     = disp[0];
-                    u[index + 1] = disp[1];
-                    u[index + 2] = disp[2];
-                }
 
                 noalias(rRightHandSideVector) -= prod(LHS, u)
                      * integration_weight * determinat_jacobian; 
@@ -177,6 +174,45 @@ namespace Kratos
         }
 
         KRATOS_CATCH("")
+    }
+
+    void LagrangeCouplingCondition::DeterminantOfJacobianInitial(
+        const GeometryType& rGeometry,
+        Vector& rDeterminantOfJacobian)
+    {
+        const IndexType nb_integration_points = rGeometry.IntegrationPointsNumber();
+        if (rDeterminantOfJacobian.size() != nb_integration_points) {
+            rDeterminantOfJacobian.resize(nb_integration_points, false);
+        }
+
+        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
+        const SizeType nb_nodes = rGeometry.PointsNumber();
+
+        Matrix J = ZeroMatrix(working_space_dimension, local_space_dimension);
+        for (IndexType pnt = 0; pnt < nb_integration_points; pnt++)
+        {
+            const Matrix& r_DN_De = rGeometry.ShapeFunctionsLocalGradients()[pnt];
+            J.clear();
+            for (IndexType i = 0; i < nb_nodes; ++i) {
+                const array_1d<double, 3>& r_coordinates = rGeometry[i].GetInitialPosition();
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    const double value = r_coordinates[k];
+                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                        J(k, m) += value * r_DN_De(i, m);
+                    }
+                }
+            }
+
+            //Compute the tangent and  the normal to the boundary vector
+            array_1d<double, 3> local_tangent;
+            GetGeometry().GetGeometryPart(0).Calculate(LOCAL_TANGENT, local_tangent);
+
+            array_1d<double, 3> a_1 = column(J, 0);
+            array_1d<double, 3> a_2 = column(J, 1);
+
+            rDeterminantOfJacobian[pnt] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
+        }
     }
 
     void LagrangeCouplingCondition::CalculateDampingMatrix(
@@ -194,7 +230,7 @@ namespace Kratos
         const SizeType number_of_nodes_master = r_geometry_master.size();
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        const SizeType mat_size = 6 * (number_of_nodes_master + number_of_nodes_slave);
+        const SizeType mat_size = 6 * number_of_nodes_master + 3 * number_of_nodes_slave;
 
         if (rDampingMatrix.size1() != mat_size)
             rDampingMatrix.resize(mat_size, mat_size, false);
@@ -250,7 +286,7 @@ namespace Kratos
 
         const SizeType number_of_control_points_master = r_geometry_master.size();
         const SizeType number_of_control_points_slave = r_geometry_slave.size();
-        const SizeType mat_size = (number_of_control_points_master + number_of_control_points_slave) * 6;
+        const SizeType mat_size = 6* number_of_control_points_master + number_of_control_points_slave * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -284,16 +320,6 @@ namespace Kratos
             rValues[index + 1] = displacement[1];
             rValues[index + 2] = displacement[2];
         }
-
-        for (IndexType i = 0; i < number_of_control_points_slave; ++i)
-        {
-            const array_1d<double, 3 >& displacement = r_geometry_slave[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
-            IndexType index = 3 * (i + 2 * number_of_control_points_master + number_of_control_points_slave);
-
-            rValues[index] = displacement[0];
-            rValues[index + 1] = displacement[1];
-            rValues[index + 2] = displacement[2];
-        }
     }
 
     void LagrangeCouplingCondition::GetFirstDerivativesVector(
@@ -305,7 +331,7 @@ namespace Kratos
 
         const SizeType number_of_control_points_master = r_geometry_master.size();
         const SizeType number_of_control_points_slave = r_geometry_slave.size();
-        const SizeType mat_size = (number_of_control_points_master + number_of_control_points_slave) * 6;
+        const SizeType mat_size = 6*number_of_control_points_master + number_of_control_points_slave*3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -339,16 +365,6 @@ namespace Kratos
             rValues[index + 1] = velocity[1];
             rValues[index + 2] = velocity[2];
         }
-
-        for (IndexType i = 0; i < number_of_control_points_slave; ++i)
-        {
-            const array_1d<double, 3 >& velocity = r_geometry_slave[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_VELOCITY, Step);
-            IndexType index = 3 * (i + 2 * number_of_control_points_master + number_of_control_points_slave);
-
-            rValues[index] = velocity[0];
-            rValues[index + 1] = velocity[1];
-            rValues[index + 2] = velocity[2];
-        }
     }
 
     void LagrangeCouplingCondition::GetSecondDerivativesVector(
@@ -360,7 +376,7 @@ namespace Kratos
 
         const SizeType number_of_control_points_master = r_geometry_master.size();
         const SizeType number_of_control_points_slave = r_geometry_slave.size();
-        const SizeType mat_size = (number_of_control_points_master + number_of_control_points_slave) * 6;
+        const SizeType mat_size = 6*number_of_control_points_master + number_of_control_points_slave*3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -394,16 +410,6 @@ namespace Kratos
             rValues[index + 1] = acceleration[1];
             rValues[index + 2] = acceleration[2];
         }
-
-        for (IndexType i = 0; i < number_of_control_points_slave; ++i)
-        {
-            const array_1d<double, 3 >& acceleration = r_geometry_slave[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_ACCELERATION, Step);
-            IndexType index = 3 * (i + 2 * number_of_control_points_master + number_of_control_points_slave);
-
-            rValues[index] = acceleration[0];
-            rValues[index + 1] = acceleration[1];
-            rValues[index + 2] = acceleration[2];
-        }
     }
 
     void LagrangeCouplingCondition::EquationIdVector(
@@ -418,8 +424,8 @@ namespace Kratos
         const SizeType number_of_nodes_master = r_geometry_master.size();
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        if (rResult.size() != 6 * (number_of_nodes_master + number_of_nodes_slave))
-            rResult.resize(6 * (number_of_nodes_master + number_of_nodes_slave), false);
+        if (rResult.size() != 6 * number_of_nodes_master + 3* number_of_nodes_slave)
+            rResult.resize(6 * number_of_nodes_master + 3* number_of_nodes_slave, false);
 
         for (IndexType i = 0; i < number_of_nodes_master; ++i) {
             const IndexType index = i * 3;
@@ -445,14 +451,6 @@ namespace Kratos
             rResult[index + 2] = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
         }
 
-        for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
-            const IndexType index = 3 * (i + 2 * number_of_nodes_master + number_of_nodes_slave);
-            const auto& r_node = r_geometry_slave[i];
-            rResult[index]     = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
-            rResult[index + 1] = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
-            rResult[index + 2] = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
-        }
-
         KRATOS_CATCH("")
     }
 
@@ -469,7 +467,7 @@ namespace Kratos
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(6 * (number_of_nodes_master + number_of_nodes_slave));
+        rElementalDofList.reserve(6 * number_of_nodes_master + 3* number_of_nodes_slave);
 
         for (IndexType i = 0; i < number_of_nodes_master; ++i) {
             const auto& r_node = r_geometry_master.GetPoint(i);
@@ -487,13 +485,6 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_nodes_master; ++i) {
             const auto& r_node = r_geometry_master.GetPoint(i);
-            rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-            rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
-            rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
-        }
-
-        for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
-            const auto& r_node = r_geometry_slave.GetPoint(i);
             rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
             rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
             rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));

@@ -192,6 +192,10 @@ public:
         const bool CalculateResidualVectorFlag
     );
 
+    void DeterminantOfJacobianInitial(
+        const GeometryType& rGeometry,
+        Vector& rDeterminantOfJacobian);
+
     /**
     * @brief This is called during the assembling process in order to calculate the elemental damping matrix
     * @param rDampingMatrix The elemental damping matrix

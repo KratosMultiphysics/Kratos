@@ -188,6 +188,10 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
+        void DeterminantOfJacobianInitial(
+            const GeometryType& rGeometry,
+            Vector& rDeterminantOfJacobian);
+
         ///@}
         ///@name Check
         ///@{

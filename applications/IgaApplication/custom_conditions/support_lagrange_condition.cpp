@@ -54,6 +54,11 @@ namespace Kratos
         {
             // Integration
             const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+
+            // initial determinant of jacobian 
+            Vector determinat_jacobian_vector_initial(integration_points.size());
+            DeterminantOfJacobianInitial(r_geometry, determinat_jacobian_vector_initial);
+
             for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
             {
                 const Matrix& N = r_geometry.ShapeFunctionsValues();
@@ -70,6 +75,10 @@ namespace Kratos
                     H[i] = N(point_number, i);
                     HLambda[i] = N(point_number, i);
                 }
+
+                // Differential area
+                const double integration_weight = integration_points[point_number].Weight();
+                const double determinat_jacobian = determinat_jacobian_vector_initial[point_number];
 
                 Matrix LHS = ZeroMatrix(mat_size, mat_size);
 
@@ -118,7 +127,7 @@ namespace Kratos
 
                 if (CalculateStiffnessMatrixFlag) {
 
-                    noalias(rLeftHandSideMatrix) += LHS;
+                    noalias(rLeftHandSideMatrix) += LHS* integration_weight * determinat_jacobian;
                 }
 
                 if (CalculateResidualVectorFlag) {
@@ -143,12 +152,52 @@ namespace Kratos
                         u[index + 2] = (disp[2] - displacement[2]);
                     }
 
-                    noalias(rRightHandSideVector) -= prod(LHS, u); 
+                    noalias(rRightHandSideVector) -= prod(LHS, u) * integration_weight * determinat_jacobian; 
                 }
             }
         }
         KRATOS_CATCH("")
     }
+
+    void SupportLagrangeCondition::DeterminantOfJacobianInitial(
+        const GeometryType& rGeometry,
+        Vector& rDeterminantOfJacobian)
+    {
+        const IndexType nb_integration_points = rGeometry.IntegrationPointsNumber();
+        if (rDeterminantOfJacobian.size() != nb_integration_points) {
+            rDeterminantOfJacobian.resize(nb_integration_points, false);
+        }
+
+        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
+        const SizeType nb_nodes = rGeometry.PointsNumber();
+
+        Matrix J = ZeroMatrix(working_space_dimension, local_space_dimension);
+        for (IndexType pnt = 0; pnt < nb_integration_points; pnt++)
+        {
+            const Matrix& r_DN_De = rGeometry.ShapeFunctionsLocalGradients()[pnt];
+            J.clear();
+            for (IndexType i = 0; i < nb_nodes; ++i) {
+                const array_1d<double, 3>& r_coordinates = rGeometry[i].GetInitialPosition();
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    const double value = r_coordinates[k];
+                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                        J(k, m) += value * r_DN_De(i, m);
+                    }
+                }
+            }
+
+            //Compute the tangent and  the normal to the boundary vector
+            array_1d<double, 3> local_tangent;
+            GetGeometry().Calculate(LOCAL_TANGENT, local_tangent);
+
+            array_1d<double, 3> a_1 = column(J, 0);
+            array_1d<double, 3> a_2 = column(J, 1);
+
+            rDeterminantOfJacobian[pnt] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
+        }
+    }
+
 
     int SupportLagrangeCondition::Check(const ProcessInfo& rCurrentProcessInfo)
     {
