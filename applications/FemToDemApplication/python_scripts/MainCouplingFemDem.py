@@ -274,8 +274,8 @@ class MainCoupledFemDem_Solution:
         utils = KratosMultiphysics.VariableUtils()
         elements = self.FEM_Solution.main_model_part.Elements
         nodes = self.FEM_Solution.main_model_part.Nodes
-        
-        utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, 0.0, elements)
+
+        utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, False, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)

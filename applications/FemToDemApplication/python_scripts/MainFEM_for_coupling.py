@@ -142,7 +142,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         nodes = self.main_model_part.Nodes
 
-        utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, 0.0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, False, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)
