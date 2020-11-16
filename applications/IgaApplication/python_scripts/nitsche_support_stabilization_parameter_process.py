@@ -48,7 +48,8 @@ class NitscheSupportStabilizationParameterProcess(KratosMultiphysics.Process):
                     "e_max"                 : 1.0e9,
                     "number_of_eigenvalues" : 10,
                     "subspace_size"         : 10
-            }
+            },
+            "number_of_weak_DBC" : 2
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -88,7 +89,7 @@ class NitscheSupportStabilizationParameterProcess(KratosMultiphysics.Process):
         eigenvalue_vector = current_process_info.GetValue(IGA.EIGENVALUE_VECTOR)
 
         # We compute the new stabilization parameter
-        new_stabilization_parameter = eigenvalue_vector[eigenvalue_vector.Size()-1]*8
+        new_stabilization_parameter = eigenvalue_vector[eigenvalue_vector.Size()-1]*4**self.params["number_of_weak_DBC"].GetInt()
 
         # We set the values
         if self.params["write_on_properties"].GetBool():

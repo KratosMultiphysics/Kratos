@@ -55,7 +55,8 @@ class NitscheStabilizationParameterProcess(KratosMultiphysics.Process):
                     "e_max"                 : 1.0e9,
                     "number_of_eigenvalues" : 10,
                     "subspace_size"         : 10
-            }
+            },
+            "number_of_couplings" : 2
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -126,7 +127,7 @@ class NitscheStabilizationParameterProcess(KratosMultiphysics.Process):
         eigenvalue_vector = current_process_info.GetValue(IGA.EIGENVALUE_VECTOR)
 
         # We compute the new stabilization parameter
-        new_stabilization_parameter = eigenvalue_vector[eigenvalue_vector.Size()-1]*8
+        new_stabilization_parameter = eigenvalue_vector[eigenvalue_vector.Size()-1]*4*self.params["number_of_couplings"].GetInt()
 
         # We set the values
         if self.params["write_on_properties"].GetBool():
@@ -136,5 +137,5 @@ class NitscheStabilizationParameterProcess(KratosMultiphysics.Process):
         else:
             current_process_info.SetValue(IGA.NITSCHE_STABILIZATION_PARAMETER, new_stabilization_parameter)
         
-        # set BUILD_LEVEL to 2 for the next step (calculateall)
+        # set BUILD_LEVEL to 3 for the next step (calculateall)
         self.model_part_condition.ProcessInfo.SetValue(IGA.BUILD_LEVEL,3)
