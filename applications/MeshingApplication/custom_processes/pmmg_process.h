@@ -99,6 +99,8 @@ public:
     /// Pointer definition of ParMmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(ParMmgProcess);
 
+    typedef MmgProcess<MMGLibrary::MMG3D> BaseType;
+
     /// Node definition
     typedef Node <3>                                                   NodeType;
     // Geometry definition
@@ -215,6 +217,11 @@ public:
      * @brief Ths function removes superfluous (defined by "not belonging to an element") nodes from the model part
      */
     void CleanSuperfluousNodes();
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+    */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -347,11 +354,6 @@ private:
     void InitializeSolDataDistance();
 
     /**
-     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
-     */
-    void InitializeDisplacementData();
-
-    /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
     void ExecuteRemeshing();
@@ -373,74 +375,6 @@ private:
     void FreeMemory();
 
     /**
-     * @brief It sets to zero the entity data, using the variables from the orginal model part
-     * @param rNewModelPart The new container
-     * @param rOldModelPart The old container
-     * @tparam TContainerType The container type
-     * @todo Interpolate values in the future
-     */
-    template<class TContainerType>
-    void SetToZeroEntityData(
-        TContainerType& rNewContainer,
-        const TContainerType& rOldContainer
-        )
-    {
-        // Firts we generate the variable list
-        std::unordered_set<std::string> list_variables;
-        const auto it_begin_old = rOldContainer.begin();
-        auto& data = it_begin_old->Data();
-        for(auto i = data.begin() ; i != data.end() ; ++i) {
-            list_variables.insert((i->first)->Name());
-        }
-
-        for (auto& var_name : list_variables) {
-            if (KratosComponents<Variable<bool>>::Has(var_name)) {
-                const Variable<bool>& r_var = KratosComponents<Variable<bool>>::Get(var_name);
-                VariableUtils().SetNonHistoricalVariable(r_var, false, rNewContainer);
-            } else if (KratosComponents<Variable<double>>::Has(var_name)) {
-                const Variable<double>& r_var = KratosComponents<Variable<double>>::Get(var_name);
-                VariableUtils().SetNonHistoricalVariable(r_var, 0.0, rNewContainer);
-            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
-                const Variable<array_1d<double, 3>>& r_var = KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name);
-                const array_1d<double, 3> aux_value = ZeroVector(3);
-                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
-            } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(var_name)) {
-                const Variable<array_1d<double, 4>>& r_var = KratosComponents<Variable<array_1d<double, 4>>>::Get(var_name);
-                const array_1d<double, 4> aux_value = ZeroVector(4);
-                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
-            } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(var_name)) {
-                const Variable<array_1d<double, 6>>& r_var = KratosComponents<Variable<array_1d<double, 6>>>::Get(var_name);
-                const array_1d<double, 6> aux_value = ZeroVector(6);
-                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
-            } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(var_name)) {
-                const Variable<array_1d<double, 9>>& r_var = KratosComponents<Variable<array_1d<double, 9>>>::Get(var_name);
-                const array_1d<double, 9> aux_value = ZeroVector(9);
-                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
-            } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
-                const Variable<Vector>& r_var = KratosComponents<Variable<Vector>>::Get(var_name);
-                Vector aux_value = ZeroVector(it_begin_old->GetValue(r_var).size());
-                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
-            } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
-                const Variable<Matrix>& r_var = KratosComponents<Variable<Matrix>>::Get(var_name);
-                const Matrix& ref_matrix = it_begin_old->GetValue(r_var);
-                Matrix aux_value = ZeroMatrix(ref_matrix.size1(), ref_matrix.size2());
-                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
-            }
-        }
-    }
-
-    /**
-     * @brief This method collapses the prisms elements into triangles
-     */
-    void CollapsePrismsToTriangles();
-
-    /**
-     * @brief This method extrudes the triangles elements into prisms
-     * @param rOldModelPart The old model part
-     */
-    void ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart);
-
-    /**
      * @brief This function removes the conditions with duplicated geometries
      */
     void ClearConditionsDuplicatedGeometries();
@@ -456,11 +390,6 @@ private:
      * @param rModelPart The modelpart to be marked
      */
     void MarkConditionsSubmodelParts(ModelPart& rModelPart);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     template<typename TPointerType>
     void SyncMapAcrossRanks(std::unordered_map<IndexType, TPointerType>& rInputMap);

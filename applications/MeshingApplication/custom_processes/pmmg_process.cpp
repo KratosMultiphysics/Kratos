@@ -686,73 +686,15 @@ void ParMmgProcess<TPMMGLibrary>::MarkConditionsSubmodelParts(ModelPart& rModelP
 /***********************************************************************************/
 
 template<PMMGLibrary TPMMGLibrary>
-Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters()
+const Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "filename"                             : "out",
-        "discretization_type"                  : "Standard",
-        "isosurface_parameters"                :
-        {
-            "isosurface_variable"              : "DISTANCE",
-            "nonhistorical_variable"           : false,
-            "remove_internal_regions"          : false
-        },
-        "framework"                            : "Eulerian",
-        "internal_variables_parameters"        :
-        {
-            "allocation_size"                      : 1000,
-            "bucket_size"                          : 4,
-            "search_factor"                        : 2,
-            "interpolation_type"                   : "LST",
-            "internal_variable_interpolation_list" :[]
-        },
-        "force_sizes"                          :
-        {
-            "force_min"                           : false,
-            "minimal_size"                        : 0.1,
-            "force_max"                           : false,
-            "maximal_size"                        : 10.0
-        },
-        "advanced_parameters"                  :
-        {
-            "force_hausdorff_value"               : false,
-            "hausdorff_value"                     : 0.0001,
-            "no_move_mesh"                        : false,
-            "no_surf_mesh"                        : false,
-            "no_insert_mesh"                      : false,
-            "no_swap_mesh"                        : false,
-            "normal_regularization_mesh"          : false,
-            "deactivate_detect_angle"             : false,
-            "force_gradation_value"               : false,
-            "gradation_value"                     : 1.3,
-            "niter"                               : 4,
-            "meshSize"                            : 30000,
-            "metisRatio"                          : 82,
-            "hgradreq"                            : 5.0,
-            "APImode"                             : 0
-        },
-        "collapse_prisms_elements"             : false,
-        "save_external_files"                  : false,
-        "save_colors_files"                    : false,
-        "save_mdpa_file"                       : false,
-        "max_number_of_searchs"                : 1000,
-        "preserve_flags"                       : true,
-        "interpolate_non_historical"           : true,
-        "extrapolate_contour_values"           : true,
-        "surface_elements"                     : false,
-        "search_parameters"                    : {
-            "allocation_size"                     : 1000,
-            "bucket_size"                         : 4,
-            "search_factor"                       : 2.0
-        },
-        "echo_level"                           : 3,
-        "debug_result_mesh"                    : false,
-        "step_data_size"                       : 0,
-        "initialize_entities"                  : true,
-        "remesh_at_non_linear_iteration"       : false,
-        "buffer_size"                          : 0
-    })" );
+    Parameters default_parameters = BaseType::GetDefaultParameters();
+    auto advanced_parameters = default_parameters["advanced_parameters"];
+    advanced_parameters.AddInt("niter", 4);
+    advanced_parameters.AddInt("meshSize", 30000);
+    advanced_parameters.AddInt("metisRatio", 82);
+    advanced_parameters.AddDouble("hgradreq", 5.0);
+    advanced_parameters.AddInt("APImode", 0);
 
     return default_parameters;
 }
