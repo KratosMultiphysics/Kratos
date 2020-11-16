@@ -626,6 +626,39 @@ namespace Kratos
 		mC(6, 6) = mC(7, 7) = fac3;
 	}
 
+
+
+	BoundedMatrix<double,3,2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director)
+	{
+
+		double st = (director[2] > 0) ? 1 : ((director[2] < 0) ? -1 : 1);
+		double s = 1 / (1 + fabs(director[2]));
+
+		array_1d<double, 2 > y;
+		y[0] = director[0] * s;
+		y[1] = director[1] * s;
+		double ys1 = y[0] * y[0];
+		double ys2 = y[1] * y[1];
+		double s2 = 2 * (1 + ys1 + ys2);
+
+		BoundedMatrix<double, 3, 2> BLA;
+
+		BLA(0, 0) =     s2 - 4 * ys1;   BLA(0, 1) = -4 * y(0) * y(1);
+		BLA(1, 0) = -4 * y(0) * y(1);   BLA(1, 1) =     s2 - 4 * ys2;
+	    BLA(2, 0) =   -st * 4 * y(0);   BLA(2, 1) =   -st * 4 * y(1);
+		std::cout << "BLAInternal: "<<BLA << std::endl;
+		std::cout << "directorInternal: "<< director << std::endl;
+		std::cout << "st: "<< st << std::endl;
+		std::cout << "ys1: "<< ys1 << std::endl;
+		std::cout << "ys2: "<< ys2 << std::endl;
+		const double normcol0 = norm_2(column(BLA, 0));
+		const double normcol1 = norm_2(column(BLA, 1));
+		column(BLA, 0) /= normcol0;
+		column(BLA, 1) /= normcol1;
+
+		return BLA;
+	}
+
 	//void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) //update before next iteration
 	//{
 	//	for (int i=1 ; i< GetGeometry().size(); i++)  //update for each node after every solution step

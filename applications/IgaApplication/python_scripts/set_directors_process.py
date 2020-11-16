@@ -86,18 +86,23 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
 
         return BLA
 
-    def ExecuteFinalizeSolutionStep(self):
+    def FinalizeNonLinearIteration(self):
         for node in self.model_part.Nodes:
             director = node.GetValue(IGA.DIRECTOR)
-            inc2d = node.GetSolutionStepValue(IGA.DIRECTORINC)
+            inc2d3 = node.GetSolutionStepValue(IGA.DIRECTORINC)
+            inc2d = KratosMultiphysics.Vector(2) 
+            inc2d[0] =inc2d3[0]
+            inc2d[1] =inc2d3[1]
             print(inc2d)
+            print(director)
             BLA = node.GetValue(IGA.DIRECTORTANGENTSPACE)
             print(BLA)
 
-            inc3d = BLA.transpose() * inc2d
-
+            inc3d = BLA * inc2d
+            print(inc3d)
             director = director + inc3d
             director = director / math.sqrt(director[0] * director[0] + director[1] * director[1] + director[2] * director[2])
-
+            print("director",director)
+      
             node.SetValue(IGA.DIRECTOR, director)
             node.SetValue(IGA.DIRECTORTANGENTSPACE, SetDirectorsProcess.TangentSpaceFromStereographicProjection(director))
