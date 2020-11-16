@@ -81,27 +81,42 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         pmmg_process = KratosMultiphysics.MeshingApplication.ParMmgProcess3D(main_model_part.GetRootModelPart(), pmmg_parameters)
         pmmg_process.Execute()
 
-        pmmg_process.OutputMdpa()
-
-    # We check the solution
+        # Checking color element and condition maps.
         check_parameters = KratosMultiphysics.Parameters("""
         {
-            "reference_file_name"   : "reference_file_name",
+            "reference_file_name"   : "parmmg_eulerian_test/cond_ref_map.json",
             "output_file_name"      : "output_file_name",
             "comparison_type"       : "deterministic"
 
         }
         """)
-        check_parameters["reference_file_name"].SetString("parmmg_eulerian_test/parmmg_sphere_reference_mdpa_rank_"+str(communicator.Rank())+".mdpa")
-        check_parameters["output_file_name"].SetString("output_"+str(communicator.Rank())+".mdpa")
-        check_files = CompareTwoFilesCheckProcess(check_parameters)
 
+        check_parameters["output_file_name"].SetString("out_step=0_"+str(communicator.Rank())+".cond.ref.json")
+        check_files = CompareTwoFilesCheckProcess(check_parameters)
         check_files.ExecuteInitialize()
         check_files.ExecuteBeforeSolutionLoop()
         check_files.ExecuteInitializeSolutionStep()
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
 
+        check_parameters = KratosMultiphysics.Parameters("""
+        {
+            "reference_file_name"   : "parmmg_eulerian_test/elem_ref_map.json",
+            "output_file_name"      : "output_file_name",
+            "comparison_type"       : "deterministic"
+
+        }
+        """)
+
+        check_parameters["output_file_name"].SetString("out_step=0_"+str(communicator.Rank())+".elem.ref.json")
+        check_files = CompareTwoFilesCheckProcess(check_parameters)
+        check_files.ExecuteInitialize()
+        check_files.ExecuteBeforeSolutionLoop()
+        check_files.ExecuteInitializeSolutionStep()
+        check_files.ExecuteFinalizeSolutionStep()
+        check_files.ExecuteFinalize()
+
+        pmmg_process.OutputMdpa()
 
         # We check the solution
         check_parameters = KratosMultiphysics.Parameters("""
@@ -123,7 +138,9 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         check_files.ExecuteFinalize()
 
 
-        kratos_utilities.DeleteFileIfExisting("output_"+str(communicator.Rank())+".mdpa")
+        for file_name in os.listdir(os.getcwd()):
+            if file_name.endswith(".json") or file_name.endswith(".mdpa"):
+                kratos_utilities.DeleteFileIfExisting(file_name)
         kratos_utilities.DeleteTimeFiles(os.getcwd())
 
 

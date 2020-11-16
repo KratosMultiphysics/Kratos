@@ -493,6 +493,7 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 
     /* GET RESULTS */
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
+    const int rank = mrThisModelPart.GetCommunicator().MyPID();
     const std::string file_name = mFilename + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
 
     // TO-DO Using OutputMesh and OutputSol
@@ -505,10 +506,10 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files
-        mPMmgUtilities.OutputReferenceEntitities(file_name, mpRefCondition, mpRefElement);
+        mPMmgUtilities.OutputReferenceEntitities(file_name+"_"+std::to_string(rank), mpRefCondition, mpRefElement);
 
         // Writing the colors to a JSON
-        AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(file_name, mColors);
+        AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(file_name+"_"+std::to_string(rank), mColors);
     }
 
     KRATOS_CATCH("");
