@@ -135,15 +135,9 @@ class TimeBasedAsciiFileWriterUtility(object):
         if not self.file_name.endswith(".dat"):
             self.file_name += ".dat"
 
-        raw_path, raw_file_name = os.path.split(self.file_name)
+        _, raw_file_name = os.path.split(self.file_name)
 
-        if self.output_path == "" and pathlib.PurePath(raw_path).is_absolute():
-            # Required to run with PyCOMPSs in distributed environement
-            # Absolute path already contained in "file_name"
-            self.output_path = pathlib.Path.cwd()
-        else:
-            # default behaviour
-            self.file_name = str(pathlib.PurePath(self.output_path,raw_file_name))
+        self.file_name = str(pathlib.PurePath(self.output_path,raw_file_name))
 
         # make sure that the path to the desired output folder exists
         if not os.path.isdir(self.output_path) and not self.output_path == "":
