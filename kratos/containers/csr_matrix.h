@@ -88,16 +88,34 @@ public:
         SetValue(0.0);
     }
 
+    explicit CsrMatrix(const CsrMatrix<TDataType,TIndexType>& rOtherMatrix)
+    {
+        mRowIndices.resize(rOtherMatrix.mRowIndices.size(),false);
+        mColIndices.resize(rOtherMatrix.mColIndices.size(),false);
+        mValuesVector.resize(rOtherMatrix.mValuesVector.size(),false);
+        mNrows = rOtherMatrix.mNrows;
+        mNcols = rOtherMatrix.mNcols;
+
+        IndexPartition<IndexType>(mRowIndices.size()).for_each( [&](IndexType i){
+            mRowIndices[i] = rOtherMatrix.mRowIndices[i];
+        });
+
+        IndexPartition<IndexType>(mColIndices.size()).for_each( [&](IndexType i){
+            mColIndices[i] = rOtherMatrix.mColIndices[i];
+        });
+
+        IndexPartition<IndexType>(mValuesVector.size()).for_each( [&](IndexType i){
+            mValuesVector[i] = rOtherMatrix.mValuesVector[i];
+        });
+    }
+
+
     /// Destructor.
     virtual ~CsrMatrix(){}
 
-    /// Assignment operator. TODO: decide if we do want to allow it
-    CsrMatrix& operator=(CsrMatrix const& rOther)=delete;
-    // {
-    //     this->AddEntries(rOther.GetGraph());
-    //     return *this;
-    // }
-
+    /// Assignment operator. 
+    CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
+ 
     ///@}
     ///@name Operators
     ///@{
@@ -230,30 +248,13 @@ public:
     //-
     //*
 
-    template<class TOutputVector, class TInputVector>
-    static void MultAndAdd(
-        TOutputVector& rOutputVector,
-        const CsrMatrix& rA,
-        const TInputVector& rInputVector
-    )
-    {
-        IndexPartition<IndexType>(rA.index1_data().size()-1).for_each([&](IndexType i)
-        {
-            for(IndexType k=rA.index1_data()[i]; k<rA.index1_data()[i+1]; ++k)
-            {
-                auto j = rA.index2_data()[k];
-                rOutputVector[i] += rA.value_data()[k]*rInputVector[j];
-            }
-        });
-    }
-
-    void reserve(IndexType nrows, IndexType nnz){
-        index1_data().resize(nrows+1,false);
-        if(nrows > 0)
+    void reserve(IndexType NRows, IndexType nnz){
+        index1_data().resize(NRows+1,false);
+        if(NRows > 0)
             index1_data()[0] = 0;
         index2_data().resize(nnz,false);
         value_data().resize(nnz,false);
-        mNrows = nrows;
+        mNrows = NRows;
     }
 
     MatrixMapType ToMap() const

@@ -190,6 +190,50 @@ public:
         mpVectorImporter.swap(pimporter);
     }
 
+    explicit DistributedCsrMatrix(const DistributedCsrMatrix& rOtherMatrix)
+        :
+        mrComm(rOtherMatrix.mrComm),
+        mpRowNumbering(Kratos::make_unique< DistributedNumbering<IndexType> >( rOtherMatrix.GetRowNumbering())),
+        mpColNumbering(Kratos::make_unique< DistributedNumbering<IndexType> >( rOtherMatrix.GetColNumbering())),
+        mDiagBlock(rOtherMatrix.mDiagBlock),
+        mOffDiagBlock(rOtherMatrix.mOffDiagBlock),
+        mNonLocalData(rOtherMatrix.mNonLocalData),
+        msend_ij(rOtherMatrix.msend_ij),
+        mrecv_ij(rOtherMatrix.mrecv_ij),
+        mOffDiagonalLocalIds(rOtherMatrix.mOffDiagonalLocalIds),
+        mOffDiagonalGlobalIds(rOtherMatrix.mOffDiagonalGlobalIds),
+        mfem_assemble_colors(rOtherMatrix.mfem_assemble_colors),
+        mpVectorImporter(rOtherMatrix.mpVectorImporter)
+    {
+        //compute direct pointers to data 
+        for(auto color : mfem_assemble_colors)
+        {
+            if(color >= 0) //-1 would imply no communication
+            { 
+                const auto& send_ij = msend_ij[color];
+                const auto& recv_ij = mrecv_ij[color];
+
+                auto& direct_senddata_access = mPointersToRecvValues[color];
+                for(IndexType i=0; i<send_ij.size(); i+=2)
+                {
+                    IndexType I = recv_ij[i];
+                    IndexType J = recv_ij[i+1];
+                    auto& value = GetNonLocalDataByGlobalId(I,J);
+                    direct_senddata_access.push_back(&value);
+                }
+                
+                auto& direct_recvdata_access = mPointersToRecvValues[color];
+                for(IndexType k=0; k<recv_ij.size(); k+=2)
+                {
+                    IndexType I = recv_ij[k];
+                    IndexType J = recv_ij[k+1];
+                    auto& value = GetLocalDataByGlobalId(I,J);
+                    direct_recvdata_access.push_back(&value);
+                }
+            }
+        }
+    }
+
     /// Destructor.
     virtual ~DistributedCsrMatrix(){}
 
@@ -205,7 +249,6 @@ public:
     ///@{
     void Clear()
     {
-
     }
 
     inline const DistributedNumbering<IndexType>& GetRowNumbering() const
@@ -300,6 +343,7 @@ public:
     //-
     //*
 
+    // y += A*x  -- where A is *this  
    void SpMV(DistributedSystemVector<TDataType,TIndexType>& y,
               const DistributedSystemVector<TDataType,TIndexType>& x) const
     {
@@ -345,6 +389,9 @@ public:
         //communicate data to finalize the assembly
         auto& rComm = GetComm();
 
+        std::vector<TDataType> send_data;
+        std::vector<TDataType> recv_data;
+
         //sendrecv data
         for(auto color : mfem_assemble_colors)
         {
@@ -353,34 +400,19 @@ public:
                 const auto& direct_senddata_access = mPointersToSendValues[color];
                 const auto& direct_recvdata_access = mPointersToRecvValues[color];
 
-                auto& send_data = msend_buffers[color];
+                send_data.resize(direct_senddata_access.size());
+                recv_data.resize(direct_recvdata_access.size());
                 
                 for(IndexType i=0; i<send_data.size(); ++i)
                 {
                     send_data[i] = *(direct_senddata_access[i]);
-
-                    //slower but more understandable version TODO remove
-                    // IndexType I = mIndicesToSendValues[color][i].first;
-                    // IndexType J = mIndicesToSendValues[color][i].second;
-                    // send_data[i] = GetNonLocalDataByGlobalId(I,J);
-
-
                 }
-                //NOTE: this can be made nonblocking 
-                auto& recv_data = mrecv_buffers[color];
-                rComm.SendRecv(send_data, color, 0, recv_data, color, 0); //TODO, we know all the sizes, we shall use that!
+
+                rComm.SendRecv(send_data, color, 0, recv_data, color, 0); 
 
                 for(IndexType i=0; i<recv_data.size(); ++i)
                 {
                     *(direct_recvdata_access[i]) += recv_data[i]; //here we assemble the nonlocal contribution to the local data
-
-                    //slower but more understandable version TODO remove
-                    // IndexType I = mIndicesToRecvValues[color][i].first;
-                    // IndexType J = mIndicesToRecvValues[color][i].second;
-                    // if(I == 33 && J == 33) std::cout << "recv entry 33,33 :" << recv_data[i] << std::endl;
-                    // GetLocalDataByGlobalId(I,J) += recv_data[i];
-
-                    
                 }
             }
         }
@@ -599,7 +631,7 @@ protected:
             {
                 const auto& send_graph = nonlocal_graphs[color];
                 auto& direct_senddata_access = mPointersToSendValues[color];
-                std::vector<IndexType> send_ij;
+                auto& send_ij = msend_ij[color];
 
                 for(auto row_it=send_graph.begin(); row_it!=send_graph.end(); ++row_it)
                 {
@@ -609,15 +641,14 @@ protected:
                     for(auto J : *row_it){
                         TDataType& value = mNonLocalData[std::make_pair(remote_global_I,J)]; //here we create the I,J entry in the nonlocal data (entry was there in the graph!)
                         direct_senddata_access.push_back(&value); //storing a direct pointer to the value contained in the data structure
-                    //    indices_senddata_access.push_back(std::make_pair(remote_global_I,J)); //TODO: remove, for debug
-
                         send_ij.push_back(remote_global_I);
                         send_ij.push_back(J);
                     }
                 }
                 
                 //NOTE: this can be made nonblocking 
-                const auto recv_ij = rComm.SendRecv(send_ij, color, color);
+                mrecv_ij[color] = rComm.SendRecv(send_ij, color, color);
+                auto& recv_ij = mrecv_ij[color];
 
                 auto& direct_recvdata_access = mPointersToRecvValues[color];
 
@@ -626,14 +657,8 @@ protected:
                     IndexType I = recv_ij[k];
                     IndexType J = recv_ij[k+1];
                     auto& value = GetLocalDataByGlobalId(I,J);
-                    //      indices_recvdata_access.push_back(std::make_pair(I,J)); //TODO: remove, for debug
                     direct_recvdata_access.push_back(&value);
                 }
-
-                //resizing buffers to be later used for sending and receiving
-                msend_buffers[color].resize(direct_senddata_access.size());
-                mrecv_buffers[color].resize(direct_recvdata_access.size());
-
             }
         }
     }
@@ -680,14 +705,10 @@ private:
     DenseVector<IndexType> mOffDiagonalGlobalIds; //usage: mOffDiagonalGlobalIds[local_id] contains the global_id associated
 
     std::vector<int> mfem_assemble_colors; //coloring of communication
+    std::unordered_map< unsigned int, std::vector<IndexType> > mrecv_ij; //recv_ij contains i,j to receive one after the other
+    std::unordered_map< unsigned int, std::vector<IndexType> > msend_ij; //recv_ij contains i,j to receive one after the other
     std::unordered_map< unsigned int, std::vector<TDataType*> > mPointersToRecvValues; //this contains direct pointers into the data contained in mNonLocalData, prepared so to speed up communications
     std::unordered_map< unsigned int, std::vector<TDataType*> > mPointersToSendValues; //this contains direct pointers into mDiagBlock and mOffDiagBlock, prepared so to speed up communication
-    
-    // std::unordered_map< unsigned int, std::vector<std::pair<IndexType,IndexType>>> mIndicesToSendValues; //TODO remove, for debug
-    // std::unordered_map< unsigned int, std::vector<std::pair<IndexType,IndexType>>> mIndicesToRecvValues; //TODO remove, for debug
-
-    std::unordered_map< unsigned int, std::vector<TDataType> > msend_buffers;
-    std::unordered_map< unsigned int, std::vector<TDataType> > mrecv_buffers;
 
     std::unique_ptr<DistributedVectorImporter<double,IndexType>> mpVectorImporter;
 

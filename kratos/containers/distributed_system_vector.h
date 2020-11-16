@@ -129,7 +129,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    const DataCommunicator& GetComm(){
+    const DataCommunicator& GetComm() const{
         return mrComm;
     }
 

@@ -156,7 +156,7 @@ public:
     void Clear()
     {
         mLocalGraph.Clear();
-        //mNonLocalGraphs.clear();
+        mNonLocalGraphs.clear();
     }
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
@@ -229,17 +229,9 @@ public:
         }
     }
 
-    void AddEntries(DistributedSparseGraph& rOtherGraph)
-    {
-        //TODO
-    }
-
-    // void AddEntries(const SparseGraph& rOtherGraph)
+    // void AddEntries(DistributedSparseGraph& rOtherGraph)
     // {
-    //     for(auto it = rOtherGraph.begin(); it!=rOtherGraph.end(); ++it)
-    //     {
-    //         AddEntries(it.GetRowIndex(), *it);
-    //     }
+    //     //TODO
     // }
 
     void Finalize()
