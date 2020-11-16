@@ -493,11 +493,9 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 
     /* GET RESULTS */
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
-    // const int rank = mrThisModelPart.GetCommunicator().MyPID();
     const std::string file_name = mFilename + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
-    // const std::string file_name = mFilename + "_rank_" + std::to_string(rank) + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
 
-    // Automatically save the mesh
+    // TO-DO Using OutputMesh and OutputSol
     // if (PostOutput) {
     //     mPMmgUtilities.OutputMesh(file_name);
 
