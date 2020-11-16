@@ -92,11 +92,11 @@ GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemD
 {
     // DO NOT ADD DOFS HERE!!!
     if (mThresholds.size() != NumberOfEdges)
-        mThresholds.resize(NumberOfEdges);
+        mThresholds.resize(NumberOfEdges, false);
     noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
     if (mDamages.size() != NumberOfEdges)
-        mDamages.resize(NumberOfEdges);
+        mDamages.resize(NumberOfEdges, false);
     noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 
@@ -108,11 +108,11 @@ GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemD
 {
     //DO NOT ADD DOFS HERE!!!
     if (mThresholds.size() != NumberOfEdges)
-        mThresholds.resize(NumberOfEdges);
+        mThresholds.resize(NumberOfEdges, false);
     noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
     if (mDamages.size() != NumberOfEdges)
-        mDamages.resize(NumberOfEdges);
+        mDamages.resize(NumberOfEdges, false);
     noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 
