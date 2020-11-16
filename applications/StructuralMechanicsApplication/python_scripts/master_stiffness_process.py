@@ -33,7 +33,8 @@ class MasterStiffnessMatrixProcess(KratosMultiphysics.Process):
         
         default_parameters = KratosMultiphysics.Parameters("""{
                 "model_part_list": ["Surface_name_1","Surface_name_2"],
-                "list_of_master_coordinates": [[0.0,0.0,0.0],[0.0,0.0,0.0]]
+                "list_of_master_coordinates": [[0.0,0.0,0.0],[1.0,0.0,0.0]],
+                "eps_perturbation": 1e-5
             }""")
 
         # Add missing settings that the user did not provide but that
@@ -42,12 +43,14 @@ class MasterStiffnessMatrixProcess(KratosMultiphysics.Process):
 
         self.parameters = parameters
         self.model_part = model["Structure"]
+        self.eps_perturbation = self.parameters["eps_perturbation"].GetDouble()
         self.Value()
-        self.inf_rot = 1e-5#Infinitesimal rotation
+        self.inf_rot = 1e-5 #Infinitesimal rotation
         self.master_coor = self.parameters["list_of_master_coordinates"].GetMatrix()
         self.slave_surface_name = self.parameters["model_part_list"].GetStringArray()
         self.number_master_nodes = len(self.slave_surface_name)
         self.dim = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        
     
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -76,7 +79,7 @@ class MasterStiffnessMatrixProcess(KratosMultiphysics.Process):
                 minimum = min(node.X,node.Y,node.Z)
             if max(node.X,node.Y,node.Z) > maximum:
                 maximum = max(node.X,node.Y,node.Z)
-        self.value = 1e-5*(maximum - minimum) 
+        self.value = self.eps_perturbation*(maximum - minimum) 
 
     def ChangeVectorValues(self):
         """
@@ -178,15 +181,10 @@ class MasterStiffnessMatrixProcess(KratosMultiphysics.Process):
                 r[i,j]=slave_undeformed_coordinates[i,j]-self.master_coor[self.n,j] # Assign position vector r
 
         #Calculating the moments about the master node
-        moments = KratosMultiphysics.Matrix(slave_num_nodes,self.dim)
-
-        #Cross product (Obtaining moments)
-        for i in range(slave_num_nodes):
-            moments[i,0] = r[i,1]*slave_reaction[i,2]-r[i,2]*slave_reaction[i,1] #Moments x
-            moments[i,1] = r[i,2]*slave_reaction[i,0]-r[i,0]*slave_reaction[i,2] #Moments y
-            moments[i,2] = r[i,0]*slave_reaction[i,1]-r[i,1]*slave_reaction[i,0] #Moments z
+        moments = self.Cross_product(r,slave_reaction,slave_num_nodes)
         
         resultant = KratosMultiphysics.Vector(2*self.dim,0)
+
         for i in range(slave_num_nodes):
             for j in range(self.dim):
                 resultant[j]+=slave_reaction[i,j] #Resultant forces assembling
@@ -200,4 +198,14 @@ class MasterStiffnessMatrixProcess(KratosMultiphysics.Process):
         if self.DoF==5:
             KratosMultiphysics.Logger.Print(self.slave_surface_name[0],"\n",self.master_stiffness, label="Master Stiffness Matrix")
         
-        
+    def Cross_product(self,a,b,n):
+        """
+        Obtains the dot product (used to obtaine the moments).
+        """
+        c = KratosMultiphysics.Matrix(n,self.dim)
+        for i in range(n):
+            c[i,0] = a[i,1]*b[i,2]-a[i,2]*b[i,1] #Moments x
+            c[i,1] = a[i,2]*b[i,0]-a[i,0]*b[i,2] #Moments y
+            c[i,2] = a[i,0]*b[i,1]-a[i,1]*b[i,0] #Moments z
+        return c
+    

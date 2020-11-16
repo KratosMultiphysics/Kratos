@@ -51,7 +51,8 @@
                         0.1,
                         0.025
                     ]
-                ]
+                ],
+                "eps_perturbation" : 1e-5
             }
         }],
         "loads_process_list"       : [],
