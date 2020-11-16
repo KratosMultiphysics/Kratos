@@ -287,6 +287,12 @@ public:
         ProcessInfo& rCurrentProcessInfo
     );
 
+    /// Calculates Initial Stiffness Matrix for Damping
+    void CalculateInitialStiffnessMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    );
+
     /**
     * @brief This is called during the assembling process in order to calculate the elemental damping matrix
     * @param rDampingMatrix The elemental damping matrix

@@ -103,12 +103,12 @@ namespace Kratos
         rKinematicVariables.a_ab_covariant[2] = rKinematicVariables.a1[0] * rKinematicVariables.a2[0] + rKinematicVariables.a1[1] * rKinematicVariables.a2[1] + rKinematicVariables.a1[2] * rKinematicVariables.a2[2];
 
         //Compute the tangent and  the normal to the boundary vector
-        array_1d<double, 2> local_tangents = GetProperties()[LOCAL_TANGENTS_MASTER];
+        array_1d<double, 3> local_tangent;
+        GetGeometry().Calculate(LOCAL_TANGENT, local_tangent);
 
-        rKinematicVariables.t = local_tangents[0]*g1 + local_tangents[1]*g2;
-        rKinematicVariables.t = rKinematicVariables.t/norm_2(rKinematicVariables.t);
+        rKinematicVariables.t = local_tangent[0]*g1 + local_tangent[1]*g2;
 
-        MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t, rKinematicVariables.a3);
+        MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t/norm_2(rKinematicVariables.t), rKinematicVariables.a3);
 
         // transform the normal into the contavariant basis
         rKinematicVariables.n_contravariant[0] = rKinematicVariables.a1[0]*rKinematicVariables.n[0] + rKinematicVariables.a1[1]*rKinematicVariables.n[1] + rKinematicVariables.a1[2]*rKinematicVariables.n[2];
@@ -320,194 +320,201 @@ namespace Kratos
             rRightHandSideVector = ZeroVector(mat_size);
         }
 
-        // Integration
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-
-        const IntegrationMethod integration_method = r_geometry.GetDefaultIntegrationMethod();
-        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geometry.ShapeFunctionsLocalGradients(integration_method);
-
-        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
-        
-        // Prepare memory
-        if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
-            m_A_ab_covariant_vector.resize(r_number_of_integration_points);
-        if (m_dA_vector.size() != r_number_of_integration_points)
-            m_dA_vector.resize(r_number_of_integration_points);
-        if (m_T_vector.size() != r_number_of_integration_points)
-            m_T_vector.resize(r_number_of_integration_points);
-        if (m_T_hat_vector.size() != r_number_of_integration_points)
-            m_T_hat_vector.resize(r_number_of_integration_points);
-        if (m_reference_contravariant_base.size() != r_number_of_integration_points)
-            m_reference_contravariant_base.resize(r_number_of_integration_points);
-        if (m_n_contravariant_vector.size() != r_number_of_integration_points)
-            m_n_contravariant_vector.resize(r_number_of_integration_points);
-
-        for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
+        if (Has(DISPLACEMENT))
         {
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-        
-            //Compute Kinematics Reference
-            KinematicVariables kinematic_variables_reference(
-                r_geometry.WorkingSpaceDimension());
+            // Integration
+            const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
 
-            CalculateKinematics(
-                point_number,
-                kinematic_variables_reference,shape_functions_gradients_i, ConfigurationType::Reference);           
+            const IntegrationMethod integration_method = r_geometry.GetDefaultIntegrationMethod();
+            const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+
+            const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
             
-            m_A_ab_covariant_vector[point_number] = kinematic_variables_reference.a_ab_covariant;
+            // Prepare memory
+            if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
+                m_A_ab_covariant_vector.resize(r_number_of_integration_points);
+            if (m_dA_vector.size() != r_number_of_integration_points)
+                m_dA_vector.resize(r_number_of_integration_points);
+            if (m_T_vector.size() != r_number_of_integration_points)
+                m_T_vector.resize(r_number_of_integration_points);
+            if (m_T_hat_vector.size() != r_number_of_integration_points)
+                m_T_hat_vector.resize(r_number_of_integration_points);
+            if (m_reference_contravariant_base.size() != r_number_of_integration_points)
+                m_reference_contravariant_base.resize(r_number_of_integration_points);
+            if (m_n_contravariant_vector.size() != r_number_of_integration_points)
+                m_n_contravariant_vector.resize(r_number_of_integration_points);
 
-            m_dA_vector[point_number] = kinematic_variables_reference.dA;
-
-            m_n_contravariant_vector[point_number] = kinematic_variables_reference.n_contravariant;
-
-            CalculateTransformation(kinematic_variables_reference, m_T_vector[point_number], m_T_hat_vector[point_number], m_reference_contravariant_base[point_number]);
-
-            // Compute Kinematics Actual
-            KinematicVariables kinematic_variables(
-                r_geometry.WorkingSpaceDimension());
-            
-            CalculateKinematics(
-                point_number,
-                kinematic_variables,shape_functions_gradients_i, ConfigurationType::Current);
-            
-            // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters constitutive_law_parameters(
-                r_geometry, GetProperties(), rCurrentProcessInfo);
-
-            ConstitutiveVariables constitutive_variables_membrane(3);
-
-            CalculateConstitutiveVariables(
-                point_number,
-                kinematic_variables,
-                constitutive_variables_membrane,
-                constitutive_law_parameters,
-                ConstitutiveLaw::StressMeasure_PK2);
-
-            //Define Prestress
-            array_1d<double, 3> prestress = GetProperties()[PRESTRESS];
-            double thickness = GetProperties()[THICKNESS];
-
-            PrestresstransVariables prestresstrans_variables(3);
-
-            CalculateTransformationmatrixPrestress(
-                kinematic_variables,
-                prestresstrans_variables 
-            );
-
-            array_1d<double, 3> transformed_prestress = prod(prestresstrans_variables.Tpre, prestress);
-            constitutive_variables_membrane.StressVector += transformed_prestress * thickness;
-
-            // calculate traction vectors
-            array_1d<double, 3> traction_vector;
-
-            CalculateTraction(point_number, traction_vector, kinematic_variables, constitutive_variables_membrane);
-
-            // calculate the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
-            Matrix N_curvilinear = ZeroMatrix(3, 3*number_of_nodes);
-
-            CalculateNCurvilinear(point_number, N_curvilinear, kinematic_variables, constitutive_variables_membrane);
-
-            // calculate first variation of traction vectors
-            Matrix d_traction = ZeroMatrix(3, 3*number_of_nodes);
-
-            CalculateDTraction(point_number, d_traction, N_curvilinear, kinematic_variables, constitutive_variables_membrane);
-            
-            //Compute the NURBS basis functions
-            Matrix N = r_geometry.ShapeFunctionsValues();
-            Matrix r_N = ZeroMatrix(3, 3*number_of_nodes);
-
-            for (IndexType r = 0; r < number_of_nodes; r++)
+            for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
             {
-                r_N(0, 3 * r) = N(0, r);
-                r_N(1, 3 * r + 1) = N(0, r);
-                r_N(2, 3 * r + 2) = N(0, r);
-            }
+                const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+            
+                //Compute Kinematics Reference
+                KinematicVariables kinematic_variables_reference(
+                    r_geometry.WorkingSpaceDimension());
 
-            //Get the displacement vectors of the previous iteration step
-            Vector current_displacement = ZeroVector(mat_size);
+                CalculateKinematics(
+                    point_number,
+                    kinematic_variables_reference,shape_functions_gradients_i, ConfigurationType::Reference);           
+                
+                m_A_ab_covariant_vector[point_number] = kinematic_variables_reference.a_ab_covariant;
 
-            GetValuesVector(current_displacement);
+                m_dA_vector[point_number] = kinematic_variables_reference.dA;
 
-            array_1d<double, 3> disp_vector;
+                m_n_contravariant_vector[point_number] = kinematic_variables_reference.n_contravariant;
 
-            disp_vector = prod(r_N, current_displacement);
-            const array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);
-            disp_vector -= displacement;
+                CalculateTransformation(kinematic_variables_reference, m_T_vector[point_number], m_T_hat_vector[point_number], m_reference_contravariant_base[point_number]);
 
-            //Compute the necessary products needed for the second variations of the traction vectors
-            Matrix Pi = ZeroMatrix(3, 3);
+                // Compute Kinematics Actual
+                KinematicVariables kinematic_variables(
+                    r_geometry.WorkingSpaceDimension());
+                
+                CalculateKinematics(
+                    point_number,
+                    kinematic_variables,shape_functions_gradients_i, ConfigurationType::Current);
+                
+                // Create constitutive law parameters:
+                ConstitutiveLaw::Parameters constitutive_law_parameters(
+                    r_geometry, GetProperties(), rCurrentProcessInfo);
 
-            CalculateDDTractionProduct(point_number, Pi, kinematic_variables, constitutive_variables_membrane);
+                ConstitutiveVariables constitutive_variables_membrane(3);
 
-            array_1d<double, 3> dd_traction_product_vector;
+                CalculateConstitutiveVariables(
+                    point_number,
+                    kinematic_variables,
+                    constitutive_variables_membrane,
+                    constitutive_law_parameters,
+                    ConstitutiveLaw::StressMeasure_PK2);
 
-            dd_traction_product_vector = prod(trans(Pi), disp_vector);
+                //Define Prestress
+                array_1d<double, 3> prestress = GetProperties()[PRESTRESS];
+                double thickness = GetProperties()[THICKNESS];
 
-            // calculate second variation of traction vectors
-            Matrix dd_traction = ZeroMatrix(3 * number_of_nodes, 3 * number_of_nodes);
+                PrestresstransVariables prestresstrans_variables(3);
 
-            CalculateDDTraction(point_number, dd_traction, kinematic_variables, N_curvilinear, disp_vector, dd_traction_product_vector);
+                CalculateTransformationmatrixPrestress(
+                    kinematic_variables,
+                    prestresstrans_variables 
+                );
 
-            //Penalty part & RHS
-            Matrix H = ZeroMatrix(3, mat_size);
-            for (IndexType i = 0; i < number_of_nodes; i++)
-            {
-                IndexType index = 3 * i;
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = N(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = N(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = N(point_number, i);
-            }
+                array_1d<double, 3> transformed_prestress = prod(prestresstrans_variables.Tpre, prestress);
+                constitutive_variables_membrane.StressVector += transformed_prestress * thickness;
 
-            // Differential area
-            const double integration_weight = integration_points[point_number].Weight();
-            //const double determinat_jacobian = r_geometry.DeterminantOfJacobian(point_number);
-            const double determinat_jacobian = norm_2(kinematic_variables_reference.a2);
+                // calculate traction vectors
+                array_1d<double, 3> traction_vector;
 
-            const double gammaTilde = 1.0;
+                CalculateTraction(point_number, traction_vector, kinematic_variables, constitutive_variables_membrane);
 
-            // Assembly
-             if (CalculateStiffnessMatrixFlag) {
+                // calculate the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
+                Matrix N_curvilinear = ZeroMatrix(3, 3*number_of_nodes);
 
-                noalias(rLeftHandSideMatrix) += (prod(trans(d_traction), H) + prod(trans(H), d_traction))
-                    * integration_weight * determinat_jacobian *  -gammaTilde;
+                CalculateNCurvilinear(point_number, N_curvilinear, kinematic_variables, constitutive_variables_membrane);
 
-                for (IndexType i = 0; i < 3 * number_of_nodes; i++)
+                // calculate first variation of traction vectors
+                Matrix d_traction = ZeroMatrix(3, 3*number_of_nodes);
+
+                CalculateDTraction(point_number, d_traction, N_curvilinear, kinematic_variables, constitutive_variables_membrane);
+                
+                //Compute the NURBS basis functions
+                Matrix N = r_geometry.ShapeFunctionsValues();
+                Matrix r_N = ZeroMatrix(3, 3*number_of_nodes);
+
+                for (IndexType r = 0; r < number_of_nodes; r++)
                 {
-                    for (IndexType j = 0; j < 3 * number_of_nodes; j++)
-                    {
-                        rLeftHandSideMatrix(i, j) += dd_traction(i, j) 
-                            * integration_weight * determinat_jacobian * -gammaTilde;
-                    }
+                    r_N(0, 3 * r) = N(0, r);
+                    r_N(1, 3 * r + 1) = N(0, r);
+                    r_N(2, 3 * r + 2) = N(0, r);
                 }
 
-                noalias(rLeftHandSideMatrix) += prod(trans(H), H)
-                     * integration_weight * determinat_jacobian * stabilization_parameter;
-            }
+                //Get the displacement vectors of the previous iteration step
+                Vector current_displacement = ZeroVector(mat_size);
 
-            if (CalculateResidualVectorFlag) {
+                GetValuesVector(current_displacement);
 
-                Vector u(mat_size);
+                array_1d<double, 3> disp_vector;
+
+                disp_vector = prod(r_N, current_displacement);
+                const array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);
+                disp_vector -= displacement;
+
+                //Compute the necessary products needed for the second variations of the traction vectors
+                Matrix Pi = ZeroMatrix(3, 3);
+
+                CalculateDDTractionProduct(point_number, Pi, kinematic_variables, constitutive_variables_membrane);
+
+                array_1d<double, 3> dd_traction_product_vector;
+
+                dd_traction_product_vector = prod(trans(Pi), disp_vector);
+
+                // calculate second variation of traction vectors
+                Matrix dd_traction = ZeroMatrix(3 * number_of_nodes, 3 * number_of_nodes);
+
+                CalculateDDTraction(point_number, dd_traction, kinematic_variables, N_curvilinear, disp_vector, dd_traction_product_vector);
+
+                //Penalty part & RHS
+                Matrix H = ZeroMatrix(3, mat_size);
                 for (IndexType i = 0; i < number_of_nodes; i++)
                 {
-                    const array_1d<double, 3> disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
                     IndexType index = 3 * i;
-                    u[index]     = disp[0];
-                    u[index + 1] = disp[1];
-                    u[index + 2] = disp[2];
+                    //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
+                        H(0, index) = N(point_number, i);
+                    //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
+                        H(1, index + 1) = N(point_number, i);
+                    //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
+                        H(2, index + 2) = N(point_number, i);
                 }
-                
-                noalias(rRightHandSideVector) -= (prod(trans(H), traction_vector)) 
-                    * integration_weight * determinat_jacobian * -gammaTilde;
-                noalias(rRightHandSideVector) -= (prod(trans(d_traction), disp_vector))
-                    * integration_weight * determinat_jacobian * -gammaTilde;   
-                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u)
-                    * integration_weight * determinat_jacobian * stabilization_parameter;
-                
+
+                // Differential area
+                const double integration_weight = integration_points[point_number].Weight();
+                //const double determinat_jacobian = r_geometry.DeterminantOfJacobian(point_number);
+                const double determinat_jacobian = norm_2(kinematic_variables_reference.t);
+
+                const double gammaTilde = 1.0;
+
+                // Assembly
+                if (CalculateStiffnessMatrixFlag) {
+
+                    noalias(rLeftHandSideMatrix) += (prod(trans(d_traction), H) + prod(trans(H), d_traction))
+                        * integration_weight * determinat_jacobian *  -gammaTilde;
+
+                    for (IndexType i = 0; i < 3 * number_of_nodes; i++)
+                    {
+                        for (IndexType j = 0; j < 3 * number_of_nodes; j++)
+                        {
+                            rLeftHandSideMatrix(i, j) += dd_traction(i, j) 
+                                * integration_weight * determinat_jacobian * -gammaTilde;
+                        }
+                    }
+
+                    noalias(rLeftHandSideMatrix) += prod(trans(H), H)
+                        * integration_weight * determinat_jacobian * stabilization_parameter;
+                }
+
+                if (CalculateResidualVectorFlag) {
+                    
+                    const array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);
+                    Vector u(mat_size);
+                    for (IndexType i = 0; i < number_of_nodes; i++)
+                    {
+                        const array_1d<double, 3> disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+                        IndexType index = 3 * i;
+                        u[index]     = (disp[0] - displacement[0]);
+                        u[index + 1] = (disp[1] - displacement[1]);
+                        u[index + 2] = (disp[2] - displacement[2]);
+                    }
+                    
+                    noalias(rRightHandSideVector) -= (prod(trans(H), traction_vector)) 
+                        * integration_weight * determinat_jacobian * -gammaTilde;
+                    noalias(rRightHandSideVector) -= (prod(trans(d_traction), disp_vector))
+                        * integration_weight * determinat_jacobian * -gammaTilde;   
+                    noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u)
+                        * integration_weight * determinat_jacobian * stabilization_parameter;
+                    
+                }
             }
+        
         }
+
+        
 
         KRATOS_CATCH("")
     }
