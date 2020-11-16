@@ -220,17 +220,11 @@ public:
             for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
                 r_node.SetValue(NODAL_AREA, 0.0);
                 r_node.SetValue(DENSITY_GRADIENT, ZeroVector(3));
-                r_node.SetValue(PRESSURE_GRADIENT, ZeroVector(3));
-                r_node.SetValue(TOTAL_ENERGY_GRADIENT, ZeroVector(3));
-                r_node.SetValue(MOMENTUM_GRADIENT, ZeroMatrix(dim,dim));
             }
 
             // Initialize elemental values
             for (auto& r_elem : r_model_part.GetCommunicator().LocalMesh().Elements()) {
                 r_elem.SetValue(DENSITY_GRADIENT, ZeroVector(3));
-                r_elem.SetValue(PRESSURE_GRADIENT, ZeroVector(3));
-                r_elem.SetValue(TOTAL_ENERGY_GRADIENT, ZeroVector(3));
-                r_elem.SetValue(MOMENTUM_GRADIENT, ZeroMatrix(dim,dim));
             }
         }
     }
@@ -510,9 +504,6 @@ private:
             auto it_node = r_model_part.NodesBegin() + i_node;
             it_node->GetValue(NODAL_AREA) = 0.0;
             it_node->GetValue(DENSITY_GRADIENT) = ZeroVector(3);
-            it_node->GetValue(PRESSURE_GRADIENT) = ZeroVector(3);
-            it_node->GetValue(MOMENTUM_GRADIENT) = ZeroMatrix(dim,dim);
-            it_node->GetValue(TOTAL_ENERGY_GRADIENT) = ZeroVector(3);
             it_node->GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;
             it_node->GetValue(ARTIFICIAL_BULK_VISCOSITY) = 0.0;
             it_node->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = 0.0;

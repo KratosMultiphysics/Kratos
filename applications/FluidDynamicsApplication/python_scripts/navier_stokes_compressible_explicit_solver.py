@@ -52,10 +52,9 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             "time_order": 2,
             "move_mesh_flag": false,
             "shock_capturing": true,
-            "nithiarasu_smoothing": false,
             "compute_reactions": false,
             "reform_dofs_at_each_step" : false,
-            "assign_neighbour_elements_to_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
@@ -87,6 +86,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
 
         # Required variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MASS_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KINEMATIC_VISCOSITY)
@@ -137,7 +137,6 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing").SetBool(self.settings["shock_capturing"].GetBool())
-        strategy_settings.AddEmptyValue("nithiarasu_smoothing").SetBool(self.settings["nithiarasu_smoothing"].GetBool())
 
         strategy = KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
             self.computing_model_part,

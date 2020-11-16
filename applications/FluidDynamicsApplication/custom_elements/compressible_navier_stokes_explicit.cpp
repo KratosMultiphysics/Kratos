@@ -298,12 +298,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
         rOutput.resize( r_integration_points.size() );
     }
 
-    if (rVariable == TOTAL_ENERGY_GRADIENT) {
-        const auto& tot_ener_grad = this->GetValue(TOTAL_ENERGY_GRADIENT);
-        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
-            rOutput[i_gauss] = tot_ener_grad;
-        }
-    } else if (rVariable == DENSITY_GRADIENT) {
+    if (rVariable == DENSITY_GRADIENT) {
         const auto& rho_grad = CalculateMidPointDensityGradient();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rho_grad;
@@ -313,37 +308,10 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rho_grad;
         }
-    } else if (rVariable == PRESSURE_GRADIENT) {
-        const auto& pres_grad = this->GetValue(PRESSURE_GRADIENT);
-        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
-            rOutput[i_gauss] = pres_grad;
-        }
     } else if (rVariable == VELOCITY_ROTATIONAL) {
         const auto rot_v = CalculateMidPointVelocityRotational();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rot_v;
-        }
-    } else {
-        KRATOS_ERROR << "Variable not implemented." << std::endl;
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = r_geometry.IntegrationPoints();
-    if (rOutput.size() != r_integration_points.size()) {
-        rOutput.resize( r_integration_points.size() );
-    }
-
-    if (rVariable == MOMENTUM_GRADIENT) {
-        const auto& mom_grad = this->GetValue(MOMENTUM_GRADIENT);
-        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
-            rOutput[i_gauss] = mom_grad;
         }
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;

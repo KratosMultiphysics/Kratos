@@ -60,6 +60,7 @@
 #include "custom_conditions/stokes_wall_condition.h"
 #include "custom_conditions/two_fluid_navier_stokes_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
+#include "custom_conditions/compressible_navier_stokes_wall_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 
@@ -392,8 +393,8 @@ private:
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
     const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
-    const CompressibleNavierStokesExplicit<2> mCompressibleNavierStokesExplicit2D;
-    const CompressibleNavierStokesExplicit<3> mCompressibleNavierStokesExplicit3D;
+    const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D;
+    const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D;
 
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
