@@ -21,15 +21,13 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/global_variables.h"
 #include "includes/model_part.h"
-#include "processes/find_nodal_h_process.h"
-#include "processes/compute_nodal_gradient_process.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
-#include "utilities/element_size_calculator.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_processes/shock_detection_process.h"
 
 namespace Kratos
 {
@@ -153,8 +151,7 @@ public:
             "name" : "compressible_navier_stokes_explicit_explicit_solving_strategy_runge_kutta_4",
             "rebuild_level" : 0,
             "move_mesh_flag": false,
-            "shock_capturing" : true,
-            "nithiarasu_smoothing" : false
+            "shock_capturing" : true
         })");
 
         // Getting base class default parameters
@@ -183,7 +180,6 @@ public:
 
         // Set the specific compressible NS settings
         mShockCapturing = ThisParameters["shock_capturing"].GetBool();
-        mNithiarasuSmoothing = ThisParameters["nithiarasu_smoothing"].GetBool();
     }
 
     /**
@@ -206,15 +202,6 @@ public:
             r_node.SetValue(DENSITY_TIME_DERIVATIVE, 0.0);
             r_node.SetValue(MOMENTUM_TIME_DERIVATIVE, MOMENTUM_TIME_DERIVATIVE.Zero());
             r_node.SetValue(TOTAL_ENERGY_TIME_DERIVATIVE, 0.0);
-            // Initialize the shock capturing magnitudes
-            // r_node.SetValue(SHOCK_SENSOR, 0.0);
-            // r_node.SetValue(SHOCK_CAPTURING_VISCOSITY, 0.0);
-            // r_node.SetValue(SHOCK_CAPTURING_CONDUCTIVITY, 0.0);
-            // r_node.SetValue(VELOCITY, VELOCITY.Zero());
-            // r_node.SetValue(CHARACTERISTIC_VELOCITY, CHARACTERISTIC_VELOCITY.Zero());
-            r_node.SetValue(SMOOTHED_DENSITY, 0.0);
-            r_node.SetValue(SMOOTHED_TOTAL_ENERGY, 0.0);
-            r_node.SetValue(SMOOTHED_MOMENTUM, SMOOTHED_MOMENTUM.Zero());
         }
 
         // If required, initialize the OSS projection variables
@@ -232,27 +219,20 @@ public:
             // Initialize nodal values
             for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
                 r_node.SetValue(NODAL_AREA, 0.0);
-                r_node.SetValue(MOMENTUM_GRADIENT, ZeroMatrix(dim,dim));
+                r_node.SetValue(DENSITY_GRADIENT, ZeroVector(3));
                 r_node.SetValue(PRESSURE_GRADIENT, ZeroVector(3));
                 r_node.SetValue(TOTAL_ENERGY_GRADIENT, ZeroVector(3));
-                r_node.SetValue(DENSITY_GRADIENT, ZeroVector(3));
+                r_node.SetValue(MOMENTUM_GRADIENT, ZeroMatrix(dim,dim));
             }
 
             // Initialize elemental values
             for (auto& r_elem : r_model_part.GetCommunicator().LocalMesh().Elements()) {
-                r_elem.SetValue(SHOCK_CAPTURING_VISCOSITY, 0.0);
-                r_elem.SetValue(SHOCK_CAPTURING_CONDUCTIVITY, 0.0);
-                r_elem.SetValue(MOMENTUM_GRADIENT, ZeroMatrix(dim,dim));
+                r_elem.SetValue(DENSITY_GRADIENT, ZeroVector(3));
                 r_elem.SetValue(PRESSURE_GRADIENT, ZeroVector(3));
                 r_elem.SetValue(TOTAL_ENERGY_GRADIENT, ZeroVector(3));
-                r_elem.SetValue(DENSITY_GRADIENT, ZeroVector(3));
+                r_elem.SetValue(MOMENTUM_GRADIENT, ZeroMatrix(dim,dim));
             }
         }
-
-        // // Requirements in case the shock capturing is needed
-        // if (mShockCapturing) {
-        //     InitializeShockCapturing();
-        // }
     }
 
     /**
@@ -265,35 +245,8 @@ public:
         // Call the base RK4 initialize substep method
         BaseType::InitializeSolutionStep();
 
-//         // Initialize acceleration variables
-//         auto &r_model_part = BaseType::GetModelPart();
-//         const int n_nodes = r_model_part.NumberOfNodes();
-// #pragma omp parallel for
-//         for (int i_node = 0; i_node < n_nodes; ++i_node) {
-//             auto it_node = r_model_part.NodesBegin() + i_node;
-//             it_node->GetValue(DENSITY_TIME_DERIVATIVE) = 0.0;
-//             it_node->GetValue(MOMENTUM_TIME_DERIVATIVE) = ZeroVector(3);
-//             it_node->GetValue(TOTAL_ENERGY_TIME_DERIVATIVE) = 0.0;
-//         }
-
         // Calculate the magnitudes time derivatives
         UpdateUnknownsTimeDerivatives(1.0);
-
-        // const auto& r_model_part = BaseType::GetModelPart();
-        // const auto& r_process_info = r_model_part.GetProcessInfo();
-        // if (r_process_info[OSS_SWITCH]) {
-        //     CalculateOrthogonalSubScalesProjection();
-        // }
-
-        // Perform orthogonal projection shock capturing
-        if (mShockCapturing) {
-            CalculateOrthogonalProjectionShockCapturing();
-        }
-
-        // // If the mesh has changed, reinitialize the shock capturing method
-        // if (BaseType::MoveMeshFlag() && mShockCapturing) {
-        //     InitializeShockCapturing();
-        // }
     }
 
     /**
@@ -306,17 +259,16 @@ public:
         // Call the base RK4 finalize substep method
         BaseType::FinalizeSolutionStep();
 
-        // // Calculate the magnitudes time derivatives with the obtained solution
-        // UpdateUnknownsTimeDerivatives(1.0);
-
         // Apply the momentum slip condition
         if (mApplySlipCondition) {
             ApplySlipCondition();
         }
 
-        // Do the values smoothing
-        if (mNithiarasuSmoothing) {
-            CalculateValuesSmoothing();
+        // Perform the shock capturing detection and artificial values calculation
+        // This needs to be done at the end of the step in order to include the future shock 
+        // capturing magnitudes in the next automatic dt calculation
+        if (mShockCapturing) {
+            CalculatePhysicsBasedShockCapturing();
         }
     }
 
@@ -359,41 +311,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void SolveWithLumpedMassMatrix() override
-    {
-        // Call the base RK4 strategy to do the explicit update
-        BaseType::SolveWithLumpedMassMatrix();
-
-        // // If proceeds, do the intermediate PAD
-        // if (mPAD) {
-        //     // CLIPPING TEST
-        //     // TODO: ADD OPENMP PRAGMAS
-        //     const double aux_eps = 1.0e-6;
-        //     for (auto& r_node : BaseType::GetModelPart().Nodes()) {
-        //         double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        //         auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-        //         double& r_enr = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-
-        //         // Check that the density is above the minimum limit
-        //         if (!r_node.IsFixed(DENSITY)) {
-        //             if (r_rho < mMinDensity) {
-        //                 // Update the residual vector accordingly
-        //                 r_node.SetValue(DENSITY_PAD, true);
-        //                 r_rho = mMinDensity;
-        //             }
-        //         }
-
-        //         // Check that the energy is above the minimum limit
-        //         if (!r_node.IsFixed(TOTAL_ENERGY)) {
-        //             const double enr_lower_bound = inner_prod(r_mom, r_mom) / r_rho + aux_eps;
-        //             if (r_enr < enr_lower_bound) {
-        //                 r_enr = enr_lower_bound;
-        //             }
-        //         }
-        //     }
-        // }
-    }
-
     void InitializeRungeKuttaIntermediateSubStep() override
     {
         // Call the base RK4 to perform the initialize intermediate RK sub step
@@ -403,41 +320,10 @@ protected:
         // These will be used in the next RK substep residual calculation to compute the subscales
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        // const unsigned int rk_sub_step = r_process_info.GetValue(RUNGE_KUTTA_STEP);
-        // if (rk_sub_step > 1) {
-        //     const double sub_step_acc_coeff = 0.5;
-        //     UpdateUnknownsTimeDerivatives(sub_step_acc_coeff);
-        // }
 
         // Calculate the Orthogonal SubsScales projections
         if (r_process_info[OSS_SWITCH]) {
             CalculateOrthogonalSubScalesProjection();
-        }
-
-        // Perform orthogonal projection shock capturing
-        // if (mShockCapturing) {
-        //     CalculateOrthogonalProjectionShockCapturing();
-        // }
-
-        // // Perform shock capturing
-        // if (mShockCapturing) {
-        //     // Call the shock detection process
-        //     mpShockDetectionProcess->ExecuteInitializeSolutionStep();
-        //     // Add the corresponding artificial magnitudes
-        //     // CalculateShockCapturingMagnitudes();
-        // }
-    }
-
-
-    void FinalizeRungeKuttaLastSubStep() override
-    {
-        // Call the base RK4 finalize substep method
-        BaseType::FinalizeRungeKuttaLastSubStep();
-
-        // Apply the momentum slip condition
-        //TODO: THIS SHOULDN'T BE REQUIRED --> DOING IT AFTER THE FINAL UPDATE MUST BE ENOUGH
-        if (mApplySlipCondition) {
-            ApplySlipCondition();
         }
     }
 
@@ -446,30 +332,14 @@ protected:
         // Call the base RK4 to perform the initialize intermediate RK sub step
         BaseType::InitializeRungeKuttaLastSubStep();
 
-        // // Approximate the unknowns time derivatives with a FE scheme
-        // // These will be used in the next RK substep residual calculation to compute the subscales
-        // const double sub_step_acc_coeff = 1.0;
-        // UpdateUnknownsTimeDerivatives(sub_step_acc_coeff);
-
         // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        // Calculate the Orthogonal SubsScales projections
         if (r_process_info[OSS_SWITCH]) {
             CalculateOrthogonalSubScalesProjection();
         }
-
-        // // Perform orthogonal projection shock capturing
-        // if (mShockCapturing) {
-        //     CalculateOrthogonalProjectionShockCapturing();
-        // }
-
-        // // Perform shock capturing
-        // if (mShockCapturing) {
-        //     // Call the shock detection process
-        //     mpShockDetectionProcess->ExecuteInitializeSolutionStep();
-        //     // Add the corresponding artificial magnitudes
-        //     CalculateShockCapturingMagnitudes();
-        // }
     }
 
     /**
@@ -482,6 +352,18 @@ protected:
         BaseType::FinalizeRungeKuttaIntermediateSubStep();
 
         // Apply the momentum slip condition
+        if (mApplySlipCondition) {
+            ApplySlipCondition();
+        }
+    }
+
+    void FinalizeRungeKuttaLastSubStep() override
+    {
+        // Call the base RK4 finalize substep method
+        BaseType::FinalizeRungeKuttaLastSubStep();
+
+        // Apply the momentum slip condition
+        //TODO: THIS SHOULDN'T BE REQUIRED --> DOING IT AFTER THE FINAL UPDATE MUST BE ENOUGH
         if (mApplySlipCondition) {
             ApplySlipCondition();
         }
@@ -514,12 +396,6 @@ private:
 
     bool mShockCapturing = true;
     bool mApplySlipCondition = true;
-    bool mNithiarasuSmoothing = false;
-    const bool mPAD = false;
-    const double mMinDensity = 1.0e-2;
-    const double mMinTotalEnergy = 1.0e-6;
-
-    ShockDetectionProcess::UniquePointer mpShockDetectionProcess = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -570,9 +446,9 @@ private:
         const int n_nodes = r_model_part.NumberOfNodes();
         const int n_elem = r_model_part.NumberOfElements();
         const auto& r_process_info = r_model_part.GetProcessInfo();
-        const unsigned int block_size = r_process_info[DOMAIN_SIZE] + 2;
 
         // Get the required data from the explicit builder and solver
+        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
@@ -619,18 +495,14 @@ private:
         }
     }
 
-    void CalculateOrthogonalProjectionShockCapturing()
+    void CalculatePhysicsBasedShockCapturing()
     {
         // Calculate the model part data
         auto& r_model_part = BaseType::GetModelPart();
+        const auto r_process_info = r_model_part.GetProcessInfo();
         const int n_nodes = r_model_part.NumberOfNodes();
         const int n_elems = r_model_part.NumberOfElements();
-        const int dim = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
-        // const unsigned int block_size = dim + 2;
-
-        // // Get the required data from the explicit builder and solver
-        // const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        // const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+        const int dim = r_process_info[DOMAIN_SIZE];
 
         // Initialize the values to zero
 #pragma omp parallel for
@@ -641,18 +513,21 @@ private:
             it_node->GetValue(PRESSURE_GRADIENT) = ZeroVector(3);
             it_node->GetValue(MOMENTUM_GRADIENT) = ZeroMatrix(dim,dim);
             it_node->GetValue(TOTAL_ENERGY_GRADIENT) = ZeroVector(3);
+            it_node->GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;
+            it_node->GetValue(ARTIFICIAL_BULK_VISCOSITY) = 0.0;
+            it_node->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = 0.0;
         }
 
         // Set the functor to calculate the element size
         // Note that this assumes a unique geometry in the computational mesh
-        std::function<double(Geometry<Node<3>>& rGeometry)> avg_h_function;
+        std::function<std::tuple<double, double, Matrix>(Geometry<Node<3>>& rGeometry)> elem_metric_function;
         const GeometryData::KratosGeometryType geometry_type = (r_model_part.ElementsBegin()->GetGeometry()).GetGeometryType();
         switch (geometry_type) {
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                avg_h_function = [&](Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
+                elem_metric_function = [&](const Geometry<Node<3>>& rGeometry){return CalculateTriangleMetricTensor(rGeometry);};
                 break;
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                avg_h_function = [&](Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
+                elem_metric_function = [&](const Geometry<Node<3>>& rGeometry){return CalculateTetrahedraMetricTensor(rGeometry);};
                 break;
             default:
                 KRATOS_ERROR << "Asking for a non-implemented geometry.";
@@ -661,212 +536,313 @@ private:
         // Loop the elements to project the gradients
         // Note that it is assumed that the gradient is constant within the element
         // Hence, only one Gauss point is used
+        const double eps = 1.0e-7;
+
+        double div_v;
+        Matrix grad_vel;
+        array_1d<double,3> rot_v;
+        array_1d<double,3> grad_rho;
+        array_1d<double,3> grad_temp;
         Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-#pragma omp parallel for private(dNdX_container)
+#pragma omp parallel for private(dNdX_container, div_v, rot_v, grad_rho, grad_temp, grad_vel)
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
             auto it_elem = r_model_part.ElementsBegin() + i_elem;
             auto& r_geom = it_elem->GetGeometry();
             const unsigned int n_nodes = r_geom.PointsNumber();
-            const double geom_domain_size = r_geom.DomainSize();
-            const double aux_weight = geom_domain_size / static_cast<double>(n_nodes);
 
             // Get fluid properties
             const auto p_prop = it_elem->pGetProperties();
-            const double heat_capacity_ratio = p_prop->GetValue(HEAT_CAPACITY_RATIO);
+            const double c_v = p_prop->GetValue(SPECIFIC_HEAT);
+            const double gamma = p_prop->GetValue(HEAT_CAPACITY_RATIO);
 
-            // Calculate the gradients in the center of the element
-            auto& r_elem_mom_grad = it_elem->GetValue(MOMENTUM_GRADIENT);
-            auto& r_elem_rho_grad = it_elem->GetValue(DENSITY_GRADIENT);
-            auto& r_elem_pres_grad = it_elem->GetValue(PRESSURE_GRADIENT);
-            auto& r_elem_tot_ener_grad = it_elem->GetValue(TOTAL_ENERGY_GRADIENT);
-            r_elem_mom_grad = ZeroMatrix(dim, dim);
-            r_elem_pres_grad = ZeroVector(3);
-            r_elem_rho_grad = ZeroVector(3);
-            r_elem_tot_ener_grad = ZeroVector(3);
-            dNdX_container = r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
-            const auto& r_dNdX = dNdX_container[0];
+            // Calculate elemental magnitudes
+            const double k = 1.0; // Polynomial order of the numerical simulation
+            double c_ref; // Reference speed of sound (Ma = 1.0)
+            // TODO: CALLING THE CALCULATES IS NOT THE MOST EFFICIENT WAY... THINK ABOUT THIS...
+            it_elem->Calculate(SOUND_VELOCITY, c_ref, r_process_info);             
+            it_elem->Calculate(DENSITY_GRADIENT, grad_rho, r_process_info);
+            it_elem->Calculate(VELOCITY_DIVERGENCE, div_v, r_process_info);
+            it_elem->Calculate(VELOCITY_ROTATIONAL, rot_v, r_process_info);
+            it_elem->Calculate(VELOCITY_GRADIENT, grad_vel, r_process_info);
+            it_elem->Calculate(TEMPERATURE_GRADIENT, grad_temp, r_process_info);
 
+            // Calculate midpoint values
+            double midpoint_rho = 0.0;
+            double midpoint_tot_ener = 0.0;
+            array_1d<double, 3> midpoint_v = ZeroVector(3);
             for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                auto& r_node = r_geom[i_node];
-                const auto node_dNdX = row(r_dNdX, i_node);
-                const auto& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-                const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-                const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-                const double r_mom_norm_squared = r_mom[0] * r_mom[0] + r_mom[1] * r_mom[1] + r_mom[2] * r_mom[2];
-                const double i_node_p = (heat_capacity_ratio - 1.0) * (r_tot_ener - 0.5 * r_mom_norm_squared / r_rho);
-                for (int d1 = 0; d1 < dim; ++d1) {
-                    r_elem_rho_grad[d1] += node_dNdX(d1) * r_rho;
-                    r_elem_pres_grad[d1] += node_dNdX(d1) * i_node_p;
-                    r_elem_tot_ener_grad[d1] += node_dNdX(d1) * r_tot_ener;
-                    for (int d2 = 0; d2 < dim; ++d2) {
-                        r_elem_mom_grad(d1,d2) += node_dNdX(d1) * r_mom[d2];
-                    }
+                const double& r_rho = r_geom[i_node].FastGetSolutionStepValue(DENSITY);
+                const double& r_tot_ener = r_geom[i_node].FastGetSolutionStepValue(TOTAL_ENERGY);
+                midpoint_rho += r_rho;
+                midpoint_tot_ener += r_tot_ener;
+                midpoint_v += r_geom[i_node].FastGetSolutionStepValue(MOMENTUM) / r_rho;
+            }
+            midpoint_rho /= static_cast<double>(n_nodes);
+            midpoint_v /= static_cast<double>(n_nodes);
+            const double v_norm_pow = midpoint_v[0]*midpoint_v[0] + midpoint_v[1]*midpoint_v[1] + midpoint_v[2]*midpoint_v[2];
+
+            // Inverse metric tensor calculation
+            // const double h_ref = avg_h_function(r_geom); // Reference element size used in the metric tensor
+            // const auto metric_tensor = elem_metric_function(r_geom, h_ref); // Metric tensor relative to the reference element size
+            const auto metric_data = elem_metric_function(r_geom);
+            const double h_ref = std::get<0>(metric_data); // Reference element size used in the metric tensor
+            const double metric_tensor_inf = std::get<1>(metric_data); // Metric tensor infimum norm (smallest eigenvalue)
+            const auto metric_tensor = std::get<2>(metric_data); // Metric tensor relative to the reference element size
+            double aux_det;
+            Matrix inv_metric_tensor;
+            MathUtils<double>::InvertMatrix(metric_tensor, inv_metric_tensor, aux_det);
+
+            // Characteristic element sizes
+            array_1d<double,3> inv_metric_grad_rho = ZeroVector(3);
+            array_1d<double,3> inv_metric_grad_temp = ZeroVector(3);
+            for (unsigned int i = 0; i < inv_metric_tensor.size1(); ++i) {
+                for (unsigned int j = 0; j < inv_metric_tensor.size2(); ++j) {
+                    inv_metric_grad_rho(i) += inv_metric_tensor(i,j) * grad_rho(j);
+                    inv_metric_grad_temp(i) += inv_metric_tensor(i,j) * grad_temp(j);
                 }
             }
+            const double h_beta = h_ref * norm_2(grad_rho) / std::sqrt(inner_prod(grad_rho, inv_metric_grad_rho) + eps); // Characteristic element size along the direction of the density gradient
+            const double h_kappa = h_ref * norm_2(grad_temp) / std::sqrt(inner_prod(grad_temp, inv_metric_grad_temp) + eps); // Characteristic element size along the direction of the temperature gradient
+            const double h_mu = h_ref * metric_tensor_inf;
 
-            // Project the computed gradients to the nodes
-            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                // Get nodal values
-                auto& r_node = r_geom[i_node];
-                auto& r_node_mom_grad = r_node.GetValue(MOMENTUM_GRADIENT);
-                auto& r_node_pres_grad = r_node.GetValue(PRESSURE_GRADIENT);
-                auto& r_node_rho_grad = r_node.GetValue(DENSITY_GRADIENT);
-                auto& r_node_tot_ener_grad = r_node.GetValue(TOTAL_ENERGY_GRADIENT);
-                for (int d1 = 0; d1 < dim; ++d1) {
-#pragma omp atomic
-                    r_node_rho_grad[d1] += aux_weight * r_elem_rho_grad[d1];
-#pragma omp atomic
-                    r_node_pres_grad[d1] += aux_weight * r_elem_pres_grad[d1];
-#pragma omp atomic
-                    r_node_tot_ener_grad[d1] += aux_weight * r_elem_tot_ener_grad[d1];
-                    for (int d2 = 0; d2 < dim; ++d2) {
-#pragma omp atomic
-                        r_node_mom_grad(d1,d2) += aux_weight * r_elem_mom_grad(d1,d2);
-                    }
+            // Dilatation sensor (activates in shock waves)
+            const double s_omega = - h_beta * div_v / k / c_ref;
+
+            // Vorticity sensor (vanishes in vorticity dominated regions)
+            const double div_v_pow = std::pow(div_v, 2);
+            const double rot_v_norm_pow = rot_v[0] * rot_v[0] + rot_v[1] * rot_v[1] + rot_v[2] * rot_v[2];
+            const double s_w = div_v_pow / (div_v_pow + rot_v_norm_pow + eps);
+
+            // Calculate limited shock sensor
+            const double s_beta_0 = 0.01;
+            const double s_beta_max = 2.0 / std::sqrt(std::pow(gamma, 2) - 1.0);
+            const double s_beta = s_omega * s_w;
+            // const double s_beta_hat = LimitingFunction(s_beta, s_beta_0, s_beta_max);
+            const double s_beta_hat = SmoothedLimitingFunction(s_beta, s_beta_0, s_beta_max);
+            it_elem->GetValue(SHOCK_SENSOR) = s_beta_hat;
+
+            // Thermal sensor (detect thermal gradients that are larger than possible with the grid resolution)
+            Matrix mid_pt_jacobian;
+            r_geom.Jacobian(mid_pt_jacobian, 0, GeometryData::GI_GAUSS_1);
+            array_1d<double,3> local_grad_temp = ZeroVector(3);
+            for (unsigned int i = 0; i < mid_pt_jacobian.size1(); ++i) {
+                for (unsigned int j = 0; j < mid_pt_jacobian.size2(); ++j) {
+                    local_grad_temp(i) += mid_pt_jacobian(j,i) * grad_temp(j);
                 }
+            }
+            const double stagnation_temp = midpoint_tot_ener / midpoint_rho / c_v;
+
+            const double s_kappa_0 = 1.0;
+            const double s_kappa_max = 2.0;
+            const double s_kappa = h_ref * norm_2(local_grad_temp) / k / stagnation_temp;
+            const double s_kappa_hat = SmoothedLimitingFunction(s_kappa, s_kappa_0, s_kappa_max);
+            it_elem->GetValue(TOTAL_ENERGY_SHOCK_SENSOR) = s_kappa_hat;
+
+            // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
+            const unsigned int dim = r_geom.WorkingSpaceDimension();
+            Matrix shear_grad_vel(dim, dim);
+            for (unsigned int d1 = 0; d1 < dim; ++d1) {
+                for (unsigned int d2 = 0; d2 < dim; ++d2) {
+                    shear_grad_vel(d1, d2) = d1 == d2 ? 0.0 : grad_vel(d1, d2);
+                }
+            }
+            const Matrix local_shear_grad_vel = prod(shear_grad_vel, Matrix(trans(mid_pt_jacobian)));
+            Matrix eigen_vect_mat, eigen_val_mat;
+            MathUtils<double>::GaussSeidelEigenSystem(local_shear_grad_vel, eigen_vect_mat, eigen_val_mat);
+            double shear_spect_norm = 0.0; 
+            for (unsigned int d = 0; d < eigen_val_mat.size1(); ++d){
+                if (eigen_val_mat(d,d) > shear_spect_norm) {
+                    shear_spect_norm = eigen_val_mat(d,d);
+                }
+            }
+            const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) *  std::pow(c_ref, 2)); // TODO: THIS ISN'T c_ref ACCORDING TO PERAIRE 
+
+            const double s_mu_0 = 1.0;
+            const double s_mu_max = 2.0;
+            const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
+            // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
+            const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
+            it_elem->GetValue(MOMENTUM_SHOCK_SENSOR) = s_mu_hat;
+
+            // Calculate artificial magnitudes
+            const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_ref,2));
+
+            // Calculate elemental artificial bulk viscosity
+            const double k_beta = 1.5;
+            const double elem_b_star =  (k_beta * h_beta / k) * ref_mom_norm * s_beta_hat; 
+            it_elem->GetValue(ARTIFICIAL_BULK_VISCOSITY) = elem_b_star;
+
+            // Calculate elemental artificial conductivity (dilatancy)
+            const double Pr_beta_min = 0.9;
+            const double alpha_pr_beta = 2.0;
+            const double Mach_threshold = 3.0;
+            const double Mach = norm_2(midpoint_v) / c_ref;
+            const double Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (Mach - Mach_threshold)));
+            const double elem_k1_star = (gamma * c_v / Pr_beta) * elem_b_star;
+
+            // Calculate elemental artificial conductivity (thermal sensor)
+            const double k_kappa = 1.0;
+            const double elem_k2_star = (gamma * c_v) * (k_kappa * h_kappa / k) * ref_mom_norm * s_kappa_hat;
+            it_elem->GetValue(ARTIFICIAL_CONDUCTIVITY) = elem_k1_star + elem_k2_star;
+
+            // Calculate elemental artificial dynamic viscosity
+            const double k_mu = 1.0;
+            const double elem_mu_star = (k_mu * h_mu / k) * ref_mom_norm * s_mu_hat;
+            it_elem->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
+
+            // Project the shock capturing magnitudes to the nodes
+            const double geom_domain_size = r_geom.DomainSize();
+            const double aux_weight = geom_domain_size / static_cast<double>(n_nodes);
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto& r_node = r_geom[i_node];
+#pragma omp atomic
+                r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY) += aux_weight * elem_b_star;
+#pragma omp atomic
+                r_node.GetValue(ARTIFICIAL_CONDUCTIVITY) += aux_weight * (elem_k1_star + elem_k2_star);
+#pragma omp atomic
+                r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) += aux_weight * elem_mu_star;
 #pragma omp atomic
                 r_node.GetValue(NODAL_AREA) += aux_weight;
             }
         }
 
+        // Nodal smoothing of the shock capturing magnitudes
 #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
             const double weight = it_node->GetValue(NODAL_AREA);
-            it_node->GetValue(DENSITY_GRADIENT) /= weight;
-            it_node->GetValue(PRESSURE_GRADIENT) /= weight;
-            it_node->GetValue(MOMENTUM_GRADIENT) /= weight;
-            it_node->GetValue(TOTAL_ENERGY_GRADIENT) /= weight;
+            it_node->GetValue(ARTIFICIAL_CONDUCTIVITY) /= weight;
+            it_node->GetValue(ARTIFICIAL_BULK_VISCOSITY) /= weight;
+            it_node->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) /= weight;
         }
+    }
 
-        // Calculate shock capturing values
-        const double zero_tol = 1.0e-12;
+    double LimitingFunction(
+        const double s,
+        const double s_0,
+        const double s_max,
+        const double s_min = 0.0)
+    {
+        const double aux_1 = std::max(s - s_0, s_min);
+        const double aux_2 = std::min(aux_1 - s_max, s_min);
+        return aux_2 + s_max;
+    }
 
-        double midpoint_rho;
-        double midpoint_pres;
-        double midpoint_tot_ener;
-        array_1d<double,3> midpoint_v, midpoint_m;
-        Matrix midpoint_mom_grad_proj;
-        Vector midpoint_rho_grad_proj;
-        Vector midpoint_pres_grad_proj;
-        Vector midpoint_tot_ener_grad_proj;
-        // Vector N_container, midpoint_tot_ener_grad_proj;
-// #pragma omp parallel for private(N_container, midpoint_v, midpoint_mom_grad_proj, midpoint_tot_ener_grad_proj)
-#pragma omp parallel for private(midpoint_v, midpoint_m, midpoint_rho, midpoint_mom_grad_proj, midpoint_tot_ener_grad_proj, midpoint_pres_grad_proj, midpoint_rho_grad_proj)
-        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-            auto it_elem = r_model_part.ElementsBegin() + i_elem;
-            auto& r_geom = it_elem->GetGeometry();
-            const unsigned int n_nodes = r_geom.PointsNumber();
+    double SmoothedLimitingFunction(
+        const double s,
+        const double s_0,
+        const double s_max)
+    {
+        const double aux_1 = SmoothedMaxFunction(s - s_0);
+        const double aux_2 = SmoothedMinFunction(aux_1 - s_max);
+        return aux_2 + s_max;
+    }
 
-            // Get fluid properties
-            const auto p_prop = it_elem->pGetProperties();
-            const double heat_capacity_ratio = p_prop->GetValue(HEAT_CAPACITY_RATIO);
+    // Smooth approximation of the max(s,0) function
+    double SmoothedMaxFunction(const double s)
+    {
+        const double b = 100;
+        const double l_max = (s / Globals::Pi) * std::atan(b * s) + 0.5 * s - (1.0 / Globals::Pi) * std::atan(b) + 0.5;
+        return l_max;
+    }
 
-            // Interpolate the nodal projection values in the midpoint and calculate the average velocity norm
-            midpoint_rho = 0.0;
-            midpoint_pres = 0.0;
-            midpoint_tot_ener = 0.0;
-            midpoint_v = ZeroVector(3);
-            midpoint_m = ZeroVector(3);
-            midpoint_mom_grad_proj = ZeroMatrix(dim, dim);
-            midpoint_rho_grad_proj = ZeroVector(3);
-            midpoint_pres_grad_proj = ZeroVector(3);
-            midpoint_tot_ener_grad_proj = ZeroVector(3);
-            const double midpoint_N = 1.0 / static_cast<double>(n_nodes);
-            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                const auto& r_node = r_geom[i_node];
-                // Interpolate the nodal projection values in the midpoint
-                const auto& r_node_rho_grad = r_node.GetValue(DENSITY_GRADIENT);
-                const auto& r_node_pres_grad = r_node.GetValue(PRESSURE_GRADIENT);
-                const auto& r_node_mom_grad = r_node.GetValue(MOMENTUM_GRADIENT);
-                const auto& r_node_tot_ener_grad = r_node.GetValue(TOTAL_ENERGY_GRADIENT);
-                midpoint_mom_grad_proj += midpoint_N * r_node_mom_grad;
-                midpoint_rho_grad_proj += midpoint_N * r_node_rho_grad;
-                midpoint_pres_grad_proj += midpoint_N * r_node_pres_grad;
-                midpoint_tot_ener_grad_proj += midpoint_N * r_node_tot_ener_grad;
-                // Calculate the midpoint velocity
-                const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-                const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-                midpoint_v += midpoint_N * r_mom / r_rho;
-                // Calculate the midpoint momentum
-                midpoint_m += midpoint_N * r_mom;
-                // Calculate the midpoint total energy
-                const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-                midpoint_tot_ener += midpoint_N * r_tot_ener;
-                // Calculate the midpoint pressure
-                const double r_mom_norm_squared = r_mom[0] * r_mom[0] + r_mom[1] * r_mom[1] + r_mom[2] * r_mom[2];
-                const double i_node_p = (heat_capacity_ratio - 1.0) * (r_tot_ener - 0.5 * r_mom_norm_squared / r_rho);
-                midpoint_pres += midpoint_N * i_node_p;
-                // Calculate the midpoint density
-                midpoint_rho += midpoint_N * r_rho;
+    // Smooth approximation of the min(s,0) function
+    double SmoothedMinFunction(const double s)
+    {
+        return s - SmoothedMaxFunction(s);
+    }
+
+    // https://es.wikipedia.org/wiki/Circunelipse_de_Steiner
+    std::tuple<double, double, Matrix> CalculateTriangleMetricTensor(const Geometry<Node<3>>& rGeometry)
+    {
+        const array_1d<double, 3> p_1 = rGeometry[0].Coordinates();
+        const array_1d<double, 3> p_2 = rGeometry[1].Coordinates();
+        const array_1d<double, 3> p_3 = rGeometry[2].Coordinates();
+
+        // Solve the metric problem trans(e)*M*e = 1
+        // This means, find the coefficients of the matrix M such that all the edges have unit length
+        Vector sol;
+        array_1d<double,3> aux_vect;
+        BoundedMatrix<double,3,3> aux_mat;
+        aux_mat(0,0) = std::pow(p_1[0]-p_2[0], 2); aux_mat(0,1) = 2.0*(p_1[0]-p_2[0])*(p_1[1]-p_2[1]); aux_mat(0,2) = std::pow(p_1[1]-p_2[1], 2);
+        aux_mat(1,0) = std::pow(p_1[0]-p_3[0], 2); aux_mat(1,1) = 2.0*(p_1[0]-p_3[0])*(p_1[1]-p_3[1]); aux_mat(1,2) = std::pow(p_1[1]-p_3[1], 2);
+        aux_mat(2,0) = std::pow(p_2[0]-p_3[0], 2); aux_mat(2,1) = 2.0*(p_2[0]-p_3[0])*(p_2[1]-p_3[1]); aux_mat(2,2) = std::pow(p_2[1]-p_3[1], 2);
+        aux_vect[0] = 1.0;
+        aux_vect[1] = 1.0;
+        aux_vect[2] = 1.0;        
+        MathUtils<double>::Solve(aux_mat, sol, aux_vect);
+
+        // Set the metric tensor
+        Matrix metric(2,2);
+        metric(0,0) = sol[0]; metric(0,1) = sol[1];
+        metric(1,0) = sol[1]; metric(1,1) = sol[2];
+
+        // Calculate the eigenvalues of the metric tensor to obtain the ellipsis of inertia axes lengths
+        BoundedMatrix<double,2,2> eigenvects, eigenvals;
+        MathUtils<double>::GaussSeidelEigenSystem(metric, eigenvects, eigenvals);
+        const double h_1 = std::sqrt(1.0 / eigenvals(0,0));
+        const double h_2 = std::sqrt(1.0 / eigenvals(1,1));
+
+        // Calculate the reference element size as the average of the ellipsis of intertia axes lengths
+        const double h_ref = 0.5 * (h_1 + h_2);
+        
+        // Make the metric dimensionless
+        metric *= std::pow(h_ref,2);
+
+        // Calculate metric infimum norm
+        const double metric_inf = std::min(eigenvals(0,0), eigenvals(1,1));
+
+        return std::make_tuple(h_ref, metric_inf, metric);
+    }
+
+    // https://es.wikipedia.org/wiki/Circunelipse_de_Steiner --> 3D extension
+    std::tuple<double, double, Matrix> CalculateTetrahedraMetricTensor(const Geometry<Node<3>>& rGeometry)
+    {
+        // Solve the metric problem trans(e)*M*e = 1
+        // This means, find the coefficients of the matrix M such that all the edges have unit length
+        Vector sol;
+        array_1d<double, 6> aux_vect;
+        BoundedMatrix<double, 6, 6> aux_mat;
+        unsigned int row = 0;
+        for (unsigned int i = 0; i < 3; ++i) {
+            const auto& i_coord = rGeometry[i].Coordinates();
+            for (unsigned int j = i + 1; j < 4; ++j) {
+                const auto& j_coord = rGeometry[j].Coordinates();
+                aux_mat(row, 0) = std::pow(i_coord[0]-j_coord[0], 2);
+                aux_mat(row, 1) = 2.0*(i_coord[0]-j_coord[0])*(i_coord[1]-j_coord[1]);
+                aux_mat(row, 2) = 2.0*(i_coord[0]-j_coord[0])*(i_coord[2]-j_coord[2]);
+                aux_mat(row, 3) = std::pow(i_coord[1]-j_coord[1], 2);
+                aux_mat(row, 4) = 2.0*(i_coord[1]-j_coord[1])*(i_coord[2]-j_coord[2]);
+                aux_mat(row, 5) = std::pow(i_coord[2]-j_coord[2], 2);
+                aux_vect(row) = 1.0;
+                row++;
             }
-
-            // Calculate the norms of the gradients
-            // Total energy gradients
-            const auto& r_tot_ener_elem_grad = it_elem->GetValue(TOTAL_ENERGY_GRADIENT);
-            const double tot_ener_grad_norm = norm_2(r_tot_ener_elem_grad);
-            const double tot_ener_grad_proj_norm = norm_2(midpoint_tot_ener_grad_proj);
-
-            // Momentum gradients
-            const auto& r_elem_mom_grad = it_elem->GetValue(MOMENTUM_GRADIENT);
-            double mom_grad_norm = 0.0;
-            double mom_grad_proj_norm = 0.0;
-            for (unsigned int d1 = 0; d1 < dim; ++d1) {
-                for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                    mom_grad_norm += std::pow(r_elem_mom_grad(d1,d2), 2);
-                    mom_grad_proj_norm += std::pow(midpoint_mom_grad_proj(d1,d2), 2);
-                }
-            }
-            mom_grad_norm = std::sqrt(mom_grad_norm);
-            mom_grad_proj_norm = std::sqrt(mom_grad_proj_norm);
-
-            // Pressure gradients
-            const auto& r_elem_pres_grad = it_elem->GetValue(PRESSURE_GRADIENT);
-            const double pres_grad_norm = norm_2(r_elem_pres_grad);
-            const double pres_grad_proj_norm = norm_2(midpoint_pres_grad_proj);
-
-            // Density gradients
-            const auto& r_elem_rho_grad = it_elem->GetValue(DENSITY_GRADIENT);
-            const double rho_grad_norm = norm_2(r_elem_rho_grad);
-            const double rho_grad_proj_norm = norm_2(midpoint_rho_grad_proj);
-
-            // Calculate the shock capturing magnitudes
-            const double c_a = 0.8;
-            const double v_norm = norm_2(midpoint_v);
-            const double avg_h = avg_h_function(r_geom);
-            const double aux = 0.5 * c_a * v_norm * avg_h;
-
-            const double mom_epsilon = 1.0;
-            const double rho_epsilon = 1.0e-4;
-            const double pres_epsilon = 1.0e-4;
-            const double tot_ener_epsilon = 1.0e-4;
-
-            const double mu = p_prop->GetValue(DYNAMIC_VISCOSITY);
-            const double c_v = p_prop->GetValue(SPECIFIC_HEAT);
-            const double lambda = p_prop->GetValue(CONDUCTIVITY);
-
-            // Momentum sensor
-            const double mom_sensor = std::abs(mom_grad_norm - mom_grad_proj_norm) / (mom_grad_norm + mom_grad_proj_norm + mom_epsilon * (1.0 + norm_2(midpoint_m) / avg_h));
-            it_elem->SetValue(MOMENTUM_SHOCK_SENSOR, mom_sensor);
-
-            // Total energy sensor
-            const double tot_ener_sensor = std::abs(tot_ener_grad_norm - tot_ener_grad_proj_norm) / (tot_ener_grad_norm + tot_ener_grad_proj_norm + tot_ener_epsilon * (1.0 + midpoint_tot_ener / avg_h));
-            it_elem->SetValue(TOTAL_ENERGY_SHOCK_SENSOR, tot_ener_sensor);
-
-            // Pressure sensor
-            const double pres_sensor = std::abs(pres_grad_norm - pres_grad_proj_norm) / (pres_grad_norm + pres_grad_proj_norm + pres_epsilon * (midpoint_pres / avg_h));
-            it_elem->SetValue(SHOCK_SENSOR, pres_sensor);
-
-            // Density sensor
-            const double rho_sensor = std::abs(rho_grad_norm - rho_grad_proj_norm) / (rho_grad_norm + rho_grad_proj_norm + rho_epsilon * (midpoint_rho / avg_h));
-            it_elem->SetValue(DENSITY_SHOCK_SENSOR, rho_sensor);
-
-            // Artificial diffusion calculation
-            const double max_artificial_viscosity_ratio = 10.0;
-            const double max_artificial_conductivity_ratio = 10.0;
-            it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = std::min(aux * mom_sensor, max_artificial_viscosity_ratio * mom_sensor * mu / midpoint_rho);
-            it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = std::min(aux * rho_sensor, max_artificial_conductivity_ratio * rho_sensor * lambda / midpoint_rho / c_v);
         }
+        MathUtils<double>::Solve(aux_mat, sol, aux_vect);
+
+        // Set the metric tensor
+        Matrix metric(3,3);
+        metric(0,0) = sol[0]; metric(0,1) = sol[1]; metric(0,2) = sol[2];
+        metric(1,0) = sol[1]; metric(1,1) = sol[3]; metric(1,2) = sol[4];
+        metric(2,0) = sol[2]; metric(2,1) = sol[4]; metric(2,2) = sol[5];
+
+        // Calculate the eigenvalues of the metric tensor to obtain the ellipsis of inertia axes lengths
+        BoundedMatrix<double,3,3> eigenvects, eigenvals;
+        MathUtils<double>::GaussSeidelEigenSystem(metric, eigenvects, eigenvals);
+        const double h_1 = std::sqrt(1.0 / eigenvals(0,0));
+        const double h_2 = std::sqrt(1.0 / eigenvals(1,1));
+        const double h_3 = std::sqrt(1.0 / eigenvals(2,2));
+
+        // Calculate the reference element size as the average of the ellipsis of intertia axes lengths
+        const double h_ref = (h_1 + h_2 + h_3) / 3.0;
+        
+        // Make the metric dimensionless
+        metric *= std::pow(h_ref,2);
+
+        // Calculate metric infimum norm
+        const double metric_inf = std::min(eigenvals(0,0), std::min(eigenvals(1,1), eigenvals(2,2)));
+
+        return std::make_tuple(h_ref, metric_inf, metric);
     }
 
     void ApplySlipCondition()
@@ -888,274 +864,6 @@ private:
             }
         }
     }
-
-    void CalculateValuesSmoothing()
-    {
-        // Calculate the model part data
-        auto &r_model_part = BaseType::GetModelPart();
-        const int n_nodes = r_model_part.NumberOfNodes();
-        const int n_elems = r_model_part.NumberOfElements();
-        const int dim = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
-        const unsigned int block_size = dim + 2;
-
-        // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        auto &r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
-        const auto &r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
-
-        // Set the functor to calculate the element size
-        // Note that this assumes a unique geometry in the computational mesh
-        std::function<double(Geometry<Node<3>>& rGeometry)> avg_h_function;
-        const GeometryData::KratosGeometryType geometry_type = (r_model_part.ElementsBegin()->GetGeometry()).GetGeometryType();
-        switch (geometry_type) {
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                avg_h_function = [&](Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
-                break;
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                avg_h_function = [&](Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
-                break;
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented geometry.";
-        }
-
-        // Initialize smoothed values
-#pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->GetValue(SMOOTHED_DENSITY) = 0.0;
-            it_node->GetValue(SMOOTHED_TOTAL_ENERGY) = 0.0;
-            it_node->GetValue(SMOOTHED_MOMENTUM) = ZeroVector(3);
-        }
-
-        const double dt = BaseType::GetDeltaTime();
-        const double c_e = 1.0; // User specified constant between 0.0 and 2.0
-
-        // Assemble the corrections contributions
-        Vector p_grad;
-        Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-#pragma omp parallel for private(p_grad, dNdX_container)
-        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-            auto it_elem = r_model_part.ElementsBegin() + i_elem;
-            auto& r_geom = it_elem->GetGeometry();
-            const unsigned int n_nodes = r_geom.PointsNumber();
-            const double geom_domain_size = r_geom.DomainSize();
-
-            // Calculate the gradients in the element midpoint
-            // Note that it is assumed that simplicial elements are used
-            dNdX_container = r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
-            const auto &r_dNdX = dNdX_container[0];
-
-            // Calculate the required average values
-            double p_avg = 0.0;
-            double c_avg = 0.0;
-            double v_norm_avg = 0.0;
-            p_grad = ZeroVector(dim);
-            const double gamma = (it_elem->GetProperties()).GetValue(HEAT_CAPACITY_RATIO);
-            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                auto &r_node = r_geom[i_node];
-                const auto node_dNdX = row(r_dNdX, i_node);
-                const auto &r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-                const double &r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-                const double &r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-                const double v_norm = norm_2(r_mom / r_rho);
-                const double p = (gamma - 1.0) * (r_tot_ener - 0.5 * std::pow(v_norm, 2) * r_rho);
-                const double c = std::sqrt(gamma * p / r_rho);
-                p_avg += p;
-                c_avg += c;
-                v_norm_avg += v_norm;
-                for (int d1 = 0; d1 < dim; ++d1) {
-                    p_grad(d1) += node_dNdX(d1) * p;
-                }
-            }
-            p_avg /= n_nodes;
-            c_avg /= n_nodes;
-            v_norm_avg /= n_nodes;
-            const double p_grad_norm = norm_2(p_grad);
-
-            // Calculate the multiplying constant
-            const double avg_h = avg_h_function(r_geom);
-            const double constant = dt * c_e * std::pow(avg_h, 2) * (v_norm_avg + c_avg) * p_grad_norm / p_avg;
-            // const double constant = dt * c_e * std::pow(avg_h, 2) * p_grad_norm / p_avg;
-
-            // Elemental diffusive assembly
-            for (unsigned int d = 0; d < dim; ++d) {
-                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                    // Get smoothed values
-                    auto &r_node_i = r_geom[i_node];
-                    auto &r_smooth_mom = r_node_i.GetValue(SMOOTHED_MOMENTUM);
-                    double &r_smooth_rho = r_node_i.GetValue(SMOOTHED_DENSITY);
-                    double &r_smooth_tot_ener = r_node_i.GetValue(SMOOTHED_TOTAL_ENERGY);
-                    // Calculate characteristic velocity
-                    const auto& r_rho = r_node_i.FastGetSolutionStepValue(DENSITY);
-                    const auto& r_tot_ener = r_node_i.FastGetSolutionStepValue(TOTAL_ENERGY);
-                    // const double v_norm = norm_2(r_node_i.FastGetSolutionStepValue(MOMENTUM) / r_rho);
-                    // const double p = (gamma - 1.0) * (r_tot_ener - 0.5 * std::pow(v_norm, 2) * r_rho);
-                    // const double c = std::sqrt(gamma * p / r_rho);
-                    // const double char_vel = v_norm + c;
-                    // Calculate the diffusive elemental contribution
-                    const double aux_i = r_dNdX(i_node, d);
-                    for (unsigned int j_node = 0; j_node < n_nodes; ++j_node) {
-                        const auto& r_node_j = r_geom[j_node];
-                        const auto &r_mom = r_node_j.FastGetSolutionStepValue(MOMENTUM, 1);
-                        const double &r_rho = r_node_j.FastGetSolutionStepValue(DENSITY, 1);
-                        const double &r_tot_ener = r_node_j.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
-                        r_smooth_rho += aux_i * r_dNdX(j_node, d) * r_rho;
-                        r_smooth_mom += aux_i * r_dNdX(j_node, d) * r_mom;
-                        r_smooth_tot_ener += aux_i * r_dNdX(j_node, d) * r_tot_ener;
-                    }
-                    r_smooth_rho *= constant * geom_domain_size;
-                    r_smooth_mom *= constant * geom_domain_size;
-                    r_smooth_tot_ener *= constant * geom_domain_size;
-                    // r_smooth_rho *= constant * char_vel * geom_domain_size;
-                    // r_smooth_mom *= constant * char_vel * geom_domain_size;
-                    // r_smooth_tot_ener *= constant * char_vel * geom_domain_size;
-                }
-            }
-        }
-
-            // Divide the smoothing contribution by the mass and add to the current solution
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            const double mass = r_lumped_mass_vector(i_node * block_size);
-            auto& r_smooth_mom = it_node->GetValue(SMOOTHED_MOMENTUM);
-            double& r_smooth_rho = it_node->GetValue(SMOOTHED_DENSITY);
-            double& r_smooth_tot_ener = it_node->GetValue(SMOOTHED_TOTAL_ENERGY);
-            r_smooth_rho /= mass;
-            r_smooth_mom /= mass;
-            r_smooth_tot_ener /= mass;
-            if (!it_node->IsFixed(DENSITY)) {
-                it_node->FastGetSolutionStepValue(DENSITY) += r_smooth_rho;
-            }
-            if (!it_node->IsFixed(MOMENTUM_X)) {
-                it_node->FastGetSolutionStepValue(MOMENTUM_X) += r_smooth_mom(0);
-            }
-            if (!it_node->IsFixed(MOMENTUM_Y)) {
-                it_node->FastGetSolutionStepValue(MOMENTUM_Y) += r_smooth_mom(1);
-            }
-            if (!it_node->IsFixed(MOMENTUM_Z)) {
-                it_node->FastGetSolutionStepValue(MOMENTUM_Z) += r_smooth_mom(2);
-            }
-            if (!it_node->IsFixed(TOTAL_ENERGY)) {
-                it_node->FastGetSolutionStepValue(TOTAL_ENERGY) += r_smooth_tot_ener;
-            }
-        }
-    }
-
-    // /**
-    //  * @brief Initializes the shock capturing method
-    //  * This function performs all the operations required to initialize the shock capturing method
-    //  * Note that if the mesh deforms (or changes the topology) it is required to repeat them again
-    //  */
-    // void InitializeShockCapturing()
-    // {
-    //     auto& r_model_part = BaseType::GetModelPart();
-
-    //     // Calculate the nodal element size
-    //     // This will be used in the calculation of the artificial shock capturing magnitudes
-    //     auto nodal_h_process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
-    //     nodal_h_process.Execute();
-
-    //     // Initialize the shock detection process
-    //     mpShockDetectionProcess = Kratos::make_unique<ShockDetectionProcess>(r_model_part, PRESSURE, DENSITY_GRADIENT);
-    //     // mpShockDetectionProcess = Kratos::make_unique<ShockDetectionProcess>(r_model_part, DENSITY, DENSITY_GRADIENT);
-    //     mpShockDetectionProcess->ExecuteInitialize();
-    // }
-
-//     /**
-//      * @brief Calculates the artificial shock capturing values
-//      * This method computes the values of the artificial shock capturing viscosity
-//      * and conductivity (note that in here we assume dynamic artificial viscosity)
-//      */
-//     void CalculateShockCapturingMagnitudes()
-//     {
-//         // Get model part data
-//         auto& r_model_part = BaseType::GetModelPart();
-//         auto& r_comm = r_model_part.GetCommunicator();
-
-//         // Calculate the corresponding artificial magnitudes
-//         array_1d<double,3> aux_vel;
-// #pragma omp parallel for private(aux_vel)
-//         for (int i_node = 0; i_node < r_comm.LocalMesh().NumberOfNodes(); ++i_node) {
-//             auto it_node = r_comm.LocalMesh().NodesBegin() + i_node;
-//             const double& r_nodal_h = it_node->GetValue(NODAL_H);
-//             const double& r_shock_sensor = it_node->GetValue(SHOCK_SENSOR);
-//             const double& r_rho = it_node->FastGetSolutionStepValue(DENSITY);
-//             const auto& r_mom = it_node->FastGetSolutionStepValue(MOMENTUM);
-//             aux_vel[0] = r_mom[0] / r_rho;
-//             aux_vel[1] = r_mom[1] / r_rho;
-//             aux_vel[2] = r_mom[2] / r_rho;
-//             double& r_mu_sc = it_node->GetValue(SHOCK_CAPTURING_VISCOSITY);
-//             r_mu_sc = r_shock_sensor * r_nodal_h * norm_2(aux_vel); // Kinematic shock capturing viscosity (this is the one implemented in the element right now)
-//             // r_mu_sc = r_shock_sensor * r_nodal_h * norm_2(aux_vel) * r_rho; // Dynamic shock capturing viscosity
-//         }
-
-// LAPIDUS VISCOSITY
-//         // If required recompute the NODAL_AREA
-//         // This is required for the nodal gradients calculation
-//         CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>(
-//         r_model_part,
-//         r_model_part.GetProcessInfo().GetValue(DOMAIN_SIZE)).Execute();
-
-//         array_1d<double,3> aux_vel;
-// #pragma omp parallel for private(aux_vel)
-//         for (int i_node = 0; i_node < r_comm.LocalMesh().NumberOfNodes(); ++i_node) {
-//             auto it_node = r_comm.LocalMesh().NodesBegin() + i_node;
-//             const double& r_rho = it_node->FastGetSolutionStepValue(DENSITY);
-//             const auto& r_mom = it_node->FastGetSolutionStepValue(MOMENTUM);
-//             aux_vel[0] = r_mom[0] / r_rho;
-//             aux_vel[1] = r_mom[1] / r_rho;
-//             aux_vel[2] = r_mom[2] / r_rho;
-//             it_node->GetValue(CHARACTERISTIC_VELOCITY) = norm_2(aux_vel);
-//         }
-
-//         // Calculate the shock variable nodal gradients
-//         ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
-//             r_model_part,
-//             CHARACTERISTIC_VELOCITY,
-//             DENSITY_GRADIENT,
-//             NODAL_AREA,
-//             true).Execute();
-
-// #pragma omp parallel for private(aux_vel)
-//         for (int i_node = 0; i_node < r_comm.LocalMesh().NumberOfNodes(); ++i_node) {
-//             auto it_node = r_comm.LocalMesh().NodesBegin() + i_node;
-//             auto& r_l = it_node->GetValue(DENSITY_GRADIENT);
-//             const double norm_l = norm_2(r_l);
-//             if (norm_l > 1.0e-12) {
-//                 r_l = r_l / norm_2(r_l);
-//             } else {
-//                 r_l = ZeroVector(3);
-//             }
-//             const double& r_rho = it_node->FastGetSolutionStepValue(DENSITY);
-//             const auto& r_mom = it_node->FastGetSolutionStepValue(MOMENTUM);
-//             aux_vel[0] = r_mom[0] / r_rho;
-//             aux_vel[1] = r_mom[1] / r_rho;
-//             aux_vel[2] = r_mom[2] / r_rho;
-//             it_node->GetValue(CHARACTERISTIC_VELOCITY) = inner_prod(aux_vel, r_l);
-//         }
-
-//         // Calculate the shock variable nodal gradients
-//         ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
-//             r_model_part,
-//             CHARACTERISTIC_VELOCITY,
-//             VELOCITY,
-//             NODAL_AREA,
-//             true).Execute();
-
-//         const double c_lap = 1.0;
-// #pragma omp parallel for firstprivate(c_lap)
-//         for (int i_node = 0; i_node < r_comm.LocalMesh().NumberOfNodes(); ++i_node) {
-//             auto it_node = r_comm.LocalMesh().NodesBegin() + i_node;
-//             const double& r_nodal_h = it_node->GetValue(NODAL_H);
-//             const auto& r_v_l = it_node->GetValue(VELOCITY);
-//             const auto& r_l = it_node->GetValue(DENSITY_GRADIENT);
-//             double& r_nu_sc = it_node->GetValue(SHOCK_CAPTURING_VISCOSITY);
-//             r_nu_sc =  c_lap * std::pow(r_nodal_h,2) * std::abs(inner_prod(r_l, r_v_l));
-//         }
-//
-//    }
 
     ///@}
     ///@name Private  Access
