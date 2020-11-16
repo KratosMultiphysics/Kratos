@@ -19,34 +19,18 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 ##add subdirectories for compilation of dependent libraries
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
+set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS tetMeshOpt)
 
 ## generate variables with the sources
-set( KRATOS_MESHING_APPLICATION_CORE
+file( GLOB KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refinement_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/meshing_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_includes/meshing_flags.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_error_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/multiscale_refining_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_includes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/*.cpp
 )
-
-## If we have MMG support, use it
-set(KRATOS_MESHING_APPLICATION_CORE_MMG "")
-if(${INCLUDE_MMG} MATCHES ON)
-set( KRATOS_MESHING_APPLICATION_CORE_MMG ${KRATOS_MESHING_APPLICATION_CORE_MMG}
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/mmg_io.cpp
-)
-endif(${INCLUDE_MMG} MATCHES ON)
 
 file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
@@ -56,13 +40,11 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
-
-IF(NOT DEFINED MMG_LIBRARY_PREFIX)
-    SET(MMG_LIBRARY_PREFIX "lib")
-ENDIF(NOT DEFINED MMG_LIBRARY_PREFIX)
 
 if(${INCLUDE_MMG} MATCHES ON)
+    IF(NOT DEFINED MMG_LIBRARY_PREFIX)
+        SET(MMG_LIBRARY_PREFIX "lib")
+    ENDIF(NOT DEFINED MMG_LIBRARY_PREFIX)
     # Define includes and libraries with just one include
     IF (MMG_ROOT)
         IF(NOT DEFINED MMG_LIBRARY_EXTENSION)
@@ -95,39 +77,40 @@ if(${INCLUDE_MMG} MATCHES ON)
         ENDIF(NOT DEFINED MMGS_INCLUDE_DIR)
         IF(NOT DEFINED MMG_LIBRARY)
             SET(MMG_LIBRARY ${MMG_ROOT}/lib/${MMG_LIBRARY_PREFIX}mmg.${MMG_LIBRARY_EXTENSION})
+            SET(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS}  ${MMG_LIBRARY})
         ENDIF(NOT DEFINED MMG_LIBRARY)
         IF(NOT DEFINED MMG2D_LIBRARY)
             SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/${MMG_LIBRARY_PREFIX}mmg2d.${MMG_LIBRARY_EXTENSION})
+            SET(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS}  ${MMG2D_LIBRARY})
         ENDIF(NOT DEFINED MMG2D_LIBRARY)
         IF(NOT DEFINED MMG3D_LIBRARY)
             SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/${MMG_LIBRARY_PREFIX}mmg3d.${MMG_LIBRARY_EXTENSION})
+            SET(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS}  ${MMG3D_LIBRARY})
         ENDIF(NOT DEFINED MMG3D_LIBRARY)
         IF(NOT DEFINED MMGS_LIBRARY)
             SET(MMGS_LIBRARY ${MMG_ROOT}/lib/${MMG_LIBRARY_PREFIX}mmgs.${MMG_LIBRARY_EXTENSION})
+            SET(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS}  ${MMGS_LIBRARY})
         ENDIF(NOT DEFINED MMGS_LIBRARY)
     ENDIF (MMG_ROOT)
 
     # Add definitions
     add_definitions( -DINCLUDE_MMG )
 
-    INCLUDE_DIRECTORIES(${MMG_INCLUDE_DIR})
-    INCLUDE_DIRECTORIES(${MMG2D_INCLUDE_DIR})
-    INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
-    INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
+    include_directories(${MMG_INCLUDE_DIR})
+    include_directories(${MMG2D_INCLUDE_DIR})
+    include_directories(${MMG3D_INCLUDE_DIR})
+    include_directories(${MMGS_INCLUDE_DIR})
 
-    target_link_libraries(KratosMeshingCore PUBLIC KratosCore tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
-    
     message("Installed MMG = " ${MMG_LIBRARY})
-    install(FILES ${MMG_LIBRARY} DESTINATION libs)
     message("Installed MMG2D = " ${MMG2D_LIBRARY})
-    install(FILES ${MMG2D_LIBRARY} DESTINATION libs)
     message("Installed MMG3D = " ${MMG3D_LIBRARY})
-    install(FILES ${MMG3D_LIBRARY} DESTINATION libs)
     message("Installed MMGS = " ${MMGS_LIBRARY})
-    install(FILES ${MMGS_LIBRARY} DESTINATION libs)
 else(${INCLUDE_MMG} MATCHES ON)
-    target_link_libraries(KratosMeshingCore PUBLIC KratosCore tetMeshOpt)
+    list(FILTER KRATOS_MESHING_APPLICATION_CORE EXCLUDE REGEX "mmg")
 endif(${INCLUDE_MMG} MATCHES ON)
+
+add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosMeshingCore PUBLIC KratosCore ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS})
 
 set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 
