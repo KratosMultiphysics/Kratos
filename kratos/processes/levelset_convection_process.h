@@ -102,6 +102,7 @@ public:
           mDtFactor(dt_factor),
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps),
+          mBfeccOrder(bfecc_order),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         KRATOS_TRY
@@ -266,7 +267,7 @@ public:
             else{
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
-                    auto it_node = it_node_begin + i_node;
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
                     const array_1d<double,3>& v = mVelocity[i_node];
                     const array_1d<double,3>& v_old = mVelocityOld[i_node];
@@ -284,12 +285,12 @@ public:
             if (mBfeccOrder > 0) {// Error Compensation and Correction
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
-                    auto it_node = it_node_begin + i_node;
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
                     const array_1d<double,3>& v = mVelocity[i_node];
                     const array_1d<double,3>& v_old = mVelocityOld[i_node];
 
-                    mFirstUnPlusOne[ i_node ] = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                    //mFirstUnPlusOne[ i_node ] = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                     it_node->FastGetSolutionStepValue(mrConvectVar) = -(Nold * v_old + Nnew * v);
                     it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -(Nold_before * v_old + Nnew_before * v);
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
@@ -300,7 +301,7 @@ public:
                 // Calculating the raw error without a limiter, etc. 
                 #pragma omp parallel for
                 for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
-                    auto it_node = it_node_begin + i;
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i;
                     mError[i] =
                         0.5*(it_node->GetValue(mrLevelSetVar) - it_node->FastGetSolutionStepValue(mrLevelSetVar));
                 }
@@ -485,7 +486,7 @@ public:
 
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
-                    auto it_node = it_node_begin + i_node;
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
                     const array_1d<double,3>& v = mVelocity[i_node];
                     const array_1d<double,3>& v_old = mVelocityOld[i_node];
