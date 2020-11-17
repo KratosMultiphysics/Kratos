@@ -221,6 +221,27 @@ public:
         });
     }
 
+    //y = alpha*y + beta*A*x
+    template<class TInputVectorType, class TOutputVectorType>
+    void SpMV(const TDataType alpha,
+              const TInputVectorType& x, 
+              const TDataType beta,
+              TOutputVectorType& y) const
+    {
+        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
+        IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            TDataType aux = TDataType();
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType col = index2_data()[k];
+                aux += value_data()[k] * x(col);
+            }  
+            y(i) = beta*y(i) + alpha*aux;
+        });
+    }
+
     // y += A^t*x  -- where A is *this    
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TInputVectorType& x, TOutputVectorType& y) const
@@ -234,6 +255,28 @@ public:
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType j = index2_data()[k];
                 y(j) += value_data()[k] * x(i);
+            }  
+        }
+    }
+
+    //y = alpha*y + beta*A^t*x
+    template<class TInputVectorType, class TOutputVectorType>
+    void TransposeSpMV(const TDataType alpha,
+              const TInputVectorType& x, 
+              const TDataType beta,
+              TOutputVectorType& y) const
+    {
+        KRATOS_ERROR_IF(size2() != y.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size1() != x.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and input vector size " << x.size() << std::endl;
+        y *= beta;
+        for(IndexType i=0; i<size1(); ++i)
+        {
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            TDataType aux = alpha*x(i);
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType j = index2_data()[k];
+                y(j) += value_data()[k] * aux;
             }  
         }
     }
