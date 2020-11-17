@@ -28,7 +28,6 @@ class TimeBasedAsciiFileWriterUtility(object):
         has_initial_write_buffer_size = params.Has("write_buffer_size")
 
         if params.Has("folder_name"):
-            self.output_path = params["folder_name"].GetString()
             params.AddValue("output_path",params["folder_name"])
             params.RemoveValue("folder_name")
             KratosMultiphysics.Logger.PrintWarning('TimeBasedAsciiFileWriterUtility', '"folder_name" key is deprecated. Use "output_path" instead.')
