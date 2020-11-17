@@ -75,7 +75,7 @@ class TimeBasedAsciiFileWriterUtility(object):
         return output_file
 
     def __AddToExistingOutputFile(self, file_header, restart_time):
-        if not os.path.isfile(self.file_name):
+        if not Path.is_file(self.file_name):
             return None
 
         try: # We try to open the file and transfer the info
