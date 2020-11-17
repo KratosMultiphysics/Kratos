@@ -22,9 +22,6 @@
 #include "includes/model_part.h"
 
 #include "boost/geometry/geometry.hpp"
-#include "boost/geometry/geometries/register/point.hpp"
-#include "boost/geometry/geometries/register/ring.hpp"
-
 
 namespace Kratos
 {
