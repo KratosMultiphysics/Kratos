@@ -92,9 +92,9 @@ In Kratos Core:
 - [ZLib](https://zlib.net/) The compression library
 
 In applications
-- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) For linear solvers used in the [LinearSolversApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/LinearSolversApplication)
-- [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/TrilinosApplication)
-- [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/MetisApplication)
+- [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)
+- [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](applications/TrilinosApplication)
+- [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](applications/MetisApplication/README.md)
 
 # How to cite Kratos?
 Please, use the following references when citing Kratos in your work.
