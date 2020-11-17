@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Other imports
 import os
-import pathlib
+from pathlib import Path
 
 class TimeBasedAsciiFileWriterUtility(object):
     """This utility handles a file to which results are to be written.
@@ -43,7 +43,7 @@ class TimeBasedAsciiFileWriterUtility(object):
         is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
         if not is_mpi_execution and not has_initial_write_buffer_size:
             info_msg  = "File output buffer size set to 1 \n"
-            info_msg += "for TimeBasedAsciiFileWriterUtility output file "+ self.file_name
+            info_msg += "for TimeBasedAsciiFileWriterUtility output file "+ str(self.file_name)
             KratosMultiphysics.Logger.PrintInfo("TimeBasedAsciiFileWriterUtility", info_msg)
             self.write_buffer_size = 1
         else:
