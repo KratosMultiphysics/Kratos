@@ -107,7 +107,7 @@ public:
 
     void PrepareGeometryModel() override
     {
-        this->UpdateGeometryModel();
+        //this->UpdateGeometryModel();
     }
 
     ///@}
@@ -120,31 +120,17 @@ public:
     void CreateStructureQuadraturePointGeometries(
         TLineGeometriesList& rInputLineGeometries,
         TQuadraturePointGeometriesList& rOuputQuadraturePointGeometries,
-        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5
+        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2
         )
     {
-        for (IndexType i = 0; i < rInputLineGeometries.size(); ++i)
-        {
-            std::vector<GeometryPointerType> qudrature_point_geometries = CreateQuadraturePointsUtility<Node<3>>::Create(rInputLineGeometries[i], ThisIntegrationMethod);
-            for (IndexType i = 0; i < qudrature_point_geometries.size(); ++i) {
-                rOuputQuadraturePointGeometries.push_back(qudrature_point_geometries[i]);
+        for (IndexType i = 0; i < rInputLineGeometries.size(); ++i) {
+            std::vector<GeometryPointerType> qudrature_point_geometries =
+                CreateQuadraturePointsUtility<Node<3>>::Create(rInputLineGeometries[i], ThisIntegrationMethod);
+            for (IndexType j = 0; j < qudrature_point_geometries.size(); ++j) {
+                qudrature_point_geometries[j]->SetGeometryParent(rInputLineGeometries[i].get());
+                rOuputQuadraturePointGeometries.push_back(qudrature_point_geometries[j]);
             }
         }
-
-        double fem_edge_length = 0.0;
-        double fem_edge_length_combined = 0.0;
-        Vector jac(1);
-        for (size_t i = 0; i < rOuputQuadraturePointGeometries.size(); i++)
-        {
-            rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac);
-            fem_edge_length += jac[0];
-            //KRATOS_WATCH(rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac))
-            //KRATOS_WATCH(rOuputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
-            fem_edge_length_combined += (jac[0] * rOuputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
-        }
-
-        KRATOS_WATCH(fem_edge_length_combined)
-        //KRATOS_WATCH(fem_edge_length)
     }
 
     template<SizeType TDimension, class TQuadraturePointGeometriesList>
@@ -219,8 +205,6 @@ public:
                 space_derivatives[0] = jacci(0, 0);
                 space_derivatives[1] = jacci(1, 0);
                 space_derivatives[2] = 0;
-                //std::vector<array_1d<double, 3>> space_derivatives (2);
-                //rInputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives, 0, 1);
 
                 Matrix inv;
                 r_geometry.InverseOfJacobian(inv, local_coordinates);
@@ -330,15 +314,12 @@ private:
 
     void FixMPMDestInterfaceNodes(ModelPart& rMPMDestInterfaceModelPart)
     {
-        if (!mIsOriginMpm)
-        {
             for (size_t i = 0; i < rMPMDestInterfaceModelPart.NumberOfNodes(); i++)
             {
                 rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_X);
                 rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_Y);
                 rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_Z);
             }
-        }
     }
 
     void ReleaseMPMDestInterfaceNodes(ModelPart& rMPMDestInterfaceModelPart)

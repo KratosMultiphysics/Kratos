@@ -91,7 +91,10 @@ namespace Kratos
             : p_model_mpm->CreateModelPart("coupling_nodes");
         for (IndexType i = 0; i < quads_mpm.size(); ++i) {
             for (IndexType j = 0; j < quads_mpm[i]->size(); ++j) {
-                mpm_coupling_nodes.AddNode(quads_mpm[i]->pGetPoint(j));
+                if (quads_mpm[i]->ShapeFunctionValue(0,j) > 1e-9)
+                {
+                    mpm_coupling_nodes.AddNode(quads_mpm[i]->pGetPoint(j));
+                }
             }
         }
         ModelPart& fem_coupling_nodes = (p_model_fem->HasModelPart("coupling_nodes"))
@@ -112,6 +115,7 @@ namespace Kratos
         {
             coupling_interface_origin.SetNodes(fem_coupling_nodes.pNodes());
             coupling_interface_destination.SetNodes(mpm_coupling_nodes.pNodes());
+            KRATOS_WATCH(coupling_interface_destination.NumberOfNodes())
         }
 
         // We fix the interface nodes so they can receive the prescribed displacements from FEM.
@@ -204,14 +208,17 @@ namespace Kratos
         {
             auto quads_mpm = cond_it->GetGeometry().pGetGeometryPart(mpm_index);
             for (IndexType j = 0; j < quads_mpm->PointsNumber(); ++j) {
-                mpm_coupling_nodes.AddNode(quads_mpm->pGetPoint(j));
+                if (quads_mpm->ShapeFunctionValue(0, j) > 1e-9)
+                {
+                    mpm_coupling_nodes.AddNode(quads_mpm->pGetPoint(j));
+                }
             }
         }
         // Set coupling interface nodes in coupling model part
         coupling_interface_mpm.SetNodes(mpm_coupling_nodes.pNodes());
 
         // We fix the interface nodes so they can receive the prescribed displacements from FEM.
-        FixMPMDestInterfaceNodes(mpm_coupling_nodes);
+        if (!mIsOriginMpm) FixMPMDestInterfaceNodes(mpm_coupling_nodes);
     }
 
     void StructureMpmModeler::CheckParameters()
