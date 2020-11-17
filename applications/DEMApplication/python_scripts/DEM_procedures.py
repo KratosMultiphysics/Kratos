@@ -1488,9 +1488,7 @@ class DEMIo(object):
         self.AddRigidBodyVariables()
         self.AddContactVariables()
         self.AddMpiVariables()
-        #_______________________________________________________________________
         self.AddHomogenizationVariables()
-        #_______________________________________________________________________
         self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters["OutputFileType"].GetString(), DEM_parameters["Multifile"].GetString(), DEM_parameters["ContactMeshOption"].GetBool())
         self.SetOutputName(DEM_parameters["problem_name"].GetString())
 
@@ -1616,10 +1614,8 @@ class DEMIo(object):
     def AddMpiVariables(self):
         pass
     
-    #_______________________________________________________________________
     def AddHomogenizationVariables(self):
         pass
-    #_______________________________________________________________________
 
     def Configure(self, problem_name, encoding, file_system, contact_mesh_option):
         self.problem_name = problem_name
@@ -1637,9 +1633,8 @@ class DEMIo(object):
         self.deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
         self.write_conditions = WriteConditionsFlag.WriteConditions
         self.contact_mesh_option = contact_mesh_option
-        #_______________________________________________________________________
-        self.homogenization_mesh_option = True
-        #_______________________________________________________________________
+        #self.homogenization_mesh_option = self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool()
+        self.homogenization_mesh_option = False
 
 
         problem_name = os.path.join(self.post_path, self.problem_name)
@@ -1723,18 +1718,14 @@ class DEMIo(object):
             if self.contact_mesh_option:
                 self.gid_io.WriteMesh(all_model_parts.Get("ContactPart").GetCommunicator().LocalMesh())
 
-            #_______________________________________________________________________
             if self.homogenization_mesh_option:
                 self.gid_io.WriteMesh(all_model_parts.Get("HomogenizationModelPart").GetCommunicator().LocalMesh())
-            #_______________________________________________________________________
 
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, self.mixed_model_part.GetCommunicator().LocalMesh())
             #self.gid_io.InitializeResults(0.0, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
     
-    #_______________________________________________________________________
     def InitializeResults(self, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part,homogenization_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits):  # MIQUEL MAPPING
-    #_______________________________________________________________________
 
         if self.filesystem == MultiFileFlag.MultipleFiles:
             self.RemoveElementsAndNodes()
@@ -1749,10 +1740,8 @@ class DEMIo(object):
                 contact_model_part.GetProperties(0)[0].Id = 9184
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
 
-            #_______________________________________________________________________
             if self.homogenization_mesh_option:
                 self.gid_io.WriteMesh(homogenization_model_part.GetCommunicator().LocalMesh())
-            #_______________________________________________________________________
 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())

@@ -8,7 +8,10 @@ class ParallelepipedRegularMesher:
                  higher_corner_coordinates,
                  number_of_divisions_per_dimension,
                  element_name='Element3D4N',
-                 condition_name='WallCondition3D'):
+                 condition_name='WallCondition3D',
+                 start_node_id=1,
+                 start_element_id=1,
+                 start_condition_id=1):
         self.lc = lower_corner_coordinates
         self.hc = higher_corner_coordinates
         self.n_divisions = number_of_divisions_per_dimension
@@ -19,6 +22,9 @@ class ParallelepipedRegularMesher:
         parameters.AddEmptyValue("condition_name").SetString(condition_name)
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
         parameters.AddEmptyValue("number_of_divisions").SetVector(self.n_divisions)
+        parameters.AddEmptyValue("start_node_id").SetInt(start_node_id)
+        parameters.AddEmptyValue("start_element_id").SetInt(start_element_id)
+        parameters.AddEmptyValue("start_condition_id").SetInt(start_condition_id)
 
         self.domain_geometry = Kratos.Hexahedra3D8(Node(1, self.hc[0], self.hc[1], self.lc[2]),
                                           Node(2, self.lc[0], self.hc[1], self.lc[2]),
@@ -51,7 +57,10 @@ class RectangularRegularMesher:
                  higher_corner_coordinates,
                  number_of_divisions_per_dimension,
                  element_name='Element2D3N',
-                 condition_name='WallCondition2D'):
+                 condition_name='WallCondition2D',
+                 start_node_id=1,
+                 start_element_id=1,
+                 start_condition_id=1):
         self.lc = lower_corner_coordinates
         self.hc = higher_corner_coordinates
         self.n_divisions = number_of_divisions_per_dimension
@@ -62,6 +71,9 @@ class RectangularRegularMesher:
         parameters.AddEmptyValue("condition_name").SetString(condition_name)
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
         parameters.AddEmptyValue("number_of_divisions").SetVector(self.n_divisions)
+        parameters.AddEmptyValue("start_node_id").SetInt(start_node_id)
+        parameters.AddEmptyValue("start_element_id").SetInt(start_element_id)
+        parameters.AddEmptyValue("start_condition_id").SetInt(start_condition_id)
 
         self.domain_geometry = Kratos.Quadrilateral2D4(Node(1, self.lc[0], self.hc[1], 0.0),
                                           Node(2, self.hc[0], self.hc[1], 0.0),

@@ -308,8 +308,6 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.materialTest.Initialize(self.DEM_parameters, self.procedures, self._GetSolver(), self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
-        self.HomogenizationUtilitiesInitialize()
-
         self.KratosPrintInfo("Initialization Complete")
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
@@ -333,7 +331,7 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
     
-    def HomogenizationUtilitiesInitialize(self):
+    def HomogenizationUtilitiesInitialize(self, max_node_id=1, max_elem_id=1, max_cond_id=1):
         
         bounding_box = self.procedures.SetBoundingBox(self.spheres_model_part, self.cluster_model_part, self.rigid_face_model_part, self.dem_inlet_model_part, self.creator_destructor)
 
@@ -344,7 +342,7 @@ class DEMAnalysisStage(AnalysisStage):
             lower_corner_coordinates[i] = self.creator_destructor.GetLowNode()[i]
             higher_corner_coordinates[i] = self.creator_destructor.GetHighNode()[i]
 
-        #element_size = int(input("Enter element size:"))
+        #element_size = self.DEM_parameters["element_size"].GetDouble()
         element_size = 1.0
 
         number_of_divisions = [0] * self.DEM_parameters["Dimension"].GetInt()
@@ -369,6 +367,11 @@ class DEMAnalysisStage(AnalysisStage):
             print("Please select 2D or 3D problem type")
 
         homogenization_mesher.FillModelPartWithNewMesh()
+
+        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.homogenization_model_part)
+        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.homogenization_model_part)
+        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.homogenization_model_part)
+        return max_node_Id, max_elem_Id, max_cond_Id
 
         #omplir homogenization model part amb una malla del tamany del bounding_box
         #crear objecte HomogenizationUtilities, per poder cridar una funció de projecció més endavant self.homogenization_utilities
@@ -427,23 +430,12 @@ class DEMAnalysisStage(AnalysisStage):
     def GetProblemTypeFileName(self):
         return self.DEM_parameters["problem_name"].GetString()
 
-    def ReadHomogenizationModelPart(self,
-                                    starting_node_Id=0,
-                                    starting_element_Id=0,
-                                    starting_cond_Id=0):
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.homogenization_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.homogenization_model_part)
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.homogenization_model_part)
-        return max_node_Id, max_elem_Id, max_cond_Id
-
     def ReadModelPartsFromRestartFile(self, model_part_import_settings):
         Logger.PrintInfo('DEM', 'Loading model parts from restart file...')
         DEMRestartUtility(self.model, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
         Logger.PrintInfo('DEM', 'Finished loading model parts from restart file.')
 
     def ReadModelPartsFromMdpaFile(self, max_node_id, max_elem_id, max_cond_id):
-        
-        self.ReadHomogenizationModelPart()
 
         def UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, model_part):
             max_node_id = max(max_node_id, self.creator_destructor.FindMaxNodeIdInModelPart(model_part))
@@ -499,6 +491,8 @@ class DEMAnalysisStage(AnalysisStage):
         ReadModelPart(self.dem_inlet_model_part, self.GetDEMInletInputFileTag(), max_node_id, max_elem_id, max_cond_id)
 
     def ReadModelParts(self, max_node_id=0, max_elem_id=0, max_cond_id=0):
+
+        max_node_id, max_elem_id, max_cond_id = self.HomogenizationUtilitiesInitialize(max_node_id, max_elem_id, max_cond_id)
 
         model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
         input_type = model_part_import_settings["input_type"].GetString()
