@@ -15,7 +15,6 @@ include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 file(
   GLOB_RECURSE
   KRATOS_RANS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )

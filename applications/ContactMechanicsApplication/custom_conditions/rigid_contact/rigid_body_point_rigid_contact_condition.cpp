@@ -168,7 +168,7 @@ void RigidBodyPointRigidContactCondition::GetSecondDerivativesVector( Vector& rV
 
 void RigidBodyPointRigidContactCondition::AddExplicitContribution(const VectorType& rRHSVector,
 						 const Variable<VectorType>& rRHSVariable,
-						 Variable<array_1d<double,3> >& rDestinationVariable,
+						 const Variable<array_1d<double,3> >& rDestinationVariable,
 						 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

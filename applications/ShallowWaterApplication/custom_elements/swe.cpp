@@ -26,7 +26,7 @@ namespace Kratos
 {
 
 template< size_t TNumNodes, ElementFramework TFramework >
-int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
+int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Base class checks for positive Jacobian and Id > 0
     int err = Element::Check(rCurrentProcessInfo);
@@ -46,7 +46,7 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( size_t i = 0; i < TNumNodes; i++ )
     {
-        Node<3>& node = this->GetGeometry()[i];
+        const Node<3>& node = this->GetGeometry()[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
