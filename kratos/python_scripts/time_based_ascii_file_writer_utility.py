@@ -141,7 +141,7 @@ class TimeBasedAsciiFileWriterUtility(object):
             warn_msg += "Use parameter output_path to specify it correctly."
             KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
 
-        self.file_name = str(pathlib.PurePath(self.output_path,raw_file_name))
+        self.file_name = self.output_path / Path(raw_file_name)
 
         # make sure that the path to the desired output folder exists
         if not os.path.isdir(self.output_path) and not self.output_path == "":
