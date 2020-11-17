@@ -255,6 +255,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if (self._levelset_dt_factor < 1.0):
             # Perform the level-set convection to complete the solution step
             if self._bfecc_convection:
+                self._GetLevelSetConvectionProcess().CopyScalarVarToPreviousTimeStep(
+                    self.main_model_part,
+                    KratosMultiphysics.DISTANCE)
+
                 self._GetLevelSetConvectionProcess().BFECCconvectPartially(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
