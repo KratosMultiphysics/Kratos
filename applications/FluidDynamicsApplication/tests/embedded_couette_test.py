@@ -6,9 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_f
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("LinearSolversApplication")
-
-@UnitTest.skipIf(not have_external_solvers,"Missing required application: LinearSolversApplication")
+@UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class EmbeddedCouetteTest(UnitTest.TestCase):
 
     # Embedded element tests
