@@ -105,7 +105,7 @@
                 "python_module": "from_json_check_result_process",
                 "kratos_module": "KratosMultiphysics",
                 "Parameters": {
-                    "check_variables": [ "DISPLACEMENT" , "ROTATION" ],
+                    "check_variables": [ "DISPLACEMENT", "ROTATION_X", "ROTATION_Y" ],
                     "input_file_name": "nonlinear_beam_thick_p2_nCP22/nonlinear_beam_thick_p2_nCP22_test_results.json",
                     "model_part_name": "IgaModelPart",
                     "time_frequency": 0.0

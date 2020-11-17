@@ -105,7 +105,7 @@
                 "python_module": "from_json_check_result_process",
                 "kratos_module": "KratosMultiphysics",
                 "Parameters": {
-                    "check_variables": [ "DISPLACEMENT_X", "DISPLACEMENT_Z", "ROTATION" ],
+                    "check_variables": [ "DISPLACEMENT_X", "DISPLACEMENT_Z", "ROTATION_X", "ROTATION_Y" ],
                     "input_file_name": "linear_scordelis_p4_nCP10/linear_scordelis_p4_nCP10_test_results.json",
                     "model_part_name": "IgaModelPart",
                     "time_frequency": 0.0

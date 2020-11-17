@@ -104,7 +104,7 @@
             "python_module": "from_json_check_result_process",
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
-                "check_variables": [ "DISPLACEMENT", "ROTATION" ],
+                "check_variables": [ "DISPLACEMENT", "ROTATION_X", "ROTATION_Y" ],
                 "input_file_name": "linear_beam_thick_p4_nCP5/linear_beam_thick_p4_nCP5_test_results.json",
                 "model_part_name": "IgaModelPart",
                 "time_frequency": 0.0
