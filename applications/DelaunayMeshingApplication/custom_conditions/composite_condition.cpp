@@ -222,23 +222,23 @@ void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult,
                                           const ProcessInfo& rCurrentProcessInfo ) const
 {
 
-  // rResult.resize(0,false);
+  rResult.resize(0,false);
 
-  // EquationIdVectorType LocalResult;
+  EquationIdVectorType LocalResult;
 
-  // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
-  //   {
-  //     if( IsActive(cn, rCurrentProcessInfo) ){
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+    {
+      if( IsActive(cn, rCurrentProcessInfo) ){
 
-	// cn->EquationIdVector(LocalResult,rCurrentProcessInfo);
+	cn->EquationIdVector(LocalResult,rCurrentProcessInfo);
 
-	// for(unsigned int i=0; i<LocalResult.size(); i++)
-	//   {
-	//     rResult.push_back(LocalResult[i]);
-	//   }
-  //     }
+	for(unsigned int i=0; i<LocalResult.size(); i++)
+	  {
+	    rResult.push_back(LocalResult[i]);
+	  }
+      }
 
-  //   }
+    }
 
 }
 
