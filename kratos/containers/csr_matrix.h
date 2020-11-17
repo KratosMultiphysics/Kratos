@@ -209,8 +209,8 @@ public:
     template<class TVec1, class TVec2>
     void SpMV(TVec1& y, const TVec2& x) const
     {
-        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between transpose matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
-        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between transpose matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
+        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
         IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
             IndexType row_begin = index1_data()[i];
             IndexType row_end   = index1_data()[i+1];
