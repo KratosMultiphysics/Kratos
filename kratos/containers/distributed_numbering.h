@@ -137,7 +137,7 @@ public:
         return mCpuBounds[k+1]-mCpuBounds[k];
     }
 
-    inline IndexType TotalSize() const
+    inline IndexType Size() const
     {
         return mCpuBounds[mCpuBounds.size()-1];
     }

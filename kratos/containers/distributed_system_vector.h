@@ -102,7 +102,7 @@ public:
         mpNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(rOther.GetNumbering());
 
         KRATOS_ERROR_IF(LocalSize() != rOther.LocalSize());
-        KRATOS_ERROR_IF(TotalSize() != rOther.TotalSize());
+        KRATOS_ERROR_IF(Size() != rOther.Size());
 
         //copying the data
         mLocalData.resize(rOther.LocalSize(),false); 
@@ -167,8 +167,8 @@ public:
         return mLocalData[I];
     }
 
-    inline IndexType TotalSize() const{ //TODO discuss if this shall be called simply "Size"
-        return mpNumbering->TotalSize(); 
+    inline IndexType Size() const{ 
+        return mpNumbering->Size(); 
     }
 
     inline IndexType LocalSize() const{

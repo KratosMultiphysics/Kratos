@@ -109,8 +109,8 @@ public:
         return *mpRowNumbering;
     }
 
-    inline IndexType TotalSize() const{ //TODO discuss if this shall be called simply "Size"
-        return mpRowNumbering->TotalSize();
+    inline IndexType Size() const{ 
+        return mpRowNumbering->Size();
     }
 
     inline IndexType LocalSize() const{
