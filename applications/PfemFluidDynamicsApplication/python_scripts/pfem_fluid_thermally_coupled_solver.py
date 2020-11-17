@@ -207,6 +207,8 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
     def SolveSolutionStep(self):
         pfem_is_converged = self.fluid_solver.SolveSolutionStep()
         KratosPfemFluid.SetMeshVelocityForThermalCouplingProcess(self.fluid_solver.main_model_part).Execute()
+        KM.Logger.Print("\nSolution of convection-diffusion at t=" + "{:.3f}".format(self.fluid_solver.main_model_part.ProcessInfo[KM.TIME]) + "s", label="")
+        KM.Logger.Flush()
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
         return (pfem_is_converged and thermal_is_converged)
 
