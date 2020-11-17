@@ -247,8 +247,7 @@ public:
         const Variable<Vector>& rVariable,
         Vector& rOutput) override
     {
-        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT)
-        {
+        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT) {
             DeterminantOfJacobianParent(rOutput);
         }
     }
