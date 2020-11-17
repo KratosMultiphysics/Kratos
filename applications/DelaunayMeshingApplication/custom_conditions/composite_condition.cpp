@@ -218,7 +218,7 @@ void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, Proces
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult, 
+void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult,
                                           const ProcessInfo& rCurrentProcessInfo ) const
 {
 
@@ -246,7 +246,7 @@ void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult,
 //*********************************SET VALUE TO CHILDREN******************************
 //************************************************************************************
 
-bool CompositeCondition::IsActive( ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo )
+bool CompositeCondition::IsActive( ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo ) const
 {
   if(rCurrentProcessInfo.Is(THERMAL) && iChildCondition->Is(THERMAL))
     return true;
