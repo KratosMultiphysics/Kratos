@@ -211,9 +211,10 @@ public:
         return mGraph;
     }
 
+    template<class TVectorType=DenseVector<IndexType>>
     IndexType ExportCSRArrays(
-        vector<IndexType>& rRowIndices,
-        vector<IndexType>& rColIndices
+        TVectorType& rRowIndices,
+        TVectorType& rColIndices
     ) const
     {
         //need to detect the number of rows this way since there may be gaps
