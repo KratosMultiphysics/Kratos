@@ -472,7 +472,7 @@ private:
     void InitializeChildren();
 
     //check problem type definition and if coincides return active true
-    bool IsActive(const ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo) const;
+    bool IsActive(const Condition& rChildCondition, const ProcessInfo& rCurrentProcessInfo) const;
 
     //set specific data value to condition children
     template<class TVariableType> void SetValueToChildren(const TVariableType& rThisVariable){
