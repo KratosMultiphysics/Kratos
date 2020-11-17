@@ -5,7 +5,7 @@ from KratosMultiphysics import Vector
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import sys
 
-class L2ErrorProjectionUtility:
+class L2ErrorCalculatorUtility:
     def __init__(self, model, parameters):
         """The default constructor of the class.
 
@@ -44,23 +44,23 @@ class L2ErrorProjectionUtility:
 
         self.SetStrategy()
 
-    def ProjectL2(self):
+    def CalculateL2(self):
         self.ComputeDofsErrors(self.error_model_part)
         self.Solve()
 
-        self.velocity_error_projected = self.VectorL2Projection(self.error_model_part)
-        self.pressure_error_projected = self.ScalarL2Projection(self.error_model_part)
+        self.velocity_error_norm = self.VectorL2ErrorNorm(self.error_model_part)
+        self.pressure_error_norm = self.ScalarL2ErroNorm(self.error_model_part)
 
-        return self.velocity_error_projected/self.u_characteristic, self.pressure_error_projected/self.p_characteristic, self.error_model_part
+        return self.velocity_error_norm/self.u_characteristic, self.pressure_error_norm/self.p_characteristic, self.error_model_part
 
     def ComputeDofsErrors(self, error_model_part):
-        SDEM.L2ErrorProjection().ComputeDofsErrors(self.error_model_part)
+        SDEM.L2ErrorNormCalculator().ComputeDofsErrors(self.error_model_part)
 
-    def VectorL2Projection(self, error_model_part):
-        return SDEM.L2ErrorProjection().GetL2VectorProjection(self.error_model_part)
+    def VectorL2ErrorNorm(self, error_model_part):
+        return SDEM.L2ErrorNormCalculator().GetL2VectorErrorNorm(self.error_model_part)
 
-    def ScalarL2Projection(self, error_model_part):
-        return SDEM.L2ErrorProjection().GetL2ScalarProjection(self.error_model_part)
+    def ScalarL2ErroNorm(self, error_model_part):
+        return SDEM.L2ErrorNormCalculator().GetL2ScalarErrorNorm(self.error_model_part)
 
     def SetStrategy(self):
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -73,6 +73,6 @@ class L2ErrorProjectionUtility:
                 node.AddDof(var)
 
     def Solve(self):
-        print("\nSolving for the L2 error projection...")
+        print("\nCalculate L2 error norm...")
         sys.stdout.flush()
         self.l2_projector_strategy.Solve()
