@@ -199,11 +199,11 @@ void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, Proces
 
   DofsVectorType LocalConditionalDofList;
 
-  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto& cn : mChildConditions)
     {
       if( IsActive(cn, rCurrentProcessInfo) ){
 
-	cn->GetDofList(LocalConditionalDofList,rCurrentProcessInfo);
+	cn.GetDofList(LocalConditionalDofList,rCurrentProcessInfo);
 
 	for(unsigned int i=0; i<LocalConditionalDofList.size(); i++)
 	  {
@@ -226,11 +226,11 @@ void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult,
 
   EquationIdVectorType LocalResult;
 
-  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto& cn : mChildConditions)
     {
       if( IsActive(cn, rCurrentProcessInfo) ){
 
-	cn->EquationIdVector(LocalResult,rCurrentProcessInfo);
+	cn.EquationIdVector(LocalResult,rCurrentProcessInfo);
 
 	for(unsigned int i=0; i<LocalResult.size(); i++)
 	  {
@@ -266,9 +266,9 @@ void CompositeCondition::GetValuesVector( Vector& rValues, int Step ) const
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto& cn : mChildConditions)
     {
-      cn->GetValuesVector(ChildValues,Step);
+      cn.GetValuesVector(ChildValues,Step);
 
       sizei += ChildValues.size();
       rValues.resize(sizei,true);
@@ -290,9 +290,9 @@ void CompositeCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) 
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto& cn : mChildConditions)
     {
-      cn->GetFirstDerivativesVector(ChildValues,Step);
+      cn.GetFirstDerivativesVector(ChildValues,Step);
 
       sizei += ChildValues.size();
       rValues.resize(sizei,true);
@@ -313,9 +313,9 @@ void CompositeCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto& cn : mChildConditions)
     {
-      cn->GetSecondDerivativesVector(ChildValues,Step);
+      cn.GetSecondDerivativesVector(ChildValues,Step);
 
       sizei += ChildValues.size();
       rValues.resize(sizei,true);
@@ -499,7 +499,7 @@ void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
 
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
-      if( IsActive(cn,rCurrentProcessInfo) ){
+      if( IsActive(*cn,rCurrentProcessInfo) ){
 
 	SetValueToChildren(MASTER_ELEMENTS);
 	SetValueToChildren(MASTER_NODES);
@@ -552,7 +552,7 @@ void CompositeCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProc
 {
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
-      if( IsActive(cn,rCurrentProcessInfo) ){
+      if( IsActive(*cn,rCurrentProcessInfo) ){
 	cn->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
   }
@@ -566,7 +566,7 @@ void CompositeCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 {
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
-      if( IsActive(cn,rCurrentProcessInfo) ){
+      if( IsActive(*cn,rCurrentProcessInfo) ){
 	cn->FinalizeSolutionStep(rCurrentProcessInfo);
       }
     }
@@ -645,7 +645,7 @@ void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   {
-    if( IsActive(cn,rCurrentProcessInfo) ){
+    if( IsActive(*cn,rCurrentProcessInfo) ){
 
       cn->CalculateLocalSystem(LocalLeftHandSideMatrix,LocalRightHandSideVector,rCurrentProcessInfo);
       //std::cout<<" LocalRightHandSideVector "<<LocalRightHandSideVector<<std::endl;
@@ -694,7 +694,7 @@ void CompositeCondition::CalculateRightHandSide( VectorType& rRightHandSideVecto
 
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   {
-    if( IsActive(cn,rCurrentProcessInfo) ){
+    if( IsActive(*cn,rCurrentProcessInfo) ){
 
       cn->CalculateRightHandSide(LocalRightHandSideVector,rCurrentProcessInfo);
 
@@ -736,7 +736,7 @@ void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
 
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   {
-    if( IsActive(cn,rCurrentProcessInfo) ){
+    if( IsActive(*cn,rCurrentProcessInfo) ){
 
       cn->CalculateLeftHandSide(LocalLeftHandSideMatrix,rCurrentProcessInfo);
 
