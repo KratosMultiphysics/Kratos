@@ -199,7 +199,7 @@ void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, Proces
 
   DofsVectorType LocalConditionalDofList;
 
-  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn, rCurrentProcessInfo) ){
 
@@ -226,7 +226,7 @@ void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult,
 
   EquationIdVectorType LocalResult;
 
-  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn, rCurrentProcessInfo) ){
 
@@ -266,7 +266,7 @@ void CompositeCondition::GetValuesVector( Vector& rValues, int Step ) const
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetValuesVector(ChildValues,Step);
 
@@ -290,7 +290,7 @@ void CompositeCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) 
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetFirstDerivativesVector(ChildValues,Step);
 
@@ -313,7 +313,7 @@ void CompositeCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (const auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetSecondDerivativesVector(ChildValues,Step);
 
