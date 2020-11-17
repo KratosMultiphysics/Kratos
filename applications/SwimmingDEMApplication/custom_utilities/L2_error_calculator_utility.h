@@ -65,7 +65,6 @@ double GetL2VectorErrorNorm(ModelPart& r_model_part)
     double squared_modulus, total_area = 0.0, sum_error = 0.0, result = 0.0, error_x = 0.0, error_y = 0.0, error_z = 0.0;
     const unsigned int dim = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     Matrix NContainer;
-    array_1d<double, 3> scalar_product;
 
     for (unsigned int i = 0; i < n_elements; ++i){
 
@@ -108,7 +107,6 @@ double GetL2ScalarErrorNorm(ModelPart& r_model_part)
     const unsigned int n_elements = r_model_part.Elements().size();
     double sum_error = 0.0, result = 0.0, error = 0.0, total_area = 0.0;
     Matrix NContainer;
-    array_1d<double, 3> scalar_product;
 
     for (unsigned int i = 0; i < n_elements; ++i){
 
