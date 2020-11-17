@@ -132,7 +132,7 @@ class TimeBasedAsciiFileWriterUtility(object):
             raise Exception('No "file_name" was specified!')
         # check and correct file extension
         if self.file_name.suffix != ".dat":
-            self.file_name += ".dat"
+            self.file_name = self.file_name.with_suffix(".dat")
 
         raw_path, raw_file_name = os.path.split(self.file_name)
         if not raw_path == '':
