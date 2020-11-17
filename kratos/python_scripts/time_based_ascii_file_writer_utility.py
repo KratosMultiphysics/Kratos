@@ -35,7 +35,7 @@ class TimeBasedAsciiFileWriterUtility(object):
 
         # file name and folder path specifications and check
         self.file_name = Path(params["file_name"].GetString())
-        self.output_path = params["output_path"].GetString()
+        self.output_path = Path(params["output_path"].GetString())
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
