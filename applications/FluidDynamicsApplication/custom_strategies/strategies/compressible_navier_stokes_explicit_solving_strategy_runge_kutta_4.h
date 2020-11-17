@@ -191,7 +191,6 @@ public:
     {
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
-        const unsigned int dim = r_process_info[DOMAIN_SIZE];
 
         // Call the base RK4 finalize substep method
         BaseType::Initialize();
@@ -445,8 +444,11 @@ private:
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
         // Get the required data from the explicit builder and solver
-        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
+        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
+        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
+        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
+        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Initialize the projection values
@@ -499,7 +501,6 @@ private:
         const auto r_process_info = r_model_part.GetProcessInfo();
         const int n_nodes = r_model_part.NumberOfNodes();
         const int n_elems = r_model_part.NumberOfElements();
-        const int dim = r_process_info[DOMAIN_SIZE];
 
         // Initialize the values to zero
 #pragma omp parallel for
@@ -630,7 +631,7 @@ private:
             const double s_kappa_max = 2.0;
             const double s_kappa = h_ref * norm_2(local_grad_temp) / k / stagnation_temp;
             const double s_kappa_hat = SmoothedLimitingFunction(s_kappa, s_kappa_0, s_kappa_max);
-            it_elem->GetValue(TOTAL_ENERGY_SHOCK_SENSOR) = s_kappa_hat;
+            it_elem->GetValue(THERMAL_SENSOR) = s_kappa_hat;
 
             // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
             const unsigned int dim = r_geom.WorkingSpaceDimension();
@@ -656,7 +657,7 @@ private:
             const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
             // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
             const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
-            it_elem->GetValue(MOMENTUM_SHOCK_SENSOR) = s_mu_hat;
+            it_elem->GetValue(SHEAR_SENSOR) = s_mu_hat;
 
             // Calculate artificial magnitudes
             const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_ref,2));

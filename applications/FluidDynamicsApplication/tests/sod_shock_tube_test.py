@@ -94,7 +94,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
                         "skin_output"                 : false,
                         "plane_output"                : [],
                         "nodal_results"               : ["DENSITY","MOMENTUM","TOTAL_ENERGY"],
-                        "gauss_point_results"         : ["SHOCK_SENSOR","TOTAL_ENERGY_SHOCK_SENSOR","MOMENTUM_SHOCK_SENSOR"],
+                        "gauss_point_results"         : ["SHOCK_SENSOR","THERMAL_SENSOR","SHEAR_SENSOR"],
                         "nodal_nonhistorical_results" : ["ARTIFICIAL_BULK_VISCOSITY","ARTIFICIAL_CONDUCTIVITY","ARTIFICIAL_DYNAMIC_VISCOSITY"]
                     },
                     "point_data_configuration"  : []

@@ -256,13 +256,13 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = sc;
         }
-    } else if (rVariable == MOMENTUM_SHOCK_SENSOR) {
-        const double sc = this->GetValue(MOMENTUM_SHOCK_SENSOR);
+    } else if (rVariable == SHEAR_SENSOR) {
+        const double sc = this->GetValue(SHEAR_SENSOR);
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = sc;
         }
-    } else if (rVariable == TOTAL_ENERGY_SHOCK_SENSOR) {
-        const double sc = this->GetValue(TOTAL_ENERGY_SHOCK_SENSOR);
+    } else if (rVariable == THERMAL_SENSOR) {
+        const double sc = this->GetValue(THERMAL_SENSOR);
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = sc;
         }
