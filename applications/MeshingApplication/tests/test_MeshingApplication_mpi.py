@@ -25,7 +25,8 @@ def AssembleTestSuites():
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
     smallMPISuite.addTest(TestMPIMetrics('test_mpi_hessian'))
-    smallMPISuite.addTest(TestMPIParMmg('test_mpi_sphere'))
+    if hasattr(KM.MeshingApplication,  "ParMmgProcess3D"):
+        smallMPISuite.addTest(TestMPIParMmg('test_mpi_sphere'))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
