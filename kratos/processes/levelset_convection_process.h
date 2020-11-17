@@ -90,7 +90,6 @@ public:
         Variable< array_1d< double, 3 > >& rConvectVar,
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer plinear_solver,
-        const double dt_factor = 1.0,   //This factor is used for splitting schemes (that does not run LS for the whole dt)
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0,
@@ -99,7 +98,6 @@ public:
           mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
           mrConvectVar(rConvectVar),
-          mDtFactor(dt_factor),
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps),
           mBfeccOrder(bfecc_order),
@@ -173,7 +171,6 @@ public:
         Variable<double>& rLevelSetVar,
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer plinear_solver,
-        const double dt_factor = 1.0,   //This factor is used for splitting schemes (that does not run LS for the whole dt)
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)
@@ -182,7 +179,6 @@ public:
             VELOCITY,
             rBaseModelPart,
             plinear_solver,
-            dt_factor,
             max_cfl,
             cross_wind_stabilization_factor,
             max_substeps,
@@ -206,7 +202,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override
+    void ExecutePartially(const double dt_factor)
     {
         KRATOS_TRY;
 
@@ -221,14 +217,15 @@ public:
         ProcessInfo& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
         const auto & r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-        const double levelset_delta_time = mDtFactor * previous_delta_time;
+        const double levelset_delta_time = dt_factor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(mrConvectVar);
-            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(mrConvectVar,1);
+            mVelocityOld[i_node] = dt_factor*it_node->FastGetSolutionStepValue(mrConvectVar,1) +
+                (1.0 - dt_factor)*it_node->FastGetSolutionStepValue(mrConvectVar);
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
         }
 
@@ -526,11 +523,20 @@ public:
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(VELOCITY) = mVelocity[i_node];
-            it_node->FastGetSolutionStepValue(VELOCITY,1) = mVelocityOld[i_node];
+#ifdef KRATOS_DEBUG
+            KRATOS_ERROR_IF("LevelsetConvectionProcess", dt_factor < 1.0e-12)
+                << "ERROR: dt_factor shoild be larger than zero." <<std::endl;
+#endif
+            it_node->FastGetSolutionStepValue(VELOCITY,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
             it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
 
         KRATOS_CATCH("")
+    }
+
+    void Execute() override
+    {
+        ExecutePartially(1.0);
     }
 
     void Clear() override{
@@ -604,8 +610,6 @@ protected:
     Variable<double>& mrLevelSetVar;
 
     Variable<array_1d<double, 3 > >& mrConvectVar;
-
-    const double mDtFactor;     // Used to march only in a fraction of dt
 
     const double mMaxAllowedCFL;
 

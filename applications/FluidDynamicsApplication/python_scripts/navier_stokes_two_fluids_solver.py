@@ -71,6 +71,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
+            "eulerian_error_compensation" : false,
+            "split_levelset" : false,
             "distance_reinitialization" : "variational",
             "distance_smoothing" : false,
             "distance_smoothing_coefficient" : 1.0
@@ -94,6 +96,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.min_buffer_size = 3
 
         self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
+
+        self._eulerian_error_compensation = False
+        if (self.settings.Has("eulerian_error_compensation")):
+            self._eulerian_error_compensation = self.settings["eulerian_error_compensation"].GetBool()
+
+        self._levelset_dt_factor = 1.0 # this is used to identify the splitting of LS convection (Strang splitting idea)
+        if (self.settings.Has("split_levelset")):
+            if (self.settings["split_levelset"].GetBool()):
+                self._levelset_dt_factor = 0.5
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
@@ -188,13 +199,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
-                self._GetLevelSetConvectionProcess().BFECCconvect(
+                self._GetLevelSetConvectionProcess().BFECCconvectPartially(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosMultiphysics.VELOCITY,
-                    self.settings["bfecc_number_substeps"].GetInt())
+                    self.settings["bfecc_number_substeps"].GetInt(),
+                    self._levelset_dt_factor)
             else:
-                self._GetLevelSetConvectionProcess().Execute()
+                self._GetLevelSetConvectionProcess().ExecutePartially(self._levelset_dt_factor)
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -236,6 +248,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Initialize the solver current step
             self._GetSolutionStrategy().InitializeSolutionStep()
+
+    def SolveSolutionStep(self):
+        super(NavierStokesTwoFluidsSolver, self).SolveSolutionStep()
+
+        if (self._levelset_dt_factor < 1.0):
+            # Perform the level-set convection to complete the solution step
+            if self._bfecc_convection:
+                self._GetLevelSetConvectionProcess().BFECCconvectPartially(
+                    self.main_model_part,
+                    KratosMultiphysics.DISTANCE,
+                    KratosMultiphysics.VELOCITY,
+                    self.settings["bfecc_number_substeps"].GetInt(),
+                    1.0 - self._levelset_dt_factor)
+            else:
+                self._GetLevelSetConvectionProcess().ExecutePartially(1.0 - self._levelset_dt_factor)
 
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
@@ -381,16 +408,33 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:
             linear_solver = self._GetLinearSolver()
+            if self._eulerian_error_compensation: # this is used to perform one step BFECC for the eulerian LS convection
+                bfecc_order = 1
+            else:
+                bfecc_order = 0
+
             if domain_size == 2:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess2D(
                     KratosMultiphysics.DISTANCE,
+                    KratosMultiphysics.VELOCITY,
                     computing_model_part,
-                    linear_solver)
+                    linear_solver,
+                    self._levelset_dt_factor,
+                    1.0, # max_cfl
+                    0.7, # cross_wind
+                    0, # max_substeps
+                    bfecc_order)
             else:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess3D(
                     KratosMultiphysics.DISTANCE,
+                    KratosMultiphysics.VELOCITY,
                     computing_model_part,
-                    linear_solver)
+                    linear_solver,
+                    self._levelset_dt_factor,
+                    1.0, # max_cfl
+                    0.7, # cross_wind
+                    0, # max_substeps
+                    bfecc_order)
 
         return level_set_convection_process
 

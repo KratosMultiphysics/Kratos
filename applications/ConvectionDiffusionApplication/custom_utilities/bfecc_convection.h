@@ -51,10 +51,10 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    void BFECCconvect(ModelPart& rModelPart, const Variable< double >& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps)
+    void BFECCconvectPartially(ModelPart& rModelPart, const Variable< double >& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps, const double dt_factor)
     {
         KRATOS_TRY
-        const double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
+        const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
 
         //do movement
         Vector N(TDim + 1);
@@ -68,9 +68,14 @@ public:
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
 
-        // Allocate non-historical variables
+        // Allocate non-historical variables and update old velocity as per dt_factor
+        #pragma omp parallel for
         for (auto &r_node : rModelPart.Nodes()) {
             r_node.SetValue(rVar, 0.0);
+            const Vector old_velocity = r_node.FastGetSolutionStepValue(conv_var, 1);
+            const Vector current_velocity = r_node.FastGetSolutionStepValue(conv_var);
+            r_node.SetValue(conv_var, old_velocity);
+            r_node.FastGetSolutionStepValue(conv_var, 1) = dt_factor*old_velocity + (1.0 - dt_factor)*current_velocity;
         }
 
         //FIRST LOOP: estimate rVar(n+1)
@@ -170,9 +175,16 @@ public:
             }
 //             else
 //                 std::cout << "it should find it" << std::endl;
+
+            iparticle->FastGetSolutionStepValue(conv_var, 1) = iparticle->GetValue(conv_var); // Restoring the old velocity
         }
 
         KRATOS_CATCH("")
+    }
+
+    void BFECCconvect(ModelPart& rModelPart, const Variable< double >& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps)
+    {
+        BFECCconvectPartially(rModelPart, rVar, conv_var, substeps, 1.0);
     }
 
     bool ConvectBySubstepping(

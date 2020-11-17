@@ -95,12 +95,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<BFECCConvection<2> > (m,"BFECCConvection2D").def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
+    .def("BFECCconvectPartially", &BFECCConvection<2>::BFECCconvectPartially)
     .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
     ;
 
     py::class_<BFECCConvection<3> > (m,"BFECCConvection3D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
+    .def("BFECCconvectPartially", &BFECCConvection<3>::BFECCconvectPartially)
     .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)
     ;
