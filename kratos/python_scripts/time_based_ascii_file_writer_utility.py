@@ -135,7 +135,11 @@ class TimeBasedAsciiFileWriterUtility(object):
         if not self.file_name.endswith(".dat"):
             self.file_name += ".dat"
 
-        _, raw_file_name = os.path.split(self.file_name)
+        raw_path, raw_file_name = os.path.split(self.file_name)
+        if not raw_path == '':
+            warn_msg  = "Path contained wrongly in file_name "+ self.file_name +" is being ignored.\n"
+            warn_msg += "Use parameter output_path to specify it correctly."
+            KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
 
         self.file_name = str(pathlib.PurePath(self.output_path,raw_file_name))
 
