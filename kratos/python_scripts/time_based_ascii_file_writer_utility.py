@@ -34,7 +34,7 @@ class TimeBasedAsciiFileWriterUtility(object):
         params.ValidateAndAssignDefaults(default_settings)
 
         # file name and folder path specifications and check
-        self.file_name = params["file_name"].GetString()
+        self.file_name = Path(params["file_name"].GetString())
         self.output_path = params["output_path"].GetString()
         self.__ValidateAndAssignOutputFolderPath()
 
