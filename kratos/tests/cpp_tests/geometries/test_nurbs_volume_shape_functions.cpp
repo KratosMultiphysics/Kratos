@@ -11,15 +11,12 @@
 //
 
 // System includes
-#include <limits>
 
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
 #include "testing/testing.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_volume_shape_functions.h"
-
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
 namespace Kratos {
@@ -88,7 +85,7 @@ namespace Testing {
         // Get the knot span where parameter parameterT lies in along v
         const int knot_span_v = NurbsUtilities::GetLowerSpan(shape_functions.PolynomialDegreeV(), knot_vector_v, parameter[1]);
 
-        // Get the knot span where parameter parameterT lies in along v
+        // Get the knot span where parameter parameterT lies in along w
         const int knot_span_w = NurbsUtilities::GetLowerSpan(shape_functions.PolynomialDegreeW(), knot_vector_w, parameter[2]);
 
         // Compute the shape functions at the given parametric location
