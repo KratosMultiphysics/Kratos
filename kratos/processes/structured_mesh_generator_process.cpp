@@ -245,7 +245,7 @@ namespace Kratos
 	}
 
 	std::size_t StructuredMeshGeneratorProcess::GetNodeId(std::size_t I, std::size_t J, std::size_t K) {
-		return mStartNodeId + (K * (mNumberOfDivisions[2] + 1) * (mNumberOfDivisions[1] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I;
+		return mStartNodeId + (K * (mNumberOfDivisions[1] + 1) * (mNumberOfDivisions[0] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I;
 	}
 
     void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint) {

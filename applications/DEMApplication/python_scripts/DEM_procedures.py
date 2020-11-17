@@ -1634,7 +1634,7 @@ class DEMIo(object):
         self.write_conditions = WriteConditionsFlag.WriteConditions
         self.contact_mesh_option = contact_mesh_option
         #self.homogenization_mesh_option = self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool()
-        self.homogenization_mesh_option = False
+        self.homogenization_mesh_option = True
 
 
         problem_name = os.path.join(self.post_path, self.problem_name)
