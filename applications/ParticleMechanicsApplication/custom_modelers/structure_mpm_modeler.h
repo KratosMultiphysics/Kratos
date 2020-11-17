@@ -28,6 +28,8 @@
 #include "utilities/quadrature_points_utility.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "particle_mechanics_application_variables.h"
+#include "custom_utilities/mpm_search_element_utility.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -101,13 +103,15 @@ public:
     ///@name Stages
     ///@{
 
+    // Initially setup the relations
     void SetupGeometryModel() override;
 
     void UpdateGeometryModel();
 
+    // Update relations
     void PrepareGeometryModel() override
     {
-        //this->UpdateGeometryModel();
+        this->UpdateGeometryModel();
     }
 
     ///@}
@@ -120,7 +124,7 @@ public:
     void CreateStructureQuadraturePointGeometries(
         TLineGeometriesList& rInputLineGeometries,
         TQuadraturePointGeometriesList& rOuputQuadraturePointGeometries,
-        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2
+        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5
         )
     {
         for (IndexType i = 0; i < rInputLineGeometries.size(); ++i) {
@@ -138,94 +142,96 @@ public:
         const TQuadraturePointGeometriesList& rInputQuadraturePointGeometries,
         TQuadraturePointGeometriesList& rOuputQuadraturePointGeometries,
         ModelPart& rBackgroundGridModelPart) {
+
         if (rOuputQuadraturePointGeometries.size() != rInputQuadraturePointGeometries.size()) {
             rOuputQuadraturePointGeometries.resize(rInputQuadraturePointGeometries.size());
         }
 
-        BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
-        SearchStructure.UpdateSearchDatabase();
-        typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
-        double mpm_edge_length = 0;
-        // Loop over the submodelpart of rInitialModelPart
-        for (IndexType i = 0; i < rInputQuadraturePointGeometries.size(); ++i)
-        {
-            typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+        const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
 
-            array_1d<double, 3> coordinates = rInputQuadraturePointGeometries[i]->Center();
+        IndexPartition<>(rInputQuadraturePointGeometries.size()).for_each([&](SizeType i)
+            {
+                BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
+                SearchStructure.UpdateSearchDatabase();
+                typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
+                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-            Element::Pointer p_elem;
-            Vector N;
+                array_1d<double, 3> coordinates = rInputQuadraturePointGeometries[i]->Center();
 
-            // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-            bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin,100,1e-12);
-
-            if (is_found) {
-                const double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
-
-                array_1d<double, 3> local_coordinates;
-                auto& r_geometry = p_elem->GetGeometry();
-                r_geometry.PointLocalCoordinates(local_coordinates, coordinates);
-
-                IntegrationPoint<3> int_p(local_coordinates, integration_weight);
+                Element::Pointer p_elem;
                 Vector N;
-                r_geometry.ShapeFunctionsValues(N, local_coordinates);
 
-                Matrix DN_De;
-                r_geometry.ShapeFunctionsLocalGradients(DN_De, local_coordinates);
-                Matrix DN_De_non_zero(DN_De.size1(), DN_De.size2());
+                // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
+                bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin, 100, tolerance);
 
-                typename GeometryType::PointsArrayType points;
+                if (is_found) {
+                    const double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
 
-                Matrix N_matrix(1, N.size());
-                SizeType non_zero_counter = 0;
-                for (IndexType i_N = 0; i_N < N.size(); ++i_N) {
-                    if (N[i_N] > 1e-9)
-                    {
-                        N_matrix(0, non_zero_counter) = N[i_N];
-                        for (IndexType j = 0; j < DN_De.size2(); j++) {
-                            DN_De_non_zero(non_zero_counter, j) = DN_De(i_N, j);
+                    array_1d<double, 3> local_coordinates;
+                    auto& r_geometry = p_elem->GetGeometry();
+                    r_geometry.PointLocalCoordinates(local_coordinates, coordinates);
+
+                    IntegrationPoint<3> int_p(local_coordinates, integration_weight);
+                    Vector N;
+                    r_geometry.ShapeFunctionsValues(N, local_coordinates);
+
+                    Matrix DN_De;
+                    r_geometry.ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+                    Matrix DN_De_non_zero(DN_De.size1(), DN_De.size2());
+
+                    typename GeometryType::PointsArrayType points;
+
+                    Matrix N_matrix(1, N.size());
+                    SizeType non_zero_counter = 0;
+                    for (IndexType i_N = 0; i_N < N.size(); ++i_N) {
+                        if (N[i_N] > tolerance)
+                        {
+                            N_matrix(0, non_zero_counter) = N[i_N];
+                            for (IndexType j = 0; j < DN_De.size2(); j++) {
+                                DN_De_non_zero(non_zero_counter, j) = DN_De(i_N, j);
+                            }
+                            points.push_back(r_geometry(i_N));
+                            non_zero_counter++;
                         }
-                        points.push_back(r_geometry(i_N));
-                        non_zero_counter++;
                     }
+
+                    N_matrix.resize(1, non_zero_counter, true);
+                    DN_De_non_zero.resize(non_zero_counter, DN_De.size2(), true);
+
+                    GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                        r_geometry.GetDefaultIntegrationMethod(),
+                        int_p,
+                        N_matrix,
+                        DN_De_non_zero);
+
+                    Matrix jacci;
+                    rInputQuadraturePointGeometries[i]->Jacobian(jacci, 0);
+                    array_1d<double, 3> space_derivatives;
+                    space_derivatives[0] = jacci(0, 0);
+                    space_derivatives[1] = jacci(1, 0);
+                    space_derivatives[2] = 0;
+
+                    Matrix inv;
+                    r_geometry.InverseOfJacobian(inv, local_coordinates);
+                    Vector local_tangent = prod(inv, space_derivatives);
+                    rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
+                        points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
+
+                    #ifdef KRATOS_DEBUG
+                    std::vector<array_1d<double, 3>> space_derivatives_check(2);
+                    rOuputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives_check, 0, 1);
+                    array_1d<double, 3> tangent_check = space_derivatives_check[1] * local_tangent[0] +
+                        space_derivatives_check[2] * local_tangent[1];
+
+                    KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > tolerance)
+                        << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
+                        << "\nFEM boundary line tangent = " << space_derivatives
+                        << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
+                    #endif
+
                 }
-
-                N_matrix.resize(1, non_zero_counter, true);
-                DN_De_non_zero.resize(non_zero_counter, DN_De.size2(), true);
-
-                GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                    r_geometry.GetDefaultIntegrationMethod(),
-                    int_p,
-                    N_matrix,
-                    DN_De_non_zero);
-
-                Matrix jacci;
-                rInputQuadraturePointGeometries[i]->Jacobian(jacci, 0);
-                array_1d<double, 3> space_derivatives;
-                space_derivatives[0] = jacci(0, 0);
-                space_derivatives[1] = jacci(1, 0);
-                space_derivatives[2] = 0;
-
-                Matrix inv;
-                r_geometry.InverseOfJacobian(inv, local_coordinates);
-                Vector local_tangent = prod(inv, space_derivatives);
-                rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
-                    points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
-
-                #ifdef KRATOS_DEBUG
-                std::vector<array_1d<double, 3>> space_derivatives_check(2);
-                rOuputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives_check, 0, 1);
-                array_1d<double, 3> tangent_check = space_derivatives_check[1] * local_tangent[0] +
-                    space_derivatives_check[2] * local_tangent[1];
-
-                KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > 1e-9)
-                    << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
-                    << "\nFEM boundary line tangent = " << space_derivatives
-                    << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
-                #endif
-
             }
-        }
+        );
     }
 
     template<SizeType TDimension,
@@ -233,41 +239,71 @@ public:
     void UpdateMpmQuadraturePointGeometries(
         TConditionsList& rInputConditions,
         ModelPart& rBackgroundGridModelPart) {
-        BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
-        SearchStructure.UpdateSearchDatabase();
-        typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
         const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
         const IndexType fem_index = 1- mpm_index;
 
-        Geometry<Node<3>>* p_quad_geom;
         auto cond_begin = rInputConditions.ptr_begin();
+        std::vector< Geometry<Node<3>>*> bin_search_quad_geoms;
+        const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
 
-        // Loop over the submodelpart of rInitialModelPart
-        for (IndexType i = 0; i < rInputConditions.size(); ++i)
-        {
-            typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+        IndexPartition<>(rInputConditions.size()).for_each([&](SizeType i)
+            {
+        //for (size_t i = 0; i < rInputConditions.size(); i++)
+        //{
 
-            p_quad_geom = (&((*(cond_begin+i))->GetGeometry()));
-
+            Geometry<Node<3>>* p_quad_geom = (&((*(cond_begin + i))->GetGeometry()));
             array_1d<double, 3> coordinates = p_quad_geom->GetGeometryPart(fem_index).Center();
-
             Element::Pointer p_elem;
-            Vector N;
-
-            // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-            bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin,100,1e-12);
             array_1d<double, 3> local_coordinates;
-            p_elem->GetGeometry().PointLocalCoordinates(local_coordinates, coordinates);
+
+            // Try neighbour search first
+            bool is_found = false;
+            GeometryType& r_found_geom = MPMSearchElementUtility::FindGridGeom(p_quad_geom->GetGeometryPart(mpm_index).GetGeometryParent(0),
+                rBackgroundGridModelPart, tolerance, coordinates, local_coordinates,
+                rBackgroundGridModelPart.GetProcessInfo(), is_found);
+
+            // Add quad geom to do slower bin search later
+            if (!is_found) {
+                #pragma omp critical
+                bin_search_quad_geoms.push_back(p_quad_geom);
+            }
 
             if (is_found) {
                 CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
                     p_quad_geom->pGetGeometryPart(mpm_index),
                     local_coordinates,
                     p_quad_geom->IntegrationPoints()[0].Weight(),
-                    p_elem->GetGeometry());
+                    r_found_geom);
             }
-        }
+        //}
+            }
+        );
+
+        // Do slow search of remaining quad points
+        IndexPartition<>(bin_search_quad_geoms.size()).for_each([&](SizeType i)
+            {
+                Vector N;
+                array_1d<double, 3> local_coordinates;
+                array_1d<double, 3> coordinates = bin_search_quad_geoms[i]->GetGeometryPart(fem_index).Center();
+                Element::Pointer p_elem;
+                BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
+
+                SearchStructure.UpdateSearchDatabase();
+                typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
+                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+                bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin, 100, tolerance);
+
+                GeometryType& r_found_geom = p_elem->GetGeometry();
+                r_found_geom.PointLocalCoordinates(local_coordinates, coordinates);
+
+                CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
+                    bin_search_quad_geoms[i]->pGetGeometryPart(mpm_index),
+                    local_coordinates,
+                    bin_search_quad_geoms[i]->IntegrationPoints()[0].Weight(),
+                    r_found_geom);
+            }
+        );
     }
 
     ///@}
@@ -295,9 +331,7 @@ public:
 
 private:
     Model* mpModelOrigin;
-
     Model* mpModelDest;
-
     bool mIsOriginMpm;
 
     void CopySubModelPart(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
@@ -314,25 +348,42 @@ private:
 
     void FixMPMDestInterfaceNodes(ModelPart& rMPMDestInterfaceModelPart)
     {
-            for (size_t i = 0; i < rMPMDestInterfaceModelPart.NumberOfNodes(); i++)
-            {
-                rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_X);
-                rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_Y);
-                rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_Z);
-            }
+        const bool is_gauss_seidel = mParameters["is_gauss_seidel"].GetBool();
+        if (!mIsOriginMpm && is_gauss_seidel)
+        {
+            block_for_each(rMPMDestInterfaceModelPart.Nodes(), [&](Node<3>& rNode)
+                {
+                    rNode.Fix(DISPLACEMENT_X);
+                    rNode.Fix(DISPLACEMENT_Y);
+                    rNode.Fix(DISPLACEMENT_Z);
+                }
+            );
+        }
     }
 
     void ReleaseMPMDestInterfaceNodes(ModelPart& rMPMDestInterfaceModelPart)
     {
-        if (!mIsOriginMpm)
+        const bool is_gauss_seidel = mParameters["is_gauss_seidel"].GetBool();
+        if (!mIsOriginMpm && is_gauss_seidel)
         {
-            for (size_t i = 0; i < rMPMDestInterfaceModelPart.NumberOfNodes(); i++)
-            {
-                rMPMDestInterfaceModelPart.NodesArray()[i]->Free(DISPLACEMENT_X);
-                rMPMDestInterfaceModelPart.NodesArray()[i]->Free(DISPLACEMENT_Y);
-                rMPMDestInterfaceModelPart.NodesArray()[i]->Free(DISPLACEMENT_Z);
-            }
+            block_for_each(rMPMDestInterfaceModelPart.Nodes(), [&](Node<3>& rNode)
+                {
+                    rNode.Free(DISPLACEMENT_X);
+                    rNode.Free(DISPLACEMENT_Y);
+                    rNode.Free(DISPLACEMENT_Z);
+
+                }
+            );
         }
+    }
+
+    Parameters GetModelerDefaultSettings() const
+    {
+        return Parameters(R"({
+            "echo_level"                    : 0,
+            "minimum_shape_function_value"  : 1e-9,
+            "is_gauss_seidel"               : true
+        })");
     }
 
     ///@}

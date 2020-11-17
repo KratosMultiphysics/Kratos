@@ -56,12 +56,6 @@ namespace Kratos
         if (dim == 2)
         {
             CreateInterfaceLineCouplingConditions(r_fem_interface, interface_geoms);
-            double interface_length = 0.0;
-            for (size_t i = 0; i < interface_geoms.size(); i++)
-            {
-                interface_length += interface_geoms[i]->Length();
-            }
-            KRATOS_WATCH(interface_length)
         }
         else
         {
@@ -89,9 +83,11 @@ namespace Kratos
         ModelPart& mpm_coupling_nodes = (p_model_mpm->HasModelPart("coupling_nodes"))
             ? p_model_mpm->GetModelPart("coupling_nodes")
             : p_model_mpm->CreateModelPart("coupling_nodes");
+
+        const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
         for (IndexType i = 0; i < quads_mpm.size(); ++i) {
             for (IndexType j = 0; j < quads_mpm[i]->size(); ++j) {
-                if (quads_mpm[i]->ShapeFunctionValue(0,j) > 1e-9)
+                if (quads_mpm[i]->ShapeFunctionValue(0,j) > tolerance)
                 {
                     mpm_coupling_nodes.AddNode(quads_mpm[i]->pGetPoint(j));
                 }
@@ -115,13 +111,10 @@ namespace Kratos
         {
             coupling_interface_origin.SetNodes(fem_coupling_nodes.pNodes());
             coupling_interface_destination.SetNodes(mpm_coupling_nodes.pNodes());
-            KRATOS_WATCH(coupling_interface_destination.NumberOfNodes())
         }
 
         // We fix the interface nodes so they can receive the prescribed displacements from FEM.
-        // TODO, this will need to be updated every timestep for dynamic simulations
         FixMPMDestInterfaceNodes(mpm_coupling_nodes);
-
 
         std::vector<GeometryPointerType>& p_quads_origin = (mIsOriginMpm) ? quads_mpm : quads_structure;
         std::vector<GeometryPointerType>& p_quads_dest = (mIsOriginMpm) ? quads_structure : quads_mpm;
@@ -158,18 +151,11 @@ namespace Kratos
         else
         {
             KRATOS_ERROR << "Automatic interface creation is not implemented yet" << std::endl;
-            // Some future functionality to automatically determine interfaces?
-            // (Create interface sub model parts in origin and destination modelparts)
-            // (set strings to correct values)
-            //origin_interface_sub_model_part_name = ???
-            //destination_interface_sub_model_part_name = ???
         }
 
         ModelPart& mpm_background_grid_model_part = (p_model_mpm->HasModelPart("Background_Grid"))
             ? p_model_mpm->GetModelPart("Background_Grid")
             : p_model_mpm->CreateModelPart("Background_Grid");
-
-        std::vector<GeometryPointerType> quads_structure;
 
         UpdateMpmQuadraturePointGeometries<3,
             typename ModelPart::ConditionsContainerType>(
@@ -186,8 +172,7 @@ namespace Kratos
         ReleaseMPMDestInterfaceNodes(mpm_coupling_nodes);
 
         // Set all mpm interface nodal forces to be zero
-        if (mIsOriginMpm)
-        {
+        if (mIsOriginMpm && mParameters["is_gauss_seidel"].GetBool()) {
             for (auto interface_node : mpm_coupling_nodes.NodesArray())
             {
                 array_1d<double, 3 >& point_load = (interface_node)->FastGetSolutionStepValue(POINT_LOAD);
@@ -204,11 +189,12 @@ namespace Kratos
         coupling_interface_mpm.NodesArray().clear();
 
         // Add in new interface nodes
+        const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
         for (auto cond_it : coupling_model_part.ConditionsArray())
         {
             auto quads_mpm = cond_it->GetGeometry().pGetGeometryPart(mpm_index);
             for (IndexType j = 0; j < quads_mpm->PointsNumber(); ++j) {
-                if (quads_mpm->ShapeFunctionValue(0, j) > 1e-9)
+                if (quads_mpm->ShapeFunctionValue(0, j) > tolerance)
                 {
                     mpm_coupling_nodes.AddNode(quads_mpm->pGetPoint(j));
                 }
@@ -218,7 +204,7 @@ namespace Kratos
         coupling_interface_mpm.SetNodes(mpm_coupling_nodes.pNodes());
 
         // We fix the interface nodes so they can receive the prescribed displacements from FEM.
-        if (!mIsOriginMpm) FixMPMDestInterfaceNodes(mpm_coupling_nodes);
+        FixMPMDestInterfaceNodes(mpm_coupling_nodes);
     }
 
     void StructureMpmModeler::CheckParameters()
@@ -240,7 +226,10 @@ namespace Kratos
             KRATOS_ERROR_IF_NOT(mParameters.Has("destination_interface_sub_model_part_name"))
                 << "Missing \"destination_interface_sub_model_part_name\" in StructureMpmModeler Parameters." << std::endl;
         }
+
+        mParameters.AddMissingParameters(this->GetModelerDefaultSettings());
     }
+
 	void StructureMpmModeler::CreateInterfaceLineCouplingConditions(
         ModelPart& rInterfaceModelPart,
         std::vector<GeometryPointerType>& rGeometries)
