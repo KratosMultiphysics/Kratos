@@ -204,33 +204,7 @@ public:
         mfem_assemble_colors(rOtherMatrix.mfem_assemble_colors),
         mpVectorImporter(rOtherMatrix.mpVectorImporter)
     {
-        //compute direct pointers to data 
-        for(auto color : mfem_assemble_colors)
-        {
-            if(color >= 0) //-1 would imply no communication
-            { 
-                const auto& send_ij = msend_ij[color];
-                const auto& recv_ij = mrecv_ij[color];
-
-                auto& direct_senddata_access = mPointersToRecvValues[color];
-                for(IndexType i=0; i<send_ij.size(); i+=2)
-                {
-                    IndexType I = recv_ij[i];
-                    IndexType J = recv_ij[i+1];
-                    auto& value = GetNonLocalDataByGlobalId(I,J);
-                    direct_senddata_access.push_back(&value);
-                }
-                
-                auto& direct_recvdata_access = mPointersToRecvValues[color];
-                for(IndexType k=0; k<recv_ij.size(); k+=2)
-                {
-                    IndexType I = recv_ij[k];
-                    IndexType J = recv_ij[k+1];
-                    auto& value = GetLocalDataByGlobalId(I,J);
-                    direct_recvdata_access.push_back(&value);
-                }
-            }
-        }
+        ReconstructDirectAccessVectors();
     }
 
     /// Destructor.
@@ -718,18 +692,72 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        //TODO
+        rSerializer.save("CSRcommunicator",mrComm);
+        rSerializer.save("RowNumbering",mpRowNumbering);
+        rSerializer.save("ColNumbering",mpColNumbering);
+        rSerializer.save("mDiagBlock",mDiagBlock);
+        rSerializer.save("mOffDiagBlock",mOffDiagBlock);
+        rSerializer.save("mNonLocalData",mNonLocalData);
+        rSerializer.save("msend_ij",msend_ij);
+        rSerializer.save("mrecv_ij",mrecv_ij);
+        rSerializer.save("mOffDiagonalLocalIds",mOffDiagonalLocalIds);
+        rSerializer.save("mfem_assemble_colors",mfem_assemble_colors);
+        rSerializer.save("mpVectorImporter",mpVectorImporter);
+        //note that the direct access vectors are not saved, we will need to reconstruct them basing on send_ij and recv_ij
+
     }
 
     void load(Serializer& rSerializer)
     {
-        //TODO
+        rSerializer.load("CSRcommunicator",mrComm);
+        rSerializer.load("RowNumbering",mpRowNumbering);
+        rSerializer.load("ColNumbering",mpColNumbering);
+        rSerializer.load("mDiagBlock",mDiagBlock);
+        rSerializer.load("mOffDiagBlock",mOffDiagBlock);
+        rSerializer.load("mNonLocalData",mNonLocalData);
+        rSerializer.load("msend_ij",msend_ij);
+        rSerializer.load("mrecv_ij",mrecv_ij);
+        rSerializer.load("mOffDiagonalLocalIds",mOffDiagonalLocalIds);
+        rSerializer.load("mfem_assemble_colors",mfem_assemble_colors);
+        rSerializer.load("mpVectorImporter",mpVectorImporter);
+
+        ReconstructDirectAccessVectors();
     }
 
 
     ///@}
     ///@name Private Operations
     ///@{
+    void ReconstructDirectAccessVectors()
+    {
+        //compute direct pointers to data 
+        for(auto color : mfem_assemble_colors)
+        {
+            if(color >= 0) //-1 would imply no communication
+            { 
+                const auto& send_ij = msend_ij[color];
+                const auto& recv_ij = mrecv_ij[color];
+
+                auto& direct_senddata_access = mPointersToRecvValues[color];
+                for(IndexType i=0; i<send_ij.size(); i+=2)
+                {
+                    IndexType I = recv_ij[i];
+                    IndexType J = recv_ij[i+1];
+                    auto& value = GetNonLocalDataByGlobalId(I,J);
+                    direct_senddata_access.push_back(&value);
+                }
+                
+                auto& direct_recvdata_access = mPointersToRecvValues[color];
+                for(IndexType k=0; k<recv_ij.size(); k+=2)
+                {
+                    IndexType I = recv_ij[k];
+                    IndexType J = recv_ij[k+1];
+                    auto& value = GetLocalDataByGlobalId(I,J);
+                    direct_recvdata_access.push_back(&value);
+                }
+            }
+        }
+    }
 
 
     ///@}
