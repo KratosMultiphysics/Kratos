@@ -28,10 +28,11 @@ class ProjectionModule:
         self.shape_factor = self.backward_coupling_parameters["shape_factor"].GetDouble()
         self.do_impose_flow_from_field = project_parameters["custom_fluid"]["do_impose_flow_from_field_option"].GetBool()
         self.flow_field = flow_field
-        print(self.backward_coupling_parameters)
+
         if self.backward_coupling_parameters.Has("averaging_time_interval"):
-            self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetDouble()
-        # Create projector_parameters
+            time_step = balls_model_part.ProcessInfo[Kratos.DELTA_TIME]
+            self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetInt()
+         # Create projector_parameters
         self.projector_parameters = Parameters("{}")
         self.projector_parameters.AddValue("backward_coupling", project_parameters["coupling"]["backward_coupling"])
         self.projector_parameters.AddValue("coupling_type", project_parameters["coupling"]["coupling_weighing_type"])
@@ -73,7 +74,11 @@ class ProjectionModule:
 
         for var in time_filtered_vars:
             averaging_time_interval = self.averaging_time_interval
-            alpha = 1 - np.exp(- averaging_time_interval)
+            if self.averaging_time_interval < 15:
+                alpha = 1 - np.exp(- averaging_time_interval)
+            else:
+                alpha = 1.0 / averaging_time_interval
+            print('A'*100, alpha)
             self.projector.AddFluidVariableToBeTimeFiltered(var, alpha)
 
     def UpdateDatabase(self, HMin):
