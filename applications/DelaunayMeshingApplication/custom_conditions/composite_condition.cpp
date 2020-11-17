@@ -218,7 +218,8 @@ void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, Proces
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult, 
+                                          const ProcessInfo& rCurrentProcessInfo ) const
 {
 
   rResult.resize(0,false);
@@ -259,7 +260,7 @@ bool CompositeCondition::IsActive( ConditionIterator iChildCondition, const Proc
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void CompositeCondition::GetValuesVector( Vector& rValues, int Step )
+void CompositeCondition::GetValuesVector( Vector& rValues, int Step ) const
 {
   Vector ChildValues;
 
