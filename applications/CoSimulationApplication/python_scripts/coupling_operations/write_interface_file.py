@@ -38,7 +38,7 @@ class WriteInterfaceFile(CoSimulationCouplingOperation):
         #     self.output.PrintOutput(output_file_name)
 
         # upper_membrane = self._GetSolver().GetComputingModelPart().GetSubModelPart('PointLoad3D_UpperMembrane')
-        #'''
+        '''
         number_of_points = self.model[self.model_part_name].NumberOfNodes()
         print('NUMBER OF NODES = ', number_of_points)
 
