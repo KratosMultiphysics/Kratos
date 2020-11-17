@@ -10,8 +10,8 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_NURBS_KNOT_INSERTION_H_INCLUDED )
-#define  KRATOS_NURBS_KNOT_INSERTION_H_INCLUDED
+#if !defined(KRATOS_NURBS_VOLUME_UTILITIES_H_INCLUDED )
+#define  KRATOS_NURBS_VOLUME_UTILITIES_H_INCLUDED
 
 // System includes
 
@@ -489,4 +489,4 @@ public:
 
 } // End namespace kratos
 
-#endif
+#endif // KRATOS_NURBS_VOLUME_UTILITIES_H_INCLUDED
