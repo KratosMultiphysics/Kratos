@@ -6,9 +6,9 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as python_solvers_wrapper_fluid
 
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: LinearSolversApplication")
 class EmbeddedReservoirTest(UnitTest.TestCase):
     def testEmbeddedReservoir2D(self):
         self.distance = 0.5
