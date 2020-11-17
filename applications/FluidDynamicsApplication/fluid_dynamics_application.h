@@ -60,7 +60,6 @@
 #include "custom_conditions/stokes_wall_condition.h"
 #include "custom_conditions/two_fluid_navier_stokes_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
-#include "custom_conditions/compressible_navier_stokes_wall_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 
