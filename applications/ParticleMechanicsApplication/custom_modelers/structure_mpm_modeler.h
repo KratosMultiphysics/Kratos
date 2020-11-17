@@ -124,7 +124,7 @@ public:
     void CreateStructureQuadraturePointGeometries(
         TLineGeometriesList& rInputLineGeometries,
         TQuadraturePointGeometriesList& rOuputQuadraturePointGeometries,
-        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5
+        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3
         )
     {
         for (IndexType i = 0; i < rInputLineGeometries.size(); ++i) {
@@ -147,91 +147,95 @@ public:
             rOuputQuadraturePointGeometries.resize(rInputQuadraturePointGeometries.size());
         }
 
+        //TODO determine good cell size
+
+
+        BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
+        SearchStructure.UpdateSearchDatabase();
+        //SearchStructure.UpdateSearchDatabaseAssignedSize()
+            typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
+        typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+
+
+
         const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
+        for (size_t i = 0; i < rInputQuadraturePointGeometries.size(); ++i)
+        {
+            array_1d<double, 3> coordinates = rInputQuadraturePointGeometries[i]->Center();
 
-        IndexPartition<>(rInputQuadraturePointGeometries.size()).for_each([&](SizeType i)
-            {
-                BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
-                SearchStructure.UpdateSearchDatabase();
-                typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
-                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+            Element::Pointer p_elem;
+            Vector N;
 
-                array_1d<double, 3> coordinates = rInputQuadraturePointGeometries[i]->Center();
+            // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
+            bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin, 100, 1e-12);
 
-                Element::Pointer p_elem;
+            if (is_found) {
+                const double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
+
+                array_1d<double, 3> local_coordinates;
+                auto& r_geometry = p_elem->GetGeometry();
+                r_geometry.PointLocalCoordinates(local_coordinates, coordinates);
+
+                IntegrationPoint<3> int_p(local_coordinates, integration_weight);
                 Vector N;
+                r_geometry.ShapeFunctionsValues(N, local_coordinates);
 
-                // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin, 100, tolerance);
+                Matrix DN_De;
+                r_geometry.ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+                Matrix DN_De_non_zero(DN_De.size1(), DN_De.size2());
 
-                if (is_found) {
-                    const double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
+                typename GeometryType::PointsArrayType points;
 
-                    array_1d<double, 3> local_coordinates;
-                    auto& r_geometry = p_elem->GetGeometry();
-                    r_geometry.PointLocalCoordinates(local_coordinates, coordinates);
-
-                    IntegrationPoint<3> int_p(local_coordinates, integration_weight);
-                    Vector N;
-                    r_geometry.ShapeFunctionsValues(N, local_coordinates);
-
-                    Matrix DN_De;
-                    r_geometry.ShapeFunctionsLocalGradients(DN_De, local_coordinates);
-                    Matrix DN_De_non_zero(DN_De.size1(), DN_De.size2());
-
-                    typename GeometryType::PointsArrayType points;
-
-                    Matrix N_matrix(1, N.size());
-                    SizeType non_zero_counter = 0;
-                    for (IndexType i_N = 0; i_N < N.size(); ++i_N) {
-                        if (N[i_N] > tolerance)
-                        {
-                            N_matrix(0, non_zero_counter) = N[i_N];
-                            for (IndexType j = 0; j < DN_De.size2(); j++) {
-                                DN_De_non_zero(non_zero_counter, j) = DN_De(i_N, j);
-                            }
-                            points.push_back(r_geometry(i_N));
-                            non_zero_counter++;
+                Matrix N_matrix(1, N.size());
+                SizeType non_zero_counter = 0;
+                for (IndexType i_N = 0; i_N < N.size(); ++i_N) {
+                    if (N[i_N] > tolerance)
+                    {
+                        N_matrix(0, non_zero_counter) = N[i_N];
+                        for (IndexType j = 0; j < DN_De.size2(); j++) {
+                            DN_De_non_zero(non_zero_counter, j) = DN_De(i_N, j);
                         }
+                        points.push_back(r_geometry(i_N));
+                        non_zero_counter++;
                     }
-
-                    N_matrix.resize(1, non_zero_counter, true);
-                    DN_De_non_zero.resize(non_zero_counter, DN_De.size2(), true);
-
-                    GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                        r_geometry.GetDefaultIntegrationMethod(),
-                        int_p,
-                        N_matrix,
-                        DN_De_non_zero);
-
-                    Matrix jacci;
-                    rInputQuadraturePointGeometries[i]->Jacobian(jacci, 0);
-                    array_1d<double, 3> space_derivatives;
-                    space_derivatives[0] = jacci(0, 0);
-                    space_derivatives[1] = jacci(1, 0);
-                    space_derivatives[2] = 0;
-
-                    Matrix inv;
-                    r_geometry.InverseOfJacobian(inv, local_coordinates);
-                    Vector local_tangent = prod(inv, space_derivatives);
-                    rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
-                        points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
-
-                    #ifdef KRATOS_DEBUG
-                    std::vector<array_1d<double, 3>> space_derivatives_check(2);
-                    rOuputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives_check, 0, 1);
-                    array_1d<double, 3> tangent_check = space_derivatives_check[1] * local_tangent[0] +
-                        space_derivatives_check[2] * local_tangent[1];
-
-                    KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > tolerance)
-                        << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
-                        << "\nFEM boundary line tangent = " << space_derivatives
-                        << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
-                    #endif
-
                 }
+
+                N_matrix.resize(1, non_zero_counter, true);
+                DN_De_non_zero.resize(non_zero_counter, DN_De.size2(), true);
+
+                GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                    r_geometry.GetDefaultIntegrationMethod(),
+                    int_p,
+                    N_matrix,
+                    DN_De_non_zero);
+
+                Matrix jacci;
+                rInputQuadraturePointGeometries[i]->Jacobian(jacci, 0);
+                array_1d<double, 3> space_derivatives;
+                space_derivatives[0] = jacci(0, 0);
+                space_derivatives[1] = jacci(1, 0);
+                space_derivatives[2] = 0;
+
+                Matrix inv;
+                r_geometry.InverseOfJacobian(inv, local_coordinates);
+                Vector local_tangent = prod(inv, space_derivatives);
+                rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
+                    points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
+
+                #ifdef KRATOS_DEBUG
+                std::vector<array_1d<double, 3>> space_derivatives_check(2);
+                rOuputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives_check, 0, 1);
+                array_1d<double, 3> tangent_check = space_derivatives_check[1] * local_tangent[0] +
+                    space_derivatives_check[2] * local_tangent[1];
+
+                KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > tolerance)
+                    << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
+                    << "\nFEM boundary line tangent = " << space_derivatives
+                    << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
+                #endif
+
             }
-        );
+        }
     }
 
     template<SizeType TDimension,
