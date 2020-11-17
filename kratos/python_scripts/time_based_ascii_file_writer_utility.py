@@ -139,6 +139,7 @@ class TimeBasedAsciiFileWriterUtility(object):
             warn_msg  = "Path contained wrongly in file_name "+ self.file_name +" is being ignored.\n"
             warn_msg += "Use parameter output_path to specify it correctly."
             KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
+            raw_file_name = os.path.join(raw_path, raw_file_name)
 
         self.file_name = self.output_path / Path(raw_file_name)
 
