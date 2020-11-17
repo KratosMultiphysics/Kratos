@@ -442,20 +442,17 @@ private:
         const int n_nodes = r_model_part.NumberOfNodes();
         const int n_elem = r_model_part.NumberOfElements();
         const auto& r_process_info = r_model_part.GetProcessInfo();
+        const unsigned int block_size = r_process_info[DOMAIN_SIZE] + 2; 
 
         // Get the required data from the explicit builder and solver
+        // The lumped mass vector will be used to get the NODAL_AREA for the residuals projection
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
-        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
-        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
-        // TODO_ USE THE LUMPED MASS VECTOR AS NODAL_AREA
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Initialize the projection values
 #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->GetValue(NODAL_AREA) = 0.0;
             it_node->GetValue(DENSITY_PROJECTION) = 0.0;
             it_node->GetValue(MOMENTUM_PROJECTION) = ZeroVector(3);
             it_node->GetValue(TOTAL_ENERGY_PROJECTION) = 0.0;
@@ -469,25 +466,18 @@ private:
         for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
             auto it_elem = r_model_part.ElementsBegin() + i_elem;
             // Calculate the projection values
+            // Note that the element already performs the atomic addition to the nodes
             it_elem->Calculate(DENSITY_PROJECTION, dens_proj, r_process_info);
             it_elem->Calculate(MOMENTUM_PROJECTION, mom_proj, r_process_info);
             it_elem->Calculate(TOTAL_ENERGY_PROJECTION, tot_ener_proj, r_process_info);
-            // Calculate the NODAL_AREA
-            // TODO: This is not probably required each time
-            auto& r_geom = it_elem->GetGeometry();
-            const unsigned int n_nodes = r_geom.PointsNumber();
-            const double geom_domain_size = r_geom.DomainSize();
-            const double aux_weight = geom_domain_size / static_cast<double>(n_nodes);
-            for (auto& r_node : r_geom) {
-#pragma omp atomic
-                r_node.GetValue(NODAL_AREA) += aux_weight;
-            }
         }
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
-            const double nodal_area = it_node->GetValue(NODAL_AREA);
+            // Do thhe nodal weighting
+            // Note that to avoid calculating the NODAL_AREA we took from the first DOF of the lumped mass vector
+            const double nodal_area = r_lumped_mass_vector[i_node * block_size];
             it_node->GetValue(DENSITY_PROJECTION) /= nodal_area;
             it_node->GetValue(MOMENTUM_PROJECTION) /= nodal_area;
             it_node->GetValue(TOTAL_ENERGY_PROJECTION) /= nodal_area;
