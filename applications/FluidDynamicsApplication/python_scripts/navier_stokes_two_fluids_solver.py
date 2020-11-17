@@ -419,7 +419,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.VELOCITY,
                     computing_model_part,
                     linear_solver,
-                    self._levelset_dt_factor,
                     1.0, # max_cfl
                     0.7, # cross_wind
                     0, # max_substeps
@@ -430,7 +429,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.VELOCITY,
                     computing_model_part,
                     linear_solver,
-                    self._levelset_dt_factor,
                     1.0, # max_cfl
                     0.7, # cross_wind
                     0, # max_substeps
