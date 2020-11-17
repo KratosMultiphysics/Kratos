@@ -206,8 +206,8 @@ public:
     }
 
     // y += A*x  -- where A is *this
-    template<class TVec1, class TVec2>
-    void SpMV(TVec1& y, const TVec2& x) const
+    template<class TInputVectorType, class TOutputVectorType>
+    void SpMV(const TInputVectorType& x, TOutputVectorType& y) const
     {
         KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
         KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
@@ -222,8 +222,8 @@ public:
     }
 
     // y += A^t*x  -- where A is *this    
-    template<class TVec1, class TVec2>
-    void TransposeSpMV(TVec1& y, const TVec2& x) const
+    template<class TInputVectorType, class TOutputVectorType>
+    void TransposeSpMV(const TInputVectorType& x, TOutputVectorType& y) const
     {
         KRATOS_ERROR_IF(size2() != y.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and destination vector size " << y.size() << std::endl;
         KRATOS_ERROR_IF(size1() != x.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and input vector size " << x.size() << std::endl;

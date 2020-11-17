@@ -317,26 +317,26 @@ public:
     //*
 
     // y += A*x  -- where A is *this  
-   void SpMV(DistributedSystemVector<TDataType,TIndexType>& y,
-              const DistributedSystemVector<TDataType,TIndexType>& x) const
+    void SpMV(const DistributedSystemVector<TDataType,TIndexType>& x,
+              DistributedSystemVector<TDataType,TIndexType>& y) const
     {
         //get off diagonal terms (requires communication)
         auto off_diag_x = mpVectorImporter->ImportData(x);
-        mOffDiagBlock.SpMV(y.GetLocalData(),off_diag_x);
-        mDiagBlock.SpMV(y.GetLocalData(),x.GetLocalData());
+        mOffDiagBlock.SpMV(off_diag_x,y.GetLocalData());
+        mDiagBlock.SpMV(x.GetLocalData(),y.GetLocalData());
     }
 
     // y += A^t*x  -- where A is *this    
-    DistributedVectorExporter<TIndexType>* TransposeSpMV(DistributedSystemVector<TDataType,TIndexType>& y, 
-                       const DistributedSystemVector<TDataType,TIndexType>& x, 
+    DistributedVectorExporter<TIndexType>* TransposeSpMV(const DistributedSystemVector<TDataType,TIndexType>& x, 
+                       DistributedSystemVector<TDataType,TIndexType>& y, 
                        DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
                        ) const
     {
-        mDiagBlock.TransposeSpMV(y.GetLocalData(),x.GetLocalData());
+        mDiagBlock.TransposeSpMV(x.GetLocalData(),y.GetLocalData());
 
         DenseVector<TDataType> non_local_transpose_data = ZeroVector(mOffDiagBlock.size2());
 
-        mOffDiagBlock.TransposeSpMV(non_local_transpose_data,x.GetLocalData());
+        mOffDiagBlock.TransposeSpMV(x.GetLocalData(),non_local_transpose_data);
 
         if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight 
         {

@@ -498,7 +498,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
     SystemVector<> y(Agraph);
     y.SetValue(1.0);
 
-    A.SpMV(x,y); //x += A*y
+    A.SpMV(y,x); //x += A*y
 
     double sum = 0.0; //for this test the final value is 124
     for(IndexType i=0; i!=x.size(); ++i){
@@ -591,12 +591,12 @@ KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
     SystemVector<> x(A.size2()); //origin vector
     x.SetValue(1.0);
 
-    A.SpMV(y,x);
+    A.SpMV(x,y);
 
     //test TransposeSpMV
     y.SetValue(1.0);
     x.SetValue(0.0);
-    A.TransposeSpMV(x,y); //x += Atranspose*y
+    A.TransposeSpMV(y,x); //x += Atranspose*y
 
     SystemVector<> xtranspose_spmv_ref(A.size2()); //origin vector
     xtranspose_spmv_ref.SetValue(0.0);
@@ -607,8 +607,7 @@ KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
         const IndexType Atranspose_ij = item.second;
         xtranspose_spmv_ref[I] += Atranspose_ij*y[J];
     }
-    KRATOS_WATCH(x)
-    KRATOS_WATCH(xtranspose_spmv_ref)
+
     for(IndexType i=0; i<x.size(); ++i)
     {
         KRATOS_CHECK_NEAR(x[i], xtranspose_spmv_ref[i], 1e-14);

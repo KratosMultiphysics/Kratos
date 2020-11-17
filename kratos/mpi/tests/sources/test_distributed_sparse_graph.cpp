@@ -473,7 +473,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     y.SetValue(0.0);
     b.SetValue(1.0);
 
-    A.SpMV(y,b);
+    A.SpMV(b,y);
 
     std::vector<double> reference_spmv_res{4,12,8,12,12,12,20,24,16,16,8,16,12,4,24,12,20,12,24,12,0,4,16,4,16,16,24,4,20,8,8,12,4,16,4,20,8,16,4,12};
     for(unsigned int i=0; i<y.LocalSize(); ++i)
@@ -524,7 +524,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
     SystemVector<> xserial(Aserial.size2()); //origin vector
     xserial.SetValue(1.0);
 
-    Aserial.SpMV(yserial,xserial);
+    Aserial.SpMV(xserial,yserial);
 
 
     //*************************************************************************
@@ -580,7 +580,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
     DistributedSystemVector<> x(A.GetColNumbering()); //origin vector
     x.SetValue(1.0);
 
-    A.SpMV(y,x);
+    A.SpMV(x,y);
 
     for(IndexType i_local=0; i_local<y.LocalSize(); ++i_local)
     {
@@ -591,7 +591,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
     //check TransposeSpMV
     x.SetValue(0.0);
     y.SetValue(1.0);
-    A.TransposeSpMV(x,y);
+    A.TransposeSpMV(y,x);
 
     std::vector<double> reference_transpose_spmv_res{20,8,16,20,8,32,28,4,52,16,8,24,12};
     for(unsigned int i=0; i<x.LocalSize(); ++i)
@@ -623,7 +623,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, Krat
 
     DistributedSystemVector<double,IndexType> c(a);
     KRATOS_CHECK_EQUAL(c.LocalSize(), local_size);
-    KRATOS_CHECK_EQUAL(c.TotalSize(), local_size*rComm.Size());
+    KRATOS_CHECK_EQUAL(c.Size(), local_size*rComm.Size());
     for(unsigned int i=0; i<c.LocalSize(); ++i)
         KRATOS_CHECK_NEAR(c[i], 5.0,1e-14);
 

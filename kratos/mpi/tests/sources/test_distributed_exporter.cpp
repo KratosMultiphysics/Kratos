@@ -32,7 +32,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosCoreFastS
     IndexType local_size = 4;
     DistributedNumbering<IndexType> numbering(rComm,local_size);
 
-    IndexType total_size =numbering.TotalSize();
+    IndexType total_size =numbering.Size();
     DistributedSystemVector<double,IndexType> x(numbering);
 
     //test exporting
