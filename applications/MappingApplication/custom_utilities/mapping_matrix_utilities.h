@@ -44,6 +44,13 @@ void KRATOS_API(MAPPING_APPLICATION) BuildMappingMatrix(
     std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
     const int EchoLevel);
 
+template<class TSparseSpace, class TDenseSpace>
+void KRATOS_API(MAPPING_APPLICATION) CheckRowSum(
+    const typename TSparseSpace::MatrixType& rM,
+    const std::string& rBaseFileName,
+    const bool ThrowError = false,
+    const double Tolerance = 1e-15);
+
 }  // namespace MappinMatrixUtilities.
 
 }  // namespace Kratos.

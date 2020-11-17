@@ -168,12 +168,9 @@ try {                                                                           
             << "Got:" << std::endl << e.what() << std::endl;                            \
 }
 
-#define KRATOS_CHECK_VARIABLE_KEY(TheVariable)                               \
-    KRATOS_ERROR_IF(TheVariable.Key() == 0)                                  \
-        << TheVariable.Name() << " Key is 0." << std::endl                   \
-        << "Check that Kratos variables have been correctly registered and " \
-           "all required applications have been imported."                   \
-        << std::endl;
+// this macro is to be removed, as it is no longer required to check the keys of Variables (are now assigned at compiletime)
+// adding dummy usage to avoid unused variable warnings
+#define KRATOS_CHECK_VARIABLE_KEY(TheVariable) TheVariable.Key();
 
 #define KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)                          \
     KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))                         \

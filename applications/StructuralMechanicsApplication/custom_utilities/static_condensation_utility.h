@@ -118,7 +118,7 @@ namespace Kratos
          * @param rTheElement The current element
          */
 
-		SizeType GetNumDofsElement(ElementType& rTheElement);
+		SizeType GetNumDofsElement(const ElementType& rTheElement);
 
 	}  // namespace StaticCondensationUtility
 

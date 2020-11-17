@@ -15,11 +15,12 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         # Set the element and condition names for the replace settings
         self.element_name = "ShallowWater"
         self.condition_name = "LineCondition"
-        self.min_buffer_size = 2
+        self.min_buffer_size = self.settings["time_integration_order"].GetInt() + 1
 
     def AddVariables(self):
         super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.ATMOSPHERIC_PRESSURE)
 
     def AddDofs(self):
@@ -53,6 +54,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
     def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
+        "time_integration_order"     : 2,
         "lumped_mass_factor"         : 1.0,
         "shock_stabilization_factor" : 0.001,
         "ground_irregularity"        : 0.0
@@ -60,6 +62,10 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
+
+    def _CreateScheme(self):
+        time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
+        return time_scheme
 
     def _InitializeWaterLoss(self):
         self.initial_water = KM.VariableUtils().SumHistoricalNodeScalarVariable(SW.HEIGHT, self.main_model_part,0)

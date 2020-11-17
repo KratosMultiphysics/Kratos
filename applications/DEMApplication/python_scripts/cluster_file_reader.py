@@ -30,7 +30,6 @@ def ReadClusterFile(filename):
                     break
                 data = nextline.split()
                 coordinates = [float(data[0]), float(data[1]), float(data[2])]
-                #print(coordinates)
                 radius = float(data[3])
                 list_of_coordinates.append(coordinates)
                 list_of_radii.append(radius)

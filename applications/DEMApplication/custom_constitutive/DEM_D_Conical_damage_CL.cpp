@@ -22,13 +22,13 @@ namespace Kratos {
         DEMDiscontinuumConstitutiveLaw::Check(pProp);
         if(!pProp->Has(CONICAL_DAMAGE_CONTACT_RADIUS)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable CONICAL_DAMAGE_CONTACT_RADIUS should be present in the properties when using DEM_D_Conical_damage. 90.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable CONICAL_DAMAGE_CONTACT_RADIUS should be present in the properties when using DEM_D_Conical_damage. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(CONICAL_DAMAGE_CONTACT_RADIUS) = 0.0;
         }
         if(!pProp->Has(CONICAL_DAMAGE_MAX_STRESS)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable CONICAL_DAMAGE_MAX_STRESS should be present in the properties when using DEM_D_Conical_damage. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable CONICAL_DAMAGE_MAX_STRESS should be present in the properties when using DEM_D_Conical_damage. 1.0e20 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(CONICAL_DAMAGE_MAX_STRESS) = 1.0e20;
         }
@@ -47,7 +47,7 @@ namespace Kratos {
     }
 
     std::string DEM_D_Conical_damage::GetTypeOfLaw() {
-        std::string type_of_law = "Conical_damge";
+        std::string type_of_law = "Conical_damage";
         return type_of_law;
     }
 
@@ -78,21 +78,19 @@ namespace Kratos {
         //Get new Equivalent Radius
         double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element1->GetParticleConicalDamageMaxStress(),1.5));
 
-        double offset = 0.0;
         if (equiv_radius_new > equiv_level_of_fouling * equiv_radius) {
             const double AlphaFunction = element1->GetProperties()[CONICAL_DAMAGE_ALPHA_FUNCTION];
-            offset = (equiv_radius_new - equiv_radius) * AlphaFunction;
-
+            double offset = (equiv_radius_new - equiv_radius) * AlphaFunction;
             equiv_radius = equiv_radius_new;
-        }
 
-        for (unsigned int i = 0; element1->mNeighbourElements.size(); i++) {
-            if (element1->mNeighbourElements[i]->Id() == element2->Id()) {
-                element1->mNeighbourContactRadius[i] = equiv_radius;
-                if (indentation > offset) element1->mNeighbourIndentation[i] = indentation - offset;
-                else element1->mNeighbourIndentation[i] = 0.0;
-                indentation = element1->mNeighbourIndentation[i];
-                break;
+            for (unsigned int i = 0; element1->mNeighbourElements.size(); i++) {
+                if (element1->mNeighbourElements[i]->Id() == element2->Id()) {
+                    element1->mNeighbourContactRadius[i] = equiv_radius;
+                    if (indentation > offset) element1->mNeighbourIndentation[i] = indentation - offset;
+                    else element1->mNeighbourIndentation[i] = 0.0;
+                    indentation = element1->mNeighbourIndentation[i];
+                    break;
+                }
             }
         }
 
@@ -125,6 +123,7 @@ namespace Kratos {
         const double radius_sum     = my_radius + other_radius;
         const double radius_sum_inv = 1.0 / radius_sum;
         double equiv_radius         = my_radius * other_radius * radius_sum_inv;
+        double original_equiv_radius = equiv_radius;
 
         double elastic_indentation = indentation;
 
@@ -132,8 +131,8 @@ namespace Kratos {
             if (p_element1->mNeighbourElements[i]->Id() == p_element2->Id()) {
                 if (p_element1->mNeighbourContactRadius[i] > equiv_radius) {
                     equiv_radius = p_element1->mNeighbourContactRadius[i];
-                    elastic_indentation = p_element1->mNeighbourIndentation[i] + (indentation - previous_indentation);
-                    if (elastic_indentation < 0.0) p_element1->mNeighbourIndentation[i] = elastic_indentation = 0.0;
+                    p_element1->mNeighbourIndentation[i] += (indentation - previous_indentation);
+                    elastic_indentation = p_element1->mNeighbourIndentation[i];
                 }
                 break;
             }
@@ -159,38 +158,41 @@ namespace Kratos {
 
             LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
 
-            CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, p_element1, p_element2);
-
-            double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
-
-            if (normal_contact_force < 0.0) {
-                normal_contact_force = 0.0;
-                ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
-            }
-
-            double contact_stress = (3 * normal_contact_force) / (2 * Globals::Pi * equiv_level_of_fouling * equiv_radius * elastic_indentation);
+            double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * equiv_radius * elastic_indentation);
 
             if (contact_stress > p_element1->GetParticleConicalDamageMaxStress()) {
-                DamageContact(p_element1, p_element2, equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, normal_contact_force);
-                LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
+                DamageContact(p_element1, p_element2, equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
+                if (elastic_indentation > 0.0) LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
+                else LocalElasticContactForce[2] = 0.0;
             }
 
-            double AuxElasticShearForce;
-            double MaximumAdmisibleShearForce;
+            if (elastic_indentation > 0.0) {
+                CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, p_element1, p_element2);
 
-            CalculateTangentialForce(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                     sliding, p_element1, p_element2, equiv_radius, equiv_young, elastic_indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+                double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
 
-            double& elastic_energy = p_element1->GetElasticEnergy();
-            DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyDEM(elastic_energy, elastic_indentation, LocalElasticContactForce);
+                if (normal_contact_force < 0.0) {
+                    normal_contact_force = 0.0;
+                    ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
+                }
 
-            if(sliding && MaximumAdmisibleShearForce != 0.0){
-                double& inelastic_frictional_energy = p_element1->GetInelasticFrictionalEnergy();
-                DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyDEM(inelastic_frictional_energy, AuxElasticShearForce, LocalElasticContactForce);
+                double AuxElasticShearForce;
+                double MaximumAdmisibleShearForce;
+
+                CalculateTangentialForce(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
+                                         sliding, p_element1, p_element2, original_equiv_radius, equiv_young, elastic_indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+
+                double& elastic_energy = p_element1->GetElasticEnergy();
+                DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyDEM(elastic_energy, elastic_indentation, LocalElasticContactForce);
+
+                if(sliding && MaximumAdmisibleShearForce != 0.0){
+                    double& inelastic_frictional_energy = p_element1->GetInelasticFrictionalEnergy();
+                    DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyDEM(inelastic_frictional_energy, AuxElasticShearForce, LocalElasticContactForce);
+                }
+
+                double& inelastic_viscodamping_energy = p_element1->GetInelasticViscodampingEnergy();
+                DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyDEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
             }
-
-            double& inelastic_viscodamping_energy = p_element1->GetInelasticViscodampingEnergy();
-            DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyDEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
         }
     }
 
@@ -220,21 +222,18 @@ namespace Kratos {
         //Get new Equivalent Radius
         double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element->GetParticleConicalDamageMaxStress(),1.5));
 
-        double offset = 0.0;
         if (effective_radius_new > equiv_level_of_fouling * effective_radius) {
             const double AlphaFunction = element->GetProperties()[CONICAL_DAMAGE_ALPHA_FUNCTION];
-            offset = (effective_radius_new - effective_radius) * AlphaFunction;
-
+            double offset = (effective_radius_new - effective_radius) * AlphaFunction;
             effective_radius = effective_radius_new;
-        }
 
-        for (unsigned int i = 0; element->mNeighbourRigidFaces.size(); i++) {
-            if (element->mNeighbourRigidFaces[i]->Id() == wall->Id()) {
-                element->mNeighbourRigidContactRadius[i] = effective_radius;
-                if (indentation > offset) element->mNeighbourRigidIndentation[i] = indentation - offset;
-                else element->mNeighbourRigidIndentation[i] = 0.0;
-                element->mNeighbourRigidIndentation[i] = indentation;
-                break;
+            for (unsigned int i = 0; element->mNeighbourRigidFaces.size(); i++) {
+                if (element->mNeighbourRigidFaces[i]->Id() == wall->Id()) {
+                    element->mNeighbourRigidContactRadius[i] = effective_radius;
+                    element->mNeighbourRigidIndentation[i] = indentation - offset;
+                    indentation = element->mNeighbourRigidIndentation[i];
+                    break;
+                }
             }
         }
 
@@ -244,7 +243,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
-    void DEM_D_Conical_damage::CalculateForcesWithFEM(ProcessInfo& r_process_info,
+    void DEM_D_Conical_damage::CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                                       const double OldLocalElasticContactForce[3],
                                                       double LocalElasticContactForce[3],
                                                       double LocalDeltDisp[3],
@@ -260,7 +259,8 @@ namespace Kratos {
         ContactInfoSphericParticle* p_element = dynamic_cast<ContactInfoSphericParticle*>(element);
 
         //Get effective Radius
-        double effective_radius    = p_element->GetParticleConicalDamageContactRadius();
+        double effective_radius = p_element->GetParticleConicalDamageContactRadius();
+        double original_effective_radius = effective_radius;
 
         double elastic_indentation = indentation;
 
@@ -268,8 +268,8 @@ namespace Kratos {
             if (p_element->mNeighbourRigidFaces[i]->Id() == wall->Id()) {
                 if (p_element->mNeighbourRigidContactRadius[i] > effective_radius) {
                     effective_radius = p_element->mNeighbourRigidContactRadius[i];
-                    elastic_indentation = p_element->mNeighbourRigidIndentation[i] + (indentation - previous_indentation);
-                    if (elastic_indentation < 0.0) p_element->mNeighbourRigidIndentation[i] = elastic_indentation = 0.0;
+                    p_element->mNeighbourRigidIndentation[i] += (indentation - previous_indentation);
+                    elastic_indentation = p_element->mNeighbourRigidIndentation[i];
                 }
                 break;
             }
@@ -296,38 +296,41 @@ namespace Kratos {
 
             LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
 
-            CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, p_element, wall);
-
-            double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
-
-            if (normal_contact_force < 0.0) {
-                normal_contact_force = 0.0;
-                ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
-            }
-
-            double contact_stress = (3 * normal_contact_force) / (2 * Globals::Pi * equiv_level_of_fouling * effective_radius * elastic_indentation);
+            double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * effective_radius * elastic_indentation);
 
             if (contact_stress > p_element->GetParticleConicalDamageMaxStress()) {
-                DamageContactWithFEM(p_element, wall, effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, normal_contact_force);
-                LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
+                DamageContactWithFEM(p_element, wall, effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
+                if (elastic_indentation > 0.0) LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
+                else LocalElasticContactForce[2] = 0.0;
             }
 
-            double AuxElasticShearForce;
-            double MaximumAdmisibleShearForce;
+            if (elastic_indentation > 0.0) {
+                CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, p_element, wall);
 
-            CalculateTangentialForceWithFEM(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                            sliding, p_element, wall, effective_radius, equiv_young, elastic_indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+                double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
 
-            double& elastic_energy = p_element->GetElasticEnergy();
-            DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyFEM(elastic_energy, elastic_indentation, LocalElasticContactForce);
+                if (normal_contact_force < 0.0) {
+                    normal_contact_force = 0.0;
+                    ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
+                }
 
-            if(sliding && MaximumAdmisibleShearForce != 0.0){
-                double& inelastic_frictional_energy = p_element->GetInelasticFrictionalEnergy();
-                DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyFEM(inelastic_frictional_energy, AuxElasticShearForce, LocalElasticContactForce);
+                double AuxElasticShearForce;
+                double MaximumAdmisibleShearForce;
+
+                CalculateTangentialForceWithFEM(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
+                                                sliding, p_element, wall, original_effective_radius, equiv_young, elastic_indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+
+                double& elastic_energy = p_element->GetElasticEnergy();
+                DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyFEM(elastic_energy, elastic_indentation, LocalElasticContactForce);
+
+                if(sliding && MaximumAdmisibleShearForce != 0.0){
+                    double& inelastic_frictional_energy = p_element->GetInelasticFrictionalEnergy();
+                    DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyFEM(inelastic_frictional_energy, AuxElasticShearForce, LocalElasticContactForce);
+                }
+
+                double& inelastic_viscodamping_energy = p_element->GetInelasticViscodampingEnergy();
+                DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyFEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
             }
-
-            double& inelastic_viscodamping_energy = p_element->GetInelasticViscodampingEnergy();
-            DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyFEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
         }
     }
 
@@ -361,7 +364,7 @@ namespace Kratos {
                                                         bool& sliding,
                                                         ContactInfoSphericParticle* const element1,
                                                         ContactInfoSphericParticle* const element2,
-                                                        const double equiv_radius,
+                                                        const double original_equiv_radius,
                                                         const double equiv_young,
                                                         double indentation,
                                                         double previous_indentation,
@@ -392,11 +395,13 @@ namespace Kratos {
         }
 
         if (fabs(equiv_tg_of_static_fri_ang) > 1.0e-12 || fabs(equiv_tg_of_dynamic_fri_ang) > 1.0e-12) {
-            double critical_force = 0.6666666666666667 * Globals::Pi * equiv_radius * indentation * element1->GetParticleConicalDamageMaxStress();
-            double critical_force_inv = 1.0  / critical_force;
-            double wear_value = pow((normal_contact_force * critical_force_inv), element1->GetParticleConicalDamageGamma());
-            equiv_tg_of_static_fri_ang *= wear_value;
-            equiv_tg_of_dynamic_fri_ang *= wear_value;
+            double critical_force = 0.166666667 * pow(Globals::Pi * element1->GetParticleConicalDamageMaxStress(), 3) * pow(original_equiv_radius / equiv_young, 2);
+            if (LocalElasticContactForce[2] > critical_force) {
+                double critical_force_inv = 1.0  / critical_force;
+                double wear_value = pow((LocalElasticContactForce[2] * critical_force_inv), element1->GetParticleConicalDamageGamma());
+                equiv_tg_of_static_fri_ang *= wear_value;
+                equiv_tg_of_dynamic_fri_ang *= wear_value;
+            }
         }
 
         for (unsigned int i = 0; element1->mNeighbourElements.size(); i++) {
@@ -483,7 +488,7 @@ namespace Kratos {
                                                                bool& sliding,
                                                                ContactInfoSphericParticle* const element,
                                                                Condition* const wall,
-                                                               const double equiv_radius,
+                                                               const double original_effective_radius,
                                                                const double equiv_young,
                                                                double indentation,
                                                                double previous_indentation,
@@ -514,11 +519,13 @@ namespace Kratos {
         }
 
         if (fabs(equiv_tg_of_static_fri_ang) > 1.0e-12 || fabs(equiv_tg_of_dynamic_fri_ang) > 1.0e-12) {
-            double critical_force = 0.6666666666666667 * Globals::Pi * equiv_radius * indentation * element->GetParticleConicalDamageMaxStress();
-            double critical_force_inv = 1.0  / critical_force;
-            double wear_value = pow((normal_contact_force * critical_force_inv), element->GetParticleConicalDamageGamma());
-            equiv_tg_of_static_fri_ang *= wear_value;
-            equiv_tg_of_dynamic_fri_ang *= wear_value;
+            double critical_force = 0.166666667 * pow(Globals::Pi * element->GetParticleConicalDamageMaxStress(), 3) * pow(original_effective_radius / equiv_young, 2);
+            if (LocalElasticContactForce[2] > critical_force) {
+                double critical_force_inv = 1.0  / critical_force;
+                double wear_value = pow((LocalElasticContactForce[2] * critical_force_inv), element->GetParticleConicalDamageGamma());
+                equiv_tg_of_static_fri_ang *= wear_value;
+                equiv_tg_of_dynamic_fri_ang *= wear_value;
+            }
         }
 
         for (unsigned int i = 0; element->mNeighbourRigidFaces.size(); i++) {

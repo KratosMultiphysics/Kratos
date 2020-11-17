@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 #include "utilities/divide_triangle_2d_3.h"
 
 namespace Kratos
@@ -277,7 +277,7 @@ namespace Kratos
             DivideTriangle2D3::GenerateExteriorFaces(
                 aux_ext_faces,
                 aux_ext_faces_parent_ids,
-                rSubdivisionsContainer, 
+                rSubdivisionsContainer,
                 i_face);
 
             rExteriorFacesVector.insert(rExteriorFacesVector.end(), aux_ext_faces.begin(), aux_ext_faces.end());
@@ -340,5 +340,5 @@ namespace Kratos
             KRATOS_ERROR << "Trying to generate the exterior faces in DivideTriangle2D3::GenerateExteriorFaces() for a non-split element.";
         }
     };
-    
+
 };
