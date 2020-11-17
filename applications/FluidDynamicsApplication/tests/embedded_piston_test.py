@@ -86,7 +86,7 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
             super(CustomFluidDynamicsAnalysis,self).OutputSolutionStep()
 
 
-@UnitTest.skipUnless(have_mesh_moving,"Missing required application: MeshMovingApplication")
+@KratosUnittest.skipIf(not have_mesh_moving,"Missing required application: MeshMovingApplication")
 class EmbeddedPistonTest(UnitTest.TestCase):
 
     # Embedded element tests

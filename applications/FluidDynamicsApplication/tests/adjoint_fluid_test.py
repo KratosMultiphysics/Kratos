@@ -10,7 +10,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 
 import os
 
-@UnitTest.skipUnless(hdf5_is_available, "HDF5Application is not available")
+@KratosUnittest.skipIf(not hdf5_is_available, "HDF5Application is not available")
 class AdjointFluidTest(UnitTest.TestCase):
 
     def setUp(self):
