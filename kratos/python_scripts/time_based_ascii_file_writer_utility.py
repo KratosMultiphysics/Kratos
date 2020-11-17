@@ -143,5 +143,4 @@ class TimeBasedAsciiFileWriterUtility(object):
         self.file_name = self.output_path / Path(raw_file_name)
 
         # make sure that the path to the desired output folder exists
-        if not os.path.isdir(self.output_path) and not self.output_path == "":
-            os.makedirs(self.output_path)
+        self.output_path.mkdir(exist_ok=True)
