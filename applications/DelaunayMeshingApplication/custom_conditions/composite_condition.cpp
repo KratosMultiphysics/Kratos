@@ -246,7 +246,7 @@ void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult,
 //*********************************SET VALUE TO CHILDREN******************************
 //************************************************************************************
 
-bool CompositeCondition::IsActive( ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo ) const
+bool CompositeCondition::IsActive( const ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo ) const
 {
   if(rCurrentProcessInfo.Is(THERMAL) && iChildCondition->Is(THERMAL))
     return true;
