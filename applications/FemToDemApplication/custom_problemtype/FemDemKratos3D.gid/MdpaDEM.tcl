@@ -25,22 +25,22 @@ proc WriteMdpaDEM { basename dir problemtypedir } {
     close $FileVar
 
 	# create empty mdpa 
-	set basenameCluster $basename
-	append basenameCluster "DEM_Clusters"
-	set filename [file join $dir ${basenameCluster}.mdpa]
-    set FileVar [open $filename w]
-	close $FileVar
+	# set basenameCluster $basename
+	# append basenameCluster "DEM_Clusters"
+	# set filename [file join $dir ${basenameCluster}.mdpa]
+    # set FileVar [open $filename w]
+	# close $FileVar
 	
-	set basenameDEMFEM $basename
-	append basenameDEMFEM "DEM_FEM_boundary"
-	set filename [file join $dir ${basenameDEMFEM}.mdpa]
-    set FileVar [open $filename w]
-	close $FileVar
+	# set basenameDEMFEM $basename
+	# append basenameDEMFEM "DEM_FEM_boundary"
+	# set filename [file join $dir ${basenameDEMFEM}.mdpa]
+    # set FileVar [open $filename w]
+	# close $FileVar
 	
-	set basenameDEMinlet $basename
-	append basenameDEMinlet "DEM_Inlet"
-	set filename [file join $dir ${basenameDEMinlet}.mdpa]
-    set FileVar [open $filename w]
-	close $FileVar
+	# set basenameDEMinlet $basename
+	# append basenameDEMinlet "DEM_Inlet"
+	# set filename [file join $dir ${basenameDEMinlet}.mdpa]
+    # set FileVar [open $filename w]
+	# close $FileVar
 
 }

@@ -379,11 +379,11 @@ class GiDDamOutputProcess(Process):
         self.multifile_flag = self.__get_gidpost_flag(param,"MultiFileFlag", self.__multi_file_flag)
 
         if self.body_output or self.node_output:
-            self.body_io = GidIO( self.volume_file_name,
-                                    self.post_mode,
-                                    self.multifile_flag,
-                                    self.write_deformed_mesh,
-                                    self.write_conditions)
+            self.body_io = GidIO(self.volume_file_name,
+                                 self.post_mode,
+                                 self.multifile_flag,
+                                 self.write_deformed_mesh,
+                                 self.write_conditions)
 
         if self.skin_output or self.num_planes > 0:
             self.cut_io = GidIO(self.cut_file_name,

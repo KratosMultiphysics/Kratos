@@ -33,12 +33,15 @@ class KratosSolverWrapper(sw.SolverWrapper):
     - number_contributions_per_instance: integer. Defines the number of realization per each solve call. Useful if one wants to exploit ensemble average, together with hierarchical Monte Carlo methods. Set by numberContributionsPerInstance key.
     - number_qoi: integer. Defines the number of Quantities of Interest the user wants to return. Set by numberQoI key.
     - number_combined_qoi: integer. Defines the number of combined Quantities of Interest the user wants to return. Set by numberCombinedQoi key.
+    - number_multi_qoi: integer. Defines the number of vector Quantities of Interest the user wants to return. Set by numberMultiQoI key.
+    - number_multi_combined_qoi: integer. Defines the number of vector combined Quantities of Interest the user wants to return. Set by numberMultiCombinedQoi key.
     - outputBatchSize: integer. Defines the size of each sub-list of the Quantities of Interest list which is returned by the solve method. It is alternative to outputDimension, defined below. Set by OutputBatchSize.
     - outputDimension: integer or list of integers. If integer, equals to len(sample), where sample is the first output argument of self.solve(). If list of integers, then it means that samples are split in future lists, and outputDimension is [len(subSample) for subSample in sample]. Set by OutputDimension key.
     - print_to_file: boolean. If true, prepares the distributed environment programing model PyCOMPSs to write a file inside the solve task. Set by printToFile key.
     - project_parameters_path: string or list of strings. Defines the path to Kratos Project Parameters. Set by projectParametersPath key.
     - refinement_parameters_path: string. Define the path to the Kratos Adaptive Refinement Project Parameters. Set by refinementParametersPath key.
     - refinement_strategy: string. Options are: "reading_from_file", "deterministic_adaptive_refinement", "stochastic_adaptive_refinement". It defines the refinement strategy for multilevel algorithms. Set by refinementStrategy key.
+    - size_multi_x_qoi: integer or list of integers. Defines the size of each vector quantity if interest. If integer, vector quantities of interest have the same size. If list, the list has the same length of numberMultiQoI+numberMultiCombinedQoI. It is required to set a priori this value only because of returnZeroQoiAndTime_Task, which needs to know how many 0s to return. Set by sizeMultiXQoI.
 
     Methods:
     - serialize: method serializing Kratos Model and Kratos Parameters.
@@ -47,6 +50,8 @@ class KratosSolverWrapper(sw.SolverWrapper):
     """
 
     # TODO: solverWrapperIndex will be removed from here and will have an indicator about the level we are at and not which algorithm we are using
+    # TODO: are both outputBatchSize and outputBatchSize needed? Probably not.
+    # TODO: integrate MultiXMomentEstimators with ensemble average.
     def __init__(self,**keywordArgs):
         super().__init__(**keywordArgs)
         self.analysis = SimulationScenario
@@ -56,26 +61,28 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.fake_sample_to_serialize =  keywordArgs.get('fakeRandomVariable')
         self.mapping_output_quantities = keywordArgs.get("mappingOutputQuantities",False)
         self.number_contributions_per_instance = keywordArgs.get("numberContributionsPerInstance",1)
-        self.number_qoi = keywordArgs.get("numberQoI",1)
+        self.number_qoi = keywordArgs.get("numberQoI",0)
         self.number_combined_qoi = keywordArgs.get("numberCombinedQoi",0)
+        self.number_multi_qoi = keywordArgs.get("numberMultiQoI",0)
+        self.number_multi_combined_qoi = keywordArgs.get("numberMultiCombinedQoI",0)
         self.outputBatchSize = keywordArgs.get('outputBatchSize',1)
         self.print_to_file = keywordArgs.get("printToFile",False)
         self.project_parameters_path = keywordArgs.get('projectParametersPath')
         self.refinement_parameters_path = keywordArgs.get('refinementParametersPath')
         self.refinement_strategy = keywordArgs.get('refinementStrategy')
+        self.size_multi_x_qoi = keywordArgs.get('sizeMultiXQoI',-1) # remove after returnZeroQoiAndTime_Task is removed
 
         # Set outputDimension
         self.outputDimension = keywordArgs.get('outputDimension',None)
         # If not given, compute from self.outputBatchSize for backward compatibility
         if self.outputDimension is None:
-            outputNb = self.number_qoi + self.number_combined_qoi
+            outputNb = self._numberOfOutputs()
             # Total number of output splits, including (possibly) a last one of smaller size
             batchNb = int(math.ceil(outputNb/self.outputBatchSize))
             # Assemble the list of sizes of each split
             # They are all equal to outputBatchSize, except perhaps the last one
             # E.g. outputBatchSize=2 and outputNb=5 gives [2,2,1]
-            self.outputDimension = [min(self.outputBatchSize, outputNb-i*self.outputBatchSize)
-                                    for i in range(batchNb)]
+            self.outputDimension = [min(self.outputBatchSize, outputNb-i*self.outputBatchSize) for i in range(batchNb)]
 
         # workaround for Monte Carlo
         if (self.solverWrapperIndex == []):
@@ -166,19 +173,23 @@ class KratosSolverWrapper(sw.SolverWrapper):
 
             # postprocess components
             if self.number_contributions_per_instance > 1:
-                unm = mdu.UnfolderManager(self.numberOfOutputs(),self.outputBatchSize)
-                if (self.numberOfOutputs() == self.outputBatchSize):
+                unm = mdu.UnfolderManager(self._numberOfOutputs(),self.outputBatchSize)
+                if (self._numberOfOutputs() == self.outputBatchSize):
                     qoi_list = [unm.PostprocessContributionsPerInstance(aux_qoi_array,self.number_qoi,self.number_combined_qoi)]
-                else:
+                elif (self._numberOfOutputs() > self.outputBatchSize):
                     qoi_list = unm.PostprocessContributionsPerInstance(aux_qoi_array,self.number_qoi,self.number_combined_qoi)
+                else:
+                    raise Exception("_numberOfOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
                 delete_object(unm)
             else:
                 # unfold qoi into its components of fixed size
-                unm = mdu.UnfolderManager(self.numberOfOutputs(), self.outputBatchSize)
-                if (self.numberOfOutputs() == self.outputBatchSize):
+                unm = mdu.UnfolderManager(self._numberOfOutputs(), self.outputBatchSize)
+                if (self._numberOfOutputs() == self.outputBatchSize):
                     qoi_list = [unm.UnfoldNValues_Task(aux_qoi_array[0])]
-                else:
+                elif (self._numberOfOutputs() > self.outputBatchSize):
                     qoi_list = unm.UnfoldNValues_Task(aux_qoi_array[0])
+                else:
+                    raise Exception("_numberOfOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
                 # delete COMPSs future objects no longer needed
                 delete_object(unm)
 
@@ -189,13 +200,15 @@ class KratosSolverWrapper(sw.SolverWrapper):
             del(aux_qoi_array)
 
         else:
-            qoi,time_for_qoi = mds.returnZeroQoiAndTime_Task(self.numberOfOutputs())
+            qoi,time_for_qoi = mds.returnZeroQoiAndTime_Task(self.number_qoi + self.number_combined_qoi, self.number_multi_qoi + self.number_multi_combined_qoi, self.size_multi_x_qoi)
             # unfold qoi into its components of fixed size
-            unm = mdu.UnfolderManager(self.numberOfOutputs(), self.outputBatchSize)
-            if (self.numberOfOutputs() == self.outputBatchSize):
+            unm = mdu.UnfolderManager(self._numberOfOutputs(), self.outputBatchSize)
+            if (self._numberOfOutputs() == self.outputBatchSize):
                 qoi_list = [unm.UnfoldNValues_Task(qoi)]
-            else:
+            elif (self._numberOfOutputs() > self.outputBatchSize):
                 qoi_list = unm.UnfoldNValues_Task(qoi)
+            else:
+                raise Exception("_numberOfOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
             # delete COMPSs future objects no longer needed
             delete_object(unm)
 
@@ -531,16 +544,12 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.mesh_sizes.append(h_current_level)
         self.mesh_parameters.append(mesh_parameter_current_level)
 
-
-    def numberOfOutputs(self):
+    def _numberOfOutputs(self):
         """
-        Method returning the total number of scalar outputs.
+        Internal method returning the total number of outputs, regardless of how
+        how many members vector quantities of interest have.
 
         Inputs:
         - self: an instance of the class.
         """
-
-        if isinstance(self.outputDimension,int):
-            return self.outputDimension
-        else: # is a list of integers
-            return sum(self.outputDimension)
+        return self.number_qoi + self.number_combined_qoi + self.number_multi_qoi + self.number_multi_combined_qoi

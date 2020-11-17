@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import time as timer
@@ -8,6 +7,10 @@ from importlib import import_module
 
 def Wait():
     input("Alejandro -> Press Something")
+
+def KratosPrintInfo(message):
+    KratosMultiphysics.Logger.Print(message, label="")
+    KratosMultiphysics.Logger.Flush()
 
 #============================================================================================================================
 class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamicsAnalysis):
@@ -30,6 +33,10 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         parameters["problem_data"]["problem_name"].SetString("PFEM" + problem_name)
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("PFEM" + problem_name)
 
+        folders = problem_name.split("/")
+        if len(folders) > 1:
+            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(problem_name)
+
         self.FEM_model_part = FEM_model_part
 
         self.model = model
@@ -37,7 +44,7 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         # Time control starts
         self.KratosPrintInfo(timer.ctime())
         # Measure process time
-        self.t0p = timer.clock()
+        self.t0p = timer.process_time()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####

@@ -1,10 +1,9 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
+from importlib import import_module
 
 def CreateSolver(main_model_part, custom_settings):
     return FemDemMechanicalSolver(main_model_part, custom_settings)
@@ -49,6 +48,7 @@ class FemDemMechanicalSolver(object):
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
+                "path_to_mdpa"  :     "",
                 "input_file_label": 0
             },
             "computing_model_part_name" : "computing_domain",
@@ -190,33 +190,19 @@ class FemDemMechanicalSolver(object):
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
 
+        if self.settings["model_import_settings"].Has("path_to_mdpa"):
+            path_to_mdpa = self.settings["model_import_settings"]["path_to_mdpa"].GetString()
+        else:
+            path_to_mdpa = ""
+
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
-            print("   Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa ")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+            print("   Reading model part from file: " + os.path.join(problem_path, path_to_mdpa + input_filename) + ".mdpa ")
+            KratosMultiphysics.ModelPartIO(path_to_mdpa + input_filename).ReadModelPart(self.main_model_part)
             # print("   Finished reading model part from mdpa file ")
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
-
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
-            # Import model part from restart file.
-            restart_path = os.path.join(problem_path, self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString() )
-            if(os.path.exists(restart_path+".rest") == False):
-                raise Exception("Restart file not found: " + restart_path + ".rest")
-            print("   Loading Restart file: ", restart_path + ".rest ")
-
-            # set serializer flag
-            serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
-
-            serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
-            serializer.Load(self.main_model_part.Name, self.main_model_part)
-
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
-            #I use it to rebuild the contact conditions.
-            load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
-            self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
-            # print("   Finished loading model part from restart file ")
 
         else:
             raise Exception("Other input options are not yet implemented.")
@@ -250,6 +236,7 @@ class FemDemMechanicalSolver(object):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
         print("::[Mechanical_Solver]:: -END-")
+
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
@@ -348,16 +335,29 @@ class FemDemMechanicalSolver(object):
 
     def _import_constitutive_laws(self):
 
-        if os.path.isfile("materials.py"):
-            # Constitutive law import
-            import KratosMultiphysics.SolidMechanicsApplication.constitutive_law_python_utility as constitutive_law_utils
-            constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
-                                                                             self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
-            constitutive_law.Initialize();
-
-            return True
+        if self.settings["model_import_settings"].Has("path_to_mdpa"):
+            path_to_mdpa = self.settings["model_import_settings"]["path_to_mdpa"].GetString()
         else:
-            return False
+            path_to_mdpa = ""
+            
+
+        if path_to_mdpa == "":
+            if os.path.isfile("materials.py"):
+                # Constitutive law import
+                import KratosMultiphysics.FemToDemApplication.constitutive_law_python_utility as constitutive_law_utils
+                constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
+                                                                                self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
+                constitutive_law.Initialize()
+
+                return True
+            else:
+                return False
+        else:  # test cases
+            materials_path = path_to_mdpa
+            folders = materials_path.split("/")
+            materials = import_module(str(folders[0]) + "." + str(folders[1]) + ".materials")
+            materials.AssignMaterial(self.main_model_part.Properties)
+            return True
 
     def _validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
         """Transfer matching settings from origin to destination.

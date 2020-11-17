@@ -22,8 +22,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
     def Initialize(self):
 
-        print("::[Pfem Fluid Nodal Integration Solver]:: -START-")
-
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
@@ -55,17 +53,8 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         # Set echo_level
         self.fluid_solver.SetEchoLevel(echo_level)
 
-        # Set initialize flag
-        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
-            self.mechanical_solver.SetInitializePerformedFlag(True)
-
-
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
-
-
-        print("::[Pfem Fluid Nodal Integration Solver]:: -END- ")
-
 
 
     def AddVariables(self):
@@ -129,7 +118,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_ERROR_XX)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_VOLUME)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_CAUCHY_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_DEVIATORIC_CAUCHY_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS)
@@ -177,8 +166,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PROPERTY_ID)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
-
-        print("::[Pfem Fluid Solver]:: Variables ADDED")
 
 
     def InitializeSolutionStep(self):
