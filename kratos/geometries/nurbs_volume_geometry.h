@@ -51,7 +51,6 @@ public:
     typedef typename TContainerPointType::value_type NodeType;
 
     typedef Geometry<NodeType> BaseType;
-    typedef NurbsVolumeGeometry<TContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -67,6 +66,7 @@ public:
 
     /// Pointer of NurbsVolumeGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsVolumeGeometry);
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -131,7 +131,6 @@ public:
         , mKnotsU(rOther.mKnotsU)
         , mKnotsV(rOther.mKnotsV)
         , mKnotsW(rOther.mKnotsW)
-        , mWeights(rOther.mWeights)
     {
     }
 
@@ -145,7 +144,6 @@ public:
         , mKnotsU(rOther.mKnotsU)
         , mKnotsV(rOther.mKnotsV)
         , mKnotsW(rOther.mKnotsW)
-        , mWeights(rOther.mWeights)
     {
     }
 
@@ -176,7 +174,6 @@ public:
         mKnotsU = rOther.mKnotsU;
         mKnotsV = rOther.mKnotsV;
         mKnotsW = rOther.mKnotsW;
-        mWeights = rOther.mWeights;
         return *this;
     }
 
@@ -202,7 +199,6 @@ public:
         mKnotsU = rOther.mKnotsU;
         mKnotsV = rOther.mKnotsV;
         mKnotsW = rOther.mKnotsW;
-        mWeights = rOther.mWeights;
         return *this;
     }
 
@@ -711,14 +707,15 @@ public:
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
-            if (IsRational()) {
-                shape_function_container.ComputeNurbsShapeFunctionValues(
-                    mKnotsU, mKnotsV, mKnotsW, mWeights, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
-            }
-            else {
-                shape_function_container.ComputeBSplineShapeFunctionValues(
-                    mKnotsU, mKnotsV, mKnotsW, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
-            }
+            // Attention: Weights are not yet implemented.
+            // if (IsRational()) {
+            //     shape_function_container.ComputeNurbsShapeFunctionValues(
+            //         mKnotsU, mKnotsV, mKnotsW, mWeights, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
+            // }
+
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnotsU, mKnotsV, mKnotsW, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
+            
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
@@ -773,14 +770,15 @@ public:
     {
         NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 0);
 
-        if (IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(
-                mKnotsU, mKnotsV, mKnotsW, mWeights, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
-        }
-        else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(
-                mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
-        }
+        // Attention: Weights are not yet implemented.
+        // if (IsRational()) {
+        //     shape_function_container.ComputeNurbsShapeFunctionValues(
+        //         mKnotsU, mKnotsV, mKnotsW, mWeights, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
+        // }
+
+        shape_function_container.ComputeBSplineShapeFunctionValues(
+            mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
+        
 
         noalias(rResult) = ZeroVector(3);
         for (IndexType u = 0; u <= PolynomialDegreeU(); ++u) {
@@ -814,14 +812,15 @@ public:
     {
         NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, DerivativeOrder);
 
-        if (IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(
-                mKnotsU, mKnotsV, mKnotsW, mWeights, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
-        }
-        else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(
-                mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
-        }
+        // Attention: Weights are not yet implemented.
+        // if (IsRational()) {
+        //     shape_function_container.ComputeNurbsShapeFunctionValues(
+        //         mKnotsU, mKnotsV, mKnotsW, mWeights, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
+        // }
+
+        shape_function_container.ComputeBSplineShapeFunctionValues(
+            mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
+        
 
         if (rGlobalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
             rGlobalSpaceDerivatives.resize(shape_function_container.NumberOfShapeFunctionRows());
@@ -869,14 +868,15 @@ public:
     {
         NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 0);
 
-        if (IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, mWeights,
-                rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        }
-        else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
-                rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        }
+        // Attention: Weights are not yet implemented.
+        // if (IsRational()) {
+        //     shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, mWeights,
+        //         rCoordinates[0], rCoordinates[1], rCoordinates[2]);
+        // }
+
+        shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
+            rCoordinates[0], rCoordinates[1], rCoordinates[2]);
+        
 
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
@@ -892,7 +892,7 @@ public:
      * @brief Computes the first derivatives in the local parameter space
      * @details The derivatives are only computed for nonzero control points.
      * @param rCoordinates Coordinates to be evaluated.
-     * @return Matrix that holds the dereivatives. Matrix(CP-Index,SpaceDirection).
+     * @return Matrix that holds the derivatives. Matrix(CP-Index,SpaceDirection).
      **/
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
@@ -900,14 +900,15 @@ public:
     {
         NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, 1);
 
-        if (IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, mWeights,
-                rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        }
-        else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
-                rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        }
+        // Attention: Weights are not yet implemented.
+        // if (IsRational()) {
+        //     shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW, mWeights,
+        //         rCoordinates[0], rCoordinates[1], rCoordinates[2]);
+        // }
+
+        shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
+            rCoordinates[0], rCoordinates[1], rCoordinates[2]);
+        
 
         if (rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints()
             && rResult.size2() != 3)
@@ -984,7 +985,7 @@ private:
     Vector mKnotsU;
     Vector mKnotsV;
     Vector mKnotsW;
-    Vector mWeights;
+    // Vector mWeights;
 
     ///@}
     ///@name Private Operations
@@ -1053,7 +1054,7 @@ private:
         rSerializer.save("KnotsU", mKnotsU);
         rSerializer.save("KnotsV", mKnotsV);
         rSerializer.save("KnotsW", mKnotsW);
-        rSerializer.save("Weights", mWeights);
+        // rSerializer.save("Weights", mWeights);
     }
 
     void load(Serializer& rSerializer) override
@@ -1065,7 +1066,7 @@ private:
         rSerializer.load("KnotsU", mKnotsU);
         rSerializer.load("KnotsV", mKnotsV);
         rSerializer.load("KnotsW", mKnotsW);
-        rSerializer.load("Weights", mWeights);
+        // rSerializer.load("Weights", mWeights);
     }
 
     NurbsVolumeGeometry() : BaseType(PointsArrayType(), &msGeometryData) {};

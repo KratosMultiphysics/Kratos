@@ -25,7 +25,7 @@ namespace Kratos
 /**
  * @class NurbsVolumeShapeFunctions
  * @ingroup KratosCore
- * @brief Provides the shape functions and evaluation methods for 3D-BSpline volumes.
+ * @brief Provides the shape functions and evaluation methods for trivariant BSpline volumes.
  * @details The implementation corresponds to a 3D-BSpline, as weights are not yet implemented.
  **/
 class NurbsVolumeShapeFunction
@@ -34,8 +34,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef typename std::size_t IndexType;
-    typedef typename std::size_t SizeType;
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -83,9 +83,9 @@ public:
      * @details The shape functions are provided in the following order:
      *          N | dN/du, dN/dv, dN/dw | dN^2/du^2, dN^2/du*dv, dN^2/du*dw, dN^2/v^2, dN^2/dv*dw, dN^2/dw^2 | ...
      *          0 | (1,0,0), (0,1,0), (0,0,1) | (2,0,0), (1,1,0), (1,0,1), (0,2,0), (0,1,1), (0,0,2) | ...
-     * @param   DerivativesOrderU Derivive order along u-direction.
-     * @param   DerivativesOrderV Derivive order along v-direction.
-     * @param   DerivativesOrderW Derivive order along w-direction.
+     * @param   DerivativesOrderU Derivative order along u-direction.
+     * @param   DerivativesOrderV Derivative order along v-direction.
+     * @param   DerivativesOrderW Derivative order along w-direction.
      * @return  IndexOfShapeFunctionRow
      **/
     static inline IndexType IndexOfShapeFunctionRow(
@@ -111,9 +111,8 @@ public:
         else {
             return 0;
         }
-
-
     }
+
     ///@}
     ///@name Operators
     ///@{
@@ -154,7 +153,7 @@ public:
         mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, DerivativeOrder);
         mShapeFunctionsW.ResizeDataContainers(PolynomialDegreeW, DerivativeOrder);
         mShapeFunctionValues.resize(number_of_nonzero_control_points * number_of_shape_function_rows);
-        mWeightedSums.resize(number_of_shape_function_rows);
+        // mWeightedSums.resize(number_of_shape_function_rows);
 
         mDerivativeOrder = DerivativeOrder;
     }
@@ -228,7 +227,6 @@ public:
                 }
             }
         }
-
         return indices;
     }
 
@@ -448,17 +446,19 @@ public:
 private:
     ///@name Operations
     ///@{
-    double& GetWeightedSum(const IndexType Index)
-    {
-        return mWeightedSums[Index];
-    }
 
-    double& GetWeightedSum(const SizeType DerivativeOrderU, const SizeType DerivativeOrderV, const SizeType DerivativeOrderW)
-    {
-        const int index = IndexOfShapeFunctionRow(DerivativeOrderU, DerivativeOrderV, DerivativeOrderW);
+    // Attention: Weight ar not yet implemented.    
+    // double& GetWeightedSum(const IndexType Index)
+    // {
+    //     return mWeightedSums[Index];
+    // }
 
-        return GetWeightedSum(index);
-    }
+    // double& GetWeightedSum(const SizeType DerivativeOrderU, const SizeType DerivativeOrderV, const SizeType DerivativeOrderW)
+    // {
+    //     const int index = IndexOfShapeFunctionRow(DerivativeOrderU, DerivativeOrderV, DerivativeOrderW);
+
+    //     return GetWeightedSum(index);
+    // }
 
     inline int GetControlPointIndex(
         const SizeType NumberOfKnotsU,
@@ -529,11 +529,11 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+        
     int mDerivativeOrder;
     NurbsCurveShapeFunction mShapeFunctionsU;
     NurbsCurveShapeFunction mShapeFunctionsV;
     NurbsCurveShapeFunction mShapeFunctionsW;
-    Vector mWeightedSums;
     Vector mShapeFunctionValues;
     IndexType mFirstNonzeroControlPointU;
     IndexType mFirstNonzeroControlPointV;

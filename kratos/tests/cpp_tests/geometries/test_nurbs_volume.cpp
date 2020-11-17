@@ -18,8 +18,6 @@
 #include "testing/testing.h"
 #include "containers/pointer_vector.h"
 #include "geometries/nurbs_volume_geometry.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_volume_shape_functions.h"
-
 #include "tests/cpp_tests/geometries/test_geometry.h"
 #include "geometries/point.h"
 
@@ -33,10 +31,12 @@ namespace Testing {
         PointerVector<NodeType> points;
         double t = 1.0;
         std::vector<double> z_direction = {0, 2.0/3.0, 4.0/3.0, 2.0, 8.0/3.0, 10/3.0, 4.0};
+        std::vector<double> y_direction = {-1.0, -1.0/3.0, 1.0/3.0, 1.0};
+        std::vector<double> x_direction = {-1.0, -2.0/3.0, -1.0/3.0, 0.0, 1.0/3.0, 2.0/3.0, 1.0};
         std::size_t id = 1;
         for( auto i : z_direction){
-            for( double j = -1; j <= 1.0001; j = j + 2.0/3.0) {
-                for( double k = -1; k <= 1.0001; k = k + 1.0/3.0) {
+            for( double j : y_direction) {
+                for( auto k : x_direction) {
                     double x = k*t;
                     double y = j*t;
                     double z = i;
@@ -51,8 +51,7 @@ namespace Testing {
         SizeType polynomial_degree_v = 2;
         SizeType polynomial_degree_w = 4;
 
-        // TODO: Add inner knots
-        // Assign knots of the basis along u
+        // Assign knots of the basis along u.
         SizeType number_of_knots_u = 11;
         Vector knot_vector_u(number_of_knots_u);
         knot_vector_u[0] = 0.0;
@@ -67,7 +66,7 @@ namespace Testing {
         knot_vector_u[9] = 1.0;
         knot_vector_u[10] = 1.0;
 
-        // Assign knots of the basis along v
+        // Assign knots of the basis along v.
         SizeType number_of_knots_v = 7;
         Vector knot_vector_v(number_of_knots_v);
         knot_vector_v[0] = 0.0;
