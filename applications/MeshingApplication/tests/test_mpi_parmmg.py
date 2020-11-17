@@ -93,7 +93,8 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         }
         """)
 
-        check_parameters["output_file_name"].SetString("out_step=0_"+str(communicator.Rank())+".cond.ref.json")
+        check_parameters["output_file_name"].SetString(GetFilePath("out_step=0_"+str(communicator.Rank())+".cond.ref.json"))
+        check_parameters["reference_file_name"].SetString(GetFilePath(check_parameters["reference_file_name"].GetString()))
         check_files = CompareTwoFilesCheckProcess(check_parameters)
         check_files.ExecuteInitialize()
         check_files.ExecuteBeforeSolutionLoop()
@@ -110,7 +111,8 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         }
         """)
 
-        check_parameters["output_file_name"].SetString("out_step=0_"+str(communicator.Rank())+".elem.ref.json")
+        check_parameters["output_file_name"].SetString(GetFilePath("out_step=0_"+str(communicator.Rank())+".elem.ref.json"))
+        check_parameters["reference_file_name"].SetString(GetFilePath(check_parameters["reference_file_name"].GetString()))
         check_files = CompareTwoFilesCheckProcess(check_parameters)
         check_files.ExecuteInitialize()
         check_files.ExecuteBeforeSolutionLoop()
@@ -129,8 +131,8 @@ class TestMPIParMmg(KratosUnittest.TestCase):
 
         }
         """)
-        check_parameters["reference_file_name"].SetString("parmmg_eulerian_test/parmmg_sphere_reference_mdpa_rank_"+str(communicator.Rank())+".mdpa")
-        check_parameters["output_file_name"].SetString("output_"+str(communicator.Rank())+".mdpa")
+        check_parameters["reference_file_name"].SetString(GetFilePath("parmmg_eulerian_test/parmmg_sphere_reference_mdpa_rank_"+str(communicator.Rank())+".mdpa"))
+        check_parameters["output_file_name"].SetString(GetFilePath("output_"+str(communicator.Rank())+".mdpa"))
         check_files = CompareTwoFilesCheckProcess(check_parameters)
 
         check_files.ExecuteInitialize()
