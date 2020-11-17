@@ -13,9 +13,9 @@ import KratosMultiphysics.ConvectionDiffusionApplication.check_and_prepare_model
 from KratosMultiphysics.python_solver import PythonSolver
 
 def CreateSolver(model, custom_settings):
-    return ConvectionDiffusionBaseSolver(model, custom_settings)
+    return ConvectionDiffusionSolver(model, custom_settings)
 
-class ConvectionDiffusionBaseSolver(PythonSolver):
+class ConvectionDiffusionSolver(PythonSolver):
     """The base class for convection-diffusion solvers.
 
     This class provides functions for importing and exporting models,
@@ -44,7 +44,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass = True
-        super(ConvectionDiffusionBaseSolver, self).__init__(model, custom_settings)
+        super(ConvectionDiffusionSolver, self).__init__(model, custom_settings)
 
         # Convection diffusion variables check
         self._ConvectionDiffusionVariablesCheck(custom_settings)
@@ -69,7 +69,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
             self.solver_imports_model_part = True
 
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -135,7 +135,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "auxiliary_variables_list" : []
         }
         """)
-        default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super(ConvectionDiffusionSolver,cls).GetDefaultParameters())
         return default_settings
 
     def AddVariables(self, target_model_part=None):
@@ -219,7 +219,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -230,7 +230,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
         else:
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
         """This function imports the ModelPart"""
@@ -252,11 +252,11 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         if (self.settings["echo_level"].GetInt() > 0):
             KratosMultiphysics.Logger.PrintInfo(self.model)
 
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part."""
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Initializing ...")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Initializing ...")
         # The convection_diffusion solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -272,7 +272,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             except AttributeError:
                 pass
         self.Check()
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Finished initialization.")
 
     def GetOutputVariables(self):
         pass
@@ -436,9 +436,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         # Import constitutive laws.
         materials_imported = self.import_materials()
         if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Materials were successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
         else:
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Materials were not imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information."""

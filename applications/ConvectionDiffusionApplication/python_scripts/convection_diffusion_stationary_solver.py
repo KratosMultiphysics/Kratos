@@ -12,7 +12,7 @@ from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusi
 def CreateSolver(main_model_part, custom_settings):
     return ConvectionDiffusionStationarySolver(main_model_part, custom_settings)
 
-class ConvectionDiffusionStationarySolver(convection_diffusion_solver.ConvectionDiffusionBaseSolver):
+class ConvectionDiffusionStationarySolver(convection_diffusion_solver.ConvectionDiffusionSolver):
     """The stationary class for convection-diffusion solvers.
 
     Public member variables:

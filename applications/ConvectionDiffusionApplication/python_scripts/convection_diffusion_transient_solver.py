@@ -12,7 +12,7 @@ from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusi
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionTransientSolver(model, custom_settings)
 
-class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionDiffusionBaseSolver):
+class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionDiffusionSolver):
     """The transient class for convection-diffusion solvers.
 
     Public member variables:
