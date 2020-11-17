@@ -326,6 +326,18 @@ public:
         mDiagBlock.SpMV(x.GetLocalData(),y.GetLocalData());
     }
 
+    //y = alpha*y + beta*A*x
+    void SpMV(const TDataType alpha,
+              const DistributedSystemVector<TDataType,TIndexType>& x, 
+              const TDataType beta,
+              DistributedSystemVector<TDataType,TIndexType>& y) const
+    {
+        //get off diagonal terms (requires communication)
+        auto off_diag_x = mpVectorImporter->ImportData(x);
+        mOffDiagBlock.SpMV(alpha,off_diag_x,beta,y.GetLocalData());
+        mDiagBlock.SpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
+    }
+
     // y += A^t*x  -- where A is *this    
     DistributedVectorExporter<TIndexType>* TransposeSpMV(const DistributedSystemVector<TDataType,TIndexType>& x, 
                        DistributedSystemVector<TDataType,TIndexType>& y, 
@@ -335,7 +347,6 @@ public:
         mDiagBlock.TransposeSpMV(x.GetLocalData(),y.GetLocalData());
 
         DenseVector<TDataType> non_local_transpose_data = ZeroVector(mOffDiagBlock.size2());
-
         mOffDiagBlock.TransposeSpMV(x.GetLocalData(),non_local_transpose_data);
 
         if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight 
@@ -348,7 +359,29 @@ public:
         return pTransposeExporter;
     }
 
+    // y += A^t*x  -- where A is *this    
+    DistributedVectorExporter<TIndexType>* TransposeSpMV(
+                       TDataType alpha,
+                       const DistributedSystemVector<TDataType,TIndexType>& x, 
+                       TDataType beta,
+                       DistributedSystemVector<TDataType,TIndexType>& y, 
+                       DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
+                       ) const
+    {
+        mDiagBlock.TransposeSpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
 
+        DenseVector<TDataType> non_local_transpose_data = ZeroVector(mOffDiagBlock.size2());
+        mOffDiagBlock.TransposeSpMV(alpha,x.GetLocalData(),beta,non_local_transpose_data);
+
+        if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight 
+        {
+            //constructing the exporter requires communication, so the efficiency of the TransposeSpMV can be increased by passing a constructed exporter
+            pTransposeExporter = new DistributedVectorExporter<TIndexType>(GetComm(),mOffDiagonalGlobalIds,y.GetNumbering()); 
+        }
+        pTransposeExporter->Apply(y,non_local_transpose_data);
+
+        return pTransposeExporter;
+    }
 
 
     void BeginAssemble(){
