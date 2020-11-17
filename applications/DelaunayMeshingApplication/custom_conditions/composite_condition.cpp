@@ -284,7 +284,7 @@ void CompositeCondition::GetValuesVector( Vector& rValues, int Step ) const
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void CompositeCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void CompositeCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
   Vector ChildValues;
 
@@ -307,7 +307,7 @@ void CompositeCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void CompositeCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void CompositeCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
   Vector ChildValues;
 
