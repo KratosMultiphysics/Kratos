@@ -35,7 +35,7 @@ Its main applications are:
 - [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication/README.md) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication/README.md)
 
 Some main modules are:
-- [External Solvers](applications/ExternalSolversApplication/README.md)
+- [Linear Solvers](applications/LinearSolversApplication/README.md)
 - [Trilinos](applications/TrilinosApplication/README.md)
 - [Metis](applications/MetisApplication/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
@@ -92,8 +92,9 @@ In Kratos Core:
 - [ZLib](https://zlib.net/) The compression library
 
 In applications
-- [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in trilinos application
-- [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in metis application
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) For linear solvers used in the [LinearSolversApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/LinearSolversApplication)
+- [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/TrilinosApplication)
+- [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/MetisApplication)
 
 # How to cite Kratos?
 Please, use the following references when citing Kratos in your work.
