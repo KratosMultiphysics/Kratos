@@ -401,19 +401,21 @@ protected:
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
+        // working vectors
+        std::vector<double> resulting_squared_distances( max_number_of_neighbors );
+        NodeVector neighbor_nodes( max_number_of_neighbors );
+        std::vector<double> list_of_weights( max_number_of_neighbors );
+
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
-            NodeVector neighbor_nodes( max_number_of_neighbors );
-            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
                                                                              filter_radius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              max_number_of_neighbors );
 
-
-
-            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
+            list_of_weights.resize(number_of_neighbors);
+            std::fill(list_of_weights.begin(), list_of_weights.end(), 0.0);
             double sum_of_weights = 0.0;
 
             if(number_of_neighbors >= max_number_of_neighbors)
@@ -455,22 +457,34 @@ protected:
     }
 
     // --------------------------------------------------------------------------
-    virtual void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
+    virtual void FillMappingMatrixWithWeights(  ModelPart::NodeType& destination_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
                                         double& sum_of_weights )
     {
+        unsigned int row_id = destination_node.GetValue(MAPPING_ID);
 
+        std::vector<std::pair<int, double>> sorted_neighbors;
+        sorted_neighbors.reserve(number_of_neighbors);
 
-        unsigned int row_id = origin_node.GetValue(MAPPING_ID);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+            sorted_neighbors.push_back(std::make_pair(neighbor_node.GetValue(MAPPING_ID), list_of_weights[neighbor_itr]));
+        }
 
+        // Sort the vector of pairs according the column id - speeds up matrix insertion
+        std::sort(std::begin(sorted_neighbors), std::end(sorted_neighbors),
+            [&](const std::pair<int, double>& a, const std::pair<int, double>& b)
+            {
+                return a.first < b.first;
+            });
 
-            double weight = list_of_weights[neighbor_itr] / sum_of_weights;
+        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        {
+            int collumn_id = sorted_neighbors[neighbor_itr].first;
+            double weight = sorted_neighbors[neighbor_itr].second / sum_of_weights;
             mMappingMatrix.insert_element(row_id,collumn_id,weight);
         }
     }
