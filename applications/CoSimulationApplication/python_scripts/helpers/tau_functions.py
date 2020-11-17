@@ -192,7 +192,7 @@ def ChangeFormatDisplacements(total_displacements):
     return new_displacements
 
 # Write membrane's displacments in a file
-def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word):
+def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, old_displacements, word):
     # Open interface_deformfile
     ncf = netcdf.netcdf_file(word + '.interface_deformfile.nc', 'w')
 
@@ -217,9 +217,9 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word
     nodal_x_coordinates[:] = coordinates[0,:]
     nodal_y_coordinates[:] = coordinates[1,:]
     nodal_z_coordinates[:] = coordinates[2,:]
-    nodal_x_displacements[:] = relative_displacements[:,0]
-    nodal_y_displacements[:] = relative_displacements[:,1]
-    nodel_z_displacements[:] = relative_displacements[:,2]
+    nodal_x_displacements[:] = relative_displacements[:,0] - old_displacements[:,0]
+    nodal_y_displacements[:] = relative_displacements[:,1] - old_displacements[:,1]
+    nodel_z_displacements[:] = relative_displacements[:,2] - old_displacements[:,2]
     ncf.close()
 
 def ChangeFormat(working_path, step, word1, word2, ouput_file_pattern, substep):
