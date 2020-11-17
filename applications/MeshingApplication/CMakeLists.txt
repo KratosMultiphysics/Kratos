@@ -56,9 +56,9 @@ if(${INCLUDE_MMG} MATCHES ON)
     set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} ${MMG_LIBRARIES} ${MMG2D_LIBRARIES} ${MMG3D_LIBRARIES} ${MMGS_LIBRARIES})
 
     MESSAGE(STATUS "Compilation with MMG: ${MMG_LIBRARIES} ${MMG_INCLUDE_DIRS}")
-    MESSAGE(STATUS "Compilation with MMG2D: ${MMG2D_LIBRARIES} ${MMG_INCLUDE_DIRS}")
-    MESSAGE(STATUS "Compilation with MMG3D: ${MMG3D_LIBRARIES} ${MMG_INCLUDE_DIRS}")
-    MESSAGE(STATUS "Compilation with MMGS: ${MMGS_LIBRARIES} ${MMG_INCLUDE_DIRS}")
+    MESSAGE(STATUS "Compilation with MMG2D: ${MMG2D_LIBRARIES} ${MMG2D_INCLUDE_DIRS}")
+    MESSAGE(STATUS "Compilation with MMG3D: ${MMG3D_LIBRARIES} ${MMG3D_INCLUDE_DIRS}")
+    MESSAGE(STATUS "Compilation with MMGS: ${MMGS_LIBRARIES} ${MMGS_INCLUDE_DIRS}")
 
     # Add definitions
     add_definitions( -DINCLUDE_MMG )
@@ -173,8 +173,8 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
-    ## The MMG is not compatibel with cotire
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    ## The MMG is not compatible with cotire
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosMeshingCore)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)
