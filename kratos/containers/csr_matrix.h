@@ -283,13 +283,13 @@ public:
     }
 
     //TODO: i cannot understand why this does not compile
-    // TDataType NormFrobenius() const
-    // {
-    //     auto sum2 = IndexPartition<TIndexType>(this->value_data().size()).for_each< SumReduction<TDataType> >( [this](TIndexType i){
-    //             return std::pow(this->value_data()[i],2);
-    //         });
-    //     return std::sqrt(sum2);
-    // }
+    TDataType NormFrobenius() const
+    {
+        auto sum2 = IndexPartition<TIndexType>(this->value_data().size()).template for_each< SumReduction<TDataType> >( [this](TIndexType i){
+                return std::pow(this->value_data()[i],2);
+            });
+        return std::sqrt(sum2);
+    }
 
     ///@}
     ///@name Operations
