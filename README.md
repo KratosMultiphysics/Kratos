@@ -83,18 +83,18 @@ Looking forward to seeing your logo here!
 
 # Special Thanks To
 In Kratos Core:
-  - [Boost](http://www.boost.org/) for ublas
-  - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
-  - [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
-  - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
-  - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
-  - [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
-  - [ZLib](https://zlib.net/) The compression library
+-  [Boost](http://www.boost.org/) for ublas
+-  [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
+-  [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
+-  [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
+-  [JSON](https://github.com/nlohmann/json) JSON for Modern C++
+-  [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
+-  [ZLib](https://zlib.net/) The compression library
 
 In applications:
-  - [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)
-  - [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](applications/TrilinosApplication)
-  - [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](applications/MetisApplication/README.md)
+-  [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)
+-  [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](applications/TrilinosApplication)
+-  [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](applications/MetisApplication/README.md)
 
 # How to cite Kratos?
 Please, use the following references when citing Kratos in your work.
