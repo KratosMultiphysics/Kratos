@@ -86,11 +86,11 @@ public:
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
