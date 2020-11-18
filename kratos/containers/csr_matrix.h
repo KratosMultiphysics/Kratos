@@ -16,9 +16,11 @@
 
 // System includes
 #include <iostream>
+
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/system_vector.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "includes/key_hash.h"
 
@@ -280,6 +282,15 @@ public:
             }  
         }
     }
+
+    //TODO: i cannot understand why this does not compile
+    // TDataType NormFrobenius() const
+    // {
+    //     auto sum2 = IndexPartition<TIndexType>(this->value_data().size()).for_each< SumReduction<TDataType> >( [this](TIndexType i){
+    //             return std::pow(this->value_data()[i],2);
+    //         });
+    //     return std::sqrt(sum2);
+    // }
 
     ///@}
     ///@name Operations

@@ -383,6 +383,16 @@ public:
         return pTransposeExporter;
     }
 
+    //TODO: uncomment once the NormFrobenius in the base class is correctly implemented
+    // TDataType NormFrobenius() const
+    // {
+    //     TDataType diag_norm = mDiagBlock.NormFrobenius();
+    //     TDataType off_diag_norm = mOffDiagBlock.NormFrobenius();
+    //     TDataType sum_squared = std::pow(diag_norm,2) + std::pow(off_diag_norm,2);
+    //     sum_squared = GetComm().SumAll(sum_squared);
+    //     return std::sqrt(sum_squared);
+    // }
+
 
     void BeginAssemble(){
         //set to zero non local data 

@@ -35,6 +35,8 @@
 #include "utilities/dof_updater.h"
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
+#include "containers/distributed_csr_matrix.h"
+
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
@@ -214,13 +216,28 @@ public:
         return norm_frobenius(rA);
     }
 
-    static TDataType TwoNorm(const CsrMatrix<TDataType> & rA) // Frobenious norm
+    //TODO: should use implementation of Norm Frobenius in CSR matrix, but it does not compile
+    static TDataType TwoNorm(const CsrMatrix<TDataType>& rA) // Frobenious norm
     {
-        TDataType sum2 = IndexPartition<IndexType>(rA.value_data().size())
-            .for_each<SumReduction<TDataType>>( [&](IndexType i){
-                return std::pow(rA.value_data()[i],2);
-            });
+        IndexType data_size = rA.value_data().size();
+        typedef SumReduction< TDataType > Reducer;
+        IndexPartition<IndexType> partitioner(data_size);
+        auto sum2 = partitioner.for_each<Reducer>(
+                [&](IndexType i){
+                    return std::pow(rA.value_data()[i],2);
+                }
+            );
         return std::sqrt(sum2);
+    }
+
+    //TODO: should use implementation of NormFrobenius within DistributedCsrMatrix once available
+    static TDataType TwoNorm(const DistributedCsrMatrix<TDataType>& rA) // Frobenious norm
+    {
+        TDataType diag_norm = TwoNorm(rA.GetDiagBlock());
+        TDataType off_diag_norm = TwoNorm(rA.GetOffDiagBlock());
+        TDataType sum_squared = std::pow(diag_norm,2) + std::pow(off_diag_norm,2);
+        sum_squared = rA.GetComm().SumAll(sum_squared);
+        return std::sqrt(sum_squared);
     }
 
     /**
@@ -274,36 +291,21 @@ public:
 		rA.TransposeSpMV(rY,rX);
     } 
 
-    static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
+    static inline SizeType GraphDegree(IndexType i, const CsrMatrix<TDataType>& rA)
     {
-        typename MatrixType::iterator1 a_iterator = A.begin1();
-        std::advance(a_iterator, i);
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-        return ( std::distance(a_iterator.begin(), a_iterator.end()));
-#else
-        return ( std::distance(begin(a_iterator, boost::numeric::ublas::iterator1_tag()),
-                               end(a_iterator, boost::numeric::ublas::iterator1_tag())));
-#endif
+        return rA.index1_data()[i+1] - rA.index1_data()[i];
     }
 
-    static inline void GraphNeighbors(IndexType i, TMatrixType& A, std::vector<IndexType>& neighbors)
+    //this function is only implemented for the non-distributed case
+    static inline void GraphNeighbors(IndexType i, 
+                                      const CsrMatrix<TDataType>& rA, 
+                                      std::vector<IndexType>& neighbors)
     {
         neighbors.clear();
-        typename MatrixType::iterator1 a_iterator = A.begin1();
-        std::advance(a_iterator, i);
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-        for (typename MatrixType::iterator2 row_iterator = a_iterator.begin();
-                row_iterator != a_iterator.end(); ++row_iterator)
-        {
-#else
-        for (typename MatrixType::iterator2 row_iterator = begin(a_iterator,
-                boost::numeric::ublas::iterator1_tag());
-                row_iterator != end(a_iterator,
-                                    boost::numeric::ublas::iterator1_tag()); ++row_iterator)
-        {
-#endif
-            neighbors.push_back(row_iterator.index2());
-        }
+        IndexType row_begin = rA.index1_data()[i];
+        IndexType row_end = rA.index1_data()[i+1];
+        for(IndexType j=row_begin; j<row_end; ++j)
+            neighbors.push_back(rA.index1_data()[j]);
     }
 
 
@@ -312,12 +314,7 @@ public:
 
     static void InplaceMult(VectorType& rX, const double A)
     {
-
-        if (A == 1.00){ //do nothing 
-        }
-        else{
             rX *= A;
-        }
     }
 
     //********************************************************************
@@ -327,18 +324,8 @@ public:
 
     static void Assign(VectorType& rX, const double A, const VectorType& rY)
     {
-        if (A == 1.00)
-            rX = rY;
-        else if (A == -1.00)
-        {
-            InplaceMult(rX,-1);
-        }
-        else
-        {
-            rX = rY;
-            rX *= A;
-        }
-
+        rX = rY;
+        rX *= A;
     }
 
     //********************************************************************
@@ -348,12 +335,7 @@ public:
 
     static void UnaliasedAdd(VectorType& rX, const double A, const VectorType& rY)
     {
-        if (A == 1.00)
-            rX += rY;
-        else if (A == -1.00)
-            rX -= rY;
-        else
-            rX.Add(A,rY);
+        rX.Add(A,rY);
     }
 
     //********************************************************************
