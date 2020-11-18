@@ -117,7 +117,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
                 "output_variables" : ["DENSITY","MOMENTUM_X","MOMENTUM_Y","TOTAL_ENERGY"],
                 "output_file_name" : "TO_BE_DEFINED",
                 "model_part_name"  : "FluidModelPart.FluidParts_Fluid",
-                "time_frequency"   : 10.0
+                "time_frequency"   : 0.025
             }
         }""")
         output_file_name = "sod_shock_tube{0}{1}{2}_results.json".format(
@@ -138,7 +138,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
                 "model_part_name"      : "FluidModelPart.FluidParts_Fluid",
                 "tolerance"            : 0.0,
                 "relative_tolerance"   : 0.0,
-                "time_frequency"       : 10.0
+                "time_frequency"       : 0.025
             }
         }""")
         input_file_name = "sod_shock_tube{0}{1}{2}_results.json".format(
