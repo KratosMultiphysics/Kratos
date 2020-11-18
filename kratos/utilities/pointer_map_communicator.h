@@ -110,19 +110,17 @@ public:
     /**
      * @brief Construct a new Apply Proxy object
      *
-     * @param CurrentRank               Current rank
      * @param rLocalApplyFunctor        Thread safe update lambda method
      * @param rNonLocalApplyFunctor     Thread safe non-local gp map value update method
      * @param rNonLocalDataMap          Non-local gp map
      * @param rPointerCommunicator      Map communicator
      */
     ApplyProxy(
-        const int CurrentRank,
         const TLocalApplyFunctor& rLocalApplyFunctor,
         const TNonLocalApplyFunctor& rNonLocalApplyFunctor,
         TGPNonLocalDataMap& rNonLocalDataMap,
         TGPMapCommunicator& rPointerCommunicator)
-        : mCurrentRank(CurrentRank),
+        : mCurrentRank(rPointerCommunicator.GetMyPID()),
           mrLocalApplyFunctor(rLocalApplyFunctor),
           mrNonLocalApplyFunctor(rNonLocalApplyFunctor),
           mrNonLocalDataMap(rNonLocalDataMap),
@@ -466,7 +464,7 @@ public:
         TNonLocalApplyFunctor&& rNonLocalApplyFunctor)
     {
         return ProxyType<TLocalApplyFunctor, TNonLocalApplyFunctor>(
-            mCurrentRank, std::forward<TLocalApplyFunctor>(rLocalApplyFunctor),
+            std::forward<TLocalApplyFunctor>(rLocalApplyFunctor),
             std::forward<TNonLocalApplyFunctor>(rNonLocalApplyFunctor),
             mrNonLocalPointers, *this);
     }
@@ -478,6 +476,11 @@ public:
     bool IsDistributed() const
     {
         return mrDataCommunicator.IsDistributed();
+    }
+
+    int GetMyPID() const
+    {
+        return mCurrentRank;
     }
 
     ///@}
