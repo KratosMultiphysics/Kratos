@@ -13,6 +13,7 @@ set( KRATOS_MPI_SOURCES
    utilities/gather_modelpart_utility.cpp
    utilities/mpi_normal_calculation_utilities.cpp;
    utilities/parallel_fill_communicator.cpp
+   utilities/distributed_model_part_initializer.cpp
 )
 
 ## Kratos MPI extension Python interface
