@@ -79,8 +79,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if parameters["solver_settings"].Has("constitutive_laws_list"):
             self.constitutive_laws_names     = parameters["solver_settings"]["constitutive_laws_list"]
             self.AddMaterialVariables()
-        else:
-            self.AddAllMaterialVariables()
+        #else:
+        #    self.AddAllMaterialVariables()
 
 
     def _CreateSolver(self):

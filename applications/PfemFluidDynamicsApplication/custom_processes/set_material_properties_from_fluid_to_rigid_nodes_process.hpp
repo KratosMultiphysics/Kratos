@@ -119,8 +119,6 @@ namespace Kratos
       double friction_angle = 0;
       double cohesion = 0;
 
-      std::cout << "SetMaterialPropertiesFromFluidToRigidNodesProcess" << std::endl;
-
 #pragma omp parallel
       {
 
