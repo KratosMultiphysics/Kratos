@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/pmmg_process.h"
+#include "custom_processes/parmmg/pmmg_process.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
