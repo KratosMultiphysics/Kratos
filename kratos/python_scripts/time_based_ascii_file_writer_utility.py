@@ -2,7 +2,6 @@
 import KratosMultiphysics
 
 # Other imports
-import os
 from pathlib import Path
 
 class TimeBasedAsciiFileWriterUtility:
@@ -108,7 +107,7 @@ class TimeBasedAsciiFileWriterUtility:
                 info_msg = 'Restart for file "{}" successful'.format(self.file_name)
                 KratosMultiphysics.Logger.PrintInfo("TimeBasedAsciiFileWriterUtility", info_msg)
             else:
-                warn_msg  = "No line was found in " + self.file_name + " after restarting containing indicated restart time, \n"
+                warn_msg  = "No line was found in " + str(self.file_name) + " after restarting containing indicated restart time, \n"
                 warn_msg += "appending results after restart from time " + str(restart_time) + " not possible.\n"
                 warn_msg += "To avoid loss of data continuing writing from the end of file\n"
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
@@ -128,18 +127,17 @@ class TimeBasedAsciiFileWriterUtility:
         # a file name must be specified
         if self.file_name == "":
             raise Exception('No "file_name" was specified!')
+
         # check and correct file extension
         if self.file_name.suffix != ".dat":
             self.file_name = self.file_name.with_suffix(".dat")
 
-        raw_path, raw_file_name = os.path.split(self.file_name)
-        if not raw_path == '':
-            warn_msg  = "Path contained wrongly in file_name "+ self.file_name +" is being ignored.\n"
-            warn_msg += "Use parameter output_path to specify it correctly."
+        if self.file_name.parent != Path(): # check if folder was specified in "file_name"
+            warn_msg  = 'Path contained wrongly in "file_name" "{}", this will be ignored in the future\n'.format(self.file_name)
+            warn_msg += 'Use parameter "output_path" to specify it correctly.'
             KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
-            raw_file_name = os.path.join(raw_path, raw_file_name)
 
-        self.file_name = self.output_path / Path(raw_file_name)
+        self.file_name = self.output_path / self.file_name
 
         # make sure that the path to the desired output folder exists
         self.output_path.mkdir(parents=True, exist_ok=True)
