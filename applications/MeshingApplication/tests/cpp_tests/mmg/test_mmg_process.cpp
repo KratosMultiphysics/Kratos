@@ -23,7 +23,7 @@
 #include "utilities/cpp_tests_utilities.h"
 
 /* Processes */
-#include "custom_processes/mmg_process.h"
+#include "custom_processes/mmg/mmg_process.h"
 #include "processes/find_nodal_h_process.h"
 
 namespace Kratos

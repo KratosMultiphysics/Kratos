@@ -24,7 +24,7 @@
 #include "containers/model.h"
 #include "utilities/cpp_tests_utilities.h"
 #include "meshing_application_variables.h"
-#include "custom_io/mmg_io.h"
+#include "custom_io/mmg/mmg_io.h"
 
 namespace Kratos
 {
