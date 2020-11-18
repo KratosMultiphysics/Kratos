@@ -17,10 +17,10 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
-#include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+#include "testing/testing.h"
+#include "containers/model.h"
 #include "custom_elements/navier_stokes.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
@@ -34,7 +34,7 @@ namespace Kratos {
 	    /** Checks the NavierStokes2D3N element.
 	     * Checks the LHS and RHS computation using a small perturbation.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(ElementNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(NewElementNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
 		{
 			Model model;
 			ModelPart& modelPart = model.CreateModelPart("Main", 3);
@@ -46,11 +46,11 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DENSITY);
 
 			// Process info creation
 			double delta_time = 0.1;
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
-			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 3.0/(2.0*delta_time);
@@ -60,7 +60,6 @@ namespace Kratos {
 
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
-			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
 			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
@@ -89,6 +88,8 @@ namespace Kratos {
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(DENSITY)     = 0.0;
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(SOUND_VELOCITY) = 0.0;  
 				for(unsigned int k=0; k<2; k++){
 					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = vel_original(i,k);
 					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*vel_original(i,k);
@@ -103,9 +104,8 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			const auto& r_process_info = modelPart.GetProcessInfo();
-			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			// Compute the error of the perturbation
 			double perturbation = 2e-2;
@@ -131,8 +131,7 @@ namespace Kratos {
 				Vector RHS_perturbed = ZeroVector(9);
 				Vector solution_increment = ZeroVector(9);
 
-				const auto& r_process_info = modelPart.GetProcessInfo();
-				pElement->CalculateRightHandSide(RHS_perturbed, r_process_info);
+				pElement->CalculateRightHandSide(RHS_perturbed, modelPart.GetProcessInfo());
 
 				solution_increment = prod(LHS, perturbation_vector);
 				noalias(RHS_obtained) = RHS - solution_increment;
@@ -158,7 +157,7 @@ namespace Kratos {
 		/** Checks the NavierStokes2D3N element.
 		 * Checks the LHS and RHS stationary solid rigid movements.
 		 */
-	    KRATOS_TEST_CASE_IN_SUITE(ElementNavierStokes2D3NStationary, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(NewElementNavierStokes2D3NStationary, FluidDynamicsApplicationFastSuite)
 		{
 			Model model;
 			ModelPart& modelPart = model.CreateModelPart("Main", 3);
@@ -170,11 +169,11 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DENSITY);
 
 			// Process info creation
 			double delta_time = 0.1;
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.01);
-			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+03);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 0.0;
@@ -184,7 +183,6 @@ namespace Kratos {
 
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
-			pElemProp->SetValue(DENSITY, 1.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
 			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
@@ -204,10 +202,14 @@ namespace Kratos {
 			velocity_values[1] = 0.0;
 			velocity_values[2] = 0.0;
 			double pressure_value = 0.0;
+			double density_value = 0.0;
+			double sound_velocity_value = 0.0;
 
 			// Set the nodal values
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
 				it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
+				it_node->FastGetSolutionStepValue(DENSITY) = density_value;
+				it_node->FastGetSolutionStepValue(SOUND_VELOCITY) = sound_velocity_value;
 				it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
 			}
 
@@ -215,9 +217,8 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			const auto& r_process_info = modelPart.GetProcessInfo();
-			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			// Check obtained RHS
 			double sum_RHS = 0.0;
@@ -256,7 +257,7 @@ namespace Kratos {
 	    // /** Checks the NavierStokes3D4N element.
 	    //  * Checks the LHS and RHS computation using a small perturbation.
 	    //  */
-	    KRATOS_TEST_CASE_IN_SUITE(ElementNavierStokes3D4N, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(NewElementNavierStokes3D4N, FluidDynamicsApplicationFastSuite)
 		{
 			Model model;
 			ModelPart& modelPart = model.CreateModelPart("Main", 3);
@@ -268,11 +269,11 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DENSITY);
 
 			// Process info creation
 			double delta_time = 0.1;
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
-			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 3.0/(2.0*delta_time);
@@ -282,7 +283,6 @@ namespace Kratos {
 
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
-			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());
 			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
@@ -314,6 +314,8 @@ namespace Kratos {
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(DENSITY)     = 0.0;
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(SOUND_VELOCITY) = 0.0;  
 				for(unsigned int k=0; k<3; k++){
 					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = vel_original(i,k);
 					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*vel_original(i,k);
@@ -328,9 +330,8 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			const auto& r_process_info = modelPart.GetProcessInfo();
-			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			// Compute the error of the perturbation
 			double perturbation = 2e-2;
@@ -356,8 +357,7 @@ namespace Kratos {
 				Vector RHS_perturbed = ZeroVector(16);
 				Vector solution_increment = ZeroVector(16);
 
-				const auto& r_process_info = modelPart.GetProcessInfo();
-				pElement->CalculateRightHandSide(RHS_perturbed, r_process_info);
+				pElement->CalculateRightHandSide(RHS_perturbed, modelPart.GetProcessInfo());
 
 				solution_increment = prod(LHS, perturbation_vector);
 				noalias(RHS_obtained) = RHS - solution_increment;
@@ -380,7 +380,7 @@ namespace Kratos {
 
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(ElementNavierStokes3D4NStationary, FluidDynamicsApplicationFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(NewElementNavierStokes3D4NStationary, FluidDynamicsApplicationFastSuite)
 		{
 			Model model;
 			ModelPart& modelPart = model.CreateModelPart("Main", 3);
@@ -392,11 +392,11 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DENSITY);
 
 			// Process info creation
 			double delta_time = 0.1;
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.01);
-			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+03);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 0.0;
@@ -406,7 +406,6 @@ namespace Kratos {
 
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
-			pElemProp->SetValue(DENSITY, 1.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0);
 			Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());
 			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
@@ -427,20 +426,23 @@ namespace Kratos {
 			velocity_values[1] = 0.0;
 			velocity_values[2] = 0.0;
 			double pressure_value = 0.0;
+			double density_value = 0.0;
+			double sound_velocity_value = 0.0;
 
 			// Set the nodal values
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
 				it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
 				it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
+				it_node->FastGetSolutionStepValue(DENSITY) = density_value;
+				it_node->FastGetSolutionStepValue(SOUND_VELOCITY) = sound_velocity_value;
 			}
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			const auto& r_process_info = modelPart.GetProcessInfo();
-			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
 			// Check obtained RHS
 			double sum_RHS = 0.0;

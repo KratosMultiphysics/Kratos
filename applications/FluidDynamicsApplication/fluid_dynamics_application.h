@@ -43,6 +43,7 @@
 #include "custom_elements/fic.h"
 #include "custom_elements/symbolic_stokes.h"
 #include "custom_elements/symbolic_navier_stokes.h"
+#include "custom_elements/new_symbolic_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/embedded_fluid_element_discontinuous.h"
 //#include "custom_elements/dynamic_vms.h"
@@ -83,6 +84,7 @@
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/new_symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
@@ -285,6 +287,8 @@ private:
     const SymbolicStokes< SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
+    const NewSymbolicNavierStokes< NewSymbolicNavierStokesData<2,3> > mNewSymbolicNavierStokes2D3N;
+    const NewSymbolicNavierStokes< NewSymbolicNavierStokesData<3,4> > mNewSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokes3D4N;
     const EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokesDiscontinuous2D3N;

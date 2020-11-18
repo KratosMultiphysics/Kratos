@@ -61,7 +61,7 @@ if formulation == "NavierStokes":
         nnodes_vector = [4] # tet
     elif (dim_to_compute == "Both"):
         dim_vector = [2, 3] # tria, tet
-        nnodes_vector = [3,4] # tria, quad
+        nnodes_vector = [3, 4] # tria, tet
 elif formulation == "Stokes":
     # all linear elements
     if (dim_to_compute == "2D"):
@@ -96,6 +96,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     p = DefineVector('p',nnodes)                # Pressure
     pn = DefineVector('pn',nnodes)              # Previous step pressure
     pnn = DefineVector('pnn',nnodes)            # 2 previous step pressure
+    rho = DefineVector('rho',nnodes)
 
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function
@@ -111,12 +112,15 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
-    c   = Symbol('c',positive= True)            # Wave length number
-    dt  = Symbol('dt', positive = True)         # Time increment
-    rho = Symbol('rho', positive = True)        # Density
-    nu  = Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
-    mu  = Symbol('mu', positive = True)         # Dynamic viscosity
-    h = Symbol('h', positive = True)
+    c       = Symbol('c',positive= True)            # Wave length number
+    dt      = Symbol('dt', positive = True)         # Time increment
+    rho_0   = Symbol('rho_0', positive = True)      # Density at the referece temperature
+    p_0     = Symbol('p_0', positive = True)        # Pressure at the referece temperature
+    k_0     = Symbol('p_0', positive = True)        # Parameter on Tait eq.
+    theta   = Symbol('p_0', positive = True)        # Parameter on Tait equation
+    nu      = Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
+    mu      = Symbol('mu', positive = True)         # Dynamic viscosity
+    h       = Symbol('h', positive = True)
     dyn_tau = Symbol('dyn_tau', positive = True)
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
@@ -147,10 +151,10 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
         stab_norm_a = sqrt(stab_norm_a)
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
-        tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
+        tau1 = 1.0/((rho_0*dyn_tau)/dt + (stab_c2*rho_0*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
+        tau2 = mu + (stab_c2*rho_0*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
     else:
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
+        tau1 = 1.0/((rho_0*dyn_tau)/dt + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
         tau2 = (h*h) / (stab_c1 * tau1)                    # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
@@ -168,9 +172,11 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     grad_q = DfjDxi(DN,q)
     grad_p = DfjDxi(DN,p)
     grad_v = DfjDxi(DN,v)
+    grad_rho = DfjDxi(DN,rho)
 
     div_w = div(DN,w)
     div_v = div(DN,v)
+
     if convective_term:
         div_vconv = div(DN,vconv)
 
@@ -181,6 +187,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     # Convective term definition
     if convective_term:
         convective_term_gauss = (vconv_gauss.transpose()*grad_v)
+        convective_term_gauss_continuity = (vconv_gauss.transpose()*grad_rho)
 
     ## Compute galerkin functional
     # Navier-Stokes functional
@@ -189,7 +196,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         if (artificial_compressibility):
             rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
         if convective_term:
-            rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
+            rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose() + (1/rho)*q_gauss*convective_term_gauss_continuity.transpose()
     else:
         rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss  - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
         if (artificial_compressibility):

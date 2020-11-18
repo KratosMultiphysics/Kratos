@@ -28,6 +28,8 @@ class StabilizedFormulation(object):
                 self._SetUpFIC(settings)
             elif formulation == "symbolic":
                 self._SetUpSymbolic(settings)
+            elif formulation == "new_symbolic":
+                self._SetUpNewSymbolic(settings)
         else:
             print(settings)
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
@@ -140,6 +142,23 @@ class StabilizedFormulation(object):
         self.condition_name = "NavierStokesWallCondition"
         self.element_integrates_in_time = True
 
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+        self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
+
+    def _SetUpNewSymbolic(self,settings):
+        KratosMultiphysics.Logger.PrintWarning("Executing new element")
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "new_symbolic",
+            "dynamic_tau": 1.0,
+            "sound_velocity": 1e12
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "NewSymbolicNavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        self.element_integrates_in_time = True
+        self.element_has_nodal_properties = True
+        
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
 
@@ -283,7 +302,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         if self.element_has_nodal_properties:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)
         # Adding variables required for the periodic conditions
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
@@ -348,9 +367,10 @@ class NavierStokesSolverMonolithic(FluidSolver):
             if dyn_viscosity <= 0.0:
                 raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
             kin_viscosity = dyn_viscosity / rho
+            c = el.Properties.GetValue(KratosMultiphysics.SOUND_VELOCITY)
             break
         else:
             raise Exception("No fluid elements found in the main model part.")
         # Transfer the obtained properties to the nodes
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.SOUND_VELOCITY, c, self.main_model_part.Nodes)
