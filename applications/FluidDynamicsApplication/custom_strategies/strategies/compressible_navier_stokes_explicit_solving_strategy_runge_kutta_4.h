@@ -226,6 +226,12 @@ public:
 
             // Initialize elemental values
             for (auto& r_elem : r_model_part.GetCommunicator().LocalMesh().Elements()) {
+                r_elem.SetValue(SHOCK_SENSOR, 0.0);
+                r_elem.SetValue(SHEAR_SENSOR, 0.0);
+                r_elem.SetValue(THERMAL_SENSOR, 0.0);
+                r_elem.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
+                r_elem.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
+                r_elem.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
                 r_elem.SetValue(DENSITY_GRADIENT, ZeroVector(3));
             }
         }
@@ -529,7 +535,7 @@ private:
         array_1d<double,3> grad_rho;
         array_1d<double,3> grad_temp;
         Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-#pragma omp parallel for private(dNdX_container, div_v, rot_v, grad_rho, grad_temp, grad_vel)
+#pragma omp parallel for private(div_v, grad_vel, rot_v, grad_rho, grad_temp, dNdX_container)
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
             auto it_elem = r_model_part.ElementsBegin() + i_elem;
             auto& r_geom = it_elem->GetGeometry();

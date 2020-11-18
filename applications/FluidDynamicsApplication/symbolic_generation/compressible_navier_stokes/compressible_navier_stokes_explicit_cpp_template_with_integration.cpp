@@ -404,7 +404,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
-    array_1d<double,3> midpoint_grad_rho = ZeroVector(TDim);
+    array_1d<double,3> midpoint_grad_rho = ZeroVector(3);
     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
         auto& r_node = r_geom[i_node];
         const auto node_dNdX = row(r_dNdX, i_node);
@@ -436,7 +436,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
 
     // Calculate midpoint magnitudes
     const double c_v = GetProperties()[SPECIFIC_HEAT];
-    array_1d<double,3> midpoint_grad_temp = ZeroVector(TDim);
+    array_1d<double,3> midpoint_grad_temp = ZeroVector(3);
     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
         auto& r_node = r_geom[i_node];
         const auto node_dNdX = row(r_dNdX, i_node);
