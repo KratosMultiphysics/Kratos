@@ -21,7 +21,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if time_integration_method == "explicit":
-            solver_module_name = "convection_diffusion_explicit_solver"
+            if solver_type == "transient":
+                solver_module_name = "convection_diffusion_explicit_solver"
+            else:
+                err_msg =  "The requested solver type {} is not in the python solvers wrapper\n".format(solver_type)
+                err_msg += "Available options are: \"transient\""
+                raise Exception(err_msg)
         elif time_integration_method == "implicit":
             if (solver_type == "transient" or solver_type == "Transient"):
                 solver_module_name = "convection_diffusion_transient_solver"
@@ -45,10 +50,16 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
                 err_msg =  "The requested solver type {} is not in the python solvers wrapper\n".format(solver_type)
                 err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
                 raise Exception(err_msg)
-
+        elif time_integration_method == "semi_implicit":
+            if solver_type == "transient":
+                solver_module_name = "convection_diffusion_semi_eulerian_solver"
+            else:
+                err_msg =  "The requested solver type {} is not in the python solvers wrapper\n".format(solver_type)
+                err_msg += "Available options are: \"transient\""
+                raise Exception(err_msg)
         else:
             err_msg =  "The requested time integration method {} is not in the Python solvers wrapper\n".format(time_integration_method)
-            err_msg += "Available options are: \"explicit\", \"implicit\""
+            err_msg += "Available options are: \"explicit\", \"implicit\" and \"semi_implicit\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism

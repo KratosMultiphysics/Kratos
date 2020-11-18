@@ -78,20 +78,13 @@ int ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::Check(const ProcessInfo& 
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
     if(ErrorCode != 0) return ErrorCode;
 
-    if(this->GetGeometry().size() != TDim+1)
-        KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
-
-    if (MATERIAL_ACCELERATION.Key() == 0){
-        KRATOS_THROW_ERROR(std::invalid_argument,"MATERIAL_ACCELERATION Key is 0. Check if the application was correctly registered.","");
-    }
+    KRATOS_ERROR_IF(this->GetGeometry().size() != TDim+1)<< "Wrong number of nodes for element" << this->Id() << std::endl;
 
     // Checks on nodes
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-    {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(MATERIAL_ACCELERATION) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing MATERIAL_ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MATERIAL_ACCELERATION, this->GetGeometry()[i])
     }
     return 0;
 
