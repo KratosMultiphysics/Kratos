@@ -102,7 +102,7 @@ void MonolithicDEMCoupledWeak<3>::GetDofList(DofsVectorType& rElementalDofList,
  * @see MonolithicDEMCoupledWeak::GetFirstDerivativesVector
  */
 template <>
-void MonolithicDEMCoupledWeak<2>::GetFirstDerivativesVector(Vector& Values, int Step)
+void MonolithicDEMCoupledWeak<2>::GetFirstDerivativesVector(Vector& Values, int Step) const
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
@@ -112,7 +112,7 @@ void MonolithicDEMCoupledWeak<2>::GetFirstDerivativesVector(Vector& Values, int 
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
         Values[LocalIndex++] = rVelocity[0];
         Values[LocalIndex++] = rVelocity[1];
         Values[LocalIndex++] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE, Step);
@@ -123,7 +123,7 @@ void MonolithicDEMCoupledWeak<2>::GetFirstDerivativesVector(Vector& Values, int 
  * @see MonolithicDEMCoupledWeak::GetFirstDerivativesVector
  */
 template <>
-void MonolithicDEMCoupledWeak<3>::GetFirstDerivativesVector(Vector& Values, int Step)
+void MonolithicDEMCoupledWeak<3>::GetFirstDerivativesVector(Vector& Values, int Step) const
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
@@ -133,7 +133,7 @@ void MonolithicDEMCoupledWeak<3>::GetFirstDerivativesVector(Vector& Values, int 
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
         Values[LocalIndex++] = rVelocity[0];
         Values[LocalIndex++] = rVelocity[1];
         Values[LocalIndex++] = rVelocity[2];
@@ -145,7 +145,7 @@ void MonolithicDEMCoupledWeak<3>::GetFirstDerivativesVector(Vector& Values, int 
  * @see MonolithicDEMCoupledWeak::GetSecondDerivativesVector
  */
 template <>
-void MonolithicDEMCoupledWeak<2>::GetSecondDerivativesVector(Vector& Values, int Step)
+void MonolithicDEMCoupledWeak<2>::GetSecondDerivativesVector(Vector& Values, int Step) const
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
@@ -155,7 +155,7 @@ void MonolithicDEMCoupledWeak<2>::GetSecondDerivativesVector(Vector& Values, int
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
         Values[LocalIndex++] = rAcceleration[0];
         Values[LocalIndex++] = rAcceleration[1];
         Values[LocalIndex++] = 0.0; // Pressure Dof
@@ -166,7 +166,7 @@ void MonolithicDEMCoupledWeak<2>::GetSecondDerivativesVector(Vector& Values, int
  * @see MonolithicDEMCoupledWeak::GetSecondDerivativesVector
  */
 template <>
-void MonolithicDEMCoupledWeak<3>::GetSecondDerivativesVector(Vector& Values, int Step)
+void MonolithicDEMCoupledWeak<3>::GetSecondDerivativesVector(Vector& Values, int Step) const
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
@@ -176,7 +176,7 @@ void MonolithicDEMCoupledWeak<3>::GetSecondDerivativesVector(Vector& Values, int
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
         Values[LocalIndex++] = rAcceleration[0];
         Values[LocalIndex++] = rAcceleration[1];
         Values[LocalIndex++] = rAcceleration[2];

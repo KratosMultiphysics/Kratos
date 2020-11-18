@@ -5,8 +5,8 @@ from KratosMultiphysics import Vector
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import sys
 
-class L2ErrorProjectionUtility:
-    def __init__(self, model):
+class L2ErrorCalculatorUtility:
+    def __init__(self, model, parameters):
         """The default constructor of the class.
 
         Keyword arguments:
@@ -14,39 +14,53 @@ class L2ErrorProjectionUtility:
         model -- the container of the different model parts.
         """
         self.model_part = model
+
+        self.u_characteristic = parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
+        for element in self.model_part.Elements:
+            rho = element.Properties.GetValue(KratosMultiphysics.DENSITY)
+            break
+        self.p_characteristic = (1/2)*rho*self.u_characteristic**2
+
         self.model = KratosMultiphysics.Model()
+
         self.element_name = "CalculateErrorL2Projection3D"
+
         self.error_model_part = self.model.CreateModelPart("ErrorModelPart")
+
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.VECTORIAL_ERROR)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_X)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_Y)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_Z)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.SCALAR_ERROR)
+
         model_part_cloner = KratosMultiphysics.ConnectivityPreserveModeler()
         model_part_cloner.GenerateModelPart(self.model_part, self.error_model_part, self.element_name)
+
         self.error_model_part.ProcessInfo = self.model_part.ProcessInfo
+
         self.DOFs = (SDEM.ERROR_X, SDEM.ERROR_Y, SDEM.ERROR_Z, SDEM.SCALAR_ERROR)
+
         self.AddDofs(self.DOFs)
+
         self.SetStrategy()
 
-    def ProjectL2(self):
-        self.ComputeVelocityError()
-        self.ComputePressureError()
+    def CalculateL2(self):
+        self.ComputeDofsErrors(self.error_model_part)
         self.Solve()
 
-        self.velocity_error_projected = SDEM.L2ErrorProjection().GetL2VectorProjection(self.error_model_part)
-        self.pressure_error_projected = SDEM.L2ErrorProjection().GetL2ScalarProjection(self.error_model_part)
-        return self.velocity_error_projected, self.pressure_error_projected, self.error_model_part
+        self.velocity_error_norm = self.VectorL2ErrorNorm(self.error_model_part)
+        self.pressure_error_norm = self.ScalarL2ErroNorm(self.error_model_part)
 
-    def ComputeVelocityError(self):
-        for node in self.error_model_part.Nodes:
-            vectorial_error = Vector(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) - node.GetSolutionStepValue(SDEM.EXACT_VELOCITY))
-            node.SetSolutionStepValue(SDEM.VECTORIAL_ERROR, vectorial_error)
+        return self.velocity_error_norm/self.u_characteristic, self.pressure_error_norm/self.p_characteristic, self.error_model_part
 
-    def ComputePressureError(self):
-        for node in self.error_model_part.Nodes:
-            scalar_error = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) - node.GetSolutionStepValue(SDEM.EXACT_PRESSURE)
-            node.SetSolutionStepValue(SDEM.SCALAR_ERROR, scalar_error)
+    def ComputeDofsErrors(self, error_model_part):
+        SDEM.L2ErrorNormCalculator().ComputeDofsErrors(self.error_model_part)
+
+    def VectorL2ErrorNorm(self, error_model_part):
+        return SDEM.L2ErrorNormCalculator().GetL2VectorErrorNorm(self.error_model_part)
+
+    def ScalarL2ErroNorm(self, error_model_part):
+        return SDEM.L2ErrorNormCalculator().GetL2ScalarErrorNorm(self.error_model_part)
 
     def SetStrategy(self):
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -59,6 +73,6 @@ class L2ErrorProjectionUtility:
                 node.AddDof(var)
 
     def Solve(self):
-        print("\nSolving for the fluid acceleration...")
+        print("\nCalculate L2 error norm...")
         sys.stdout.flush()
         self.l2_projector_strategy.Solve()
