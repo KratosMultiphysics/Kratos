@@ -5,6 +5,7 @@ license: HDF5Application/license.txt
 
 
 import os
+from pathlib import Path
 
 
 import KratosMultiphysics
@@ -87,9 +88,6 @@ class _FilenameGetter(object):
         if (self.filename.find("<rank>") != -1):
             raise Exception("Flag \"<rank>\" is not allowed to be used in HDF5 output file namings. Please remove it [ filename = \"" + self.filename + "\" ].")
 
-        if (self.filename.find("<step>") != -1):
-            raise Exception("Flag \"<step>\" is not allowed to be used in HDF5 output file namings. Please remove it [ filename = \"" + self.filename + "\" ].")
-
         if (not self.filename.endswith(".h5")):
             self.filename += ".h5"
 
@@ -113,7 +111,7 @@ class _FilenameGetter(object):
         new_file_name = self.file_name_data_collector.GetFileName()
 
         if (self.max_files_to_keep is not None):
-            if os.path.isdir(os.path.dirname(new_file_name)):
+            if (Path(new_file_name).parents[0].is_dir()):
                 list_of_file_names = self.file_name_data_collector.GetSortedFileNamesList(["<time>"])
                 if (len(list_of_file_names) >= self.max_files_to_keep):
                     # remove files from the second file in case the mesh is only written to the initial file
