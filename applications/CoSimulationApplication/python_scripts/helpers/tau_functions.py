@@ -98,9 +98,9 @@ def ExecuteBeforeMeshDeformation(total_displacements, step, para_path_mod, start
 
 
 # Computes fluid forces at the nodes
-def ComputeFluidForces(working_path, step, word, ouput_file_pattern, substep):
+def ComputeFluidForces(working_path, step, word, ouput_file_pattern, substep, velocity):
     # Read mesh and pressure from interface file
-    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 30.33, word, ouput_file_pattern, substep)
+    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern, substep)
 
     # calculating the force vector
     fluid_forces = CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities)
@@ -109,9 +109,9 @@ def ComputeFluidForces(working_path, step, word, ouput_file_pattern, substep):
 
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
-def GetFluidMesh(working_path, step, word, ouput_file_pattern, substep):
+def GetFluidMesh(working_path, step, word, ouput_file_pattern, substep, velocity):
     # Read mesh from interface file
-    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 30.33, word, ouput_file_pattern, substep)
+    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern, substep)
     print("after ReadTauOutput")
 
     # Transform nodal coordinates to numpy array

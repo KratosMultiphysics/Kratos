@@ -59,6 +59,9 @@ print(str(delta_step))
 tau_time_step = float(Para.get_para_value('Maximal time step number'))
 tau_parallel_sync()
 
+velocity = float(Para.get_para_value('Reference velocity'))
+print('The reference velocity is = ', velocity)
+
 if rotate:
     # --- Prepare parameters for unsteady simulation ---
     Para.update({"Unsteady allow external control over progress in time (0/1)": 1,
@@ -176,7 +179,11 @@ def ImportData(conn_name, identifier, factor):
         tau_parallel_sync()
         if tau_mpi_rank() == 0:
             new_displacements = factor*TauFunctions.ChangeFormatDisplacements(displacements)
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
+            global old_displacements_up
+            if step_mesh == 0:
+                old_displacements_up = 0.0 * new_displacements
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_up,"MEMBRANE_UP")
+            old_displacements_up = new_displacements
         tau_parallel_sync()
     elif identifier == "Lower_Interface_disp":
         Para_origin_down = PyPara.Parafile(para_path_down)
@@ -185,7 +192,11 @@ def ImportData(conn_name, identifier, factor):
         tau_parallel_sync()
         if tau_mpi_rank() == 0:
             new_displacements = factor*TauFunctions.ChangeFormatDisplacements(displacements)
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_DOWN")
+            global old_displacements_down
+            if step_mesh == 0:
+                old_displacements_down = 0.0 * new_displacements
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_down,"MEMBRANE_DOWN")
+            old_displacements_down = new_displacements
         tau_parallel_sync()
     else:
 
@@ -207,9 +218,9 @@ def ExportData(conn_name, identifier, factor):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern)
+            forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, velocity)
         elif identifier == "Lower_Interface_force":
-            forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern)
+            forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, velocity)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -227,9 +238,9 @@ def ExportMesh(conn_name, identifier):
 
         # identifier is the data-name in json
         if identifier == "UpperInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern, velocity)
         elif identifier == "LowerInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern, velocity)
             # elem_connectivities += int(30000)
             # print(elem_connectivities)
         else:
@@ -254,7 +265,7 @@ settings = {
 if rank == 0:
     CoSimIO.Connect(connection_name, settings)
 
-n_steps = 5
+n_steps = 1
 coupling_interface_imported = False
 
 factor = 1.0

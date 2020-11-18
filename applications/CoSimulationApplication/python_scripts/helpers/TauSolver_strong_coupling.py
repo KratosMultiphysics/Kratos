@@ -63,6 +63,9 @@ if is_strong_coupling:
     Para.update({"Unsteady allow external control over progress in time (0/1)": 1,
                  "Unsteady enable external control over progress in time (0/1)": 1})
 
+velocity = float(Para.get_para_value('Reference velocity'))
+print('The reference velocity is = ', velocity)
+
 if rotate:
     # external output period (needed if output period in para_path not working properly)
 
@@ -228,13 +231,13 @@ def ExportData(conn_name, identifier):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step, velocity)
             # with open('forces_up' + str(step) + '.dat','w') as fname:
             #    for i in range(len(forces)/3):
             #        fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step, velocity)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -252,9 +255,9 @@ def ExportMesh(conn_name, identifier, sub_step):
 
         # identifier is the data-name in json
         if identifier == "UpperInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step, velocity)
         elif identifier == "LowerInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step, velocity)
             # elem_connectivities += int(30000)
             # print(elem_connectivities)
         else:

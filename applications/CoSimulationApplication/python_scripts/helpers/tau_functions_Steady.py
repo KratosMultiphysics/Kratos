@@ -98,9 +98,9 @@ def ExecuteBeforeMeshDeformation(total_displacements, step, para_path_mod, start
 
 
 # Computes fluid forces at the nodes
-def ComputeFluidForces(working_path, step, word, ouput_file_pattern):
+def ComputeFluidForces(working_path, step, word, ouput_file_pattern, velocity):
     # Read mesh and pressure from interface file
-    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 41.09, word, ouput_file_pattern)
+    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern)
 
     # calculating the force vector
     fluid_forces = CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities)
@@ -109,9 +109,9 @@ def ComputeFluidForces(working_path, step, word, ouput_file_pattern):
 
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
-def GetFluidMesh(working_path, step, word, ouput_file_pattern):
+def GetFluidMesh(working_path, step, word, ouput_file_pattern, velocity):
     # Read mesh from interface file
-    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 41.09, word, ouput_file_pattern)
+    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern)
     print("after ReadTauOutput")
 
     # Transform nodal coordinates to numpy array
@@ -191,7 +191,7 @@ def ChangeFormatDisplacements(total_displacements):
     return new_displacements
 
 # Write membrane's displacments in a file
-def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word):
+def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, old_displacements, word):
     # Open interface_deformfile
     ncf = netcdf.netcdf_file(word + '.interface_deformfile.nc', 'w')
 
@@ -216,9 +216,9 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word
     nodal_x_coordinates[:] = coordinates[0,:]
     nodal_y_coordinates[:] = coordinates[1,:]
     nodal_z_coordinates[:] = coordinates[2,:]
-    nodal_x_displacements[:] = relative_displacements[:,0]
-    nodal_y_displacements[:] = relative_displacements[:,1]
-    nodel_z_displacements[:] = relative_displacements[:,2]
+    nodal_x_displacements[:] = relative_displacements[:,0] - old_displacements[:,0]
+    nodal_y_displacements[:] = relative_displacements[:,1] - old_displacements[:,1]
+    nodel_z_displacements[:] = relative_displacements[:,2] - old_displacements[:,2]
     ncf.close()
 
 def ChangeFormat(working_path, step, word1, word2, ouput_file_pattern):
