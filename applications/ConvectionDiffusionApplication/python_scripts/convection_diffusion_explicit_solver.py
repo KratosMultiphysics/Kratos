@@ -5,17 +5,17 @@ import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_solver
 
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionExplicitSolver(model, custom_settings)
 
 
-class ConvectionDiffusionExplicitSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
+class ConvectionDiffusionExplicitSolver(convection_diffusion_solver.ConvectionDiffusionSolver):
     """
     The explicit class for convection-diffusion solvers.
-    See convection_diffusion_base_solver.py for more information.
+    See convection_diffusion_solver.py for more information.
     """
 
     def __init__(self, model, custom_settings):
