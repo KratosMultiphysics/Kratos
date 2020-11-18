@@ -27,7 +27,7 @@
 #include "meshing_application_variables.h"
 #include "containers/model.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
-#include "custom_utilities/mmg_utilities.h"
+#include "custom_utilities/mmg/mmg_utilities.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
