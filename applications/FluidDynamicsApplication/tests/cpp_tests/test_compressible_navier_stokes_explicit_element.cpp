@@ -59,6 +59,7 @@ void CreateCompressibleNavierStokesExplicit2D3NElement(ModelPart& rModelPart)
     // Set process info values
     auto& r_process_info = rModelPart.GetProcessInfo();
     r_process_info[OSS_SWITCH] = false;
+    r_process_info[TIME_INTEGRATION_THETA] = 1.0;
     r_process_info[SHOCK_CAPTURING_SWITCH] = true;
 
     // Geometry creation
@@ -99,6 +100,12 @@ void CreateCompressibleNavierStokesExplicit3D4NElement(ModelPart& rModelPart)
     p_elem_prop->SetValue(CONDUCTIVITY,  0.0257);
     p_elem_prop->SetValue(SPECIFIC_HEAT,  718);
     p_elem_prop->SetValue(HEAT_CAPACITY_RATIO, 1.4);
+
+    // Set process info values
+    auto& r_process_info = rModelPart.GetProcessInfo();
+    r_process_info[OSS_SWITCH] = false;
+    r_process_info[TIME_INTEGRATION_THETA] = 1.0;
+    r_process_info[SHOCK_CAPTURING_SWITCH] = true;
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -143,10 +150,6 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS2D3N, FluidDynamics
         r_node.FastGetSolutionStepValue(DENSITY) = density;
         r_node.FastGetSolutionStepValue(MOMENTUM) = momentum;
         r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = total_energy;
-        // Set time derivatives
-        r_node.SetValue(DENSITY_TIME_DERIVATIVE, density / dt);
-        r_node.SetValue(MOMENTUM_TIME_DERIVATIVE, momentum / dt);
-        r_node.SetValue(TOTAL_ENERGY_TIME_DERIVATIVE, total_energy / dt);
         // Set source terms
         r_node.FastGetSolutionStepValue(MASS_SOURCE) = mass;
         r_node.FastGetSolutionStepValue(BODY_FORCE) = f_ext;
@@ -212,10 +215,6 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS3D4N, FluidDynamics
         r_node.FastGetSolutionStepValue(DENSITY) = density;
         r_node.FastGetSolutionStepValue(MOMENTUM) = momentum;
         r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = total_energy;
-        // Set time derivatives
-        r_node.SetValue(DENSITY_TIME_DERIVATIVE, density / dt);
-        r_node.SetValue(MOMENTUM_TIME_DERIVATIVE, momentum / dt);
-        r_node.SetValue(TOTAL_ENERGY_TIME_DERIVATIVE, total_energy / dt);
         // Set source terms
         r_node.FastGetSolutionStepValue(MASS_SOURCE) = mass;
         r_node.FastGetSolutionStepValue(BODY_FORCE) = f_ext;

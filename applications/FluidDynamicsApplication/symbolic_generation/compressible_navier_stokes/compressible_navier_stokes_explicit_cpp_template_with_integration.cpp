@@ -340,29 +340,45 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
     rData.UseOSS = rCurrentProcessInfo[OSS_SWITCH];
     rData.ShockCapturing = rCurrentProcessInfo[SHOCK_CAPTURING_SWITCH];
 
+    // Magnitudes to calculate the time derivatives
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    const double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
+    const double aux_theta = theta > 0 ? 1.0 / (theta * time_step) : 0.0;
+
     // Get nodal values
     if (rData.UseOSS) {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             const auto& r_node = r_geometry[i];
-            const auto& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
-            const auto& r_momentum_projection = r_node.GetValue(MOMENTUM_PROJECTION);
-            const auto& r_momentum_time_derivative = r_node.GetValue(MOMENTUM_TIME_DERIVATIVE);
+            // Vector data
+            const array_1d<double,3>& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
+            const array_1d<double,3>& r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
+            const array_1d<double,3>& r_momentum_projection = r_node.GetValue(MOMENTUM_PROJECTION);
+            const array_1d<double,3> mom_inc = r_momentum - r_momentum_old;
             const auto& r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
-
             for (unsigned int k = 0; k < TDim; ++k) {
                 rData.U(i, k + 1) = r_momentum[k];
+                rData.dUdt(i, k + 1) = aux_theta * mom_inc[k];
                 rData.ResProj(i, k + 1) = r_momentum_projection[k];
-                rData.dUdt(i, k + 1) = r_momentum_time_derivative[k];
                 rData.f_ext(i, k) = r_body_force[k];
             }
-            rData.U(i, 0) = r_node.FastGetSolutionStepValue(DENSITY);
+            // Density data
+            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY); 
+            const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
+            const double rho_inc = r_rho - r_rho_old;
+            rData.U(i, 0) = r_rho;
+            rData.dUdt(i, 0) = aux_theta * rho_inc;
             rData.ResProj(i, 0) = r_node.GetValue(DENSITY_PROJECTION);
-            rData.dUdt(i, 0) = r_node.GetValue(DENSITY_TIME_DERIVATIVE);
-            rData.U(i, TDim + 1) = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+            // Total energy data
+            const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+            const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
+            const double tot_ener_inc = r_tot_ener - r_tot_ener_old;
+            rData.U(i, TDim + 1) = r_tot_ener;
+            rData.dUdt(i, TDim + 1) = aux_theta * tot_ener_inc;
             rData.ResProj(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_PROJECTION);
-            rData.dUdt(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_TIME_DERIVATIVE);
+            // Source data
             rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
             rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
+            // Shock capturing data
             rData.mu_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
             rData.beta_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
             rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
@@ -370,26 +386,34 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
     } else {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             const auto& r_node = r_geometry[i];
-            const auto& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
-            const auto& r_momentum_time_derivative = r_node.GetValue(MOMENTUM_TIME_DERIVATIVE);
+            // Vector data
+            const array_1d<double,3>& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
+            const array_1d<double,3>& r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
+            const array_1d<double,3> mom_inc = r_momentum - r_momentum_old;
             const auto& r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
-
             for (unsigned int k = 0; k < TDim; ++k) {
                 rData.U(i, k + 1) = r_momentum[k];
-                rData.dUdt(i, k + 1) = r_momentum_time_derivative[k];
+                rData.dUdt(i, k + 1) = aux_theta * mom_inc[k];
                 rData.f_ext(i, k) = r_body_force[k];
             }
-            rData.U(i, 0) = r_node.FastGetSolutionStepValue(DENSITY);
-            rData.dUdt(i, 0) = r_node.GetValue(DENSITY_TIME_DERIVATIVE);
-            rData.U(i, TDim + 1) = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-            rData.dUdt(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_TIME_DERIVATIVE);
+            // Density data
+            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY); 
+            const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
+            rData.U(i, 0) = r_rho;
+            rData.dUdt(i, 0) = aux_theta * (r_rho - r_rho_old);
+            // Total energy data
+            const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+            const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
+            rData.U(i, TDim + 1) = r_tot_ener;
+            rData.dUdt(i, TDim + 1) = aux_theta * (r_tot_ener - r_tot_ener_old);
+            // Source data
             rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
             rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
+            // Shock capturing data
             rData.mu_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
             rData.beta_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
             rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
         }
-
     }
 }
 

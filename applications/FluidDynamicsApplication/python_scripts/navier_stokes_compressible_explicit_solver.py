@@ -79,11 +79,6 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION) # Momentum DOF reaction
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.REACTION_ENERGY) # Total energy DOF reaction
 
-        # DOF time derivatives (these are required to compute the subscale mass terms in the explicit formulation)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_TIME_DERIVATIVE) # Density time derivative
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_TIME_DERIVATIVE) # Momentum time derivative
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.TOTAL_ENERGY_TIME_DERIVATIVE) # Total energy time derivative
-
         # Required variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MASS_SOURCE)

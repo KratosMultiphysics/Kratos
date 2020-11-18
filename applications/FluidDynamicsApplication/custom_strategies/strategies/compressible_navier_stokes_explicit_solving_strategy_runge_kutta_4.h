@@ -195,14 +195,6 @@ public:
         // Call the base RK4 finalize substep method
         BaseType::Initialize();
 
-        // Initialize the non-historical database values
-        for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
-            // Initialize the unknowns time derivatives to zero
-            r_node.SetValue(DENSITY_TIME_DERIVATIVE, 0.0);
-            r_node.SetValue(MOMENTUM_TIME_DERIVATIVE, MOMENTUM_TIME_DERIVATIVE.Zero());
-            r_node.SetValue(TOTAL_ENERGY_TIME_DERIVATIVE, 0.0);
-        }
-
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
             for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
@@ -235,20 +227,6 @@ public:
                 r_elem.SetValue(DENSITY_GRADIENT, ZeroVector(3));
             }
         }
-    }
-
-    /**
-     * @brief Initialize the Runge-Kutta step
-     * In case the mesh has been updated in the previous step we need to reinitialize the shock capturing
-     * This includes the calculation of the nodal element size, nodal area and nodal neighbours
-     */
-    void InitializeSolutionStep() override
-    {
-        // Call the base RK4 initialize substep method
-        BaseType::InitializeSolutionStep();
-
-        // Calculate the magnitudes time derivatives
-        UpdateUnknownsTimeDerivatives(1.0);
     }
 
     /**
@@ -322,6 +300,7 @@ protected:
         // These will be used in the next RK substep residual calculation to compute the subscales
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
+        r_process_info[TIME_INTEGRATION_THETA] = r_process_info[RUNGE_KUTTA_STEP] == 1 ? 0.0 : 0.5;
 
         // Calculate the Orthogonal SubsScales projections
         if (r_process_info[OSS_SWITCH]) {
@@ -336,7 +315,8 @@ protected:
 
         // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
-        const auto& r_process_info = r_model_part.GetProcessInfo();
+        auto& r_process_info = r_model_part.GetProcessInfo();
+        r_process_info[TIME_INTEGRATION_THETA] = 1.0;
 
         // Calculate the Orthogonal SubsScales projections
         if (r_process_info[OSS_SWITCH]) {
@@ -407,39 +387,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Update the compressible Navier-Stokes unknowns time derivatives
-     * This method approximates the compressible Navier-Stokes unknowns time derivatives
-     * These are required to calculate the inertial stabilization terms in the compressible NS element
-     * To that purpose a linear Forward-Euler interpolation is used
-     */
-    void UpdateUnknownsTimeDerivatives(const double SubStepAccCoefficient)
-    {
-        const double dt = BaseType::GetDeltaTime();
-        KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
-        auto &r_model_part = BaseType::GetModelPart();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(r_model_part.NumberOfNodes()); ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-
-            // Density DOF time derivative
-            const double& r_rho = it_node->FastGetSolutionStepValue(DENSITY);
-            const double& r_rho_old = it_node->FastGetSolutionStepValue(DENSITY, 1);
-            it_node->GetValue(DENSITY_TIME_DERIVATIVE) = SubStepAccCoefficient * (r_rho - r_rho_old) / dt;
-
-            // Momentum DOF time derivative
-            const auto& r_mom = it_node->FastGetSolutionStepValue(MOMENTUM);
-            const auto& r_mom_old = it_node->FastGetSolutionStepValue(MOMENTUM, 1);
-            it_node->GetValue(MOMENTUM_TIME_DERIVATIVE) = SubStepAccCoefficient * (r_mom - r_mom_old) / dt;
-
-            // Total energy DOF time derivative
-            const double& r_tot_enr = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
-            const double& r_tot_enr_old = it_node->FastGetSolutionStepValue(TOTAL_ENERGY, 1);
-            it_node->GetValue(TOTAL_ENERGY_TIME_DERIVATIVE) = SubStepAccCoefficient * (r_tot_enr - r_tot_enr_old) / dt;
-        }
-    }
 
     void CalculateOrthogonalSubScalesProjection()
     {
