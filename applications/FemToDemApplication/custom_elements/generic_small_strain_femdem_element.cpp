@@ -663,7 +663,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
