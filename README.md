@@ -1,6 +1,6 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][CI-image]][CI-link] [![DOI][DOI-image]][DOI]
+[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI]
 
 [release-image]: https://img.shields.io/badge/release-8.0-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
@@ -8,8 +8,8 @@
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
 [license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
 
-[CI-image]: https://github.com/KratosMultiphysics/Kratos/workflows/CI/badge.svg
-[CI-link]: https://github.com/KratosMultiphysics/Kratos/actions?query=workflow%3ACI
+[Nightly-Build]: https://github.com/KratosMultiphysics/Kratos/workflows/Nightly%20Build/badge.svg
+[Nightly-link]: https://github.com/KratosMultiphysics/Kratos/actions?query=workflow%3A%22Nightly+Build%22
 
 [DOI-image]: https://zenodo.org/badge/DOI/10.5281/zenodo.3234644.svg
 
