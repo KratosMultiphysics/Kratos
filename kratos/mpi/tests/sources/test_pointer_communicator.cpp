@@ -15,6 +15,7 @@
 #include "includes/parallel_environment.h"
 #include "utilities/global_pointer_utilities.h"
 #include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
 #include "utilities/retrieve_global_pointers_by_index_functor.h"
 #include "utilities/get_value_functor.h"
 
@@ -82,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
         for(unsigned int k=0; k<3; ++k)
             KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
     }
-};
+}
 
 KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFastSuite)
 {
@@ -94,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFast
     const int world_size = r_default_comm.Size();
     const int current_rank = r_default_comm.Rank();
 
-    // Add 3 Nodes per partition (XYZ) and make X_Z interfaces of the processes on the other side. 
+    // Add 3 Nodes per partition (XYZ) and make X_Z interfaces of the processes on the other side.
     // Nodes X and Z of processes 0 and RANK-1 do not communicate with anyone.
     //
     //      0      1      2    .....    N
@@ -106,7 +107,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFast
         int node_id = i + (current_rank * 2);
         auto pnode = mp.CreateNewNode(node_id, current_rank, current_rank, current_rank); //the node is equal to the current rank;
         pnode->SetValue(TEMPERATURE, current_rank );
-        
+
         int partition = (i != 2) ? current_rank : std::min(current_rank+1,world_size-1);
         pnode->FastGetSolutionStepValue(PARTITION_INDEX) = partition;
     }
@@ -131,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFast
         auto& gp = gp_list(i);
         KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
     }
-};
+}
 
 KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFastSuite)
 {
@@ -186,9 +187,67 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFa
     }
 
 
-};
+}
 
+KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicator, KratosMPICoreFastSuite)
+{
+    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    Model current_model;
+    auto& mp = current_model.CreateModelPart("mp");
+    mp.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
+    const int world_size = r_default_comm.Size();
+    const int current_rank = r_default_comm.Rank();
+
+    auto pnode = mp.CreateNewNode(current_rank+1, current_rank,current_rank,current_rank); //the node is equal to the current rank;
+    pnode->FastGetSolutionStepValue(PARTITION_INDEX) = current_rank;
+    pnode->SetValue(TEMPERATURE, current_rank);
+
+    //we will gather on every node the global pointers of the nodes with index from
+    //current_rank(+1) to world_size
+    std::vector<int> indices;
+    for(int i=1; i<=world_size; ++i) {
+        indices.push_back(i);
+    }
+
+    auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm);
+
+    // creates the gp map
+    GlobalPointerMapCommunicator<Node<3>, double> pointer_map_comm(r_default_comm, gp_list, 0.0);
+
+    // creates apply proxy
+    auto apply_temperature_assemble_proxy = pointer_map_comm.GetApplyProxy(
+        // local gp value update method
+        [](Node<3>& rNode, const double& NewValue) {
+            rNode.GetValue(TEMPERATURE) += NewValue;
+        },
+        // non local gp map update lambda method
+        [](double& rCurrentValue, const double NewValue) {
+            rCurrentValue += NewValue;
+        });
+
+    GlobalPointersUnorderedMap<Node<3>, double> assembly_values_map;
+    for (const auto& r_gp : gp_list.GetContainer()) {
+        assembly_values_map[r_gp] = (r_gp.GetRank() + 1.0) * 2;
+    }
+
+    // updates local gps and stores remote gps in a map for future communication
+    apply_temperature_assemble_proxy.Update(assembly_values_map);
+    apply_temperature_assemble_proxy.Update(assembly_values_map);
+    apply_temperature_assemble_proxy.Update(gp_list(0), 1);
+
+    // communicate remote gps and update them
+    apply_temperature_assemble_proxy.SendAndApplyRemotely();
+
+    if (current_rank == 0) {
+        KRATOS_CHECK_EQUAL(
+            pnode->GetValue(TEMPERATURE),
+            current_rank + world_size * (current_rank + 1) * 2.0 * 2.0 + world_size);
+    } else {
+        KRATOS_CHECK_EQUAL(pnode->GetValue(TEMPERATURE),
+                           current_rank + world_size * (current_rank + 1) * 2.0 * 2.0);
+    }
+}
 
 }
 }
