@@ -73,7 +73,7 @@ class TimeBasedAsciiFileWriterUtility:
         return output_file
 
     def __AddToExistingOutputFile(self, file_header, restart_time):
-        if not Path.is_file(self.file_name):
+        if not self.file_name.is_file():
             return None
 
         try: # We try to open the file and transfer the info
@@ -142,4 +142,4 @@ class TimeBasedAsciiFileWriterUtility:
         self.file_name = self.output_path / Path(raw_file_name)
 
         # make sure that the path to the desired output folder exists
-        self.output_path.mkdir(exist_ok=True)
+        self.output_path.mkdir(parents=True, exist_ok=True)
