@@ -133,13 +133,13 @@ public:
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // if( ThisParameters["build_output_vector"].GetBool() && ThisParameters["build_output_matrix"].GetBool() )
-        // KRATOS_ERROR_IF(ThisParameters["build_output_vector"].GetBool() && ThisParameters["build_output_matrix"].GetBool() ) 
+        // KRATOS_ERROR_IF(ThisParameters["build_output_vector"].GetBool() && ThisParameters["build_output_matrix"].GetBool() )
         //     << "Cannot build output vector and matrix at the same time!" << std::endl;
-        if( ThisParameters["build_output_structure"].GetBool() && 
+        if( ThisParameters["build_output_structure"].GetBool() &&
             ( ThisParameters["output_structure_type"].GetString() == "vector" ) )
                 mBuildOutputVectorFlag = true;
 
-        if( ThisParameters["build_output_structure"].GetBool() && 
+        if( ThisParameters["build_output_structure"].GetBool() &&
             ( ThisParameters["output_structure_type"].GetString() == "matrix" ) )
                 KRATOS_ERROR << "not yet implemented!\n";
 
@@ -174,7 +174,7 @@ public:
         for (int k=0; k < nnodes; ++k)
         {
             ModelPart::NodesContainerType::iterator it = n_begin + k;
-            
+
             unsigned int i = 0;
             for (auto const& dof : it->GetDofs())
             {
@@ -289,8 +289,6 @@ public:
     #else
                     BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
     #endif
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
                 }
 
             }
@@ -321,9 +319,6 @@ public:
     #else
                     BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
     #endif
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
                 }
             }
         }
@@ -383,7 +378,7 @@ public:
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++)
             {
-                
+
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
 
                 //detect if the element is active or not. If the user did not make any choice the element
@@ -400,15 +395,13 @@ public:
                     it->EquationIdVector(EquationId, CurrentProcessInfo);
                     it->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
                     RHS_Contribution.resize(EquationId.size());
-                   
+
                     //assemble the elemental contribution
     #ifdef USE_LOCKS_IN_ASSEMBLY
                     BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
     #else
                     BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
     #endif
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
                 }
 
             }
@@ -440,9 +433,6 @@ public:
     #else
                     BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
     #endif
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
                 }
             }
         }
@@ -496,7 +486,7 @@ public:
 
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
-            
+
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++)
             {
@@ -515,17 +505,15 @@ public:
                     it->EquationIdVector(EquationId, CurrentProcessInfo);
                     it->CalculateDampingMatrix(LHS_Contribution,CurrentProcessInfo);
                     RHS_Contribution.resize(EquationId.size());
-                    
+
 
                     //assemble the elemental contribution
     #ifdef USE_LOCKS_IN_ASSEMBLY
                     BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
     #else
                     BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-                    
+
     #endif
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
                 }
                     //std::cout<<"iteration finished"<<std::endl;
             }
@@ -557,9 +545,6 @@ public:
     #else
                     BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
     #endif
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
                 }
             }
         }
@@ -903,7 +888,7 @@ private:
                     //calculate conditional contribution
                     //pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
                     it->EquationIdVector(EquationId, CurrentProcessInfo);
-                    it->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);                    
+                    it->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
                     //assemble the elemental contribution
                     BaseType::AssembleRHS(b, RHS_Contribution, EquationId);
