@@ -38,7 +38,7 @@ class TransferNodalForcesToFem : public Process
   typedef std::size_t IndexType;
 
   // Constructor
-  TransferNodalForcesToFem(ModelPart& rModelPart, ModelPart& rDemModelPart);
+  TransferNodalForcesToFem(ModelPart& rModelPart, const bool DampenSolution = false);
 
   // Destructor
   ~TransferNodalForcesToFem() override = default;
@@ -51,7 +51,7 @@ protected:
 
   // Member Variables
   ModelPart& mrModelPart;
-  ModelPart& mrDEMModelPart;
+  bool mDampenSolution = false;
 
 };  // Class
 

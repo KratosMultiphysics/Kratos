@@ -65,23 +65,29 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
                     * det_jacobian[integration_point_itr];
-                KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                    << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                    << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
             }
         }
     }
     else {
+        KRATOS_DEBUG_ERROR_IF(sf_values_slave.size1() != sf_values_master.size1())
+            << "Coupling Geometry Mapper | origin and destination shape functions have different first sizes!"
+            << "\nOrigin shape functions =\n\t" << sf_values_master
+            << "\nDestination shape functions =\n\t" << sf_values_slave << std::endl;
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) {
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
+
+                KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                    << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
+
                 for (IndexType j = 0; j < sf_values_master.size2(); ++j) {
                     rLocalMappingMatrix(i, j) = sf_values_slave(integration_point_itr, i)
                         * sf_values_master(integration_point_itr, j)
                         * det_jacobian[integration_point_itr];
 
-                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
-                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
+                        << "ORIGIN SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
                 }
             }
         }
@@ -114,6 +120,39 @@ std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
     return "";
 }
 
+template<class TSparseSpace, class TDenseSpace>
+CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
+    ModelPart& rModelPartOrigin,
+    ModelPart& rModelPartDestination,
+    Parameters JsonParameters):
+        mrModelPartOrigin(rModelPartOrigin),
+        mrModelPartDestination(rModelPartDestination),
+        mMapperSettings(JsonParameters)
+{
+    JsonParameters.ValidateAndAssignDefaults(GetMapperDefaultSettings());
+
+    mpModeler = (ModelerFactory::Create(
+        mMapperSettings["modeler_name"].GetString(),
+        rModelPartOrigin.GetModel(),
+        mMapperSettings["modeler_parameters"]));
+
+    // adds destination model part
+    mpModeler->GenerateNodes(rModelPartDestination);
+
+    mpModeler->SetupGeometryModel();
+    mpModeler->PrepareGeometryModel();
+
+    // here use whatever ModelPart(s) was created by the Modeler
+    mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
+    mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
+    mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
+
+    mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
+    mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
+
+    this->CreateLinearSolver();
+    this->InitializeInterface();
+}
 
 
 template<class TSparseSpace, class TDenseSpace>
@@ -192,7 +231,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // Check row sum of pre-computed mapping matrices only
     if (precompute_mapping_matrix || dual_mortar) {
         const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
-        MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true);
+        const double row_sum_tolerance = mMapperSettings["row_sum_tolerance"].GetDouble();
+        MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true, row_sum_tolerance);
     }
 }
 
@@ -323,36 +363,24 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
         rProjectedInterfaceMatrix.size2());
 
     const size_t n_rows = mpMappingMatrix->size1();
-    #pragma omp parallel
-    {
-        Vector solution(n_rows);
-        Vector projector_column(n_rows);
+    Vector solution(n_rows);
+    Vector projector_column(n_rows);
 
-        #pragma omp for
-        for (int i = 0; i < static_cast<int>(mpMappingMatrix->size2()); ++i)
-        {
-            for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
-            mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
-            #pragma omp critical
-            for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
-        }
+    for (size_t i = 0; i < mpMappingMatrix->size2(); ++i)
+    {
+        for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i); // TODO try boost slice or project
+        mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
+        for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
     }
 }
 
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
 {
-    bool is_linear_solver_specified = false;
-    if (mMapperSettings.Has("linear_solver_settings"))
-    {
-        if (mMapperSettings["linear_solver_settings"].Has("solver_type"))
-        {
-            is_linear_solver_specified = true;
-            mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
-        }
+    if (mMapperSettings["linear_solver_settings"].Has("solver_type")) {
+        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
     }
-    if (!is_linear_solver_specified)
-    {
+    else {
         // TODO - replicate 'get fastest solver'
         mMapperSettings.AddString("solver_type", "skyline_lu_factorization");
         mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);

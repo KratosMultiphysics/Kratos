@@ -210,17 +210,17 @@ namespace Kratos
     void Initialize() override{};
 
     /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override{};
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override{};
+    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                               VectorType &rRightHandSideVector,
-                              ProcessInfo &rCurrentProcessInfo) override;
+                              const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               ProcessInfo &rCurrentProcessInfo) override
+                               const ProcessInfo &rCurrentProcessInfo) override
     {
       KRATOS_TRY;
       KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitElement::CalculateLeftHandSide not implemented", "");
@@ -228,7 +228,7 @@ namespace Kratos
     }
 
     void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                ProcessInfo &rCurrentProcessInfo) override
+                                const ProcessInfo &rCurrentProcessInfo) override
     {
       KRATOS_TRY;
       KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitElement::CalculateRightHandSide not implemented", "");
@@ -243,20 +243,10 @@ namespace Kratos
     /*  * @param rResult A vector containing the global Id of each row */
     /*  * @param rCurrentProcessInfo the current process info object (unused) */
     /*  *\/ */
-    /* virtual void EquationIdVector(EquationIdVectorType& rResult, */
-    /* 				    ProcessInfo& rCurrentProcessInfo); */
-
-    /* /// Returns a list of the element's Dofs */
-    /* /\** */
-    /*  * @param ElementalDofList the list of DOFs */
-    /*  * @param rCurrentProcessInfo the current process info instance */
-    /*  *\/ */
-    /* virtual void GetDofList(DofsVectorType& rElementalDofList, */
-    /* 			      ProcessInfo& rCurrentProcessInfo); */
 
     /* virtual GeometryData::IntegrationMethod GetIntegrationMethod() const; */
 
-    void UpdateCauchyStress(unsigned int g, ProcessInfo &rCurrentProcessInfo) override{};
+    void UpdateCauchyStress(unsigned int g, const ProcessInfo &rCurrentProcessInfo) override{};
 
     void InitializeElementalVariables(ElementalVariables &rElementalVariables) override
     {
@@ -284,7 +274,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry
@@ -356,11 +346,11 @@ namespace Kratos
 
     void CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
                                          VectorType &rRightHandSideVector,
-                                         ProcessInfo &rCurrentProcessInfo) override;
+                                         const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                VectorType &rRightHandSideVector,
-                                               ProcessInfo &rCurrentProcessInfo) override{};
+                                               const ProcessInfo &rCurrentProcessInfo) override{};
 
     double GetThetaMomentum() override
     {
