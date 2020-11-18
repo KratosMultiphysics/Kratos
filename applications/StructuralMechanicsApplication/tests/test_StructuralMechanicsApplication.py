@@ -395,7 +395,6 @@ def AssembleTestSuites():
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressDiagonalTests('test_execution'))
-    nightSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution'))
     # 2Node Element tests
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
@@ -476,6 +475,7 @@ def AssembleTestSuites():
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
     validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
+    validationSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution')) # TODO should be in nightSuite but is too slow
     # Pendulus tests with Solid Elements
     validationSuite.addTest(TPendulusTLTest('test_execution'))
     validationSuite.addTest(TPendulusULTest('test_execution'))
@@ -531,7 +531,7 @@ def AssembleTestSuites():
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
+    # run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")

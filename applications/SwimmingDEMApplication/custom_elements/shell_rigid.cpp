@@ -767,7 +767,7 @@ void ShellRigid::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& Curren
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetValuesVector(Vector& values, int Step)
+void ShellRigid::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     //const unsigned int dim = 3;
@@ -1914,7 +1914,7 @@ void ShellRigid::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurr
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetFirstDerivativesVector(Vector& values, int Step)
+void ShellRigid::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize)   values.resize(MatSize,false);
@@ -1931,7 +1931,7 @@ void ShellRigid::GetFirstDerivativesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetSecondDerivativesVector(Vector& values, int Step)
+void ShellRigid::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize) values.resize(MatSize,false);
