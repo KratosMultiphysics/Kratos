@@ -696,11 +696,11 @@ namespace Kratos {
         KRATOS_TRY
 
         ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         ModelPart& r_fem_model_part = GetFemModelPart();
-        ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
+        const ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -748,7 +748,7 @@ namespace Kratos {
 
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
@@ -767,6 +767,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::InitializeElements() {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
+        const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
@@ -777,7 +778,7 @@ namespace Kratos {
             ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                (it)->Initialize();
+                (it)->Initialize(r_process_info);
             }
         }
         KRATOS_CATCH("")
@@ -933,6 +934,7 @@ namespace Kratos {
         ClearFEMForces();
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
+        const ProcessInfo& r_const_process_info = GetFemModelPart().GetProcessInfo();
 
         Vector rhs_cond;
         Vector rhs_cond_elas;
@@ -952,7 +954,7 @@ namespace Kratos {
 
                 //double Element_Area = geom.Area();
 
-                it->CalculateRightHandSide(rhs_cond, r_process_info);
+                it->CalculateRightHandSide(rhs_cond, r_const_process_info);
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element = ZeroVector(3);

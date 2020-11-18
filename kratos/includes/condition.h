@@ -339,12 +339,6 @@ public:
             values.resize(0, false);
         }
     }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetValuesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetValuesVector(values, Step);
-    }
 
     /**
      * Getting method to obtain the time derivative of variable which defines the degrees of freedom
@@ -355,12 +349,6 @@ public:
             values.resize(0, false);
         }
     }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetFirstDerivativesVector(values, Step);
-    }
 
     /**
      * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
@@ -370,12 +358,6 @@ public:
         if (values.size() != 0) {
             values.resize(0, false);
         }
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetSecondDerivativesVector(values, Step);
     }
 
     /**
