@@ -251,11 +251,6 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = sc;
         }
-    } else if (rVariable == DENSITY_SHOCK_SENSOR) {
-        const double sc = this->GetValue(DENSITY_SHOCK_SENSOR);
-        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
-            rOutput[i_gauss] = sc;
-        }
     } else if (rVariable == SHEAR_SENSOR) {
         const double sc = this->GetValue(SHEAR_SENSOR);
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
