@@ -104,7 +104,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self._solver.AddDofs()
 
         #print model_part and properties
-        if (self.echo_level>-1):
+        if (self.echo_level>1):
             self.KratosPrintInfo("")
             self.KratosPrintInfo(self.main_model_part)
             for properties in self.main_model_part.Properties:
