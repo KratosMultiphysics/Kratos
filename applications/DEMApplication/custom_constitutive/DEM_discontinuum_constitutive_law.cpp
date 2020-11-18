@@ -72,7 +72,7 @@ namespace Kratos {
     }
 
     std::string DEMDiscontinuumConstitutiveLaw::GetTypeOfLaw() {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::GetTypeOfLaw) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) shouldn't be accessed, use derived class instead"<<std::endl;
         std::string type_of_law = "";
         return type_of_law;
     }
@@ -147,11 +147,11 @@ namespace Kratos {
     }
 
     void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::InitializeContact) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::InitializeContactWithFEM) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMDiscontinuumConstitutiveLaw::GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt){
@@ -175,7 +175,7 @@ namespace Kratos {
                                                         SphericParticle* element2,
                                                         bool& sliding, double LocalCoordSystem[3][3]) {
 
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateForces) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateForces) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMDiscontinuumConstitutiveLaw::CalculateElasticEnergy(double& normal_elastic_energy,
@@ -200,12 +200,12 @@ namespace Kratos {
                                                                 Condition* const wall,
                                                                 bool& sliding) {
 
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateForcesWithFEM) shouldn't be accessed, use derived class instead"<<std::endl;
 
     }
 
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(const double indentation) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateNormalForce) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
 
@@ -219,12 +219,12 @@ namespace Kratos {
     }
 
     double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateCohesiveNormalForce) shouldn't be accessed, use derived class instead"<<std::endl;
         return 0.0;
     }
 
     double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation){
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) shouldn't be accessed, use derived class instead"<<std::endl;
         return 0.0;
     }
 

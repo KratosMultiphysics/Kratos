@@ -41,6 +41,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("RemoveDuplicates",&FEMDEMCouplingUtilities::RemoveDuplicates)
         .def("IdentifyFreeParticles",&FEMDEMCouplingUtilities::IdentifyFreeParticles)
         .def("GetNumberOfNodes",&FEMDEMCouplingUtilities::GetNumberOfNodes)
+        .def("IsGenerateDEMRequired",&FEMDEMCouplingUtilities::IsGenerateDEMRequired)
         ;
 
     py::class_<AitkenRelaxationFEMDEMUtility>(m, "AitkenRelaxationFEMDEMUtility")
