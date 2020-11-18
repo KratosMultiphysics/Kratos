@@ -303,9 +303,11 @@ VectorDistanceType mVectorsOfRadii;
 //***************************************************************************************************************
 //***************************************************************************************************************
 void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const VariableData *r_current_variable);
+void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const VariableData& r_current_variable);
 void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<double>& r_current_variable, const Variable<double>& r_previous_averaged_variable = TIME_AVERAGED_DOUBLE);
 void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_current_variable, const Variable<array_1d<double, 3> >& r_previous_averaged_variable = TIME_AVERAGED_ARRAY_3);
-void CopyValues(ModelPart& r_model_part, const VariableData *r_origin_variable);
+void CopyValues(ModelPart& r_model_part, const VariableData& r_origin_variable);
+void CopyValues(ModelPart& r_model_part, const VariableData *p_origin_variable);
 void CopyValues(ModelPart& r_model_part, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable = TIME_AVERAGED_DOUBLE);
 void CopyValues(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable = TIME_AVERAGED_ARRAY_3);
 void ComputeHomogenizedFluidFraction(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part);
@@ -348,7 +350,7 @@ void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<array_1d<do
 void ResetDEMVariables(ModelPart& r_dem_model_part);
 void ResetFluidVariables(ModelPart& r_fluid_model_part);
 void ResetFLuidVelocityRate(const NodeIteratorType& node_it);
-void Clear(ModelPart& r_model_part, const VariableData* r_variable);
+void SetToZero(ModelPart& r_model_part, const VariableData& r_variable);
 void Clear(ModelPart& r_model_part, const Variable<double>& r_variable);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData *var);
 void CalculateFluidNodesMaxNodalArea(ModelPart& r_fluid_model_part);
