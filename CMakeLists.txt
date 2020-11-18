@@ -125,7 +125,12 @@ if(GIT_FOUND)
     COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
     OUTPUT_VARIABLE KratosMultiphysics_SHA1_NUMBER
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE SHA1_NOT_FOUND
   )
+  if(SHA1_NOT_FOUND)
+    message("Git did not find the SHA1 number. It will be set to 0.")
+    set (KratosMultiphysics_SHA1_NUMBER 0)
+  endif(SHA1_NOT_FOUND)
 else(GIT_FOUND)
   message("Git was not found on your system. SHA1 number will be set to 0.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
