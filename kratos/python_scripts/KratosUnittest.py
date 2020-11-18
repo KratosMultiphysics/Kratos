@@ -33,7 +33,7 @@ class TestCase(TestCase):
         start_time = time()
         super().run(result)
         time_needed = time()-start_time
-        test_timing_results[time_needed] = self
+        test_timing_results[time_needed] = str(self)
 
     def skipTestIfApplicationsNotAvailable(self, *application_names):
         '''Skips the test if required applications are not available'''
