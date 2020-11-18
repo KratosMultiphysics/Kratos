@@ -212,6 +212,11 @@ class SwimmingDEMAnalysis(AnalysisStage):
         max_cond_Id = creator_destructor.FindMaxConditionIdInModelPart(self.fluid_model_part)
         self._GetDEMAnalysis().BaseReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
 
+    def InitializeVariablesWithNonZeroValues(self):
+        SDP.InitializeVariablesWithNonZeroValues(self.project_parameters,
+                                                self.fluid_model_part,
+                                                self.spheres_model_part)
+
     def Initialize(self):
         Say('Initializing simulation...\n')
         self.run_code = self.GetRunCode()
@@ -340,9 +345,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.post_utils_DEM = DP.PostUtils(self.project_parameters['dem_parameters'], self.spheres_model_part)
 
         # otherwise variables are set to 0 by default:
-        SDP.InitializeVariablesWithNonZeroValues(self.project_parameters,
-                                                 self.fluid_model_part,
-                                                 self.spheres_model_part)
+        self.InitializeVariablesWithNonZeroValues()
 
         if self.do_print_results:
             self.SetUpResultsDatabase()
