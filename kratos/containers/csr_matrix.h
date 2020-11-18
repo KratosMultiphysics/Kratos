@@ -20,7 +20,6 @@
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/system_vector.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "includes/key_hash.h"
 
