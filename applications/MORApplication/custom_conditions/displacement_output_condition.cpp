@@ -159,7 +159,7 @@ void DisplacementOutputCondition::GetDofList(
 void DisplacementOutputCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();

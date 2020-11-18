@@ -296,7 +296,7 @@ template<std::size_t TDim, bool TIsMapping>
 void AcousticStructureCouplingCondition<TDim, TIsMapping>::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }
@@ -308,7 +308,7 @@ template<std::size_t TDim, bool TIsMapping>
 void AcousticStructureCouplingCondition<TDim, TIsMapping>::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }
@@ -320,7 +320,7 @@ template<std::size_t TDim, bool TIsMapping>
 void AcousticStructureCouplingCondition<TDim, TIsMapping>::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }

@@ -149,7 +149,7 @@ void AcousticRobinCondition::GetDofList(
 void AcousticRobinCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }
@@ -160,7 +160,7 @@ void AcousticRobinCondition::GetValuesVector(
 void AcousticRobinCondition::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }
@@ -171,7 +171,7 @@ void AcousticRobinCondition::GetFirstDerivativesVector(
 void AcousticRobinCondition::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }

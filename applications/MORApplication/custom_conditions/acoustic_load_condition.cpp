@@ -147,7 +147,7 @@ void AcousticLoadCondition::GetDofList(
 void AcousticLoadCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }
@@ -158,7 +158,7 @@ void AcousticLoadCondition::GetValuesVector(
 void AcousticLoadCondition::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }
@@ -169,7 +169,7 @@ void AcousticLoadCondition::GetFirstDerivativesVector(
 void AcousticLoadCondition::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     KRATOS_ERROR << "Condition not prepared for time step analysis" << std::endl;
 }

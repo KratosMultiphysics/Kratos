@@ -176,7 +176,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal velocities
@@ -186,7 +186,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal accelerations
@@ -196,7 +196,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief This function provides a more general interface to the element.
