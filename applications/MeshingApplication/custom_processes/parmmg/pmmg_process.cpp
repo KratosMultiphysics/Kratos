@@ -132,8 +132,6 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
-    const bool save_to_file = mThisParameters["save_external_files"].GetBool();
-
     /* We print the original model part */
     KRATOS_INFO_IF("", mEchoLevel > 0) <<
     "//---------------------------------------------------//" << std::endl <<
@@ -145,9 +143,6 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitializeSolutionStep()
     InitializeMeshData();
 
     InitializeSolDataMetric();
-
-    // Save to file
-    if (save_to_file) SaveSolutionToFile(false);
 
     // We execute the remeshing
     ExecuteRemeshing();
@@ -369,11 +364,11 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     Model& r_owner_model = mrThisModelPart.GetModel();
     ModelPart& r_old_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
+    /* Save to file. It is required to call it AFTER writing the model part data */
+    if (save_to_file) SaveSolutionToFile(false);
+
     // Calling the library functions
     mPMmgUtilities.PMMGLibCallMetric(mThisParameters);
-
-    /* Save to file */
-     if (save_to_file) SaveSolutionToFile(true);
 
     // Some information
     PMMGMeshInfo<TPMMGLibrary> mmg_mesh_info;
@@ -431,6 +426,9 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
 
     // Writing the new solution data on the model part
     mPMmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
+
+    /* Save to file. It is required to call it AFTER writing the model part data */
+    if (save_to_file) SaveSolutionToFile(true);
 
     /* We assign flags and clear the auxiliar model parts created to reassing the flags */
     if (mThisParameters["preserve_flags"].GetBool()) {
@@ -496,13 +494,11 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
     const int rank = mrThisModelPart.GetCommunicator().MyPID();
     const std::string file_name = mFilename + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
 
-    // TO-DO Using OutputMesh and OutputSol
-    // if (PostOutput) {
-    //     mPMmgUtilities.OutputMesh(file_name);
+    if (PostOutput) {
+        mPMmgUtilities.OutputMesh(file_name);
 
-    //     // Automatically save the solution
-    //     mPMmgUtilities.OutputSol(file_name);
-    // }//
+        mPMmgUtilities.OutputSol(file_name);
+    }
 
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files
@@ -545,8 +541,7 @@ void ParMmgProcess<TPMMGLibrary>::OutputMdpa()
     KRATOS_TRY;
 
     const auto rank = mrThisModelPart.GetCommunicator().MyPID();
-    std::ofstream output_file;
-    ModelPartIO model_part_io("output_"+std::to_string(rank), IO::WRITE);
+    ModelPartIO model_part_io(mFilename+"_"+std::to_string(rank), IO::WRITE);
     model_part_io.WriteModelPart(mrThisModelPart);
 
     KRATOS_CATCH("");

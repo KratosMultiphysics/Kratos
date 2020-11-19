@@ -20,8 +20,6 @@
 #include <unordered_map>
 
 // External includes
-// The includes related with the PMMG library
-// #include "mmg/libmmg.h"
 
 // Project includes
 #include "custom_processes/mmg/mmg_process.h"
