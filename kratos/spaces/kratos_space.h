@@ -219,25 +219,13 @@ public:
     //TODO: should use implementation of Norm Frobenius in CSR matrix, but it does not compile
     static TDataType TwoNorm(const CsrMatrix<TDataType>& rA) // Frobenious norm
     {
-        IndexType data_size = rA.value_data().size();
-        typedef SumReduction< TDataType > Reducer;
-        IndexPartition<IndexType> partitioner(data_size);
-        auto sum2 = partitioner.for_each<Reducer>(
-                [&](IndexType i){
-                    return std::pow(rA.value_data()[i],2);
-                }
-            );
-        return std::sqrt(sum2);
+        return rA.NormFrobenius();
     }
 
     //TODO: should use implementation of NormFrobenius within DistributedCsrMatrix once available
     static TDataType TwoNorm(const DistributedCsrMatrix<TDataType>& rA) // Frobenious norm
     {
-        TDataType diag_norm = TwoNorm(rA.GetDiagBlock());
-        TDataType off_diag_norm = TwoNorm(rA.GetOffDiagBlock());
-        TDataType sum_squared = std::pow(diag_norm,2) + std::pow(off_diag_norm,2);
-        sum_squared = rA.GetComm().SumAll(sum_squared);
-        return std::sqrt(sum_squared);
+        return rA.NormFrobenius();
     }
 
     /**

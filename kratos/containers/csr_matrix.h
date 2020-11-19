@@ -282,7 +282,6 @@ public:
         }
     }
 
-    //TODO: i cannot understand why this does not compile
     TDataType NormFrobenius() const
     {
         auto sum2 = IndexPartition<TIndexType>(this->value_data().size()).template for_each< SumReduction<TDataType> >( [this](TIndexType i){
