@@ -43,10 +43,9 @@ class GlobalPointerMapCommunicator;
 /**
  * @brief Proxy class to update local and non-local data
  *
- * This class is used to update local and non-local data with given TLocalApplyFunctor and TNonLocalApplyFunctor
- * TLocalApplyFunctor is used to update local TPointerDataType data, TNonLocalApplyFunctor is used to update
- * non local global pointer map data which then will use TLocalApplyFunctor after communication to update value
- * at the owner rank.
+ * This class is used to update local and non-local data with given TApplyFunctor and
+ * TApplyFunctor is used to update local TPointerDataType data,  Data belonging to remote
+ * gps will be stored, and applied after communication in their owning rank.
  *
  * Example:
  * 1. Initial values
@@ -75,25 +74,22 @@ class GlobalPointerMapCommunicator;
  *      2         1       20 + 10 = 30
  *      3         2       5 + 2 = 7
  *
- * Signature of TLocalApplyFunctor:
+ * Signature of TApplyFunctor:
  *      void(TPointerDataType& rPointerDataTypeObject, const TValueDataType& NewValue)
  *
- * Signature of TNonLocalApplyFunctor:
- *      void(TValueDataType& rCurrentValueInNonLocalGlobalPointerMap, const TValueDataType& NewValue)
  *
  * @tparam TPointerDataType
  * @tparam TValueDataType
- * @tparam TLocalApplyFunctor
- * @tparam TNonLocalApplyFunctor
+ * @tparam TApplyFunctor
  */
-template<class TPointerDataType, class TValueDataType, class TLocalApplyFunctor, class TNonLocalApplyFunctor>
+template<class TPointerDataType, class TValueDataType, class TApplyFunctor>
 class ApplyProxy
 {
 public:
     ///@name Type definitions
     ///@{
 
-    using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TLocalApplyFunctor, TNonLocalApplyFunctor>;
+    using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>;
 
     using TGPVector = GlobalPointersVector<TPointerDataType>;
 
@@ -110,27 +106,24 @@ public:
     /**
      * @brief Construct a new Apply Proxy object
      *
-     * @param rLocalApplyFunctor        Thread safe update lambda method
-     * @param rNonLocalApplyFunctor     Thread safe non-local gp map value update method
+     * @param rApplyFunctor             Thread safe update lambda method
      * @param rNonLocalDataMap          Non-local gp map
      * @param rPointerCommunicator      Map communicator
      */
     ApplyProxy(
-        const TLocalApplyFunctor& rLocalApplyFunctor,
-        const TNonLocalApplyFunctor& rNonLocalApplyFunctor,
+        const TApplyFunctor& rApplyFunctor,
         TGPNonLocalDataMap& rNonLocalDataMap,
         TGPMapCommunicator& rPointerCommunicator)
         : mCurrentRank(rPointerCommunicator.GetMyPID()),
-          mrLocalApplyFunctor(rLocalApplyFunctor),
-          mrNonLocalApplyFunctor(rNonLocalApplyFunctor),
+          mrApplyFunctor(rApplyFunctor),
           mrNonLocalDataMap(rNonLocalDataMap),
           mrPointerCommunicator(rPointerCommunicator)
     {
         // identify proper methods to be used in updates
         if (mrPointerCommunicator.IsDistributed()) {
-            this->mUpdateMethod = &ProxyType::UpdateLocalAndRemoteData;
+            this->mUpdateMethod = &ProxyType::AssignLocalAndRemoteData;
         } else {
-            this->mUpdateMethod = &ProxyType::UpdateLocalData;
+            this->mUpdateMethod = &ProxyType::AssignLocalData;
         }
     }
 
@@ -139,23 +132,24 @@ public:
     ///@{
 
     /**
-     * @brief Updates values with given values map
+     * @brief Assigns values with given values map
      *
-     * This method updates local gps using mrLocalApplyFunctor instantly. Value updates
-     * belonging to remote gps are stored in the mrNonLocalDataMap using mrNonLocalApplyFunctor.
+     * This method assigns local gps using mrApplyFunctor instantly. Values
+     * belonging to remote gps are stored in the mrNonLocalDataMap.
      *
-     * In the case of serial job, this method calls UpdateLocalData, where no checks are done
+     * In the case of serial job, this method calls AssignLocalData, where no checks are done
      * to ensure gps are local because all gps are local.
      *
-     * In case of distributed job, this method calls UpdateLocalAndRemoteData where checks are
-     * performed to identify gps are local or non-local, based on that mrLocalApplyFunctor or mrNonLocalApplyFunctor
-     * methods are called.
+     * In case of distributed job, this method calls AssignLocalAndRemoteData where checks are
+     * performed to identify gps are local or non-local, based on that mrApplyFunctor
+     * methods are called or values corresponding to remote gps are stored.
      *
      * The input rGPDataMap map should not contain any key gps which are not included in creating the
      * GlobalPointerMapCommunicator used in this proxy (i.e. mrPointerCommunicator)
      *
      * This method can be called several times without severe additional computational cost
-     * since this does not do any mpi communication.
+     * since this does not do any mpi communication. But in this case, remote gp values
+     * will be overwritten, whereas local gp values will be applied using mrApplyFunctor.
      *
      * This does not have additional cost in serial run
      *
@@ -163,33 +157,80 @@ public:
      *
      * @param rGPDataMap        Input values map (key: GlobalPointer<TPointerDataType>, value: TValueDataType)
      */
-    void Update(const TGPDataMap& rGPDataMap)
+    void Assign(const TGPDataMap& rGPDataMap)
     {
-        // get gp vector
+        // get gp vector for parallel omp run
         const auto& gps = TGPMapCommunicator::GetKeys(rGPDataMap);
 
-        // running this in parallel assuming mrLocalApplyFunctor is thread safe
+        // running this in parallel assuming mrApplyFunctor is thread safe
         IndexPartition<int>(gps.size()).for_each([&](const int Index) {
             auto p_itr = rGPDataMap.find(gps[Index]);
-            Update(p_itr->first, p_itr->second);
+            Assign(p_itr->first, p_itr->second);
         });
     }
 
     /**
-     * @brief Update value of the GlobalPointer
+     * @brief Assigns values with given list and values
      *
-     * This method updates gp value by rNewValue using mrLocalApplyFunctor in the case if
-     * given rGlobalPointer is a local gp, otherwise mrNonLocalDataMap is updated using
-     * mrNonLocalApplyFunctor.
+     * This method assigns local gps in rGPs using mrApplyFunctor instantly. Values
+     * belonging to remote gps are stored in the mrNonLocalDataMap.
+     *
+     * In the case of serial job, this method calls AssignLocalData, where no checks are done
+     * to ensure gps are local because all gps should be always local.
+     *
+     * In case of distributed job, this method calls AssignLocalAndRemoteData where checks are
+     * performed to identify gps are local or non-local, based on that mrApplyFunctor
+     * methods are called or values corresponding to remote gps are stored.
+     *
+     * The input rGPs map should not contain any key gps which are not included in creating the
+     * GlobalPointerMapCommunicator used in this proxy (i.e. mrPointerCommunicator)
+     *
+     * This method can be called several times without severe additional computational cost
+     * since this does not do any mpi communication. But in this case, remote gp values
+     * will be overwritten, whereas local gp values will be applied using mrApplyFunctor.
+     *
+     * This does not have additional cost in serial run
+     *
+     * @see GlobalPointerMapCommunicator
+     *
+     * @param rGPs              List of GlobalPointers
+     * @param rValues           List of values
+     */
+    void Assign(
+        const TGPVector& rGPs,
+        const std::vector<TValueDataType>& rValues)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(rGPs.size() != rValues.size())
+            << "Number of global pointers does not match with number of "
+               "values. [ rGPs.size() = "
+            << rGPs.size() << ", rValues.size() = " << rValues.size() << " ].\n";
+
+        IndexPartition<int>(rGPs.size()).for_each([&](const int Index){
+            Assign(rGPs(Index), rValues[Index]);
+        });
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Assigns value of the GlobalPointer
+     *
+     * This method assigns gp value by rValue using mrApplyFunctor in the case if
+     * given rGlobalPointer is a local gp, otherwise mrNonLocalDataMap is assigned with
+     * new value, which will be used in mpi communication.
+     *
+     * @see GlobalPointerMapCommunicator
      *
      * @param rGP               Global pointer of the destination
-     * @param rNewValue         New value to be used in update
+     * @param rValue            Value to be used in assigning
      */
-    void Update(
+    void Assign(
         const GlobalPointer<TPointerDataType>& rGlobalPointer,
-        const TValueDataType& rNewValue)
+        const TValueDataType& rValue)
     {
-        (this->*(this->mUpdateMethod))(rGlobalPointer, rNewValue);
+        (this->*(this->mUpdateMethod))(rGlobalPointer, rValue);
     }
 
     /**
@@ -201,7 +242,6 @@ public:
      * This does not have any cost in the serial run.
      *
      * Ghost mesh synchronization needs to be done afterwards.
-     *
      */
     void SendAndApplyRemotely()
     {
@@ -215,8 +255,7 @@ private:
     ///@{
 
     const int mCurrentRank;
-    const TLocalApplyFunctor& mrLocalApplyFunctor;
-    const TNonLocalApplyFunctor& mrNonLocalApplyFunctor;
+    const TApplyFunctor& mrApplyFunctor;
 
     void (ProxyType::*mUpdateMethod)(const GlobalPointer<TPointerDataType>&, const TValueDataType&);
 
@@ -228,18 +267,18 @@ private:
     ///@{
 
     /**
-     * @brief Update local values
+     * @brief Assign local values
      *
-     * This method updates local gp values using mrLocalApplyFunctor.
+     * This method assigns local gp values using mrApplyFunctor.
      * It assumes rGlobalPointer is a local gp always, therefore
      * no checks are performed.
      *
      * @param rGlobalPointer    Local Global pointer of the destination
-     * @param rNewValue         New value to be used in update
+     * @param rValue            Value to be used in assigning
      */
-    void UpdateLocalData(
+    void AssignLocalData(
         const GlobalPointer<TPointerDataType>& rGlobalPointer,
-        const TValueDataType& rNewValue)
+        const TValueDataType& rValue)
     {
         KRATOS_TRY
 
@@ -250,32 +289,32 @@ private:
             << " GlobalPointerRank = " << rGlobalPointer.GetRank() << " ].\n";
 
         auto gp_pointer = rGlobalPointer;  // required to remove the const from rGlobalPointer
-        mrLocalApplyFunctor(*gp_pointer, rNewValue);
+        mrApplyFunctor(*gp_pointer, rValue);
 
         KRATOS_CATCH("");
     }
 
 
     /**
-     * @brief Update local and non-local values
+     * @brief Assign local and non-local values
      *
-     * This method updates local gp values instantly using mrLocalApplyFunctor.
-     * As for the non-local gps, it uses mrNonLocalApplyFunctor to update
-     * mrNonLocalDataMap values which is used for communication
+     * This method assigns local gp values instantly using mrApplyFunctor.
+     * As for the non-local gps, they are stored to be used for future
+     * communication
      *
      * @param rGlobalPointer    Global pointer of the destination
-     * @param rNewValue         New value to be used in update
+     * @param rValue            Value to be used in assigning
      */
-    void UpdateLocalAndRemoteData(
+    void AssignLocalAndRemoteData(
         const GlobalPointer<TPointerDataType>& rGlobalPointer,
-        const TValueDataType& rNewValue)
+        const TValueDataType& rValue)
     {
         KRATOS_TRY
 
         const int data_rank = rGlobalPointer.GetRank();
 
         if (data_rank == mCurrentRank) {
-            UpdateLocalData(rGlobalPointer, rNewValue);
+            AssignLocalData(rGlobalPointer, rValue);
         } else {
             // update mrNonLocalDataMap map for remote data,
             // which will be used in future for communication
@@ -291,7 +330,7 @@ private:
                 << "Global pointer not found in rank " << data_rank
                 << " non local map. [ MyPID = " << mCurrentRank << " ].\n";
 
-            mrNonLocalApplyFunctor(p_non_local_itr->second, rNewValue);
+            p_non_local_itr->second = rValue;
         }
 
         KRATOS_CATCH("");
@@ -317,8 +356,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    template<class TLocalApplyFunctor, class TNonLocalApplyFunctor>
-    using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TLocalApplyFunctor, TNonLocalApplyFunctor>;
+    template<class TApplyFunctor>
+    using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>;
 
     using TGPVector = GlobalPointersVector<TPointerDataType>;
 
@@ -339,11 +378,11 @@ public:
      * This constructor can be used if there is already a GPVector
      * constructed by the user.
      *
-     * In parallel, this constructor will compute communication scheduling
+     * This constructor will also compute communication scheduling
      * for given list of GPs.
      *
      * The rInitializationValue is used to initialize the gp map created
-     * for GPs provided by rInitializationValue
+     * for GPs provided (for non local gps).
      *
      * @param rDataCommunicator         Data communicator
      * @param rGPVector                 Global pointers vector
@@ -366,6 +405,9 @@ public:
      * @brief Construct a new Global Pointer Map Communicator object
      *
      * This constructor uses a functor to create the Gps vector
+     *
+     * TVectorFunctorType signature
+     *      const DataCommunicator& -> GlobalPointersVector<TPointerDataType>
      *
      * @tparam TVectorFunctorType
      * @param rDataCommunicator         Data communicator
@@ -419,13 +461,11 @@ public:
      *
      * Ghost mesh synchronization needs to be done afterwards.
      *
-     * @tparam TLocalApplyFunctor
-     * @tparam TNonLocalApplyFunctor
+     * @tparam TApplyFunctor
      * @param rApplyProxy           The proxy which holds the user specified methods
      */
-    template <class TLocalApplyFunctor, class TNonLocalApplyFunctor>
-    void SendAndApplyRemotely(
-        ProxyType<TLocalApplyFunctor, TNonLocalApplyFunctor>& rApplyProxy)
+    template <class TApplyFunctor>
+    void SendAndApplyRemotely(ProxyType<TApplyFunctor>& rApplyProxy)
     {
         if (IsDistributed()) {
             for (auto color : mColors) {
@@ -433,15 +473,15 @@ public:
                     const auto& received_gp_map = mrDataCommunicator.SendRecv(
                         mrNonLocalPointers[color], color, color);
 
-                    // get gp vector
+                    // get gp vector for parallel omp run
                     const auto& gps = GetKeys(received_gp_map);
 
-                    // running this in parallel assuming mrLocalApplyFunctor is thread safe
+                    // running this in parallel assuming mrApplyFunctor is thread safe
                     IndexPartition<int>(gps.size()).for_each([&](const int Index) {
                         auto p_itr = received_gp_map.find(gps[Index]);
                         // it is safer to call the serial update method here
                         // because we should only get process's local gps when communication is done
-                        rApplyProxy.UpdateLocalData(p_itr->first, p_itr->second);
+                        rApplyProxy.AssignLocalData(p_itr->first, p_itr->second);
                     });
                 }
             }
@@ -453,20 +493,15 @@ public:
      *
      * Returns the Apply proxy.
      *
-     * @tparam TLocalApplyFunctor
-     * @tparam TNonLocalApplyFunctor
+     * @tparam TApplyFunctor
      * @param rApplyFunctor
      * @return ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>
      */
-    template <class TLocalApplyFunctor, class TNonLocalApplyFunctor>
-    ProxyType<TLocalApplyFunctor, TNonLocalApplyFunctor> GetApplyProxy(
-        TLocalApplyFunctor&& rLocalApplyFunctor,
-        TNonLocalApplyFunctor&& rNonLocalApplyFunctor)
+    template <class TApplyFunctor>
+    ProxyType<TApplyFunctor> GetApplyProxy(TApplyFunctor&& rApplyFunctor)
     {
-        return ProxyType<TLocalApplyFunctor, TNonLocalApplyFunctor>(
-            std::forward<TLocalApplyFunctor>(rLocalApplyFunctor),
-            std::forward<TNonLocalApplyFunctor>(rNonLocalApplyFunctor),
-            mrNonLocalPointers, *this);
+        return ProxyType<TApplyFunctor>(
+            std::forward<TApplyFunctor>(rApplyFunctor), mrNonLocalPointers, *this);
     }
 
     /**

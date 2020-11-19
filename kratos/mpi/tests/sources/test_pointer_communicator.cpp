@@ -217,35 +217,30 @@ KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicator, KratosMPICoreFastSuite)
 
     // creates apply proxy
     auto apply_temperature_assemble_proxy = pointer_map_comm.GetApplyProxy(
-        // local gp value update method
         [](Node<3>& rNode, const double& NewValue) {
             rNode.GetValue(TEMPERATURE) += NewValue;
-        },
-        // non local gp map update lambda method
-        [](double& rCurrentValue, const double NewValue) {
-            rCurrentValue += NewValue;
         });
 
     GlobalPointersUnorderedMap<Node<3>, double> assembly_values_map;
-    for (const auto& r_gp : gp_list.GetContainer()) {
-        assembly_values_map[r_gp] = (r_gp.GetRank() + 1.0) * 2;
+    for (int i = 0; i < current_rank + 1; ++i) {
+        assembly_values_map[gp_list(i)] = (gp_list(i).GetRank() + 1.0) * 2;
     }
 
-    // updates local gps and stores remote gps in a map for future communication
-    apply_temperature_assemble_proxy.Update(assembly_values_map);
-    apply_temperature_assemble_proxy.Update(assembly_values_map);
-    apply_temperature_assemble_proxy.Update(gp_list(0), 1);
+    // Assigns local gps and stores remote gps in a map for future communication
+    apply_temperature_assemble_proxy.Assign(assembly_values_map);
+
+    // following line will overwrite previous values for gp_list(0) gp given in assembly_values_map
+    // if gp_list(0) is a non_local gp (as in rank > 0)
+    // but will assigns the local gp in rank 0 using the functor.
+    apply_temperature_assemble_proxy.Assign(gp_list(0), 1);
 
     // communicate remote gps and update them
     apply_temperature_assemble_proxy.SendAndApplyRemotely();
 
     if (current_rank == 0) {
-        KRATOS_CHECK_EQUAL(
-            pnode->GetValue(TEMPERATURE),
-            current_rank + world_size * (current_rank + 1) * 2.0 * 2.0 + world_size);
+        KRATOS_CHECK_EQUAL(pnode->GetValue(TEMPERATURE), world_size + 2);
     } else {
-        KRATOS_CHECK_EQUAL(pnode->GetValue(TEMPERATURE),
-                           current_rank + world_size * (current_rank + 1) * 2.0 * 2.0);
+        KRATOS_CHECK_EQUAL(pnode->GetValue(TEMPERATURE), current_rank + (world_size - current_rank) * (current_rank + 1) * 2.0);
     }
 }
 
