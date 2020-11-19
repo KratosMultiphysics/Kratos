@@ -419,7 +419,7 @@ void SmallStrainUPwDiffOrderElement::EquationIdVector( EquationIdVectorType& rRe
 
 //----------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();

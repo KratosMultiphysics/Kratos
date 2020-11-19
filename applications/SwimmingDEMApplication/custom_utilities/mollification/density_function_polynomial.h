@@ -122,7 +122,8 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal
         sum_of_weights_inv += weight;
     }
 
-    sum_of_weights_inv = (sum_of_weights_inv == 0.0) ? 0.0 : 1.0 / sum_of_weights_inv;
+    if(std::abs(sum_of_weights_inv) < std::numeric_limits<double>::epsilon()) sum_of_weights_inv = 0.0;
+    else sum_of_weights_inv = 1.0 / sum_of_weights_inv;
 
     // normalizing weights
 

@@ -204,6 +204,7 @@ void KratosFluidDynamicsApplication::Register() {
 
     // Auxiliary variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DRAG_FORCE_CENTER)
+    KRATOS_REGISTER_VARIABLE( SMOOTHING_COEFFICIENT )
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
