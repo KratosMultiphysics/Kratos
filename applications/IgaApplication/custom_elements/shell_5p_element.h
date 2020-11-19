@@ -432,20 +432,7 @@ private:
 
     void CalculateSVKMaterialTangent();
 
-
-    //void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
-    //void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix);
-  //  inline void CalculateAndAddKm(
- //       MatrixType& rLeftHandSideMatrix,
-  //      const Matrix& B,
-  //      const Matrix& D,
-   //     const double IntegrationWeight);
-
-  //  inline void CalculateAndAddNonlinearKm(
-   //     Matrix& rLeftHandSideMatrix,
-   //     const SecondVariations& rSecondVariationsStrain,
-  //      const Vector& rSD,
-   //     const double IntegrationWeight);
+    void Shell5pElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}

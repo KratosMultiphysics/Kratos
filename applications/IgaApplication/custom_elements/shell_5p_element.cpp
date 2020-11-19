@@ -659,6 +659,33 @@ namespace Kratos
 		return BLA;
 	}
 
+
+
+
+	void Shell5pElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+	{
+		for (int i = 0; i < GetGeometry().size(); i++)
+		{
+			std::cout << "================================NODE: " << i << "====================" << std::endl;
+			array_1d<double, 3 > director = GetGeometry()[i].GetValue(DIRECTOR);
+
+			const array_1d<double, 3 > inc2d3 = GetGeometry()[i].GetSolutionStepValue(DIRECTORINC);
+			array_1d<double, 2 > inc2d;
+			inc2d[0] = inc2d3[0];
+			inc2d[1] = inc2d3[1];
+
+			const Matrix32d BLA = GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
+			const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
+
+			director = director + inc3d;
+			director = director / sqrt(director[0] * director[0] + director[1] * director[1] + director[2] * director[2]);
+
+			GetGeometry()[i].SetValue(DIRECTOR, director);
+			GetGeometry()[i].SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
+		}
+	}
+
+
 	//void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) //update before next iteration
 	//{
 	//	for (int i=1 ; i< GetGeometry().size(); i++)  //update for each node after every solution step
