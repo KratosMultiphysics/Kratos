@@ -57,5 +57,17 @@ KRATOS_TEST_CASE_IN_SUITE(RemoveWhiteSpaces, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(text, "textwithspacesjojobizarreadventure");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SplitStringByDelimiter, KratosCoreFastSuite)
+{
+    const std::string string_to_split = "abc, eeee,;esdsdsd,   ";
+    const std::vector<std::string> splitted_string = StringUtilities::SplitStringByDelimiter(string_to_split, ',');
+    KRATOS_CHECK_EQUAL(splitted_string.size(), 4);
+
+    KRATOS_CHECK_STRING_EQUAL(splitted_string[0], "abc");
+    KRATOS_CHECK_STRING_EQUAL(splitted_string[1], " eeee");
+    KRATOS_CHECK_STRING_EQUAL(splitted_string[2], ";esdsdsd");
+    KRATOS_CHECK_STRING_EQUAL(splitted_string[3], "   ");
+}
+
 }   // namespace Testing
 }  // namespace Kratos.
