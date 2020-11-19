@@ -26,7 +26,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolConstruction, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
+			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
 			std::size_t block_size = 5;
 			std::size_t default_chunk_size = 1024 * 1024; // 1M
 			FixedSizeMemoryPool fixed_size_memory_pool(block_size);
@@ -38,7 +38,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolAllocationDeallocation, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
+			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
 			std::size_t block_size = 15;
 			std::size_t default_chunk_size = 1024 * 1024; // 1M
 			std::size_t number_of_blocks = (default_chunk_size - 2 * max_threads * sizeof(Chunk::SizeType)) / 16;
