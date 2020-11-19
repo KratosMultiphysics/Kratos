@@ -428,7 +428,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
         auto& r_node = r_geom[i_node];
         const auto node_dNdX = row(r_dNdX, i_node);
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        for (int d1 = 0; d1 < TDim; ++d1) {
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
             midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
         }
     }
@@ -464,7 +464,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
         const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
         const array_1d<double, 3> vel = r_mom / r_rho;
         const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(vel, vel)) / c_v;
-        for (int d1 = 0; d1 < TDim; ++d1) {
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
             midpoint_grad_temp[d1] += node_dNdX(d1) * temp;
         }
     }
@@ -490,7 +490,7 @@ double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointSound
         const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
         midpoint_rho += r_rho;
         midpoint_tot_ener += r_tot_ener;
-        for (int d1 = 0; d1 < TDim; ++d1) {
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
             midpoint_mom[d1] += r_mom(d1);
         }
     }
@@ -528,7 +528,7 @@ double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointVeloc
         const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
         midpoint_rho += r_rho;
-        for (int d1 = 0; d1 < TDim; ++d1) {
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
             midpoint_mom[d1] += r_mom(d1);
             midpoint_div_mom += node_dNdX(d1) * r_mom(d1);
             midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
