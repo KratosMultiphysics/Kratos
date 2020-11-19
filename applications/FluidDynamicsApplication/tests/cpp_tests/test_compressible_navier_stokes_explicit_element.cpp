@@ -203,7 +203,6 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS3D4N, FluidDynamics
     f_ext[2] = 0.0; // z-volume force
     const double r = 0.0; // external pressure
     const double mass = 0.0; // mass source
-    const double dt = 1.0e-1; // fake delta time to calculate the time derivatives
 
     for (auto &r_node : r_model_part.Nodes()){
         const double velocity = 2.9 * (1.0 - (r_node.Id() / 10.0));
