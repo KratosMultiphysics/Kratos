@@ -444,7 +444,7 @@ void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatr
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -466,7 +466,7 @@ void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -488,7 +488,7 @@ void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);

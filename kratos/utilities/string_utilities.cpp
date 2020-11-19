@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
+#include <sstream>
 
 // External includes
 
@@ -102,6 +103,24 @@ std::string RemoveWhiteSpaces(const std::string& rString)
     }
 
     return output;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> SplitStringByDelimiter(
+    const std::string& rString,
+    const char Delimiter)
+{
+	std::istringstream ss(rString);
+	std::string token;
+
+	std::vector<std::string> splitted_string;
+	while(std::getline(ss, token, Delimiter)) {
+		splitted_string.push_back(token);
+	}
+
+	return splitted_string;
 }
 
 } // namespace StringUtilities
