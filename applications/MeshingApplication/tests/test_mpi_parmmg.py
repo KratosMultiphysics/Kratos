@@ -1,12 +1,13 @@
 import KratosMultiphysics
 from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
 import KratosMultiphysics.MeshingApplication
-from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
+from KratosMultiphysics.testing.utilities import ReadSerialModelPart
 import os
 import math
+import json
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
@@ -73,77 +74,60 @@ class TestMPIParMmg(KratosUnittest.TestCase):
             "save_external_files"              : true,
             "save_colors_files"                : true,
             "initialize_entities"              : false,
-            "preserve_flags"                   : false
+            "preserve_flags"                   : false,
+            "echo_level"                       : 0
         }
         """)
         pmmg_parameters["filename"].SetString(GetFilePath(pmmg_parameters["filename"].GetString()))
         pmmg_process = KratosMultiphysics.MeshingApplication.ParMmgProcess3D(main_model_part.GetRootModelPart(), pmmg_parameters)
         pmmg_process.Execute()
 
-        # Checking color element and condition maps.
-        check_parameters = KratosMultiphysics.Parameters("""
-        {
-            "reference_file_name"   : "parmmg_eulerian_test/cond_ref_map.json",
-            "output_file_name"      : "output_file_name",
-            "comparison_type"       : "deterministic"
+        reference_file_name = GetFilePath("parmmg_eulerian_test/cond_ref_map.json")
+        result_file_name = GetFilePath("output_step=0_"+str(communicator.Rank())+".cond.ref.json")
+        self._CompareColorFiles(reference_file_name, result_file_name)
 
-        }
-        """)
+        reference_file_name = GetFilePath("parmmg_eulerian_test/elem_ref_map.json")
+        result_file_name = GetFilePath("output_step=0_"+str(communicator.Rank())+".elem.ref.json")
+        self._CompareColorFiles(reference_file_name, result_file_name)
 
-        check_parameters["output_file_name"].SetString(GetFilePath("output_step=0_"+str(communicator.Rank())+".cond.ref.json"))
-        check_parameters["reference_file_name"].SetString(GetFilePath(check_parameters["reference_file_name"].GetString()))
-        check_files = CompareTwoFilesCheckProcess(check_parameters)
-        check_files.ExecuteInitialize()
-        check_files.ExecuteBeforeSolutionLoop()
-        check_files.ExecuteInitializeSolutionStep()
-        check_files.ExecuteFinalizeSolutionStep()
-        check_files.ExecuteFinalize()
+        ref_mdpa_filename = GetFilePath("parmmg_eulerian_test/parmmg_sphere_reference_mdpa_rank_"+str(communicator.Rank()))
+        ref_model_part = current_model.CreateModelPart("Reference")
+        # We add the variables needed
+        ref_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        ref_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        ref_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        ReadSerialModelPart(ref_mdpa_filename, ref_model_part)
 
-        check_parameters = KratosMultiphysics.Parameters("""
-        {
-            "reference_file_name"   : "parmmg_eulerian_test/elem_ref_map.json",
-            "output_file_name"      : "output_file_name",
-            "comparison_type"       : "deterministic"
-
-        }
-        """)
-
-        check_parameters["output_file_name"].SetString(GetFilePath("output_step=0_"+str(communicator.Rank())+".elem.ref.json"))
-        check_parameters["reference_file_name"].SetString(GetFilePath(check_parameters["reference_file_name"].GetString()))
-        check_files = CompareTwoFilesCheckProcess(check_parameters)
-        check_files.ExecuteInitialize()
-        check_files.ExecuteBeforeSolutionLoop()
-        check_files.ExecuteInitializeSolutionStep()
-        check_files.ExecuteFinalizeSolutionStep()
-        check_files.ExecuteFinalize()
-
-        pmmg_process.OutputMdpa()
-
-        # We check the solution
-        check_parameters = KratosMultiphysics.Parameters("""
-        {
-            "reference_file_name"   : "reference_file_name",
-            "output_file_name"      : "output_file_name",
-            "comparison_type"       : "deterministic"
-
-        }
-        """)
-        check_parameters["reference_file_name"].SetString(GetFilePath("parmmg_eulerian_test/parmmg_sphere_reference_mdpa_rank_"+str(communicator.Rank())+".mdpa"))
-        check_parameters["output_file_name"].SetString(GetFilePath("output_"+str(communicator.Rank())+".mdpa"))
-        check_files = CompareTwoFilesCheckProcess(check_parameters)
-
-        check_files.ExecuteInitialize()
-        check_files.ExecuteBeforeSolutionLoop()
-        check_files.ExecuteInitializeSolutionStep()
-        check_files.ExecuteFinalizeSolutionStep()
-        check_files.ExecuteFinalize()
+        self._CheckModelPart(ref_model_part, main_model_part)
+        for ref_sub_model_part in ref_model_part.SubModelParts:
+            sub_model_part_name = ref_sub_model_part.Name
+            if main_model_part.HasSubModelPart(sub_model_part_name):
+                result_sub_model_part = main_model_part.GetSubModelPart(sub_model_part_name)
+            else:
+                raise(Exception("Submodelpart", sub_model_part_name, "does not exist in the remeshed model part"))
+            self._CheckModelPart(ref_sub_model_part, result_sub_model_part)
 
         for file_name in os.listdir(GetFilePath("")):
             if file_name.endswith(".json") or file_name.endswith(".mdpa") or file_name.endswith(".mesh") or  file_name.endswith(".sol"):
                 kratos_utilities.DeleteFileIfExisting(GetFilePath(file_name))
         kratos_utilities.DeleteTimeFiles(os.getcwd())
 
+    def _CompareColorFiles(self, ref_dict_filename, result_dict_file_name):
 
+        with open(ref_dict_filename, 'r') as f:
+            reference_values = json.load(f)
+
+        with open(result_dict_file_name, 'r') as f:
+            result_values = json.load(f)
+
+        self.assertEqual(len(reference_values.keys()), len(result_values.keys()))
+        for key_ref, key_result in zip(reference_values.keys(), result_values.keys()):
+            self.assertEqual(reference_values[key_ref], result_values[key_result])
+
+    def _CheckModelPart(self, ref_model_part, result_model_part):
+        self.assertEqual(ref_model_part.NumberOfNodes(), result_model_part.NumberOfNodes())
+        self.assertEqual(ref_model_part.NumberOfElements(), result_model_part.NumberOfElements())
+        self.assertEqual(ref_model_part.NumberOfConditions(), result_model_part.NumberOfConditions())
 
 if __name__ == '__main__':
     KratosUnittest.main()

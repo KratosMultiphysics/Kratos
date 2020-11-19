@@ -20,21 +20,21 @@ Begin Nodes
 End Nodes
 
 Begin Elements	Element3D4N
-	1	1	2	1	8	9	
-	2	1	1	6	2	8	
-	3	1	7	1	6	2	
-	4	1	2	9	4	7	
-	5	1	5	9	4	2	
-	6	1	7	1	2	9	
+	1	1	2	1	8	9
+	2	1	1	6	2	8
+	3	1	7	1	6	2
+	4	1	2	9	4	7
+	5	1	5	9	4	2
+	6	1	7	1	2	9
 End Elements
 
 Begin Conditions	SurfaceCondition3D3N
-	1	0	1	8	9	
-	2	0	1	6	8	
-	3	0	7	6	1	
-	4	0	9	4	7	
-	5	0	5	4	9	
-	6	0	7	1	9	
+	1	0	1	8	9
+	2	0	1	6	8
+	3	0	7	6	1
+	4	0	9	4	7
+	5	0	5	4	9
+	6	0	7	1	9
 End Conditions
 
 Begin NodalData	DISTANCE
@@ -108,7 +108,7 @@ Begin SubModelPart	Outlet3D_Outlet_pressure_Auto1
 	Begin SubModelPartConditions
 		5
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	Parts_Parts_Fluid
 	Begin SubModelPartData
@@ -135,7 +135,7 @@ Begin SubModelPart	Parts_Parts_Fluid
 	End SubModelPartElements
 	Begin SubModelPartConditions
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	NoSlip3D_No_Slip_Auto1
 	Begin SubModelPartData
@@ -159,7 +159,7 @@ Begin SubModelPart	NoSlip3D_No_Slip_Auto1
 		4
 		6
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	AutomaticInlet3D_Automatic_inlet_velocity_Auto4
 	Begin SubModelPartData
@@ -176,5 +176,5 @@ Begin SubModelPart	AutomaticInlet3D_Automatic_inlet_velocity_Auto4
 	Begin SubModelPartConditions
 		3
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
