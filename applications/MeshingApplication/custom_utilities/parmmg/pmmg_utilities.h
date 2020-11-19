@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/mmg_utilities.h"
+#include "custom_utilities/mmg/mmg_utilities.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
