@@ -419,14 +419,14 @@ protected:
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
-
+        const auto& r_const_elem_ref = rElement;
         // Adding damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
-            rElement.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
+            r_const_elem_ref.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[*mpRayleighBeta];
-            rElement.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
+            r_const_elem_ref.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
     }
@@ -448,15 +448,15 @@ protected:
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
-
+        const auto& r_const_cond_ref = rCondition;
         // Adding damping contribution
         // Damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
-            rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
+            r_const_cond_ref.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[*mpRayleighBeta];
-            rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
+            r_const_cond_ref.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
     }

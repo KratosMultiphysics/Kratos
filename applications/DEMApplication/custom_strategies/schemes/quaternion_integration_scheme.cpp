@@ -27,7 +27,7 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_vel[3])
     {
-        KRATOS_THROW_ERROR(std::runtime_error, "This scheme (QuaternionIntegrationScheme) should not calculate translational motion, so the function (QuaternionIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed", 0);
+        KRATOS_ERROR << "This scheme (QuaternionIntegrationScheme) should not calculate translational motion, so the function (QuaternionIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed" << std::endl;
     }
 
     void QuaternionIntegrationScheme::CalculateNewRotationalVariablesOfSpheres(
