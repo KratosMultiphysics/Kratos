@@ -57,8 +57,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public Element
         Element* mpElement;
 
     public:
-        explicit ThisExtensions(
-            Element* pElement)
+        explicit ThisExtensions(Element* pElement)
             : mpElement{pElement}
         {
         }
@@ -116,22 +115,19 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public Element
             rVector[index] = IndirectScalar<double>{}; // pressure
         }
 
-        void GetFirstDerivativesVariables(
-            std::vector<VariableData const*>& rVariables) const override
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
         {
             rVariables.resize(1);
             rVariables[0] = &ADJOINT_FLUID_VECTOR_2;
         }
 
-        void GetSecondDerivativesVariables(
-            std::vector<VariableData const*>& rVariables) const override
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
         {
             rVariables.resize(1);
             rVariables[0] = &ADJOINT_FLUID_VECTOR_3;
         }
 
-        void GetAuxiliaryVariables(
-            std::vector<VariableData const*>& rVariables) const override
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override
         {
             rVariables.resize(1);
             rVariables[0] = &AUX_ADJOINT_FLUID_VECTOR_1;
@@ -189,8 +185,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    VMSAdjointElement(
-        IndexType NewId = 0)
+    VMSAdjointElement(IndexType NewId = 0)
         : Element(NewId)
     {
     }
@@ -217,7 +212,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     }
@@ -258,8 +253,7 @@ public:
      *
      * @return 0 after successful completion.
      */
-    int Check(
-        const ProcessInfo& rProcessInfo) const override
+    int Check(const ProcessInfo& rProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -1471,8 +1465,7 @@ protected:
      *
      * @param Volume the volume (area in 2D) of the element
      */
-    double CalculateElementSize(
-        const double Volume) const;
+    double CalculateElementSize(const double Volume) const;
 
     /**
      * @brief Returns derivatives of determinant of Jacobian w.r.t coordinates.
@@ -1486,8 +1479,7 @@ protected:
      * @see Triangle2D3
      * @see Tetrahedra3D4
      */
-    void CalculateDeterminantOfJacobianDerivatives(
-        array_1d<double, TCoordLocalSize >& rDetJDerivatives) const;
+    void CalculateDeterminantOfJacobianDerivatives(array_1d<double, TCoordLocalSize >& rDetJDerivatives) const;
 
     /**
      * @brief Returns the VMS stabilization parameters.
