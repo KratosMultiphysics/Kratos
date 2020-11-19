@@ -93,6 +93,24 @@ namespace Kratos
 	///@}
 	///@name Assembly
 	///@{
+	void printToMaple(const Matrix& A)
+	{
+		std::cout << "<< ";
+		for (int z = 0; z < A.size1(); ++z)
+		{
+			for (int s = 0; s < A.size2(); ++s)
+			{
+				if (s < A.size2() - 1)
+					std::cout << A(z, s) << ", ";
+				else
+					std::cout << A(z, s);
+			}
+			if (z < A.size1() - 1)
+				std::cout << ">|<";
+			else
+				std::cout << ">>" << std::endl;
+		}
+	}
 
 	void Shell5pElement::CalculateAll(
 		MatrixType& rLeftHandSideMatrix,
@@ -159,9 +177,15 @@ namespace Kratos
 				// operation performed: rRightHandSideVector -= Weight*IntForce
 				noalias(rRightHandSideVector) -= integration_weight * prod(trans(BOperator), constitutive_variables.StressVector);
 			}
+			//std::cout <<"rRightHandSideVector: " <<rRightHandSideVector << std::endl;
+			//std::cout <<"BOperator: "  << std::endl;
+			//printToMaple(BOperator);
 		}
 		KRATOS_CATCH("");
 	}
+
+
+
 
 	///@}
 	///@name Kinematics
@@ -173,32 +197,42 @@ namespace Kratos
 		VariationVariables& rVar
 	)
 	{
-		Matrix J;
-		GetGeometry().Jacobian(J, IntegrationPointIndex);
-
-		rKin.a1 = column(J, 0);
-		rKin.a2 = column(J, 1);
-
-		//GetCovariantMetric
-		rKin.metric[0] = norm_2_square(rKin.a1); //TODO calculate metric from displacements and not from geometry. This is more accurate for small strains due cancelation with reference metric since 1.0-1.0 ~ loses digits 
-		rKin.metric[1] = norm_2_square(rKin.a2);
-		rKin.metric[2] = inner_prod(rKin.a1, rKin.a2);
 
 		rKin.t = ZeroVector(3);
 		rKin.dtd1 = ZeroVector(3);
 		rKin.dtd2 = ZeroVector(3);
-
-
+		rKin.a1 = ZeroVector(3);
+		rKin.a2 = ZeroVector(3);
 		const SizeType number_of_nodes = GetGeometry().size();
 		for (size_t i = 0; i < number_of_nodes; i++)
 		{
 			rKin.t += m_N(IntegrationPointIndex, i) * GetGeometry()[i].GetValue(DIRECTOR); //TODO does this really do what i want? t=sum_I N_I *t_I ? and is this the best way to obtain this?
 			rKin.dtd1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].GetValue(DIRECTOR);
 			rKin.dtd2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetValue(DIRECTOR);
+			rKin.a1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].Coordinates();
+			rKin.a2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].Coordinates();
 		}
+		Matrix J;
+		GetGeometry().Jacobian(J, IntegrationPointIndex);
+
+		//rKin.a1 = column(J, 0);
+		//rKin.a2 = column(J, 1);
+	
+		//GetCovariantMetric
+		rKin.metric[0] = norm_2_square(rKin.a1); //TODO calculate metric from displacements and not from geometry. This is more accurate for small strains due cancelation with reference metric since 1.0-1.0 ~ loses digits 
+		rKin.metric[1] = norm_2_square(rKin.a2);
+		rKin.metric[2] = inner_prod(rKin.a1, rKin.a2);
+
+		//rKin.t = ZeroVector(3);
+		//rKin.dtd1 = ZeroVector(3);
+		//rKin.dtd2 = ZeroVector(3);
+
+
+
 
 		double invL_t = 1.0 / norm_2(rKin.t);
 		rKin.t *= invL_t;
+
 
 		const array_1d<double, 3>& t = rKin.t; //define alias for cleaner code
 		const array_1d<double, 3>& dtd1 = rKin.dtd1; //define alias for cleaner code
@@ -206,7 +240,11 @@ namespace Kratos
 		const array_1d<double, 3>& a1 = rKin.a1; //define alias for cleaner code
 		const array_1d<double, 3>& a2 = rKin.a2; //define alias for cleaner code
 
-		rVar.P = outer_prod(t, t) - IdentityMatrix(3);
+		//std::cout << "tGP: " << rKin.t << std::endl;
+		//std::cout << "a1: " << a1 << std::endl;
+		//std::cout << "a2: " << a2 << std::endl;
+
+		rVar.P = IdentityMatrix(3) -outer_prod(t, t)  ;
 		rVar.P *= invL_t;
 
 		invL_t *= invL_t;
@@ -246,6 +284,7 @@ namespace Kratos
 		array_1d<double, 3> a3;
 		Matrix J0;
 		GetGeometry().Jacobian(J0, IntegrationPointIndex);
+		//std::cout << "JO: " << J0 << std::endl;
 
 		const array_1d<double, 3> a1 = column(J0, 0);
 		const array_1d<double, 3> a2 = column(J0, 1);
@@ -303,22 +342,13 @@ namespace Kratos
 		subrange(strain_vector,3,6) = rActualKinematic.curvature - reference_Curvature[IntegrationPointIndex];
 
 		subrange(strain_vector, 6, 8) = rActualKinematic.transShear - reference_TransShear[IntegrationPointIndex];
+
+		//std::cout << strain_vector << std::endl;
+		//std::cout << "reference_TransShear: "<< reference_TransShear << std::endl;
+		//std::cout << "rActualKinematic.transShear: "<< rActualKinematic.transShear << std::endl;
 		noalias(rThisConstitutiveVariables.StrainVector) = strain_vector;
 		noalias(rThisConstitutiveVariables.StressVector) = prod(mC,strain_vector);
-
-		//rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector); //this is the input parameter
-		//rValues.SetStressVector(rThisConstitutiveVariables.StressVector);    //this is an ouput parameter
-		//rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.ConstitutiveMatrix); //TODO Alex this can not work
-
-
-
-		//mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-
-		//double thickness = this->GetProperties().GetValue(THICKNESS);
-	    //	noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(thickness, 2) / 12);   //TODO this does not work for general material laws especially including shear
-
-		//Local Cartesian Forces and Moments and Shear Forces
-		noalias(rThisConstitutiveVariables.StressVector) = prod(mC, rThisConstitutiveVariables.StrainVector);
+		//std::cout << rThisConstitutiveVariables.StressVector << std::endl;
 	}
 
 	Matrix Shell5pElement::CalculateStrainDisplacementOperator(
@@ -368,7 +398,11 @@ namespace Kratos
 				rB(5, kr + 3 + s) = Temp2(s);
 				rB(6, kr + 3 + s) = Temp3(s);
 				rB(7, kr + 3 + s) = Temp4(s);
-			}///=============== end of stupid version ===============
+			}
+			//std::cout << "BLAI: "<<BLAI << std::endl;
+			//std::cout << "WI1: "<< WI1 << std::endl;
+			//std::cout << "rActualKinematic.a1: "<< rActualKinematic.a1 << std::endl;
+			///=============== end of stupid version ===============
 
 
 			////membrane
@@ -630,7 +664,6 @@ namespace Kratos
 
 	BoundedMatrix<double,3,2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director)
 	{
-
 		double st = (director[2] > 0) ? 1 : ((director[2] < 0) ? -1 : 1);
 		double s = 1 / (1 + fabs(director[2]));
 
@@ -646,11 +679,7 @@ namespace Kratos
 		BLA(0, 0) =     s2 - 4 * ys1;   BLA(0, 1) = -4 * y(0) * y(1);
 		BLA(1, 0) = -4 * y(0) * y(1);   BLA(1, 1) =     s2 - 4 * ys2;
 	    BLA(2, 0) =   -st * 4 * y(0);   BLA(2, 1) =   -st * 4 * y(1);
-		std::cout << "BLAInternal: "<<BLA << std::endl;
-		std::cout << "directorInternal: "<< director << std::endl;
-		std::cout << "st: "<< st << std::endl;
-		std::cout << "ys1: "<< ys1 << std::endl;
-		std::cout << "ys2: "<< ys2 << std::endl;
+
 		const double normcol0 = norm_2(column(BLA, 0));
 		const double normcol1 = norm_2(column(BLA, 1));
 		column(BLA, 0) /= normcol0;
@@ -684,72 +713,25 @@ namespace Kratos
 				std::cout << "================================NODE: " << i << "====================" << std::endl;
 				array_1d<double, 3 > director = GetGeometry()[i].GetValue(DIRECTOR);
 
-				const array_1d<double, 3 > inc2d3 = GetGeometry()[i].GetSolutionStepValue(DIRECTORINC);
+				const array_1d<double, 3 > inc2d3 = GetGeometry()[i].FastGetSolutionStepValue(DIRECTORINC);
 				array_1d<double, 2 > inc2d;
 				inc2d[0] = inc2d3[0];
 				inc2d[1] = inc2d3[1];
-
+				std::cout << "inc2d: " << inc2d << std::endl;
 				const Matrix32d BLA = GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
 				const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
 
 				director = director + inc3d;
 				director = director / sqrt(director[0] * director[0] + director[1] * director[1] + director[2] * director[2]);
-
+				std::cout << "director: " << director << std::endl;
+				
 				GetGeometry()[i].SetValue(DIRECTOR, director);
 				GetGeometry()[i].SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
+
+				//std::cout << "Tang: " << GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE) << std::endl;
 			}
 		}
 	}
-
-
-	//void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) //update before next iteration
-	//{
-	//	for (int i=1 ; i< GetGeometry().size(); i++)  //update for each node after every solution step
-	//	{ 
-
-	//		array_1d<double, 3> director = GetGeometry()[i].GetValue(DIRECTOR);
-	//		array_1d<double, 2> inc2d = GetGeometry()[i].GetValue(DIRECTORINC);
-	//		Matrix BLA(3, 2);
-	//		BLA= GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
-
-	//		array_1d<double, 3> inc3d = prod(BLA,inc2d);
-
-	//		//projection-based update
-	//		director = director+inc3d;
-	//		director = director / sqrt(inner_prod(director, director));
-
-	//		GetGeometry()[i].SetValue(DIRECTOR, director);
-
-	//		//TODO: update tangentspace
-	//	}
-	//	
-	//}
-
-
-
-
-	//void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix) 
-	//{
-	//	    //size of rLeftHandSideMatrix(num_node, num_node);
-	//	    //size of rRightHandSideMatrix(num_node, 3);
-
-	//		const auto& r_geometry = GetGeometry();
-	//		const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
-	//		const SizeType r_number_of_nodes = r_geometry.size();
-
-	//		array_1d<double, 3 > A3;
-
-	//		for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
-	//		{
-	//			A3 = GetGeometry().Normal(point_number); //this makes only sense if the geometry is undeformed
-	//			A3 = A3 / sqrt(inner_prod(A3, A3));
-	//			//Vector m_Nvec = trans(row(m_N, point_number));
-	//				rRightHandSideMatrix = rRightHandSideMatrix + outer_prod(trans(row(m_N, point_number)),  trans(A3)     ) ;
-
-	//			rLeftHandSideMatrix = rLeftHandSideMatrix + outer_prod(row(m_N,point_number), row(m_N, point_number));
-	//		}
-	//}
-	///@}
 
 } // Namespace Kratos
 
