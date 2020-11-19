@@ -404,11 +404,12 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        const auto& r_const_element = rElement;
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rElement.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
+            r_const_element.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, BDFBaseType::mVector.dotun0[this_thread]);
         }
     }
@@ -429,11 +430,12 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        const auto& r_const_condition = rCondition;
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rCondition.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
+            r_const_condition.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, BDFBaseType::mVector.dotun0[this_thread]);
         }
     }

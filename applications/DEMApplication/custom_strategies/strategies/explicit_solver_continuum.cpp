@@ -903,7 +903,7 @@ namespace Kratos {
         KRATOS_TRY
 
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
-        ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
+        const ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         Vector rhs_cond;
         std::vector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
