@@ -1,15 +1,10 @@
-# We import the libraries
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
 from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
-import KratosMultiphysics.MeshingApplication as MeshingApplication
+import KratosMultiphysics.MeshingApplication
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
-
-import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
-import json
 import os
 import math
 
@@ -18,7 +13,7 @@ def GetFilePath(fileName):
 
 class TestMPIParMmg(KratosUnittest.TestCase):
 
-    @UnitTest.skipUnless(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() == 2, "Test designed to be run with two ranks.")
+    @KratosUnittest.skipUnless(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() == 2, "Test designed to be run with two ranks.")
     def test_mpi_sphere(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 

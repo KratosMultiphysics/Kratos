@@ -511,9 +511,6 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputMesh(const std::string& rOutput
      const std::string mesh_name = rOutputName + ".mesh";
      const char* mesh_file = mesh_name.c_str();
 
-    // // a)  Give the ouptut mesh name using PMMG_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
-    PMMG_Set_outputMeshName(mParMmgMesh,mesh_file);
-
     // // b) function calling
     KRATOS_INFO_IF("ParMmgUtilities", PMMG_saveMesh_distributed(mParMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
 }
@@ -526,9 +523,6 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputSol(const std::string& rOutputN
 {
      const std::string sol_name = rOutputName + ".sol";
      const char* sol_file = sol_name.c_str();
-
-    // // a)  Give the ouptut sol name using PMMG_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
-    PMMG_Set_outputSolsName(mParMmgMesh,  sol_file);
 
     // // b) Function calling
     KRATOS_INFO_IF("ParMmgUtilities", PMMG_saveMet_distributed(mParMmgMesh, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
@@ -1220,8 +1214,6 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 
     /* CONDITIONS */ // TODO: ADD OMP
     if (rMapPointersRefCondition.size() > 0) {
-        IndexType cond_id = 1;
-
         IndexType counter_first_cond = 0;
 
         std::unordered_map<IndexType,IndexType> local_to_global_triangles;
@@ -1248,8 +1240,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 
             if (p_condition.get() != nullptr && ref != 0) {
                 created_conditions_vector.push_back(p_condition);
-                if (ref != 0) first_color_cond[static_cast<IndexType>(ref)].push_back(id_to_use);// NOTE: ref == 0 is the MainModelPart
-                cond_id += 1;
+                first_color_cond[static_cast<IndexType>(ref)].push_back(id_to_use);// NOTE: ref == 0 is the MainModelPart
             }
         }
     }
