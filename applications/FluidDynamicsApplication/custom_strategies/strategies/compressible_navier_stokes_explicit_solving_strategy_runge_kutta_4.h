@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
 #include "utilities/math_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -783,24 +784,24 @@ private:
         return std::make_tuple(h_ref, metric_inf, metric);
     }
 
+    /**
+     * @brief Appy the slip condition
+     * This method substracts the normal projection of the momentum for all the nodes flagged as SLIP
+     * The correction is computed as m_slip = m - (m·n) x n. It is intended to be called after each RK substep
+     */
     void ApplySlipCondition()
     {
-        // Calculate the model part data
         auto &r_model_part = BaseType::GetModelPart();
-        const int n_nodes = r_model_part.NumberOfNodes();
 
-        // Calculate and substract the normal contribution
-#pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            if (it_node->Is(SLIP)) {
-                auto unit_normal = it_node->FastGetSolutionStepValue(NORMAL);
+        block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+            if (rNode.Is(SLIP)) {
+                auto unit_normal = rNode.FastGetSolutionStepValue(NORMAL);
                 unit_normal /= norm_2(unit_normal);
-                auto& r_mom = it_node->FastGetSolutionStepValue(MOMENTUM);
+                auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
                 const double r_mom_n = inner_prod(r_mom, unit_normal);
                 r_mom -= r_mom_n * unit_normal;
             }
-        }
+        });
     }
 
     ///@}
