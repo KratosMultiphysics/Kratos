@@ -38,7 +38,7 @@ Element::Pointer UPwElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryTyp
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

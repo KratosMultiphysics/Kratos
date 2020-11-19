@@ -53,7 +53,7 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create( IndexType NewId, NodesA
 
 //----------------------------------------------------------------------------------------
 
-int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

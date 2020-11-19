@@ -55,7 +55,7 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
