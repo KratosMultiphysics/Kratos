@@ -124,7 +124,7 @@ public:
     void CreateStructureQuadraturePointGeometries(
         TLineGeometriesList& rInputLineGeometries,
         TQuadraturePointGeometriesList& rOuputQuadraturePointGeometries,
-        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3
+        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5
         )
     {
         for (IndexType i = 0; i < rInputLineGeometries.size(); ++i) {
@@ -156,7 +156,7 @@ public:
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
         typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-
+        double edge_length = 0.0;
 
         const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
         for (size_t i = 0; i < rInputQuadraturePointGeometries.size(); ++i)
@@ -170,13 +170,14 @@ public:
             bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin, 100, 1e-12);
 
             if (is_found) {
-                const double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
+                double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
+                integration_weight *= rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(0);
 
                 array_1d<double, 3> local_coordinates;
                 auto& r_geometry = p_elem->GetGeometry();
                 r_geometry.PointLocalCoordinates(local_coordinates, coordinates);
 
-                IntegrationPoint<3> int_p(local_coordinates, integration_weight);
+
                 Vector N;
                 r_geometry.ShapeFunctionsValues(N, local_coordinates);
 
@@ -203,11 +204,7 @@ public:
                 N_matrix.resize(1, non_zero_counter, true);
                 DN_De_non_zero.resize(non_zero_counter, DN_De.size2(), true);
 
-                GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                    r_geometry.GetDefaultIntegrationMethod(),
-                    int_p,
-                    N_matrix,
-                    DN_De_non_zero);
+
 
                 Matrix jacci;
                 rInputQuadraturePointGeometries[i]->Jacobian(jacci, 0);
@@ -219,8 +216,27 @@ public:
                 Matrix inv;
                 r_geometry.InverseOfJacobian(inv, local_coordinates);
                 Vector local_tangent = prod(inv, space_derivatives);
+                KRATOS_WATCH(inv)
+                KRATOS_WATCH(local_tangent)
+                Matrix jacci_the_wacci;
+                r_geometry.Jacobian(jacci_the_wacci, local_coordinates);
+                double J2 = norm_2(column(jacci_the_wacci, 0) * local_tangent[0] + column(jacci_the_wacci, 1) * local_tangent[1]);
+                integration_weight /= J2;
+                KRATOS_WATCH(J2)
+
+                IntegrationPoint<3> int_p(local_coordinates, integration_weight);
+
+                GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                    r_geometry.GetDefaultIntegrationMethod(),
+                    int_p,
+                    N_matrix,
+                    DN_De_non_zero);
+
+
                 rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
                     points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
+
+
 
                 #ifdef KRATOS_DEBUG
                 std::vector<array_1d<double, 3>> space_derivatives_check(2);
@@ -234,8 +250,14 @@ public:
                     << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
                 #endif
 
+                Vector det_jacobian;
+                rOuputQuadraturePointGeometries[i]->Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+                edge_length += integration_weight * det_jacobian[0];
+
             }
         }
+
+        KRATOS_WATCH(edge_length);
     }
 
     template<SizeType TDimension,

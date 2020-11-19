@@ -32,42 +32,27 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
-    const auto& r_geometry_master = (mIsProjection)
+    auto& r_geometry_master = (mIsProjection)
         ? mpGeom->GetGeometryPart(0) // set to master  - get projected 'mass' matrix
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
     auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
+
+    auto& r_geom_always_master = mpGeom->GetGeometryPart(0);
 
     const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
         ? true
         : false;
 
-    auto sf_values_master = r_geometry_master.ShapeFunctionsValues();
-    auto sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
+    const auto& sf_values_master = r_geometry_master.ShapeFunctionsValues();
+    const auto& sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
 
-    // filter out edge cases
-    const double minimum_shape_function_value = 1e-9;
+    KRATOS_WATCH(r_geometry_slave.PointsNumber())
+    KRATOS_WATCH(r_geometry_master.PointsNumber())
+    KRATOS_WATCH(sf_values_slave.size2())
+    KRATOS_WATCH(sf_values_master.size2())
 
-    std::size_t number_of_nodes_master = 0;
-    std::vector<bool> origin_is_active(sf_values_master.size2());
-    for (size_t i = 0; i < sf_values_master.size2(); ++i)
-    {
-        if (sf_values_master(0, i) > minimum_shape_function_value) {
-            number_of_nodes_master += 1;
-            origin_is_active[i] = true;
-        }
-        else origin_is_active[i] = false;
-    }
-
-    std::size_t number_of_nodes_slave = 0;
-    std::vector<bool> destination_is_active(sf_values_slave.size2());
-    for (size_t i = 0; i < sf_values_slave.size2(); ++i)
-    {
-        if (sf_values_slave(0, i) > minimum_shape_function_value) {
-            number_of_nodes_slave += 1;
-            destination_is_active[i] = true;
-        }
-        else destination_is_active[i] = false;
-    }
+    const std::size_t number_of_nodes_master = sf_values_master.size2();
+    const std::size_t number_of_nodes_slave = sf_values_slave.size2();
 
     const double weight = r_geometry_slave.IntegrationPoints()[0].Weight();
 
@@ -79,29 +64,31 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     if (rOriginIds.size()      != number_of_nodes_master) rOriginIds.resize(number_of_nodes_master);
     if (rDestinationIds.size() != number_of_nodes_slave) rDestinationIds.resize(number_of_nodes_slave);
 
-    Vector det_jacobian;
-    r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+    Vector det_jacobian_slave;
+    r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian_slave);
+    Vector det_jacobian_master;
+    r_geometry_master.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian_master);
+
+    if (mIsProjection)
+    {
+        KRATOS_WATCH(det_jacobian_slave[0]);
+        KRATOS_WATCH(det_jacobian_master[0]);
+    }
+
+    Vector det_jacobian = det_jacobian_slave;
+
     KRATOS_DEBUG_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
-
-    KRATOS_WATCH(det_jacobian[0]);
-
-    IndexType active_origin_counter = 0;
-    IndexType active_destination_counter = 0;
 
     if (is_dual_mortar) {
         rLocalMappingMatrix.clear();
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) {
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
-                if (destination_is_active[i]) {
-                    rLocalMappingMatrix(active_destination_counter, active_destination_counter) = sf_values_slave(integration_point_itr, i)
+                    rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
                         * det_jacobian[integration_point_itr] * weight;
 
-                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < minimum_shape_function_value)
-                        << "DESTINATION SHAPE FUNCTIONS LESS THAN TOLERANCE = " << minimum_shape_function_value << "\n\t" << sf_values_slave << std::endl;
-
-                    active_destination_counter += 1;
-                }
+                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                        << "DESTINATION SHAPE FUNCTIONS LESS THAN TOLERANCE = " << 0.0 << "\n\t" << sf_values_slave << std::endl;
             }
         }
     }
@@ -112,45 +99,31 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             << "\nDestination shape functions =\n\t" << sf_values_slave << std::endl;
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) {
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
-                if (destination_is_active[i]) {
-                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < minimum_shape_function_value)
+                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
                         << "DESTINATION SHAPE FUNCTIONS LESS THAN TOLERANCE\n" << sf_values_slave << std::endl;
 
-                    active_origin_counter = 0;
-
                     for (IndexType j = 0; j < sf_values_master.size2(); ++j) {
-                        if (origin_is_active[j]) {
-                            rLocalMappingMatrix(active_destination_counter, active_origin_counter) = sf_values_slave(integration_point_itr, i)
+                            rLocalMappingMatrix(i, j) = sf_values_slave(integration_point_itr, i)
                                 * sf_values_master(integration_point_itr, j)
                                 * det_jacobian[integration_point_itr] * weight;
 
-                            KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < minimum_shape_function_value)
+                            KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
                                 << "ORIGIN SHAPE FUNCTIONS LESS THAN TOLERANCE\n" << sf_values_master << std::endl;
-
-                            active_origin_counter += 1;
-                        }
                     }
-                    active_destination_counter += 1;
-                }
             }
         }
     }
 
-    active_origin_counter = 0;
-    for (IndexType i=0; i< sf_values_master.size2(); ++i) {
-        if (origin_is_active[i]) {
-            rOriginIds[active_origin_counter] = r_geometry_master[i].GetValue(INTERFACE_EQUATION_ID);
-            active_origin_counter += 1;
-        }
-
+    if (!mIsProjection)
+    {
+        KRATOS_WATCH(rLocalMappingMatrix);
     }
-    active_destination_counter = 0;
-    for (IndexType i=0; i< sf_values_slave.size2(); ++i) {
-        if (destination_is_active[i]) {
-            rDestinationIds[active_destination_counter] = r_geometry_slave[i].GetValue(INTERFACE_EQUATION_ID);
-            active_destination_counter += 1;
-        }
 
+    for (IndexType i=0; i< sf_values_master.size2(); ++i) {
+            rOriginIds[i] = r_geometry_master[i].GetValue(INTERFACE_EQUATION_ID);
+    }
+    for (IndexType i=0; i< sf_values_slave.size2(); ++i) {
+            rDestinationIds[i] = r_geometry_slave[i].GetValue(INTERFACE_EQUATION_ID);
     }
 }
 
@@ -282,7 +255,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // Check row sum of pre-computed mapping matrices only
     if (precompute_mapping_matrix || dual_mortar) {
         KRATOS_WATCH(*mpMappingMatrixSlave)
-        //KRATOS_WATCH(*mpMappingMatrix)
+        KRATOS_WATCH(*mpMappingMatrixProjector)
+        KRATOS_WATCH(*mpMappingMatrix)
         const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
         const double row_sum_tolerance = mMapperSettings["row_sum_tolerance"].GetDouble();
         MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true, row_sum_tolerance);
