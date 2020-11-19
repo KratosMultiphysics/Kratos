@@ -28,23 +28,23 @@ namespace Testing {
 
     NurbsVolumeGeometry<PointerVector<NodeType>> GenerateTruncatedPyramid() {
         // Construct Truncated Pyramid with: lower_base = 2x2; uper_base = 1.8x1.8; heigth = 4
-        PointerVector<NodeType> points;
+        PointerVector<NodeType> points(196);
         double t = 1.0;
         std::vector<double> z_direction = {0, 2.0/3.0, 4.0/3.0, 2.0, 8.0/3.0, 10/3.0, 4.0};
         std::vector<double> y_direction = {-1.0, -1.0/3.0, 1.0/3.0, 1.0};
         std::vector<double> x_direction = {-1.0, -2.0/3.0, -1.0/3.0, 0.0, 1.0/3.0, 2.0/3.0, 1.0};
         std::size_t id = 1;
         for( auto i : z_direction){
-            for( double j : y_direction) {
+            for( auto j : y_direction) {
                 for( auto k : x_direction) {
                     double x = k*t;
                     double y = j*t;
                     double z = i;
-                    points.push_back(NodeType::Pointer(new NodeType(id, x, y, z)));
+                    points(id-1) = Kratos::make_intrusive<NodeType>(id, x, y, z);
+                    id++;
                 }
             }
             t += 0.8/6.0;
-            id++;
         }
         // Polynomial orders
         SizeType polynomial_degree_u = 3;
@@ -100,11 +100,13 @@ namespace Testing {
 
     NurbsVolumeGeometry<PointerVector<Point>> GenerateDistortedCube() {
         // Construct a distroted cube.
-        PointerVector<Point> points;
+        PointerVector<Point> points(100);
+        std::vector<double> y_direction = {-1.0, -1.0/3.0, 1.0/3.0, 1.0};
         double t = 0.8;
+        int index = 0;
         for( int i = 0; i <=4; ++i){
             t += 0.2;
-            for( double j = -1; j < 1.001; j = j + 2.0/3.0) {
+            for( auto j : y_direction) {
                 for( int k = -2; k <=2; ++k ) {
                     double x = k;
                     double y = j;
@@ -113,7 +115,8 @@ namespace Testing {
                         y = j*std::max(i,2);
                     if( j == 0)
                         x = k*std::max(i,2);
-                    points.push_back(Point::Pointer(new Point(x, y, z)));
+                    points(index) = Kratos::make_shared<Point>(x, y, z);
+                    index++;
                 }
             }
         }
