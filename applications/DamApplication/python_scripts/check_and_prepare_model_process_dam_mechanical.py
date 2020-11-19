@@ -1,14 +1,20 @@
 import KratosMultiphysics
-import KratosMultiphysics.DamApplication
 
 def Factory(settings, Model):
     if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcessDamMechanical(Model, settings["Parameters"])
 
-## All the processes python should be derived from "Process"
+## all the python processes should be derived from "python_process"
 class CheckAndPrepareModelProcessDamMechanical(KratosMultiphysics.Process):
+    """Prepare the computing model part.
+
+    The computing model part is created if it does not exist. Nodes and elements
+    from the domain sub model parts are added to the computing model part.
+    Conditions are added from the processes sub model parts.
+    """
     def __init__(self, main_model_part, Parameters ):
+        KratosMultiphysics.Process.__init__(self)
         self.main_model_part = main_model_part
 
         self.mechanical_model_part_name  = Parameters["mechanical_model_part_name"].GetString()
