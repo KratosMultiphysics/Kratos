@@ -28,22 +28,32 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkInitialize, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
+			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
+
+			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
+			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
+			std::size_t chunk_size_in_bytes = header_size + 1024;
+
+			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
+			chunk.Initialize();
+
+			std::size_t block_size_after_alignment = 8;
+			std::size_t available_blocks_should_be = (chunk_size_in_bytes - 2* max_threads * sizeof(Chunk::SizeType)) / block_size_after_alignment;
+			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
+		}
+
+		KRATOS_TEST_CASE_IN_SUITE(ChunkInitializeSmallBlock, KratosCoreFastSuite)
+		{
+			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
 
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
 			std::size_t chunk_size_in_bytes = header_size + 5;
+
 			Chunk too_small_chunk(block_size_in_bytes, chunk_size_in_bytes);
 			too_small_chunk.Initialize();
+
 			KRATOS_CHECK_EQUAL(too_small_chunk.GetNumberOfAvailableBlocks(), 0) << " Available block :" << too_small_chunk.GetNumberOfAvailableBlocks();
-
-			chunk_size_in_bytes = header_size + 1024;
-			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
-			chunk.Initialize();
-			std::size_t block_size_after_alignment = 8;
-			std::size_t available_blocks_should_be = (chunk_size_in_bytes - 2* max_threads * sizeof(Chunk::SizeType)) / block_size_after_alignment;
-			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
-
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkAllocateDeallocate, KratosCoreFastSuite)
