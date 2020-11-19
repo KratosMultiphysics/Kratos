@@ -211,13 +211,12 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteFinalize()
 
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
-
             // We get the metric
-            TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+            TensorArrayType post_mesh_metric;
+            mPMmgUtilities.GetMetricTensor(post_mesh_metric);
 
             // We set the metric
-            mPMmgUtilities.GetMetricTensor(r_metric);
+            it_node->SetValue(r_tensor_variable, post_mesh_metric);
         }
     }
 
@@ -423,9 +422,6 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
 
 
     mPMmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
-
-    // Writing the new solution data on the model part
-    mPMmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
 
     /* Save to file. It is required to call it AFTER writing the model part data */
     if (save_to_file) SaveSolutionToFile(true);

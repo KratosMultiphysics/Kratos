@@ -578,12 +578,6 @@ public:
         );
 
     /**
-     * @brief This method writes sol data to an existing model part
-     * @param[in,out] rModelPart The model part of interest to study
-     */
-    void WriteSolDataToModelPart(ModelPart& rModelPart) override;
-
-    /**
      * @brief This method writes the maps of reference for conditions and elements from an existing json
      * @param[in] rModelPart The model part of interest to study
      * @param[in] rFilename The name of the files

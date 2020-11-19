@@ -688,7 +688,7 @@ public:
      * @brief This method writes sol data to an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
-    virtual void WriteSolDataToModelPart(ModelPart& rModelPart);
+    void WriteSolDataToModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method writes the maps of reference for conditions and elements from an existing json

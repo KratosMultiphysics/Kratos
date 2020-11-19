@@ -1372,15 +1372,6 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 /***********************************************************************************/
 
 template<PMMGLibrary TPMMGLibrary>
-void ParMmgUtilities<TPMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
-{
-    BaseType::WriteSolDataToModelPart(rModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::WriteReferenceEntitities(
     ModelPart& rModelPart,
     const std::string& rFilename,
