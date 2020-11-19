@@ -242,8 +242,8 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
         for i in range(self.constitutive_laws_names.size()):
             if (self.constitutive_laws_names[i].GetString()=="FrictionalViscoplasticTemperatureDependent2DLaw" or self.constitutive_laws_names[i].GetString()=="FrictionalViscoplasticTemperatureDependent3DLaw"):
                 print("self.constitutive_laws_names ",self.constitutive_laws_names[i])
-                if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE):
-                    self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE)
+                if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.INTERNAL_FRICTION_ANGLE):
+                    self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.INTERNAL_FRICTION_ANGLE)
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.COHESION):
                     self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.COHESION)
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT):
@@ -254,10 +254,10 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 print("self.constitutive_laws_names ",self.constitutive_laws_names[i])
             elif (self.constitutive_laws_names[i].GetString()=="HypoelasticTemperatureDependent2DLaw" or self.constitutive_laws_names[i].GetString()=="HypoelasticTemperatureDependent3DLaw"):
                 print("self.constitutive_laws_names ",self.constitutive_laws_names[i])
-                if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO):
-                    self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
-                if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS):
-                    self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
+                if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.POISSON_RATIO):
+                    self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.POISSON_RATIO)
+                if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.YOUNG_MODULUS):
+                    self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.YOUNG_MODULUS)
             elif (self.constitutive_laws_names[i].GetString()=="BinghamTemperatureDependent2DLaw" or self.constitutive_laws_names[i].GetString()=="BinghamTemperatureDependent3DLaw"):
                 print("self.constitutive_laws_names ",self.constitutive_laws_names[i])
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX):
