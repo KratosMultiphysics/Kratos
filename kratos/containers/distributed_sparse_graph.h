@@ -90,7 +90,7 @@ public:
       mLocalGraph(LocalSize)
     {
         mNonLocalGraphs.resize(mrComm.Size(),false);
-        mNonLocalLocks.resize(mrComm.Size(),false);
+        mNonLocalLocks.resize(mrComm.Size());
 
         mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm,LocalSize);
     }
@@ -365,7 +365,7 @@ private:
 
     LocalGraphType mLocalGraph;
     DenseVector<NonLocalGraphType> mNonLocalGraphs;
-    DenseVector<LockObject> mNonLocalLocks;
+    std::vector<LockObject> mNonLocalLocks;
 
     ///@}
     ///@name Private Operators
