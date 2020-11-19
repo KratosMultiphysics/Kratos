@@ -6,7 +6,7 @@ def Factory(settings, Model):
     return CheckAndPrepareModelProcessDamThermal(Model, settings["Parameters"])
 
 
-## all the python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckAndPrepareModelProcessDamThermal(KratosMultiphysics.Process):
     """Prepare the computing model part.
 

@@ -5,7 +5,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareSelfweightModelProcess(Model, settings["Parameters"])
 
-## all the python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckAndPrepareSelfweightModelProcess(KratosMultiphysics.Process):
     """Prepare the computing model part.
 
