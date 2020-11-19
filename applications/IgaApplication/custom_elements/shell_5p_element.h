@@ -299,6 +299,10 @@ public:
 
     void Initialize() override;
 
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     void GetValuesVector(
         Vector& rValues,
         int Step) override;
@@ -432,7 +436,6 @@ private:
 
     void CalculateSVKMaterialTangent();
 
-    void Shell5pElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}

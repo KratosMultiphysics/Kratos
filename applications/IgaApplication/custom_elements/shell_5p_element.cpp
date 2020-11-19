@@ -659,29 +659,45 @@ namespace Kratos
 		return BLA;
 	}
 
-
+	void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+	{
+		#pragma omp critical
+		GetGeometry().GetGeometryParent(0).SetValue(DIRECTOR_COMPUTED, false);
+	}
 
 
 	void Shell5pElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 	{
-		for (int i = 0; i < GetGeometry().size(); i++)
+		bool compute_director = false;
+
+		#pragma omp critical
+		if (!GetGeometry().GetGeometryParent(0).GetValue(DIRECTOR_COMPUTED))
 		{
-			std::cout << "================================NODE: " << i << "====================" << std::endl;
-			array_1d<double, 3 > director = GetGeometry()[i].GetValue(DIRECTOR);
+			GetGeometry().GetGeometryParent(0).SetValue(DIRECTOR_COMPUTED, true);
+			compute_director = true;
+		}
 
-			const array_1d<double, 3 > inc2d3 = GetGeometry()[i].GetSolutionStepValue(DIRECTORINC);
-			array_1d<double, 2 > inc2d;
-			inc2d[0] = inc2d3[0];
-			inc2d[1] = inc2d3[1];
+		if (compute_director) {
+			auto& r_parent_geometry = GetGeometry().GetGeometryParent(0);
+			for (int i = 0; i < GetGeometry().size(); i++)
+			{
+				std::cout << "================================NODE: " << i << "====================" << std::endl;
+				array_1d<double, 3 > director = GetGeometry()[i].GetValue(DIRECTOR);
 
-			const Matrix32d BLA = GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
-			const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
+				const array_1d<double, 3 > inc2d3 = GetGeometry()[i].GetSolutionStepValue(DIRECTORINC);
+				array_1d<double, 2 > inc2d;
+				inc2d[0] = inc2d3[0];
+				inc2d[1] = inc2d3[1];
 
-			director = director + inc3d;
-			director = director / sqrt(director[0] * director[0] + director[1] * director[1] + director[2] * director[2]);
+				const Matrix32d BLA = GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
+				const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
 
-			GetGeometry()[i].SetValue(DIRECTOR, director);
-			GetGeometry()[i].SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
+				director = director + inc3d;
+				director = director / sqrt(director[0] * director[0] + director[1] * director[1] + director[2] * director[2]);
+
+				GetGeometry()[i].SetValue(DIRECTOR, director);
+				GetGeometry()[i].SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
+			}
 		}
 	}
 
