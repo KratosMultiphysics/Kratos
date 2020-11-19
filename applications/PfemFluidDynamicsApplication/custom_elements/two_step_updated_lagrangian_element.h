@@ -225,17 +225,17 @@ namespace Kratos
     void Initialize() override{};
 
     /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override{};
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override{};
+    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                               VectorType &rRightHandSideVector,
-                              ProcessInfo &rCurrentProcessInfo) override{};
+                              const ProcessInfo &rCurrentProcessInfo) override{};
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               ProcessInfo &rCurrentProcessInfo) override
+                               const ProcessInfo &rCurrentProcessInfo) override
     {
       KRATOS_TRY;
       KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
@@ -243,10 +243,7 @@ namespace Kratos
     }
 
     void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                ProcessInfo &rCurrentProcessInfo) override{};
-
-    /* virtual void CalculateRightHandSideMomentum(VectorType& rRightHandSideVector, */
-    /* 						  ProcessInfo& rCurrentProcessInfo){}; */
+                                const ProcessInfo &rCurrentProcessInfo) override{};
 
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows
@@ -257,7 +254,7 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info object (unused)
        */
     void EquationIdVector(EquationIdVectorType &rResult,
-                          ProcessInfo &rCurrentProcessInfo) override;
+                          const ProcessInfo &rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -265,25 +262,16 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info instance
        */
     void GetDofList(DofsVectorType &rElementalDofList,
-                    ProcessInfo &rCurrentProcessInfo) override;
+                    const ProcessInfo &rCurrentProcessInfo) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-    virtual void UpdateCauchyStress(unsigned int g, ProcessInfo &rCurrentProcessInfo){};
+    virtual void UpdateCauchyStress(unsigned int g, const ProcessInfo &rCurrentProcessInfo){};
 
     virtual void InitializeElementalVariables(ElementalVariables &rElementalVariables){};
 
     void CalculateDeltaPosition(Matrix &rDeltaPosition);
 
-    void AddExplicitContribution(const VectorType &rRHSVector,
-                                 const Variable<VectorType> &rRHSVariable,
-                                 Variable<array_1d<double, 3>> &rDestinationVariable,
-                                 const ProcessInfo &rCurrentProcessInfo) override{};
-
-    void AddExplicitContribution(const VectorType &rRHSVector,
-                                 const Variable<VectorType> &rRHSVariable,
-                                 Variable<double> &rDestinationVariable,
-                                 const ProcessInfo &rCurrentProcessInfo) override{};
     ///@}
     ///@name Access
     ///@{
@@ -301,7 +289,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override { return 0; };
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override { return 0; };
 
     ///@}
     ///@name Inquiry
@@ -370,15 +358,15 @@ namespace Kratos
 
     virtual void CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
                                                  VectorType &rRightHandSideVector,
-                                                 ProcessInfo &rCurrentProcessInfo){};
+                                                 const ProcessInfo &rCurrentProcessInfo){};
 
     virtual void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                        VectorType &rRightHandSideVector,
-                                                       ProcessInfo &rCurrentProcessInfo){};
+                                                       const ProcessInfo &rCurrentProcessInfo){};
 
     virtual void CalculateExplicitContinuityEquation(MatrixType &rLeftHandSideMatrix,
                                                      VectorType &rRightHandSideVector,
-                                                     ProcessInfo &rCurrentProcessInfo){};
+                                                     const ProcessInfo &rCurrentProcessInfo){};
 
     virtual double GetThetaMomentum()
     {
@@ -393,16 +381,16 @@ namespace Kratos
     };
 
     void VelocityEquationIdVector(EquationIdVectorType &rResult,
-                                  ProcessInfo &rCurrentProcessInfo);
+                                  const ProcessInfo &rCurrentProcessInfo) const;
 
     void PressureEquationIdVector(EquationIdVectorType &rResult,
-                                  ProcessInfo &rCurrentProcessInfo);
+                                  const ProcessInfo &rCurrentProcessInfo) const;
 
     void GetVelocityDofList(DofsVectorType &rElementalDofList,
-                            ProcessInfo &rCurrentProcessInfo);
+                            const ProcessInfo &rCurrentProcessInfo) const;
 
     void GetPressureDofList(DofsVectorType &rElementalDofList,
-                            ProcessInfo &rCurrentProcessInfo);
+                            const ProcessInfo &rCurrentProcessInfo) const;
 
     void CalcMeanVelocity(double &meanVelocity,
                           const int Step);
@@ -467,14 +455,7 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
     void CalculateMassMatrix(Matrix &rMassMatrix,
-                             ProcessInfo &rCurrentProcessInfo) override{};
-
-    /* virtual void CalculateMassMatrixMomentum(Matrix& rMassMatrix, */
-    /* 				       ProcessInfo& rCurrentProcessInfo){}; */
-
-    /* void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix, */
-    /* 				    VectorType& rRightHandSideVector, */
-    /* 				    Flags& rCalculationFlags); */
+                             const ProcessInfo &rCurrentProcessInfo) override{};
 
     void ComputeMassMatrix(Matrix &rMassMatrix,
                            const ShapeFunctionsType &rN,

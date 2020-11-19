@@ -235,8 +235,6 @@ public:
 #else
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
 #endif
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_elem);
                 }
             }
 
@@ -258,8 +256,6 @@ public:
 #else
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
 #endif
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_cond);
                 }
             }
         }
@@ -330,9 +326,6 @@ public:
 
                     // Assemble the elemental contribution
                     AssembleLHS(rA, LHS_Contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_elem);
                 }
             }
 
@@ -351,9 +344,6 @@ public:
 
                     // Assemble the elemental contribution
                     AssembleLHS(rA, LHS_Contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_cond);
                 }
             }
         }
@@ -422,9 +412,6 @@ public:
 
                     // Assemble the elemental contribution
                     AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_elem);
                 }
             }
 
@@ -443,9 +430,6 @@ public:
 
                     // Assemble the elemental contribution
                     AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_cond);
                 }
             }
         }
