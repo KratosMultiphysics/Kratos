@@ -191,12 +191,11 @@ class TestNurbsVolumeElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(volume[44].GetSolutionStepValue(KM.DISPLACEMENT_Z),1.8417068522526938e-06)
 
         # Check global coordinate
-        global_coord = KM.Vector(3)
         param = KM.Vector(3)
         param[0] = 1.0
         param[1] = 0.5
         param[2] = 0.5
-        global_coord = volume.GlobalCoordinates(global_coord,param)
+        global_coord = volume.GlobalCoordinates(param)
         self.assertAlmostEqual(global_coord[0],5.0,5)
         self.assertAlmostEqual(global_coord[1],0.4976467387158514)
         self.assertAlmostEqual(global_coord[2],0.5,5)
