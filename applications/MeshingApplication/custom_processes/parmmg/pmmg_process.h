@@ -24,8 +24,8 @@
 // #include "mmg/libmmg.h"
 
 // Project includes
-#include "custom_utilities/pmmg_utilities.h"
-#include "custom_processes/mmg_process.h"
+#include "custom_processes/mmg/mmg_process.h"
+#include "custom_utilities/parmmg/pmmg_utilities.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================

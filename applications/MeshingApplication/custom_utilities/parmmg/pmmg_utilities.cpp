@@ -23,7 +23,7 @@
 #endif /* PMMG_INCLUDES defined */
 
 // Project includes
-#include "custom_utilities/pmmg_utilities.h"
+#include "custom_utilities/parmmg/pmmg_utilities.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================

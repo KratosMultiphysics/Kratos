@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/pmmg_process.h"
+#include "custom_processes/parmmg/pmmg_process.h"
 #include "includes/gid_io.h"
 #include "includes/model_part_io.h"
 #include "mpi/utilities/parallel_fill_communicator.h"

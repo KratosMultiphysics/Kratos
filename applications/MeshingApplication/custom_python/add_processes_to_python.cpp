@@ -29,11 +29,11 @@
 #include "custom_processes/multiscale_refining_process.h"
 
 #ifdef INCLUDE_MMG
-    #include "custom_processes/mmg_process.h"
+    #include "custom_processes/mmg/mmg_process.h"
 #endif
 
 #ifdef INCLUDE_PMMG
-    #include "custom_processes/pmmg_process.h"
+    #include "custom_processes/parmmg/pmmg_process.h"
 #endif
 
 namespace Kratos

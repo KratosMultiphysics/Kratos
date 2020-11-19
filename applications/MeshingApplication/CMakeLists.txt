@@ -37,11 +37,19 @@ file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_SOURCES
 )
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    file(GLOB KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-
 if(${INCLUDE_MMG} MATCHES ON)
+    file( GLOB KRATOS_MESHING_APPLICATION_CORE ${KRATOS_MESHING_APPLICATION_CORE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/mmg/*.cpp
+    )
+    if(${KRATOS_BUILD_TESTING} MATCHES ON)
+        file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/mmg/*.cpp)
+    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
     IF (MMG_ROOT)
         set(MMG_BUILDDIR ${MMG_ROOT})
         set(MMG_LIBDIR ${MMG_ROOT}/lib)
@@ -62,11 +70,18 @@ if(${INCLUDE_MMG} MATCHES ON)
 
     # Add definitions
     add_definitions( -DINCLUDE_MMG )
-else(${INCLUDE_MMG} MATCHES ON)
-    list(FILTER KRATOS_MESHING_APPLICATION_CORE EXCLUDE REGEX "mmg")
 endif(${INCLUDE_MMG} MATCHES ON)
 
 if(${INCLUDE_PMMG} MATCHES ON)
+    IF(${USE_MPI} MATCHES OFF )
+        message( FATAL_ERROR "Please compile Kratos in MPI to use ParMmg by setting the flag -DUSE_MPI=ON")
+    ENDIF(${USE_MPI} MATCHES OFF )
+
+    file( GLOB KRATOS_MESHING_APPLICATION_CORE ${KRATOS_MESHING_APPLICATION_CORE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parmmg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/parmmg/*.cpp
+    )
+
     IF(NOT DEFINED INCLUDE_MMG)
         message( FATAL_ERROR "MMG not included. Please add -DINCLUDE_MMG=ON to the configure file in order to compile with ParMMG")
     ELSE(NOT DEFINED INCLUDE_MMG)
@@ -115,15 +130,12 @@ if(${INCLUDE_PMMG} MATCHES ON)
         ENDIF(NOT DEFINED PMMG_LIBRARY)
     ENDIF (PMMG_ROOT)
 
-    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} KratosMPICore ${PMMG_LIBRARY} ${MMG3D_LIBRARIES} ${METIS_LIBRARY})
+    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} KratosMPICore ${PMMG_LIBRARY})
 
     include_directories(${PMMG_INCLUDE_DIR})
-    include_directories(${MMG3D_INCLUDE_DIR})
 
     message("Compilation with PMMG = " ${PMMG_LIBRARY})
     message("... and MMG3D = " ${MMG3D_LIBRARIES})
-else(${INCLUDE_PMMG} MATCHES ON)
-    list(FILTER KRATOS_MESHING_APPLICATION_CORE EXCLUDE REGEX "pmmg")
 endif(${INCLUDE_PMMG} MATCHES ON)
 
 add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
@@ -154,8 +166,8 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # Cotire
 if(USE_COTIRE MATCHES ON)
     ## The MMG is not compatible with cotire
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/pmmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg/mmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parmmg/pmmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosMeshingCore)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)
