@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/mmg_process.h"
+#include "custom_processes/mmg/mmg_process.h"
 #include "containers/model.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
