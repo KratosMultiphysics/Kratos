@@ -98,11 +98,6 @@ if(${INCLUDE_PMMG} MATCHES ON)
     ENDIF(NOT DEFINED MMG3D_LIBRARIES)
 
     add_definitions( -DINCLUDE_PMMG )
-    ## find Metis for ParMmg
-    if(NOT DEFINED USE_METIS_5)
-        message("USE_METIS_5 not defined. Setting to ON")
-        SET (USE_METIS_5 ON)
-    endif(NOT DEFINED USE_METIS_5)
 
     IF(NOT DEFINED PMMG_LIBRARY_PREFIX)
         SET(PMMG_LIBRARY_PREFIX "lib")
