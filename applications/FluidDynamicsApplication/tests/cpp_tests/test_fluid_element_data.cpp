@@ -197,8 +197,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
 
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestCompleteModelPart(full_model_part,DeltaTime,2);
-    Element& r_element = *(full_model_part.ElementsBegin());
-    ProcessInfo& r_process_info = full_model_part.GetProcessInfo();
+    const Element& r_element = *(full_model_part.ElementsBegin());
+    const ProcessInfo& r_process_info = full_model_part.GetProcessInfo();
 
     nodal_scalar_data.Initialize(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(nodal_scalar_data.Pressure[0], 11.0);
@@ -234,8 +234,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestEmptyModelPart(empty_model_part,DeltaTime,1);
 
-    Element& r_element = *(empty_model_part.ElementsBegin());
-    ProcessInfo& r_process_info = empty_model_part.GetProcessInfo();
+    const Element& r_element = *(empty_model_part.ElementsBegin());
+    const ProcessInfo& r_process_info = empty_model_part.GetProcessInfo();
 
     // historical data container should not work with variables not added to model part
     int out;

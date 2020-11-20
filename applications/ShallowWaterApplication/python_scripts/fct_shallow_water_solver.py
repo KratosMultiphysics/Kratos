@@ -26,10 +26,10 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            is_converged = self.solver.SolveSolutionStep()
+            is_converged = self._GetSolutionStrategy().SolveSolutionStep()
             self.__execute_after_low_order_step()
             self.__execute_before_high_order_step()
-            is_converged = self.solver.SolveSolutionStep()
+            is_converged = self._GetSolutionStrategy().SolveSolutionStep()
             return is_converged
         else:
             return True

@@ -304,6 +304,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
      * @param rPlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param rPlasticStrainIncrement The increment of plastic strain of this time step
      * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
      * @return It returns the threshold indicator
      */
     static double CalculatePlasticParameters(
@@ -334,8 +335,8 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor);
         CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, rPlasticStrainIncrement, rPlasticDissipation, h_capa, rValues, CharacteristicLength);
         CalculateEquivalentPlasticStrain(rPredictiveStressVector, rUniaxialStress, rPlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
-        CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor, compression_indicator_factor, rThreshold, slope, equivalent_plastic_strain, rValues);
-        CalculateHardeningParameter(rYieldSurfaceDerivative, slope, h_capa, hardening_parameter);
+        CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor, compression_indicator_factor, rThreshold, slope, equivalent_plastic_strain, rValues, CharacteristicLength);
+        CalculateHardeningParameter(rDerivativePlasticPotential, slope, h_capa, hardening_parameter);
         CalculatePlasticDenominator(rYieldSurfaceDerivative, rDerivativePlasticPotential, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator);
 
         return rUniaxialStress - rThreshold;
@@ -427,6 +428,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param EquivalentPlasticStrain The equivalent plastic strain
      * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateEquivalentStressThreshold(
         const double PlasticDissipation,
@@ -435,10 +437,11 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         double& rEquivalentStressThreshold,
         double& rSlope,
         const double EquivalentPlasticStrain,
-        ConstitutiveLaw::Parameters& rValues
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength
         )
     {
-        SmallStrainIntegratorType::CalculateEquivalentStressThreshold(PlasticDissipation, TensileIndicatorFactor, CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope, rValues, EquivalentPlasticStrain);
+        SmallStrainIntegratorType::CalculateEquivalentStressThreshold(PlasticDissipation, TensileIndicatorFactor, CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope, rValues, EquivalentPlasticStrain, CharacteristicLength);
     }
 
     /**
