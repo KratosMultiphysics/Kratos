@@ -642,9 +642,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
     }
 
     // Actually computing remesh
-    int ier;
-
-    ier = PMMG_parmmglib_distributed(mParMmgMesh);
+    int ier = PMMG_parmmglib_distributed(mParMmgMesh);
 
     if ( ier == PMMG_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF PMMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -915,18 +913,6 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     pmmg_mesh_info.NumberOfNodes = total_nodes_to_remesh.size();
     SetMeshSize(pmmg_mesh_info);
 
-    // We reorder the ids to avoid conflicts with the rest (using as reference the OLD_ENTITY)
-    IndexType counter_to_remesh = 0;
-    #pragma omp parallel for reduction(+: counter_to_remesh)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            ++counter_to_remesh;
-        }
-    }
-
     mGlobalToLocalNodePreMap = std::unordered_map<int, int>();
     mGlobalToLocalElemPreMap = std::unordered_map<int, int>();
     mGlobalToLocalCondPreMap = std::unordered_map<int, int>();
@@ -954,7 +940,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
 
     /* Nodes */
-    #pragma omp parallel for firstprivate(nodes_colors)
+    // #pragma omp parallel for firstprivate(nodes_colors)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
         const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? it_node->GetInitialPosition() : it_node->Coordinates();
@@ -962,14 +948,14 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     /* Conditions */
-    #pragma omp parallel for firstprivate(cond_colors)
+    // #pragma omp parallel for firstprivate(cond_colors)
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
         auto it_cond = it_cond_begin + i;
         SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], mGlobalToLocalCondPreMap[it_cond->Id()]);
     }
 
     /* Elements */
-    #pragma omp parallel for firstprivate(elem_colors)
+    // #pragma omp parallel for firstprivate(elem_colors)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
         SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], mGlobalToLocalElemPreMap[it_elem->Id()]);
