@@ -73,6 +73,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedral_mesh_orientation_check.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/integration_values_extrapolation_to_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/voxel_mesh_generator_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/voxel_mesh_mapper_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/coarse_voxel_mesh_generator_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_ray_casting_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_elemental_neighbours_process.cpp
