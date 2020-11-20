@@ -55,6 +55,9 @@ if(${INCLUDE_MMG} MATCHES ON)
         set(MMG_LIBDIR ${MMG_ROOT}/lib)
     ENDIF(MMG_ROOT)
 
+    MESSAGE(STATUS "Searching for MMG in MMG_BUILDDIR: ${MMG_BUILDDIR}")
+    MESSAGE(STATUS "... and MMG_LIBDIR: ${MMG_LIBDIR}")
+
     find_package(MMG)
     find_package(MMG2D)
     find_package(MMG3D)
