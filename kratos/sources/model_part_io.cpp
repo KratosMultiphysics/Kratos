@@ -3714,19 +3714,19 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData");
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData");
     }
     else if(KratosComponents<Variable<Vector> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData" );
+        DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData" );
     }
     else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData" );
+        DivideVectorialVariableData<Matrix>(OutputFiles, NodesAllPartitions, "NodalData" );
     }
     else if(KratosComponents<VariableData>::Has(variable_name))
     {
@@ -3800,6 +3800,7 @@ void ModelPartIO::DivideDofVariableData(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
+template<class TValueType>
 void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFiles,
                                     PartitionIndicesContainerType const& EntitiesPartitions,
                                     std::string BlockName)
@@ -3859,8 +3860,8 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
             entity_data << is_fixed << "\t"; // is_fixed
         }
 
-        Vector temp_vector;
-        ReadVectorialValue(temp_vector);
+        TValueType temp;
+        ReadVectorialValue(temp);
 
         for(SizeType i = 0 ; i < EntitiesPartitions[index-1].size() ; i++)
         {
@@ -3873,7 +3874,7 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
 
-            *(OutputFiles[partition_id]) << entity_data.str() << temp_vector << std::endl;
+            *(OutputFiles[partition_id]) << entity_data.str() << temp << std::endl;
         }
     }
 
@@ -3917,19 +3918,19 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<Variable<Vector> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        DivideVectorialVariableData<Matrix>(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<VariableData>::Has(variable_name))
     {
@@ -4044,19 +4045,19 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
     else if(KratosComponents<Variable<Vector> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
     else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+        DivideVectorialVariableData<Matrix>(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
     else if(KratosComponents<VariableData>::Has(variable_name))
     {

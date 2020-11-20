@@ -335,9 +335,7 @@ class TestModelPartIOMPI(KratosUnittest.TestCase):
                 self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.BULK_MODULUS), GetScalar(node.Id))
                 self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.NODAL_VAUX), GetArray3(node.Id))
                 self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.EXTERNAL_FORCES_VECTOR), GetVector(node.Id))
-                if not model_part.IsDistributed():
-                    # FIXME for some reason this doesn't work in MPI!
-                    self.assertMatrixAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.LOCAL_AXES_MATRIX), GetMatrix(node.Id))
+                self.assertMatrixAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.LOCAL_AXES_MATRIX), GetMatrix(node.Id))
 
         def CheckEntities(entites, ids_to_check):
             for ent in entites:
@@ -345,9 +343,7 @@ class TestModelPartIOMPI(KratosUnittest.TestCase):
                     self.assertAlmostEqual(ent.GetValue(KratosMultiphysics.TEMPERATURE), GetScalar(ent.Id))
                     self.assertVectorAlmostEqual(ent.GetValue(KratosMultiphysics.MESH_VELOCITY), GetArray3(ent.Id))
                     self.assertVectorAlmostEqual(ent.GetValue(KratosMultiphysics.INITIAL_STRAIN), GetVector(ent.Id))
-                    if not model_part.IsDistributed():
-                        # FIXME for some reason this doesn't work in MPI!
-                        self.assertMatrixAlmostEqual(ent.GetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR), GetMatrix(ent.Id))
+                    self.assertMatrixAlmostEqual(ent.GetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR), GetMatrix(ent.Id))
 
         elem_ids_to_check = [5,64,33,214]
         cond_ids_to_check = [2,13,22,121]
