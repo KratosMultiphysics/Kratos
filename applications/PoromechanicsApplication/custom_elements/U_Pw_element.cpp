@@ -38,7 +38,7 @@ Element::Pointer UPwElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryTyp
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -132,7 +132,7 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::Initialize()
+void UPwElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -444,7 +444,7 @@ void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatr
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -466,7 +466,7 @@ void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -488,7 +488,7 @@ void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -520,90 +520,57 @@ void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<do
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
+void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rVariable == VON_MISES_STRESS )
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
+    //if(rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+        rValues.resize(mConstitutiveLawVector.size());
 
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else //if(rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
+    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
     {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            rValues[i] = 0.0;
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-        }
+        rValues[i] = 0.0;
+        rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
     }
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
+void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
-    if(rVariable == FLUID_FLUX_VECTOR)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+        rValues.resize(mConstitutiveLawVector.size());
 
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
+    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
     {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            noalias(rValues[i]) = ZeroVector(3);
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-        }
+        noalias(rValues[i]) = ZeroVector(3);
+        rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
     }
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
+void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
-    if( rVariable == CAUCHY_STRESS_TENSOR ||
-        rVariable == TOTAL_STRESS_TENSOR ||
-        rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
-        rVariable == PERMEABILITY_MATRIX ) {
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+        rValues.resize(mConstitutiveLawVector.size());
 
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-    } else {
-
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            rValues[i].resize(TDim,TDim,false);
-            noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-        }
-
+    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+    {
+        rValues[i].resize(TDim,TDim,false);
+        noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
+        rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
     }
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
+void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
     if(rVariable == CONSTITUTIVE_LAW)
