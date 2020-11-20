@@ -154,12 +154,23 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental mass matrix
+     * to calculate the elemental consistent mass matrix
      * @param rMassMatrix the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * In the monotonic element this is called during the assembling
+     * process in order to calculate the elemental diffusion matrix
+     * to ensure monotonicity
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
