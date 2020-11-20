@@ -46,7 +46,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
                 "verbosity"                      : 1,
                 "coarse_enough"                  : 100,
                 "max_levels"                     : -1
-            },
+            }
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
