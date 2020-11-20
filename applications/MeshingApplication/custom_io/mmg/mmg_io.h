@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/io.h"
 #include "includes/model_part.h"
-#include "custom_utilities/mmg_utilities.h"
+#include "custom_utilities/mmg/mmg_utilities.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================

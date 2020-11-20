@@ -64,7 +64,7 @@ class TimeBasedAsciiFileWriterUtility:
                 self.file = self.__InitializeOutputFile(file_header)
 
     def __OpenOutputFile(self):
-        return open(self.file_name,"w", buffering=self.write_buffer_size)
+        return open(str(self.file_name),"w", buffering=self.write_buffer_size)
 
     def __InitializeOutputFile(self, file_header):
         output_file = self.__OpenOutputFile()
@@ -76,7 +76,7 @@ class TimeBasedAsciiFileWriterUtility:
             return None
 
         try: # We try to open the file and transfer the info
-            with open(self.file_name,'r') as out_file:
+            with open(str(self.file_name),'r') as out_file:
                 lines_existing_file = out_file.readlines()
 
             # search for time, return false if it was not found

@@ -17,7 +17,7 @@
 
 // Project includes
 #include "utilities/timer.h"
-#include "custom_io/mmg_io.h"
+#include "custom_io/mmg/mmg_io.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 
 // NOTE: The following contains the license of the MMG library
