@@ -100,10 +100,24 @@ void AddDEMCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>
     rProjectionModule.AddDEMCouplingVariable<TDataType>(rThisVariable);
 }
 
-template<int TDim>
-void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule, const VariableData& rThisVariable)
+template<int TDim, class TDataType>
+void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule, Variable<TDataType> const& rThisVariable)
 {
     rProjectionModule.AddFluidCouplingVariable(rThisVariable);
+}
+
+template<int TDim, class TDataType>
+void AddDEMVariablesToImpose(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule, Variable<TDataType> const& rThisVariable)
+{
+    rProjectionModule.AddDEMVariablesToImpose(rThisVariable);
+}
+
+template<int TDim, class TDataType>
+void AddFluidVariableToBeTimeFiltered(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule,
+									  Variable<TDataType> const& rThisVariable,
+									  const double time_constant)
+{
+    rProjectionModule.AddFluidVariableToBeTimeFiltered(rThisVariable);
 }
 
 class VariableChecker{
@@ -425,7 +439,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMCouplingVariable<array_1d<double, 3>>)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddFluidCouplingVariable<double>)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddFluidCouplingVariable<array_1d<double, 3>>)
-        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMVariablesToImpose)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMVariablesToImpose<double>)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMVariablesToImpose<array_1d<double, 3>>)
         ;
 
     py::class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping2D")
@@ -440,7 +455,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddDEMCouplingVariable<array_1d<double, 3>>)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddFluidCouplingVariable<double>)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddFluidCouplingVariable<array_1d<double, 3>>)
-        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddDEMVariablesToImpose)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddDEMVariablesToImpose<double>)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddDEMVariablesToImpose<array_1d<double, 3>>)
         ;
 
     py::class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping3D")
@@ -456,8 +472,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMCouplingVariable<array_1d<double, 3>>)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidCouplingVariable<double>)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidCouplingVariable<array_1d<double, 3>>)
-        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMVariablesToImpose)
-        .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidVariableToBeTimeFiltered)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMVariablesToImpose<double>)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMVariablesToImpose<array_1d<double, 3>>)
+        .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidVariableToBeTimeFiltered<double>)
+        .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidVariableToBeTimeFiltered<array_1d<double, 3>>)
         ;
 
     py::class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping3D")
@@ -471,8 +489,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMCouplingVariable<array_1d<double, 3>>)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable<double>)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable<array_1d<double, 3>>)
-        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMVariablesToImpose)
-        .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidVariableToBeTimeFiltered)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMVariablesToImpose<double>)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMVariablesToImpose<array_1d<double, 3>>)
+        .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidVariableToBeTimeFiltered<double>)
+        .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidVariableToBeTimeFiltered<array_1d<double, 3>>)
         ;
 
     py::class_<DerivativeRecoveryMeshingTools <2> > (m, "DerivativeRecoveryMeshingTools2D")

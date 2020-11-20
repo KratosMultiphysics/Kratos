@@ -174,7 +174,6 @@ virtual ~BinBasedDEMFluidCoupledMapping() {}
 
 template<class TDataType>
 void AddDEMCouplingVariable(Variable<TDataType> const& r_variable){
-    mDEMCouplingVariables.Add(r_variable);
     std::string variable_list_identifier = "DEM";
     std::string coupling_variable_description = "fluid-interpolated DEM phase variable";
     AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
@@ -182,9 +181,25 @@ void AddDEMCouplingVariable(Variable<TDataType> const& r_variable){
 
 template<class TDataType>
 void AddFluidCouplingVariable(Variable<TDataType> const& r_variable){
-    mFluidCouplingVariables.Add(r_variable);
     std::string variable_list_identifier = "Fluid";
     std::string coupling_variable_description = "DEM-interpolated fluid phase variable";
+    AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
+}
+
+template<class TDataType>
+void AddDEMVariablesToImpose(Variable<TDataType> const& r_variable){
+    std::string variable_list_identifier = "DEM";
+    std::string coupling_variable_description = "ImposedDEM";
+    AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
+}
+
+template<class TDataType>
+void AddFluidVariableToBeTimeFiltered(Variable<TDataType> const& r_variable, const double time_constant){
+	mAlphas[r_variable] = time_constant;
+    mIsFirstTimeFiltering[r_variable] = true;
+	mFluidVariablesToBeTimeFiltered.Add(r_variable);
+    std::string variable_list_identifier = "Fluid";
+    std::string coupling_variable_description = "TimeFiltered";
     AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
@@ -206,16 +221,6 @@ void AddCouplingVariable(Variable<TDataType> const& r_variable, std::string vari
 					 << ") is currently not available as a" << coupling_variable_description << "."
                      << "Please implement." << std::endl;
     }
-}
-
-void AddDEMVariablesToImpose(const VariableData& r_variable){
-    mDEMVariablesToBeImposed.Add(r_variable);
-}
-
-void AddFluidVariableToBeTimeFiltered(const VariableData& r_variable, const double time_constant){
-    mFluidVariablesToBeTimeFiltered.Add(r_variable);
-    mAlphas[r_variable] = time_constant;
-    mIsFirstTimeFiltering[r_variable] = true;
 }
 
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, Parameters& parameters, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
@@ -335,11 +340,9 @@ int mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
 
 array_1d<double, 3> mGravity;
 VariablesContainer mVariables;
-VariablesList mDEMCouplingVariables;
 VariablesList mDEMCouplingDoubleVariables;
 VariablesList mDEMCouplingVectorVariables;
 
-VariablesList mFluidCouplingVariables;
 VariablesList mDEMVariablesToBeImposed;
 VariablesList mFluidVariablesToBeTimeFiltered;
 std::map<VariableData, double> mAlphas;

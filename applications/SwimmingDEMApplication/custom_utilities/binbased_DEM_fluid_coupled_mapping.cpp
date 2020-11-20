@@ -68,12 +68,12 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
             if (element_located){
 
                 p_particle->Set(INSIDE, true);
-
-                for (unsigned int j = 0; j != mVariables.GetVariablesList("DEM").size(); ++j){
+				VariablesList& dem_variables = mVariables.GetVariablesList("DEM");
+                for (unsigned int j = 0; j != dem_variables.size(); ++j){
                     Project(p_element,
                             shape_function_values_at_point,
                             p_particle,
-                            mDEMCouplingVariables[j],
+                            dem_variables[j],
                             alpha);
                 }
             }
@@ -261,13 +261,15 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingR
 
     // transferring the rest of effects onto the fluid (not a naturally parallel task)
 
-    for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
+	VariablesList& fluid_variables = mVariables.GetVariablesList("Fluid");
+
+    for (unsigned int j = 0; j != fluid_variables.size(); ++j){
 
         for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
             //NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
             ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
 
-            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], mFluidCouplingVariables[j]);
+            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j]);
         }
     }
 
@@ -314,9 +316,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
     ComputeHomogenizedFluidFraction(r_fluid_model_part, r_dem_model_part);
 
     // transferring the rest of effects onto the fluid (not a naturally parallel task)
+	VariablesList& fluid_variables = mVariables.GetVariablesList("Fluid");
 
-    for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
-        const auto& variable = *mFluidCouplingVariables[j];
+    for (unsigned int j = 0; j != fluid_variables.size(); ++j){
+        const auto& variable = *fluid_variables[j];
         if (IsFluidVariableToBeTimeFiltered(variable)){ // hold the current value in an auxiliary variable
             CopyValues(r_fluid_model_part, variable);
             SetToZero(r_fluid_model_part, variable);
@@ -324,7 +327,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
 
         for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
             ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
-            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], mFluidCouplingVariables[j]);
+            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j]);
         }
 
         if (IsFluidVariableToBeTimeFiltered(variable)){ // average current avalue and previous (averaged) value
@@ -486,7 +489,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeP
     for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
         NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
 
-        if (mFluidCouplingVariables.Has(FLUID_FRACTION) && mViscosityModificationType){
+        if (mVariables.Is(FLUID_FRACTION, "Fluid") && mViscosityModificationType){
             const double solid_fraction = 1.0 - i_node->FastGetSolutionStepValue(FLUID_FRACTION);
             double& viscosity = i_node->FastGetSolutionStepValue(VISCOSITY);
             void (*modify_viscosity)(double&, const double);
@@ -503,14 +506,14 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeP
             modify_viscosity(viscosity, solid_fraction);
         }
 
-        if (mFluidCouplingVariables.Has(AVERAGED_FLUID_VELOCITY)){
+        if (mVariables.Is(AVERAGED_FLUID_VELOCITY, "Fluid")){
             double fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
             const array_1d<double, 3>& darcy_vel = i_node->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3>& space_averaged_fluid_vel = i_node->FastGetSolutionStepValue(AVERAGED_FLUID_VELOCITY);
             space_averaged_fluid_vel = darcy_vel / fluid_fraction;
         }
 
-        if (mFluidCouplingVariables.Has(DISPERSE_FRACTION)){
+        if (mVariables.Is(DISPERSE_FRACTION, "Fluid")){
             NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
             double& solid_fraction = i_node->FastGetSolutionStepValue(DISPERSE_FRACTION);
             solid_fraction = 1.0 - i_node->FastGetSolutionStepValue(FLUID_FRACTION);
@@ -526,7 +529,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeP
             ielem->Calculate(REYNOLDS_NUMBER, reynolds_number, r_current_process_info);
         }
 
-        if (mDEMCouplingVariables.Has(SLIP_VELOCITY)){
+        if (mVariables.Is(SLIP_VELOCITY, "DEM")){
             const array_1d<double, 3>& particle_velocity = node.FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3>& fluid_velocity = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
             array_1d<double, 3>& slip_velocity = node.FastGetSolutionStepValue(SLIP_VELOCITY);
@@ -584,7 +587,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         ApplyExponentialTimeFiltering(r_fluid_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
     }
 
-    if (mFluidCouplingVariables.Has(PHASE_FRACTION)){
+    if (mVariables.Is(PHASE_FRACTION, "Fluid")){
         CalculateFluidMassFraction(r_fluid_model_part);
     }
 }
@@ -601,9 +604,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     Vector shape_function_values_at_point;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+	VariablesList& fluid_variables = mVariables.GetVariablesList("Fluid");
 
-    for (int j = 0; j < (int)mFluidCouplingVariables.size(); ++j){
-        const auto& variable = *mFluidCouplingVariables[j];
+    for (int j = 0; j < (int)fluid_variables.size(); ++j){
+        const auto& variable = *fluid_variables[j];
 
         if (IsFluidVariableToBeTimeFiltered(variable)){ // hold the current value in an auxiliary variable
             CopyValues(r_fluid_model_part, variable);
@@ -626,7 +630,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
             if (element_located) {
                 //#pragma omp parallel for firstprivate(N)
-                Distribute(p_element, shape_function_values_at_point, p_particle, mFluidCouplingVariables[j]);
+                Distribute(p_element, shape_function_values_at_point, p_particle, fluid_variables[j]);
             }
         }
 
@@ -866,7 +870,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Project(
         Interpolate(p_elem, N, p_node, DENSITY, FLUID_DENSITY_PROJECTED, alpha);
     }
 
-    else if (*r_destination_variable == FLUID_FRACTION_PROJECTED && mFluidCouplingVariables.Has(FLUID_FRACTION)){
+    else if (*r_destination_variable == FLUID_FRACTION_PROJECTED && mVariables.Is(FLUID_FRACTION, "Fluid")){
         Interpolate(p_elem, N, p_node, FLUID_FRACTION, FLUID_FRACTION_PROJECTED, alpha);
     }
 
@@ -1371,7 +1375,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     const double particle_volume = particle.CalculateVolume();
     p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
 
-    if (mFluidCouplingVariables.Has(PHASE_FRACTION)){
+    if (mVariables.Is(PHASE_FRACTION, "Fluid")){
         const double particle_mass = particle.GetMass();
         p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(PHASE_FRACTION) += particle_mass; // here we add the mass contribution. Later we devide by the total mass of the element
     }
@@ -1390,7 +1394,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
         p_elem->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
     }
 
-    if (mFluidCouplingVariables.Has(PHASE_FRACTION)){
+    if (mVariables.Is(PHASE_FRACTION, "Fluid")){
         const double particle_mass = particle.GetMass();
 
         for (unsigned int i = 0; i < TDim + 1; ++i){
@@ -1546,14 +1550,16 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetDEM
 {
 
     for (NodeIteratorType node_it = r_dem_model_part.NodesBegin(); node_it != r_dem_model_part.NodesEnd(); ++node_it){
-        if (mDEMCouplingVariables.Has(FLUID_VEL_PROJECTED_RATE)){
+        if (mVariables.Is(FLUID_VEL_PROJECTED_RATE, "DEM")){
             ResetFLuidVelocityRate(node_it);
         }
 
-        for (ListIndexType i = 0; i != mDEMCouplingVariables.size(); ++i){
+		VariablesList& dem_variables = mVariables.GetVariablesList("DEM");
 
-            if (*mDEMCouplingVariables[i] != FLUID_VEL_PROJECTED_RATE){
-                ClearVariable(node_it, *mDEMCouplingVariables[i]);
+        for (ListIndexType i = 0; i != dem_variables.size(); ++i){
+
+            if (*dem_variables[i] != FLUID_VEL_PROJECTED_RATE){
+                ClearVariable(node_it, *dem_variables[i]);
             }
         }
     }
@@ -1571,10 +1577,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
         }
 
         if (mTimeAveragingType == 0 || mTimeAveragingType == 2){
-            if (mFluidCouplingVariables.Has(PHASE_FRACTION)){
+            if (mVariables.Is(PHASE_FRACTION, "Fluid")){
                 ClearVariable(node_it, PHASE_FRACTION);
             }
-            if (mFluidCouplingVariables.Has(TIME_AVERAGED_ARRAY_3)){
+            if (mVariables.Is(TIME_AVERAGED_ARRAY_3, "Fluid")){
                 array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
                 particle_velocity = ZeroVector(3);
             }
@@ -1589,12 +1595,12 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
             array_1d<double, 3>& mean_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(MEAN_HYDRODYNAMIC_REACTION);
             mean_hydrodynamic_reaction = ZeroVector(3);
 
-            if (mFluidCouplingVariables.Has(TIME_AVERAGED_ARRAY_3)){
+            if (mVariables.Is(TIME_AVERAGED_ARRAY_3, "Fluid")){
                 array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
                 particle_velocity = ZeroVector(3);
             }
 
-            if (mFluidCouplingVariables.Has(PHASE_FRACTION)){
+            if (mVariables.Is(PHASE_FRACTION, "Fluid")){
                 ClearVariable(node_it, PHASE_FRACTION);
             }
         }
