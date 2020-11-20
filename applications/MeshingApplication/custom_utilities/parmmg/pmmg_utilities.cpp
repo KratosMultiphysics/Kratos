@@ -1244,6 +1244,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
             }
         }
     }
+    rModelPart.AddConditions(created_conditions_vector.begin(), created_conditions_vector.end());
 
     /* ELEMENTS */ // TODO: ADD OMP
     if (rMapPointersRefElement.size() > 0) {
@@ -1269,9 +1270,6 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
             }
         }
     }
-
-    // Finally we add the conditions and elements to the main model part
-    rModelPart.AddConditions(created_conditions_vector.begin(), created_conditions_vector.end());
     rModelPart.AddElements(created_elements_vector.begin(), created_elements_vector.end());
 
     // We add nodes, conditions and elements to the sub model parts
