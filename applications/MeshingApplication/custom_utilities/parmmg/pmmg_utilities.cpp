@@ -1274,9 +1274,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
     rModelPart.AddConditions(created_conditions_vector.begin(), created_conditions_vector.end());
     rModelPart.AddElements(created_elements_vector.begin(), created_elements_vector.end());
 
-    rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
-
-    // // We add nodes, conditions and elements to the sub model parts
+    // We add nodes, conditions and elements to the sub model parts
 
     for (auto& r_color_list : rColors) {
         const IndexType key = r_color_list.first;

@@ -224,7 +224,6 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteFinalize()
     FreeMemory();
 
     // Call parallel fill communicator
-    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
     ParallelFillCommunicator(mrThisModelPart).Execute();
 
     // Save the mesh in an .mdpa format
