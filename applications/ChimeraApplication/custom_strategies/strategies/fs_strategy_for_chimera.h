@@ -72,6 +72,8 @@ public:
     typedef FractionalStepStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef FractionalStepSettingsForChimera<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
+    
+    typedef BaseType::StrategyPointerType StrategyPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -194,12 +196,7 @@ protected:
             KRATOS_INFO("FRACTIONAL STEP :: ")<<it+1<<std::endl;
             // build momentum system and solve for fractional step velocity increment
             r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
-            BaseType::mpMomentumStrategy->Initialize();
-            BaseType::mpMomentumStrategy->InitializeSolutionStep();
-            BaseType::mpMomentumStrategy->Predict();
-            BaseType::mpMomentumStrategy->SolveSolutionStep();
-            const double norm_dv = TSparseSpace::TwoNorm(BaseType::mpMomentumStrategy->GetSolutionVector());
-            BaseType::mpMomentumStrategy->FinalizeSolutionStep();
+            const double norm_dv = SolveStrategy(BaseType::mpMomentumStrategy);
 
             // Check convergence
             converged = BaseType::CheckFractionalStepConvergence(norm_dv);
@@ -237,16 +234,9 @@ protected:
 
         KRATOS_INFO_IF("FractionalStepStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
             "Calculating Pressure."<< std::endl;
-        double norm_dp = 0;
         // Solve Pressure
-        {
-            BaseType::mpPressureStrategy->Initialize();
-            BaseType::mpPressureStrategy->InitializeSolutionStep();
-            BaseType::mpPressureStrategy->Predict();
-            BaseType::mpPressureStrategy->SolveSolutionStep();
-            norm_dp = TSparseSpace::TwoNorm(BaseType::mpMomentumStrategy->GetSolutionVector());
-            BaseType::mpPressureStrategy->FinalizeSolutionStep();
-        }
+        const double norm_dp = SolveStrategy(BaseType::mpPressureStrategy);
+
 
 #pragma omp parallel
         {
@@ -713,6 +703,18 @@ private:
         BaseType::Check();
 
         KRATOS_CATCH("");
+    }
+
+
+    double SolveStrategy(StrategyPointerType& pStrategy)
+    {
+        pStrategy->Initialize();
+        pStrategy->InitializeSolutionStep();
+        pStrategy->Predict();
+        pStrategy->SolveSolutionStep();
+        const double norm_dp = TSparseSpace::TwoNorm(pStrategy->GetSolutionVector());
+        pStrategy->FinalizeSolutionStep();        
+        return norm_dp;
     }
 
 
