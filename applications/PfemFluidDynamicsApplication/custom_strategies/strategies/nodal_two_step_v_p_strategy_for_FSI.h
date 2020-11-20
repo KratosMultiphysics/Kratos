@@ -337,7 +337,7 @@ namespace Kratos
 		void UpdateElementalStressStrain()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
 #pragma omp parallel
 			{
@@ -604,7 +604,7 @@ namespace Kratos
 		{
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			double deviatoricCoeff = 0;
@@ -1229,7 +1229,7 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			double deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
@@ -1416,7 +1416,7 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -1595,7 +1595,7 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -2365,7 +2365,7 @@ namespace Kratos
 		void CalculateDisplacementsAndResetNodalVariables()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			unsigned int sizeStrains = 3 * (dimension - 1);
