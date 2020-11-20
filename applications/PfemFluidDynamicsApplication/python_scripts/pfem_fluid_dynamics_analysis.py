@@ -452,6 +452,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
                     
     def AddPfemVariables(self):
+        
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
 

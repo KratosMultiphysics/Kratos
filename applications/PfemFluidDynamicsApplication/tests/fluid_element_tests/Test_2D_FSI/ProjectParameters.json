@@ -160,10 +160,12 @@
             "python_module" : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "check_variables"     : ["VELOCITY_X","VELOCITY_Y"],
+                "check_variables"     : ["VELOCITY_X"],
                 "input_file_name"     : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI_results.json",
                 "model_part_name"      : "PfemFluidModelPart",
-                "time_frequency"       : 0.003
+            "tolerance"            : 1e-6,
+            "relative_tolerance"   : 1e-9,
+                "time_frequency"       : 0.002
             }
         }]
     },
@@ -171,10 +173,10 @@
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
-            "output_variables"     : ["VELOCITY_X","VELOCITY_Y"],
+            "output_variables"     : ["VELOCITY_X"],
             "output_file_name"     : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI_results.json",
             "model_part_name"      : "PfemFluidModelPart",
-            "time_frequency"       : 0.003
+            "time_frequency"       : 0.002
         }
     }]
 }
