@@ -131,6 +131,11 @@ def GetDefaultInputParameters():
             },
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
+            "homogenization_utility_settings" : {
+                "active"          : false,
+                "geometry_source" : "BoundingBox",
+                "element_size"    : 1.0
+            },
             "OutputTimeStep"                   : 1e-2,
             "PostBoundingBox"                  : false,
             "PostDisplacement"                 : false,

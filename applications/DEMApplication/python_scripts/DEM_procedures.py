@@ -1633,9 +1633,7 @@ class DEMIo(object):
         self.deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
         self.write_conditions = WriteConditionsFlag.WriteConditions
         self.contact_mesh_option = contact_mesh_option
-        #self.homogenization_mesh_option = self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool()
-        self.homogenization_mesh_option = True
-
+        self.homogenization_mesh_option = self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool()
 
         problem_name = os.path.join(self.post_path, self.problem_name)
         self.gid_io = GidIO(problem_name,

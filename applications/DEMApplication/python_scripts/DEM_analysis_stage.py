@@ -342,8 +342,7 @@ class DEMAnalysisStage(AnalysisStage):
             lower_corner_coordinates[i] = self.creator_destructor.GetLowNode()[i]
             higher_corner_coordinates[i] = self.creator_destructor.GetHighNode()[i]
 
-        #element_size = self.DEM_parameters["element_size"].GetDouble()
-        element_size = 1.0
+        element_size = self.DEM_parameters["homogenization_utility_settings"]["element_size"].GetDouble()
 
         number_of_divisions = [0] * self.DEM_parameters["Dimension"].GetInt()
 
@@ -373,7 +372,6 @@ class DEMAnalysisStage(AnalysisStage):
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.homogenization_model_part)
         return max_node_Id, max_elem_Id, max_cond_Id
 
-        #omplir homogenization model part amb una malla del tamany del bounding_box
         #crear objecte HomogenizationUtilities, per poder cridar una funció de projecció més endavant self.homogenization_utilities
 
     def SetSearchStrategy(self):
