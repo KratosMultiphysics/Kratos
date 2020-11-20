@@ -291,7 +291,9 @@ void ParMmgProcess<TPMMGLibrary>::SyncMapAcrossRanks(std::unordered_map<IndexTyp
     const IndexType size = mrThisModelPart.GetCommunicator().GetDataCommunicator().Size();
     const IndexType rank = mrThisModelPart.GetCommunicator().GetDataCommunicator().Rank();
 
-    if (rank>0) {
+    KRATOS_ERROR_IF(size < 2) << "Using ParMmg Process in a serial run! The MPI size is: " << size;
+
+    if (rank > 0) {
         mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(rRefEntityMap, 0);
     }
     else {
@@ -307,7 +309,7 @@ void ParMmgProcess<TPMMGLibrary>::SyncMapAcrossRanks(std::unordered_map<IndexTyp
         }
     }
 
-    if (rank==0) {
+    if (rank == 0) {
         for (IndexType i_rank = 1; i_rank < size; i_rank++) {
             mrThisModelPart.GetCommunicator().GetDataCommunicator().Send(rRefEntityMap, i_rank);
         }
