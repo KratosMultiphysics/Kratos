@@ -3720,6 +3720,10 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
     {
         DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData");
     }
+    else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+    {
+        DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData" );
+    }
     else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
     {
         DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData" );
@@ -4043,6 +4047,10 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
         DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+    {
+        DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+    }
+    else if(KratosComponents<Variable<Vector> >::Has(variable_name))
     {
         DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
