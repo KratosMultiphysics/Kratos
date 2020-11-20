@@ -26,11 +26,8 @@
 /* Utilities */
 #include "utilities/quaternion.h"
 
-/* Strategies */
-#include "solving_strategies/strategies/explicit_solving_strategy.h"
-#include "solving_strategies/builder_and_solvers/explicit_builder.h"
-
 /* Factories */
+#include "factories/register_factories.h"
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
 
