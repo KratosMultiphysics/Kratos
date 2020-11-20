@@ -73,7 +73,7 @@ public:
 
     typedef FractionalStepSettingsForChimera<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
     
-    typedef BaseType::StrategyPointerType StrategyPointerType;
+    typedef typename BaseType::StrategyPointerType StrategyPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -712,9 +712,9 @@ private:
         pStrategy->InitializeSolutionStep();
         pStrategy->Predict();
         pStrategy->SolveSolutionStep();
-        const double norm_dp = TSparseSpace::TwoNorm(pStrategy->GetSolutionVector());
+        const double norm_dx = TSparseSpace::TwoNorm(pStrategy->GetSolutionVector());
         pStrategy->FinalizeSolutionStep();        
-        return norm_dp;
+        return norm_dx;
     }
 
 
