@@ -31,10 +31,22 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "multi_point_constraints_used": false,
-            "linear_solver_settings" : {
-                "solver_type" : "amesos",
-                "amesos_solver_type" : "Amesos_Klu"
-            }
+            "linear_solver_settings":{
+                "solver_type"                    :"amgcl",
+                "preconditioner_type"            : "amg",
+                "max_iteration"                  : 500,
+                "tolerance"                      : 1e-6,
+                "provide_coordinates"            : false,
+                "smoother_type"                  : "ilut",
+                "krylov_type"                    : "bicgstab_with_gmres_fallback",
+                "gmres_krylov_space_dimension"   : 100,
+                "use_block_matrices_if_possible" : false,
+                "coarsening_type"                : "smoothed_aggregation",
+                "scaling"                        : false,
+                "verbosity"                      : 1,
+                "coarse_enough"                  : 100,
+                "max_levels"                     : -1
+            },
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
