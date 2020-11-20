@@ -1,3 +1,6 @@
+import os
+import math
+import json
 import KratosMultiphysics
 from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
 import KratosMultiphysics.MeshingApplication
@@ -5,9 +8,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.testing.utilities import ReadSerialModelPart
-import os
-import math
-import json
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
