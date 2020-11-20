@@ -10,7 +10,7 @@ if have_convection_diffusion:
 
 import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic as navier_stokes_solver
 
-@UnitTest.skipUnless(have_convection_diffusion,"Missing required application: ConvectionDiffusionApplication")
+@UnitTest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
 class BuoyancyTest(UnitTest.TestCase):
 
     def setUp(self):

@@ -25,7 +25,7 @@
 namespace Kratos
 {
 
-int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo)
+int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -49,7 +49,7 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(GROUND_IRREGULARITY)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for (auto& node : this->GetGeometry())
+    for (const auto& node : this->GetGeometry())
     {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)

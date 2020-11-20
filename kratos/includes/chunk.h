@@ -60,7 +60,7 @@ namespace Kratos
 	  Chunk(Chunk const& rOther) = delete;
 
 	  Chunk(Chunk&& rOther) noexcept
-		  : LockObject(rOther)
+		  : LockObject(std::move(rOther))
 		  , mpData(rOther.mpData)
 		  , mSize(rOther.mSize)
 		  , mBlockSizeInBytes(rOther.mBlockSizeInBytes)

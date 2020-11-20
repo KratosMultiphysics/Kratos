@@ -55,6 +55,9 @@ if(${INCLUDE_MMG} MATCHES ON)
         set(MMG_LIBDIR ${MMG_ROOT}/lib)
     ENDIF(MMG_ROOT)
 
+    MESSAGE(STATUS "Searching for MMG in MMG_BUILDDIR: ${MMG_BUILDDIR}")
+    MESSAGE(STATUS "... and MMG_LIBDIR: ${MMG_LIBDIR}")
+
     find_package(MMG)
     find_package(MMG2D)
     find_package(MMG3D)
@@ -95,11 +98,6 @@ if(${INCLUDE_PMMG} MATCHES ON)
     ENDIF(NOT DEFINED MMG3D_LIBRARIES)
 
     add_definitions( -DINCLUDE_PMMG )
-    ## find Metis for ParMmg
-    if(NOT DEFINED USE_METIS_5)
-        message("USE_METIS_5 not defined. Setting to ON")
-        SET (USE_METIS_5 ON)
-    endif(NOT DEFINED USE_METIS_5)
 
     IF(NOT DEFINED PMMG_LIBRARY_PREFIX)
         SET(PMMG_LIBRARY_PREFIX "lib")
