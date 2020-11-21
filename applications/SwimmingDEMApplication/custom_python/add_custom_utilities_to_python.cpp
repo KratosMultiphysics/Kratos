@@ -94,32 +94,6 @@ typedef ModelPart::NodesContainerType::iterator PointIterator;
 typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
 typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
 
-template<int TDim, class TDataType>
-void AddDEMCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule, Variable<TDataType> const& rThisVariable)
-{
-    rProjectionModule.AddDEMCouplingVariable<TDataType>(rThisVariable);
-}
-
-template<int TDim, class TDataType>
-void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule, Variable<TDataType> const& rThisVariable)
-{
-    rProjectionModule.AddFluidCouplingVariable(rThisVariable);
-}
-
-template<int TDim, class TDataType>
-void AddDEMVariablesToImpose(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule, Variable<TDataType> const& rThisVariable)
-{
-    rProjectionModule.AddDEMVariablesToImpose(rThisVariable);
-}
-
-template<int TDim, class TDataType>
-void AddFluidVariableToBeTimeFiltered(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule,
-									  Variable<TDataType> const& rThisVariable,
-									  const double time_constant)
-{
-    rProjectionModule.AddFluidVariableToBeTimeFiltered(rThisVariable);
-}
-
 class VariableChecker{
 public:
     VariableChecker(){}
