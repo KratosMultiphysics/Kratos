@@ -188,8 +188,8 @@ void AddFluidCouplingVariable(Variable<TDataType> const& r_variable){
 
 template<class TDataType>
 void AddDEMVariablesToImpose(Variable<TDataType> const& r_variable){
-    std::string variable_list_identifier = "DEM";
-    std::string coupling_variable_description = "ImposedDEM";
+    std::string variable_list_identifier = "DEMToImpose";
+    std::string coupling_variable_description = "DEM-phase variables with imposed fluid-interpolated values";
     AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
@@ -197,16 +197,13 @@ template<class TDataType>
 void AddFluidVariableToBeTimeFiltered(Variable<TDataType> const& r_variable, const double time_constant){
 	mAlphas[r_variable] = time_constant;
     mIsFirstTimeFiltering[r_variable] = true;
-	mFluidVariablesToBeTimeFiltered.Add(r_variable);
-    std::string variable_list_identifier = "Fluid";
-    std::string coupling_variable_description = "TimeFiltered";
+    std::string variable_list_identifier = "FluidTimeFiltered";
+    std::string coupling_variable_description = "Fluid variables to be time-filtered";
     AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
 template<class TDataType>
 void AddCouplingVariable(Variable<TDataType> const& r_variable, std::string variable_list_identifier, std::string coupling_variable_description){
-
-	mVariables.Add(r_variable, variable_list_identifier);
 
     if (std::is_same<TDataType, double>::value){
         mVariables.Add(r_variable, variable_list_identifier, "Scalar");
@@ -303,27 +300,37 @@ DenseVector<unsigned int> mNodesPartition;
 
 private:
 
+// This class is a simple database that uses two indices (strings) to encode
+// different particle lists. The two indices correspond to
+// 		i) the set of variables (fluid variables,
+//		DEM variables, fluid variables for time filtering etc.) and
+// 		ii) the type (Scalar, Vector, etc.)
 class VariablesContainer
 {
 	public:
-	std::map<std::pair<std::string, std::string>, VariablesList> mCouplingVariablesMap;
+	std::map<std::set<std::string>, VariablesList> mCouplingVariablesMap;
 
-	VariablesList& GetVariablesList(std::string list_identifier, std::string type_id=""){
-		auto identifier = std::make_pair(list_identifier, type_id);
-		if (mCouplingVariablesMap.find(identifier) == mCouplingVariablesMap.end()){
+	VariablesList& GetVariablesList(std::string first_criterion, std::string second_criterion=""){
+		std::set<std::string> identifier_set;
+		identifier_set.insert("");
+		identifier_set.insert(first_criterion);
+		identifier_set.insert(second_criterion);
+		if (mCouplingVariablesMap.find(identifier_set) == mCouplingVariablesMap.end()){
 			VariablesList new_list;
-			mCouplingVariablesMap[identifier] = new_list;
+			mCouplingVariablesMap[identifier_set] = new_list;
 		}
-		return mCouplingVariablesMap[identifier];
+		return mCouplingVariablesMap[identifier_set];
 	}
 
-	bool Is(VariableData const& rVariable, std::string list_identifier, std::string type_id=""){
-		return GetVariablesList(list_identifier, type_id).Has(rVariable);
+	bool Is(VariableData const& rVariable, std::string first_criterion, std::string second_criterion=""){
+		return GetVariablesList(first_criterion, second_criterion).Has(rVariable);
 	}
 
 	void Add(VariableData const& rVariable, std::string list_identifier, std::string type_id=""){
-		auto identifier = std::make_pair(list_identifier, type_id);
 		GetVariablesList(list_identifier, type_id).Add(rVariable);
+		GetVariablesList(type_id).Add(rVariable);
+		GetVariablesList(list_identifier).Add(rVariable);
+		GetVariablesList("", "").Add(rVariable);
 	}
 };
 
@@ -337,14 +344,9 @@ int mTimeAveragingType;
 int mViscosityModificationType;
 int mParticlesPerDepthDistance;
 int mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
-
 array_1d<double, 3> mGravity;
-VariablesContainer mVariables;
-VariablesList mDEMCouplingDoubleVariables;
-VariablesList mDEMCouplingVectorVariables;
 
-VariablesList mDEMVariablesToBeImposed;
-VariablesList mFluidVariablesToBeTimeFiltered;
+VariablesContainer mVariables;
 std::map<VariableData, double> mAlphas;
 std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
@@ -365,7 +367,7 @@ VectorDistanceType mVectorsOfRadii;
 void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const VariableData& r_current_variable);
 void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<double>& r_current_variable, const Variable<double>& r_previous_averaged_variable = TIME_AVERAGED_DOUBLE);
 void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_current_variable, const Variable<array_1d<double, 3> >& r_previous_averaged_variable = TIME_AVERAGED_ARRAY_3);
-void CopyValues(ModelPart& r_model_part, const VariableData& r_origin_variable);
+void CopyValues(ModelPart& r_model_part, VariableData const& r_origin_variable);
 void CopyValues(ModelPart& r_model_part, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable = TIME_AVERAGED_DOUBLE);
 void CopyValues(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable = TIME_AVERAGED_ARRAY_3);
 void ComputeHomogenizedFluidFraction(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part);
@@ -374,7 +376,6 @@ void InterpolateOtherFluidVariables(ModelPart& r_dem_model_part, ModelPart& r_fl
 void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
 void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
 void RecalculateDistances(ModelPart& r_dem_model_part);
-bool IsFluidVariableToBeTimeFiltered(const VariableData& var);
 array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const Vector& N);
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);

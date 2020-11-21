@@ -95,7 +95,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
 {
     KRATOS_TRY
 
-    r_flow.ImposeFieldOnNodes(r_dem_model_part, mDEMVariablesToBeImposed);
+    r_flow.ImposeFieldOnNodes(r_dem_model_part, mVariables.GetVariablesList("DEMToImpose"));
 
     KRATOS_CATCH("")
 }
@@ -320,7 +320,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
 
     for (unsigned int j = 0; j != fluid_variables.size(); ++j){
         const auto& variable = *fluid_variables[j];
-        if (IsFluidVariableToBeTimeFiltered(variable)){ // hold the current value in an auxiliary variable
+        if (mVariables.Is(variable, "FluidTimeFiltered")){ // hold the current value in an auxiliary variable
             CopyValues(r_fluid_model_part, variable);
             SetToZero(r_fluid_model_part, variable);
         }
@@ -330,7 +330,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
             ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j]);
         }
 
-        if (IsFluidVariableToBeTimeFiltered(variable)){ // average current avalue and previous (averaged) value
+        if (mVariables.Is(variable, "FluidTimeFiltered")){ // average current avalue and previous (averaged) value
             ApplyExponentialTimeFiltering(r_fluid_model_part, variable);
         }
     }
@@ -342,7 +342,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeHomogenizedFluidFraction(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part)
 {
-    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // hold the current value in an auxiliary variable
+    if (mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){ // hold the current value in an auxiliary variable
         CopyValues(r_fluid_model_part, FLUID_FRACTION);
         SetToZero(r_fluid_model_part, FLUID_FRACTION);
     }
@@ -370,7 +370,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeH
 		}
     }
 
-    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // average current avalue and previous (averaged) value
+    if (mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){ // average current avalue and previous (averaged) value
         ApplyExponentialTimeFiltering(r_fluid_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
     }
 }
@@ -379,14 +379,18 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeH
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CopyValues(
         ModelPart& r_model_part,
-        const VariableData& r_origin_variable)
+        VariableData const& r_origin_variable)
 {
-    if (typeid(r_origin_variable.GetSourceVariable()) == typeid(TIME_AVERAGED_DOUBLE.GetSourceVariable())){
+    if (mVariables.Is(r_origin_variable, "Scalar")){
         CopyValues(r_model_part, static_cast<const Variable<double>& >(r_origin_variable), TIME_AVERAGED_DOUBLE);
     }
 
-    if (typeid(r_origin_variable) == typeid(TIME_AVERAGED_ARRAY_3)){
+    else if (mVariables.Is(r_origin_variable, "Vector")){
         CopyValues(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_origin_variable), TIME_AVERAGED_ARRAY_3);
+    }
+
+	else {
+        KRATOS_ERROR << "Variable " << r_origin_variable.Name() << "'s type is currently not available for copying. Please implement." << std::endl;
     }
 }
 //***************************************************************************************************************
@@ -429,11 +433,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ApplyExp
         const VariableData& r_current_variable)
 {
 
-    if (CheckVariablesTypesCoincide(r_current_variable, TIME_AVERAGED_DOUBLE)){
+    if (mVariables.Is(r_current_variable, "Scalar")){
         ApplyExponentialTimeFiltering(r_model_part, static_cast<const Variable<double>& >(r_current_variable), TIME_AVERAGED_DOUBLE);
     }
 
-    else if (CheckVariablesTypesCoincide(r_current_variable, TIME_AVERAGED_ARRAY_3)){
+    else if (mVariables.Is(r_current_variable, "Vector")){
         ApplyExponentialTimeFiltering(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_current_variable), TIME_AVERAGED_ARRAY_3);
     }
 
@@ -550,7 +554,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     ModelPart& r_fluid_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects which contains the FLUID model part
 {
-    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // hold the current value in an auxiliary variable
+    if (mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){ // hold the current value in an auxiliary variable
         CopyValues(r_fluid_model_part, FLUID_FRACTION);
         SetToZero(r_fluid_model_part, FLUID_FRACTION);
     }
@@ -583,7 +587,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
     CalculateFluidFraction(r_fluid_model_part);
 
-    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // average current avalue and previous (averaged) value
+    if (mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){ // average current avalue with previous (already averaged) value
         ApplyExponentialTimeFiltering(r_fluid_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
     }
 
@@ -609,9 +613,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     for (int j = 0; j < (int)fluid_variables.size(); ++j){
         const auto& variable = *fluid_variables[j];
 
-        if (IsFluidVariableToBeTimeFiltered(variable)){ // hold the current value in an auxiliary variable
+        if (mVariables.Is(variable, "FluidTimeFiltered") && variable != FLUID_FRACTION){ // hold the current value in an auxiliary variable
             CopyValues(r_fluid_model_part, variable);
-            //SetToZero(r_fluid_model_part, variable);
+            SetToZero(r_fluid_model_part, variable);
         }
 
         for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
@@ -634,9 +638,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
             }
         }
 
-        if (IsFluidVariableToBeTimeFiltered(variable)){ // hold the current value in an auxiliary variable
-           // ApplyExponentialTimeFiltering(r_fluid_model_part, variable);
-            //SetToZero(r_fluid_model_part, variable);
+        if (mVariables.Is(variable, "FluidTimeFiltered") && variable != FLUID_FRACTION){ // hold the current value in an auxiliary variable
+            ApplyExponentialTimeFiltering(r_fluid_model_part, variable);
         }
     }
 }
@@ -750,20 +753,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Recalcul
             // spatial search is designed for varying radius
         }
     }
-}
-//***************************************************************************************************************
-//***************************************************************************************************************
-template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-bool BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::IsFluidVariableToBeTimeFiltered(const VariableData& var)
-{
-    for (unsigned int i = 0; i != mFluidVariablesToBeTimeFiltered.size(); ++i){
-
-        if (*mFluidVariablesToBeTimeFiltered[i] == var){
-            return true;
-        }
-    }
-
-    return false;
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -1417,7 +1406,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     double elemental_volume;
     GeometryUtils::CalculateGeometryData(geom, DN_DX, Ng, elemental_volume);
     const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
-    const double particle_volume = 4.0 * Globals::Pi / 3.0 * mParticlesPerDepthDistance * radius * radius * radius;
+    const double particle_volume = 4.0 * Globals::Pi / 3.0 * mParticlesPerDepthDistance * std::pow(radius, 3);
 
     for (unsigned int i = 0; i < TDim + 1; ++i){
         geom[i].FastGetSolutionStepValue(FLUID_FRACTION) += (TDim + 1) * N[i] * particle_volume / elemental_volume;
@@ -1512,7 +1501,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     unsigned int vector_size = neighbours.size();
     if (vector_size && p_node->Is(INSIDE)){
         const double& radius = p_node->FastGetSolutionStepValue(RADIUS);
-        double solid_volume = 4.0 * Globals::Pi / 3.0 * radius * radius * radius;
+        double solid_volume = 4.0 * Globals::Pi / 3.0 * std::pow(radius, 3);
 
         for (unsigned int i = 0; i != vector_size; ++i){
             neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += averaging_volume_inv * weights[i] * solid_volume;
@@ -1572,7 +1561,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
     const array_1d<double, 3>& gravity = r_fluid_model_part.GetProcessInfo()[GRAVITY];
 
     for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
-        if (!IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){
+        if (!mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){
             ClearVariable(node_it, FLUID_FRACTION);
         }
 
