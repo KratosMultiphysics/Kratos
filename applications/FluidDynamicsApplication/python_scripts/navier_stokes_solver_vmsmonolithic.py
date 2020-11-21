@@ -11,7 +11,6 @@ class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
         self.element_name = None
-        self.condition_name = "MonolithicWallCondition"
         self.element_integrates_in_time = False
         self.element_has_nodal_properties = False
         self.process_data = {}
@@ -58,6 +57,7 @@ class StabilizedFormulation(object):
         else:
             self.non_newtonian_option = False
             self.element_name = 'VMS'
+        self.condition_name = "MonolithicWallCondition"
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -91,6 +91,7 @@ class StabilizedFormulation(object):
         else:
             self.element_name = "TimeIntegratedQSVMS"
             self.element_integrates_in_time = True
+        self.condition_name = "NavierStokesWallCondition"
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -104,6 +105,7 @@ class StabilizedFormulation(object):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "DVMS"
+        self.condition_name = "NavierStokesWallCondition"
 
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
@@ -123,6 +125,7 @@ class StabilizedFormulation(object):
             KratosMultiphysics.Logger.PrintWarning("NavierStokesSolverVMSMonolithic","FIC with dynamic beta not yet implemented, using provided beta as a constant value")
         else:
             self.element_name = "FIC"
+        self.condition_name = "NavierStokesWallCondition"
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = 0
