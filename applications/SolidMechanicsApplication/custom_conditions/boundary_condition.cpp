@@ -489,7 +489,7 @@ namespace Kratos
 
   void BoundaryCondition::AddExplicitContribution(const VectorType& rRHS,
 						  const Variable<VectorType>& rRHSVariable,
-						  Variable<array_1d<double,3> >& rDestinationVariable,
+						  const Variable<array_1d<double,3> >& rDestinationVariable,
 						  const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY

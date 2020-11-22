@@ -41,6 +41,7 @@ namespace Python
         binder.def("Resize", [](TMatrixType& self, const typename TMatrixType::size_type new_size1, const typename TMatrixType::size_type new_size2)
                             {if(self.size1() != new_size1 || self.size2() != new_size2)
                                 self.resize(new_size1, new_size2, false);} );
+        binder.def("__len__", [](const TMatrixType& self){return self.size1() * self.size2();} );
         binder.def("__setitem__", [](TMatrixType& self, const std::pair<int,int> index, const  typename TMatrixType::value_type value)
                                     {
                                         const int index_i = index.first;

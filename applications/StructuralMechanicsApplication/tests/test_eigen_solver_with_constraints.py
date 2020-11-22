@@ -68,7 +68,6 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
                 "time_stepping"            : {
                     "time_step" : 1.1
                 },
-                "use_computing_model_part" : false,
                 "rotation_dofs"            : true,
                 "block_builder"            : true
             }
