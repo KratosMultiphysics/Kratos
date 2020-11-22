@@ -408,7 +408,6 @@ void ResetDEMVariables(ModelPart& r_dem_model_part);
 void ResetFluidVariables(ModelPart& r_fluid_model_part);
 void ResetFLuidVelocityRate(const NodeIteratorType& node_it);
 void SetToZero(ModelPart& r_model_part, const VariableData& r_variable);
-void Clear(ModelPart& r_model_part, const Variable<double>& r_variable);
 void CalculateFluidNodesMaxNodalArea(ModelPart& r_fluid_model_part);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var);
 inline unsigned int GetNearestNode(const Vector& N);
