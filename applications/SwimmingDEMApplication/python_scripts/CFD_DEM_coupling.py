@@ -30,8 +30,8 @@ class ProjectionModule:
         self.flow_field = flow_field
 
         if self.backward_coupling_parameters.Has("averaging_time_interval"):
-            time_step = balls_model_part.ProcessInfo[Kratos.DELTA_TIME]
             self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetInt()
+
          # Create projector_parameters
         self.projector_parameters = Parameters("{}")
         self.projector_parameters.AddValue("backward_coupling", project_parameters["coupling"]["backward_coupling"])
