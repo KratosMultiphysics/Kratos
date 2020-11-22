@@ -33,6 +33,9 @@ ENDFOREACH(subFolder ${ListFolders})
 ## Kratos python interface code
 FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp") #all .cpp
 LIST(APPEND KRATOS_PYTHON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp)
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    LIST(APPEND KRATOS_PYTHON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/utilities/test_python_function_callback_utility.cxx) # We are using a different extension in order to avoid the GLOB_RECURSE for tests
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
