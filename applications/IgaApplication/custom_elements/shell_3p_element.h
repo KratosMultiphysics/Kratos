@@ -288,6 +288,30 @@ public:
         Vector& rValues,
         int Step) const override;
 
+    /**
+    * @brief Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief Calculate a Vector Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     ///@}
     ///@name Check
     ///@{
@@ -372,6 +396,11 @@ private:
         const KinematicVariables& rKinematicVariables,
         Matrix& rT);
 
+    // Computes transformation for the stress tensor 
+    void CalculateTransformationFromCovariantToCartesian(
+        const KinematicVariables& rKinematicVariables,
+        Matrix& rTCovToCar);
+
     void CalculateBMembrane(
         IndexType IntegrationPointIndex,
         Matrix& rB,
@@ -416,6 +445,45 @@ private:
         const Vector& rSD,
         const double IntegrationWeight);
 
+    
+    // Calculation of the Cauchy stress by transforming the PK2 stress
+    void CalculateCauchyStress(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
+        array_1d<double, 3>& rCauchyBendingStressesCartesian, 
+        const array_1d<double, 3>& rPK2MembraneStressCartesian,
+        const array_1d<double, 3>& rPK2BendingStressCartesian,
+        const KinematicVariables& rKinematicVariables);
+
+    /**
+     * @brief Calculation of the shear force, shear force = derivative of moment
+     * @detail based on Carat ElementShell_NURBS_KL.cpp
+     */
+    void CalculateShearForce(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 2>& rq, 
+        const KinematicVariables& rKinematicVariables,
+        const ConstitutiveVariables& rConstitutiveVariablesCurvature);
+
+    void CalculateDerivativeOfCurvatureInitial(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rDCurvature_D1,
+        array_1d<double, 3>& rDCurvature_D2,
+        const Matrix& rHessian);
+
+    void CalculateDerivativeOfCurvatureActual(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rDCurvature_D1,
+        array_1d<double, 3>& rDCurvature_D2,
+        const Matrix& rHessian,
+        const KinematicVariables& rKinematicVariables);
+
+    void CalculateDerivativeTransformationMatrices(
+        IndexType IntegrationPointIndex,
+        std::vector<Matrix>& rDQ_Dalpha_init,
+        std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
+        const Matrix& rHessian);
+
     ///@}
     ///@name Geometrical Functions
     ///@{
@@ -423,6 +491,13 @@ private:
     void CalculateHessian(
         Matrix& Hessian,
         const Matrix& rDDN_DDe);
+
+    void CalculateSecondDerivativesOfBaseVectors(
+        const Matrix& rDDDN_DDDe,
+        array_1d<double, 3>& rDDa1_DD11,
+        array_1d<double, 3>& rDDa1_DD12,
+        array_1d<double, 3>& rDDa2_DD21,
+        array_1d<double, 3>& rDDa2_DD22);
 
     ///@}
     ///@name Serialization
