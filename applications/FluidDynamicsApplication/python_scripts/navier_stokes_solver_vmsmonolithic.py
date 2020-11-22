@@ -15,6 +15,9 @@ class StabilizedFormulation(object):
         self.element_has_nodal_properties = False
         self.process_data = {}
 
+        #TODO: Keep this until the MonolithicWallCondition is removed to ensure backwards compatibility in solvers with no defined condition_name
+        self.condition_name = "MonolithicWallCondition"
+
         if settings.Has("element_type"):
             formulation = settings["element_type"].GetString()
             if formulation == "vms":
