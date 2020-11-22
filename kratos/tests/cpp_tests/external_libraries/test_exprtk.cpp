@@ -3443,7 +3443,7 @@ struct myfunc : public exprtk::ifunction<T>
 
    myfunc() : exprtk::ifunction<T>(2) {}
 
-   inline T operator()(const T& v1, const T& v2)
+   inline T operator()(const T& v1, const T& v2) override
    {
       return T(1) + (v1 * v2) / T(3);
    }
@@ -4904,7 +4904,7 @@ struct sine_deg : public exprtk::ifunction<T>
 
    sine_deg() : exprtk::ifunction<T>(1) {}
 
-   inline T operator()(const T& v)
+   inline T operator()(const T& v) override
    {
       return std::sin((v * T(exprtk::details::numeric::constant::pi)) / T(180));
    }
@@ -4917,7 +4917,7 @@ struct cosine_deg : public exprtk::ifunction<T>
 
    cosine_deg() : exprtk::ifunction<T>(1) {}
 
-   inline T operator()(const T& v)
+   inline T operator()(const T& v) override
    {
       return std::cos((v * T(exprtk::details::numeric::constant::pi)) / T(180));
    }
@@ -5305,12 +5305,12 @@ struct base_func : public exprtk::ifunction<T>
 
    typedef const T& type;
    base_func(const std::size_t& n) : exprtk::ifunction<T>(n) {}
-   inline T operator()(type v0, type v1, type v2, type v3, type v4) { return (v0 + v1 + v2 + v3 + v4); }
-   inline T operator()(type v0, type v1, type v2, type v3) { return (v0 + v1 + v2 + v3); }
-   inline T operator()(type v0, type v1, type v2) { return (v0 + v1 + v2); }
-   inline T operator()(type v0, type v1) { return (v0 + v1); }
-   inline T operator()(type v0) { return v0; }
-   inline T operator()() { return T(1.1234); }
+   inline T operator()(type v0, type v1, type v2, type v3, type v4) override { return (v0 + v1 + v2 + v3 + v4); }
+   inline T operator()(type v0, type v1, type v2, type v3) override { return (v0 + v1 + v2 + v3); }
+   inline T operator()(type v0, type v1, type v2) override { return (v0 + v1 + v2); }
+   inline T operator()(type v0, type v1) override { return (v0 + v1); }
+   inline T operator()(type v0) override { return v0; }
+   inline T operator()() override { return T(1.1234); }
 };
 
 template <typename T> struct test_func5 : public base_func<T> { test_func5() : base_func<T>(5){} };
@@ -5586,7 +5586,7 @@ struct va_func : public exprtk::ivararg_function<T>
       exprtk::set_max_num_args(*this, 20);
    }
 
-   inline T operator()(const std::vector<T>& arglist)
+   inline T operator()(const std::vector<T>& arglist) override
    {
       T result = T(0);
 
@@ -5617,7 +5617,7 @@ struct gen_func : public exprtk::igeneric_function<T>
      string_count(0)
    {}
 
-   inline T operator()(parameter_list_t params)
+   inline T operator()(parameter_list_t params) override
    {
       for (std::size_t i = 0; i < params.size(); ++i)
       {
@@ -5666,12 +5666,12 @@ struct gen_func2 : public exprtk::igeneric_function<T>
    gen_func2()
    {}
 
-   inline T operator()(parameter_list_t)
+   inline T operator()(parameter_list_t) override
    {
       return T(0);
    }
 
-   inline T operator()(const std::size_t&, parameter_list_t params)
+   inline T operator()(const std::size_t&, parameter_list_t params) override
    {
       return this->operator()(params);
    }
@@ -5692,7 +5692,7 @@ struct inc_func : public exprtk::igeneric_function<T>
    inc_func()
    {}
 
-   inline T operator()(parameter_list_t params)
+   inline T operator()(parameter_list_t params) override
    {
       for (std::size_t i = 0; i < params.size(); ++i)
       {
@@ -5733,7 +5733,7 @@ struct inc_func : public exprtk::igeneric_function<T>
       return T(0);
    }
 
-   inline T operator()(const std::size_t&, parameter_list_t params)
+   inline T operator()(const std::size_t&, parameter_list_t params) override
    {
       return this->operator()(params);
    }
@@ -5753,7 +5753,7 @@ struct rem_space_and_uppercase : public exprtk::igeneric_function<T>
    : igenfunc_t("S",igenfunc_t::e_rtrn_string)
    {}
 
-   inline T operator()(std::string& result, parameter_list_t params)
+   inline T operator()(std::string& result, parameter_list_t params) override
    {
       string_t string(params[0]);
 
@@ -5771,7 +5771,7 @@ struct rem_space_and_uppercase : public exprtk::igeneric_function<T>
       return T(0);
    }
 
-   inline T operator()(const std::size_t& param_seq_index, std::string& result, parameter_list_t params)
+   inline T operator()(const std::size_t& param_seq_index, std::string& result, parameter_list_t params) override
    {
       if (1 == param_seq_index)
          return this->operator()(result,params);
@@ -5798,7 +5798,7 @@ struct vararg_func : public exprtk::igeneric_function<T>
    : exprtk::igeneric_function<T>("Z|T*|V")
    {}
 
-   inline T operator()(const std::size_t& ps_index, parameter_list_t /*arglist*/)
+   inline T operator()(const std::size_t& ps_index, parameter_list_t /*arglist*/) override
    {
       switch (ps_index)
       {                         // Overload resolution:
@@ -5827,7 +5827,7 @@ struct vecrebase_func : public exprtk::igeneric_function<T>
    : exprtk::igeneric_function<T>("V")
    {}
 
-   inline T operator()(parameter_list_t params)
+   inline T operator()(parameter_list_t params) override
    {
       vector_t v(params[0]);
       return std::accumulate(v.begin(), v.end(), T(0));
@@ -5858,7 +5858,7 @@ struct overload_func : exprtk::igeneric_function<T>
    }
 
    inline T operator()(const std::size_t& ps_index,
-                       parameter_list_t parameters)
+                       parameter_list_t parameters) override
    {
       current_ps_index = ps_index;
       determine_param_seq(parameters);
@@ -5867,7 +5867,7 @@ struct overload_func : exprtk::igeneric_function<T>
 
    inline T operator()(const std::size_t& ps_index,
                        std::string& result,
-                       parameter_list_t parameters)
+                       parameter_list_t parameters) override
    {
       current_ps_index = ps_index;
       determine_param_seq(parameters);
@@ -8315,7 +8315,7 @@ struct my_usr : public exprtk::parser<T>::unknown_symbol_resolver
    bool process(const std::string& unknown_symbol,
                 typename usr_t::usr_symbol_type& st,
                 T& default_value,
-                std::string& error_message)
+                std::string& error_message) override
    {
       if (unknown_symbol[0] == 'v')
       {
@@ -8361,9 +8361,9 @@ struct my_usr_ext : public exprtk::parser<T>::unknown_symbol_resolver
    : usr_t(usr_t::e_usrmode_extended)
    {}
 
-   virtual bool process(const std::string& unknown_symbol,
+   bool process(const std::string& unknown_symbol,
                         symbol_table_t&      symbol_table,
-                        std::string&        error_message)
+                        std::string&        error_message) override
    {
       bool result = false;
 
