@@ -74,7 +74,10 @@ class TestMPIParMmg(KratosUnittest.TestCase):
             "save_colors_files"                : true,
             "initialize_entities"              : false,
             "preserve_flags"                   : false,
-            "echo_level"                       : 0
+            "echo_level"                       : 0,
+            "advanced_parameters" : {
+                "number_of_iterations"         : 4
+            }
         }
         """)
         pmmg_parameters["filename"].SetString(GetFilePath(pmmg_parameters["filename"].GetString()))
