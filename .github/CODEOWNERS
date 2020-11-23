@@ -6,10 +6,11 @@
 /cmake_modules/       @KratosMultiphysics/technical-committee
 /external_libraries/  @KratosMultiphysics/technical-committee
 /scripts/             @KratosMultiphysics/technical-committee
+/kratos/mpi           @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
 
 # Applications
-/applications/TrilinosApplication/                     @KratosMultiphysics/technical-committee
-/applications/MetisApplication/                        @KratosMultiphysics/technical-committee
+/applications/TrilinosApplication/                     @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
+/applications/MetisApplication/                        @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
 /applications/StructuralMechanicsApplication/          @KratosMultiphysics/structural-mechanics
 /applications/ContactStructuralMechanicsApplication/   @KratosMultiphysics/structural-mechanics
 /applications/FluidDynamicsApplication/                @KratosMultiphysics/fluid-maintainers
@@ -23,4 +24,5 @@
 /applications/CompressiblePotentialFlowApplication/    @KratosMultiphysics/potential-flow-team
 /applications/ChimeraApplication/                      @KratosMultiphysics/chimera
 /applications/IgaApplication/                          @KratosMultiphysics/nurbs-breps
-/applications/MultilevelMonteCarloApplication          @KratosMultiphysics/uncertainty-quantification 
+/applications/HDF5Application/                         @KratosMultiphysics/hdf5-application
+/applications/MultilevelMonteCarloApplication/         @KratosMultiphysics/uncertainty-quantification 
