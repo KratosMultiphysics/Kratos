@@ -43,7 +43,7 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 // Nurbs Geometries
-#include "geometries/nurbs_shape_function_utilities/nurbs_volume_grid_modeler.h"
+#include "modeler/nurbs_volume_grid_modeler.h"
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
@@ -249,11 +249,6 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPointsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsU)
         .def("NumberOfControlPointsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsV)
         .def("NumberOfControlPointsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsW)
-        ;
-
-    // NurbsVolumeGridModeler
-    py::class_<NurbsVolumeGridModeler, NurbsVolumeGridModeler::Pointer>(m, "NurbsVolumeGridModeler")
-        .def_static("CreateGrid", &NurbsVolumeGridModeler::CreateGrid)
         ;
 
     // NurbsSurfaceGeometry3D
