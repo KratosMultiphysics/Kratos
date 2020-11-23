@@ -235,8 +235,8 @@ void PostprocessRomBasisProcess::GetVariables(std::vector<Variable<double>>& rRe
                 << variable << std::endl;
 
             rRequestedVectorResults.push_back(variable);
-        } else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) {
-            KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
+        // } else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) {
+        //     KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
         } else {
             KRATOS_ERROR << "Invalid Type of Variable, name: " << variable_name << std::endl;
         }
