@@ -1,5 +1,5 @@
 # see https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
-# IMPORTANT: the teams have to have at least write permission in Kratos, otherwise codewoners doesn't work!
+# IMPORTANT: the teams have to have at least write permission in Kratos, otherwise codeowners doesn't work!
 
 /*                    @KratosMultiphysics/technical-committee
 /kratos/              @KratosMultiphysics/technical-committee
