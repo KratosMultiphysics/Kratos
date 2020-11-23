@@ -14,7 +14,7 @@ def GetFilePath(fileName):
 
 class TestMPIParMmg(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipUnless(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() == 2, "Test designed to be run with two ranks.")
+    @KratosUnittest.skipUnless(IsDistributedRun(), "Test designed to be run with two ranks.")
     def test_mpi_sphere(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
@@ -51,7 +51,7 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         ##COMPUTE LEVEL SET METRIC
         metric_parameters = KratosMultiphysics.Parameters("""
         {
-            "minimal_size"                             : 1.5,
+            "minimal_size"                             : 0.5,
             "sizing_parameters": {
                 "reference_variable_name"               : "DISTANCE",
                 "boundary_layer_max_distance"           : 2.0,
@@ -90,22 +90,10 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         result_file_name = GetFilePath("output_step=0_"+str(communicator.Rank())+".elem.ref.json")
         self._CompareColorFiles(reference_file_name, result_file_name)
 
-        ref_mdpa_filename = GetFilePath("parmmg_eulerian_test/parmmg_sphere_reference_mdpa_rank_"+str(communicator.Rank()))
-        ref_model_part = current_model.CreateModelPart("Reference")
-        # We add the variables needed
-        ref_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        ref_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-        ref_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        ReadSerialModelPart(ref_mdpa_filename, ref_model_part)
-
-        self._CheckModelPart(ref_model_part, main_model_part)
-        for ref_sub_model_part in ref_model_part.SubModelParts:
-            sub_model_part_name = ref_sub_model_part.Name
-            if main_model_part.HasSubModelPart(sub_model_part_name):
-                result_sub_model_part = main_model_part.GetSubModelPart(sub_model_part_name)
-            else:
-                raise(Exception("Submodelpart", sub_model_part_name, "does not exist in the remeshed model part"))
-            self._CheckModelPart(ref_sub_model_part, result_sub_model_part)
+        result_dict_file_name=GetFilePath("parmmg_eulerian_test/reference_parmmg_spehere_mdpa_hierarchy.json")
+        with open(result_dict_file_name, 'r') as f:
+            reference_hierarchy = json.load(f)
+        self.CheckModelPartHierarchie(main_model_part, reference_hierarchy[str(communicator.Size())])
 
         for file_name in os.listdir(GetFilePath("")):
             if file_name.endswith(".json") or file_name.endswith(".mdpa") or file_name.endswith(".mesh") or  file_name.endswith(".sol"):
@@ -128,6 +116,71 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         self.assertEqual(ref_model_part.NumberOfNodes(), result_model_part.NumberOfNodes())
         self.assertEqual(ref_model_part.NumberOfElements(), result_model_part.NumberOfElements())
         self.assertEqual(ref_model_part.NumberOfConditions(), result_model_part.NumberOfConditions())
+
+    def CheckModelPartHierarchie(self, model_part, hierarchie):
+        """Checking if the hierarchie of a ModelPart matches the expected one
+        This is intended to check larger models, where it is not feasible
+        save large mdpa-files as references
+        the hierarchie is a dict with the structure of the ModelPart. E.g.:
+        {
+            "name_model_part" : {
+                "nodes": 15
+                "elements": 11
+                "conditions": 5
+                "properties": 2,
+                "sub_model_parts" : {
+                    "domain" : {
+                        "nodes": 15,
+                        "elements" : 11,
+                        "properties" :1
+                        "sub_model_parts" : {
+                            "sub_domain" : {
+                                "nodes" : 3,
+                                "elements" : 2
+                            }
+                        }
+                    },
+                    "boundary" : {
+                        "nodes": 6
+                        "conditions" : 5,
+                        "properties" : 1
+                    }
+                    }
+                }
+            }
+        }
+        """
+        def CheckModelPartHierarchieNumbers(smp, smp_hierarchie):
+            comm = smp.GetCommunicator().GetDataCommunicator()
+            local_number_of_nodes = smp.GetCommunicator().LocalMesh().NumberOfNodes()
+            local_number_of_elem = smp.GetCommunicator().LocalMesh().NumberOfElements()
+            local_number_of_cond = smp.GetCommunicator().LocalMesh().NumberOfConditions()
+            local_number_of_prop = smp.GetCommunicator().LocalMesh().NumberOfProperties()
+
+            exp_num = smp_hierarchie.get("nodes", 0)
+            self.assertEqual(comm.SumAll(local_number_of_nodes), exp_num, msg='ModelPart "{}" is expected to have {} nodes but has {}'.format(smp.FullName(), exp_num, smp.NumberOfNodes()))
+
+            exp_num = smp_hierarchie.get("elements", 0)
+            self.assertEqual(comm.SumAll(local_number_of_elem), exp_num, msg='ModelPart "{}" is expected to have {} elements but has {}'.format(smp.FullName(), exp_num, smp.NumberOfElements()))
+
+            exp_num = smp_hierarchie.get("conditions", 0)
+            self.assertEqual(comm.SumAll(local_number_of_cond), exp_num, msg='ModelPart "{}" is expected to have {} conditions but has {}'.format(smp.FullName(), exp_num, smp.NumberOfConditions()))
+
+            exp_num = smp_hierarchie.get("properties", 0)
+            self.assertEqual(comm.SumAll(local_number_of_prop), exp_num, msg='ModelPart "{}" is expected to have {} properties but has {}'.format(smp.FullName(), exp_num, smp.NumberOfProperties()))
+
+            if "sub_model_parts" in smp_hierarchie:
+                smp_hierarchie = smp_hierarchie["sub_model_parts"]
+                for name_smp in smp_hierarchie:
+                    self.assertTrue(smp.HasSubModelPart(name_smp), msg='ModelPart "{}" does not have SubModelPart with name "{}"'.format(smp.FullName(), name_smp))
+                    CheckModelPartHierarchieNumbers(smp.GetSubModelPart(name_smp), smp_hierarchie[name_smp])
+
+        # check name of MainModelPart
+        self.assertEqual(len(hierarchie), 1)
+        name_main_model_part = hierarchie.__iter__().__next__()
+        self.assertEqual(model_part.Name, name_main_model_part)
+
+        CheckModelPartHierarchieNumbers(model_part, hierarchie[name_main_model_part])
 
 if __name__ == '__main__':
     KratosUnittest.main()
