@@ -274,8 +274,8 @@ class PfemFluidSolver(PythonSolver):
 
     def CheckAndPrepareModelProcess(self, params):
         # CheckAndPrepareModelProcess creates the fluid_computational model part
-        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_check_and_prepare_model_process_fluid
-        pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_check_and_prepare_fluid_model_process
+        pfem_check_and_prepare_fluid_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
     def _ComputeDeltaTime(self):
 
@@ -285,12 +285,6 @@ class PfemFluidSolver(PythonSolver):
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-
-    def Solve(self):
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-
-        self.fluid_solver.Solve()
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
@@ -321,10 +315,9 @@ class PfemFluidSolver(PythonSolver):
         pass
 
     def SolveSolutionStep(self):
-        is_converged = True
-        self.fluid_solver.Solve()
-        return is_converged
-
+        converged = self.fluid_solver.SolveSolutionStep()
+        return converged
+        
     def FinalizeSolutionStep(self):
         #pass
         self.fluid_solver.FinalizeSolutionStep()

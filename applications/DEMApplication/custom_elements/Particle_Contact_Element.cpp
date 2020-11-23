@@ -42,7 +42,7 @@ std::string ParticleContactElement::Info() const
     return buffer.str();
 }
 
-void ParticleContactElement::Initialize() {
+void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
     mFailureCriterionState = 0.0;
