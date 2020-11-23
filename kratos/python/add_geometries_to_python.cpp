@@ -162,6 +162,11 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex)
         { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
+    // Mapping
+    .def("GlobalCoordinates", [](GeometryType& self, CoordinatesArrayType& LocalCoordinates)
+        {
+        CoordinatesArrayType result = ZeroVector( 3 );
+        return(self.GlobalCoordinates(result, LocalCoordinates)); })
     // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
@@ -244,7 +249,6 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPointsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsU)
         .def("NumberOfControlPointsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsV)
         .def("NumberOfControlPointsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsW)
-        .def("GlobalCoordinates", &NurbsVolumeGeometry<NodeContainerType>::GlobalCoordinates)
         ;
 
     // NurbsVolumeGridModeler
