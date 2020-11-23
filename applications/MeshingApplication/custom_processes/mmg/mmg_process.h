@@ -295,6 +295,14 @@ protected:
     ///@{
 
     /**
+     * @brief This is the default constructor, which is used to read the input files. To be called by derived classes.
+     * @param pThisModelPart The pointer to the model part
+     */
+    MmgProcess(
+        ModelPart* pThisModelPart
+    );
+
+    /**
      * @brief This converts the framework string to an enum
      * @param rString The string
      * @return FrameworkEulerLagrange: The equivalent enum

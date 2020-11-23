@@ -96,6 +96,13 @@ MmgProcess<TMMGLibrary>::MmgProcess(
     mpRefCondition.clear();
 }
 
+template<MMGLibrary TMMGLibrary>
+MmgProcess<TMMGLibrary>::MmgProcess(
+    ModelPart* pThisModelPart
+    ) : mrThisModelPart(*pThisModelPart)
+{
+}
+
 /*************************************** EXECUTE ***********************************/
 /***********************************************************************************/
 
@@ -1301,10 +1308,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "normal_regularization_mesh"          : false,
             "deactivate_detect_angle"             : false,
             "force_gradation_value"               : false,
-            "gradation_value"                     : 1.3,
-            "number_of_iterations" : 4,
-            "mesh_size" : 30000,
-            "metis_ratio" : 82
+            "gradation_value"                     : 1.3
         },
         "collapse_prisms_elements"             : false,
         "save_external_files"                  : false,

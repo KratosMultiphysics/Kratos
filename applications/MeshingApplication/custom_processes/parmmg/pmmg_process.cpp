@@ -56,10 +56,11 @@ template<PMMGLibrary TPMMGLibrary>
 ParMmgProcess<TPMMGLibrary>::ParMmgProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
-    ): MmgProcess(rThisModelPart, ThisParameters)
+    ): BaseType(&rThisModelPart)
 {
     const Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    mThisParameters = ThisParameters;
 
     mFilename = mThisParameters["filename"].GetString();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -579,11 +580,19 @@ const Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
 {
     KRATOS_TRY;
 
-    Parameters default_parameters = BaseType::GetDefaultParameters();
-    // default_parameters["advanced_parameters"].AddInt("number_of_iterations", 4);
-    // default_parameters["advanced_parameters"].AddInt("mesh_size", 30000);
-    // default_parameters["advanced_parameters"].AddInt("metis_ratio", 82);
+    Parameters default_parameters = Parameters(R"(
+    {
+        "advanced_parameters"    :
+        {
+            "number_of_iterations"     : 4,
+            "mesh_size"                : 30000,
+            "metis_ratio"              : 82
+        }
+    })");
 
+    // Getting base class default parameters
+    const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+    default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
 
     return default_parameters;
 
