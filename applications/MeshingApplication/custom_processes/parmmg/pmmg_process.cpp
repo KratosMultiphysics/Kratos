@@ -58,7 +58,7 @@ ParMmgProcess<TPMMGLibrary>::ParMmgProcess(
     Parameters ThisParameters
     ): MmgProcess(rThisModelPart, ThisParameters)
 {
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mFilename = mThisParameters["filename"].GetString();
@@ -580,10 +580,10 @@ const Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
     KRATOS_TRY;
 
     Parameters default_parameters = BaseType::GetDefaultParameters();
-    auto advanced_parameters = default_parameters["advanced_parameters"];
-    advanced_parameters.AddInt("number_of_iterations", 4);
-    advanced_parameters.AddInt("mesh_size", 30000);
-    advanced_parameters.AddInt("metis_ratio", 82);
+    // default_parameters["advanced_parameters"].AddInt("number_of_iterations", 4);
+    // default_parameters["advanced_parameters"].AddInt("mesh_size", 30000);
+    // default_parameters["advanced_parameters"].AddInt("metis_ratio", 82);
+
 
     return default_parameters;
 
