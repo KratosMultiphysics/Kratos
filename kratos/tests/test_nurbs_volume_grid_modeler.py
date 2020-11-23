@@ -3,7 +3,6 @@ import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.modeler_factory import KratosModelerFactory
-
 import os
 
 def GetFilePath(fileName):
@@ -19,8 +18,7 @@ def run_modeler(current_model, modelers_list):
         modeler.SetupModelPart()
 
 class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
-
-    def test_grid_modeler(self):
+    def test_grid_modeler_control_points(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
         [{
@@ -75,7 +73,7 @@ class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
         degree_w = geometry.PolynomialDegreeW()
         self.assertEqual(degree_w, 1)
     
-    def test_grid_modeler_02(self):
+    def test_grid_modeler_geometry_consistency(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
         [{
@@ -125,36 +123,33 @@ class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(knots_w_02, [0.0, 1.0])
 
         ## Check Polynomial degree
-        # geometry 01
+        # Geometry 01
         self.assertEqual(geometry_01.PolynomialDegreeU(), 4)        
         self.assertEqual(geometry_01.PolynomialDegreeV(), 5)        
         self.assertEqual(geometry_01.PolynomialDegreeW(), 2)
-        # geometry 02
+        # Geometry 02
         self.assertEqual(geometry_02.PolynomialDegreeU(), 1)        
         self.assertEqual(geometry_02.PolynomialDegreeV(), 1)        
         self.assertEqual(geometry_02.PolynomialDegreeW(), 1)
 
-        ## Check number of nodes
-        # geomtry 01
+        ## Check number of control points/nodes
+        # Geomtry 01
         self.assertEqual(len(geometry_01),693)
         self.assertEqual(model_part_01.NumberOfNodes(), 693)
-        # geomtry 02
+        # Geomtry 02
         self.assertEqual(len(geometry_02),8)
         self.assertEqual(model_part_02.NumberOfNodes(), 8)  
 
-        #Check if geoemtry is similar.
+        # Check if geoemtry is similar.
         param = KratosMultiphysics.Vector(3)
         param[0] = 0.0
         param[1] = 1.0
         param[2] = 0.0
         for i in range(11):
             for j in range(11):
-                print(param)
                 coord_01 = geometry_01.GlobalCoordinates(param)
                 coord_02 = geometry_02.GlobalCoordinates(param)
                 param[2] += 0.1
-                print(coord_01)
-                print(coord_02)
                 self.assertVectorAlmostEqual(coord_01, coord_02)
             param[0] += 0.1
             param[1] -= 0.1
