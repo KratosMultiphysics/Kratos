@@ -243,6 +243,11 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeConditio
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
 
+    if (rMapPointersRefCondition.find(Ref)==rMapPointersRefCondition.end()) {
+        // Reference received that is not in the initial map of conditions. Returning a nullptr
+        return nullptr;
+    }
+
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (GetDiscretization() != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 1) << "Condition. Null reference-pointer returned. Rank " <<
@@ -1092,7 +1097,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateReferenceMaps(
     if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TPMMGLibrary == PMMGLibrary::PMMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, it_cond_begin->pGetGeometry(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
         rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
