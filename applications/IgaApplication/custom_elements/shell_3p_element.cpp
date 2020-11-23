@@ -452,9 +452,7 @@ namespace Kratos
         a_ab_contravariant[2] = -inv_det_g_ab * rKinematicVariables.a_ab_covariant[2];
 
         //Contravariant base vectors
-        array_1d<double, 3> a_contravariant_1 = rKinematicVariables.a1*a_ab_contravariant[0] + rKinematicVariables.a2*a_ab_contravariant[2];
         array_1d<double, 3> a_contravariant_2 = rKinematicVariables.a1*a_ab_contravariant[2] + rKinematicVariables.a2*a_ab_contravariant[1];
-
 
         //Local cartesian coordinates
         double l_a1 = norm_2(rKinematicVariables.a1);
@@ -892,8 +890,8 @@ namespace Kratos
         Dm_cov_Dalpha[1] = prod(T_car_to_cov, Dm_car_Dalpha[1]) + prod(DT_car_to_cov_init_Dalpha[1], m_car);
 
         array_1d<double, 2> q_pk2_cov;
-        q_pk2_cov[0] = Dm_cov_Dalpha[0](0) / sqrt(rKinematicVariables.a_ab_covariant[0]) + Dm_cov_Dalpha[1](2) / sqrt(rKinematicVariables.a_ab_covariant[1]);
-        q_pk2_cov[1] = Dm_cov_Dalpha[1](1) / sqrt(rKinematicVariables.a_ab_covariant[1]) + Dm_cov_Dalpha[0](2) / sqrt(rKinematicVariables.a_ab_covariant[0]);
+        q_pk2_cov[0] = Dm_cov_Dalpha[0](0) / std::sqrt(rKinematicVariables.a_ab_covariant[0]) + Dm_cov_Dalpha[1](2) / std::sqrt(rKinematicVariables.a_ab_covariant[1]);
+        q_pk2_cov[1] = Dm_cov_Dalpha[1](1) / std::sqrt(rKinematicVariables.a_ab_covariant[1]) + Dm_cov_Dalpha[0](2) / std::sqrt(rKinematicVariables.a_ab_covariant[0]);
         double detF = rKinematicVariables.dA / m_dA_vector[IntegrationPointIndex];
         array_1d<double, 2> q_cau_cov = q_pk2_cov / detF;
 
