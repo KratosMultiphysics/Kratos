@@ -26,3 +26,4 @@
 /applications/ChimeraApplication/                      @KratosMultiphysics/chimera
 /applications/IgaApplication/                          @KratosMultiphysics/nurbs-breps
 /applications/HDF5Application/                         @KratosMultiphysics/hdf5-application
+/applications/MultilevelMonteCarloApplication/         @KratosMultiphysics/uncertainty-quantification 
