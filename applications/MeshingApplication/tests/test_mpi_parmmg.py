@@ -14,7 +14,7 @@ def GetFilePath(fileName):
 
 class TestMPIParMmg(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipUnless(IsDistributedRun(), "Test designed to be run with two ranks.")
+    @KratosUnittest.skipUnless(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() <= 4,  "Test designed to be run with max. 4 ranks.")
     def test_mpi_sphere(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
