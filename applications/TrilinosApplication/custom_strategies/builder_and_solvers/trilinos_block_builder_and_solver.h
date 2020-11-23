@@ -405,6 +405,9 @@ public:
         KRATOS_TRY
 
         BuildRHS(pScheme, rModelPart, rb);
+
+        ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         KRATOS_CATCH("")
