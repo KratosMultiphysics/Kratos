@@ -198,7 +198,7 @@ public:
 
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
-            for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
+            for (auto& r_node : r_model_part.Nodes()) {
                 r_node.SetValue(NODAL_AREA, 0.0);
                 r_node.SetValue(DENSITY_PROJECTION, 0.0);
                 r_node.SetValue(TOTAL_ENERGY_PROJECTION, 0.0);
@@ -209,7 +209,7 @@ public:
         // If required, initialize the orthogonal projection shock capturing variables
         if (mShockCapturing) {
             // Initialize nodal values
-            for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
+            for (auto& r_node : r_model_part.Nodes()) {
                 r_node.SetValue(NODAL_AREA, 0.0);
                 r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
                 r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
@@ -218,7 +218,7 @@ public:
             }
 
             // Initialize elemental values
-            for (auto& r_elem : r_model_part.GetCommunicator().LocalMesh().Elements()) {
+            for (auto& r_elem : r_model_part.Elements()) {
                 r_elem.SetValue(SHOCK_SENSOR, 0.0);
                 r_elem.SetValue(SHEAR_SENSOR, 0.0);
                 r_elem.SetValue(THERMAL_SENSOR, 0.0);
@@ -799,7 +799,7 @@ private:
                 unit_normal /= norm_2(unit_normal);
                 auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
                 const double r_mom_n = inner_prod(r_mom, unit_normal);
-                r_mom -= r_mom_n * unit_normal;
+                noalias(r_mom) -= r_mom_n * unit_normal;
             }
         });
     }
