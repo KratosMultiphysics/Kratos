@@ -30,9 +30,9 @@ from KratosMultiphysics import Logger
 
 from time import time
 
-from GaussianRandomField import *
-from CovarianceKernels import VonKarmanCovariance, MannCovariance
-from GenerateWind import GenerateWind
+from KratosMultiphysics.ExaquteSandboxApplication.GaussianRandomField import *
+from KratosMultiphysics.ExaquteSandboxApplication.CovarianceKernels import VonKarmanCovariance, MannCovariance
+from KratosMultiphysics.ExaquteSandboxApplication.GenerateWind import GenerateWind
 
 ##DONE: added support for power law
 ##DONE: read all mean profile parameters from json file
@@ -61,7 +61,7 @@ class Parameters(Mapping):
     def __len__(self):
         return self._kratos_parameters.size()
 
-        
+
 def Factory(settings, Model):
     return ImposeWindInletProcess(Model, Parameters(settings['Parameters']))
 
@@ -73,14 +73,14 @@ class LogMeanProfile:
         self.roughness_height = roughness_height
         self.bulk_wind_speed = bulk_wind_speed
         self.dim = dim
-    
+
     def get_height(self,node):
-        if self.dim == 2: 
+        if self.dim == 2:
             height = node.Y
-        elif self.dim == 3: 
+        elif self.dim == 3:
             height = node.Z
         return height
-            
+
     def wind_speed(self, node):
         return (self.friction_velocity / 0.41
                 * log((self.get_height(node) + self.roughness_height) / self.roughness_height))
@@ -102,11 +102,11 @@ class ImposeWindInletProcess:
         for node in self.inlet_nodes:
             for var in [VELOCITY_X,VELOCITY_Y,VELOCITY_Z]:
                 node.Fix(var)
-        
+
     def ExecuteInitializeSolutionStep(self):
         self.AssignVelocity()
         self.ApplyRamp()
-        
+
     def CreateMeanProfile(self, dim=3):
         reference_height = self.reference_height
         # lz = self.lz
@@ -136,19 +136,19 @@ class ImposeWindInletProcess:
                 for var in [VELOCITY_X,VELOCITY_Y,VELOCITY_Z]:
                     vel = node.GetSolutionStepValue(var)
                     node.SetSolutionStepValue(var, scal * vel)
-    
+
     def Check(self):
         pass
 
     def ExecuteBeforeSolutionLoop(self):
         pass
-    
+
     def ExecuteFinalizeSolutionStep(self):
         pass
-    
+
     def ExecuteBeforeOutputStep(self):
         pass
-    
+
     def ExecuteAfterOutputStep(self):
         pass
 

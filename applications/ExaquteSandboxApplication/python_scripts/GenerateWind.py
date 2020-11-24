@@ -6,15 +6,15 @@ from tqdm import tqdm
 import sys
 from pyevtk.hl import imageToVTK
 
-from GaussianRandomField import *
-from CovarianceKernels import VonKarmanCovariance, MannCovariance
+from KratosMultiphysics.ExaquteSandboxApplication.GaussianRandomField import *
+from KratosMultiphysics.ExaquteSandboxApplication.CovarianceKernels import VonKarmanCovariance, MannCovariance
 
 class GenerateWind:
 
     def __init__(self, friction_velocity, reference_height, grid_dimensions, grid_levels, seed=None, blend_num=10, **kwargs):
-        
 
-        
+
+
         # Parameters taken from pg 13 of M. Andre's dissertation
         # model = 'FPDE_RDT'
         model = 'Mann'
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         # h = np.array(1/wind_field.shape[0],1/wind_field.shape[1],1/wind_field.shape[2])
         sd = np.sqrt(np.mean(wind_field**2))
         wind_field = wind_field/sd
-        wind_field *= 4.26 # rescale to match Mann model 
+        wind_field *= 4.26 # rescale to match Mann model
 
     # plt.imshow(wind_field[:,0,:,0])
     # plt.show()

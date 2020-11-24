@@ -32,9 +32,9 @@ from KratosMultiphysics import Logger
 
 from time import time
 
-from GaussianRandomField import *
-from CovarianceKernels import VonKarmanCovariance, MannCovariance
-from GenerateWind import GenerateWind
+from KratosMultiphysics.ExaquteSandboxApplication.GaussianRandomField import *
+from KratosMultiphysics.ExaquteSandboxApplication.CovarianceKernels import VonKarmanCovariance, MannCovariance
+from KratosMultiphysics.ExaquteSandboxApplication.GenerateWind import GenerateWind
 
 ##DONE: added support for power law
 ##DONE: read all mean profile parameters from json file
@@ -63,7 +63,7 @@ class Parameters(Mapping):
     def __len__(self):
         return self._kratos_parameters.size()
 
-        
+
 def Factory(settings, Model):
     return ImposeWindInletProcess(Model, Parameters(settings['Parameters']))
 
@@ -137,7 +137,7 @@ class SubGrid1D:
         end_index = grid.ceil_index(end_pos)
         end_index = max(end_index, start_index+1)
         self.span = IndexSpan(start_index, end_index)
-        
+
     def __getitem__(self, index):
         return self.grid[self.span.begin + index]
 
@@ -229,14 +229,14 @@ class LogMeanProfile:
         self.roughness_height = roughness_height
         self.bulk_wind_speed = bulk_wind_speed
         self.dim = dim
-    
+
     def get_height(self,node):
-        if self.dim == 2: 
+        if self.dim == 2:
             height = node.Y
-        elif self.dim == 3: 
+        elif self.dim == 3:
             height = node.Z
         return height
-            
+
     def wind_speed(self, node):
         return (self.friction_velocity / 0.41
                 * log((self.get_height(node) + self.roughness_height) / self.roughness_height))
@@ -263,13 +263,13 @@ class ImposeWindInletProcess:
             # x_extent = Extent(0, self.time_interval_length * self.mean_profile.bulk_wind_speed)
             # setattr(self, 'lx', x_extent.upper - x_extent.lower)
             self.inlet_position = 0.0
-            
+
             # define wind field and map
             grid_dimensions = [self.lx, self.ly, self.lz]
             self.wind = GenerateWind(self.friction_velocity, self.reference_height, grid_dimensions, self.wind_grid_levels, self.seed)
             self.block_num=0
             self.blend_region, self.mappers = self.Create3DMappers(self.wind)
-            
+
             # total_wind = self.wind.total_wind
             # plt.imshow(total_wind[:,0,:,0])
             # plt.show()
@@ -278,14 +278,14 @@ class ImposeWindInletProcess:
         for node in self.inlet_nodes:
             for var, _ in self.mappers:
                 node.Fix(var)
-        
+
     def ExecuteInitializeSolutionStep(self):
         self.UpdateInletPosition()
         Logger.PrintInfo('ImposeWindInletProcess',
                          'inlet position = %e' % self.inlet_position)
         self.AssignVelocity()
         self.ApplyRamp()
-        
+
     def CreateMeanProfile(self, dim=3):
         reference_height = self.reference_height
         # lz = self.lz
@@ -315,7 +315,7 @@ class ImposeWindInletProcess:
         blend_num = wind.blend_num
 
         if old_blend_region is not None:
-            
+
             # diff = wind_field[:blend_num,...] - old_blend_region.copy()
             # fig, ax = plt.subplots(nrows=1)
             # im = ax.imshow(diff[0,...,0])
@@ -326,12 +326,12 @@ class ImposeWindInletProcess:
                 factor = (i+1)/(blend_num+1)
                 factor = self.smoothstep(factor)
                 wind_field[i,...] = (1-factor)* old_blend_region[i,...] + factor*wind_field[i,...]
-        
+
         if output_wind_field is True:
             self.wind_field = wind_field
             self.ExportToVTK()
             self.block_num += 1
-        
+
         nx, ny, nz = wind_field[...,0].shape
         x_grid = RegularGrid1D(self.x0, self.lx, nx)
         y_grid = RegularGrid1D(self.y0, self.ly, ny)
@@ -380,19 +380,19 @@ class ImposeWindInletProcess:
                 for var, _ in self.mappers:
                     vel = node.GetSolutionStepValue(var)
                     node.SetSolutionStepValue(var, scal * vel)
-    
+
     def Check(self):
         pass
 
     def ExecuteBeforeSolutionLoop(self):
         pass
-    
+
     def ExecuteFinalizeSolutionStep(self):
         pass
-    
+
     def ExecuteBeforeOutputStep(self):
         pass
-    
+
     def ExecuteAfterOutputStep(self):
         pass
 

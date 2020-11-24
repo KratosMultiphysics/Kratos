@@ -11,8 +11,8 @@ from tqdm import tqdm
 import scipy.fftpack as fft
 import matplotlib.pyplot as plt
 
-import CovarianceKernels
-from Sampling_Methods import *
+import KratosMultiphysics.ExaquteSandboxApplication.CovarianceKernels as CovarianceKernels
+from KratosMultiphysics.ExaquteSandboxApplication.Sampling_Methods import *
 
 
 #######################################################################################################
@@ -89,10 +89,10 @@ class GaussianRandomField:
 
         elif method in (METHOD_RAT,):
             self.Correlate = Sampling_Rational(self, **kwargs)
-        
+
         elif method == METHOD_VF_RAT_HALFSPACE_RAPID_DISTORTION:
             self.Correlate = Sampling_Rational_Rapid_Distortion_Wind_Blocking(self, **kwargs)
-            
+
         else:
             raise Exception('Unknown sampling method "{0}".'.format(method))
 
@@ -155,7 +155,7 @@ class VectorGaussianRandomField(GaussianRandomField):
     #         noise = np.stack([self.prng.normal(0, 1, self.ext_grid_shape) for _ in range(self.vdim)], axis=-1)
     #     else:
     #         noise = np.stack([self.prng.normal(0, 1, grid_shape) for _ in range(self.vdim)], axis=-1)
-        
+
     #     noise *= self.noise_std
 
     #     # noise = np.stack([self.prng.normal(0, 1, self.ext_grid_shape) for _ in range(self.vdim)], axis=-1)
