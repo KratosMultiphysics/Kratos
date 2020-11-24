@@ -438,6 +438,11 @@ private:
         }
     }
 
+    /**
+     * @brief Physics-based shock capturing
+     * This function calculates the artificial magnitudes using a physics-based shock capturing method.
+     * References https://arc.aiaa.org/doi/abs/10.2514/6.2018-0062
+     */
     void CalculatePhysicsBasedShockCapturing()
     {
         // Calculate the model part data
@@ -585,7 +590,7 @@ private:
                     shear_grad_vel(d1, d2) = d1 == d2 ? 0.0 : grad_vel(d1, d2);
                 }
             }
-            const Matrix local_shear_grad_vel = prod(shear_grad_vel, Matrix(trans(mid_pt_jacobian)));
+            const Matrix local_shear_grad_vel = prod(shear_grad_vel, trans(mid_pt_jacobian));
             Matrix eigen_vect_mat, eigen_val_mat;
             MathUtils<double>::GaussSeidelEigenSystem(local_shear_grad_vel, eigen_vect_mat, eigen_val_mat);
             double shear_spect_norm = 0.0; 
