@@ -494,7 +494,7 @@ private:
 
             // Calculate elemental magnitudes
             const double k = 1.0; // Polynomial order of the numerical simulation
-            double c_ref; // Reference speed of sound (Ma = 1.0)
+            double c_ref; // Elemental speed of sound
             // TODO: CALLING THE CALCULATES IS NOT THE MOST EFFICIENT WAY... THINK ABOUT THIS...
             rElement.Calculate(SOUND_VELOCITY, c_ref, r_process_info);             
             rElement.Calculate(DENSITY_GRADIENT, grad_rho, r_process_info);
@@ -517,6 +517,8 @@ private:
             midpoint_rho /= static_cast<double>(n_nodes);
             midpoint_v /= static_cast<double>(n_nodes);
             const double v_norm_pow = midpoint_v[0]*midpoint_v[0] + midpoint_v[1]*midpoint_v[1] + midpoint_v[2]*midpoint_v[2];
+            const double stagnation_temp = midpoint_tot_ener / midpoint_rho / c_v;
+            const double c_star = std::sqrt(gamma * (gamma - 1.0) * c_v * stagnation_temp * (2.0 / (gamma + 1.0))); // Critical speed of sound
 
             // Inverse metric tensor calculation
             // const double h_ref = avg_h_function(r_geom); // Reference element size used in the metric tensor
@@ -543,7 +545,7 @@ private:
             const double h_mu = h_ref * metric_tensor_inf;
 
             // Dilatation sensor (activates in shock waves)
-            const double s_omega = - h_beta * div_v / k / c_ref;
+            const double s_omega = - h_beta * div_v / k / c_star;
 
             // Vorticity sensor (vanishes in vorticity dominated regions)
             const double div_v_pow = std::pow(div_v, 2);
@@ -567,7 +569,6 @@ private:
                     local_grad_temp(i) += mid_pt_jacobian(j,i) * grad_temp(j);
                 }
             }
-            const double stagnation_temp = midpoint_tot_ener / midpoint_rho / c_v;
 
             const double s_kappa_0 = 1.0;
             const double s_kappa_max = 2.0;
@@ -592,7 +593,7 @@ private:
                     shear_spect_norm = eigen_val_mat(d,d);
                 }
             }
-            const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) *  std::pow(c_ref, 2)); // TODO: THIS ISN'T c_ref ACCORDING TO PERAIRE 
+            const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) *  std::pow(c_ref, 2));
 
             const double s_mu_0 = 1.0;
             const double s_mu_max = 2.0;
@@ -602,7 +603,7 @@ private:
             rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
 
             // Calculate artificial magnitudes
-            const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_ref,2));
+            const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_star,2));
 
             // Calculate elemental artificial bulk viscosity
             const double k_beta = 1.5;
@@ -636,7 +637,6 @@ private:
                 AtomicAdd(r_node.GetValue(ARTIFICIAL_CONDUCTIVITY), aux_weight * (elem_k1_star + elem_k2_star));
                 AtomicAdd(r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), aux_weight * elem_mu_star);
             }
-        // }
         });
 
         // Nodal smoothing of the shock capturing magnitudes
@@ -723,6 +723,7 @@ private:
         metric *= std::pow(h_ref,2);
 
         // Calculate metric infimum norm
+        // TODO: Using h_min should yield a similar behavior
         const double metric_inf = std::min(eigenvals(0,0), eigenvals(1,1));
 
         return std::make_tuple(h_ref, metric_inf, metric);
@@ -773,6 +774,7 @@ private:
         metric *= std::pow(h_ref,2);
 
         // Calculate metric infimum norm
+        // TODO: Using h_min should yield a similar behavior
         const double metric_inf = std::min(eigenvals(0,0), std::min(eigenvals(1,1), eigenvals(2,2)));
 
         return std::make_tuple(h_ref, metric_inf, metric);
