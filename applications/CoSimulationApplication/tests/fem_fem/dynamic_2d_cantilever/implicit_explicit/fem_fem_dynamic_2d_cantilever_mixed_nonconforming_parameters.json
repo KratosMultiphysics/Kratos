@@ -42,16 +42,7 @@
         },
         "coupling_sequence":
         [
-            {
-                "name": "femA",
-                "input_data_list"  : [],
-                "output_data_list" : []
-            },
-            {
-                "name": "femB",
-                "input_data_list": [],
-                "output_data_list": []
-            }
+            {"name": "femA"},{"name": "femB"}
         ],
         "solvers" :
         {
