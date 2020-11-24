@@ -27,7 +27,7 @@
 #include "meshing_application_variables.h"
 #include "containers/model.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
-#include "custom_utilities/mmg_utilities.h"
+#include "custom_utilities/mmg/mmg_utilities.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -2451,7 +2451,7 @@ void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
     std::filebuf elem_buffer;
     elem_buffer.open(rOutputName + ".elem.ref.json",std::ios::out);
     std::ostream elem_os(&elem_buffer);
-    elem_os << r_elem_json_text;
+    elem_os << r_elem_json_text << std::flush;
     elem_buffer.close();
 
     /* CONDITIONS */
@@ -2469,7 +2469,7 @@ void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
     std::filebuf cond_buffer;
     cond_buffer.open(rOutputName + ".cond.ref.json",std::ios::out);
     std::ostream cond_os(&cond_buffer);
-    cond_os << r_cond_json_text;
+    cond_os << r_cond_json_text << std::flush;
     cond_buffer.close();
 
     KRATOS_CATCH("");
