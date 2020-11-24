@@ -198,6 +198,31 @@ namespace Kratos {
 		}
 	}
 
+	KRATOS_TEST_CASE_IN_SUITE(CartesianMeshCalculateCenterOfElementPosition, KratosCoreFastSuite)
+	{
+		Kratos::Internals::CartesianMeshColors mesh_colors;
+		
+		array_1d<std::vector<double>, 3> coordinates;
+		coordinates[0] = {1.00,2.5,5.0};
+		coordinates[1] =  {0.00, 1.00};
+		coordinates[2] =  {2.00, 3.00};
+	
+		mesh_colors.SetCoordinates(coordinates[0], coordinates[1], coordinates[2]);
+
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(0.5, 0), 0);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(0.99999999, 0), 0);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(1.1, 0), 0);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(1.74999999, 0), 0);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(1.75, 0), 0);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(1.751, 0), 1);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(2.499999, 0), 1);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(2.5, 0), 1);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(2.51, 0), 1);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(4.999, 0), 1);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(5.0, 0), 1);
+		KRATOS_CHECK_EQUAL(mesh_colors.CalculateCenterOfElementPosition(10., 0), 1);
+	}
+
 	KRATOS_TEST_CASE_IN_SUITE(CartesianMeshColorsInitialRays, KratosCoreFastSuite)
 	{
 		std::size_t size = 4;
