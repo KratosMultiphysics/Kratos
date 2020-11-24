@@ -24,7 +24,7 @@
                 "type" : "kratos_mapping",
 					"mapper_settings" : {
 					"mapper_type": "coupling_geometry",
-					"echo_level" : 5,
+					"echo_level" : 0,
                     "dual_mortar": false,
                     "consistent_mortar": false,
                     "consistency_scaling" : true,
