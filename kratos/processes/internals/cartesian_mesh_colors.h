@@ -152,6 +152,9 @@ namespace Kratos
         return mXYRays(I,J);
     }
 
+    Point& GetMinPoint() {return mMinPoint;}
+    Point& GetMaxPoint() {return mMaxPoint;}
+
     void InitializeRays(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, std::string EntititesToColor){
 
         std::vector<double>* p_x_coordinates = &(mNodalCoordinates[0]);
@@ -632,8 +635,23 @@ namespace Kratos
                 return coordinates.size() - 1;
 
             return std::distance(coordinates.begin(), i_min);
-         }
+        }
 
+        template<typename TCoordinatesType> 
+        std::size_t CalculateCellIndex(TCoordinatesType const& TheCoordinates){
+            return 0;
+
+        }
+
+
+        std::size_t CalculateCellPosition(double Coordinate, int ThisDimension){
+            auto const& coordinates = mNodalCoordinates[ThisDimension];
+            if(Coordinate <= coordinates[0]) 
+                return 0;
+            
+            auto i_min = std::lower_bound(coordinates.begin(), coordinates.end(), Coordinate);
+            return std::distance(coordinates.begin(), i_min) - 1; 
+        }
         
 
         void WriteParaViewVTR(std::string const& Filename) {
