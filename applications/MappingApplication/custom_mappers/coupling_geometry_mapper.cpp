@@ -33,9 +33,10 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
     const IndexType slave_index = (mIsDestinationIsSlave) ? 1 : 0;
+    const IndexType master_index = 1 - slave_index;
 
     const auto& r_geometry_master = (mIsProjection)
-        ? mpGeom->GetGeometryPart(1- slave_index) // set to master  - get projected 'mass' matrix
+        ? mpGeom->GetGeometryPart(master_index) // set to master  - get projected 'mass' matrix
         : mpGeom->GetGeometryPart(slave_index); // set to slave - get consistent slave 'mass' matrix
     const auto& r_geometry_slave = mpGeom->GetGeometryPart(slave_index);
 
@@ -169,7 +170,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // compose local element mappings
     const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
     const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
-    const bool direct_map_to_destination = mMapperSettings["direct_map_to_destination"].GetBool();
+    const bool direct_map_to_destination = mMapperSettings["destination_is_slave"].GetBool();
     CouplingGeometryLocalSystem ref_projector_local_system(nullptr, true, dual_mortar, direct_map_to_destination);
     CouplingGeometryLocalSystem ref_slave_local_system(nullptr, false, dual_mortar, direct_map_to_destination);
 
