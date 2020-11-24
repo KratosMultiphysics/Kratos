@@ -24,6 +24,7 @@
 #include "includes/global_variables.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "utilities/atomic_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
 
@@ -199,22 +200,19 @@ public:
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
             for (auto& r_node : r_model_part.Nodes()) {
-                r_node.SetValue(NODAL_AREA, 0.0);
                 r_node.SetValue(DENSITY_PROJECTION, 0.0);
                 r_node.SetValue(TOTAL_ENERGY_PROJECTION, 0.0);
                 r_node.SetValue(MOMENTUM_PROJECTION, ZeroVector(3));
             }
         }
 
-        // If required, initialize the orthogonal projection shock capturing variables
+        // If required, initialize the physics-based shock capturing variables
         if (mShockCapturing) {
             // Initialize nodal values
             for (auto& r_node : r_model_part.Nodes()) {
-                r_node.SetValue(NODAL_AREA, 0.0);
                 r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
                 r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
                 r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
-                r_node.SetValue(DENSITY_GRADIENT, ZeroVector(3));
             }
 
             // Initialize elemental values
@@ -225,7 +223,6 @@ public:
                 r_elem.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
                 r_elem.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
                 r_elem.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
-                r_elem.SetValue(DENSITY_GRADIENT, ZeroVector(3));
             }
         }
     }
@@ -394,7 +391,6 @@ private:
         // Get model part data
         auto& r_model_part = BaseType::GetModelPart();
         const int n_nodes = r_model_part.NumberOfNodes();
-        const int n_elem = r_model_part.NumberOfElements();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         const unsigned int block_size = r_process_info[DOMAIN_SIZE] + 2; 
 
@@ -404,38 +400,33 @@ private:
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Initialize the projection values
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->GetValue(DENSITY_PROJECTION) = 0.0;
-            it_node->GetValue(MOMENTUM_PROJECTION) = ZeroVector(3);
-            it_node->GetValue(TOTAL_ENERGY_PROJECTION) = 0.0;
-        }
+        block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+            rNode.GetValue(DENSITY_PROJECTION) = 0.0;
+            rNode.GetValue(MOMENTUM_PROJECTION) = ZeroVector(3);
+            rNode.GetValue(TOTAL_ENERGY_PROJECTION) = 0.0;
+        });
 
         // Calculate the residuals projection
-        double dens_proj;
-        double tot_ener_proj;
-        array_1d<double,3> mom_proj;
-#pragma omp parallel for
-        for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
-            auto it_elem = r_model_part.ElementsBegin() + i_elem;
-            // Calculate the projection values
-            // Note that the element already performs the atomic addition to the nodes
-            it_elem->Calculate(DENSITY_PROJECTION, dens_proj, r_process_info);
-            it_elem->Calculate(MOMENTUM_PROJECTION, mom_proj, r_process_info);
-            it_elem->Calculate(TOTAL_ENERGY_PROJECTION, tot_ener_proj, r_process_info);
-        }
+        std::tuple<double, double, array_1d<double,3>> oss_proj_tls;
+        block_for_each(r_model_part.Elements(), oss_proj_tls, [&](Element& rElement, std::tuple<double, double, array_1d<double,3>>& rOssProjTLS){
+            double& rho_proj = std::get<0>(rOssProjTLS);
+            double& tot_ener_proj = std::get<1>(rOssProjTLS);
+            array_1d<double,3>& mom_proj = std::get<2>(rOssProjTLS);
+            rElement.Calculate(DENSITY_PROJECTION, rho_proj, r_process_info);
+            rElement.Calculate(MOMENTUM_PROJECTION, mom_proj, r_process_info);
+            rElement.Calculate(TOTAL_ENERGY_PROJECTION, tot_ener_proj, r_process_info);
+        });
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            // Do thhe nodal weighting
-            // Note that to avoid calculating the NODAL_AREA we took from the first DOF of the lumped mass vector
-            const double nodal_area = r_lumped_mass_vector[i_node * block_size];
+        // Do thhe nodal weighting
+        // Note that to avoid calculating the NODAL_AREA we took from the first DOF of the lumped mass vector
+        IndexPartition<>(n_nodes).for_each([&](const ModelPart::SizeType iNode){
+            auto it_node = r_model_part.NodesBegin() + iNode;
+            const double nodal_area = r_lumped_mass_vector[iNode * block_size];
             it_node->GetValue(DENSITY_PROJECTION) /= nodal_area;
             it_node->GetValue(MOMENTUM_PROJECTION) /= nodal_area;
             it_node->GetValue(TOTAL_ENERGY_PROJECTION) /= nodal_area;
-        }
+        });
+
     }
 
     /**
@@ -449,18 +440,19 @@ private:
         auto& r_model_part = BaseType::GetModelPart();
         const auto r_process_info = r_model_part.GetProcessInfo();
         const int n_nodes = r_model_part.NumberOfNodes();
-        const int n_elems = r_model_part.NumberOfElements();
+        const unsigned int block_size = r_process_info[DOMAIN_SIZE] + 2; 
+
+        // Get the required data from the explicit builder and solver
+        // The lumped mass vector will be used to get the NODAL_AREA for the residuals projection
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
+        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Initialize the values to zero
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->GetValue(NODAL_AREA) = 0.0;
-            it_node->GetValue(DENSITY_GRADIENT) = ZeroVector(3);
-            it_node->GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;
-            it_node->GetValue(ARTIFICIAL_BULK_VISCOSITY) = 0.0;
-            it_node->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = 0.0;
-        }
+        block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+            rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;
+            rNode.GetValue(ARTIFICIAL_BULK_VISCOSITY) = 0.0;
+            rNode.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = 0.0;
+        });
 
         // Set the functor to calculate the element size
         // Note that this assumes a unique geometry in the computational mesh
@@ -481,21 +473,22 @@ private:
         // Note that it is assumed that the gradient is constant within the element
         // Hence, only one Gauss point is used
         const double eps = 1.0e-7;
-
-        double div_v;
-        Matrix grad_vel;
-        array_1d<double,3> rot_v;
-        array_1d<double,3> grad_rho;
-        array_1d<double,3> grad_temp;
-        Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-#pragma omp parallel for private(div_v, grad_vel, rot_v, grad_rho, grad_temp, dNdX_container)
-        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-            auto it_elem = r_model_part.ElementsBegin() + i_elem;
-            auto& r_geom = it_elem->GetGeometry();
+        
+        typedef std::tuple<double, Matrix, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>> ShockCapturingTLSType;
+        ShockCapturingTLSType shock_capturing_tls;
+        block_for_each(r_model_part.Elements(), shock_capturing_tls, [&](Element& rElement, ShockCapturingTLSType& rShockCapturingTLS){
+            auto& r_geom = rElement.GetGeometry();
             const unsigned int n_nodes = r_geom.PointsNumber();
+            
+            // Get TLS values
+            double& div_v = std::get<0>(rShockCapturingTLS);
+            Matrix& grad_vel = std::get<1>(rShockCapturingTLS);
+            array_1d<double,3>& rot_v = std::get<2>(rShockCapturingTLS);
+            array_1d<double,3>& grad_rho = std::get<3>(rShockCapturingTLS);
+            array_1d<double,3>& grad_temp = std::get<4>(rShockCapturingTLS);
 
             // Get fluid properties
-            const auto p_prop = it_elem->pGetProperties();
+            const auto p_prop = rElement.pGetProperties();
             const double c_v = p_prop->GetValue(SPECIFIC_HEAT);
             const double gamma = p_prop->GetValue(HEAT_CAPACITY_RATIO);
 
@@ -503,12 +496,12 @@ private:
             const double k = 1.0; // Polynomial order of the numerical simulation
             double c_ref; // Reference speed of sound (Ma = 1.0)
             // TODO: CALLING THE CALCULATES IS NOT THE MOST EFFICIENT WAY... THINK ABOUT THIS...
-            it_elem->Calculate(SOUND_VELOCITY, c_ref, r_process_info);             
-            it_elem->Calculate(DENSITY_GRADIENT, grad_rho, r_process_info);
-            it_elem->Calculate(VELOCITY_DIVERGENCE, div_v, r_process_info);
-            it_elem->Calculate(VELOCITY_ROTATIONAL, rot_v, r_process_info);
-            it_elem->Calculate(VELOCITY_GRADIENT, grad_vel, r_process_info);
-            it_elem->Calculate(TEMPERATURE_GRADIENT, grad_temp, r_process_info);
+            rElement.Calculate(SOUND_VELOCITY, c_ref, r_process_info);             
+            rElement.Calculate(DENSITY_GRADIENT, grad_rho, r_process_info);
+            rElement.Calculate(VELOCITY_DIVERGENCE, div_v, r_process_info);
+            rElement.Calculate(VELOCITY_ROTATIONAL, rot_v, r_process_info);
+            rElement.Calculate(VELOCITY_GRADIENT, grad_vel, r_process_info);
+            rElement.Calculate(TEMPERATURE_GRADIENT, grad_temp, r_process_info);
 
             // Calculate midpoint values
             double midpoint_rho = 0.0;
@@ -563,7 +556,7 @@ private:
             const double s_beta = s_omega * s_w;
             // const double s_beta_hat = LimitingFunction(s_beta, s_beta_0, s_beta_max);
             const double s_beta_hat = SmoothedLimitingFunction(s_beta, s_beta_0, s_beta_max);
-            it_elem->GetValue(SHOCK_SENSOR) = s_beta_hat;
+            rElement.GetValue(SHOCK_SENSOR) = s_beta_hat;
 
             // Thermal sensor (detect thermal gradients that are larger than possible with the grid resolution)
             Matrix mid_pt_jacobian;
@@ -580,7 +573,7 @@ private:
             const double s_kappa_max = 2.0;
             const double s_kappa = h_ref * norm_2(local_grad_temp) / k / stagnation_temp;
             const double s_kappa_hat = SmoothedLimitingFunction(s_kappa, s_kappa_0, s_kappa_max);
-            it_elem->GetValue(THERMAL_SENSOR) = s_kappa_hat;
+            rElement.GetValue(THERMAL_SENSOR) = s_kappa_hat;
 
             // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
             const unsigned int dim = r_geom.WorkingSpaceDimension();
@@ -606,7 +599,7 @@ private:
             const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
             // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
             const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
-            it_elem->GetValue(SHEAR_SENSOR) = s_mu_hat;
+            rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
 
             // Calculate artificial magnitudes
             const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_ref,2));
@@ -614,7 +607,7 @@ private:
             // Calculate elemental artificial bulk viscosity
             const double k_beta = 1.5;
             const double elem_b_star =  (k_beta * h_beta / k) * ref_mom_norm * s_beta_hat; 
-            it_elem->GetValue(ARTIFICIAL_BULK_VISCOSITY) = elem_b_star;
+            rElement.GetValue(ARTIFICIAL_BULK_VISCOSITY) = elem_b_star;
 
             // Calculate elemental artificial conductivity (dilatancy)
             const double Pr_beta_min = 0.9;
@@ -627,38 +620,34 @@ private:
             // Calculate elemental artificial conductivity (thermal sensor)
             const double k_kappa = 1.0;
             const double elem_k2_star = (gamma * c_v) * (k_kappa * h_kappa / k) * ref_mom_norm * s_kappa_hat;
-            it_elem->GetValue(ARTIFICIAL_CONDUCTIVITY) = elem_k1_star + elem_k2_star;
+            rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) = elem_k1_star + elem_k2_star;
 
             // Calculate elemental artificial dynamic viscosity
             const double k_mu = 1.0;
             const double elem_mu_star = (k_mu * h_mu / k) * ref_mom_norm * s_mu_hat;
-            it_elem->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
+            rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
 
             // Project the shock capturing magnitudes to the nodes
             const double geom_domain_size = r_geom.DomainSize();
             const double aux_weight = geom_domain_size / static_cast<double>(n_nodes);
             for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
                 auto& r_node = r_geom[i_node];
-#pragma omp atomic
-                r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY) += aux_weight * elem_b_star;
-#pragma omp atomic
-                r_node.GetValue(ARTIFICIAL_CONDUCTIVITY) += aux_weight * (elem_k1_star + elem_k2_star);
-#pragma omp atomic
-                r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) += aux_weight * elem_mu_star;
-#pragma omp atomic
-                r_node.GetValue(NODAL_AREA) += aux_weight;
+                AtomicAdd(r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY), aux_weight * elem_b_star);
+                AtomicAdd(r_node.GetValue(ARTIFICIAL_CONDUCTIVITY), aux_weight * (elem_k1_star + elem_k2_star));
+                AtomicAdd(r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), aux_weight * elem_mu_star);
             }
-        }
+        // }
+        });
 
         // Nodal smoothing of the shock capturing magnitudes
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            const double weight = it_node->GetValue(NODAL_AREA);
-            it_node->GetValue(ARTIFICIAL_CONDUCTIVITY) /= weight;
-            it_node->GetValue(ARTIFICIAL_BULK_VISCOSITY) /= weight;
-            it_node->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) /= weight;
-        }
+        // Note that to avoid calculating the NODAL_AREA we took from the first DOF of the lumped mass vector
+        IndexPartition<>(n_nodes).for_each([&](const ModelPart::SizeType iNode){
+            auto it_node = r_model_part.NodesBegin() + iNode;
+            const double nodal_area = r_lumped_mass_vector[iNode * block_size];
+            it_node->GetValue(ARTIFICIAL_CONDUCTIVITY) /= nodal_area;
+            it_node->GetValue(ARTIFICIAL_BULK_VISCOSITY) /= nodal_area;
+            it_node->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) /= nodal_area;
+        });
     }
 
     double LimitingFunction(
