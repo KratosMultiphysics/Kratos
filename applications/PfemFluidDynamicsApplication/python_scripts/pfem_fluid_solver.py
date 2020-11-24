@@ -204,9 +204,6 @@ class PfemFluidSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-		
-        if (abs(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) < 1e-5 * delta_time):
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
 
         if (abs(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) < 1e-5 * delta_time):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
