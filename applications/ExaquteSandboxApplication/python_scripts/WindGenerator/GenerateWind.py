@@ -6,8 +6,8 @@ from tqdm import tqdm
 import sys
 from pyevtk.hl import imageToVTK
 
-from KratosMultiphysics.ExaquteSandboxApplication.GaussianRandomField import *
-from KratosMultiphysics.ExaquteSandboxApplication.CovarianceKernels import VonKarmanCovariance, MannCovariance
+from KratosMultiphysics.ExaquteSandboxApplication.WindGenerator.GaussianRandomField import *
+from KratosMultiphysics.ExaquteSandboxApplication.WindGenerator.CovarianceKernels import VonKarmanCovariance, MannCovariance
 
 class GenerateWind:
 

@@ -11,8 +11,8 @@ from tqdm import tqdm
 import scipy.fftpack as fft
 import matplotlib.pyplot as plt
 
-import KratosMultiphysics.ExaquteSandboxApplication.CovarianceKernels as CovarianceKernels
-from KratosMultiphysics.ExaquteSandboxApplication.Sampling_Methods import *
+import KratosMultiphysics.ExaquteSandboxApplication.WindGenerator.CovarianceKernels as CovarianceKernels
+from KratosMultiphysics.ExaquteSandboxApplication.WindGenerator.Sampling_Methods import *
 
 
 #######################################################################################################

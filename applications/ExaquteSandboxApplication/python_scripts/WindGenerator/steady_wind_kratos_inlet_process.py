@@ -30,9 +30,9 @@ from KratosMultiphysics import Logger
 
 from time import time
 
-from KratosMultiphysics.ExaquteSandboxApplication.GaussianRandomField import *
-from KratosMultiphysics.ExaquteSandboxApplication.CovarianceKernels import VonKarmanCovariance, MannCovariance
-from KratosMultiphysics.ExaquteSandboxApplication.GenerateWind import GenerateWind
+from KratosMultiphysics.ExaquteSandboxApplication.WindGenerator.GaussianRandomField import *
+from KratosMultiphysics.ExaquteSandboxApplication.WindGenerator.CovarianceKernels import VonKarmanCovariance, MannCovariance
+from KratosMultiphysics.ExaquteSandboxApplication.WindGenerator.GenerateWind import GenerateWind
 
 ##DONE: added support for power law
 ##DONE: read all mean profile parameters from json file

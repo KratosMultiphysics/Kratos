@@ -63,7 +63,7 @@ class VonKarmanCovariance(Covariance):
     def precompute_Spectrum(self, Frequences):
 
         Nd = [Frequences[j].size for j in range(self.ndim)]
-        SqrtSpectralTens = np.tile(np.zeros(Nd),(3,3,1,1,1)) 
+        SqrtSpectralTens = np.tile(np.zeros(Nd),(3,3,1,1,1))
 
         k = np.array(list(np.meshgrid(*Frequences, indexing='ij')))
         kk = np.sum(k**2,axis=0)
@@ -73,7 +73,7 @@ class VonKarmanCovariance(Covariance):
 
         # beta = 0.1
         # const = np.exp(-beta*k) * const
-    
+
         SqrtSpectralTens[0,1,...] = -const * k[2,...]
         SqrtSpectralTens[0,2,...] =  const * k[1,...]
         SqrtSpectralTens[1,0,...] =  const * k[2,...]
@@ -144,9 +144,9 @@ class MannCovariance(Covariance):
     def precompute_Spectrum(self, Frequences):
 
         Nd = [Frequences[j].size for j in range(self.ndim)]
-        SqrtSpectralTens = np.tile(np.zeros(Nd),(3,3,1,1,1)) 
+        SqrtSpectralTens = np.tile(np.zeros(Nd),(3,3,1,1,1))
         tmpTens = np.tile(np.zeros(Nd),(3,3,1,1,1))
- 
+
         k = np.array(list(np.meshgrid(*Frequences, indexing='ij')))
         kk = np.sum(k**2,axis=0)
 
@@ -169,7 +169,7 @@ class MannCovariance(Covariance):
 
             # to enforce zero mean in the x-direction:
             # const[k1 == 0] = 0.0
-        
+
             tmpTens[0,1,...] = -const * k30
             tmpTens[0,2,...] =  const * k2
             tmpTens[1,0,...] =  const * k30
@@ -205,7 +205,7 @@ class MannCovariance(Covariance):
             SqrtSpectralTens[2,1,...] = zeta3 * tmpTens[2,1,...]
             SqrtSpectralTens[2,2,...] = zeta3 * tmpTens[2,2,...]
 
-            
+
 
             return SqrtSpectralTens*1j
 
