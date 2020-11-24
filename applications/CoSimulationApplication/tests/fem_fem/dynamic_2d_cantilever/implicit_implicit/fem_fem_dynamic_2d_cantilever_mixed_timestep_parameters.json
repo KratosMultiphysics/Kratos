@@ -26,7 +26,6 @@
 					"mapper_type": "coupling_geometry",
 					"echo_level" : 0,
                     "dual_mortar": false,
-                    "consistent_mortar": false,
                     "consistency_scaling" : true,
                     "precompute_mapping_matrix" : true,
 					"modeler_name" : "MappingGeometriesModeler",
