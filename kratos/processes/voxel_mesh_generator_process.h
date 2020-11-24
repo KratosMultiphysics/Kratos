@@ -133,6 +133,12 @@ namespace Kratos
       ///@}
 
       protected:
+
+      VoxelMeshGeneratorProcess(ModelPart& rVolumePart,
+        ModelPart& rSkinPart, Parameters& TheParameters) 
+		    : Process()
+        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart) {}
+
       ///@name Static Member Variables
       ///@{
 
@@ -141,8 +147,8 @@ namespace Kratos
       ///@name Member Variables
       ///@{
         Internals::CartesianMeshColors mColors;
-          const Point mMinPoint;
-          const Point mMaxPoint;
+          Point mMinPoint;
+          Point mMaxPoint;
 		  array_1d<std::size_t,3> mNumberOfDivisions;
 		  std::size_t mStartNodeId;
 		  std::size_t mStartElementId;
