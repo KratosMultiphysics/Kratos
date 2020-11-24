@@ -233,6 +233,11 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorCurrentConfigurationTriangleElem
 
     const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
+    // Check whether the current configuration is restored after the search
+    for ( Node<3>& r_node : p_element->GetGeometry() )
+        for ( double component : r_node )
+            KRATOS_CHECK_NEAR( component, 0.0, 1e-16 );
+
     KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
     KRATOS_CHECK_EQUAL(shape_function_values.size(), 3);
 
