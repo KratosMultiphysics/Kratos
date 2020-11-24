@@ -58,30 +58,37 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     r_geometry_slave.DeterminantOfJacobian(det_jacobian);
     KRATOS_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
+    const double weight = r_geometry_slave.IntegrationPoints()[0].Weight();
 
     if (is_dual_mortar) {
         rLocalMappingMatrix.clear();
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) {
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
-                    * det_jacobian[integration_point_itr];
-                KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                    << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                    * det_jacobian[integration_point_itr] * weight;
+                KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                    << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
             }
         }
     }
     else {
+        KRATOS_DEBUG_ERROR_IF(sf_values_slave.size1() != sf_values_master.size1())
+            << "Coupling Geometry Mapper | origin and destination shape functions have different first sizes!"
+            << "\nOrigin shape functions =\n\t" << sf_values_master
+            << "\nDestination shape functions =\n\t" << sf_values_slave << std::endl;
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) {
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
+
+                KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                    << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
+
                 for (IndexType j = 0; j < sf_values_master.size2(); ++j) {
                     rLocalMappingMatrix(i, j) = sf_values_slave(integration_point_itr, i)
                         * sf_values_master(integration_point_itr, j)
-                        * det_jacobian[integration_point_itr];
+                        * det_jacobian[integration_point_itr] * weight;
 
-                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
-                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
+                        << "ORIGIN SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
                 }
             }
         }

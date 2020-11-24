@@ -27,6 +27,10 @@ def GetDefaultInputParameters():
 
         "ElementType" : "SwimmingDEMElement",
 
+        "error_projection_parameters"   :{
+            "u_characteristic"  : 1.0
+        },
+
         "do_print_results_option" : true,
         "output_interval" : 0.5,
 
