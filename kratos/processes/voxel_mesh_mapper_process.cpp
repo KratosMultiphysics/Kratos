@@ -13,7 +13,7 @@
 
 // System includes
 #include <vector>
-#include <unordered_set>
+#include <set>
 
 // External includes
 
@@ -30,10 +30,9 @@
 
 namespace Kratos
 {
-    VoxelMeshMapperProcess::VoxelMeshMapperProcess(std::string InputFileName,
-        ModelPart& rSkinPart, Parameters& TheParameters)
-		: Process()
-        , mrSkinPart(rSkinPart) {
+    VoxelMeshMapperProcess::VoxelMeshMapperProcess(std::string InputFileName, ModelPart& rVolumePart,
+        ModelPart& rSkinPart, Parameters& TheParameters) : VoxelMeshGeneratorProcess(rVolumePart, rSkinPart, TheParameters)
+	{
 
 		Timer::Start("Reading Input Mesh");
         ReadInputFile(InputFileName);
@@ -59,6 +58,9 @@ namespace Kratos
 
 		TheParameters.ValidateAndAssignDefaults(default_parameters);
 
+        mMinPoint = mColors.GetMinPoint();
+        mMaxPoint = mColors.GetMaxPoint();
+
         Check();
 
 
@@ -70,8 +72,30 @@ namespace Kratos
 
 	void VoxelMeshMapperProcess::Execute() {
 
-		Timer::Start("Reading Input Mesh");
-		Timer::Stop("Reading Input Mesh");
+		Timer::Start("Coloring Input Mesh");
+		for(auto parameters : mColoringParameters){
+
+			mHasColor=true;
+
+
+			Parameters default_parameters(R"(
+				{
+					"model_part_name": "PLEASE SPECIFY IT",
+					"inside_color": -1,
+					"outside_color": 1,
+					"interface_color": 0,
+					"apply_outside_color": true,
+					"coloring_entities" : "nodes"
+				}  )");
+
+			parameters.ValidateAndAssignDefaults(default_parameters);
+			
+			std::string model_part_name = parameters["model_part_name"].GetString();
+			ModelPart& skin_part = (model_part_name == mrSkinPart.Name()) ? mrSkinPart : mrSkinPart.GetSubModelPart(model_part_name);
+
+			ApplyColoring(skin_part, parameters);
+		}
+		Timer::Stop("Coloring Input Mesh");
 	}
 
 	std::string VoxelMeshMapperProcess::Info() const {
@@ -98,33 +122,44 @@ namespace Kratos
         KRATOS_WATCH(size);
         Matrix input_data(size, 4); // x y z value
 
-        std::unordered_set<double> x_planes;
-        std::unordered_set<double> y_planes;
-        std::unordered_set<double> z_planes;
+        std::set<double> x_centers;
+        std::set<double> y_centers;
+        std::set<double> z_centers;
         for(int i = 0 ; i < size ; i++){
             double& x = input_data(i,0);
             double& y = input_data(i,1);
             double& z = input_data(i,2);
-            double result = input_data(i,3);
+            double& result = input_data(i,3);
             input >> x >> y >> z >> result;
-            x_planes.insert(x);
-            y_planes.insert(y);
-            z_planes.insert(z);
+            x_centers.insert(x);
+            y_centers.insert(y);
+            z_centers.insert(z);
         }
-        KRATOS_WATCH(x_planes.size());
-        KRATOS_WATCH(y_planes.size());
-        KRATOS_WATCH(z_planes.size());
 
-        mInputMesh.SetCoordinates(std::vector<double>(x_planes.begin(), x_planes.end()), 
-                                  std::vector<double>(y_planes.begin(), y_planes.end()),
-                                  std::vector<double>(z_planes.begin(), z_planes.end())); 
+        // Passing center coordinates to the nodal coordinates
+        std::vector<double> x_planes(x_centers.begin(), x_centers.end());
+        std::vector<double> y_planes(y_centers.begin(), y_centers.end());
+        std::vector<double> z_planes(z_centers.begin(), z_centers.end());
+
+        CenterToNodalCoordinates(x_planes);
+        CenterToNodalCoordinates(y_planes);
+        CenterToNodalCoordinates(z_planes);
+
+
+        mInputMesh.SetCoordinates(x_planes, y_planes, z_planes); 
 
         // Applying nodal data
         for(int i_node = 0 ; i_node < size ; i_node++){
-            std::size_t i = mInputMesh.CalculateNodePosition(input_data(i_node,0), 0);
-            std::size_t j = mInputMesh.CalculateNodePosition(input_data(i_node,1), 1);
-            std::size_t k = mInputMesh.CalculateNodePosition(input_data(i_node,2), 2);
-            mInputMesh.GetNodalColor(i,j,k) = input_data(i_node,3);
+            double& x = input_data(i_node,0);
+            double& y = input_data(i_node,1);
+            double& z = input_data(i_node,2);
+            double& result = input_data(i_node,3);
+            std::size_t i = mInputMesh.CalculateCellPosition(input_data(i_node,0), 0);
+            std::size_t j = mInputMesh.CalculateCellPosition(input_data(i_node,1), 1);
+            std::size_t k = mInputMesh.CalculateCellPosition(input_data(i_node,2), 2);
+            KRATOS_ERROR_IF(i>n_x || j > n_y || k > n_z) << "The given point (" << input_data(i_node,0) << "," << input_data(i_node,1) << "," << input_data(i_node,2) << ") is out of mesh" << std::endl;
+            mInputMesh.GetElementalColor(i,j,k) = input_data(i_node,3);
+            std::cout << i << "," << j << "," << k << ":" << input_data(i_node,3) << std::endl;
         }
 
         mInputMesh.WriteParaViewVTR(InputFileName + ".vtr"); 
@@ -132,6 +167,22 @@ namespace Kratos
 
 	}
 
+    void VoxelMeshMapperProcess::CenterToNodalCoordinates(std::vector<double>& rCoordinates){
+        KRATOS_ERROR_IF(rCoordinates.size() < 2) << "At least two center coordinates are needed" << std::endl;
+        std::vector<double> nodal_coordinates;
+
+        double half_cell_size = (rCoordinates[1] - rCoordinates[0]) * 0.5;
+        nodal_coordinates.push_back(rCoordinates[0] - half_cell_size);
+
+        for(int i = 0 ; i < rCoordinates.size()-1 ; i++){
+            nodal_coordinates.push_back((rCoordinates[i+1]+rCoordinates[i])*0.5);
+        }
+
+        half_cell_size = rCoordinates.back() - nodal_coordinates.back();
+        nodal_coordinates.push_back(rCoordinates.back() + half_cell_size);
+        
+        rCoordinates.swap(nodal_coordinates);
+    }
 
     int VoxelMeshMapperProcess::Check()
     {

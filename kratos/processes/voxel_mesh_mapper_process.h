@@ -30,8 +30,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "processes/find_intersected_geometrical_objects_process.h"
-#include "processes/internals/cartesian_mesh_colors.h"
+#include "processes/voxel_mesh_generator_process.h"
 
 
 namespace Kratos
@@ -46,7 +45,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class KRATOS_API(KRATOS_CORE) VoxelMeshMapperProcess : public Process
+  class KRATOS_API(KRATOS_CORE) VoxelMeshMapperProcess : public VoxelMeshGeneratorProcess
     {
     public:
       ///@name Type Definitions
@@ -65,7 +64,7 @@ namespace Kratos
 
       /// Constructors to be used. They take the geometry to be meshed and Input file containing the results to be Mapped. The second constructor is
       /// provided for the Python interface.
-      VoxelMeshMapperProcess(std::string InputFileName,
+      VoxelMeshMapperProcess(std::string InputFileName, ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters);
 
       /// The object is not copyable.
@@ -128,14 +127,15 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
+
         Internals::CartesianMeshColors mInputMesh;
-        ModelPart& mrSkinPart;
 
       ///@}
       ///@name Private Operations
       ///@{
         
         void ReadInputFile(std::string InputFileName);
+        void CenterToNodalCoordinates(std::vector<double>& rCoordinates);
 
       ///@}
       ///@name Private  Access
