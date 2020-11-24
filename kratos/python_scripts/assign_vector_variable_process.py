@@ -13,9 +13,7 @@ def Factory(settings, Model):
 ## All the processes python should be derived from "Process"
 class AssignVectorVariableProcess(KratosMultiphysics.Process):
     """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
-
     Only the member variables listed below should be accessed directly.
-
     Public member variables:
     Model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
@@ -23,7 +21,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings ):
         """ The default constructor of the class
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
@@ -41,6 +38,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             "interval"             : [0.0, 1e30],
             "value"                : [10.0, "3*t", "x+y"],
             "constrained"          : [true,true,true],
+            "fill_buffer"          : false,
             "local_axes"           : {}
         }
         """
@@ -63,10 +61,14 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             msg = "Error in AssignVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
 
+        # We get the corresponding model part
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-        self.aux_processes = []
+        # To know if we will fill the buffer of the solution
+        self.fill_buffer = settings["fill_buffer"].GetBool()
 
+        # We initialize the auxiliar list of processes (depending of the components set)
+        self.aux_processes = []
 
         # Loop over components X, Y and Z
         for indice,variable in enumerate(["_X", "_Y", "_Z"]):
@@ -79,19 +81,21 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 i_params.AddValue("value",settings["value"][indice])
                 i_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + variable)
                 i_params.AddValue("local_axes",settings["local_axes"])
+                i_params.AddValue("fill_buffer",settings["fill_buffer"])
                 self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, i_params) )
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed in before initialize the solution step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        self.ExecuteInitializeSolutionStep()
+        # We fill the buffer if necessary (common in fluid problems)
+        if self.fill_buffer:
+            for process in self.aux_processes:
+                process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
@@ -100,7 +104,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
