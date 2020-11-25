@@ -90,14 +90,35 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
 
     // note that this cannot be omp bcs breaking is not allowed in omp
     for (auto& r_object : rObjects) {
-        const bool is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates, LocalCoordTol);
+
+        // Store current configuration of the object
+        // and move it to the initial configuration for the duration of the membership test
+        auto& r_geometry = r_object.GetGeometry();
+        std::size_t number_of_nodes = r_geometry.size();
+        std::vector<array_1d<double, 3>> current_node_coordinates(number_of_nodes);
+
+        for ( std::size_t i_node=0; i_node<number_of_nodes; ++i_node )
+        {
+            current_node_coordinates[i_node] = r_geometry[i_node].Coordinates();
+            r_geometry[i_node].Coordinates() = r_geometry[i_node].GetInitialPosition().Coordinates();
+        }
+
+        // Perform membership test
+        const bool is_inside = r_geometry.IsInside(rThePoint, local_coordinates, LocalCoordTol);
+
         if (is_inside) {
             local_object_found = 1;
             rObjectId = r_object.Id();
             // resizing of rShapeFunctionValues happens inside the function if required
-            r_object.GetGeometry().ShapeFunctionsValues(rShapeFunctionValues, local_coordinates);
-            break;
+            r_geometry.ShapeFunctionsValues(rShapeFunctionValues, local_coordinates);
         }
+
+        // Restore current configuration
+        for ( std::size_t i_node=0; i_node<number_of_nodes; ++i_node )
+            r_geometry[i_node].Coordinates() = current_node_coordinates[i_node];
+
+        if ( is_inside )
+            break;
     }
 
     CheckResults(rObjectName, rThePoint, local_object_found);
