@@ -96,6 +96,9 @@
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
+// adjoint elements
+#include "custom_elements/fluid_element_adjoint.h"
+#include "custom_elements/data_containers/qs_vms_adjoint_data/qs_vms_adjoint_element_data.h"
 
 namespace Kratos
 {
@@ -415,6 +418,10 @@ private:
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
     const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
     const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
+
+    /// Fluid adjoint elements
+    const FluidAdjointElement<2, 3, QSVMSAdjointElementData<2, 3>> mQSVMSAdjoint2D3N;
+    const FluidAdjointElement<3, 4, QSVMSAdjointElementData<3, 4>> mQSVMSAdjoint3D4N;
 
     ///@}
     ///@name Private Operators

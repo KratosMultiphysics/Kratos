@@ -57,6 +57,8 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
+    FluidAdjointConstitutiveLaw::Pointer GetAdjointConstitutiveLaw() override;
+
     /**
      * Copy constructor.
      */
@@ -119,10 +121,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
     double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
-    
+
     ///@}
 private:
 
@@ -159,4 +161,4 @@ private:
 
 }; // Class Newtonian3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_LAW_3D_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_LAW_3D_H_INCLUDED  defined

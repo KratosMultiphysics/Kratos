@@ -276,7 +276,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 template< class TElementData >
-void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
+void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -299,7 +299,7 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
 
 
 template< class TElementData >
-void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
+void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -320,7 +320,7 @@ void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
+void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -340,7 +340,7 @@ void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int 
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const 
+void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -578,6 +578,7 @@ void FluidElement<TElementData>::UpdateIntegrationPointData(
 template <class TElementData>
 void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
 
+    // Ask Ruben: Why not Velocity - MeshVelocity in here?
     Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
 
     auto& Values = rData.ConstitutiveLawValues;

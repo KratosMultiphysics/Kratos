@@ -17,7 +17,9 @@
 // External includes
 
 // Project includes
+#include "geometries/geometry.h"
 #include "includes/define.h"
+#include "includes/node.h"
 
 // Application includes
 #include "custom_utilities/fluid_element_data.h"
@@ -56,6 +58,10 @@ public:
 
     /// Pointer definition of FluidElementUtilities
     KRATOS_CLASS_POINTER_DEFINITION(FluidElementUtilities);
+
+    using NodeType = Node<3>;
+
+    using GeometryType = Geometry<NodeType>;
 
     using ShapeDerivatives2DType = typename FluidElementData<2,TNumNodes,false>::ShapeDerivativesType;
     using ShapeDerivatives3DType = typename FluidElementData<3,TNumNodes,false>::ShapeDerivativesType;
@@ -210,6 +216,170 @@ public:
         const BoundedMatrix<double,3,3> &rA,
         const array_1d<double,3> &rB,
         array_1d<double,3> &rX);
+
+    /**
+     * @brief Evaluates given list of variable pairs at gauss point locations at step
+     *
+     * Example:
+     *      double density;
+     *      array_1d<double, 3> velocity
+     *      EvaluateInPoint(rGeometry, rShapeFunction, Step,
+     *                      std::tie(density, DENSITY),
+     *                      std::tie(velocity, VELOCITY));
+     *
+     *      The above evaluation will fill density, and velocity variables with gauss point
+     *      evaluated DENSITY and VELOCITY at gauss point with shape function values rShapeFunction
+     *      in the geometry named rGeometry.
+     *
+     * @tparam TRefVariableValuePairArgs
+     * @param[in] rGeometry                 Geometry to get nodes
+     * @param[in] rShapeFunction            Shape function values at gauss point
+     * @param[in] Step                      Step to be evaluated
+     * @param[in/out] rValueVariablePairs   std::tuple<TDataType, const Variable<TDataType>> list of variables.
+     */
+    template <class... TRefVariableValuePairArgs>
+    static void EvaluateInPoint(
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunction,
+        const int Step,
+        const TRefVariableValuePairArgs&... rValueVariablePairs)
+    {
+        KRATOS_TRY
+
+        const auto& r_node = rGeometry[0];
+        const double shape_function_value = rShapeFunction[0];
+
+        int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
+            std::get<0>(rValueVariablePairs) =
+                r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value,
+            0)...};
+
+        // this can be removed with fold expressions in c++17
+        *dummy = 0;
+
+        for (unsigned int c = 1; c < TNumNodes; ++c) {
+            const auto& r_node = rGeometry[c];
+            const double shape_function_value = rShapeFunction[c];
+
+            int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
+                UpdateValue<typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type>(
+                    std::get<0>(rValueVariablePairs),
+                    r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value),
+                0)...};
+
+            // this can be removed with fold expressions in c++17
+            *dummy = 0;
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Evaluates given list of variable pairs at gauss point locations at current step
+     *
+     * Example:
+     *      double density;
+     *      array_1d<double, 3> velocity
+     *      EvaluateInPoint(rGeometry, rShapeFunction,
+     *                      std::tie(density, DENSITY),
+     *                      std::tie(velocity, VELOCITY));
+     *
+     *      The above evaluation will fill density, and velocity variables with gauss point
+     *      evaluated DENSITY and VELOCITY at gauss point with shape function values rShapeFunction
+     *      in the geometry named rGeometry.
+     *
+     * @tparam TRefVariableValuePairArgs
+     * @param[in] rGeometry                 Geometry to get nodes
+     * @param[in] rShapeFunction            Shape function values at gauss point
+     * @param[in/out] rValueVariablePairs   std::tuple<TDataType, const Variable<TDataType>> list of variables.
+     */
+    template <class... TRefVariableValuePairArgs>
+    static void inline EvaluateInPoint(
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunction,
+        const TRefVariableValuePairArgs&... rValueVariablePairs)
+    {
+        EvaluateInPoint<TRefVariableValuePairArgs...>(rGeometry, rShapeFunction, 0, rValueVariablePairs...);
+    }
+
+    template<class TVectorType>
+    static void Product(
+        TVectorType& rOutput,
+        const Matrix& rA,
+        const Vector& rB)
+    {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(rOutput.size() < rA.size1())
+            << "rOutput.size() does not have enough indices to comply with "
+               "matrix vector multiplication with rA. [ rOutput.size() = "
+            << rOutput.size() << ", rA.size1() = " << rA.size1() << " ].\n";
+
+        rOutput.clear();
+
+        const IndexType cols = std::min(rA.size2(), rB.size());
+        for (IndexType i = 0; i < rA.size1(); ++i) {
+            for (IndexType j = 0; j < cols; ++j) {
+                rOutput[i] += rA(i, j) * rB[j];
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    template<class TMatrixType>
+    static void Product(
+        TMatrixType& rOutput,
+        const Matrix& rA,
+        const Matrix& rB)
+    {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(rOutput.size1() < rA.size1())
+            << "rOutput.size1() does not have enough indices to comply with "
+               "matrix matrix multiplication with rA and rB. [ rOutput.size1() = "
+            << rOutput.size1() << ", rA.size1() = " << rA.size1() << " ].\n";
+
+        KRATOS_DEBUG_ERROR_IF(rOutput.size2() < rB.size2())
+            << "rOutput.size2() does not have enough indices to comply with "
+               "matrix matrix multiplication with rA and rB. [ rOutput.size2() = "
+            << rOutput.size2() << ", rB.size2() = " << rB.size2() << " ].\n";
+
+        rOutput.clear();
+
+        const IndexType cols = std::min(rA.size2(), rB.size1());
+        for (IndexType i = 0; i < rA.size1(); ++i) {
+            for (IndexType j = 0; j < rB.size2(); ++j) {
+                for (IndexType k = 0; k < cols; ++k) {
+                    rOutput(i, j) += rA(i, k) * rB(k, j);
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    ///@}
+
+private:
+    ///@name Private Operations
+    ///@{
+
+    template<class TDataType, class TDummy = void>
+    static void UpdateValue(
+        TDataType& rOutput,
+        const TDataType& rInput)
+    {
+        noalias(rOutput) += rInput;
+    }
+
+    template<class TDummy>
+    static void UpdateValue(
+        double& rOutput,
+        const double& rInput)
+    {
+        rOutput += rInput;
+    }
 
     ///@}
 
