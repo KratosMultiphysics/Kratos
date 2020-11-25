@@ -14,7 +14,6 @@
 		"origin_newmark_gamma" : 0.5,
 		"destination_newmark_beta" : 0.25,
         "destination_newmark_gamma" : 0.5,
-        "timestep_ratio" : 2,
         "equilibrium_variable" : "VELOCITY",
         "is_disable_coupling" : false,
         "echo_level" : 0,
