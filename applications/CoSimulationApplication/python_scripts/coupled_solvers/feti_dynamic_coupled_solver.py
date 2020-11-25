@@ -49,7 +49,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             for solver_name, solver in self.solver_wrappers.items():
                 if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
                     solver_time = solver.AdvanceInTime(current_time)
-                    if self._solver_indices[solver_name] == 1:
+                    if self._solver_origin_dest_dict[solver_name] == CoSim.SolverIndex.Destination:
                         advanced_time = solver_time #only advance global time finely
 
         return advanced_time
@@ -104,7 +104,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
     def __InitializeFetiMethod(self):
         # Create vector of solver indices for convenience
-        self.__CreateOrderedSolverIndices()
+        self.__CreateSolverOriginDestDict()
 
         # Check timestep ratio is valid and add to settings
         timestep_ratio = self._CalculateAndCheckTimestepRatio()
@@ -118,7 +118,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         origin_modelpart_name = self.mapper_parameters["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString()
         destination_modelpart_name = self.mapper_parameters["modeler_parameters"]["destination_interface_sub_model_part_name"].GetString()
         for solver_name, solver in self.solver_wrappers.items():
-            if self._solver_indices[solver_name] == 0:
+            if self._solver_origin_dest_dict[solver_name] == CoSim.SolverIndex.Origin:
                 self.model_part_origin_interface = self.solver_wrappers[solver_name].model.GetModelPart(origin_modelpart_name)
             else:
                 self.model_part_destination_interface = self.solver_wrappers[solver_name].model.GetModelPart(destination_modelpart_name)
@@ -165,19 +165,31 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # Set origin initial velocities
         self.feti_coupling.SetOriginInitialKinematics()
 
-    def __CreateOrderedSolverIndices(self):
-        self._solver_indices = {}
+    def __CreateSolverOriginDestDict(self):
+        self._solver_origin_dest_dict = {}
         for solver_index in range(self.settings["coupling_sequence"].size()):
             ordered_solver_name = self.settings["coupling_sequence"][solver_index]["name"].GetString()
-            self._solver_indices[ordered_solver_name] = solver_index
+            if solver_index == 0:
+                self._solver_origin_dest_dict[ordered_solver_name] = CoSim.SolverIndex.Origin
+                print(self._solver_origin_dest_dict[ordered_solver_name])
+            else:
+                self._solver_origin_dest_dict[ordered_solver_name] = CoSim.SolverIndex.Destination
+        print(self._solver_origin_dest_dict)
+
 
     def __SendStiffnessMatrixToUtility(self, solver_name):
-        solverIndex = self._solver_indices[solver_name]
-        if self.is_implicit[solverIndex]:
-                system_matrix = self._GetSolverStrategy(solver_name).GetSystemMatrix()
-                self.feti_coupling.SetEffectiveStiffnessMatrixImplicit(system_matrix,solverIndex)
+        beta = 0.0
+        solver_index = self._solver_origin_dest_dict[solver_name]
+        if solver_index == CoSim.SolverIndex.Origin:
+            beta = self.settings["origin_newmark_beta"].GetDouble()
         else:
-            self.feti_coupling.SetEffectiveStiffnessMatrixExplicit(solverIndex)
+            beta = self.settings["destination_newmark_beta"].GetDouble()
+
+        if abs(beta-0.25) < 1e-9:
+                system_matrix = self._GetSolverStrategy(solver_name).GetSystemMatrix()
+                self.feti_coupling.SetEffectiveStiffnessMatrixImplicit(system_matrix,solver_index)
+        else:
+            self.feti_coupling.SetEffectiveStiffnessMatrixExplicit(solver_index)
 
     def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
@@ -190,8 +202,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
     def _CalculateAndCheckTimestepRatio(self):
         # Check timestep ratio is valid
         timesteps = [0.0] * len(self._solver_delta_times)
-        for solver_name, timestep in self._solver_delta_times.items():
-            timesteps[self._solver_indices[solver_name]] = timestep
+        for solver_index in range(self.settings["coupling_sequence"].size()):
+            ordered_solver_name = self.settings["coupling_sequence"][solver_index]["name"].GetString()
+            timesteps[solver_index] = self._solver_delta_times[ordered_solver_name]
         timestep_ratio = timesteps[0] / timesteps[1]
         if timestep_ratio < 0.99 or int(timestep_ratio) % timestep_ratio > 1E-12:
             raise Exception("The timestep ratio between origin and destination domains is invalid. It must be a positive integer greater than 1.")

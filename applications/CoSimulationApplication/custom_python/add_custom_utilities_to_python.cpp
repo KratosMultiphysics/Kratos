@@ -30,6 +30,7 @@ namespace Python{
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
         typedef FetiDynamicCouplingUtilities<SparseSpaceType, LocalSpaceType> FetiDynamicCouplingUtilitiesType;
+        typedef FetiDynamicCouplingUtilitiesType::SolverIndex FetiSolverIndexType;
 
         pybind11::class_< FetiDynamicCouplingUtilitiesType>(m, "FetiDynamicCouplingUtilities")
             .def(pybind11::init<ModelPart&, ModelPart&, Parameters>())
@@ -47,6 +48,11 @@ namespace Python{
                 &FetiDynamicCouplingUtilitiesType::SetMappingMatrix)
             .def("SetLinearSolver",
                 &FetiDynamicCouplingUtilitiesType::SetLinearSolver)
+            ;
+
+        pybind11::enum_< FetiSolverIndexType>(m, "SolverIndex")
+            .value("Origin", FetiSolverIndexType::Origin)
+            .value("Destination", FetiSolverIndexType::Destination)
             ;
     }
 
