@@ -50,7 +50,7 @@ namespace Python{
                 &FetiDynamicCouplingUtilitiesType::SetLinearSolver)
             ;
 
-        pybind11::enum_< FetiSolverIndexType>(m, "SolverIndex")
+        pybind11::enum_< FetiSolverIndexType>(m, "FetiSolverIndexType")
             .value("Origin", FetiSolverIndexType::Origin)
             .value("Destination", FetiSolverIndexType::Destination)
             ;
@@ -58,4 +58,3 @@ namespace Python{
 
 }  // namespace Python.
 } // Namespace Kratos
-
