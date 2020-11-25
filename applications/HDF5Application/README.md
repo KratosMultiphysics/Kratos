@@ -195,6 +195,7 @@ This process can be used to output data from model parts to HDF5. This will writ
                     "file_settings": {
                         "file_name": "hdf5_output/<model_part_name>-<time>.h5",
                         "time_format": "0.4f",
+                        "max_files_to_keep": "unlimited",
                         "echo_level": 1
                     },
                     "output_time_settings": {
@@ -256,6 +257,7 @@ This process is used to output model part variable data to HDF5 with mesh writte
                     "file_settings": {
                         "file_name": "hdf5_output/<model_part_name>-<time>.h5",
                         "time_format": "0.4f",
+                        "max_files_to_keep": "unlimited",
                         "echo_level": 1
                     },
                     "output_time_settings": {
@@ -320,6 +322,7 @@ This process outputs model part variable data for each time step, additionally i
                     "file_settings": {
                         "file_name": "hdf5_output/<model_part_name>-<time>.h5",
                         "time_format": "0.4f",
+                        "max_files_to_keep": "unlimited",
                         "echo_level": 1
                     },
                     "output_time_settings": {

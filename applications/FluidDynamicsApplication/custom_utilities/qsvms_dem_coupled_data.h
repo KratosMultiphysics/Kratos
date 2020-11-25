@@ -51,6 +51,7 @@ using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalV
 
 NodalScalarData FluidFraction;
 NodalScalarData FluidFractionRate;
+NodalScalarData MassSource;
 
 NodalVectorData FluidFractionGradient;
 NodalVectorData Acceleration;
@@ -72,6 +73,7 @@ void Initialize(
     this->FillFromNodalData(FluidFraction, FLUID_FRACTION, r_geometry);
     this->FillFromNodalData(FluidFractionRate, FLUID_FRACTION_RATE, r_geometry);
     this->FillFromNodalData(FluidFractionGradient, FLUID_FRACTION_GRADIENT, r_geometry);
+    this->FillFromNodalData(MassSource, MASS_SOURCE, r_geometry);
     this->FillFromNodalData(Acceleration, ACCELERATION, r_geometry);
     this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
 
