@@ -268,12 +268,12 @@ public:
     // Get values
     ModelPart& GetInterfaceModelPartOrigin() override
     {
-        return *mpCouplingInterfaceOrigin;
+        return *mpCouplingInterfaceMaster;
     }
 
     ModelPart& GetInterfaceModelPartDestination() override
     {
-        return *mpCouplingInterfaceDestination;
+        return *mpCouplingInterfaceSlave;
     }
 
 private:
