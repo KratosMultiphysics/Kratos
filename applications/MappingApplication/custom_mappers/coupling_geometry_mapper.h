@@ -266,14 +266,16 @@ public:
     }
 
     // Get values
+    // Always returns the true origin/destination regardless of 'destination_is_slave'
     ModelPart& GetInterfaceModelPartOrigin() override
     {
-        return *mpCouplingInterfaceMaster;
+
+        return mpCouplingMP->GetSubModelPart("interface_origin");
     }
 
     ModelPart& GetInterfaceModelPartDestination() override
     {
-        return *mpCouplingInterfaceSlave;
+        return mpCouplingMP->GetSubModelPart("interface_destination");
     }
 
 private:
