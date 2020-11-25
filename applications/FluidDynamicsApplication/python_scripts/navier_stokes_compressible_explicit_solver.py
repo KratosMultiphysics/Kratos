@@ -83,13 +83,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MASS_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KINEMATIC_VISCOSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_CAPACITY_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
         # Post-process variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)

@@ -43,11 +43,6 @@ void CreateCompressibleNavierStokesExplicit2D3NElement(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(TOTAL_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(REACTION_ENERGY);
-    rModelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-    rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
-    rModelPart.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
-    rModelPart.AddNodalSolutionStepVariable(HEAT_CAPACITY_RATIO);
-    rModelPart.AddNodalSolutionStepVariable(CONDUCTIVITY);
 
     // Set the element properties
     Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
@@ -88,11 +83,6 @@ void CreateCompressibleNavierStokesExplicit3D4NElement(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(TOTAL_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(REACTION_ENERGY);
-    rModelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-    rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
-    rModelPart.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
-    rModelPart.AddNodalSolutionStepVariable(HEAT_CAPACITY_RATIO);
-    rModelPart.AddNodalSolutionStepVariable(CONDUCTIVITY);
 
     // Set the element properties
     Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
