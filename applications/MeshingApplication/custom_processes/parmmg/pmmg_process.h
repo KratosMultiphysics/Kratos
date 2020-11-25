@@ -16,9 +16,13 @@
 #define KRATOS_PMMG_PROCESS
 
 // System includes
+#include <unordered_set>
+#include <unordered_map>
+
+// External includes
 
 // Project includes
-#include "processes/process.h"
+#include "custom_processes/mmg/mmg_process.h"
 #include "custom_utilities/parmmg/pmmg_utilities.h"
 
 // NOTE: The following contains the license of the PMMG library
@@ -85,7 +89,7 @@ namespace Kratos
  */
 template<PMMGLibrary TPMMGLibrary>
 class KRATOS_API(MESHING_APPLICATION) ParMmgProcess
-    : public Process
+    : public MmgProcess<MMGLibrary::MMG3D>
 {
 public:
 
@@ -94,6 +98,8 @@ public:
 
     /// Pointer definition of ParMmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(ParMmgProcess);
+
+    typedef MmgProcess<MMGLibrary::MMG3D> BaseType;
 
     /// Node definition
     typedef Node <3>                                                   NodeType;
@@ -202,6 +208,16 @@ public:
      */
     void ExecuteFinalize() override;
 
+    /**
+     * @brief This sets the output mesh in a .mdpa format
+     */
+    void OutputMdpa() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+    */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -246,6 +262,52 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    /**
+     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
+     */
+    void InitializeMeshData() override;
+
+    /**
+     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
+     */
+    void InitializeSolDataMetric() override;
+
+    /**
+     * @brief We execute the MMg library and build the new model part from the old model part
+     */
+    void ExecuteRemeshing() override;
+
+    /**
+     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     */
+    void InitializeElementsAndConditions() override;
+
+    /**
+     * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
+     * @param PostOutput If the file to save is after or before remeshing
+     */
+    void SaveSolutionToFile(const bool PostOutput) override;
+
+    /**
+     * @brief It frees the memory used during all the process
+     */
+    void FreeMemory() override;
+
+    /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    void ClearConditionsDuplicatedGeometries() override;
+
+    /**
+     * @brief This function creates an before/after remesh output file
+     * @param rOldModelPart The old model part before remesh
+     */
+    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart) override;
+
+    template<typename TPointerType>
+    void SyncMapAcrossRanks(std::unordered_map<IndexType, TPointerType>& rInputMap);
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -273,11 +335,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;                                      /// The model part to compute
-    Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
-    NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
-
-    ParMmgUtilities<TPMMGLibrary> mPMmmgUtilities;                     /// The PMMG utilities class
+    ParMmgUtilities<TPMMGLibrary> mPMmgUtilities;                     /// The PMMG utilities class
 
     ///@}
     ///@name Private Operators
@@ -286,9 +344,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Private  Access
