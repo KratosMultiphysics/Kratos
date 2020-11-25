@@ -131,13 +131,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         self.modelpart_interface_origin_from_mapper = self.mapper.GetInterfaceModelPartOrigin()
         self.modelpart_interface_destination_from_mapper = self.mapper.GetInterfaceModelPartDestination()
 
-        # Get time integration parameters
-        self.is_implicit = [True, True]
-        origin_newmark_beta = self.settings["origin_newmark_beta"].GetDouble()
-        destination_newmark_beta = self.settings["destination_newmark_beta"].GetDouble()
-        if origin_newmark_beta == 0.0: self.is_implicit[0] = False
-        if destination_newmark_beta == 0.0: self.is_implicit[1] = False
-
         # Create feti class instance
         self.feti_coupling = CoSim.FetiDynamicCouplingUtilities(
             self.modelpart_interface_origin_from_mapper,
