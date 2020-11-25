@@ -125,6 +125,17 @@ public:
         }
     }
 
+    /// Copy constructor.
+    explicit DistributedVectorImporter(DistributedVectorImporter const& rOther)
+    :
+        mrComm(rOther.mrComm),
+        mpNumbering(make_unique<DistributedNumbering<IndexType>>(*rOther.mpNumbering)),
+        mlocal_i_by_color(rOther.mlocal_i_by_color),
+        mLocallyOwnedIds(rOther.mLocallyOwnedIds),
+        mIdOfLocallyOwnedTerms(rOther.mIdOfLocallyOwnedTerms),
+        mvector_comm_colors(rOther.mvector_comm_colors)
+    {}
+
     ///this function returns a local array containing the values identified by the rGlobalIndices list passed in the constructor
     DenseVector<TDataType> ImportData(const DistributedSystemVector<TDataType, TIndexType>& data_vector) const
     {
@@ -155,7 +166,6 @@ public:
         }
         //treat local data
         for(IndexType i=0; i<mLocallyOwnedIds.size(); ++i )
-
             ImportedData(mIdOfLocallyOwnedTerms[i]) = data_vector( mLocallyOwnedIds[i] );
 
         return ImportedData;
@@ -295,8 +305,7 @@ private:
     /// Assignment operator.
     DistributedVectorImporter& operator=(DistributedVectorImporter const& rOther){}
 
-    /// Copy constructor.
-    DistributedVectorImporter(DistributedVectorImporter const& rOther){}
+
 
     ///@}
 

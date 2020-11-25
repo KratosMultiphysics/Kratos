@@ -71,7 +71,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    CsrMatrix()
+    CsrMatrix() //needs to be public, since one could use the low level API to construc the CSR matrix
     {
     }
 
