@@ -32,7 +32,7 @@
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/fractional_step_strategy.h"
-#include "custom_strategies/strategies/navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
+#include "custom_strategies/strategies/explicit_fractional_step_strategy.h"
 
 //schemes
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
@@ -113,12 +113,12 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     ;
 
     py::class_<
-        NavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
-        typename NavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
-        ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "NavierStokesExplicitSolvingStrategyRungeKutta4")
-    .def(py::init<ModelPart&, bool, int>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+        ExplicitFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
+        typename ExplicitFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+        BaseSolvingStrategyType>(m, "ExplicitFractionalStepStrategy")
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool>())
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool, const Kratos::Variable<int> &>())
+    ;
 
 }
 
