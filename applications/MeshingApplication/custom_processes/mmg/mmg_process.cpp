@@ -96,6 +96,13 @@ MmgProcess<TMMGLibrary>::MmgProcess(
     mpRefCondition.clear();
 }
 
+template<MMGLibrary TMMGLibrary>
+MmgProcess<TMMGLibrary>::MmgProcess(
+    ModelPart* pThisModelPart
+    ) : mrThisModelPart(*pThisModelPart)
+{
+}
+
 /*************************************** EXECUTE ***********************************/
 /***********************************************************************************/
 
