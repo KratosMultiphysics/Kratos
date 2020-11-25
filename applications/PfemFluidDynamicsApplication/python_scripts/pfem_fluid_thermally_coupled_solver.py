@@ -223,7 +223,10 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
     def PrepareModelPart(self):
         self.CloneThermalModelPart()
+        self.PrepareThermalModelPart()
+        self.fluid_solver.PrepareModelPart()
 
+    def PrepareThermalModelPart(self):
         # Thermal model part is being prepared here instead of calling its application
         # because there is a small change needed in that function (self.thermal_solver.PrepareModelPart())
         if not self.thermal_solver.is_restarted():
@@ -233,10 +236,6 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
         if (self.thermal_solver.settings["echo_level"].GetInt() > 0):
             KM.Logger.PrintInfo(self.thermal_solver.model)
         KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
-
-        # Prepare fluid model part
-        self.fluid_solver.PrepareModelPart()
-
 
     def AddMaterialVariables(self):
 
