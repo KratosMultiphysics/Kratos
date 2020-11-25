@@ -19,6 +19,7 @@
 
 // Project includes
 #include "shallow_water_residual_based_bdf_scheme.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -127,9 +128,17 @@ public:
 
         // Initialization of non-historical variables
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+            r_node.SetValue(POSITIVE_FLUX, 0.0);
+            r_node.SetValue(NEGATIVE_FLUX, 0.0);
+            r_node.SetValue(MAX_INCREMENT, 0.0);
+            r_node.SetValue(MIN_DECREMENT, 0.0);
             r_node.SetValue(POSITIVE_RATIO, 0.0);
             r_node.SetValue(NEGATIVE_RATIO, 0.0);
         });
+
+        // Initialization and execution of nodal neighbours search
+        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+        FindGlobalNodalNeighboursProcess(r_data_communicator, rModelPart).Execute();
 
         // Finalization of initialize
         SWBaseType::Initialize(rModelPart);
@@ -152,8 +161,41 @@ public:
         SWBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+            r_node.GetValue(POSITIVE_FLUX) = 0.0;
+            r_node.GetValue(NEGATIVE_FLUX) = 0.0;
+            r_node.GetValue(MAX_INCREMENT) = 0.0;
+            r_node.GetValue(MIN_DECREMENT) = 0.0;
             r_node.GetValue(POSITIVE_RATIO) = 0.0;
             r_node.GetValue(NEGATIVE_RATIO) = 0.0;
+        });
+
+        const ProcessInfo& r_const_process_info = rModelPart.GetProcessInfo();
+        block_for_each(rModelPart.Elements(), [&](Element& r_elem){
+            ComputeAntiFluxes(r_elem, r_const_process_info);
+        });
+
+        block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+            const auto& neigh_nodes = r_node.GetValue(NEIGHBOUR_NODES);
+            double u_i = r_node.FastGetSolutionStepValue(HEIGHT);
+            double& max_incr = r_node.GetValue(MAX_INCREMENT);
+            double& min_decr = r_node.GetValue(MIN_DECREMENT);
+            for (size_t j = 0; j < neigh_nodes.size(); ++j){
+                double delta_ij = neigh_nodes[j].FastGetSolutionStepValue(HEIGHT) - u_i;
+                max_incr = std::max(max_incr, delta_ij);
+                min_decr = std::min(min_decr, delta_ij);
+            }
+            double pos_flux = r_node.GetValue(POSITIVE_FLUX);
+            double neg_flux = r_node.GetValue(NEGATIVE_FLUX);
+            if (pos_flux > 0.0){
+                r_node.GetValue(POSITIVE_RATIO) = std::min(1.0, max_incr / pos_flux);
+            } else {
+                r_node.GetValue(POSITIVE_RATIO) = 1;
+            }
+            if (neg_flux < 0.0){
+                r_node.GetValue(NEGATIVE_RATIO) = std::min(1.0, min_decr / neg_flux);
+            } else {
+                r_node.GetValue(NEGATIVE_RATIO) = 1;
+            }
         });
     }
 
@@ -191,6 +233,16 @@ public:
 
         AddDynamicsToRHS(rCurrentElement, rRHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], mMl[this_thread], rCurrentProcessInfo);
     
+        AddFluxCorrection<Element>(
+            rCurrentElement,
+            rLHS_Contribution,
+            rRHS_Contribution,
+            ImplicitBaseType::mMatrix.M[this_thread],
+            mMl[this_thread],
+            ImplicitBaseType::mMatrix.D[this_thread],
+            mUn0[this_thread],
+            BDFBaseType::mVector.dotun0[this_thread]);
+
         SWBaseType::mRotationTool.Rotate(rLHS_Contribution, rRHS_Contribution, rCurrentElement.GetGeometry());
         SWBaseType::mRotationTool.ApplySlipCondition(rLHS_Contribution, rRHS_Contribution, rCurrentElement.GetGeometry());
 
@@ -226,6 +278,15 @@ public:
         ComputeLumpedMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], mMl[this_thread]);
 
         AddDynamicsToRHS(rCurrentElement, rRHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+
+        AddFluxCorrection<Element>(
+            rCurrentElement,
+            rRHS_Contribution,
+            ImplicitBaseType::mMatrix.M[this_thread],
+            mMl[this_thread],
+            ImplicitBaseType::mMatrix.D[this_thread],
+            mUn0[this_thread],
+            BDFBaseType::mVector.dotun0[this_thread]);
 
         SWBaseType::mRotationTool.Rotate(rRHS_Contribution, rCurrentElement.GetGeometry());
         SWBaseType::mRotationTool.ApplySlipCondition(rRHS_Contribution, rCurrentElement.GetGeometry());
@@ -267,6 +328,16 @@ public:
 
         AddDynamicsToRHS(rCurrentCondition, rRHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
 
+        AddFluxCorrection<Condition>(
+            rCurrentCondition,
+            rLHS_Contribution,
+            rRHS_Contribution,
+            ImplicitBaseType::mMatrix.M[this_thread],
+            mMl[this_thread],
+            ImplicitBaseType::mMatrix.D[this_thread],
+            mUn0[this_thread],
+            BDFBaseType::mVector.dotun0[this_thread]);
+
         SWBaseType::mRotationTool.Rotate(rLHS_Contribution, rRHS_Contribution, rCurrentCondition.GetGeometry());
         SWBaseType::mRotationTool.ApplySlipCondition(rLHS_Contribution, rRHS_Contribution, rCurrentCondition.GetGeometry());
 
@@ -302,6 +373,15 @@ public:
         ComputeLumpedMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], mMl[this_thread]);
 
         AddDynamicsToRHS(rCurrentCondition, rRHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+
+        AddFluxCorrection<Condition>(
+            rCurrentCondition,
+            rRHS_Contribution,
+            ImplicitBaseType::mMatrix.M[this_thread],
+            mMl[this_thread],
+            ImplicitBaseType::mMatrix.D[this_thread],
+            mUn0[this_thread],
+            BDFBaseType::mVector.dotun0[this_thread]);
 
         SWBaseType::mRotationTool.Rotate(rRHS_Contribution, rCurrentCondition.GetGeometry());
         SWBaseType::mRotationTool.ApplySlipCondition(rRHS_Contribution, rCurrentCondition.GetGeometry());
@@ -406,16 +486,6 @@ protected:
         if (rD.size1() != 0) {
             r_const_element.GetValuesVector(mUn0[this_thread]);
             noalias(rRHS_Contribution) -= prod(rD, mUn0[this_thread]);
-
-            // Substracting extra diffusion
-            AddFluxCorrection<Element>(
-                rElement,
-                rRHS_Contribution,
-                ImplicitBaseType::mMatrix.M[this_thread],
-                mMl[this_thread],
-                ImplicitBaseType::mMatrix.D[this_thread],
-                mUn0[this_thread],
-                BDFBaseType::mVector.dotun0[this_thread]);
         }
     }
 
@@ -448,16 +518,41 @@ protected:
         if (rD.size1() != 0) {
             r_const_condition.GetValuesVector(mUn0[this_thread]);
             noalias(rRHS_Contribution) -= prod(rD, mUn0[this_thread]);
+        }
+    }
 
-            // Substracting extra diffusion
-            AddFluxCorrection<Condition>(
-                rCondition,
-                rRHS_Contribution,
-                ImplicitBaseType::mMatrix.M[this_thread],
-                mMl[this_thread],
-                ImplicitBaseType::mMatrix.D[this_thread],
-                mUn0[this_thread],
-                BDFBaseType::mVector.dotun0[this_thread]);
+    template<class EntityType>
+    void ComputeAntiFluxes(EntityType& rEntity, const ProcessInfo& rProcessInfo)
+    {
+        const auto& r_const_entity = rEntity; // TODO: remove that statement as soon as deprecation warnings are removed
+        const IndexType t = OpenMPUtils::ThisThread();
+
+        rEntity.CalculateMassMatrix(ImplicitBaseType::mMatrix.M[t], rProcessInfo);
+
+        rEntity.CalculateDampingMatrix(ImplicitBaseType::mMatrix.D[t], rProcessInfo);
+
+        r_const_entity.GetValuesVector(mUn0[t]);
+
+        r_const_entity.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[t]);
+
+        ComputeLumpedMassMatrix(ImplicitBaseType::mMatrix.M[t], mMl[t]);
+
+        auto aec = prod(ImplicitBaseType::mMatrix.D[t], mUn0[t]) + prod(mMl[t] - ImplicitBaseType::mMatrix.M[t], BDFBaseType::mVector.dotun0[t]);
+
+        auto r_geom = rEntity.GetGeometry();
+        const IndexType block_size = aec.size() / r_geom.size();
+        for (IndexType i = 0; i < r_geom.size(); ++i)
+        {
+            const double flux = aec((i+1)*block_size -1);
+            if (flux > 0) {
+                r_geom[i].SetLock();
+                r_geom[i].GetValue(POSITIVE_FLUX) += flux;
+                r_geom[i].UnSetLock();
+            } else {
+                r_geom[i].SetLock();
+                r_geom[i].GetValue(NEGATIVE_FLUX) += flux;
+                r_geom[i].UnSetLock();
+            }
         }
     }
 
@@ -498,6 +593,48 @@ protected:
         }
 
         // Adding the limited anti-diffusion
+        rRHS += c * aec;
+    }
+
+    template<class EntityType>
+    void AddFluxCorrection(
+        EntityType& rEntity,
+        LocalSystemMatrixType& rLHS,
+        LocalSystemVectorType& rRHS,
+        const LocalSystemMatrixType& rMc,
+        const LocalSystemMatrixType& rMl,
+        const LocalSystemMatrixType& rD,
+        const LocalSystemVectorType& rU,
+        const LocalSystemVectorType& rDotU)
+    {
+        // Construction of the element contribution of anti-fluxes
+        auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);
+
+        // Checking the sign of the contribution
+        IndexType block_size = 3;
+        IndexType nodes = rU.size() / block_size;
+        double element_contribution = 0.0;
+        for (IndexType i = 0; i < nodes; ++i)
+        {
+            element_contribution += aec((i+1)*block_size -1);
+        }
+
+        // Getting the limiter
+        double c = 1.0;
+        if (element_contribution > 0.0) {
+            for (auto& r_node : rEntity.GetGeometry())
+            {
+                c = std::min(c, r_node.GetValue(POSITIVE_RATIO));
+            }
+        } else {
+            for (auto& r_node : rEntity.GetGeometry())
+            {
+                c = std::min(c, r_node.GetValue(NEGATIVE_RATIO));
+            }   
+        }
+
+        // Adding the limited anti-diffusion
+        // rLHS += c * (BDFBaseType::mBDF[0]*(rMc - rMl) - rD);
         rRHS += c * aec;
     }
 
