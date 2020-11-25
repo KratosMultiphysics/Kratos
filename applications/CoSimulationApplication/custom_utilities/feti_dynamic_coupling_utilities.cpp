@@ -228,6 +228,7 @@ namespace Kratos
         if (is_implicit)
         {
             // Implicit - we can use the system matrix size and equation ordering
+            KRATOS_ERROR_IF(pK == nullptr) << "System matrix has not been assigned to implicit domain";
             domain_dofs = pK->size1();
         }
         else
