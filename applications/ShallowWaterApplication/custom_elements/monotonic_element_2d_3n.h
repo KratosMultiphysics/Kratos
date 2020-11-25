@@ -216,19 +216,19 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void AddGradientTerms(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const ElementData& rData,
-        const array_1d<double,3>& rN,
-        const BoundedMatrix<double,3,2>& rDN_DX) override;
+    // void AddGradientTerms(
+    //     MatrixType& rLHS,
+    //     VectorType& rRHS,
+    //     const ElementData& rData,
+    //     const array_1d<double,3>& rN,
+    //     const BoundedMatrix<double,3,2>& rDN_DX) override;
 
-    void AddSourceTerms(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const ElementData& rData,
-        const array_1d<double,3>& rN,
-        const BoundedMatrix<double,3,2>& rDN_DX) override;
+    // void AddSourceTerms(
+    //     MatrixType& rLHS,
+    //     VectorType& rRHS,
+    //     const ElementData& rData,
+    //     const array_1d<double,3>& rN,
+    //     const BoundedMatrix<double,3,2>& rDN_DX) override;
 
     void AddShockCapturingTerm(
         MatrixType& rLHS,

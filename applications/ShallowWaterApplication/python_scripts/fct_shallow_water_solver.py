@@ -14,9 +14,9 @@ class FCTShallowWaterSolver(StabilizedShallowWaterSolver):
         super().__init__(model, settings)
         self.element_name = "MonotonicElement"
 
-    def AddVariables(self):
-        super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KM.INTERNAL_ENERGY)
+    # def AddVariables(self):
+    #     super().AddVariables()
+    #     self.main_model_part.AddNodalSolutionStepVariable(KM.INTERNAL_ENERGY)
 
     def _CreateScheme(self):
         time_scheme = SW.FluxCorrectedShallowWaterScheme(self.settings["time_integration_order"].GetInt())
