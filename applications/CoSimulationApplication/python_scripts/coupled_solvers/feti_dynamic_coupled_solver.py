@@ -14,89 +14,114 @@ def Create(settings, models, solver_name):
 
 class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, models, solver_name):
-        """This class implements a non-conforming FETI-based coupling approach to be used within the CoSim environment"""
-
         super().__init__(settings, models, solver_name)
 
-        #get solvers and add lagrange multiplier solution variable
-        self.solver_wrappers_vector = []
-        for solver_name, solver in self.solver_wrappers.items():
-            self.solver_wrappers_vector.append(solver)
-            structure = solver.model.GetModelPart("Structure")
-            structure.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
+        if len(self.solver_wrappers.items()) != 2:
+            raise Exception("FETI solver only works with two solvers!")
 
-        # get timestep ratio early, we need to have it before advanceInTime
-        self.timestep_ratio = self.settings["timestep_ratio"].GetDouble()
-        if int(self.timestep_ratio) != self.timestep_ratio:
-            raise Exception("An integer timestep_ratio must be specified in the CoSim parameters file.")
-        self.timestep_ratio = int(self.timestep_ratio)
+        # Add solution step variables while models are empty
+        self.__CheckSolversCompatibility()
+        self.__AddNodalSolutionStepVariables()
+        self.is_initial_step = True
 
-        self.is_initialized = False
-
+    def Initialize(self):
+        super().Initialize()
 
     def AdvanceInTime(self, current_time):
-        # not all solvers provide time (e.g. external solvers or steady solvers)
-        # hence we have to check first if they return time (i.e. time != 0.0)
-        # and then if the times are matching, since currently no interpolation in time is possible
+        # The CoSimulation runs at the SMALLEST Timestep.
+        # The solver with the smallest timestep will dictate the CoSimulation.
+        # The solver(s) with the larger timesteps will be called only at times that match their time
+        advanced_time = 0
+        self.departing_time = current_time # the time we are departing from - this is used to sync everything
 
-        self.time = 0.0
-        self.solverB_time = self.solver_wrappers_vector[1].AdvanceInTime(current_time)
-        solver_time = self.solver_wrappers_vector[0].AdvanceInTime(current_time)
-        if solver_time != 0.0: # solver provides time
-            if self.time == 0.0: # first time a solver returns a time different from 0.0
-                self.time = solver_time
+        if self.is_initial_step:
+            self._solver_delta_times = {}
+            advanced_time = 1E20
+            for solver_name, solver in self.solver_wrappers.items():
+                self._solver_delta_times[solver_name] = solver.AdvanceInTime(current_time)
+                advanced_time = min(advanced_time,self._solver_delta_times[solver_name])
 
-        return self.time
+            self.is_initial_step = False
 
+            # Initialize the FETI utilites
+            self.__InitializeFetiMethod()
+        else:
+            for solver_name, solver in self.solver_wrappers.items():
+                if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+                    solver_time = solver.AdvanceInTime(current_time)
+                    if self._solver_indices[solver_name] == 1:
+                        advanced_time = solver_time #only advance global time finely
+
+        return advanced_time
+
+    def SolverSolvesAtThisTime(self, current_time, solver_name):
+        solver_delta_time = self._solver_delta_times[solver_name]
+        # the following only works if timesteps are multiple of each other
+        return (current_time % solver_delta_time) < 1E-12
 
     def InitializeSolutionStep(self):
-        super().InitializeSolutionStep()
+        for solver_name, solver in self.solver_wrappers.items():
+            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+                solver.InitializeSolutionStep()
 
-        if self.is_initialized == False:
-            self.__InitializeFetiMethod()
+    def Predict(self):
+        for solver_name, solver in self.solver_wrappers.items():
+            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+                solver.Predict()
 
+    def FinalizeSolutionStep(self):
+        for solver_name, solver in self.solver_wrappers.items():
+            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+                solver.FinalizeSolutionStep()
+
+    def OutputSolutionStep(self):
+        for solver_name, solver in self.solver_wrappers.items():
+            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+                solver.OutputSolutionStep()
 
     def SolveSolutionStep(self):
-        # solve domain A
-        self.solver_wrappers_vector[0].SolveSolutionStep()
-        self.__SendStiffnessMatrixToUtility(0)
+        for coupling_op in self.coupling_operations_dict.values():
+            coupling_op.InitializeCouplingIteration()
 
-        # solve domain B
-        solverB = self.solver_wrappers_vector[1]
-        for sub_timestep in range(1,self.timestep_ratio+1):
-            if sub_timestep > 1:
-                self.solverB_time = solverB.AdvanceInTime(self.solverB_time)
-                solverB.InitializeSolutionStep()
-                if len(self.vtk_output_wrappers_vector) == 2:
-                    self.vtk_output_wrappers_vector[1].InitializeSolutionStep()
-                solverB.Predict()
+        for solver_name, solver in self.solver_wrappers.items():
+            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+                #self._SynchronizeInputData(solver_name) @phil not needed since corrections are applied within the feti cpp
+                solver.SolveSolutionStep()
+                #self._SynchronizeOutputData(solver_name) @phil not needed since corrections are applied within the feti cpp
+                self.__SendStiffnessMatrixToUtility(solver_name)
 
-            solverB.SolveSolutionStep()
-            self.__SendStiffnessMatrixToUtility(1)
+        self.feti_coupling.EquilibrateDomains()
 
-            # apply the coupling method
-            self.feti_coupling.EquilibrateDomains()
-
-            if sub_timestep != self.timestep_ratio:
-                solverB.FinalizeSolutionStep()
-                if len(self.vtk_output_wrappers_vector) == 2:
-                    self.vtk_output_wrappers_vector[1].FinalizeSolutionStep()
-                solverB.OutputSolutionStep()
+        for coupling_op in self.coupling_operations_dict.values():
+            coupling_op.FinalizeCouplingIteration()
 
         return True
 
+    def __AddNodalSolutionStepVariables(self):
+        for solver_name, solver in self.solver_wrappers.items():
+            structure = solver.model.GetModelPart("Structure")
+            structure.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
 
     def __InitializeFetiMethod(self):
+        # Create vector of solver indices for convenience
+        self.__CreateOrderedSolverIndices()
+
+        # Check timestep ratio is valid and add to settings
+        timestep_ratio = self._CalculateAndCheckTimestepRatio()
+        self.settings.AddInt('timestep_ratio',int(timestep_ratio))
+
         # get mapper parameters
         self.mapper_parameters = self.data_transfer_operators_dict["mapper"].settings["mapper_settings"]
         mapper_type = self.mapper_parameters["mapper_type"].GetString()
 
         # get mapper origin and destination modelparts
         origin_modelpart_name = self.mapper_parameters["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString()
-        self.model_part_origin_interface = self.solver_wrappers_vector[0].model.GetModelPart(origin_modelpart_name)
-
         destination_modelpart_name = self.mapper_parameters["modeler_parameters"]["destination_interface_sub_model_part_name"].GetString()
-        self.model_part_destination_interface = self.solver_wrappers_vector[1].model.GetModelPart(destination_modelpart_name)
+        for solver_name, solver in self.solver_wrappers.items():
+            if self._solver_indices[solver_name] == 0:
+                self.model_part_origin_interface = self.solver_wrappers[solver_name].model.GetModelPart(origin_modelpart_name)
+            else:
+                self.model_part_destination_interface = self.solver_wrappers[solver_name].model.GetModelPart(destination_modelpart_name)
 
         # manually create mapper
         mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
@@ -140,21 +165,19 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # Set origin initial velocities
         self.feti_coupling.SetOriginInitialKinematics()
 
-        # Store the vtk output wrappers
-        self.vtk_output_wrappers_vector = []
-        for coupling_op in self.coupling_operations_dict.values():
-            self.vtk_output_wrappers_vector.append(coupling_op)
+    def __CreateOrderedSolverIndices(self):
+        self._solver_indices = {}
+        for solver_index in range(self.settings["coupling_sequence"].size()):
+            ordered_solver_name = self.settings["coupling_sequence"][solver_index]["name"].GetString()
+            self._solver_indices[ordered_solver_name] = solver_index
 
-        self.is_initialized = True
-
-
-    def __SendStiffnessMatrixToUtility(self, solverIndex):
+    def __SendStiffnessMatrixToUtility(self, solver_name):
+        solverIndex = self._solver_indices[solver_name]
         if self.is_implicit[solverIndex]:
-                system_matrix = self._GetSolverStrategy(solverIndex).GetSystemMatrix()
+                system_matrix = self._GetSolverStrategy(solver_name).GetSystemMatrix()
                 self.feti_coupling.SetEffectiveStiffnessMatrixImplicit(system_matrix,solverIndex)
         else:
             self.feti_coupling.SetEffectiveStiffnessMatrixExplicit(solverIndex)
-
 
     def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
@@ -164,15 +187,31 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             KM.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
-    def _GetSolverStrategy(self,solverIndex):
+    def _CalculateAndCheckTimestepRatio(self):
+        # Check timestep ratio is valid
+        timesteps = [0.0] * len(self._solver_delta_times)
+        for solver_name, timestep in self._solver_delta_times.items():
+            timesteps[self._solver_indices[solver_name]] = timestep
+        timestep_ratio = timesteps[0] / timesteps[1]
+        if timestep_ratio < 0.99 or int(timestep_ratio) % timestep_ratio > 1E-12:
+            raise Exception("The timestep ratio between origin and destination domains is invalid. It must be a positive integer greater than 1.")
+        return timestep_ratio
+
+    def _GetSolverStrategy(self,solverName):
         # This is a utility method to get access to the solver's strategy, later used to access the system matrix.
         # Provision to expand to other solver wrappers in the future.
-        solver_name = str(self.solver_wrappers_vector[solverIndex]._ClassName())
-        if solver_name == "StructuralMechanicsWrapper":
-            return self.solver_wrappers_vector[solverIndex]._analysis_stage._GetSolver().get_mechanical_solution_strategy()
+        solver_type = str(self.solver_wrappers[solverName]._ClassName())
+        if solver_type == "StructuralMechanicsWrapper":
+            return self.solver_wrappers[solverName]._analysis_stage._GetSolver().get_mechanical_solution_strategy()
         else:
-            raise Exception("_GetSolverStrategy not implemented for solver wrapper = " + solver_name)
+            raise Exception("_GetSolverStrategy not implemented for solver wrapper = " + solver_type)
 
+    def __CheckSolversCompatibility(self):
+        compatible_solver_wrappers = ['StructuralMechanicsWrapper']
+        for solver_name, solver in self.solver_wrappers.items():
+            solver_type = str(solver._ClassName())
+            if solver_type not in compatible_solver_wrappers:
+                raise Exception("The coupled solver '" + solver_type + "' is not yet compatible with the FETI coupling")
 
     @classmethod
     def _GetDefaultParameters(cls):
@@ -181,7 +220,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "origin_newmark_gamma" : -1.0,
             "destination_newmark_beta" : -1.0,
             "destination_newmark_gamma" : -1.0,
-            "timestep_ratio" : 1.0,
             "equilibrium_variable" : "VELOCITY",
             "is_disable_coupling" : false,
             "is_linear" : false,
