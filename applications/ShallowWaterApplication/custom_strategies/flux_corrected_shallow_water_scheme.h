@@ -124,7 +124,6 @@ public:
         // Memory allocation
         const IndexType num_threads = OpenMPUtils::GetNumThreads();
         mMl.resize(num_threads);
-        mUn0.resize(num_threads);
 
         // Initialization of non-historical variables
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
@@ -217,31 +216,35 @@ public:
     {
         KRATOS_TRY;
 
-        const IndexType this_thread = OpenMPUtils::ThisThread();
+        const IndexType t = OpenMPUtils::ThisThread();
 
         rCurrentElement.CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        rCurrentElement.CalculateMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mrMc[t], rCurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(ImplicitBaseType::mMatrix.D[this_thread], rCurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mrD[t], rCurrentProcessInfo);
 
-        ComputeLumpedMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], mMl[this_thread]);
+        rCurrentElement.GetValuesVector(mrUn0[t]);
 
-        AddDynamicsToLHS(rLHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], mMl[this_thread], rCurrentProcessInfo);
+        rCurrentElement.GetFirstDerivativesVector(mrDotUn0[t]);
 
-        AddDynamicsToRHS(rCurrentElement, rRHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], mMl[this_thread], rCurrentProcessInfo);
+        ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
+
+        AddDynamicsToLHS(rLHS_Contribution, mrD[t], mMl[t]);
+
+        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mMl[t], mrUn0[t], mrDotUn0[t]);
     
         AddFluxCorrection<Element>(
             rCurrentElement,
             rLHS_Contribution,
             rRHS_Contribution,
-            ImplicitBaseType::mMatrix.M[this_thread],
-            mMl[this_thread],
-            ImplicitBaseType::mMatrix.D[this_thread],
-            mUn0[this_thread],
-            BDFBaseType::mVector.dotun0[this_thread]);
+            mrMc[t],
+            mMl[t],
+            mrD[t],
+            mrUn0[t],
+            mrDotUn0[t]);
 
         SWBaseType::mRotationTool.Rotate(rLHS_Contribution, rRHS_Contribution, rCurrentElement.GetGeometry());
         SWBaseType::mRotationTool.ApplySlipCondition(rLHS_Contribution, rRHS_Contribution, rCurrentElement.GetGeometry());
@@ -265,28 +268,32 @@ public:
     {
         KRATOS_TRY;
 
-        const IndexType this_thread = OpenMPUtils::ThisThread();
+        const IndexType t = OpenMPUtils::ThisThread();
 
         rCurrentElement.CalculateRightHandSide(rRHS_Contribution,rCurrentProcessInfo);
 
-        rCurrentElement.CalculateMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mrMc[t], rCurrentProcessInfo);
 
-        rCurrentElement.CalculateDampingMatrix(ImplicitBaseType::mMatrix.D[this_thread],rCurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mrD[t],rCurrentProcessInfo);
 
         rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
-        ComputeLumpedMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], mMl[this_thread]);
+        rCurrentElement.GetValuesVector(mrUn0[t]);
 
-        AddDynamicsToRHS(rCurrentElement, rRHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+        rCurrentElement.GetFirstDerivativesVector(mrDotUn0[t]);
+
+        ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
+
+        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection<Element>(
             rCurrentElement,
             rRHS_Contribution,
-            ImplicitBaseType::mMatrix.M[this_thread],
-            mMl[this_thread],
-            ImplicitBaseType::mMatrix.D[this_thread],
-            mUn0[this_thread],
-            BDFBaseType::mVector.dotun0[this_thread]);
+            mrMc[t],
+            mMl[t],
+            mrD[t],
+            mrUn0[t],
+            mrDotUn0[t]);
 
         SWBaseType::mRotationTool.Rotate(rRHS_Contribution, rCurrentElement.GetGeometry());
         SWBaseType::mRotationTool.ApplySlipCondition(rRHS_Contribution, rCurrentElement.GetGeometry());
@@ -312,31 +319,35 @@ public:
     {
         KRATOS_TRY;
 
-        const IndexType this_thread = OpenMPUtils::ThisThread();
+        const IndexType t = OpenMPUtils::ThisThread();
 
         rCurrentCondition.CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        rCurrentCondition.CalculateMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+        rCurrentCondition.CalculateMassMatrix(mrMc[t], rCurrentProcessInfo);
 
-        rCurrentCondition.CalculateDampingMatrix(ImplicitBaseType::mMatrix.D[this_thread], rCurrentProcessInfo);
+        rCurrentCondition.CalculateDampingMatrix(mrD[t], rCurrentProcessInfo);
 
-        ComputeLumpedMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], mMl[this_thread]);
+        rCurrentCondition.GetValuesVector(mrUn0[t]);
 
-        AddDynamicsToLHS(rLHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+        rCurrentCondition.GetFirstDerivativesVector(mrDotUn0[t]);
 
-        AddDynamicsToRHS(rCurrentCondition, rRHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+        ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
+
+        AddDynamicsToLHS(rLHS_Contribution, mrD[t], mrMc[t]);
+
+        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection<Condition>(
             rCurrentCondition,
             rLHS_Contribution,
             rRHS_Contribution,
-            ImplicitBaseType::mMatrix.M[this_thread],
-            mMl[this_thread],
-            ImplicitBaseType::mMatrix.D[this_thread],
-            mUn0[this_thread],
-            BDFBaseType::mVector.dotun0[this_thread]);
+            mrMc[t],
+            mMl[t],
+            mrD[t],
+            mrUn0[t],
+            mrDotUn0[t]);
 
         SWBaseType::mRotationTool.Rotate(rLHS_Contribution, rRHS_Contribution, rCurrentCondition.GetGeometry());
         SWBaseType::mRotationTool.ApplySlipCondition(rLHS_Contribution, rRHS_Contribution, rCurrentCondition.GetGeometry());
@@ -360,28 +371,32 @@ public:
     {
         KRATOS_TRY;
 
-        const IndexType this_thread = OpenMPUtils::ThisThread();
+        const IndexType t = OpenMPUtils::ThisThread();
 
         rCurrentCondition.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 
         rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        rCurrentCondition.CalculateMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+        rCurrentCondition.CalculateMassMatrix(mrMc[t], rCurrentProcessInfo);
 
-        rCurrentCondition.CalculateDampingMatrix(ImplicitBaseType::mMatrix.D[this_thread], rCurrentProcessInfo);
+        rCurrentCondition.CalculateDampingMatrix(mrD[t], rCurrentProcessInfo);
 
-        ComputeLumpedMassMatrix(ImplicitBaseType::mMatrix.M[this_thread], mMl[this_thread]);
+        rCurrentCondition.GetValuesVector(mrUn0[t]);
 
-        AddDynamicsToRHS(rCurrentCondition, rRHS_Contribution, ImplicitBaseType::mMatrix.D[this_thread], ImplicitBaseType::mMatrix.M[this_thread], rCurrentProcessInfo);
+        rCurrentCondition.GetFirstDerivativesVector(mrDotUn0[t]);
+
+        ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
+
+        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection<Condition>(
             rCurrentCondition,
             rRHS_Contribution,
-            ImplicitBaseType::mMatrix.M[this_thread],
-            mMl[this_thread],
-            ImplicitBaseType::mMatrix.D[this_thread],
-            mUn0[this_thread],
-            BDFBaseType::mVector.dotun0[this_thread]);
+            mrMc[t],
+            mMl[t],
+            mrD[t],
+            mrUn0[t],
+            mrDotUn0[t]);
 
         SWBaseType::mRotationTool.Rotate(rRHS_Contribution, rCurrentCondition.GetGeometry());
         SWBaseType::mRotationTool.ApplySlipCondition(rRHS_Contribution, rCurrentCondition.GetGeometry());
@@ -420,8 +435,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::vector<Vector> mUn0;
     std::vector<Matrix> mMl;
+
+    std::vector<Vector>& mrDotUn0 = BDFBaseType::mVector.dotun0;
+    std::vector<Vector>& mrUn0 = BDFBaseType::mVector.dot2un0;
+    std::vector<Matrix>& mrMc = ImplicitBaseType::mMatrix.M;
+    std::vector<Matrix>& mrD = ImplicitBaseType::mMatrix.D;
 
     ///@}
     ///@name Protected Operators
@@ -433,18 +452,15 @@ protected:
 
     /**
      * @brief It adds the dynamic LHS contribution of the elements
-     * \f[ LHS = \frac{d(-RHS)}{d(u_{n0})} = c_0^2\mathbf{M} + c_0 \mathbf{D} + \mathbf{K} \f]
      * @param rLHS_Contribution The dynamic contribution for the LHS
      * @param rD The diffusion matrix
      * @param rM The mass matrix
-     * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToLHS(
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemMatrixType& rD,
-        LocalSystemMatrixType& rM,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override
+        LocalSystemMatrixType& rM
+        )
     {
         // Adding mass contribution to the dynamic stiffness
         if (rM.size1() != 0) { // if M matrix declared
@@ -459,65 +475,28 @@ protected:
 
     /**
      * @brief It adds the dynamic RHS contribution of the elements
-     * @param rElement The element to compute
-     * @param RHS_Contribution The dynamic contribution for the RHS
-     * @param D The diffusion matrix
-     * @param M The mass matrix
-     * @param rCurrentProcessInfo The current process info instance
+     * @param rRHS_Contribution The dynamic contribution for the RHS
+     * @param rD The diffusion matrix
+     * @param rM The mass matrix
+     * @param rU The current unknowns vector
+     * @param rDotU The fisrst derivatives vector
      */
     void AddDynamicsToRHS(
-        Element& rElement,
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override
+        LocalSystemVectorType& rU,
+        LocalSystemVectorType& rDotU
+        )
     {
-        const auto& r_const_element = rElement;
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
-
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            r_const_element.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
-            noalias(rRHS_Contribution) -= prod(rM, BDFBaseType::mVector.dotun0[this_thread]);
+            noalias(rRHS_Contribution) -= prod(rM, rDotU);
         }
 
         // Adding monotonic diffusion
         if (rD.size1() != 0) {
-            r_const_element.GetValuesVector(mUn0[this_thread]);
-            noalias(rRHS_Contribution) -= prod(rD, mUn0[this_thread]);
-        }
-    }
-
-    /**
-     * @brief It adds the dynamic RHS contribution of the elements
-     * @param rElement The element to compute
-     * @param RHS_Contribution The dynamic contribution for the RHS
-     * @param D The diffusion matrix
-     * @param M The mass matrix
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void AddDynamicsToRHS(
-        Condition& rCondition,
-        LocalSystemVectorType& rRHS_Contribution,
-        LocalSystemMatrixType& rD,
-        LocalSystemMatrixType& rM,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        const auto& r_const_condition = rCondition;
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
-
-        // Adding inertia contribution
-        if (rM.size1() != 0) {
-            r_const_condition.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
-            noalias(rRHS_Contribution) -= prod(rM, BDFBaseType::mVector.dotun0[this_thread]);
-        }
-
-        // Adding monotonic diffusion
-        if (rD.size1() != 0) {
-            r_const_condition.GetValuesVector(mUn0[this_thread]);
-            noalias(rRHS_Contribution) -= prod(rD, mUn0[this_thread]);
+            noalias(rRHS_Contribution) -= prod(rD, rU);
         }
     }
 
@@ -527,17 +506,17 @@ protected:
         const auto& r_const_entity = rEntity; // TODO: remove that statement as soon as deprecation warnings are removed
         const IndexType t = OpenMPUtils::ThisThread();
 
-        rEntity.CalculateMassMatrix(ImplicitBaseType::mMatrix.M[t], rProcessInfo);
+        rEntity.CalculateMassMatrix(mrMc[t], rProcessInfo);
 
-        rEntity.CalculateDampingMatrix(ImplicitBaseType::mMatrix.D[t], rProcessInfo);
+        rEntity.CalculateDampingMatrix(mrD[t], rProcessInfo);
 
-        r_const_entity.GetValuesVector(mUn0[t]);
+        r_const_entity.GetValuesVector(mrUn0[t]);
 
-        r_const_entity.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[t]);
+        r_const_entity.GetFirstDerivativesVector(mrDotUn0[t]);
 
-        ComputeLumpedMassMatrix(ImplicitBaseType::mMatrix.M[t], mMl[t]);
+        ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        auto aec = prod(ImplicitBaseType::mMatrix.D[t], mUn0[t]) + prod(mMl[t] - ImplicitBaseType::mMatrix.M[t], BDFBaseType::mVector.dotun0[t]);
+        auto aec = prod(mrD[t], mrUn0[t]) + prod(mMl[t] - mrMc[t], mrDotUn0[t]);
 
         auto r_geom = rEntity.GetGeometry();
         const IndexType block_size = aec.size() / r_geom.size();
