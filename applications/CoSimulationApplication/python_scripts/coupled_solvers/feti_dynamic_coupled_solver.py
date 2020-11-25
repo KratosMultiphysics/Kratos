@@ -64,6 +64,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
                 solver.InitializeSolutionStep()
 
+        for coupling_op in self.coupling_operations_dict.values():
+            coupling_op.InitializeSolutionStep()
+
     def Predict(self):
         for solver_name, solver in self.solver_wrappers.items():
             if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
@@ -73,6 +76,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         for solver_name, solver in self.solver_wrappers.items():
             if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
                 solver.FinalizeSolutionStep()
+
+        for coupling_op in self.coupling_operations_dict.values():
+            coupling_op.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
@@ -164,11 +170,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             ordered_solver_name = self.settings["coupling_sequence"][solver_index]["name"].GetString()
             if solver_index == 0:
                 self._solver_origin_dest_dict[ordered_solver_name] = CoSim.SolverIndex.Origin
-                print(self._solver_origin_dest_dict[ordered_solver_name])
             else:
                 self._solver_origin_dest_dict[ordered_solver_name] = CoSim.SolverIndex.Destination
-        print(self._solver_origin_dest_dict)
-
 
     def __SendStiffnessMatrixToUtility(self, solver_name):
         beta = 0.0
@@ -189,7 +192,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            KM.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
+            KM.Logger.PrintInfo('::[FETISolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _CalculateAndCheckTimestepRatio(self):
