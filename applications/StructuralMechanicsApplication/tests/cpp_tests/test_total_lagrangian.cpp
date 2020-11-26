@@ -105,8 +105,7 @@ namespace Testing
             std::vector<Vector> output_stress(1);
             p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_model_part.GetProcessInfo());
             
-            for(unsigned int i=0; i<reference_strain.size(); ++i)
-            {
+            for(std::size_t i=0; i<reference_strain.size(); ++i) {
                 KRATOS_CHECK_DOUBLE_EQUAL(output_strains[0][i], reference_strain[i]);
                 KRATOS_CHECK_DOUBLE_EQUAL(output_stress[0][i], reference_stress[i]);
             }
