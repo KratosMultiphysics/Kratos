@@ -346,22 +346,22 @@ namespace Kratos {
 			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-			reference_RHS[0] = -268.0263579;
-			reference_RHS[1] = -4.183181586;
-			reference_RHS[2]= -81.36338392;
-			reference_RHS[3]= -0.07197510975;
-			reference_RHS[4]= 56.06058861;
-			reference_RHS[5]= 29.91012642;
-			reference_RHS[6]= -428.7793345;
-			reference_RHS[7]= 0.3701129402;
-			reference_RHS[8]= 107.982446;
-			reference_RHS[9]= 26.13457374;
-			reference_RHS[10]= -466.3218786;
-			reference_RHS[11]= 0.02197510976;
-			reference_RHS[12]= 149.4624899;
-			reference_RHS[13]= 43.2426481;
-			reference_RHS[14]= -514.3062363;
-			reference_RHS[15]= -0.4201129402;
+			reference_RHS[0] = -268.0132371599088;
+			reference_RHS[1] = -4.182094107233524;
+			reference_RHS[2]= -81.37622307441862;
+			reference_RHS[3]= -0.07197384163023302;
+			reference_RHS[4]= 56.05809670322434;
+			reference_RHS[5]= 29.90992150360854;
+			reference_RHS[6]= -428.7769671958163;
+			reference_RHS[7]= 0.3700935081503087;
+			reference_RHS[8]= 107.9781032300646;
+			reference_RHS[9]= 26.13414971317491;
+			reference_RHS[10]= -466.3175681317652;
+			reference_RHS[11]= 0.02197384163086232;
+			reference_RHS[12]= 149.4562038932866;
+			reference_RHS[13]= 43.24218955711688;
+			reference_RHS[14]= -514.3000749313327;
+			reference_RHS[15]= -0.420093508150938;
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)

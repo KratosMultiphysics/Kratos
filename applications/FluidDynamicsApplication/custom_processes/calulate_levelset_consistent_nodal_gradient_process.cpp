@@ -13,6 +13,7 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -113,15 +114,10 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
 
                 for(unsigned int i_node=0; i_node<number_of_nodes; ++i_node) {
                     auto& r_gradient = r_geometry[i_node].GetValue(PRESSURE_GRADIENT);
-                    for(unsigned int k=0; k<num_dim; ++k) {
-                        #pragma omp atomic
-                        r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];
-                    }
+                    AtomicAdd(r_gradient, N[i_node]*gauss_point_volume*grad);
 
                     double& r_vol = r_geometry[i_node].GetValue(NODAL_AREA);
-
-                    #pragma omp atomic
-                    r_vol += N[i_node] * gauss_point_volume;
+                    AtomicAdd(r_vol, N[i_node] * gauss_point_volume);
                 }
             }
         }
