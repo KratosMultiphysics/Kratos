@@ -113,7 +113,6 @@ namespace Kratos
         EstimateDtUtility<TDim>::CalculateLocalCFL(mrModelPart);
     }
 
-
     template<unsigned int TDim>
     double EstimateDtUtility<TDim>::CalculateElementCFL(
         Element &rElement,

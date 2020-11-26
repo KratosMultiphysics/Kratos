@@ -99,41 +99,46 @@ public:
     ///@name Operations
     ///@{
 
-    /// Set the CFL value.
     /**
-    * @param CFL the user-defined CFL number used in the automatic time step computation
-    */
+     * @brief Set the maximum CFL value allowed
+     * This method allows setting the maximum user-defined CFL number
+     * @param CFL Tue user-defined maximum CFL number
+     */
     void SetCFL(const double CFL);
 
-    /// Set the maximum time step allowed value.
     /**
-    * @param CFL the user-defined CFL number used in the automatic time step computation
-    */
+     * @brief Set the minimum time step value allowed
+     * This method allows setting the minimum user-defined time increment value
+     * @param DtMin The user-defined minimum delta time
+     */
     void SetDtMin(const double DtMin);
-
-    /// Set the maximum time step allowed value.
+    
     /**
-    * @param CFL the user-defined CFL number used in the automatic time step computation
-    */
+     * @brief Set the maximum time step value allowed
+     * This method allows setting the maximum user-defined time increment value
+     * @param DtMax The user-defined maximum delta time
+     */
     void SetDtMax(const double DtMax);
 
-    /// Calculate the maximum time step that satisfies the Courant-Friedrichs-Lewy (CFL) condition.
     /**
-     * @return A time step value that satisfies the CFL condition for the current mesh and velocity field
+     * @brief Calculate the maximum time step that satisfies the CFL user settings
+     * This method calculates the maximum time step that satisfies the Courant-Friedrichs-Lewy (CFL) condition
+     * according to the user-defined parameters (CFL and maximum/minimum delta time)
+     * @return double A time step value that satisfies the user CFL condition for the current mesh and velocit field
      */
     double EstimateDt() const;
 
-    /// Calculate each element's CFL for the current time step for the given ModelPart.
     /**
-     * The elemental CFL is stored in the CFL_NUMBER elemental variable.
-     * To view it in the post-process file, remember to print CFL_NUMBER as a Gauss Point result.
+     * @brief Calculate each element's CFL for the current time step and provided model part
+     * The elemental CFL is stored in the CFL_NUMBER elemental variable
+     * To visualize in the post-process file, remember to print CFL_NUMBER as a Gauss point result
      */
     static void CalculateLocalCFL(ModelPart& rModelPart);
 
-    /// Calculate each element's CFL for the current time step.
     /**
-     * The elemental CFL is stored in the CFL_NUMBER elemental variable.
-     * To view it in the post-process file, remember to print CFL_NUMBER as a Gauss Point result.
+     * @brief Calculate each element's CFL for the current time step
+     * The elemental CFL is stored in the CFL_NUMBER elemental variable
+     * To visualize in the post-process file, remember to print CFL_NUMBER as a Gauss point result
      */
     void CalculateLocalCFL();
 
@@ -144,7 +149,12 @@ private:
     ///@name Auxiliary Data types
     ///@{
 
-    struct GeometryDataContainer {
+    /**
+     * @brief Geometry data container
+     * Auxiliary container to avoid allocations within the parallel loops
+     */
+    struct GeometryDataContainer
+    {
         double Area;
         array_1d<double, TDim+1> N;
         BoundedMatrix<double, TDim+1, TDim> DN_DX;
@@ -163,6 +173,14 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calulate element CFL number
+     * For the given element, this method calculates the CFL number
+     * @param rElement Element to calculate the CFL number
+     * @param rGeometryInfo Auxiliary geometry data container
+     * @param Dt Current time increment
+     * @return double The element CFL number
+     */
     static double CalculateElementCFL(
         Element &rElement,
         GeometryDataContainer& rGeometryInfo,
