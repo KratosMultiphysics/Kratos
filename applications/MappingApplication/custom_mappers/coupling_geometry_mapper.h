@@ -352,6 +352,8 @@ private:
 
     void CalculateMappingMatrixWithSolver(MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix);
 
+    void CheckCouplingInputs();
+
     Parameters GetMapperDefaultSettings() const
     {
         return Parameters(R"({

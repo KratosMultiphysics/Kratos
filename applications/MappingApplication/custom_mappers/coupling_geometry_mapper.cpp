@@ -166,6 +166,7 @@ CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
     mpInterfaceVectorContainerMaster = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceMaster);
     mpInterfaceVectorContainerSlave = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceSlave);
 
+    this->CheckCouplingInputs();
     this->CreateLinearSolver();
     this->InitializeInterface();
 }
@@ -392,6 +393,17 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
         mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
         for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
     }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CheckCouplingInputs()
+{
+    // Extra checks of the coupling input validity
+
+    // Check 1 - MPM cannot be the coupling interface slave
+    KRATOS_ERROR_IF(mpCouplingInterfaceSlave->GetModel().HasModelPart("Background_Grid"))
+        << "CouplingGeometryMapper | MPM was specified as the slave model which is currently not researched."
+        << "\nPlease reverse coupling order with 'destination_is_slave = false' in the parameters file.\n";
 }
 
 template<class TSparseSpace, class TDenseSpace>
