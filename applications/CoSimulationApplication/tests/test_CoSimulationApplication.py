@@ -56,6 +56,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreatePointBasedEntitiesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure_aux_tests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
     if numpy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
@@ -75,7 +76,6 @@ def AssembleTestSuites():
 
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
     nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
     nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
     if os.name != "nt":
