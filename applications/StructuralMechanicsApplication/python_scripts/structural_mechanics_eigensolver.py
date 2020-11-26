@@ -25,7 +25,7 @@ class EigenSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[EigenSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic",
             "compute_modal_decomposition": false,
@@ -38,7 +38,7 @@ class EigenSolver(MechanicalSolver):
             },
             "eigensolver_diagonal_values" : { }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####

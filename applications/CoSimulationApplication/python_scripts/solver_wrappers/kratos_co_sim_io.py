@@ -104,13 +104,13 @@ class KratosCoSimIO(CoSimulationIO):
         pass
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "is_connection_master" : true,
             "communication_format" : "file",
             "print_timing"         : false
         }""")
-        this_defaults.AddMissingParameters(super(KratosCoSimIO, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(KratosCoSimIO, cls)._GetDefaultParameters())
         return this_defaults
 
 def GetDataLocation(location_str):

@@ -18,8 +18,6 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/cfd_variables.h"
-#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "swe.h"
@@ -28,7 +26,7 @@ namespace Kratos
 {
 
 template< size_t TNumNodes, ElementFramework TFramework >
-int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
+int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Base class checks for positive Jacobian and Id > 0
     int err = Element::Check(rCurrentProcessInfo);
@@ -42,13 +40,13 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(MANNING)
     KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
+    KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
     KRATOS_CHECK_VARIABLE_KEY(WATER_HEIGHT_UNIT_CONVERTER)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( size_t i = 0; i < TNumNodes; i++ )
     {
-        Node<3>& node = this->GetGeometry()[i];
+        const Node<3>& node = this->GetGeometry()[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
@@ -66,7 +64,7 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     const size_t element_size = TNumNodes*3;
     if(rResult.size() != element_size)
@@ -85,7 +83,7 @@ void SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResult,
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     const size_t element_size = TNumNodes*3;
     if(rElementalDofList.size() != element_size)
@@ -107,7 +105,7 @@ template< size_t TNumNodes, ElementFramework TFramework >
 void SWE<TNumNodes, TFramework>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize of the Left and Right Hand side
     constexpr size_t element_size = TNumNodes*3;
@@ -163,14 +161,14 @@ void SWE<TNumNodes, TFramework>::CalculateLocalSystem(
 template< size_t TNumNodes, ElementFramework TFramework >
 void SWE<TNumNodes, TFramework>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void SWE<TNumNodes, TFramework>::GetValueOnIntegrationPoints(
+void SWE<TNumNodes, TFramework>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -195,7 +193,7 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.epsilon = rCurrentProcessInfo[DRY_HEIGHT];
     rVariables.dt_inv = 1.0 / delta_t;
     rVariables.lumping_factor = 1.0 / static_cast<double>(TNumNodes);
-    rVariables.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+    rVariables.stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rVariables.manning2 = 0.0;
     rVariables.porosity = 0.0;
@@ -309,7 +307,7 @@ void SWE<TNumNodes, TFramework>::ComputeStabilizationParameters(
 {
     // Get element values
     const double elem_size = this->GetGeometry().Length();
-    const double CTau = rVariables.dyn_tau;  // 0.005 ~ 0.002
+    const double CTau = rVariables.stab_factor;  // 0.005 ~ 0.002
 
     // Wave mixed form stabilization
     rTauU = CTau * elem_size * std::sqrt(rVariables.wave_vel_2);
@@ -330,7 +328,7 @@ void SWE<TNumNodes, TFramework>::ComputeConvectionStabilizationParameters(
 {
     // Get element values
     const double elem_size = this->GetGeometry().Length();
-    const double CTau = rVariables.dyn_tau;  // 0.005 ~ 0.002
+    const double CTau = rVariables.stab_factor;  // 0.005 ~ 0.002
 
     // Convective stabilization
     if (TFramework == Eulerian)

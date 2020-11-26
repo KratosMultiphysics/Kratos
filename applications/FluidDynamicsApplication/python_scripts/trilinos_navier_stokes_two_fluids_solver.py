@@ -17,7 +17,7 @@ def CreateSolver(model, custom_settings):
 class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""{
             "solver_type": "TwoFluids",
@@ -67,7 +67,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             "bfecc_number_substeps" : 10
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesMPITwoFluidsSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesMPITwoFluidsSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):

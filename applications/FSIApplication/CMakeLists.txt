@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFSIApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
 set( KRATOS_FSI_APPLICATION_SOURCES

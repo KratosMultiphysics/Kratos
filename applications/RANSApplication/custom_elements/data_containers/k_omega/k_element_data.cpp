@@ -40,18 +40,6 @@ const Variable<double>& KElementData<TDim>::GetScalarVariable()
 }
 
 template <unsigned int TDim>
-const Variable<double>& KElementData<TDim>::GetScalarRateVariable()
-{
-    return TURBULENT_KINETIC_ENERGY_RATE;
-}
-
-template <unsigned int TDim>
-const Variable<double>& KElementData<TDim>::GetScalarRelaxedRateVariable()
-{
-    return RANS_AUXILIARY_VARIABLE_1;
-}
-
-template <unsigned int TDim>
 void KElementData<TDim>::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)

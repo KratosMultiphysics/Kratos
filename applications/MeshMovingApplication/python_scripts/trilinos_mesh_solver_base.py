@@ -18,7 +18,7 @@ class TrilinosMeshSolverBase(MeshSolverBase):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "linear_solver_settings" : {
                 "solver_type" : "amgcl",
@@ -36,7 +36,7 @@ class TrilinosMeshSolverBase(MeshSolverBase):
                 "coarse_enough" : 5000
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Public user interface functions ####

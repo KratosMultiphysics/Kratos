@@ -17,7 +17,7 @@ def CreateSolver(model, custom_settings):
 class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ## Default settings string in Json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -62,7 +62,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
             "use_slip_conditions": true
         }""")
 
-        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverFractionalStep, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverFractionalStep, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):

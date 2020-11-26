@@ -120,7 +120,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 
     const auto& r_geometry = this->GetGeometry();
     const Variable<double>& r_variable =
-        TConvectionDiffusionReactionData::GetScalarRateVariable();
+        TConvectionDiffusionReactionData::GetScalarVariable().GetTimeDerivative();
 
     IndexType LocalIndex = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -280,7 +280,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 int ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

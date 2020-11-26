@@ -7,26 +7,14 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+import auxiliary_functions_for_tests
+
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
-    omp_utils = Kratos.OpenMPUtils()
-    if "OMP_NUM_THREADS" in os.environ:
-        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
-        omp_utils.SetNumThreads(1)
-
-    with open(parameters_file_name,'r') as parameter_file:
-        project_parameters = Kratos.Parameters(parameter_file.read())
-
-    my_obj(model, project_parameters).Run()
-
-    if "OMP_NUM_THREADS" in os.environ:
-        omp_utils.SetNumThreads(int(initial_number_of_threads))
-
-class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -36,32 +24,19 @@ class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEM
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(DEM2DTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
             if node.Id == 1:
                 if self.time > 0.2:
-                    expected_value = 6.076801447242313
-                    self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 6.076801447242313, delta=tolerance)
             if node.Id == 2:
                 if self.time > 0.2:
-                    expected_value = 8.604163136887411
-                    self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 8.604163136887411, delta=tolerance)
             if node.Id == 3:
                 if self.time > 0.2:
-                    expected_value = 10.016439272775422
-                    self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
-
-    @classmethod
-    def CheckValueOfVelocity(self, normal_impact_vel, expected_value, tolerance):
-        if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:
-            raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(normal_impact_vel))
-
-    def Finalize(self):
-        super(DEM2DTestSolution, self).Finalize()
-
-
+                    self.assertAlmostEqual(normal_impact_vel, 10.016439272775422, delta=tolerance)
 
 class TestDEM2D(KratosUnittest.TestCase):
 
@@ -73,7 +48,7 @@ class TestDEM2D(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM2DTestSolution, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2DTestSolution, model, parameters_file_name, 1)
 
 
     def tearDown(self):

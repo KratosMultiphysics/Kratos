@@ -230,12 +230,6 @@ public:
         return GetData().Has(rThisVariable);
     }
 
-    template<class TAdaptorType> bool Has(
-        const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return GetData().Has(rThisVariable);
-    }
-
     /**
      * Set Data with SetValue and the Variable to set:
      */

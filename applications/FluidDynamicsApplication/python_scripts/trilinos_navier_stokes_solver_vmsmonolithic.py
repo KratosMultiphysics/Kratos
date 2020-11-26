@@ -18,7 +18,7 @@ def CreateSolver(model, custom_settings):
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -65,7 +65,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):

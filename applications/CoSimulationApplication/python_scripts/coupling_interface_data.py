@@ -7,19 +7,18 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # Other imports
 import numpy as np
 
-class CouplingInterfaceData(object):
+class CouplingInterfaceData:
     """This class serves as interface to the data structure (Model and ModelPart)
     that holds the data used during CoSimulation
     """
     def __init__(self, custom_settings, model, name="default", solver_name="default_solver"):
 
-        custom_settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+        custom_settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.settings = custom_settings
         self.model = model
         self.name = name
         self.solver_name = solver_name
-        self.is_outdated = True
         self.is_initialized = False
         self.model_part_name = self.settings["model_part_name"].GetString()
 
@@ -89,7 +88,7 @@ class CouplingInterfaceData(object):
         self.is_initialized = True
 
     @staticmethod
-    def GetDefaultSettings():
+    def GetDefaultParameters():
         return KM.Parameters("""{
             "model_part_name" : "",
             "variable_name"   : "",

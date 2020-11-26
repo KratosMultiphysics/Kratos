@@ -20,7 +20,6 @@
 #include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
-#include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
@@ -152,10 +151,6 @@ void  AddContainersToPython(pybind11::module& m)
 
     py::class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
     .def("__str__", PrintObject<Variable<RadiationSettings::Pointer >>)
-    ;
-    py::class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
-    .def("__str__", PrintObject<VariableComponent<VectorComponentAdaptor<Vector > >>)
-    // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
     py::class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")

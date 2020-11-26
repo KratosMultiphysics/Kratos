@@ -4,13 +4,11 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-import KratosMultiphysics.ShallowWaterApplication.convergence_output_process as convergence_output
-
-import os
-import h5py
-
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+try:
+    import KratosMultiphysics.ShallowWaterApplication.convergence_output_process as convergence_output
+    import h5py
+except ImportError:
+    pass
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StatisticsApplication")
 class TestConvergenceOutputProcess(KratosUnittest.TestCase):

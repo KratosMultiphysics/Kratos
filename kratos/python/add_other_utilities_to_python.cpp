@@ -13,6 +13,7 @@
 
 
 // System includes
+#include <pybind11/stl.h>
 
 // External includes
 
@@ -46,6 +47,8 @@
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/properties_utilities.h"
+#include "utilities/coordinate_transformation_utilities.h"
+#include "utilities/file_name_data_collector.h"
 
 namespace Kratos {
 namespace Python {
@@ -149,6 +152,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::string&, Parameters>())
         .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
         .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
+        .def("FunctionBody", &PythonGenericFunctionUtility::FunctionBody)
         .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
         .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
         ;
@@ -460,7 +464,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
-        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
+        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
+        .def("AssignConditionDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
+        .def("AssignElementDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
+        ;
 
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
@@ -492,6 +499,61 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     // PropertiesUtilities
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
     mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
+
+    // coordinate transformation utilities
+    typedef CoordinateTransformationUtils<LocalSpaceType::MatrixType, LocalSpaceType::VectorType, double> CoordinateTransformationUtilsType;
+    py::class_<
+        CoordinateTransformationUtilsType,
+        CoordinateTransformationUtilsType::Pointer>
+        (m,"CoordinateTransformationUtils")
+        .def(py::init<const unsigned int, const unsigned int, const Kratos::Flags&>())
+        .def("Rotate", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, LocalSpaceType::VectorType&, ModelPart::GeometryType&)const)(&CoordinateTransformationUtilsType::Rotate))
+        .def("Rotate", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::VectorType&, ModelPart::GeometryType&)const)(&CoordinateTransformationUtilsType::Rotate))
+        .def("ApplySlipCondition", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, LocalSpaceType::VectorType&, ModelPart::GeometryType&)const)(&CoordinateTransformationUtilsType::ApplySlipCondition))
+        .def("ApplySlipCondition", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::VectorType&, ModelPart::GeometryType&)const)(&CoordinateTransformationUtilsType::ApplySlipCondition))
+        .def("RotateVelocities", &CoordinateTransformationUtilsType::RotateVelocities)
+        .def("RecoverVelocities", &CoordinateTransformationUtilsType::RecoverVelocities)
+        .def("CalculateRotationOperatorPure", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPure))
+        .def("CalculateRotationOperatorPureShapeSensitivities", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const std::size_t, const std::size_t, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPureShapeSensitivities))
+        ;
+
+    // add FileNameDataCollector
+    auto file_name_data_collector = py::class_<
+        FileNameDataCollector,
+        FileNameDataCollector::Pointer>
+        (m, "FileNameDataCollector")
+        .def(py::init<const ModelPart&, const std::string&, const std::unordered_map<std::string, std::string>&>())
+        .def("GetFileName", &FileNameDataCollector::GetFileName)
+        .def("GetPath", &FileNameDataCollector::GetPath)
+        .def("GetSortedFileNamesList", &FileNameDataCollector::GetSortedFileNamesList)
+        .def("RetrieveFileNameData", &FileNameDataCollector::RetrieveFileNameData)
+        .def("GetFileNameDataList", &FileNameDataCollector::GetFileNameDataList)
+        .def_static("ExtractFileNamePattern", &FileNameDataCollector::ExtractFileNamePattern)
+        .def_static("GetSortedListOfFileNameData",
+            [](std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList, const std::vector<std::string>& rSortingFlagsOrder) {
+                FileNameDataCollector::SortListOfFileNameData(rFileNameDataList, rSortingFlagsOrder);
+                return rFileNameDataList;
+            })
+        ;
+
+    // add FileNameData holder
+    py::class_<
+        FileNameDataCollector::FileNameData,
+        FileNameDataCollector::FileNameData::Pointer>
+        (file_name_data_collector, "FileNameData")
+        .def(py::init<>())
+        .def(py::init<const std::string&, int, int, double>())
+        .def("SetFileName", &FileNameDataCollector::FileNameData::SetFileName)
+        .def("GetFileName", &FileNameDataCollector::FileNameData::GetFileName)
+        .def("SetRank", &FileNameDataCollector::FileNameData::SetRank)
+        .def("GetRank", &FileNameDataCollector::FileNameData::GetRank)
+        .def("SetStep", &FileNameDataCollector::FileNameData::SetStep)
+        .def("GetStep", &FileNameDataCollector::FileNameData::GetStep)
+        .def("SetTime", &FileNameDataCollector::FileNameData::SetTime)
+        .def("GetTime", &FileNameDataCollector::FileNameData::GetTime)
+        .def("Clear", &FileNameDataCollector::FileNameData::Clear)
+        .def("__eq__", &FileNameDataCollector::FileNameData::operator==)
+        ;
 }
 
 } // namespace Python.

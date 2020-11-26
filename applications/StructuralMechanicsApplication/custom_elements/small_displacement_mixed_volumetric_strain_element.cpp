@@ -175,7 +175,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -221,7 +221,7 @@ void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(Proce
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -270,7 +270,7 @@ void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(Process
 void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -449,7 +449,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
 void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -586,7 +586,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
 void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();

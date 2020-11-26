@@ -26,7 +26,7 @@ class PrebucklingSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[PrebucklingSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "buckling_settings"     : {
                 "initial_load_increment"    : 1.0,
@@ -43,7 +43,7 @@ class PrebucklingSolver(MechanicalSolver):
                 "echo_level"            : 1
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####

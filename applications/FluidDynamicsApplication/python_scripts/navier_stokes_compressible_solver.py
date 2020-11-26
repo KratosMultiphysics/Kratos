@@ -13,7 +13,7 @@ def CreateSolver(model, custom_settings):
 class NavierStokesCompressibleSolver(FluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -59,7 +59,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesCompressibleSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesCompressibleSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):

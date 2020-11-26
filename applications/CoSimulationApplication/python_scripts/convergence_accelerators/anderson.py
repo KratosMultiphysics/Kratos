@@ -2,21 +2,23 @@
 # Author: Andreas Winterstein
 # Date: Jul. 2018
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, red, magenta, blue
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Other imports
 import numpy as np
 from copy import deepcopy
 from collections import deque
 
-def Create(settings, solver_wrapper):
+def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    raise NotImplementedError("This class needs some updates see MVQN and Aitken")
-    return AndersonConvergenceAccelerator(settings, solver_wrapper)
+    return AndersonConvergenceAccelerator(settings)
 
 class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
@@ -25,24 +27,13 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param beta weighting factor of constant relaxation
     # @param p factor for switch between constant relaxation and alternating anderson Gauß-Seidel/Jacobian method
     # p = 1 results in the Anderson acceleration and p -> infinity results in constant relaxation
-    def __init__( self, settings, solvers, cosim_solver_details ):
-        super().__init__(settings, solvers, cosim_solver_details)
-        if "iteration_horizon" in self.settings:
-            iteration_horizon = self.settings["iteration_horizon"]
-        else:
-            iteration_horizon = 20
-        if "alpha" in self.settings:
-            self.alpha = self.settings["alpha"]
-        else:
-            self.alpha = 0.1
-        if "beta" in self.settings:
-            self.beta = self.settings["beta"]
-        else:
-            self.beta = 0.2
-        if "p" in self.settings:
-            self.p = self.settings["p"]
-        else:
-            self.p = 2
+    def __init__( self, settings):
+        super().__init__(settings)
+
+        iteration_horizon = self.settings["iteration_horizon"].GetInt()
+        self.alpha = self.settings["alpha"].GetDouble()
+        self.beta = self.settings["beta"].GetDouble()
+        self.p = self.settings["p"].GetInt()
 
         self.V = deque( maxlen = iteration_horizon )
         self.W = deque( maxlen = iteration_horizon )
@@ -67,7 +58,7 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         if k == 0:
             ## For the first iteration, do relaxation only
             if self.echo_level > 3:
-                classprint(self._ClassName(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
+                cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation in the first iteration with factor = {}".format(self.alpha))
             return self.alpha * r
         else:
             self.F = np.empty( shape = (col, row) ) # will be transposed later
@@ -78,22 +69,19 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.F = self.F.T
             self.X = self.X.T
 
-
             #compute Moore-Penrose inverse of F^T F
             A = np.linalg.pinv(self.F.T @ self.F)
 
             switch = (self.iteration_counter + 1)/self.p
 
-            classprint(magenta(self.iteration_counter))
-
-            if switch.is_integer() == True:
+            if switch.is_integer():
                 B = self.beta * np.identity(row) - (self.X + self.beta * self.F) @ A @ self.F.T
                 if self.echo_level > 3:
-                    classprint(self._ClassName(), blue("Compute B with Anderson"))
+                    cs_tools.cs_print_info(self._ClassName(), "Compute B with Anderson")
             else:
                 B = self.alpha * np.identity(row)
                 if self.echo_level > 3:
-                    classprint(self._ClassName(), red("Constant underrelaxtion"))
+                    cs_tools.cs_print_info(self._ClassName(), "Constant underrelaxtion")
 
             delta_x = B @ r
 
@@ -104,3 +92,14 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     def FinalizeSolutionStep(self):
         self.V.clear()
         self.W.clear()
+
+    @classmethod
+    def _GetDefaultParameters(cls):
+        this_defaults = KM.Parameters("""{
+            "iteration_horizon" : 20,
+            "alpha"             : 0.1,
+            "beta"              : 0.2,
+            "p"                 : 2
+        }""")
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
+        return this_defaults

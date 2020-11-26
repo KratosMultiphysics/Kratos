@@ -15,8 +15,8 @@ def AllocateHistoricalVariablesFromCouplingDataSettings(data_settings_list, mode
     data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
 
     for data_settings in data_settings_list.values():
-        CouplingInterfaceData.GetDefaultSettings()
-        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultSettings())
+        CouplingInterfaceData.GetDefaultParameters()
+        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultParameters())
 
         if data_settings["location"].GetString() == "node_historical":
             variable = KM.KratosGlobals.GetVariable(data_settings["variable_name"].GetString())
@@ -33,8 +33,8 @@ def CreateMainModelPartsFromCouplingDataSettings(data_settings_list, model, solv
     data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
 
     for data_settings in data_settings_list.values():
-        CouplingInterfaceData.GetDefaultSettings()
-        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultSettings())
+        CouplingInterfaceData.GetDefaultParameters()
+        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultParameters())
 
         main_model_part_name = data_settings["model_part_name"].GetString().split(".")[0]
         if not model.HasModelPart(main_model_part_name):
@@ -57,8 +57,8 @@ def CreateModelPartsFromCouplingDataSettings(data_settings_list, model, solver_n
     data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
 
     for data_settings in data_settings_list.values():
-        CouplingInterfaceData.GetDefaultSettings()
-        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultSettings())
+        CouplingInterfaceData.GetDefaultParameters()
+        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultParameters())
 
         splitted_name = data_settings["model_part_name"].GetString().split(".")
         main_model_part_name = splitted_name[0]

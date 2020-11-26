@@ -92,7 +92,7 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type" : "mechanical_solver",
             "model_part_name" : "",
@@ -135,7 +135,7 @@ class MechanicalSolver(PythonSolver):
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def ValidateSettings(self):
@@ -144,7 +144,7 @@ class MechanicalSolver(PythonSolver):
         super().ValidateSettings()
 
         # Validate some subparameters
-        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["builder_and_solver_settings"])
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already

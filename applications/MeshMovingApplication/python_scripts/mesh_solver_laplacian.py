@@ -20,11 +20,11 @@ class MeshSolverLaplacian(MeshSolverBase):
         KM.Logger.PrintInfo("::[MeshSolverLaplacian]:: Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "buffer_size"           : 2
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def _create_mesh_motion_solving_strategy(self):

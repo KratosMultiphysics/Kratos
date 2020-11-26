@@ -10,7 +10,7 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 def Create(settings, name):
     raise Exception('"CoSimulationSolverWrapper" is a baseclass and cannot be used directly!')
 
-class CoSimulationSolverWrapper(object):
+class CoSimulationSolverWrapper:
     """Baseclass for the solver wrappers used for CoSimulation
     It wraps solvers used in the CoSimulation
     """
@@ -36,7 +36,7 @@ class CoSimulationSolverWrapper(object):
             raise Exception(err_msg)
 
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.name = solver_name
         if "." in self.name:
@@ -83,8 +83,7 @@ class CoSimulationSolverWrapper(object):
         pass
 
     def SolveSolutionStep(self):
-        for data in self.data_dict.values():
-            data.is_outdated = True
+        pass
 
 
     def CreateIO(self, io_echo_level):
@@ -156,7 +155,7 @@ class CoSimulationSolverWrapper(object):
         return self.__io is not None
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"                    : "",
             "solver_wrapper_settings" : {},

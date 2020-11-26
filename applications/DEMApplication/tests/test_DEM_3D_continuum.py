@@ -8,30 +8,17 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+import auxiliary_functions_for_tests
+
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
-    omp_utils = KratosMultiphysics.OpenMPUtils()
-    if "OMP_NUM_THREADS" in os.environ:
-        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
-        omp_utils.SetNumThreads(1)
-
-    with open(parameters_file_name,'r') as parameter_file:
-        project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    my_obj(model, project_parameters).Run()
-
-    if "OMP_NUM_THREADS" in os.environ:
-        omp_utils.SetNumThreads(int(initial_number_of_threads))
-
-
 class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     def Initialize(self):
-        super(DEM3D_ContinuumTestSolution, self).Initialize()
+        super().Initialize()
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
@@ -45,17 +32,16 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
     def CheckValues(self, x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential):
         tol = 1.0000+1.0e-3
         #DEM reference values
-        x_vel_ref           =0.02043790
-        z_vel_ref           =-0.8771226
-        x_force_ref         =-25240.795
-        z_force_ref         =1963237.70
+        x_vel_ref = 0.02043790
+        z_vel_ref = -0.8771226
+        x_force_ref = -25240.795
+        z_force_ref = 1963237.70
 
         #FEM reference values
-        dem_pressure_ref    =21558.5
-        z_elastic_ref       =-273320
-        shear_ref           =271.471
-        x_tangential_ref    =4524.52
-
+        dem_pressure_ref = 21558.5
+        z_elastic_ref = -273320
+        shear_ref = 271.471
+        x_tangential_ref = 4524.52
 
         if not (abs(x_vel_ref) < abs(x_vel*tol) and abs(x_vel_ref) > abs(x_vel/tol)):
             raise ValueError('Incorrect value for VELOCITY_X: expected value was '+ str(x_vel_ref) + ' but received ' + str(x_vel))
@@ -81,9 +67,6 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         if not (abs(x_tangential_ref) < abs(x_tangential*tol) and abs(x_tangential_ref) > abs(x_tangential/tol)):
             raise ValueError('Incorrect value for TANGENTIAL_ELASTIC_FORCE_Z: expected value was '+ str(x_tangential_ref) + ' but received ' + str(x_tangential))
 
-
-
-
     def Finalize(self):
         for node in self.spheres_model_part.Nodes:
             if node.Id == 1:
@@ -100,7 +83,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
                 x_tangential = node.GetSolutionStepValue(DEM.TANGENTIAL_ELASTIC_FORCES)[0]
 
         self.CheckValues(x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential)
-        super(DEM3D_ContinuumTestSolution, self).Finalize()
+        super().Finalize()
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
@@ -195,7 +178,7 @@ class TestDEM3DContinuum(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_DEM_3D_continuum")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM3D_ContinuumTestSolution, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_ContinuumTestSolution, model, parameters_file_name, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join("test_DEM_3D_continuum", "TimesPartialRelease")

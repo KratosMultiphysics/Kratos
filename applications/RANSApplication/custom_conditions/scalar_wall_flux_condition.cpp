@@ -103,7 +103,7 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Get
 
     const auto& r_geometry = this->GetGeometry();
     const Variable<double>& r_variable =
-        TScalarWallFluxConditionData::GetScalarRateVariable();
+        TScalarWallFluxConditionData::GetScalarVariable().GetTimeDerivative();
 
     IndexType local_index = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -173,7 +173,7 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Cal
 
 template <unsigned int TDim, unsigned int TNumNodes, class TScalarWallFluxConditionData>
 int ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

@@ -168,7 +168,7 @@ public:
     void CalculateLocalSystem(
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Computes the elemental RHS elemental contribution
     /**
@@ -179,7 +179,7 @@ public:
      */
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Auxiliar element check function
     /**
@@ -187,7 +187,7 @@ public:
      * current element check implementations
      * @param rCurrentProcessInfo reference to the current process info
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry
