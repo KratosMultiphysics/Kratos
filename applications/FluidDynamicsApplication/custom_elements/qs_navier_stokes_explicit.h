@@ -319,6 +319,29 @@ protected:
     double CalculateElementSize(
         const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX);
 
+    void FractionalVelocityEquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const ;
+
+    void VelocityEquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const ;
+
+    void PressureEquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const ;
+
+    void GetFractionalVelocityDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo) const ;
+
+    void GetVelocityDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo) const ;
+
+    void GetPressureDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo) const ;
 
     ///@}
     ///@name Protected  Access

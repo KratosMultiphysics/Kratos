@@ -44,25 +44,31 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::EquationIdVector(
 {
     KRATOS_TRY;
 
-    const unsigned int dof_size = TNumNodes * (TDim+1);
-    if (rResult.size() != dof_size)
-        rResult.resize(dof_size, false);
-
-    const GeometryType& r_geometry = this->GetGeometry();
-    unsigned int local_index = 0;
-
-    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
-    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
-
-    for (unsigned int i = 0; i < TNumNodes; ++i)
+    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
     {
-        rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_X,xpos).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
-        if (TDim == 3) rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(PRESSURE,ppos).EquationId();
+        case 1:
+        {
+            this->FractionalVelocityEquationIdVector(rResult,rCurrentProcessInfo);
+            break;
+        }
+        case 3:
+        {
+            this->PressureEquationIdVector(rResult,rCurrentProcessInfo);
+            break;
+        }
+        case 4:
+        {
+            this->VelocityEquationIdVector(rResult,rCurrentProcessInfo);
+            break;
+        }
+        default:
+        {
+            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+        }
     }
 
     KRATOS_CATCH("");
+
 }
 
 /***********************************************************************************/
@@ -75,19 +81,27 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::GetDofList(
 {
     KRATOS_TRY;
 
-    const unsigned int dof_size = TNumNodes * (TDim+1);
-    if (rElementalDofList.size() != dof_size)
-        rElementalDofList.resize(dof_size);
-
-    const GeometryType& r_geometry = this->GetGeometry();
-    unsigned int local_index = 0;
-
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-    {
-        rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_X);
-        rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_Y);
-        if (TDim == 3) rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_Z);
-        rElementalDofList[local_index++] = r_geometry[i].pGetDof(PRESSURE);
+    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
+        {
+        case 1:
+        {
+            this->GetFractionalVelocityDofList(rElementalDofList,rCurrentProcessInfo);
+            break;
+        }
+        case 5:
+        {
+            this->GetPressureDofList(rElementalDofList,rCurrentProcessInfo);
+            break;
+        }
+        case 6:
+        {
+            this->GetVelocityDofList(rElementalDofList,rCurrentProcessInfo);
+            break;
+        }
+        default:
+        {
+            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+        }
     }
 
     KRATOS_CATCH("");
@@ -496,7 +510,7 @@ void QSNavierStokesExplicit<2,3>::AddExplicitContribution(
 
             // Calculate the explicit residual vector
             BoundedVector<double, 6> rhs;
-            CalculateLocalFractionalVelocitySystem(rhs, rCurrentProcessInfo);
+            this->CalculateLocalFractionalVelocitySystem(rhs, rCurrentProcessInfo);
 
             // Add the residual contribution
             // Note that the reaction is indeed the formulation residual
@@ -538,7 +552,7 @@ void QSNavierStokesExplicit<3,4>::AddExplicitContribution(
 
             // Calculate the explicit residual vector
             BoundedVector<double, 12> rhs;
-            CalculateLocalFractionalVelocitySystem(rhs, rCurrentProcessInfo);
+            this->CalculateLocalFractionalVelocitySystem(rhs, rCurrentProcessInfo);
 
             // Add the residual contribution
             // Note that the reaction is indeed the formulation residual
@@ -650,7 +664,7 @@ int QSNavierStokesExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentPro
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void QSNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
+void QSNavierStokesExplicit<TDim,TNumNodes>::FillElementData(
     ElementDataStruct &rData,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -663,7 +677,7 @@ void QSNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-double QSNavierStokesExplicit<TDim, TNumNodes>::CalculateElementSize(
+double QSNavierStokesExplicit<TDim,TNumNodes>::CalculateElementSize(
     const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX)
 {
     KRATOS_TRY;
@@ -680,6 +694,247 @@ double QSNavierStokesExplicit<TDim, TNumNodes>::CalculateElementSize(
     return h;
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<2,3>::FractionalVelocityEquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = NumNodes*2;
+
+    SizeType LocalIndex = 0;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
+
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(FRACT_VEL_X);
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rResult[LocalIndex++] = rGeom[i].GetDof(FRACT_VEL_X,xpos).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(FRACT_VEL_Y,xpos+1).EquationId();
+    }
+}
+
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<3,4>::FractionalVelocityEquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
+
+    SizeType LocalIndex = 0;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
+
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(FRACT_VEL_X);
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rResult[LocalIndex++] = rGeom[i].GetDof(FRACT_VEL_X,xpos).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(FRACT_VEL_Y,xpos+1).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(FRACT_VEL_Z,xpos+2).EquationId();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<2,3>::VelocityEquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = NumNodes*2;
+
+    SizeType LocalIndex = 0;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
+
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X,xpos).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+    }
+}
+
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<3,4>::VelocityEquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
+
+    SizeType LocalIndex = 0;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
+
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X,xpos).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void QSNavierStokesExplicit<TDim,TNumNodes>::PressureEquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+
+    if (rResult.size() != NumNodes)
+        rResult.resize(NumNodes);
+
+    const unsigned int pos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+        rResult[i] = rGeom[i].GetDof(PRESSURE,pos).EquationId();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<2,3>::GetFractionalVelocityDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
+
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    SizeType LocalIndex = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(FRACT_VEL_X);
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(FRACT_VEL_Y);
+    }
+}
+
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<3,4>::GetFractionalVelocityDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
+
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    SizeType LocalIndex = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(FRACT_VEL_X);
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(FRACT_VEL_Y);
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(FRACT_VEL_Z);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<2,3>::GetVelocityDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
+
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    SizeType LocalIndex = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_X);
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_Y);
+    }
+}
+
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<3,4>::GetVelocityDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
+
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    SizeType LocalIndex = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_X);
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_Y);
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_Z);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void QSNavierStokesExplicit<TDim,TNumNodes>::GetPressureDofList(DofsVectorType& rElementalDofList,
+                                              const ProcessInfo& rCurrentProcessInfo) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+
+    if (rElementalDofList.size() != NumNodes)
+        rElementalDofList.resize(NumNodes);
+
+    SizeType LocalIndex = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PRESSURE);
+    }
 }
 
 /***********************************************************************************/
