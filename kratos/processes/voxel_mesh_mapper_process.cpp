@@ -25,6 +25,7 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "includes/checks.h"
 #include "utilities/timer.h"
+#include "utilities/parallel_utilities.h"
 
 
 
@@ -96,6 +97,10 @@ namespace Kratos
 			ApplyColoring(skin_part, parameters);
 		}
 		Timer::Stop("Coloring Input Mesh");
+
+        mColors.WriteParaViewVTR("input_mesh_colors.vtr");
+
+        MapResults();
 	}
 
 	std::string VoxelMeshMapperProcess::Info() const {
@@ -112,9 +117,9 @@ namespace Kratos
 
 	void VoxelMeshMapperProcess::ReadInputFile(std::string InputFileName) {
         std::ifstream input(InputFileName);
-        int n_x = 0;
-        int n_y = 0;
-        int n_z = 0;
+        std::size_t n_x = 0;
+        std::size_t n_y = 0;
+        std::size_t n_z = 0;
 
         input >> n_x >> n_y >> n_z;
 
@@ -147,13 +152,10 @@ namespace Kratos
 
 
         mInputMesh.SetCoordinates(x_planes, y_planes, z_planes); 
+        mColors.SetCoordinates(x_planes, y_planes, z_planes); 
 
         // Applying nodal data
         for(int i_node = 0 ; i_node < size ; i_node++){
-            double& x = input_data(i_node,0);
-            double& y = input_data(i_node,1);
-            double& z = input_data(i_node,2);
-            double& result = input_data(i_node,3);
             std::size_t i = mInputMesh.CalculateCellPosition(input_data(i_node,0), 0);
             std::size_t j = mInputMesh.CalculateCellPosition(input_data(i_node,1), 1);
             std::size_t k = mInputMesh.CalculateCellPosition(input_data(i_node,2), 2);
@@ -162,7 +164,7 @@ namespace Kratos
             std::cout << i << "," << j << "," << k << ":" << input_data(i_node,3) << std::endl;
         }
 
-        mInputMesh.WriteParaViewVTR(InputFileName + ".vtr"); 
+        mInputMesh.WriteParaViewVTR(InputFileName + "_input.vtr"); 
 
 
 	}
@@ -174,7 +176,7 @@ namespace Kratos
         double half_cell_size = (rCoordinates[1] - rCoordinates[0]) * 0.5;
         nodal_coordinates.push_back(rCoordinates[0] - half_cell_size);
 
-        for(int i = 0 ; i < rCoordinates.size()-1 ; i++){
+        for(std::size_t i = 0 ; i < rCoordinates.size()-1 ; i++){
             nodal_coordinates.push_back((rCoordinates[i+1]+rCoordinates[i])*0.5);
         }
 
@@ -191,6 +193,23 @@ namespace Kratos
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    void VoxelMeshMapperProcess::MapResults(){
+//        block_for_each(mrVolumePart.Nodes(), [&](Node<3>& rNode)
+        for(auto& rNode : mrVolumePart.Nodes())
+        {
+            std::size_t i = mInputMesh.CalculateCellPosition(rNode.X(), 0);
+            std::size_t j = mInputMesh.CalculateCellPosition(rNode.Y(), 1);
+            std::size_t k = mInputMesh.CalculateCellPosition(rNode.Z(), 2);
+
+            double color = mInputMesh.GetElementalColor(i,j,k);
+            KRATOS_WATCH(color);
+
+            rNode.GetSolutionStepValue(TEMPERATURE) = mInputMesh.GetElementalColor(i,j,k);
+        }
+        //);
+
     }
 
 }  // namespace Kratos.
