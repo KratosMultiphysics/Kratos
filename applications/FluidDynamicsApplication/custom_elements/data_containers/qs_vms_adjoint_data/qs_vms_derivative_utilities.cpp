@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "utilities/element_size_calculator.h"
 
 // Application includes
 
@@ -136,6 +137,58 @@ void QSVMSDerivativeUtilities<TDim>::CalculateGradient(
     }
 }
 
+template <>
+void QSVMSDerivativeUtilities<2>::CalculateStrainRateVelocityDerivative(
+    Vector& rOutput,
+    const IndexType DerivativeNodeIndex,
+    const IndexType DerivativeDirectionIndex,
+    const Matrix& rdNdX)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(rOutput.size() != 3)
+        << "rOutput is not properly initialized. [ rOutput.size() != 3, "
+           "rOutput.size() = "
+        << rOutput.size() << " ].\n";
+
+    noalias(rOutput) = ZeroVector(3);
+
+    rOutput[DerivativeDirectionIndex] += rdNdX(DerivativeNodeIndex, DerivativeDirectionIndex);
+    rOutput[2] += rdNdX(DerivativeNodeIndex, 0) * (DerivativeDirectionIndex == 1);
+    rOutput[2] += rdNdX(DerivativeNodeIndex, 1) * (DerivativeDirectionIndex == 0);
+
+    KRATOS_CATCH("");
+}
+
+template <>
+void QSVMSDerivativeUtilities<3>::CalculateStrainRateVelocityDerivative(
+    Vector& rOutput,
+    const IndexType DerivativeNodeIndex,
+    const IndexType DerivativeDirectionIndex,
+    const Matrix& rdNdX)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(rOutput.size() != 6)
+        << "rOutput is not properly initialized. [ rOutput.size() != 6, "
+           "rOutput.size() = "
+        << rOutput.size() << " ].\n";
+
+    noalias(rOutput) = ZeroVector(6);
+    rOutput[DerivativeDirectionIndex] += rdNdX(DerivativeNodeIndex, DerivativeDirectionIndex);
+
+    rOutput[3] += rdNdX(DerivativeNodeIndex, 0) * (DerivativeDirectionIndex == 1);
+    rOutput[3] += rdNdX(DerivativeNodeIndex, 1) * (DerivativeDirectionIndex == 0);
+
+    rOutput[4] += rdNdX(DerivativeNodeIndex, 1) * (DerivativeDirectionIndex == 2);
+    rOutput[4] += rdNdX(DerivativeNodeIndex, 2) * (DerivativeDirectionIndex == 1);
+
+    rOutput[5] += rdNdX(DerivativeNodeIndex, 0) * (DerivativeDirectionIndex == 2);
+    rOutput[5] += rdNdX(DerivativeNodeIndex, 2) * (DerivativeDirectionIndex == 0);
+
+    KRATOS_CATCH("");
+}
+
 template <unsigned int TDim>
 QSVMSDerivativeUtilities<TDim>::Derivative::Derivative(
     const IndexType NodeIndex,
@@ -200,7 +253,8 @@ QSVMSDerivativeUtilities<TDim>::Derivative::Derivative(
 }
 
 template <unsigned int TDim>
-array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::VelocityDerivative::CalculateEffectiveVelocityDerivative(
+template <unsigned int TNumNodes>
+array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::CalculateEffectiveVelocityDerivative(
     const array_1d<double, 3>& rVelocity) const
 {
     array_1d<double, 3> result = ZeroVector(3);
@@ -209,7 +263,8 @@ array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::VelocityDerivative::Calculat
 }
 
 template <unsigned int TDim>
-const Variable<double>& QSVMSDerivativeUtilities<TDim>::VelocityDerivative::GetDerivativeVariable() const
+template <unsigned int TNumNodes>
+const Variable<double>& QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::GetDerivativeVariable() const
 {
     switch (this->mDirectionIndex) {
         case 0:
@@ -227,62 +282,26 @@ const Variable<double>& QSVMSDerivativeUtilities<TDim>::VelocityDerivative::GetD
 }
 
 template <unsigned int TDim>
-double QSVMSDerivativeUtilities<TDim>::VelocityDerivative::CalculateElementLengthDerivative(
+template <unsigned int TNumNodes>
+double QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::CalculateElementLengthDerivative(
     const double ElementLength) const
 {
     return 0.0;
 }
 
-template <>
-void QSVMSDerivativeUtilities<2>::VelocityDerivative::CalculateStrainRateDerivative(
+template <unsigned int TDim>
+template <unsigned int TNumNodes>
+void QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::CalculateStrainRateDerivative(
     Vector& rOutput,
     const Matrix& rNodalVelocity) const
 {
-    KRATOS_TRY
-
-    KRATOS_DEBUG_ERROR_IF(rOutput.size() != 3)
-        << "rOutput is not properly initialized. [ rOutput.size() != 3, "
-           "rOutput.size() = "
-        << rOutput.size() << " ].\n";
-
-    noalias(rOutput) = ZeroVector(3);
-
-    rOutput[this->mDirectionIndex] += this->mrdNdX(this->mNodeIndex, this->mDirectionIndex);
-    rOutput[2] += this->mrdNdX(this->mNodeIndex, 0) * (this->mDirectionIndex == 1);
-    rOutput[2] += this->mrdNdX(this->mNodeIndex, 1) * (this->mDirectionIndex == 0);
-
-    KRATOS_CATCH("");
-}
-
-template <>
-void QSVMSDerivativeUtilities<3>::VelocityDerivative::CalculateStrainRateDerivative(
-    Vector& rOutput,
-    const Matrix& rNodalVelocity) const
-{
-    KRATOS_TRY
-
-    KRATOS_DEBUG_ERROR_IF(rOutput.size() != 6)
-        << "rOutput is not properly initialized. [ rOutput.size() != 6, "
-           "rOutput.size() = "
-        << rOutput.size() << " ].\n";
-
-    noalias(rOutput) = ZeroVector(6);
-    rOutput[this->mDirectionIndex] += this->mrdNdX(this->mNodeIndex, this->mDirectionIndex);
-
-    rOutput[3] += this->mrdNdX(this->mNodeIndex, 0) * (this->mDirectionIndex == 1);
-    rOutput[3] += this->mrdNdX(this->mNodeIndex, 1) * (this->mDirectionIndex == 0);
-
-    rOutput[4] += this->mrdNdX(this->mNodeIndex, 1) * (this->mDirectionIndex == 2);
-    rOutput[4] += this->mrdNdX(this->mNodeIndex, 2) * (this->mDirectionIndex == 1);
-
-    rOutput[5] += this->mrdNdX(this->mNodeIndex, 0) * (this->mDirectionIndex == 2);
-    rOutput[5] += this->mrdNdX(this->mNodeIndex, 2) * (this->mDirectionIndex == 0);
-
-    KRATOS_CATCH("");
+    QSVMSDerivativeUtilities<TDim>::CalculateStrainRateVelocityDerivative(
+        rOutput, this->mNodeIndex, this->mDirectionIndex, this->mrdNdX);
 }
 
 template <unsigned int TDim>
-array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::PressureDerivative::CalculateEffectiveVelocityDerivative(
+template <unsigned int TNumNodes>
+array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>::CalculateEffectiveVelocityDerivative(
     const array_1d<double, 3>& rVelocity) const
 {
     array_1d<double, 3> result = ZeroVector(3);
@@ -290,20 +309,23 @@ array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::PressureDerivative::Calculat
 }
 
 template <unsigned int TDim>
-const Variable<double>& QSVMSDerivativeUtilities<TDim>::PressureDerivative::GetDerivativeVariable() const
+template <unsigned int TNumNodes>
+const Variable<double>& QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>::GetDerivativeVariable() const
 {
     return PRESSURE;
 }
 
 template <unsigned int TDim>
-double QSVMSDerivativeUtilities<TDim>::PressureDerivative::CalculateElementLengthDerivative(
+template <unsigned int TNumNodes>
+double QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>::CalculateElementLengthDerivative(
     const double ElementLength) const
 {
     return 0.0;
 }
 
 template <unsigned int TDim>
-void QSVMSDerivativeUtilities<TDim>::PressureDerivative::CalculateStrainRateDerivative(
+template <unsigned int TNumNodes>
+void QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>::CalculateStrainRateDerivative(
     Vector& rOutput,
     const Matrix& rNodalVelocity) const
 {
@@ -311,7 +333,8 @@ void QSVMSDerivativeUtilities<TDim>::PressureDerivative::CalculateStrainRateDeri
 }
 
 template <unsigned int TDim>
-array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::ShapeDerivative::CalculateEffectiveVelocityDerivative(
+template <unsigned int TNumNodes>
+array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::CalculateEffectiveVelocityDerivative(
     const array_1d<double, 3>& rVelocity) const
 {
     array_1d<double, 3> result = ZeroVector(3);
@@ -319,7 +342,8 @@ array_1d<double, 3> QSVMSDerivativeUtilities<TDim>::ShapeDerivative::CalculateEf
 }
 
 template <unsigned int TDim>
-const Variable<double>& QSVMSDerivativeUtilities<TDim>::ShapeDerivative::GetDerivativeVariable() const
+template <unsigned int TNumNodes>
+const Variable<double>& QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::GetDerivativeVariable() const
 {
     switch (this->mDirectionIndex) {
         case 0:
@@ -337,15 +361,16 @@ const Variable<double>& QSVMSDerivativeUtilities<TDim>::ShapeDerivative::GetDeri
 }
 
 template <unsigned int TDim>
-double QSVMSDerivativeUtilities<TDim>::ShapeDerivative::CalculateElementLengthDerivative(
+template <unsigned int TNumNodes>
+double QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::CalculateElementLengthDerivative(
     const double ElementLength) const
 {
-    // TODO: This needs to be computed.
-    return 0.0;
+    return ElementSizeCalculator<TDim, TNumNodes>::MinimumElementSizeDerivative(this->mNodeIndex, this->mDirectionIndex, this->mrGeometry);
 }
 
 template <unsigned int TDim>
-void QSVMSDerivativeUtilities<TDim>::ShapeDerivative::CalculateStrainRateDerivative(
+template <unsigned int TNumNodes>
+void QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::CalculateStrainRateDerivative(
     Vector& rOutput,
     const Matrix& rNodalVelocity) const
 {
@@ -354,7 +379,27 @@ void QSVMSDerivativeUtilities<TDim>::ShapeDerivative::CalculateStrainRateDerivat
 
 // template instantiations
 
+template class QSVMSDerivativeUtilities<2>::VelocityDerivative<3>;
+template class QSVMSDerivativeUtilities<2>::VelocityDerivative<4>;
+
+template class QSVMSDerivativeUtilities<3>::VelocityDerivative<4>;
+template class QSVMSDerivativeUtilities<3>::VelocityDerivative<8>;
+
+template class QSVMSDerivativeUtilities<2>::PressureDerivative<3>;
+template class QSVMSDerivativeUtilities<2>::PressureDerivative<4>;
+
+template class QSVMSDerivativeUtilities<3>::PressureDerivative<4>;
+template class QSVMSDerivativeUtilities<3>::PressureDerivative<8>;
+
+template class QSVMSDerivativeUtilities<2>::ShapeDerivative<3>;
+template class QSVMSDerivativeUtilities<2>::ShapeDerivative<4>;
+
+template class QSVMSDerivativeUtilities<3>::ShapeDerivative<4>;
+template class QSVMSDerivativeUtilities<3>::ShapeDerivative<8>;
+
 template class QSVMSDerivativeUtilities<2>;
 template class QSVMSDerivativeUtilities<3>;
+
+
 
 } // namespace Kratos

@@ -440,16 +440,16 @@ public:
         KRATOS_TRY
 
         if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-            // constexpr IndexType shape_derivatives_size = TNumNodes * TDerivativesType::TDerivativesDimension;
+            using derivatives_type = typename TAdjointElementData::SensitivityDerivatives::ShapeSensitivities;
+            constexpr IndexType shape_derivatives_size = TNumNodes * derivatives_type::TDerivativesDimension;
 
-            // if (rOutput.size1() != shape_derivatives_size ||
-            //     rOutput.size2() != TElementLocalSize) {
-            //     rOutput.resize(shape_derivatives_size, TElementLocalSize, false);
-            // }
+            if (rOutput.size1() != shape_derivatives_size || rOutput.size2() != TElementLocalSize) {
+                rOutput.resize(shape_derivatives_size, TElementLocalSize, false);
+            }
 
-            // rOutput.clear();
-            // AddVelocityPressureSensitivityDerivatives<typename TAdjointElementData::SensitivityDerivatives::ShapeSensitivities>(
-            //     rOutput, rCurrentProcessInfo);
+            rOutput.clear();
+            AddVelocityPressureSensitivityDerivatives<derivatives_type>(
+                rOutput, TAdjointElementData::GetIntegrationMethod(), rCurrentProcessInfo);
         } else {
             KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
                          << " not supported." << std::endl;
@@ -550,52 +550,58 @@ protected:
         const GeometryData::IntegrationMethod& rIntegrationMethod,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        // KRATOS_TRY
+        KRATOS_TRY
 
-        // TDerivativesType derivatives(*this, *mpFluidConstitutiveLaw);
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives, rIntegrationMethod);
 
-        // derivatives.Initialize(rOutput, rCurrentProcessInfo);
+        typename TDerivativesType::Data element_data(*this, *mpFluidConstitutiveLaw);
+        typename TDerivativesType::Sensitivity derivatives(element_data);
 
-        // // Get Shape function data
-        // Vector gauss_weights;
-        // Matrix shape_functions;
-        // ShapeFunctionDerivativesArrayType shape_derivatives;
-        // this->CalculateGeometryData(rIntegrationMethod, gauss_weights, shape_functions, shape_derivatives);
+        derivatives.Initialize(rOutput, rCurrentProcessInfo);
+        element_data.Initialize(rCurrentProcessInfo);
 
-        // for (IndexType g = 0; g < gauss_weights.size(); ++g) {
-        //     const Vector& N = row(shape_functions, g);
-        //     const Matrix& dNdX = shape_derivatives[g];
-        //     const double weight = gauss_weights[g];
+        BoundedVector<double, TElementLocalSize> residual;
+        BoundedMatrix<double, TNumNodes, TDim> dNdXDerivative = ZeroMatrix(TNumNodes, TDim);
 
-        //     derivatives.CalculateGaussPointData(weight, N, dNdX);
+        for (IndexType g = 0; g < gauss_weights.size(); ++g) {
+            const Vector& N = row(shape_functions, g);
+            const Matrix& dNdX = shape_derivatives[g];
+            const double weight = gauss_weights[g];
 
-        //     Geometry<Point>::JacobiansType J;
-        //     this->GetGeometry().Jacobian(J, integration_method);
-        //     const auto& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+            element_data.CalculateGaussPointData(weight, N, dNdX);
 
-        //     GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_deriv;
-        //     const Matrix& rJ = J[g];
-        //     const Matrix& rDN_De = DN_De[g];
-        //     const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
-        //     GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
+            Geometry<Point>::JacobiansType J;
+            this->GetGeometry().Jacobian(J, rIntegrationMethod);
+            const auto& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(rIntegrationMethod);
 
-        //     ShapeParameter deriv;
-        //     for (deriv.NodeIndex = 0; deriv.NodeIndex < TNumNodes; ++deriv.NodeIndex) {
-        //         const IndexType row = deriv.NodeIndex * TDerivativesType::TDerivativesDimension;
-        //         for (deriv.Direction = 0; deriv.Direction < TDerivativesType::TDerivativesDimension; ++deriv.Direction) {
+            GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_deriv;
+            const Matrix& rJ = J[g];
+            const Matrix& rDN_De = DN_De[g];
+            const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
+            GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
-        //             double detJ_deriv;
-        //             geom_sensitivity.CalculateSensitivity(deriv, detJ_deriv, dNdX_deriv);
-        //             const double weight_deriv = detJ_deriv * inv_detJ * weight;
+            ShapeParameter deriv;
+            for (deriv.NodeIndex = 0; deriv.NodeIndex < TNumNodes; ++deriv.NodeIndex) {
+                const IndexType derivative_row = deriv.NodeIndex * TDerivativesType::TDerivativesDimension;
+                for (deriv.Direction = 0; deriv.Direction < TDerivativesType::TDerivativesDimension; ++deriv.Direction) {
 
-        //             derivatives.CalculateResidualDerivatives(row(rOutput, row + deriv.Direction),  deriv.NodeIndex, deriv.Direction, weight, N, dNdX, weight_deriv,  detJ_deriv, dNdX_deriv);
-        //         }
-        //     }
-        // }
+                    double detJ_deriv;
+                    geom_sensitivity.CalculateSensitivity(deriv, detJ_deriv, dNdX_deriv);
+                    const double weight_deriv = detJ_deriv * inv_detJ * weight;
 
-        // derivatives.Finalize(rOutput, rCurrentProcessInfo);
+                    derivatives.CalculateResidualDerivative(residual, deriv.NodeIndex, deriv.Direction, weight, N, dNdX, weight_deriv, detJ_deriv, dNdX_deriv);
+                    row(rOutput, derivative_row + deriv.Direction) += residual;
+                }
+            }
+        }
 
-        // KRATOS_CATCH("");
+        element_data.Finalize(rCurrentProcessInfo);
+        derivatives.Finalize(rOutput, rCurrentProcessInfo);
+
+        KRATOS_CATCH("");
     }
 
     void CalculateGeometryData(

@@ -170,8 +170,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
         mConstitutiveLawValues, EFFECTIVE_VISCOSITY, mEffectiveViscosity);
 
     element_utilities::GetStrainMatrix(rGaussPointShapeFunctionDerivatives, mStrainMatrix);
-    noalias(mViscousTermRHSContribution) =
-        prod(trans(mStrainMatrix), mShearStress) * (-1.0);
+    noalias(mViscousTermRHSContribution) = prod(trans(mStrainMatrix), mShearStress);
 
     CalculateTau(mTauOne, mTauTwo, mElementSize, mDensity, mEffectiveViscosity,
                  mConvectiveVelocityNorm, mDynamicTau, mDeltaTime);

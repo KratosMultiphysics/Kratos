@@ -110,6 +110,7 @@ public:
         ///@}
     };
 
+    template<unsigned int TNumNodes>
     class VelocityDerivative : public Derivative
     {
     public:
@@ -159,6 +160,7 @@ public:
         ///@}
     };
 
+    template<unsigned int TNumNodes>
     class PressureDerivative : public Derivative
     {
     public:
@@ -208,6 +210,7 @@ public:
         ///@}
     };
 
+    template<unsigned int TNumNodes>
     class ShapeDerivative : public Derivative
     {
     public:
@@ -256,6 +259,17 @@ public:
 
         ///@}
     };
+
+    ///@}
+private:
+    ///@name Private Static Operations
+    ///@{
+
+    static void CalculateStrainRateVelocityDerivative(
+        Vector& rOutput,
+        const IndexType DerivativeNodeIndex,
+        const IndexType DerivativeDirectionIndex,
+        const Matrix& rdNdX);
 
     ///@}
 };

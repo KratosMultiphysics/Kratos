@@ -148,7 +148,7 @@ void RunFluidQSVMSAdjointElementTest(
 }
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSU, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSVelocity, FluidDynamicsApplicationFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
                                         const ProcessInfo& rProcessInfo) {
@@ -158,7 +158,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSU, FluidDynami
     RunFluidQSVMSAdjointElementTest(VELOCITY, derivatives_method, 0, 0, 1e-6, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSP, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSPressure, FluidDynamicsApplicationFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
                                         const ProcessInfo& rProcessInfo) {
@@ -166,6 +166,16 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSP, FluidDynami
     };
 
     RunFluidQSVMSAdjointElementTest(PRESSURE, derivatives_method, 0, 2, 1e-6, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSShape, FluidDynamicsApplicationFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
+                                        const ProcessInfo& rProcessInfo) {
+        rElement.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
+
+    RunFluidQSVMSAdjointElementTest(SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-7, 1e-5);
 }
 
 } // namespace Testing

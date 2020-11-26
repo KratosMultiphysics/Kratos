@@ -84,9 +84,9 @@ public:
 
             using Data = typename TResidualDerivatives::Data;
 
-            using Velocity = typename TResidualDerivatives::VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::VelocityDerivative, 0>;
+            using Velocity = typename TResidualDerivatives::VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>, 0>;
 
-            using Pressure = typename TResidualDerivatives::VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::PressureDerivative, 0>;
+            using Pressure = typename TResidualDerivatives::VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>, 0>;
 
             ///@}
         };
@@ -108,10 +108,23 @@ public:
     class SensitivityDerivatives
     {
     public:
-        ///@name Type Definitions
+        ///@name Classes
         ///@{
 
-        // using ShapeSensitivity = nullptr;
+        class ShapeSensitivities
+        {
+        public:
+            ///@name Type Definitions
+            ///@{
+
+            constexpr static IndexType TDerivativesDimension = TDim;
+
+            using Data = typename TResidualDerivatives::Data;
+
+            using Sensitivity = typename TResidualDerivatives::VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>, 0>;
+
+            ///@}
+        };
 
         ///@}
     };
