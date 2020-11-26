@@ -108,7 +108,7 @@ namespace Kratos
         SolverIndex solver_index = SolverIndex::Origin;
 
         // 1 - calculate unbalanced interface free kinematics
-        DenseVectorType unbalanced_interface_free_kinematics(destination_interface_dofs);
+        DenseVectorType unbalanced_interface_free_kinematics(destination_interface_dofs,0.0);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
 
         if (!mIsLinear || !mIsLinearSetupComplete)
@@ -121,7 +121,6 @@ namespace Kratos
             if (mProjectorDestination.size1() != destination_interface_dofs || mProjectorDestination.size2() != destination_dofs)
                 mProjectorDestination.resize(destination_interface_dofs, destination_dofs);
             ComposeProjector(mProjectorDestination, solver_index);
-
 
             // 3 - Determine domain response to unit loads
             solver_index = SolverIndex::Origin;
@@ -142,7 +141,7 @@ namespace Kratos
         }
 
         // 5 - Calculate lagrange mults
-        DenseVectorType lagrange_vector(destination_interface_dofs);
+        DenseVectorType lagrange_vector(destination_interface_dofs,0.0);
         DetermineLagrangianMultipliers(lagrange_vector, mCondensationMatrix, unbalanced_interface_free_kinematics);
         if (mParameters["is_disable_coupling"].GetBool()) lagrange_vector.clear();
         if (mParameters["is_disable_coupling"].GetBool()) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
@@ -336,7 +335,10 @@ namespace Kratos
             rLagrangeVec.resize(rUnbalancedKinematics.size(), false);
         rLagrangeVec.clear();
 
-        mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedKinematics);
+        if (norm_2(rUnbalancedKinematics) > numerical_limit)
+        {
+            mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedKinematics);
+        }
 
         KRATOS_CATCH("")
     }
@@ -356,7 +358,7 @@ namespace Kratos
         const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         // Apply acceleration correction
-        DenseVectorType accel_corrections(rUnitResponse.size1());
+        DenseVectorType accel_corrections(rUnitResponse.size1(),0.0);
         TSparseSpace::Mult(rUnitResponse, rLagrangeVec, accel_corrections);
         AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
 
