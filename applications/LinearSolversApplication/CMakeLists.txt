@@ -74,7 +74,7 @@ set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
 # Sources for the Python module
 file(
     GLOB_RECURSE
-    KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES
+    KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
@@ -85,7 +85,7 @@ target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore )
 set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
 
 ## LinearSolversApplication python module
-pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
+pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE} )
 target_link_libraries( KratosLinearSolversApplication PRIVATE KratosLinearSolversCore )
 set_target_properties( KratosLinearSolversApplication PROPERTIES PREFIX "")
 

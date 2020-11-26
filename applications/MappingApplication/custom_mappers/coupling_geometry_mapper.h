@@ -41,11 +41,13 @@ public:
 
     explicit CouplingGeometryLocalSystem(GeometryPointerType pGeom,
                                          const bool IsProjection,
-                                         const bool IsDualMortar
+                                         const bool IsDualMortar,
+                                         const bool IsDestinationIsSlave
                                          )
         : mpGeom(pGeom),
           mIsProjection(IsProjection),
-          mIsDualMortar(IsDualMortar)
+          mIsDualMortar(IsDualMortar),
+          mIsDestinationIsSlave(IsDestinationIsSlave)
         {}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
@@ -62,7 +64,7 @@ public:
 
     MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
     {
-        return Kratos::make_unique<CouplingGeometryLocalSystem>(pGeometry, mIsProjection, mIsDualMortar);
+        return Kratos::make_unique<CouplingGeometryLocalSystem>(pGeometry, mIsProjection, mIsDualMortar, mIsDestinationIsSlave);
     }
 
     /// Turn back information as a string.
@@ -73,8 +75,21 @@ private:
     bool mIsProjection; // Set to true is we are projecting the master onto the slave.
                         // Set to false if we are projecting the slave onto the slave.
     bool mIsDualMortar = false;
+    bool mIsDestinationIsSlave = true;
 
 };
+
+// CouplingGeometryMapper
+//
+// The mapper always forward maps from the master to the slave.
+// Normally:
+//      master  =   interface origin
+//      slave   =   interface destination
+//
+// However, this can be reversed by setting 'destination_is_slave' = false.
+// This yields:
+//      master  =   interface destination
+//      slave   =   interface origin
 
 template<class TSparseSpace, class TDenseSpace>
 class CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
@@ -264,8 +279,8 @@ private:
     ModelPart& mrModelPartOrigin;
     ModelPart& mrModelPartDestination;
     ModelPart* mpCouplingMP = nullptr;
-    ModelPart* mpCouplingInterfaceOrigin = nullptr;
-    ModelPart* mpCouplingInterfaceDestination = nullptr;
+    ModelPart* mpCouplingInterfaceMaster = nullptr;
+    ModelPart* mpCouplingInterfaceSlave = nullptr;
 
     Parameters mMapperSettings;
 
@@ -280,8 +295,8 @@ private:
     MapperLocalSystemPointerVector mMapperLocalSystemsProjector;
     MapperLocalSystemPointerVector mMapperLocalSystemsSlave;
 
-    InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
-    InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
+    InterfaceVectorContainerPointerType mpInterfaceVectorContainerMaster;
+    InterfaceVectorContainerPointerType mpInterfaceVectorContainerSlave;
 
     LinearSolverSharedPointerType mpLinearSolver = nullptr;
 
@@ -290,8 +305,8 @@ private:
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceDestination->GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceOrigin->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceSlave->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceMaster->GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,
@@ -347,6 +362,7 @@ private:
             "modeler_parameters"            : {},
             "consistency_scaling"           : true,
             "row_sum_tolerance"             : 1e-12,
+            "destination_is_slave"          : true,
             "linear_solver_settings"        : {}
         })");
     }

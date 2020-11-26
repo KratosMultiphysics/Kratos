@@ -461,7 +461,8 @@ namespace Kratos
 
             KRATOS_CHECK_NEAR(det, 4.0, tolerance);
 
-            BoundedMatrix<double,5,5> b_I = prod(b_inv, b_mat);
+            BoundedMatrix<double,5,5> b_I = ZeroMatrix(5);
+            noalias(b_I) = prod(b_inv, b_mat);
 
             for (unsigned int i = 0; i < i_dim; i++) {
                 for (unsigned int j = 0; j < i_dim; j++) {

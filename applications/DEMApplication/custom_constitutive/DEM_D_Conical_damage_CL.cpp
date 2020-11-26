@@ -387,7 +387,7 @@ namespace Kratos {
         double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
 
         const double my_tg_of_dynamic_friction_angle        = element1->GetTgOfDynamicFrictionAngle();
-        const double neighbour_tg_of_dynamic_friction_angle = element2->GetTgOfStaticFrictionAngle();
+        const double neighbour_tg_of_dynamic_friction_angle = element2->GetTgOfDynamicFrictionAngle();
         double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
 
         if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
