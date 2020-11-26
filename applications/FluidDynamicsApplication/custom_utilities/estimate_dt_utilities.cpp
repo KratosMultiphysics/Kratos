@@ -61,33 +61,27 @@ namespace Kratos
             return CalculateElementCFL(rElement, rGeometryInfo, current_dt);
         });
 
-        double NewDt = 0.0;
-
-        // Avoid division by 0 when the maximum CFL number is close to 0 (e.g. problem initialization)
-        if (current_cfl < 1e-10)
-        {
+        // Calculate the new time increment from the maximum local CFL in the mesh
+        double new_dt = 0.0;
+        if (current_cfl < 1e-10) {
+            // Avoid division by 0 when the maximum CFL number is close to 0 (e.g. problem initialization)
             KRATOS_INFO("EstimateDtUtility") << "Setting minimum delta time " << mDtMin << " as current time step." << std::endl;
-            NewDt = mDtMin;
-        }
-        else
-        {
+            new_dt = mDtMin;
+        } else {
             // Compute new Dt
-            NewDt = mCFL * current_dt / current_cfl;
+            new_dt = mCFL * current_dt / current_cfl;
             // Limit max and min Dt
-            if (NewDt > mDtMax)
-            {
-                NewDt = mDtMax;
-            }
-            else if (NewDt < mDtMin)
-            {
-                NewDt = mDtMin;
+            if (new_dt > mDtMax) {
+                new_dt = mDtMax;
+            } else if (new_dt < mDtMin) {
+                new_dt = mDtMin;
             }
         }
 
         // Perform MPI sync if needed
-        NewDt = mrModelPart.GetCommunicator().GetDataCommunicator().MinAll(NewDt);
+        new_dt = mrModelPart.GetCommunicator().GetDataCommunicator().MinAll(new_dt);
 
-        return NewDt;
+        return new_dt;
 
         KRATOS_CATCH("")
     }
@@ -109,30 +103,30 @@ namespace Kratos
 
     template<unsigned int TDim>
     double EstimateDtUtility<TDim>::CalculateElementCFL(
-        Element &rElement,
+        const Element &rElement,
         GeometryDataContainer& rGeometryInfo,
-        double Dt)
+        const double Dt)
     {
-        double Proj = 0.0;
-
         // Get the element's geometric parameters
         const auto& r_geometry = rElement.GetGeometry();
         GeometryUtils::CalculateGeometryData(r_geometry, rGeometryInfo.DN_DX, rGeometryInfo.N, rGeometryInfo.Area);
 
-        // Elemental Velocity
-        array_1d<double,3> ElementVel = rGeometryInfo.N[0]*r_geometry[0].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int i = 1; i < TDim+1; ++i)
-            ElementVel += rGeometryInfo.N[i]*r_geometry[i].FastGetSolutionStepValue(VELOCITY);
-
-        // Calculate u/h as the maximum projection of the velocity along element heights
-        for (unsigned int i = 0; i < TDim+1; ++i)
-        {
-            for (unsigned int d = 0; d < TDim; ++d)
-                Proj += ElementVel[d]*rGeometryInfo.DN_DX(i,d);
-            Proj = std::abs(Proj);
+        // Calculate the midpoint velocity
+        array_1d<double,3> element_vel = rGeometryInfo.N[0]*r_geometry[0].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int i = 1; i < TDim+1; ++i) {
+            element_vel += rGeometryInfo.N[i]*r_geometry[i].FastGetSolutionStepValue(VELOCITY);
         }
 
-        return Proj*Dt;
+        // Calculate u/h as the maximum projection of the velocity along element heights
+        double v_proj = 0.0;
+        for (unsigned int i = 0; i < TDim+1; ++i) {
+            for (unsigned int d = 0; d < TDim; ++d) {
+                v_proj += element_vel[d]*rGeometryInfo.DN_DX(i,d);
+            }
+            v_proj = std::abs(v_proj);
+        }
+
+        return v_proj*Dt;
     }
 
     template<unsigned int TDim>

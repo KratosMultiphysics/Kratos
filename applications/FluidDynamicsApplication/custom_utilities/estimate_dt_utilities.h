@@ -185,9 +185,9 @@ private:
      * @return double The element CFL number
      */
     static double CalculateElementCFL(
-        Element &rElement,
+        const Element &rElement,
         GeometryDataContainer& rGeometryInfo,
-        double Dt);
+        const double Dt);
 
     ///@} // Private Operations
 };
