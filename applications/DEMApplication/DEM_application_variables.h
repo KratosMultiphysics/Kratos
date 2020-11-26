@@ -135,6 +135,17 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, DEM_M_CAMCLAY_SLOPE)
   // *************** Continuum only END ***************
 
+  // ********** Beam related variables BEGIN **********
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, CROSS_AREA)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, BEAM_PARTICLES_DISTANCE)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, BEAM_LENGTH)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, I22) // Planar moment of inertia 22
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, I33) // Planar moment of inertia 33
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, BEAM_INERTIA_ROT_UNIT_LENGHT_X) // Moment of inertia X / (mass * beam length)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, BEAM_INERTIA_ROT_UNIT_LENGHT_Y) // Moment of inertia Y / (mass * beam length)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, BEAM_INERTIA_ROT_UNIT_LENGHT_Z) // Moment of inertia Z / (mass * beam length)
+  // **********  Beam related variables END  **********
+
   KRATOS_DEFINE_VARIABLE(std::vector<Condition*>, WALL_POINT_CONDITION_POINTERS)
   typedef std::vector<array_1d<double, 3> > std_vector_of_arrays_3d;
   KRATOS_DEFINE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_ELASTIC_FORCES)

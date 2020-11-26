@@ -122,7 +122,7 @@ public:
     /**
      * @return 0 if no errors are detected.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given vector with the linear system row index for the element's degrees of freedom
     /**

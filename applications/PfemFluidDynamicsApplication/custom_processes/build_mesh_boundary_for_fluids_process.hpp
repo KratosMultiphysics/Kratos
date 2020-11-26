@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosPfemFluidDynamicsApplication   $
-//   Created by:          $Author:                     AFranci $
-//   Last modified by:    $Co-Author:                          $
-//   Date:                $Date:                September 2018 $
-//   Revision:            $Revision:                       0.0 $
+//   Project Name:        KratosPfemApplication     $
+//   Created by:          $Author:          AFranci $
+//   Last modified by:    $Co-Author:               $
+//   Date:                $Date:     September 2018 $
+//   Revision:            $Revision:            0.0 $
 //
 //
 

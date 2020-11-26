@@ -348,7 +348,7 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -507,7 +507,7 @@ protected:
      * Map Local To Global system
      */
     virtual void MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem);
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
