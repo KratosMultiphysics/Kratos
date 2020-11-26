@@ -154,14 +154,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY;
-
-        KRATOS_ERROR << "Calling the CalculateLocalSystem() method for the explicit Navier-Stokes element.";
-
-        KRATOS_CATCH("");
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called during the assembling process in order
@@ -261,14 +254,38 @@ protected:
     ///@{
 
     /**
-     * @brief Internal CalculateRightHandSide() method
+     * @brief Internal CalculateRightHandSide() method for momentum equation
      * This auxiliary RHS calculated method is created to bypass the element API
      * In this way bounded vectors can be used in the explicit residual calculation
      * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
      * @param rCurrentProcessInfo Reference to the current process info
      */
-    void CalculateRightHandSideInternal(
-        BoundedVector<double, (TDim+1) * TNumNodes>& rRightHandSideBoundedVector,
+    void CalculateLocalFractionalVelocitySystem(
+        BoundedVector<double, (TDim) * TNumNodes>& rRightHandSideBoundedVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Internal CalculateRightHandSide() method for mass equation
+     * This auxiliary RHS calculated method is created to bypass the element API
+     * @param rLeftHandSideBoundedMatrix Reference to the auxiliary LHS matrix
+     * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
+    void CalculateLocalFractionalPressureSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Internal CalculateRightHandSide() method for end-of-step equation
+     * This auxiliary RHS calculated method is created to bypass the element API
+     * @param rLeftHandSideBoundedMatrix Reference to the auxiliary LHS matrix
+     * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
+    void CalculateLocalFractionalEndOfStepSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
 
     // void CalculateOrthogonalSubgridScaleSystemInternal(

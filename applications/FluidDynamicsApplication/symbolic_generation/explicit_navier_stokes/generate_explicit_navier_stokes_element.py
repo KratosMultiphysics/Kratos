@@ -186,7 +186,7 @@ for dim in dim_vector:
         if convective_term:
             stab_norm_a = 0.0
             for i in range(0, dim):
-                stab_norm_a += vconv_gauss[i]**2
+                stab_norm_a += fracvconv_gauss[i]**2
             stab_norm_a = sqrt(stab_norm_a)
             tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
             tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
@@ -205,7 +205,7 @@ for dim in dim_vector:
         res_mass_galerkin = q_gauss*div_fracv + dt/rho*(grad_p_minus_gammapn.transpose()*grad_q)
 
         # Update end-of-step functional
-        res_endofstep_galerkin = -rho/dt*(v_gauss-fracv_gauss).transpose()*w_gauss + (p-gamma*pn)*div_w
+        res_endofstep_galerkin = -rho/dt*(v_gauss-fracv_gauss).transpose()*w_gauss + (p_gauss-gamma*pn_gauss)*div_w
 
         # Add the stabilization terms to the original residual terms
         if stabilization:
@@ -245,17 +245,17 @@ for dim in dim_vector:
 
     # Compute LHSs and RHSs
     rhs_momentum = Compute_RHS(res_momentum_tot.copy(), testfunc_momentum, do_simplifications)
-    rhs_momentum_out = OutputVector_CollectingFactors(rhs_momentum, "rhs_momentum", mode)
+    rhs_momentum_out = OutputVector_CollectingFactors(rhs_momentum, "rRightHandSideBoundedVector", mode)
 
     rhs_mass = Compute_RHS(res_mass_tot.copy(), testfunc_mass, do_simplifications)
-    rhs_mass_out = OutputVector_CollectingFactors(rhs_mass, "rhs_mass", mode)
+    rhs_mass_out = OutputVector_CollectingFactors(rhs_mass, "rRightHandSideVector", mode)
     lhs_mass = Compute_LHS(rhs_mass, testfunc_mass, dofs_mass, do_simplifications)
-    lhs_mass_out = OutputMatrix_CollectingFactors(lhs_mass, "lhs_mass", mode)
+    lhs_mass_out = OutputMatrix_CollectingFactors(lhs_mass, "rLeftHandSideMatrix", mode)
 
     rhs_endofstep = Compute_RHS(res_endofstep_tot.copy(), testfunc_endofstep, do_simplifications)
-    rhs_endofstep_out = OutputVector_CollectingFactors(rhs_endofstep, "rhs_endofstep", mode)
+    rhs_endofstep_out = OutputVector_CollectingFactors(rhs_endofstep, "rRightHandSideVector", mode)
     lhs_endofstep = Compute_LHS(rhs_endofstep, testfunc_endofstep, dofs_endofstep, do_simplifications)
-    lhs_endofstep_out = OutputMatrix_CollectingFactors(lhs_endofstep, "lhs_endofstep", mode)
+    lhs_endofstep_out = OutputMatrix_CollectingFactors(lhs_endofstep, "rLeftHandSideMatrix", mode)
 
     # Replace the computed RHS and LHS in the template outstring
     if(dim == 2):

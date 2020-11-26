@@ -96,8 +96,39 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TNumNodes>
+void QSNavierStokesExplicit<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] ){}
+    {
+        case 3:
+        {
+            this->CalculateLocalPressureSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+            break;
+        }
+        case 4:
+        {
+            this->CalculateEndOfStepSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+            break;
+        }
+        default:
+        {
+            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
-void QSNavierStokesExplicit<2>::CalculateRightHandSideInternal(
+void QSNavierStokesExplicit<2>::CalculateLocalFractionalVelocitySystem(
     BoundedVector<double, 9> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -131,7 +162,7 @@ void QSNavierStokesExplicit<2>::CalculateRightHandSideInternal(
     const double &DN_DX_2_0 = data.DN_DX(2, 0);
     const double &DN_DX_2_1 = data.DN_DX(2, 1);
 
-    //substitute_rhs_2D
+    //substitute_rhs_momentum_2D
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
     rRightHandSideBoundedVector *= data.volume / static_cast<double>(n_nodes);
@@ -142,7 +173,7 @@ void QSNavierStokesExplicit<2>::CalculateRightHandSideInternal(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3>::CalculateRightHandSideInternal(
+void QSNavierStokesExplicit<3>::CalculateLocalFractionalVelocitySystem(
     BoundedVector<double, 16> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -182,10 +213,216 @@ void QSNavierStokesExplicit<3>::CalculateRightHandSideInternal(
     const double &DN_DX_3_1 = data.DN_DX(3, 1);
     const double &DN_DX_3_2 = data.DN_DX(3, 2);
 
-    //substitute_rhs_3D
+    //substitute_rhs_momentum_3D
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
     rRightHandSideBoundedVector *= data.volume / static_cast<double>(n_nodes);
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<2>::CalculateLocalFractionalPressureSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    constexpr unsigned int n_nodes = 3;
+
+    // Struct to pass around the data
+    ElementDataStruct data;
+    this->FillElementData(data, rCurrentProcessInfo);
+
+    // Substitute the formulation symbols by the data structure values
+    const auto &h = data.h;
+    const auto &f = data.forcing;
+    const auto &nu = data.nu;
+    const auto &vconv = data.velocity_convective;
+    const auto &v = data.velocity;
+    const auto &p = data.pressure;
+
+    // Stabilization parameters
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+
+    // Hardcoded shape functions gradients for linear triangular element
+    // This is explicitly done to minimize the matrix acceses
+    // The notation DN_i_j means shape function for node i in dimension j
+    const double &DN_DX_0_0 = data.DN_DX(0, 0);
+    const double &DN_DX_0_1 = data.DN_DX(0, 1);
+    const double &DN_DX_1_0 = data.DN_DX(1, 0);
+    const double &DN_DX_1_1 = data.DN_DX(1, 1);
+    const double &DN_DX_2_0 = data.DN_DX(2, 0);
+    const double &DN_DX_2_1 = data.DN_DX(2, 1);
+
+    //substitute_rhs_mass_2D
+    //substitute_lhs_mass_2D
+
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
+    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
+    rLeftHandSideMatrix *= data.volume / static_cast<double>(n_nodes);
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<3>::CalculateLocalFractionalPressureSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    constexpr unsigned int n_nodes = 4;
+
+    // Struct to pass around the data
+    ElementDataStruct data;
+    this->FillElementData(data, rCurrentProcessInfo);
+
+    // Substitute the formulation symbols by the data structure values
+    const auto &h = data.h;
+    const auto &f = data.forcing;
+    const auto &nu = data.nu;
+    const auto &vconv = data.velocity_convective;
+    const auto &v = data.velocity;
+    const auto &p = data.pressure;
+
+    // Stabilization parameters
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+
+    // Hardcoded shape functions gradients for linear triangular element
+    // This is explicitly done to minimize the matrix acceses
+    // The notation DN_i_j means shape function for node i in dimension j
+    const double &DN_DX_0_0 = data.DN_DX(0, 0);
+    const double &DN_DX_0_1 = data.DN_DX(0, 1);
+    const double &DN_DX_0_2 = data.DN_DX(0, 2);
+    const double &DN_DX_1_0 = data.DN_DX(1, 0);
+    const double &DN_DX_1_1 = data.DN_DX(1, 1);
+    const double &DN_DX_1_2 = data.DN_DX(1, 2);
+    const double &DN_DX_2_0 = data.DN_DX(2, 0);
+    const double &DN_DX_2_1 = data.DN_DX(2, 1);
+    const double &DN_DX_2_2 = data.DN_DX(2, 2);
+    const double &DN_DX_3_0 = data.DN_DX(3, 0);
+    const double &DN_DX_3_1 = data.DN_DX(3, 1);
+    const double &DN_DX_3_2 = data.DN_DX(3, 2);
+
+    //substitute_rhs_mass_3D
+    //substitute_lhs_mass_3D
+
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
+    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
+    rLeftHandSideMatrix *= data.volume / static_cast<double>(n_nodes);
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<2>::CalculateLocalFractionalEndOfStepSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    constexpr unsigned int n_nodes = 3;
+
+    // Struct to pass around the data
+    ElementDataStruct data;
+    this->FillElementData(data, rCurrentProcessInfo);
+
+    // Substitute the formulation symbols by the data structure values
+    const auto &h = data.h;
+    const auto &f = data.forcing;
+    const auto &nu = data.nu;
+    const auto &vconv = data.velocity_convective;
+    const auto &v = data.velocity;
+    const auto &p = data.pressure;
+
+    // Stabilization parameters
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+
+    // Hardcoded shape functions gradients for linear triangular element
+    // This is explicitly done to minimize the matrix acceses
+    // The notation DN_i_j means shape function for node i in dimension j
+    const double &DN_DX_0_0 = data.DN_DX(0, 0);
+    const double &DN_DX_0_1 = data.DN_DX(0, 1);
+    const double &DN_DX_1_0 = data.DN_DX(1, 0);
+    const double &DN_DX_1_1 = data.DN_DX(1, 1);
+    const double &DN_DX_2_0 = data.DN_DX(2, 0);
+    const double &DN_DX_2_1 = data.DN_DX(2, 1);
+
+    //substitute_rhs_endofstep_2D
+    //substitute_lhs_endofstep_2D
+
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
+    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
+    rLeftHandSideMatrix *= data.volume / static_cast<double>(n_nodes);
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesExplicit<3>::CalculateLocalFractionalEndOfStepSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    constexpr unsigned int n_nodes = 4;
+
+    // Struct to pass around the data
+    ElementDataStruct data;
+    this->FillElementData(data, rCurrentProcessInfo);
+
+    // Substitute the formulation symbols by the data structure values
+    const auto &h = data.h;
+    const auto &f = data.forcing;
+    const auto &nu = data.nu;
+    const auto &vconv = data.velocity_convective;
+    const auto &v = data.velocity;
+    const auto &p = data.pressure;
+
+    // Stabilization parameters
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+
+    // Hardcoded shape functions gradients for linear triangular element
+    // This is explicitly done to minimize the matrix acceses
+    // The notation DN_i_j means shape function for node i in dimension j
+    const double &DN_DX_0_0 = data.DN_DX(0, 0);
+    const double &DN_DX_0_1 = data.DN_DX(0, 1);
+    const double &DN_DX_0_2 = data.DN_DX(0, 2);
+    const double &DN_DX_1_0 = data.DN_DX(1, 0);
+    const double &DN_DX_1_1 = data.DN_DX(1, 1);
+    const double &DN_DX_1_2 = data.DN_DX(1, 2);
+    const double &DN_DX_2_0 = data.DN_DX(2, 0);
+    const double &DN_DX_2_1 = data.DN_DX(2, 1);
+    const double &DN_DX_2_2 = data.DN_DX(2, 2);
+    const double &DN_DX_3_0 = data.DN_DX(3, 0);
+    const double &DN_DX_3_1 = data.DN_DX(3, 1);
+    const double &DN_DX_3_2 = data.DN_DX(3, 2);
+
+    //substitute_rhs_endofstep_3D
+    //substitute_lhs_endofstep_3D
+
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
+    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
+    rLeftHandSideMatrix *= data.volume / static_cast<double>(n_nodes);
 
     KRATOS_CATCH("");
 }
@@ -199,23 +436,34 @@ void QSNavierStokesExplicit<2>::AddExplicitContribution(
 {
     KRATOS_TRY;
 
-    constexpr IndexType dim = 2;
-    constexpr IndexType n_nodes = 3;
-    constexpr IndexType block_size = 3;
+    switch ( r_process_info[FRACTIONAL_STEP] ){}
+    {
+        case 1:
+        {
+            constexpr IndexType dim = 2;
+            constexpr IndexType n_nodes = 3;
+            constexpr IndexType block_size = 3;
 
-    // Calculate the explicit residual vector
-    BoundedVector<double, 9> rhs;
-    CalculateRightHandSideInternal(rhs, rCurrentProcessInfo);
+            // Calculate the explicit residual vector
+            BoundedVector<double, 9> rhs;
+            CalculateLocalFractionalVelocitySystem(rhs, rCurrentProcessInfo);
 
-    // Add the residual contribution
-    // Note that the reaction is indeed the formulation residual
-    auto& r_geometry = GetGeometry();
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-        const IndexType aux = i_node * block_size;
-        auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
-        for (IndexType d = 0; d < dim; ++d) {
-#pragma omp atomic
-            r_mom[d] += rhs[aux + d];
+            // Add the residual contribution
+            // Note that the reaction is indeed the formulation residual
+            auto& r_geometry = GetGeometry();
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                const IndexType aux = i_node * block_size;
+                auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
+                for (IndexType d = 0; d < dim; ++d) {
+                    #pragma omp atomic
+                    r_mom[d] += rhs[aux + d];
+                }
+            }
+            break;
+        }
+        default:
+        {
+            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",r_process_info[FRACTIONAL_STEP]);
         }
     }
 
@@ -230,25 +478,37 @@ void QSNavierStokesExplicit<3>::AddExplicitContribution(
 {
     KRATOS_TRY;
 
-    constexpr IndexType dim = 3;
-    constexpr IndexType n_nodes = 4;
-    constexpr IndexType block_size = 4;
+    switch ( r_process_info[FRACTIONAL_STEP] ){}
+    {
+        case 1:
+        {
+            constexpr IndexType dim = 3;
+            constexpr IndexType n_nodes = 4;
+            constexpr IndexType block_size = 4;
 
-    // Calculate the explicit residual vector
-    BoundedVector<double, 16> rhs;
-    CalculateRightHandSideInternal(rhs, rCurrentProcessInfo);
+            // Calculate the explicit residual vector
+            BoundedVector<double, 16> rhs;
+            CalculateLocalFractionalVelocitySystem(rhs, rCurrentProcessInfo);
 
-    // Add the residual contribution
-    // Note that the reaction is indeed the formulation residual
-    auto& r_geometry = GetGeometry();
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-        const IndexType aux = i_node * block_size;
-        auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
-        for (IndexType d = 0; d < dim; ++d) {
-#pragma omp atomic
-            r_mom[d] += rhs[aux + d];
+            // Add the residual contribution
+            // Note that the reaction is indeed the formulation residual
+            auto& r_geometry = GetGeometry();
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                const IndexType aux = i_node * block_size;
+                auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
+                for (IndexType d = 0; d < dim; ++d) {
+                    #pragma omp atomic
+                    r_mom[d] += rhs[aux + d];
+                }
+            }
+            break;
+        }
+        default:
+        {
+            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",r_process_info[FRACTIONAL_STEP]);
         }
     }
+
 
     KRATOS_CATCH("");
 }
