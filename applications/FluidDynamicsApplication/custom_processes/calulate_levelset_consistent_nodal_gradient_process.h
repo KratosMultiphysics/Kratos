@@ -144,6 +144,7 @@ private:
     ///@name Private Operations
     ///@{
 
+        bool IsSplit(const Vector& rDistances);
 
     ///@}
     ///@name Private  Access

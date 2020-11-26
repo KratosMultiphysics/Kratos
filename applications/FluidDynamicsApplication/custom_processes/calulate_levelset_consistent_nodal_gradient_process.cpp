@@ -84,17 +84,7 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
             distances(i_node) = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
         }
 
-        unsigned int nneg=0, npos=0;
-        for(unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            if(distances(i) > 0) {
-                npos += 1;
-            } else {
-                nneg += 1;
-            }
-        }
-
-        if(nneg == 0 || npos == 0)
+        if(!IsSplit(distances))
         {
             // The integration points
             const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -143,6 +133,26 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
     });
 
     KRATOS_CATCH("")
+}
+
+bool CalulateLevelsetConsistentNodalGradientProcess::IsSplit(const Vector& rDistances)
+{
+    bool is_split = false;
+
+    unsigned int nneg=0, npos=0;
+    for(unsigned int i = 0; i < rDistances.size(); ++i)
+    {
+        if(rDistances[i] > 0) {
+            npos += 1;
+        } else {
+            nneg += 1;
+        }
+    }
+
+    if(nneg > 0 && npos > 0)
+        is_split = true;
+
+    return is_split;
 }
 
 };  // namespace Kratos.
