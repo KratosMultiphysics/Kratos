@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -100,9 +98,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
             self.search_done = True
             self.__SearchPoint()
 
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
     def ExecuteInitializeSolutionStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
@@ -132,12 +127,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
                 out += "\n"
                 f.write(out)
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
 
     def ExecuteFinalize(self):
         for f in self.output_file:
@@ -181,8 +170,12 @@ class PointOutputProcess(KratosMultiphysics.Process):
             my_rank = comm.Rank()
         writing_rank = comm.MaxAll(my_rank) # The partition with the larger rank writes
 
-        if my_rank == writing_rank:
+        if my_rank == -1:
+            warn_msg  = 'No "{}" was found for input {}, '.format(entity_type, self.point)
+            warn_msg += 'no output is written!'
+            KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
 
+        if my_rank == writing_rank and my_rank > -1:
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
             file_header = GetFileHeader(entity_type, found_id, self.point, self.output_variables[0])
 

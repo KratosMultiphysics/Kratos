@@ -152,6 +152,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::string&, Parameters>())
         .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
         .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
+        .def("FunctionBody", &PythonGenericFunctionUtility::FunctionBody)
         .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
         .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
         ;

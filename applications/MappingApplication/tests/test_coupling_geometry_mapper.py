@@ -61,6 +61,37 @@ class TestDualMortarCouplingGeometryMapper(KratosUnittest.TestCase):
         reference_result = [1.0, 1.0, 1.0, 0.9999999999999999, 0.9999999999999999, 0.9999999999999999, 1.0000000000000004, 1.0000000000000004, 1.0000000000000004, 0.9999999999999998, 0.9999999999999998, 0.9999999999999998, 1.0000000000000004, 1.0000000000000004, 1.0000000000000004]
         self.assertVectorAlmostEqual(mapped_results,reference_result)
 
+class TestSlaveOriginCouplingGeometryMapper(KratosUnittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.mapper_parameters = KM.Parameters("""{
+            "mapper_type": "coupling_geometry",
+            "echo_level" : 0,
+            "precompute_mapping_matrix" : false,
+			"dual_mortar": false,
+			"consistency_scaling" : true,
+            "destination_is_slave" : false,
+			"modeler_name" : "MappingGeometriesModeler",
+            "modeler_parameters":{
+						"origin_model_part_name" : "origin",
+						"destination_model_part_name" : "destination",
+						"is_interface_sub_model_parts_specified" : true,
+						"origin_interface_sub_model_part_name" : "origin.line_tri",
+						"destination_interface_sub_model_part_name" : "destination.line_quad"
+					}
+        }""")
+
+        SetupModelParts(self)
+        CreateMapper(self)
+
+    def test_slave_origin_mortar(self):
+        reference_displacement = 1.0
+        SetConstantVariable(self.interface_model_part_destination,KM.DISPLACEMENT,reference_displacement)
+        self.mapper.Map(KM.DISPLACEMENT, KM.DISPLACEMENT)
+        mapped_results = GetInterfaceResult(self.interface_model_part_origin,KM.DISPLACEMENT)
+        reference_result = [0.9999999999999998, 0.9999999999999998, 0.9999999999999998, 1.0000000000000002, 1.0000000000000002, 1.0000000000000002, 0.9999999999999998, 0.9999999999999998, 0.9999999999999998, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        self.assertVectorAlmostEqual(mapped_results,reference_result)
+
 
 class TestComputeMappingMatrixCouplingGeometryMapper(KratosUnittest.TestCase):
     @classmethod
