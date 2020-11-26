@@ -124,7 +124,7 @@ public:
     void CreateStructureQuadraturePointGeometries(
         TLineGeometriesList& rInputLineGeometries,
         TQuadraturePointGeometriesList& rOuputQuadraturePointGeometries,
-        GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5
+        GeometryData::IntegrationMethod ThisIntegrationMethod
         )
     {
         for (IndexType i = 0; i < rInputLineGeometries.size(); ++i) {
@@ -394,6 +394,7 @@ private:
         return Parameters(R"({
             "echo_level"                    : 0,
             "minimum_shape_function_value"  : 1e-9,
+            "gauss_integration_order"  : 5,
             "is_gauss_seidel"               : true
         })");
     }

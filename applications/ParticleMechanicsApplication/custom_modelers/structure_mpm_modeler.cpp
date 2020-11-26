@@ -62,10 +62,13 @@ namespace Kratos
             KRATOS_ERROR << "Not implemented yet" << std::endl;
         }
 
+        const IndexType gauss_order = mParameters["gauss_integration_order"].GetInt();
+        auto integration_method = GeometryData::IntegrationMethod(gauss_order-1);
+
         std::vector<GeometryPointerType> quads_structure;
         CreateStructureQuadraturePointGeometries<
             std::vector<GeometryPointerType>, std::vector<GeometryPointerType>>(
-                interface_geoms, quads_structure);
+                interface_geoms, quads_structure, integration_method);
         std::vector<GeometryPointerType> quads_mpm(quads_structure.size());
         CreateMpmQuadraturePointGeometries<2, std::vector<GeometryPointerType>>(
             quads_structure, quads_mpm, background_grid_model_part);
@@ -228,6 +231,11 @@ namespace Kratos
         }
 
         mParameters.AddMissingParameters(this->GetModelerDefaultSettings());
+
+        const int gauss_order = mParameters["gauss_integration_order"].GetInt();
+        KRATOS_ERROR_IF(gauss_order < 1 || gauss_order > 5)
+            << "Invalid gauss_integration_order specified. It must be within 1 and 5 inclusive." << std::endl;
+
     }
 
 	void StructureMpmModeler::CreateInterfaceLineCouplingConditions(
