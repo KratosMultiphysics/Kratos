@@ -49,7 +49,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
+template< unsigned int TDim, unsigned int TNumNodes >
 class QSNavierStokesExplicit : public Element
 {
 public:
@@ -63,17 +63,25 @@ public:
     {
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         BoundedMatrix<double, TNumNodes, TDim > forcing;
-        BoundedMatrix<double, TNumNodes, TDim > velocity_convective;
+        BoundedMatrix<double, TNumNodes, TDim > fractional_velocity;
+        BoundedMatrix<double, TNumNodes, TDim > fractional_velocity_convective;
+        BoundedMatrix<double, TNumNodes, TDim > fractional_velocity_old;
         BoundedMatrix<double, TNumNodes, TDim > velocity;
+        BoundedMatrix<double, TNumNodes, TDim > velocity_convective;
+        BoundedMatrix<double, TNumNodes, TDim > velocity_old;
 
         array_1d<double, TNumNodes > N;
         array_1d<double,TNumNodes> pressure;
+        array_1d<double,TNumNodes> pressure_old;
 
+        double dt;          // Time step
+        double gamma = 1;   // Fractional step splitting parameter
         double h;           // Element size
-        double volume;      // In 2D: element area. In 3D: element volume
         double mu;          // Dynamic viscosity
         double nu;          // Kinematic viscosity
+        double rho;         // Density
         bool UseOSS;        // Use orthogonal subscales
+        double volume;      // In 2D: element area. In 3D: element volume
     };
 
     ///@}
@@ -161,7 +169,7 @@ public:
      * to calculate the elemental right hand side vector only.
      * Note that this is explicitly forbidden as this element is
      * conceived to work with bounded arrays for the sake of efficiency.
-     * A CalculateRightHandSideInternal() method is implemented instead.
+     * Internal methods are implemented instead.
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -171,7 +179,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Navier-Stokes element. Call the CalculateRightHandSideInternal() instead.";
+        KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Navier-Stokes element. Call the internal method instead.";
 
         KRATOS_CATCH("");
     }
@@ -271,7 +279,7 @@ protected:
      * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
      * @param rCurrentProcessInfo Reference to the current process info
      */
-    void CalculateLocalFractionalPressureSystem(
+    void CalculateLocalPressureSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
@@ -283,7 +291,7 @@ protected:
      * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
      * @param rCurrentProcessInfo Reference to the current process info
      */
-    void CalculateLocalFractionalEndOfStepSystem(
+    void CalculateLocalEndOfStepSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);

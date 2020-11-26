@@ -103,7 +103,9 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rL
 {
     KRATOS_TRY;
 
-    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] ){}
+    // TODO: we should check and correct the shapes.
+
+    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
     {
         case 3:
         {
@@ -112,7 +114,7 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rL
         }
         case 4:
         {
-            this->CalculateEndOfStepSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+            this->CalculateLocalEndOfStepSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
             break;
         }
         default:
@@ -128,8 +130,8 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rL
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2>::CalculateLocalFractionalVelocitySystem(
-    BoundedVector<double, 9> &rRightHandSideBoundedVector,
+void QSNavierStokesExplicit<2,3>::CalculateLocalFractionalVelocitySystem(
+    BoundedVector<double, 6> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -141,12 +143,20 @@ void QSNavierStokesExplicit<2>::CalculateLocalFractionalVelocitySystem(
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const auto &h = data.h;
+    const auto &dt = data.dt;
     const auto &f = data.forcing;
+    const auto &fracv = data.fractional_velocity;
+    const auto &fracvconv = data.fractional_velocity_convective;
+    const auto &fracvn = data.fractional_velocity_old;
+    const auto &gamma = data.gamma;
+    const auto &h = data.h;
     const auto &nu = data.nu;
-    const auto &vconv = data.velocity_convective;
-    const auto &v = data.velocity;
     const auto &p = data.pressure;
+    const auto &pn = data.pressure_old;
+    const auto &rho = data.rho;
+    const auto &v = data.velocity;
+    const auto &vn = data.velocity_old;
+    const auto &vconv = data.velocity_convective;
 
     // Stabilization parameters
     const double stab_c1 = 4.0;
@@ -226,8 +236,8 @@ const double crRightHandSideBoundedVector46 =             DN_DX_2_1*gamma;
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3>::CalculateLocalFractionalVelocitySystem(
-    BoundedVector<double, 16> &rRightHandSideBoundedVector,
+void QSNavierStokesExplicit<3,4>::CalculateLocalFractionalVelocitySystem(
+    BoundedVector<double, 12> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -239,12 +249,20 @@ void QSNavierStokesExplicit<3>::CalculateLocalFractionalVelocitySystem(
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const auto &h = data.h;
+    const auto &dt = data.dt;
     const auto &f = data.forcing;
+    const auto &fracv = data.fractional_velocity;
+    const auto &fracvconv = data.fractional_velocity_convective;
+    const auto &fracvn = data.fractional_velocity_old;
+    const auto &gamma = data.gamma;
+    const auto &h = data.h;
     const auto &nu = data.nu;
-    const auto &vconv = data.velocity_convective;
-    const auto &v = data.velocity;
     const auto &p = data.pressure;
+    const auto &pn = data.pressure_old;
+    const auto &rho = data.rho;
+    const auto &v = data.velocity;
+    const auto &vn = data.velocity_old;
+    const auto &vconv = data.velocity_convective;
 
     // Stabilization parameters
     const double stab_c1 = 4.0;
@@ -408,7 +426,7 @@ const double crRightHandSideBoundedVector117 =             DN_DX_3_2*gamma;
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2>::CalculateLocalFractionalPressureSystem(
+void QSNavierStokesExplicit<2,3>::CalculateLocalPressureSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -422,12 +440,20 @@ void QSNavierStokesExplicit<2>::CalculateLocalFractionalPressureSystem(
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const auto &h = data.h;
+    const auto &dt = data.dt;
     const auto &f = data.forcing;
+    const auto &fracv = data.fractional_velocity;
+    const auto &fracvconv = data.fractional_velocity_convective;
+    const auto &fracvn = data.fractional_velocity_old;
+    const auto &gamma = data.gamma;
+    const auto &h = data.h;
     const auto &nu = data.nu;
-    const auto &vconv = data.velocity_convective;
-    const auto &v = data.velocity;
     const auto &p = data.pressure;
+    const auto &pn = data.pressure_old;
+    const auto &rho = data.rho;
+    const auto &v = data.velocity;
+    const auto &vn = data.velocity_old;
+    const auto &vconv = data.velocity_convective;
 
     // Stabilization parameters
     const double stab_c1 = 4.0;
@@ -485,7 +511,7 @@ const double crLeftHandSideMatrix3 =             -crLeftHandSideMatrix0*(DN_DX_1
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3>::CalculateLocalFractionalPressureSystem(
+void QSNavierStokesExplicit<3,4>::CalculateLocalPressureSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -499,12 +525,20 @@ void QSNavierStokesExplicit<3>::CalculateLocalFractionalPressureSystem(
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const auto &h = data.h;
+    const auto &dt = data.dt;
     const auto &f = data.forcing;
+    const auto &fracv = data.fractional_velocity;
+    const auto &fracvconv = data.fractional_velocity_convective;
+    const auto &fracvn = data.fractional_velocity_old;
+    const auto &gamma = data.gamma;
+    const auto &h = data.h;
     const auto &nu = data.nu;
-    const auto &vconv = data.velocity_convective;
-    const auto &v = data.velocity;
     const auto &p = data.pressure;
+    const auto &pn = data.pressure_old;
+    const auto &rho = data.rho;
+    const auto &v = data.velocity;
+    const auto &vn = data.velocity_old;
+    const auto &vconv = data.velocity_convective;
 
     // Stabilization parameters
     const double stab_c1 = 4.0;
@@ -576,7 +610,7 @@ const double crLeftHandSideMatrix6 =             -crLeftHandSideMatrix0*(DN_DX_2
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2>::CalculateLocalFractionalEndOfStepSystem(
+void QSNavierStokesExplicit<2,3>::CalculateLocalEndOfStepSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -590,12 +624,20 @@ void QSNavierStokesExplicit<2>::CalculateLocalFractionalEndOfStepSystem(
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const auto &h = data.h;
+    const auto &dt = data.dt;
     const auto &f = data.forcing;
+    const auto &fracv = data.fractional_velocity;
+    const auto &fracvconv = data.fractional_velocity_convective;
+    const auto &fracvn = data.fractional_velocity_old;
+    const auto &gamma = data.gamma;
+    const auto &h = data.h;
     const auto &nu = data.nu;
-    const auto &vconv = data.velocity_convective;
-    const auto &v = data.velocity;
     const auto &p = data.pressure;
+    const auto &pn = data.pressure_old;
+    const auto &rho = data.rho;
+    const auto &v = data.velocity;
+    const auto &vn = data.velocity_old;
+    const auto &vconv = data.velocity_convective;
 
     // Stabilization parameters
     const double stab_c1 = 4.0;
@@ -701,7 +743,7 @@ const double crLeftHandSideMatrix2 =             0.25*crLeftHandSideMatrix0;
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3>::CalculateLocalFractionalEndOfStepSystem(
+void QSNavierStokesExplicit<3,4>::CalculateLocalEndOfStepSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -715,12 +757,20 @@ void QSNavierStokesExplicit<3>::CalculateLocalFractionalEndOfStepSystem(
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Substitute the formulation symbols by the data structure values
-    const auto &h = data.h;
+    const auto &dt = data.dt;
     const auto &f = data.forcing;
+    const auto &fracv = data.fractional_velocity;
+    const auto &fracvconv = data.fractional_velocity_convective;
+    const auto &fracvn = data.fractional_velocity_old;
+    const auto &gamma = data.gamma;
+    const auto &h = data.h;
     const auto &nu = data.nu;
-    const auto &vconv = data.velocity_convective;
-    const auto &v = data.velocity;
     const auto &p = data.pressure;
+    const auto &pn = data.pressure_old;
+    const auto &rho = data.rho;
+    const auto &v = data.velocity;
+    const auto &vn = data.velocity_old;
+    const auto &vconv = data.velocity_convective;
 
     // Stabilization parameters
     const double stab_c1 = 4.0;
@@ -989,21 +1039,21 @@ const double crLeftHandSideMatrix2 =             0.19999999899376*crLeftHandSide
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2>::AddExplicitContribution(
+void QSNavierStokesExplicit<2,3>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    switch ( r_process_info[FRACTIONAL_STEP] ){}
+    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
     {
         case 1:
         {
             constexpr IndexType dim = 2;
             constexpr IndexType n_nodes = 3;
-            constexpr IndexType block_size = 3;
+            constexpr IndexType block_size = 2;
 
             // Calculate the explicit residual vector
-            BoundedVector<double, 9> rhs;
+            BoundedVector<double, 6> rhs;
             CalculateLocalFractionalVelocitySystem(rhs, rCurrentProcessInfo);
 
             // Add the residual contribution
@@ -1021,7 +1071,7 @@ void QSNavierStokesExplicit<2>::AddExplicitContribution(
         }
         default:
         {
-            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",r_process_info[FRACTIONAL_STEP]);
+            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", rCurrentProcessInfo[FRACTIONAL_STEP]);
         }
     }
 
@@ -1031,21 +1081,21 @@ void QSNavierStokesExplicit<2>::AddExplicitContribution(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3>::AddExplicitContribution(
+void QSNavierStokesExplicit<3,4>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    switch ( r_process_info[FRACTIONAL_STEP] ){}
+    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
     {
         case 1:
         {
             constexpr IndexType dim = 3;
             constexpr IndexType n_nodes = 4;
-            constexpr IndexType block_size = 4;
+            constexpr IndexType block_size = 3;
 
             // Calculate the explicit residual vector
-            BoundedVector<double, 16> rhs;
+            BoundedVector<double, 12> rhs;
             CalculateLocalFractionalVelocitySystem(rhs, rCurrentProcessInfo);
 
             // Add the residual contribution
@@ -1063,7 +1113,7 @@ void QSNavierStokesExplicit<3>::AddExplicitContribution(
         }
         default:
         {
-            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",r_process_info[FRACTIONAL_STEP]);
+            KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", rCurrentProcessInfo[FRACTIONAL_STEP]);
         }
     }
 
@@ -1075,7 +1125,7 @@ void QSNavierStokesExplicit<3>::AddExplicitContribution(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2>::CalculateMassMatrix(
+void QSNavierStokesExplicit<2,3>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -1104,7 +1154,7 @@ void QSNavierStokesExplicit<2>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3>::CalculateMassMatrix(
+void QSNavierStokesExplicit<3,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -1193,8 +1243,8 @@ double QSNavierStokesExplicit<TDim, TNumNodes>::CalculateElementSize(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class QSNavierStokesExplicit<2>;
-template class QSNavierStokesExplicit<3>;
+template class QSNavierStokesExplicit<2,3>;
+template class QSNavierStokesExplicit<3,4>;
 
 /***********************************************************************************/
 /***********************************************************************************/

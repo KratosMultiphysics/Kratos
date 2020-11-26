@@ -379,8 +379,8 @@ private:
     const NavierStokes<3> mNavierStokes3D;
     const NavierStokesWallCondition<2> mNavierStokesWallCondition2D;
     const NavierStokesWallCondition<3> mNavierStokesWallCondition3D;
-    const QSNavierStokesExplicit<2> mQSNavierStokesExplicit2D3N;
-    const QSNavierStokesExplicit<3> mQSNavierStokesExplicit3D4N;
+    const QSNavierStokesExplicit<2,3> mQSNavierStokesExplicit2D3N;
+    const QSNavierStokesExplicit<3,4> mQSNavierStokesExplicit3D4N;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
