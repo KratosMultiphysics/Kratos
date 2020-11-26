@@ -430,7 +430,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return distance_reinitialization_process
 
     def _CreateDistanceSmoothingProcess(self):
-        # construct the distznce smoothing process
+        # construct the distance smoothing process
         linear_solver = self._GetLinearSolver()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             distance_smoothing_process = KratosCFD.DistanceSmoothingProcess2D(

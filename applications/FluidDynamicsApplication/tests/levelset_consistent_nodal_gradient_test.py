@@ -9,9 +9,9 @@ import os
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class TestConsistentLevelsetNodalGradient(KratosUnittest.TestCase):
+class ConsistentLevelsetNodalGradientTest(KratosUnittest.TestCase):
 
-    def test_consistent_gradient_2d_square(self):
+    def testConsistentGradientSquare2D(self):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
