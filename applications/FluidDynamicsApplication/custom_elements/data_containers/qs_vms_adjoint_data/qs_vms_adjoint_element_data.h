@@ -91,6 +91,28 @@ public:
             ///@}
         };
 
+        class SecondDerivatives
+        {
+        public:
+            ///@name Type Definitions
+            ///@{
+
+            // using Acceleration = nullptr;
+
+            ///@}
+        };
+
+        ///@}
+    };
+
+    class SensitivityDerivatives
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+
+        // using ShapeSensitivity = nullptr;
+
         ///@}
     };
 

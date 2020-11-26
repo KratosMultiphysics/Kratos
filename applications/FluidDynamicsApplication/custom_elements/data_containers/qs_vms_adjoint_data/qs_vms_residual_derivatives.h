@@ -26,10 +26,8 @@
 #include "includes/ublas_interface.h"
 #include "utilities/time_discretization.h"
 
-#include "utilities/element_size_calculator.h"
-
 // Application includes
-#include "fluid_dynamics_application_variables.h"
+#include "custom_constitutive/fluid_constitutive_law.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_elements/data_containers/qs_vms_adjoint_data/qs_vms_derivative_utilities.h"
 
@@ -62,10 +60,7 @@ public:
     ///@name Static Operations
     ///@{
 
-    static GeometryData::IntegrationMethod GetIntegrationMethod()
-    {
-        return GeometryData::GI_GAUSS_2;
-    }
+    static GeometryData::IntegrationMethod GetIntegrationMethod();
 
     ///@}
     ///@name Class Declarations
@@ -389,159 +384,20 @@ public:
 
         Data(
             const Element& rElement,
-            FluidConstitutiveLaw& rFluidConstitutiveLaw)
-            : mrElement(rElement),
-              mrFluidConstitutiveLaw(rFluidConstitutiveLaw)
-        {
-        }
+            FluidConstitutiveLaw& rFluidConstitutiveLaw);
 
         ///@}
         ///@name Operations
         ///@{
 
-        void Initialize(const ProcessInfo& rProcessInfo)
-        {
-            KRATOS_TRY
-
-            // this method gathers values which are constatnts for all gauss points.
-
-            const auto& r_geometry = mrElement.GetGeometry();
-
-            // get values from properties
-            const auto& properties = mrElement.GetProperties();
-            mDensity = properties.GetValue(DENSITY);
-            mDynamicViscosity = properties.GetValue(DYNAMIC_VISCOSITY);
-
-            // get values from process info
-            mDynamicTau = rProcessInfo[DYNAMIC_TAU];
-            mOSS_SWITCH = rProcessInfo[OSS_SWITCH];
-
-            mDeltaTime = rProcessInfo[DELTA_TIME];
-            KRATOS_ERROR_IF(mDeltaTime > 0.0)
-                << "Adjoint is calculated in reverse time, therefore "
-                   "DELTA_TIME should be negative. [ DELTA_TIME = "
-                << mDeltaTime << " ].\n";
-            mDeltaTime *= -1.0;
-
-            // filling nodal values
-            for (IndexType a = 0; a < TNumNodes; ++a) {
-                const auto& r_node = r_geometry[a];
-                for (IndexType i = 0; i < TDim; ++i) {
-                    mNodalVelocity(a, i) = r_node.FastGetSolutionStepValue(VELOCITY)[i];
-                    mNodalMeshVelocity(a, i) = r_node.FastGetSolutionStepValue(MESH_VELOCITY)[i];
-                    mNodalEffectiveVelocity(a, i) = mNodalVelocity(a, i) - mNodalMeshVelocity(a, i);
-                }
-
-                mNodalPressure[a] = r_node.FastGetSolutionStepValue(PRESSURE);
-            }
-
-            // get other values
-            mElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
-
-            // setting up primal constitutive law
-            mStrainRate.resize(TStrainSize);
-            mShearStress.resize(TStrainSize);
-            mC.resize(TStrainSize, TStrainSize, false);
-
-            mConstitutiveLawValues = ConstitutiveLaw::Parameters(r_geometry, mrElement.GetProperties(), rProcessInfo);
-
-            auto& cl_options = mConstitutiveLawValues.GetOptions();
-            cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
-            cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-            mConstitutiveLawValues.SetStrainVector(mStrainRate);   //this is the input parameter
-            mConstitutiveLawValues.SetStressVector(mShearStress);  //this is an ouput parameter
-            mConstitutiveLawValues.SetConstitutiveMatrix(mC);      //this is an ouput parameter
-
-            // setting up derivative constitutive law
-            mStrainRateDerivative.resize(TStrainSize);
-            mShearStressDerivative.resize(TStrainSize);
-            mCDerivative.resize(TStrainSize, TStrainSize, false);
-
-            mConstitutiveLawValuesDerivative = ConstitutiveLaw::Parameters(r_geometry, mrElement.GetProperties(), rProcessInfo);
-
-            auto& cl_options_derivative = mConstitutiveLawValuesDerivative.GetOptions();
-            cl_options_derivative.Set(ConstitutiveLaw::COMPUTE_STRESS);
-            cl_options_derivative.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-            mConstitutiveLawValuesDerivative.SetStrainVector(mStrainRateDerivative);   //this is the input parameter
-            mConstitutiveLawValuesDerivative.SetStressVector(mShearStressDerivative);  //this is an ouput parameter
-            mConstitutiveLawValuesDerivative.SetConstitutiveMatrix(mCDerivative);      //this is an ouput parameter
-
-            KRATOS_CATCH("");
-        }
+        void Initialize(const ProcessInfo& rProcessInfo);
 
         void CalculateGaussPointData(
             const double GaussPointWeight,
             const Vector& rGaussPointShapeFunctions,
-            const Matrix& rGaussPointShapeFunctionDerivatives)
-        {
-            using element_utilities = FluidElementUtilities<TNumNodes>;
-            using derivative_utilities = QSVMSDerivativeUtilities<TDim>;
+            const Matrix& rGaussPointShapeFunctionDerivatives);
 
-            const auto& r_geometry = mrElement.GetGeometry();
-
-            // get gauss point evaluated values
-            element_utilities::EvaluateInPoint(
-                r_geometry, rGaussPointShapeFunctions,
-                std::tie(mPressure, PRESSURE),
-                std::tie(mBodyForce, BODY_FORCE),
-                std::tie(mVelocity, VELOCITY),
-                std::tie(mMeshVelocity, MESH_VELOCITY),
-                std::tie(mRelaxedAcceleration, RELAXED_ACCELERATION),
-                std::tie(mMomentumProjection, ADVPROJ),
-                std::tie(mMassProjection, DIVPROJ));
-
-            mBodyForce *= mDensity;
-
-            noalias(mConvectiveVelocity) = mVelocity - mMeshVelocity;
-            mConvectiveVelocityNorm = norm_2(mConvectiveVelocity);
-            element_utilities::Product(mConvectiveVelocityDotDnDx, rGaussPointShapeFunctionDerivatives, mConvectiveVelocity);
-            element_utilities::Product(mRelaxedAccelerationDotDnDx, rGaussPointShapeFunctionDerivatives, mRelaxedAcceleration);
-            element_utilities::Product(mBodyForceDotDnDx, rGaussPointShapeFunctionDerivatives, mBodyForce);
-            element_utilities::Product(mMomentumProjectionDotDnDx, rGaussPointShapeFunctionDerivatives, mMomentumProjection);
-
-            // compute constitutive law values
-            // Ask Ruben: Why not (Velocity - MeshVelocity) in here?
-            derivative_utilities::CalculateStrainRate(mStrainRate, mNodalVelocity, rGaussPointShapeFunctionDerivatives);
-            mConstitutiveLawValues.SetShapeFunctionsValues(rGaussPointShapeFunctions);
-            mConstitutiveLawValuesDerivative.SetShapeFunctionsValues(rGaussPointShapeFunctions);
-
-            //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-            //this is ok under the hypothesis that no history dependent behavior is employed
-            mrFluidConstitutiveLaw.CalculateMaterialResponseCauchy(mConstitutiveLawValues);
-            mrFluidConstitutiveLaw.CalculateValue(mConstitutiveLawValues, EFFECTIVE_VISCOSITY, mEffectiveViscosity);
-
-            element_utilities::GetStrainMatrix(rGaussPointShapeFunctionDerivatives, mStrainMatrix);
-            noalias(mViscousTermRHSContribution) = prod(trans(mStrainMatrix), mShearStress) * (-1.0);
-
-            CalculateTau(mTauOne, mTauTwo, mElementSize, mDensity, mEffectiveViscosity,
-                         mConvectiveVelocityNorm, mDynamicTau, mDeltaTime);
-
-            derivative_utilities::CalculateGradient(mPressureGradient, PRESSURE, r_geometry, rGaussPointShapeFunctionDerivatives);
-            derivative_utilities::CalculateGradient(mVelocityGradient, VELOCITY, r_geometry, rGaussPointShapeFunctionDerivatives);
-            derivative_utilities::CalculateGradient(mMeshVelocityGradient, MESH_VELOCITY, r_geometry, rGaussPointShapeFunctionDerivatives);
-            noalias(mEffectiveVelocityGradient) = mVelocityGradient - mMeshVelocityGradient;
-
-            element_utilities::Product(mPressureGradientDotDnDx, rGaussPointShapeFunctionDerivatives, mPressureGradient);
-            element_utilities::Product(mEffectiveVelocityDotVelocityGradient,
-                                       mVelocityGradient, mConvectiveVelocity);
-
-            mVelocityDotNabla = 0.0;
-            for (IndexType a = 0; a < TNumNodes; ++a) {
-                for (IndexType i = 0; i < TDim; ++i) {
-                    mVelocityDotNabla += rGaussPointShapeFunctionDerivatives(a, i) * mNodalVelocity(a, i);
-                }
-            }
-
-            element_utilities::Product(mEffectiveVelocityDotVelocityGradientDotShapeGradient,
-                                       rGaussPointShapeFunctionDerivatives,
-                                       mEffectiveVelocityDotVelocityGradient);
-        }
-
-        void Finalize(const ProcessInfo& rProcessInfo)
-        {
-        }
+        void Finalize(const ProcessInfo& rProcessInfo);
 
         ///@}
     private:
@@ -618,41 +474,10 @@ public:
     ///@name Static Operations
     ///@{
 
-    static array_1d<double, 3> CalculateMomentumProjectionDerivative(
-        const IndexType NodeIndex,
-        const IndexType DirectionIndex,
-        const GeometryType& rGeometry,
-        const double Density,
-        const array_1d<double, 3>& rBodyForce,
-        const array_1d<double, 3>& rPressureGradient,
-        const array_1d<double, 3>& rPressureGradientDerivative,
-        const array_1d<double, 3>& rEffectiveVelocityDotEffectiveVelocityGradient,
-        const array_1d<double, 3>& rEffectiveVelocityDotEffectiveVelocityGradientDerivative)
-    {
-        // TODO: Implement this for OSS Projection
-        return ZeroVector(3);
-    }
-
-    static double CalculateMassProjectionDerivative(
-        const IndexType NodeIndex,
-        const IndexType DirectionIndex,
-        const GeometryType& rGeometry)
-    {
-        // TODO : To be implemented for OSS Projection
-        return 0.0;
-    }
-
     static double CalculateNormDerivative(
         const double ValueNorm,
         const Vector& Value,
-        const Vector& ValueDerivative)
-    {
-        if (ValueNorm > 0.0) {
-            return inner_prod(Value, ValueDerivative) / ValueNorm;
-        } else {
-            return 0.0;
-        }
-    }
+        const Vector& ValueDerivative);
 
     static void CalculateTau(
         double& TauOne,
@@ -662,17 +487,7 @@ public:
         const double Viscosity,
         const double VelocityNorm,
         const double DynamicTau,
-        const double DeltaTime)
-    {
-        constexpr double c1 = 8.0;
-        constexpr double c2 = 2.0;
-
-        const double inv_tau =
-            c1 * Viscosity / (ElementSize * ElementSize) +
-            Density * (DynamicTau / DeltaTime + c2 * VelocityNorm / ElementSize);
-        TauOne = 1.0 / inv_tau;
-        TauTwo = Viscosity + c2 * Density * VelocityNorm * ElementSize / c1;
-    }
+        const double DeltaTime);
 
     static void CalculateTauDerivative(
         double& TauOneDerivative,
@@ -686,25 +501,7 @@ public:
         const double Viscosity,
         const double ViscosityDerivative,
         const double VelocityNorm,
-        const double VelocityNormDerivative)
-    {
-        constexpr double c1 = 8.0;
-        constexpr double c2 = 2.0;
-
-        const double h2 = std::pow(ElementSize, 2);
-        const double h3 = std::pow(ElementSize, 3);
-
-        double inv_tau_derivative = 0.0;
-        inv_tau_derivative += c1 * ViscosityDerivative / h2;
-        inv_tau_derivative += -2.0 * c1 * Viscosity * ElementSizeDerivative/ h3;
-        inv_tau_derivative += Density * c2 * VelocityNormDerivative / ElementSize;
-        inv_tau_derivative += -1.0 * Density * c2 * VelocityNorm * ElementSizeDerivative / h2;
-        TauOneDerivative = -1.0 * std::pow(TauOne, 2) * inv_tau_derivative;
-
-        TauTwoDerivative = ViscosityDerivative;
-        TauTwoDerivative += c2 * Density * VelocityNormDerivative * ElementSize / c1;
-        TauTwoDerivative += c2 * Density * VelocityNorm * ElementSizeDerivative / c1;
-    }
+        const double VelocityNormDerivative);
 
     ///@}
 };
