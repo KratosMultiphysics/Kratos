@@ -49,7 +49,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             for solver_name, solver in self.solver_wrappers.items():
                 if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
                     solver_time = solver.AdvanceInTime(current_time)
-                    if self._solver_origin_dest_dict[solver_name] == CoSim.SolverIndex.Destination:
+                    if self._solver_origin_dest_dict[solver_name] == CoSim.FetiSolverIndexType.Destination:
                         advanced_time = solver_time #only advance global time finely
 
         return advanced_time
@@ -124,7 +124,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         origin_modelpart_name = self.mapper_parameters["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString()
         destination_modelpart_name = self.mapper_parameters["modeler_parameters"]["destination_interface_sub_model_part_name"].GetString()
         for solver_name, solver in self.solver_wrappers.items():
-            if self._solver_origin_dest_dict[solver_name] == CoSim.SolverIndex.Origin:
+            if self._solver_origin_dest_dict[solver_name] == CoSim.FetiSolverIndexType.Origin:
                 self.model_part_origin_interface = self.solver_wrappers[solver_name].model.GetModelPart(origin_modelpart_name)
             else:
                 self.model_part_destination_interface = self.solver_wrappers[solver_name].model.GetModelPart(destination_modelpart_name)
@@ -169,14 +169,14 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         for solver_index in range(self.settings["coupling_sequence"].size()):
             ordered_solver_name = self.settings["coupling_sequence"][solver_index]["name"].GetString()
             if solver_index == 0:
-                self._solver_origin_dest_dict[ordered_solver_name] = CoSim.SolverIndex.Origin
+                self._solver_origin_dest_dict[ordered_solver_name] = CoSim.FetiSolverIndexType.Origin
             else:
-                self._solver_origin_dest_dict[ordered_solver_name] = CoSim.SolverIndex.Destination
+                self._solver_origin_dest_dict[ordered_solver_name] = CoSim.FetiSolverIndexType.Destination
 
     def __SendStiffnessMatrixToUtility(self, solver_name):
         beta = 0.0
         solver_index = self._solver_origin_dest_dict[solver_name]
-        if solver_index == CoSim.SolverIndex.Origin:
+        if solver_index == CoSim.FetiSolverIndexType.Origin:
             beta = self.settings["origin_newmark_beta"].GetDouble()
         else:
             beta = self.settings["destination_newmark_beta"].GetDouble()
