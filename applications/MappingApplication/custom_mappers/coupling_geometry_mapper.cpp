@@ -35,10 +35,10 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     const IndexType slave_index = (mIsDestinationIsSlave) ? 1 : 0;
     const IndexType master_index = 1 - slave_index;
 
-    const auto& r_geometry_master = (mIsProjection)
+    auto& r_geometry_master = (mIsProjection)
         ? mpGeom->GetGeometryPart(master_index) // set to master  - get projected 'mass' matrix
         : mpGeom->GetGeometryPart(slave_index); // set to slave - get consistent slave 'mass' matrix
-    const auto& r_geometry_slave = mpGeom->GetGeometryPart(slave_index);
+    auto& r_geometry_slave = mpGeom->GetGeometryPart(slave_index);
 
     const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
         ? true
@@ -46,10 +46,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
     const auto& sf_values_master = r_geometry_master.ShapeFunctionsValues();
     const auto& sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
-
-    KRATOS_WATCH(sf_values_master);
-    KRATOS_WATCH(sf_values_slave);
-
 
     const std::size_t number_of_nodes_master = sf_values_master.size2();
     const std::size_t number_of_nodes_slave = sf_values_slave.size2();
@@ -79,7 +75,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
     KRATOS_DEBUG_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
-    const double weight = r_geometry_slave.IntegrationPoints()[0].Weight();
 
     if (is_dual_mortar) {
         rLocalMappingMatrix.clear();
