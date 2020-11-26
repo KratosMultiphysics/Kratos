@@ -101,6 +101,8 @@ namespace Kratos
 
       int Check() override;
 
+      const Parameters GetDefaultParameters() const override;
+
       ///@}
       ///@name Access
       ///@{
@@ -135,9 +137,7 @@ namespace Kratos
       protected:
 
       VoxelMeshGeneratorProcess(ModelPart& rVolumePart,
-        ModelPart& rSkinPart, Parameters& TheParameters) 
-		    : Process()
-        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart) {}
+        ModelPart& rSkinPart, Parameters& TheParameters);
 
       ///@name Static Member Variables
       ///@{
@@ -184,6 +184,9 @@ namespace Kratos
           void GenerateCenterOfElements();
 
           Node<3>::Pointer pGetNode(std::size_t I, std::size_t J, std::size_t K);
+
+          void ConstructFromParameters(Parameters TheParameters);
+
             ///@}
       ///@name Private  Access
       ///@{
