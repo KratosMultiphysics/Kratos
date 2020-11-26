@@ -94,6 +94,11 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief This method provides the default parameters
+     */
+    const Parameters GetDefaultParameters() const override;
+
     // ///@}
     // ///@name Inquiry
     // ///@{
@@ -115,7 +120,6 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
-
 
     ///@}
     ///@name Friends

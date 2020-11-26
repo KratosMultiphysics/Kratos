@@ -155,4 +155,14 @@ bool CalulateLevelsetConsistentNodalGradientProcess::IsSplit(const Vector& rDist
     return is_split;
 }
 
+const Parameters CalulateLevelsetConsistentNodalGradientProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"             : "please_specify_model_part_name"
+    })" );
+
+    return default_parameters;
+}
+
 };  // namespace Kratos.
