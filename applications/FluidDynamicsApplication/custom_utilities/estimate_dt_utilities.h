@@ -162,6 +162,16 @@ private:
     double    mDtMin;       // User-defined minimum time increment allowed
     ModelPart &mrModelPart; // The problem's model part
 
+	///@}
+	///@name Serialization
+	///@{
+
+	friend class Serializer;
+
+	void save(Serializer& rSerializer) const;
+
+	void load(Serializer& rSerializer);
+
     ///@}
     ///@name Private Operations
     ///@{

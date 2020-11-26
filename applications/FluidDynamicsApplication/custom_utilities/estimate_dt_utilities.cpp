@@ -135,6 +135,24 @@ namespace Kratos
         return Proj*Dt;
     }
 
+    template<unsigned int TDim>
+    void EstimateDtUtility<TDim>::save(Serializer& rSerializer) const
+    {
+        rSerializer.save("mCFL", mCFL);
+        rSerializer.save("mDtMax", mDtMax);
+        rSerializer.save("mDtMin", mDtMin);
+        rSerializer.save("mrModelPart", mrModelPart);
+    }
+
+    template<unsigned int TDim>
+    void EstimateDtUtility<TDim>::load(Serializer& rSerializer)
+    {
+        rSerializer.load("mCFL", mCFL);
+        rSerializer.load("mDtMax", mDtMax);
+        rSerializer.load("mDtMin", mDtMin);
+        rSerializer.load("mrModelPart", mrModelPart);
+    }
+
 template class EstimateDtUtility<2>;
 template class EstimateDtUtility<3>;
 
