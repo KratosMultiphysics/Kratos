@@ -165,51 +165,22 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 }
 
                 if (rCurrentProcessInfo[SURFACE_TENSION]){
-                    // Surface tension coefficient is set in material properties
-                    const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
-                    Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
-                    GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
-                    Vector int_gauss_pts_weights;
-                    std::vector<Vector> int_normals_neg;
-                    Vector gauss_pts_curvature;
 
-                    ComputeSplitInterface(
+                    AddSurfaceTensionContribution(
                         data,
-                        int_shape_function,
-                        int_shape_function_enr_pos,
-                        int_shape_function_enr_neg,
-                        int_shape_derivatives,
-                        int_gauss_pts_weights,
-                        int_normals_neg,
-                        p_modified_sh_func);
-
-                    CalculateCurvatureOnInterfaceGaussPoints(
-                        int_shape_function,
-                        gauss_pts_curvature);
-
-                    SurfaceTension(
-                        surface_tension_coefficient,
-                        gauss_pts_curvature,
-                        int_gauss_pts_weights,
-                        int_shape_function,
-                        int_normals_neg,
-                        rRightHandSideVector);
-
-                    PressureGradientStabilization(
-                        data,
-                        int_gauss_pts_weights,
-                        int_shape_function_enr_pos,
-                        int_shape_function_enr_neg,
-                        int_shape_derivatives,
+                        p_modified_sh_func,
+                        rLeftHandSideMatrix,
+                        rRightHandSideVector,
+                        Htot,
+                        Vtot,
                         Kee_tot,
-                        rhs_ee_tot);
-
-                    MerelyCondenseEnrichment(rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
+                        rhs_ee_tot
+                    );
 
                 } else{
                     // Without pressure gradient stabilization, volume ratio is checked during condensation
                     // Also, without surface tension, zero pressure difference is penalized
-                    CondenseEnrichment(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
+                    CondenseEnrichmentWithContinuity(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
                 }
 
             }
@@ -1939,7 +1910,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
-    TElementData &rData,
+    const TElementData &rData,
     MatrixType& rInterfaceShapeFunctionNeg,
     MatrixType& rEnrInterfaceShapeFunctionPos,
     MatrixType& rEnrInterfaceShapeFunctionNeg,
@@ -2165,7 +2136,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 }
 
 template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
+void TwoFluidNavierStokes<TElementData>::CondenseEnrichmentWithContinuity(
     const TElementData &rData,
     Matrix &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
@@ -2234,7 +2205,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
 }
 
 template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::MerelyCondenseEnrichment(
+void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
     Matrix &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
     const MatrixType &rHtot,
@@ -2252,6 +2223,59 @@ void TwoFluidNavierStokes<TElementData>::MerelyCondenseEnrichment(
 
     const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
     noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
+    const TElementData& rData,
+    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+    Matrix &rLeftHandSideMatrix,
+    VectorType &rRightHandSideVector,
+    const MatrixType &rHtot,
+    const MatrixType &rVtot,
+    MatrixType &rKeeTot,
+    VectorType &rRHSeeTot)
+{
+    // Surface tension coefficient is set in material properties
+    const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
+    Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
+    GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
+    Vector int_gauss_pts_weights;
+    std::vector<Vector> int_normals_neg;
+    Vector gauss_pts_curvature;
+
+    ComputeSplitInterface(
+        rData,
+        int_shape_function,
+        int_shape_function_enr_pos,
+        int_shape_function_enr_neg,
+        int_shape_derivatives,
+        int_gauss_pts_weights,
+        int_normals_neg,
+        pModifiedShapeFunctions);
+
+    CalculateCurvatureOnInterfaceGaussPoints(
+        int_shape_function,
+        gauss_pts_curvature);
+
+    SurfaceTension(
+        surface_tension_coefficient,
+        gauss_pts_curvature,
+        int_gauss_pts_weights,
+        int_shape_function,
+        int_normals_neg,
+        rRightHandSideVector);
+
+    PressureGradientStabilization(
+        rData,
+        int_gauss_pts_weights,
+        int_shape_function_enr_pos,
+        int_shape_function_enr_neg,
+        int_shape_derivatives,
+        rKeeTot,
+        rRHSeeTot);
+
+    CondenseEnrichment(rLeftHandSideMatrix, rRightHandSideVector, rHtot, rVtot, rKeeTot, rRHSeeTot);
 }
 
 template <class TElementData>

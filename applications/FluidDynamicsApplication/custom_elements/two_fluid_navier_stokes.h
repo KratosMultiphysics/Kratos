@@ -425,7 +425,7 @@ private:
      * @param pModifiedShapeFunctions Pointer to the element splitting utility
      */
     void ComputeSplitInterface(
-        TElementData& rData,
+        const TElementData& rData,
         MatrixType& rInterfaceShapeFunctionNeg,
         MatrixType& rEnrInterfaceShapeFunctionPos,
         MatrixType& rEnrInterfaceShapeFunctionNeg,
@@ -499,7 +499,7 @@ private:
      * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
-	void CondenseEnrichment(
+	void CondenseEnrichmentWithContinuity(
 		const TElementData& rData,
 		Matrix& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,
@@ -521,13 +521,23 @@ private:
      * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
-	void MerelyCondenseEnrichment(
+	void CondenseEnrichment(
 		Matrix& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,
 		const MatrixType& rVTot,
 		const MatrixType& rHTot,
 		MatrixType& rKeeTot,
 		const VectorType& rRHSeeTot);
+
+    void AddSurfaceTensionContribution(
+        const TElementData& rData,
+        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+        Matrix &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const MatrixType &rHtot,
+        const MatrixType &rVtot,
+        MatrixType &rKeeTot,
+        VectorType &rRHSeeTot);
 
     ///@}
     ///@name Private  Access

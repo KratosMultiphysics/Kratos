@@ -41,7 +41,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility to due the redistancing based on the time-dependednt Eikonal equation
+/// Utility to calculate the nodal gradient separately for the positive and negative sides of the zero level-set function (interface)
 
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalulateLevelsetConsistentNodalGradientProcess : public Process
 {

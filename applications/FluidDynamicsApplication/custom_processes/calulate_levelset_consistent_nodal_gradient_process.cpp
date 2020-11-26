@@ -122,7 +122,7 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
                 const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
 
                 for(unsigned int i_node=0; i_node<number_of_nodes; ++i_node) {
-                    array_1d<double, 3>& r_gradient = r_geometry[i_node].GetValue(PRESSURE_GRADIENT);
+                    auto& r_gradient = r_geometry[i_node].GetValue(PRESSURE_GRADIENT);
                     for(unsigned int k=0; k<num_dim; ++k) {
                         #pragma omp atomic
                         r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];

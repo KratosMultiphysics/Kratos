@@ -225,6 +225,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Smoothing process is finished.")
 
             if (self.main_model_part.ProcessInfo[KratosCFD.SURFACE_TENSION]):
+                # distance gradient is called again to comply with the smoothed/modified DISTANCE
                 self._GetDistanceGradientProcess().Execute()
                 # curvature is calculated using nodal distance gradient
                 self._GetDistanceCurvatureProcess().Execute()
