@@ -156,8 +156,6 @@ public:
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
         typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-        double edge_length = 0.0;
-
         const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
         for (size_t i = 0; i < rInputQuadraturePointGeometries.size(); ++i)
         {
@@ -216,13 +214,10 @@ public:
                 Matrix inv;
                 r_geometry.InverseOfJacobian(inv, local_coordinates);
                 Vector local_tangent = prod(inv, space_derivatives);
-                KRATOS_WATCH(inv)
-                KRATOS_WATCH(local_tangent)
                 Matrix jacci_the_wacci;
                 r_geometry.Jacobian(jacci_the_wacci, local_coordinates);
                 double J2 = norm_2(column(jacci_the_wacci, 0) * local_tangent[0] + column(jacci_the_wacci, 1) * local_tangent[1]);
                 integration_weight /= J2;
-                KRATOS_WATCH(J2)
 
                 IntegrationPoint<3> int_p(local_coordinates, integration_weight);
 
@@ -236,8 +231,6 @@ public:
                 rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
                     points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
 
-
-
                 #ifdef KRATOS_DEBUG
                 std::vector<array_1d<double, 3>> space_derivatives_check(2);
                 rOuputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives_check, 0, 1);
@@ -249,15 +242,8 @@ public:
                     << "\nFEM boundary line tangent = " << space_derivatives
                     << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
                 #endif
-
-                Vector det_jacobian;
-                rOuputQuadraturePointGeometries[i]->Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
-                edge_length += integration_weight * det_jacobian[0];
-
             }
         }
-
-        KRATOS_WATCH(edge_length);
     }
 
     template<SizeType TDimension,

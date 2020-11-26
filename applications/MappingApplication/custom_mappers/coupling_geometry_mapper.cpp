@@ -100,11 +100,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         }
     }
 
-    if (!mIsProjection)
-    {
-        KRATOS_WATCH(rLocalMappingMatrix);
-    }
-
     for (IndexType i=0; i< sf_values_master.size2(); ++i) {
             rOriginIds[i] = r_geometry_master[i].GetValue(INTERFACE_EQUATION_ID);
     }
