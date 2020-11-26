@@ -37,7 +37,7 @@ namespace Testing
         const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
-        //constants for the computation of the stress
+        // Constants for the computation of the stress
         const double E = p_elem_prop->GetValue(YOUNG_MODULUS);
         const double NU = p_elem_prop->GetValue(POISSON_RATIO);
         const double c1 = E / (1.00 - NU * NU);
@@ -61,7 +61,7 @@ namespace Testing
 
         p_element->Initialize(r_model_part.GetProcessInfo());
 
-        //define a matrix A and impose that the displacement on each node is u = A*x0
+        // Define a matrix A and impose that the displacement on each node is u = A*x0
         Matrix A0 = ZeroMatrix(3,3);
         A0(0,0) = 2e-2;
         A0(0,1) = 5e-2;
@@ -88,12 +88,12 @@ namespace Testing
             p_element->FinalizeNonLinearIteration(const_procinfo_ref);
             p_element->FinalizeSolutionStep(const_procinfo_ref);
 
-            //known A we can compute the deformation gradient analytically as F = A + I and from that the analytical value of the strain
+            // Known A we can compute the deformation gradient analytically as F = A + I and from that the analytical value of the strain
             Matrix F = IdentityMatrix(3,3) + A;
             Matrix strain_mat = 0.5*(prod(trans(F),F)-IdentityMatrix(3,3));
             std::vector<double> reference_strain = {strain_mat(0,0), strain_mat(1,1), 2.0*strain_mat(0,1)};
 
-            //also the stress can be computed analytically as
+            // Also the stress can be computed analytically as
             Vector reference_stress(3);
             reference_stress[0] = c1 * reference_strain[0] + c2 * reference_strain[1];
             reference_stress[1] = c2 * reference_strain[0] + c1 * reference_strain[1];
