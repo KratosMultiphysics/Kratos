@@ -135,13 +135,6 @@ public:
      */
     static void CalculateLocalCFL(ModelPart& rModelPart);
 
-    /**
-     * @brief Calculate each element's CFL for the current time step
-     * The elemental CFL is stored in the CFL_NUMBER elemental variable
-     * To visualize in the post-process file, remember to print CFL_NUMBER as a Gauss point result
-     */
-    void CalculateLocalCFL();
-
     ///@} // Operators
 
 private:
