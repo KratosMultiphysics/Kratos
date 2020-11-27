@@ -97,6 +97,8 @@ void ElasticIsotropic3D::CalculateMaterialResponsePK1 (ConstitutiveLaw::Paramete
 void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
+
+    //TODO: needs to do the transoformation here!!
 }
 
 /***********************************************************************************/
@@ -104,7 +106,16 @@ void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Pa
 
 void ElasticIsotropic3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
 {
+    //first compute the PK2
     CalculateMaterialResponsePK2(rValues);
+
+    //now transform to cauchy
+    Matrix S = MathUtils<double>::StressVectorToTensor( rValues.GetStressVector() );
+    const Matrix& F = rValues.GetDeformationGradientF();
+    const Matrix tmp = prod(S, trans(F));
+    const double J = rValues.GetDeterminantF();
+    Matrix cauchy_stress = 1/J * prod( F, tmp) ;
+    noalias(rValues.GetStressVector()) = MathUtils<double>::StressTensorToVector( cauchy_stress);
 }
 
 /***********************************************************************************/
@@ -207,6 +218,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
     if (rThisVariable == STRAIN ||
         rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
         rThisVariable == ALMANSI_STRAIN_VECTOR) {
+        //TODO: this is wrong. almansi strain does not coincide with GreenLagrangeStrain
         this->CalculateCauchyGreenStrain( rParameterValues, rValue);
     } else if (rThisVariable == STRESSES ||
         rThisVariable == CAUCHY_STRESS_VECTOR ||
@@ -371,7 +383,7 @@ void ElasticIsotropic3D::CalculatePK2Stress(
 
 /***********************************************************************************/
 /***********************************************************************************/
-
+//TODO: change  the name of this function, in here the Green-Lagrange strain is computed
 void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
