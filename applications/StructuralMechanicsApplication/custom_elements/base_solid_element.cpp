@@ -22,6 +22,7 @@
 #include "custom_elements/base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -894,29 +895,19 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
-                const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
-
-                double sigma_equivalent = 0.0;
-
                 if (dimension == 2) {
-
-                    sigma_equivalent = std::pow(stress_tensor(0,0),2) 
-                                     + std::pow(stress_tensor(1,1),2) 
-                                     - stress_tensor(0,0)*stress_tensor(1,1) 
-                                     + 3*(stress_tensor(0,1) * stress_tensor(1,0));
+                    array_1d<double, 3> stress_vector;
+                    for (std::size_t i = 0; i < 3; ++i) {
+                        stress_vector[i] = this_constitutive_variables.StressVector[i];
+                    }
+                    ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(stress_vector, this_constitutive_variables.StrainVector, rOutput[point_number]);
                 } else {
-                    sigma_equivalent = 0.5*(std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2) +
-                                            std::pow((stress_tensor(1,1) - stress_tensor(2,2)), 2) +
-                                            std::pow((stress_tensor(2,2) - stress_tensor(0,0)), 2) +
-                                                    6*(stress_tensor(0,1) * stress_tensor(1,0) +
-                                                        stress_tensor(1,2) * stress_tensor(2,1) +
-                                                        stress_tensor(2,0) * stress_tensor(0,2)));
+                    array_1d<double, 6> stress_vector;
+                    for (std::size_t i = 0; i < 6; ++i) {
+                        stress_vector[i] = this_constitutive_variables.StressVector[i];
+                    }
+                    ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(stress_vector, this_constitutive_variables.StrainVector, rOutput[point_number]);
                 }
-
-                if( sigma_equivalent < 0.0 )
-                    rOutput[point_number] = 0.0;
-                else
-                    rOutput[point_number] = std::sqrt(sigma_equivalent);
             }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
