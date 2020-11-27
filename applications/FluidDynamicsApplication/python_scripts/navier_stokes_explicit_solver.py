@@ -62,19 +62,6 @@ class NavierStokesExplicitSolver(NavierStokesSolverFractionalStep):
                 "scaling"                        : true,
                 "verbosity"                      : 0
             },
-            "velocity_linear_solver_settings": {
-                "solver_type"                    : "amgcl",
-                "max_iteration"                  : 200,
-                "tolerance"                      : 1e-6,
-                "provide_coordinates"            : false,
-                "smoother_type"                  : "ilu0",
-                "krylov_type"                    : "lgmres",
-                "gmres_krylov_space_dimension"   : 100,
-                "use_block_matrices_if_possible" : false,
-                "coarsening_type"                : "aggregation",
-                "scaling"                        : true,
-                "verbosity"                      : 0
-            },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "assign_neighbour_elements_to_conditions": false,
@@ -98,76 +85,41 @@ class NavierStokesExplicitSolver(NavierStokesSolverFractionalStep):
         return default_settings
 
     def _CreateLinearSolver(self):
-        # Create the pressure linear solver
         pressure_linear_solver_configuration = self.settings["pressure_linear_solver_settings"]
         pressure_linear_solver = linear_solver_factory.ConstructSolver(pressure_linear_solver_configuration)
-        # Create the velocity explicit solver
-        velocity_linear_solver_configuration = self.settings["velocity_linear_solver_settings"]
-        velocity_linear_solver = linear_solver_factory.ConstructSolver(velocity_linear_solver_configuration)
-        # Return a tuple containing both linear solvers
-        return (pressure_linear_solver, velocity_linear_solver)
+        return pressure_linear_solver
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-        # Create the pressure and velocity solvers
-        # Note that linear_solvers is a tuple. The first item is the pressure
-        # linear solver. The second item is the velocity explicit solver.
+        # Create the pressure solver
         linear_solvers = self._GetLinearSolver()
 
-        # Create the explicit fractional step settings instance
-        # TODO: next part would be much cleaner if we passed directly the parameters to the c++
-        if self.settings["consider_periodic_conditions"].GetBool():
-            pass
-            # fractional_step_settings = FluidDynamicsApplication.FractionalStepSettingsPeriodic(
-            #     computing_model_part,
-            #     domain_size,
-            #     self.settings["time_order"].GetInt(),
-            #     self.settings["use_slip_conditions"].GetBool(),
-            #     self.settings["move_mesh_flag"].GetBool(),
-            #     self.settings["reform_dofs_at_each_step"].GetBool(),
-            #     FluidDynamicsApplication.PATCH_INDEX)
-        else:
-            time_order=4 # Runge-Kutta order 4
-            rebuild_level = 0
-            fractional_step_settings = FluidDynamicsApplication.FractionalStepSettings(
-                computing_model_part,
-                domain_size,
-                time_order,
-                self.settings["use_slip_conditions"].GetBool(),
-                self.settings["move_mesh_flag"].GetBool(),
-                self.settings["reform_dofs_at_each_step"].GetBool(),
-                rebuild_level)
+        time_order= 4 # Runge-Kutta order 4
+        fractional_step_settings = FluidDynamicsApplication.FractionalStepSettings(
+            computing_model_part,
+            domain_size,
+            time_order,
+            self.settings["use_slip_conditions"].GetBool(),
+            self.settings["move_mesh_flag"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool())
 
         # Set the strategy echo level
         fractional_step_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Set the velocity and pressure fractional step strategy settings
         fractional_step_settings.SetStrategy(FluidDynamicsApplication.StrategyLabel.Pressure,
-            linear_solvers[0],
+            linear_solvers,
             self.settings["pressure_tolerance"].GetDouble(),
             self.settings["maximum_pressure_iterations"].GetInt())
 
-        fractional_step_settings.SetStrategy(FluidDynamicsApplication.StrategyLabel.Velocity,
-            linear_solvers[1],
-            self.settings["velocity_tolerance"].GetDouble(),
-            self.settings["maximum_velocity_iterations"].GetInt())
+        fractional_step_settings.SetExplicitStrategy(FluidDynamicsApplication.StrategyLabel.Velocity)
 
-        # Create the fractional step strategy
-        if self.settings["consider_periodic_conditions"].GetBool() == True:
-            pass
-            # solution_strategy = FluidDynamicsApplication.FractionalStepStrategy(
-            #     computing_model_part,
-            #     fractional_step_settings,
-            #     self.settings["predictor_corrector"].GetBool(),
-            #     self.settings["compute_reactions"].GetBool(),
-            #     FluidDynamicsApplication.PATCH_INDEX)
-        else:
-            solution_strategy = FluidDynamicsApplication.ExplicitFractionalStepStrategy(
-                computing_model_part,
-                fractional_step_settings,
-                self.settings["predictor_corrector"].GetBool(),
-                self.settings["compute_reactions"].GetBool())
+        solution_strategy = FluidDynamicsApplication.ExplicitFractionalStepStrategy(
+            computing_model_part,
+            fractional_step_settings,
+            self.settings["predictor_corrector"].GetBool(),
+            self.settings["compute_reactions"].GetBool())
 
         return solution_strategy
