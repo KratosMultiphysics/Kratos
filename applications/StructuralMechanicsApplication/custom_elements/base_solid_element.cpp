@@ -889,21 +889,15 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
             const std::function<void(const Vector&, const Vector&, double&)> retrieve_vm_stress_2d =
-            [](const Vector& rStressVector, const Vector& rStrainVector, double& rEquivalentStress) -> void
-            {
+            [](const Vector& rStressVector, const Vector& rStrainVector, double& rEquivalentStress) -> void {
                 array_1d<double, 3> stress_vector;
-                for (std::size_t i = 0; i < 3; ++i) {
-                    stress_vector[i] = rStressVector[i];
-                }
+                for (std::size_t i = 0; i < 3; ++i) stress_vector[i] = rStressVector[i];
                 ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(stress_vector, rStrainVector, rEquivalentStress);
             };
             const std::function<void(const Vector&, const Vector&, double&)> retrieve_vm_stress_3d =
-            [](const Vector& rStressVector, const Vector& rStrainVector, double& rEquivalentStress) -> void
-            {
+            [](const Vector& rStressVector, const Vector& rStrainVector, double& rEquivalentStress) -> void {
                 array_1d<double, 6> stress_vector;
-                for (std::size_t i = 0; i < 6; ++i) {
-                    stress_vector[i] = rStressVector[i];
-                }
+                for (std::size_t i = 0; i < 6; ++i) stress_vector[i] = rStressVector[i];
                 ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(stress_vector, rStrainVector, rEquivalentStress);
             };
             const auto* p_retrieve_vm_stress = dimension == 2 ? &retrieve_vm_stress_2d : &retrieve_vm_stress_3d;
