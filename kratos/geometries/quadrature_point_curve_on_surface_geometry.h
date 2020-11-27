@@ -21,7 +21,7 @@
 
 // Project includes
 #include "geometries/quadrature_point_geometry.h"
-#include "includes/variables.h"
+
 
 namespace Kratos
 {
