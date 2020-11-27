@@ -112,6 +112,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @brief This method computes the first invariant from a given stress vector
      * @param rStressVector The stress vector on Voigt notation
      * @param rI1 The first invariant
+     * @tparam TVector The themplate for the vector class
      */
     template<class TVector>
     static void CalculateI1Invariant(
