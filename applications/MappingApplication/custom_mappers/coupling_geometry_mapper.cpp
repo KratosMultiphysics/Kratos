@@ -394,7 +394,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CheckCouplingInputs()
     // Extra checks of the coupling input validity
 
     // Check 1 - MPM cannot be the coupling interface slave
-    KRATOS_ERROR_IF(mpCouplingInterfaceSlave->GetModel().HasModelPart("Background_Grid"))
+    const bool destination_is_slave = mMapperSettings["destination_is_slave"].GetBool();
+    const Model& r_slave_model = (destination_is_slave)
+        ? mrModelPartDestination.GetModel()
+        : mrModelPartOrigin.GetModel();
+    KRATOS_ERROR_IF(r_slave_model.HasModelPart("Background_Grid"))
         << "CouplingGeometryMapper | MPM was specified as the slave model which is currently not researched."
         << "\nPlease reverse coupling order with 'destination_is_slave = false' in the parameters file.\n";
 }
