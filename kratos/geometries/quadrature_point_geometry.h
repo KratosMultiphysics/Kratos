@@ -482,7 +482,7 @@ private:
 
     // quatrature point can be related to a parent geometry. To keep the connection,
     // this geometry is related to the integration point.
-    GeometryType* mpGeometryParent;
+    GeometryType* mpGeometryParent = nullptr;
 
     ///@}
     ///@name Serialization

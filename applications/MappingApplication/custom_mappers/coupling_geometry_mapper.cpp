@@ -61,7 +61,8 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     if (rDestinationIds.size() != number_of_nodes_slave) rDestinationIds.resize(number_of_nodes_slave);
 
     Vector det_jacobian;
-    r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+    if (&(r_geometry_slave.GetGeometryParent(0)) == nullptr) r_geometry_slave.DeterminantOfJacobian(det_jacobian);
+    else r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
 
     KRATOS_DEBUG_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
@@ -243,9 +244,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     // Check row sum of pre-computed mapping matrices only
     if (precompute_mapping_matrix || dual_mortar) {
-        PrintMatrix(*(mpMappingMatrixSlave.get()), "slave");
-        PrintMatrix(*(mpMappingMatrixProjector.get()), "projector");
-        PrintMatrix(*(mpMappingMatrix.get()), "mapper");
         const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
         const double row_sum_tolerance = mMapperSettings["row_sum_tolerance"].GetDouble();
         MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true, row_sum_tolerance);

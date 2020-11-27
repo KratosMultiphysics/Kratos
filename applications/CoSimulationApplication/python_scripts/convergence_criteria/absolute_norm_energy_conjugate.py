@@ -24,7 +24,6 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
 
         self.iteration = 1
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
-        self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
         self.ignore_first_convergence = self.settings["ignore_first_convergence"].GetBool()
 
         # Determine if we are looking at the energy difference between two domains (solvers), or just one
@@ -67,10 +66,10 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     def IsConverged(self):
         # Compute energy scalar on interface
         current_data = 0.0
-        origin_energy = 0.0;
+
         for solver_index in range(0,len(self.interface_data)):
             #check length of data vectors are the same
-            interface_energy = 0.0
+            interface_energy = 0.0;
             data_1 = self.interface_data[solver_index][0].GetData()
             data_2 = self.interface_data[solver_index][1].GetData()
             if len(data_1) != len(data_2):
@@ -80,20 +79,15 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
                     interface_energy += data_1[i]*data_2[i]
             if solver_index == 0:
                 current_data = interface_energy
-                origin_energy = interface_energy
             else:
                 current_data -= self.second_domain_data_sign*interface_energy #assumes domain_difference
 
         abs_norm = la.norm(current_data)
-        origin_norm = la.norm(interface_energy)
-        if origin_norm < 1e-12:
-            origin_norm = 1.0
-        rel_norm = abs_norm / origin_norm
 
         if self.ignore_first_convergence and self.iteration == 1:
             is_converged = False
         else:
-            is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
+            is_converged = abs_norm < self.abs_tolerance
 
         self.iteration += 1
 
@@ -111,7 +105,7 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
                 info_msg += colors.red("NOT ACHIEVED")
 
         if self.echo_level > 2:
-            info_msg += '\n\t abs-norm = {:.2e} | abs-tol = {} || rel-norm = {:.2e} | rel-tol = {}'.format(abs_norm, self.abs_tolerance, rel_norm, self.rel_tolerance)
+            info_msg += '\n\t abs-norm = {:.2e} | abs-tol = {}'.format(abs_norm, self.abs_tolerance)
 
         if info_msg != "":
             cs_tools.cs_print_info(self._ClassName(), info_msg)
@@ -125,7 +119,6 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "abs_tolerance"            : 1e-5,
-            "rel_tolerance"            : 1e-5,
             "criteria_options"         : [],
             "conjugate_data_name"      : "UNSPECIFIED",
             "solver_domain_two"        : "UNSPECIFIED",
