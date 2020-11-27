@@ -40,7 +40,7 @@ namespace Kratos
 ///@{
 
 /// Estimate the time step in a fluid problem to obtain a given Courant number.
-class EstimateDtUtility
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) EstimateDtUtility
 {
 public:
 
