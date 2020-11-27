@@ -101,11 +101,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         }
     }
 
-    if (!mIsProjection)
-    {
-        KRATOS_WATCH(rLocalMappingMatrix);
-    }
-
     for (IndexType i=0; i< sf_values_master.size2(); ++i) {
             rOriginIds[i] = r_geometry_master[i].GetValue(INTERFACE_EQUATION_ID);
     }
@@ -249,9 +244,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     // Check row sum of pre-computed mapping matrices only
     if (precompute_mapping_matrix || dual_mortar) {
-        PrintMatrix(*(mpMappingMatrixSlave.get()), "slave");
-        PrintMatrix(*(mpMappingMatrixProjector.get()), "projector");
-        PrintMatrix(*(mpMappingMatrix.get()), "mapper");
         const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
         const double row_sum_tolerance = mMapperSettings["row_sum_tolerance"].GetDouble();
         MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true, row_sum_tolerance);
