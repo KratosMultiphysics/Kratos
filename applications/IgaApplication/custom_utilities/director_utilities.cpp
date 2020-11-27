@@ -50,5 +50,3 @@ namespace Kratos
         KRATOS_WATCH(solution)
     }
 }  // namespace Kratos.
-
-#endif // KRATOS_IGA_FLAGS_CPP_INCLUDED  defined
