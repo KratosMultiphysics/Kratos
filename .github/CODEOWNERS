@@ -13,6 +13,7 @@
 /applications/TrilinosApplication/                     @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
 /applications/MetisApplication/                        @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
 /applications/StructuralMechanicsApplication/          @KratosMultiphysics/structural-mechanics
+/applications/ConstitutiveLawsApplication/             @KratosMultiphysics/structural-mechanics
 /applications/ContactStructuralMechanicsApplication/   @KratosMultiphysics/structural-mechanics
 /applications/FluidDynamicsApplication/                @KratosMultiphysics/fluid-maintainers
 /applications/ConvectionDiffusionApplication           @KratosMultiphysics/fluid-maintainers
