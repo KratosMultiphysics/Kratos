@@ -32,33 +32,29 @@
 namespace Kratos
 {
 
-    template<unsigned int TDim>
-    void EstimateDtUtility<TDim>::SetCFL(const double CFL)
+    void EstimateDtUtility::SetCFL(const double CFL)
     {
         mCFL = CFL;
     }
 
-    template<unsigned int TDim>
-    void EstimateDtUtility<TDim>::SetDtMin(const double DtMin)
+    void EstimateDtUtility::SetDtMin(const double DtMin)
     {
         mDtMin = DtMin;
     }
 
-    template<unsigned int TDim>
-    void EstimateDtUtility<TDim>::SetDtMax(const double DtMax)
+    void EstimateDtUtility::SetDtMax(const double DtMax)
     {
         mDtMax = DtMax;
     }
 
-    template<unsigned int TDim>
-    double EstimateDtUtility<TDim>::EstimateDt() const
+    double EstimateDtUtility::EstimateDt() const
     {
         KRATOS_TRY;
 
         // Get the projected element size function according to the corresponding geometry
         // Note that in here it is assumed that all the elements in the model part feature the same geometry
         const auto& r_geom = mrModelPart.ElementsBegin()->GetGeometry();
-        ElementSizeFunctionType projected_h_func = EstimateDtUtility<TDim>::GetProjectedElementSizeFunction(r_geom);
+        ElementSizeFunctionType projected_h_func = EstimateDtUtility::GetProjectedElementSizeFunction(r_geom);
 
         // Obtain the maximum CFL
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
@@ -91,29 +87,26 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    template<unsigned int TDim>
-    void EstimateDtUtility<TDim>::CalculateLocalCFL(ModelPart& rModelPart)
+    void EstimateDtUtility::CalculateLocalCFL(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
         // Get the projected element size function according to the corresponding geometry
         // Note that in here it is assumed that all the elements in the model part feature the same geometry
         const auto& r_geom = rModelPart.ElementsBegin()->GetGeometry();
-        ElementSizeFunctionType projected_h_func = EstimateDtUtility<TDim>::GetProjectedElementSizeFunction(r_geom);
+        ElementSizeFunctionType projected_h_func = EstimateDtUtility::GetProjectedElementSizeFunction(r_geom);
 
         // Calculate the CFL number in each element
-        GeometryDataContainer geometry_info;
         const double current_dt = rModelPart.GetProcessInfo().GetValue(DELTA_TIME);
         block_for_each(rModelPart.Elements(), [&](Element& rElement){
-            const double element_cfl = EstimateDtUtility<TDim>::CalculateElementCFL(rElement, projected_h_func, current_dt);
+            const double element_cfl = EstimateDtUtility::CalculateElementCFL(rElement, projected_h_func, current_dt);
             rElement.SetValue(CFL_NUMBER, element_cfl);
         });
 
         KRATOS_CATCH("")
     }
 
-    template<unsigned int TDim>
-    double EstimateDtUtility<TDim>::CalculateElementCFL(
+    double EstimateDtUtility::CalculateElementCFL(
         const Element &rElement,
         const ElementSizeFunctionType& rElementSizeCalculator,
         const double Dt)
@@ -134,8 +127,7 @@ namespace Kratos
         return elem_cfl;
     }
 
-    template<unsigned int TDim>
-    typename EstimateDtUtility<TDim>::ElementSizeFunctionType EstimateDtUtility<TDim>::GetProjectedElementSizeFunction(const Geometry<Node<3>>& rGeometry)
+    typename EstimateDtUtility::ElementSizeFunctionType EstimateDtUtility::GetProjectedElementSizeFunction(const Geometry<Node<3>>& rGeometry)
     {
         ElementSizeFunctionType projected_h_func;
         const auto geometry_type = rGeometry.GetGeometryType();
@@ -154,8 +146,7 @@ namespace Kratos
         return projected_h_func;
     }
 
-    template<unsigned int TDim>
-    void EstimateDtUtility<TDim>::save(Serializer& rSerializer) const
+    void EstimateDtUtility::save(Serializer& rSerializer) const
     {
         rSerializer.save("mCFL", mCFL);
         rSerializer.save("mDtMax", mDtMax);
@@ -163,16 +154,12 @@ namespace Kratos
         rSerializer.save("mrModelPart", mrModelPart);
     }
 
-    template<unsigned int TDim>
-    void EstimateDtUtility<TDim>::load(Serializer& rSerializer)
+    void EstimateDtUtility::load(Serializer& rSerializer)
     {
         rSerializer.load("mCFL", mCFL);
         rSerializer.load("mDtMax", mDtMax);
         rSerializer.load("mDtMin", mDtMin);
         rSerializer.load("mrModelPart", mrModelPart);
     }
-
-template class EstimateDtUtility<2>;
-template class EstimateDtUtility<3>;
 
 } // namespace Kratos.

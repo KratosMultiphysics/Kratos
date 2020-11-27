@@ -76,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDt, FluidDynamicsApplicatio
         "minimum_delta_time"    : 1e-4,
         "maximum_delta_time"    : 1e+1
     })");
-    const auto estimate_dt_utility = EstimateDtUtility<2>(r_model_part, estimate_dt_settings);
+    const auto estimate_dt_utility = EstimateDtUtility(r_model_part, estimate_dt_settings);
     const double obtained_dt = estimate_dt_utility.EstimateDt();
 
     // Check results
@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesCalculateLocalCFL, FluidDynamicsApp
     Internals::TestEstimateDtUtilitiesInitializeModelPart(r_model_part, current_dt);
 
     // Calculate the CFL number for each element
-    EstimateDtUtility<2>::CalculateLocalCFL(r_model_part);
+    EstimateDtUtility::CalculateLocalCFL(r_model_part);
 
     // Check results
     const double tolerance = 2.0e-6;

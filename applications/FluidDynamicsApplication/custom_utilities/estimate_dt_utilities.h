@@ -40,7 +40,6 @@ namespace Kratos
 ///@{
 
 /// Estimate the time step in a fluid problem to obtain a given Courant number.
-template< unsigned int TDim >
 class EstimateDtUtility
 {
 public:
@@ -149,21 +148,6 @@ public:
 
 private:
 
-    ///@name Auxiliary Data types
-    ///@{
-
-    /**
-     * @brief Geometry data container
-     * Auxiliary container to avoid allocations within the parallel loops
-     */
-    struct GeometryDataContainer
-    {
-        double Area;
-        array_1d<double, TDim+1> N;
-        BoundedMatrix<double, TDim+1, TDim> DN_DX;
-    };
-
-    ///@}
     ///@name Member Variables
     ///@{
 
