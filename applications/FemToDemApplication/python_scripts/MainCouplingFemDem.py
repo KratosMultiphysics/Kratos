@@ -51,7 +51,7 @@ class MainCoupledFemDem_Solution:
         else: # 3D
             self.number_of_nodes_element = 4
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
-            
+
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
 
@@ -239,7 +239,7 @@ class MainCoupledFemDem_Solution:
 
         # Print required info
         self.PrintPlotsFiles()
-        
+
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
 
@@ -257,7 +257,7 @@ class MainCoupledFemDem_Solution:
 
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
-        
+
         if not self.is_slave:
             self.PrintResults()
 
@@ -952,7 +952,6 @@ class MainCoupledFemDem_Solution:
                 max_id_properties = prop.Id
         props = KratosMultiphysics.Properties(max_id_properties + 1)
         self.created_props_id = max_id_properties + 1
-        props[KratosDEM.FRICTION] =  -0.5773502691896257
         props[KratosDEM.STATIC_FRICTION] =  -0.5773502691896257
         props[KratosDEM.DYNAMIC_FRICTION] =  -0.5773502691896257
         props[KratosDEM.WALL_COHESION] = 0.0
