@@ -36,7 +36,6 @@ class CreatePointBasedEntitiesProcess(KM.Process):
             "entity_name"              : "PointLoadCondition3D1N",
             "entity_type"              : "condition",
             "properties_id"            : 0,
-            "add_to_existing_model_part": false,
             "kratos_application"       : ""
         }""")
 
@@ -52,7 +51,6 @@ class CreatePointBasedEntitiesProcess(KM.Process):
         entity_name = settings["entity_name"].GetString()
         entity_type = settings["entity_type"].GetString()
         properties_id = settings["properties_id"].GetInt()
-        is_add_to_existing_model_part = settings["add_to_existing_model_part"].GetBool()
 
         # importing the Application where the entites are registered (optional)
         kratos_application = settings["kratos_application"].GetString()
@@ -67,9 +65,7 @@ class CreatePointBasedEntitiesProcess(KM.Process):
         else:
             model_parts = [Model[model_part_name+"."+sub_model_part_name] for sub_model_part_name in settings["sub_model_part_names"].GetStringArray()]
 
-        new_model_part = model_part
-        if is_add_to_existing_model_part == False:
-            new_model_part = RecursiveCreateModelParts(model_part, settings["new_sub_model_part_name"].GetString())
+        new_model_part = RecursiveCreateModelParts(model_part, settings["new_sub_model_part_name"].GetString())
 
         node_ids = [node.Id
             for mp in model_parts
@@ -77,8 +73,7 @@ class CreatePointBasedEntitiesProcess(KM.Process):
         ]
         node_ids = list(set(node_ids)) # make sure the node-Ids are unique. This is needed to not create multiple entities for the same node
 
-        if is_add_to_existing_model_part == False:
-            new_model_part.AddNodes(node_ids)
+        new_model_part.AddNodes(node_ids)
 
         props = root_model_part.GetProperties(properties_id, 0) # 0 is mesh-id # maybe check and then create the props
         mp_comm = root_model_part.GetCommunicator()
@@ -100,12 +95,6 @@ class CreatePointBasedEntitiesProcess(KM.Process):
 
         for i, node_id in enumerate(node_ids):
             creation_fct_ptr(entity_name, i+local_id_start, [node_id], props)
-
-        print("CreatePointBasedEntitiesProcess printing model part after condition creation\n",model_part)
-        for condition in new_model_part.Conditions:
-            print(condition.Info())
-            for node in condition.GetNodes():
-                print("\tNode",node.Id,"\n\tX = ",node.X,"\n\tY = ",node.Y)
 
 
 def RecursiveCreateModelParts(model_part, model_part_name):
