@@ -1117,6 +1117,26 @@ void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateVonMisesEquivalentStress(
+    const array_1d<double, VoigtSize>& rStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    double I1, J2;
+    array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+
+    ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
+    ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
+
+    rEquivalentStress = std::sqrt(3.0 * J2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 

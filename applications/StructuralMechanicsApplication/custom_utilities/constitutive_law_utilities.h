@@ -21,6 +21,7 @@
 
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
+#include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
@@ -448,7 +449,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     );
 
     /**
-     * @brief This converts the 
+     * @brief This converts the
      * 3x3 rotation matrix to the 6x6
      * Cook et al., "Concepts and applications
      * of finite element analysis"
@@ -458,6 +459,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         BoundedMatrixVoigtType &rNewOperator
     );
 
+    /**
+     * @brief This method the uniaxial equivalent stress for Von Mises
+     * @param rStressVector The stress vector S = C:E
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateVonMisesEquivalentStress(
+        const array_1d<double, VoigtSize>& rStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues
+        );
 
 private:
 
