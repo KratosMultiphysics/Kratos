@@ -189,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFa
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicator, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicatorAssembly, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
@@ -214,6 +214,59 @@ KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicator, KratosMPICoreFastSuite)
 
     // creates the gp map
     GlobalPointerMapCommunicator<Node<3>, double> pointer_map_comm(r_default_comm, gp_list, 0.0);
+
+    // creates apply proxy
+    auto apply_temperature_assemble_proxy = pointer_map_comm.GetApplyProxy(
+        [](Node<3>& rNode, const double& NewValue) {
+            rNode.GetValue(TEMPERATURE) += NewValue;
+        });
+
+    GlobalPointersUnorderedMap<Node<3>, double> assembly_values_map;
+    for (int i = 0; i < current_rank + 1; ++i) {
+        assembly_values_map[gp_list(i)] = (gp_list(i).GetRank() + 1.0) * 2;
+    }
+
+    // Assigns local gps and stores remote gps in a map for future communication
+    apply_temperature_assemble_proxy.Assign(assembly_values_map);
+    apply_temperature_assemble_proxy.Assign(assembly_values_map);
+    apply_temperature_assemble_proxy.Assign(gp_list(0), 1);
+    apply_temperature_assemble_proxy.Assign(gp_list(0), 2);
+
+    // communicate remote gps and update them
+    apply_temperature_assemble_proxy.SendAndApplyRemotely();
+
+    if (current_rank == 0) {
+        KRATOS_CHECK_EQUAL(pnode->GetValue(TEMPERATURE), world_size * 2 * 2 + world_size * 3);
+    } else {
+        KRATOS_CHECK_EQUAL(pnode->GetValue(TEMPERATURE), current_rank + (world_size - current_rank) * (current_rank + 1) * 2.0 * 2.0);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicatorAssign, KratosMPICoreFastSuite)
+{
+    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    Model current_model;
+    auto& mp = current_model.CreateModelPart("mp");
+    mp.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    const int world_size = r_default_comm.Size();
+    const int current_rank = r_default_comm.Rank();
+
+    auto pnode = mp.CreateNewNode(current_rank+1, current_rank,current_rank,current_rank); //the node is equal to the current rank;
+    pnode->FastGetSolutionStepValue(PARTITION_INDEX) = current_rank;
+    pnode->SetValue(TEMPERATURE, current_rank);
+
+    //we will gather on every node the global pointers of the nodes with index from
+    //current_rank(+1) to world_size
+    std::vector<int> indices;
+    for(int i=1; i<=world_size; ++i) {
+        indices.push_back(i);
+    }
+
+    auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm);
+
+    // creates the gp map
+    GlobalPointerMapCommunicator<Node<3>, double> pointer_map_comm(r_default_comm, gp_list, 0.0, false);
 
     // creates apply proxy
     auto apply_temperature_assemble_proxy = pointer_map_comm.GetApplyProxy(

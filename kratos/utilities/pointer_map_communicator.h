@@ -125,6 +125,13 @@ public:
         } else {
             this->mUpdateMethod = &ProxyType::AssignLocalData;
         }
+
+        // identify proper methods to be used in updating non-local gp data
+        if (mrPointerCommunicator.IsAssembly()) {
+            this->mNonLocalGPDataUpdateMethod = &ProxyType::NonLocalDataAssemblyMethod;
+        } else {
+            this->mNonLocalGPDataUpdateMethod = &ProxyType::NonLocalDataAssignMethod;
+        }
     }
 
     ///@}
@@ -258,6 +265,7 @@ private:
     const TApplyFunctor& mrApplyFunctor;
 
     void (ProxyType::*mUpdateMethod)(const GlobalPointer<TPointerDataType>&, const TValueDataType&);
+    void (ProxyType::*mNonLocalGPDataUpdateMethod)(TValueDataType&, const TValueDataType&);
 
     TGPNonLocalDataMap& mrNonLocalDataMap;
     TGPMapCommunicator& mrPointerCommunicator;
@@ -330,10 +338,40 @@ private:
                 << "Global pointer not found in rank " << data_rank
                 << " non local map. [ MyPID = " << mCurrentRank << " ].\n";
 
-            p_non_local_itr->second = rValue;
+            (this->*(this->mNonLocalGPDataUpdateMethod))(p_non_local_itr->second, rValue);
         }
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This is used in assembly of values
+     *
+     * This method assembles non-local gp data in the non-local gp data map
+     *
+     * @param rNonLocalGPDataValue          Output value
+     * @param rNewValue                     New input value
+     */
+    void NonLocalDataAssemblyMethod(
+        TValueDataType& rNonLocalGPDataValue,
+        const TValueDataType& rNewValue)
+    {
+        rNonLocalGPDataValue += rNewValue;
+    }
+
+    /**
+     * @brief This is used in assigning of values
+     *
+     * This method assigns non-local gp data in the non-local gp data map
+     *
+     * @param rNonLocalGPDataValue          Output value
+     * @param rNewValue                     New input value
+     */
+    void NonLocalDataAssignMethod(
+        TValueDataType& rNonLocalGPDataValue,
+        const TValueDataType& rNewValue)
+    {
+        rNonLocalGPDataValue = rNewValue;
     }
 
     ///@}
@@ -391,9 +429,11 @@ public:
     GlobalPointerMapCommunicator(
         const DataCommunicator& rDataCommunicator,
         const TGPVector& rGPVector,
-        const TValueDataType& rInitializationValue)
+        const TValueDataType& rInitializationValue,
+        const bool IsAssembly = true)
         : mrDataCommunicator(rDataCommunicator),
-          mCurrentRank(rDataCommunicator.Rank())
+          mCurrentRank(rDataCommunicator.Rank()),
+          mIsAssembly(IsAssembly)
     {
         if (IsDistributed()) {
             AddPointers(rGPVector, rInitializationValue);
@@ -418,9 +458,11 @@ public:
     GlobalPointerMapCommunicator(
         const DataCommunicator& rDataCommunicator,
         const TValueDataType& rInitializationValue,
-        TVectorFunctorType&& rVectorFunctor)
+        TVectorFunctorType&& rVectorFunctor,
+        const bool IsAssembly = true)
         : mrDataCommunicator(rDataCommunicator),
-          mCurrentRank(rDataCommunicator.Rank())
+          mCurrentRank(rDataCommunicator.Rank()),
+          mIsAssembly(IsAssembly)
     {
         if (IsDistributed()) {
             const auto& r_gp_vector = rVectorFunctor(mrDataCommunicator);
@@ -432,11 +474,13 @@ public:
     template <class TVectorFunctorType>
     GlobalPointerMapCommunicator(
         const TValueDataType& rInitializationValue,
-        TVectorFunctorType&& rFunctor)
+        TVectorFunctorType&& rFunctor,
+        const bool IsAssembly = true)
         : GlobalPointerMapCommunicator(
               ParallelEnvironment::GetDefaultDataCommunicator(),
               rInitializationValue,
-              std::forward<TVectorFunctorType>(rFunctor))
+              std::forward<TVectorFunctorType>(rFunctor),
+              IsAssembly)
     {
     }
 
@@ -518,6 +562,11 @@ public:
         return mCurrentRank;
     }
 
+    bool IsAssembly() const
+    {
+        return mIsAssembly;
+    }
+
     ///@}
     ///@name Public static operations
     ///@{
@@ -583,19 +632,14 @@ protected:
         const TGPVector& rGPVector,
         const TValueDataType& rInitializationValue)
     {
-        // this method is called always at the constructor, and it is not allowed to have PointerMapCommunicators
-        // created in OMP regions so, it is safer to do OMP parallelization here.
+        // this method is called always at the constructor.
         // this should only be called in MPI
-        IndexPartition<int>(rGPVector.size()).for_each([&](const int Index) {
-            const auto& r_gp = rGPVector(Index);
+        for (const auto& r_gp : rGPVector.GetContainer()) {
             if (r_gp.GetRank() != mCurrentRank) {
-#pragma omp critical
-                {
                     auto& rank_local_map = mrNonLocalPointers[r_gp.GetRank()];
                     rank_local_map[r_gp] = rInitializationValue;
-                }
             }
-        });
+        }
     }
 
     void ComputeCommunicationPlan()
@@ -613,6 +657,7 @@ private:
     ///@{
 
     std::vector<int> mColors;
+    const bool mIsAssembly;
 
     ///@}
 
