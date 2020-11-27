@@ -132,7 +132,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     // Fluid adjoint elements
     mQSVMSAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mQSVMSAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+    mQSVMSAdjoint2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mQSVMSAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mQSVMSAdjoint3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
 {}
 
 void KratosFluidDynamicsApplication::Register() {
@@ -343,9 +345,9 @@ void KratosFluidDynamicsApplication::Register() {
 
     // Register adjoint elements
     KRATOS_REGISTER_ELEMENT("QSVMSAdjoint2D3N",mQSVMSAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("QSVMSAdjoint2D4N",mQSVMSAdjoint2D4N);
     KRATOS_REGISTER_ELEMENT("QSVMSAdjoint3D4N",mQSVMSAdjoint3D4N);
-    // KRATOS_REGISTER_ELEMENT("QSVMSAdjoint2D4N",mQSVMSAdjoint2D4N);
-    // KRATOS_REGISTER_ELEMENT("QSVMSAdjoint3D8N",mQSVMSAdjoint3D8N);
+    KRATOS_REGISTER_ELEMENT("QSVMSAdjoint3D8N",mQSVMSAdjoint3D8N);
 }
 
 }  // namespace Kratos.
