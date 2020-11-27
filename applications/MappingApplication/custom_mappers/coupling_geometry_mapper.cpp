@@ -55,8 +55,8 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     if (rOriginIds.size()      != number_of_nodes_master) rOriginIds.resize(number_of_nodes_master);
     if (rDestinationIds.size() != number_of_nodes_slave) rDestinationIds.resize(number_of_nodes_slave);
 
-    const auto& sf_values_master = r_geometry_master.ShapeFunctionsValues();
-    const auto& sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
+    auto sf_values_master = r_geometry_master.ShapeFunctionsValues();
+    auto sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
     Vector det_jacobian;
     if (&(r_geometry_slave.GetGeometryParent(0)) == nullptr) r_geometry_slave.DeterminantOfJacobian(det_jacobian);
     else r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);

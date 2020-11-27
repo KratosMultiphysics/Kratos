@@ -270,6 +270,19 @@ public:
         BaseType::PrintData(rOStream);
     }
 
+    // Get values
+    // Always returns the true origin/destination regardless of 'destination_is_slave'
+    ModelPart& GetInterfaceModelPartOrigin() override
+    {
+
+        return mpCouplingMP->GetSubModelPart("interface_origin");
+    }
+
+    ModelPart& GetInterfaceModelPartDestination() override
+    {
+        return mpCouplingMP->GetSubModelPart("interface_destination");
+    }
+
 private:
 
     ///@name Private Operations
