@@ -1121,8 +1121,7 @@ template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateVonMisesEquivalentStress(
     const array_1d<double, VoigtSize>& rStressVector,
     const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
+    double& rEquivalentStress
     )
 {
     double I1, J2;
