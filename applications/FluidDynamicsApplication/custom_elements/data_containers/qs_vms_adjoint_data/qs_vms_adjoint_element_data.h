@@ -55,16 +55,11 @@ public:
 
     static int Check(
         const GeometryType& rGeometry,
-        const ProcessInfo& rProcessInfo)
-    {
-        // return TResidualDerivatives::Check(rGeometry, rProcessInfo);
-        return 0;
-    }
+        const ProcessInfo& rProcessInfo);
 
-    static GeometryData::IntegrationMethod GetIntegrationMethod()
-    {
-        return TResidualDerivatives::GetIntegrationMethod();
-    }
+    static GeometryData::IntegrationMethod GetIntegrationMethod();
+
+    static std::vector<const Variable<double>*> GetDofVariablesList();
 
     ///@}
     ///@name Classes

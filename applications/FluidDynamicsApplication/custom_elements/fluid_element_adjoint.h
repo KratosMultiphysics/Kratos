@@ -50,6 +50,16 @@ class FluidAdjointElement : public Element
             std::vector<IndirectScalar<double>>& rVector,
             std::size_t Step) override
         {
+            auto& r_node = mpElement->GetGeometry()[NodeId];
+            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
+            std::size_t index = 0;
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_X, Step);
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Y, Step);
+            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) {
+                rVector[index++] =
+                    MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Z, Step);
+            }
+            rVector[index] = IndirectScalar<double>{}; // pressure
         }
 
         void GetSecondDerivativesVector(
@@ -57,6 +67,16 @@ class FluidAdjointElement : public Element
             std::vector<IndirectScalar<double>>& rVector,
             std::size_t Step) override
         {
+            auto& r_node = mpElement->GetGeometry()[NodeId];
+            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
+            std::size_t index = 0;
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_X, Step);
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Y, Step);
+            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) {
+                rVector[index++] =
+                    MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Z, Step);
+            }
+            rVector[index] = IndirectScalar<double>{}; // pressure
         }
 
         void GetAuxiliaryVector(
@@ -64,18 +84,36 @@ class FluidAdjointElement : public Element
             std::vector<IndirectScalar<double>>& rVector,
             std::size_t Step) override
         {
+            auto& r_node = mpElement->GetGeometry()[NodeId];
+            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
+            std::size_t index = 0;
+            rVector[index++] =
+                MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_X, Step);
+            rVector[index++] =
+                MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Y, Step);
+            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) {
+                rVector[index++] =
+                    MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Z, Step);
+            }
+            rVector[index] = IndirectScalar<double>{}; // pressure
         }
 
         void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
         {
+            rVariables.resize(1);
+            rVariables[0] = &ADJOINT_FLUID_VECTOR_2;
         }
 
         void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
         {
+            rVariables.resize(1);
+            rVariables[0] = &ADJOINT_FLUID_VECTOR_3;
         }
 
         void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override
         {
+            rVariables.resize(1);
+            rVariables[0] = &AUX_ADJOINT_FLUID_VECTOR_1;
         }
     };
 
@@ -226,19 +264,19 @@ public:
         EquationIdVectorType& rElementalEquationIdList,
         const ProcessInfo& rCurrentProcessInfo) const override
     {
-        // if (rElementalEquationIdList.size() != TElementLocalSize) {
-        //     rElementalEquationIdList.resize(TElementLocalSize, false);
-        // }
+        if (rElementalEquationIdList.size() != TElementLocalSize) {
+            rElementalEquationIdList.resize(TElementLocalSize, false);
+        }
 
-        // const auto& r_variables_list = TAdjointElementData::GetDofVariablesList();
+        const auto& r_variables_list = TAdjointElementData::GetDofVariablesList();
 
-        // IndexType local_index = 0;
-        // for (IndexType i = 0; i < TNumNodes; ++i) {
-        //     const auto& r_node = this->GetGeometry()[i];
-        //     for (const auto p_variable : r_variables_list) {
-        //         rElementalEquationIdList[local_index++] = r_node.GetDof(*p_variable).EquationId();
-        //     }
-        // }
+        IndexType local_index = 0;
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            const auto& r_node = this->GetGeometry()[i];
+            for (const auto p_variable : r_variables_list) {
+                rElementalEquationIdList[local_index++] = r_node.GetDof(*p_variable).EquationId();
+            }
+        }
     }
 
     /**
@@ -250,19 +288,19 @@ public:
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const override
     {
-        // if (rElementalDofList.size() != TElementLocalSize) {
-        //     rElementalDofList.resize(TElementLocalSize);
-        // }
+        if (rElementalDofList.size() != TElementLocalSize) {
+            rElementalDofList.resize(TElementLocalSize);
+        }
 
-        // const auto& r_variables_list = TAdjointElementData::GetDofVariablesList();
+        const auto& r_variables_list = TAdjointElementData::GetDofVariablesList();
 
-        // IndexType local_index = 0;
-        // for (IndexType i = 0; i < TNumNodes; ++i) {
-        //     const auto& r_node = this->GetGeometry()[i];
-        //     for (const auto p_variable : r_variables_list) {
-        //         rElementalDofList[local_index++] = r_node.pGetDof(*p_variable);
-        //     }
-        // }
+        IndexType local_index = 0;
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            const auto& r_node = this->GetGeometry()[i];
+            for (const auto p_variable : r_variables_list) {
+                rElementalDofList[local_index++] = r_node.pGetDof(*p_variable);
+            }
+        }
     }
 
     /// Returns the adjoint values stored in this element's nodes.
@@ -270,7 +308,20 @@ public:
         VectorType& rValues,
         int Step = 0) const override
     {
-        GetFirstDerivativesVector(rValues, Step);
+        if (rValues.size() != TElementLocalSize) {
+            rValues.resize(TElementLocalSize, false);
+        }
+
+        const auto& r_geometry = this->GetGeometry();
+        IndexType local_index = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto& r_node = r_geometry[i_node];
+            const auto& r_velocity = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1, Step);
+            for (IndexType d = 0; d < TDim; ++d) {
+                rValues[local_index++] = r_velocity[d];
+            }
+            rValues[local_index++] = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, Step);
+        }
     }
 
     /// Returns the adjoint velocity values stored in this element's nodes.
@@ -278,38 +329,29 @@ public:
         VectorType& rValues,
         int Step = 0) const override
     {
-        // if (rValues.size() != TElementLocalSize) {
-        //     rValues.resize(TElementLocalSize);
-        // }
-
-        // const auto& r_variables_list = TAdjointElementData::GetDofVariablesList();
-
-        // IndexType local_index = 0;
-        // for (IndexType i = 0; i < TNumNodes; ++i) {
-        //     const auto& r_node = this->GetGeometry()[i];
-        //     for (const auto p_variable : r_variables_list) {
-        //         rValues[local_index++] = rNode.FastGetSolutionStepValue(p_variable);
-        //     }
-        // }
+        if (rValues.size() != TElementLocalSize) {
+            rValues.resize(TElementLocalSize, false);
+        }
+        rValues.clear();
     }
 
     void GetSecondDerivativesVector(
         VectorType& rValues,
         int Step) const override
     {
-        // if (rValues.size() != TElementLocalSize) {
-        //     rValues.resize(TElementLocalSize);
-        // }
+        if (rValues.size() != TElementLocalSize) {
+            rValues.resize(TElementLocalSize);
+        }
 
-        // const auto& r_variables_list = TAdjointElementData::GetDofVariablesList();
-
-        // IndexType local_index = 0;
-        // for (IndexType i = 0; i < TNumNodes; ++i) {
-        //     const auto& r_node = this->GetGeometry()[i];
-        //     for (const auto p_variable : r_variables_list) {
-        //         rValues[local_index++] = rNode.FastGetSolutionStepValue(p_variable->GetTimeDerivative());
-        //     }
-        // }
+        const auto& r_geometry = this->GetGeometry();
+        IndexType local_index = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto& r_acceleration = r_geometry[i_node].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, Step);
+            for (IndexType d = 0; d < TDim; ++d) {
+                rValues[local_index++] = r_acceleration[d];
+            }
+            rValues[local_index++] = 0.0; // pressure dof
+        }
     }
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override {
