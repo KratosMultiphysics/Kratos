@@ -888,6 +888,26 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
+            const std::function<void(const Vector&, const Vector&, double&)> retrieve_vm_stress_2d =
+            [](const Vector& rStressVector, const Vector& rStrainVector, double& rEquivalentStress) -> void
+            {
+                array_1d<double, 3> stress_vector;
+                for (std::size_t i = 0; i < 3; ++i) {
+                    stress_vector[i] = rStressVector[i];
+                }
+                ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(stress_vector, rStrainVector, rEquivalentStress);
+            };
+            const std::function<void(const Vector&, const Vector&, double&)> retrieve_vm_stress_3d =
+            [](const Vector& rStressVector, const Vector& rStrainVector, double& rEquivalentStress) -> void
+            {
+                array_1d<double, 6> stress_vector;
+                for (std::size_t i = 0; i < 6; ++i) {
+                    stress_vector[i] = rStressVector[i];
+                }
+                ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(stress_vector, rStrainVector, rEquivalentStress);
+            };
+            const auto* p_retrieve_vm_stress = dimension == 2 ? &retrieve_vm_stress_2d : &retrieve_vm_stress_3d;
+
             for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
@@ -895,19 +915,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
-                if (dimension == 2) {
-                    array_1d<double, 3> stress_vector;
-                    for (std::size_t i = 0; i < 3; ++i) {
-                        stress_vector[i] = this_constitutive_variables.StressVector[i];
-                    }
-                    ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(stress_vector, this_constitutive_variables.StrainVector, rOutput[point_number]);
-                } else {
-                    array_1d<double, 6> stress_vector;
-                    for (std::size_t i = 0; i < 6; ++i) {
-                        stress_vector[i] = this_constitutive_variables.StressVector[i];
-                    }
-                    ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(stress_vector, this_constitutive_variables.StrainVector, rOutput[point_number]);
-                }
+                (*p_retrieve_vm_stress)(this_constitutive_variables.StressVector, this_constitutive_variables.StrainVector, rOutput[point_number]);
             }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
