@@ -160,6 +160,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
+     * @brief This method computes the second invariant of J
+     * @param rStressVector The stress vector on Voigt notation
+     * @param I1 The first invariant
+     * @param rDeviator The deviator of the stress
+     * @param rJ2 The second invariant of J
+     */
+    static void CalculateJ2Invariant(
+        const Vector& rStressVector,
+        const double I1,
+        BoundedVectorType& rDeviator,
+        double& rJ2
+        );
+
+    /**
      * @brief This method computes the third invariant of J
      * @param rDeviator The deviator of the stress
      * @param rJ3 The third invariant of J
