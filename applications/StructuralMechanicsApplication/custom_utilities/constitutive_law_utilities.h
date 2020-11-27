@@ -112,10 +112,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rStressVector The stress vector on Voigt notation
      * @param rI1 The first invariant
      */
+    template<class TVector>
     static void CalculateI1Invariant(
-        const BoundedVectorType& rStressVector,
+        const TVector& rStressVector,
         double& rI1
-        );
+        )
+    {
+        rI1 = rStressVector[0];
+        for (IndexType i = 1; i < Dimension; ++i)
+            rI1 += rStressVector[i];
+    }
 
     /**
      * @brief This method computes the second invariant from a given stress vector
