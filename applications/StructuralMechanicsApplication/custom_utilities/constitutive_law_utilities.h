@@ -21,6 +21,7 @@
 
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
+#include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
@@ -457,6 +458,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const BoundedMatrixType &rOldOperator,
         BoundedMatrixVoigtType &rNewOperator
     );
+
+    /**
+     * @brief This method transforms the PK2 stress to the Cauchy stress
+     * @param rValues The internal values of the law
+     */
+    static void TransformPK2ToCauchyStress(ConstitutiveLaw::Parameters& rValues);
 
     /**
      * @brief This method the uniaxial equivalent stress for Von Mises

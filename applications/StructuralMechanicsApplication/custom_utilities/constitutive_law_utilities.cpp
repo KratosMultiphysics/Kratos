@@ -1104,6 +1104,20 @@ void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::TransformPK2ToCauchyStress(ConstitutiveLaw::Parameters& rValues)
+{
+    const Matrix S = MathUtils<double>::StressVectorToTensor( rValues.GetStressVector() );
+    const Matrix& rF = rValues.GetDeformationGradientF();
+    const Matrix tmp = prod(S, trans(rF));
+    const double J = rValues.GetDeterminantF();
+    const Matrix cauchy_stress = 1.0/J * prod(rF,tmp) ;
+    noalias(rValues.GetStressVector()) = MathUtils<double>::StressTensorToVector(cauchy_stress);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateVonMisesEquivalentStress(
     const array_1d<double, VoigtSize>& rStressVector,
     const Vector& rStrainVector,
