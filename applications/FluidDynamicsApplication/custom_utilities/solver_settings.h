@@ -121,6 +121,8 @@ public:
                              const double Tolerance,
                              const unsigned int MaxIter) = 0;
 
+    virtual void SetExplicitStrategy(StrategyLabel const& rStrategyLabel) {}
+
     virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,

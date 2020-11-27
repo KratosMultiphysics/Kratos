@@ -20,6 +20,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
 #include "processes/process.h"
 
 // Application includes
@@ -51,6 +52,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/// TODO: as soon as a base SolvingStrategy class is created, we should be able to use a single member mStrategies.
 /// Helper class to define solution strategies for FS_Strategy.
 template< class TSparseSpace,
           class TDenseSpace,
@@ -69,6 +71,10 @@ public:
     typedef typename BaseType::StrategyType StrategyType;
     typedef typename BaseType::StrategyPointerType StrategyPointerType;
     typedef typename BaseType::ProcessPointerType ProcessPointerType;
+
+    typedef ExplicitSolvingStrategyRungeKutta4<TSparseSpace,TDenseSpace> ExplicitStrategyType;
+    typedef typename ExplicitStrategyType::Pointer ExplicitStrategyPointerType;
+    typedef ExplicitBuilder< TSparseSpace, TDenseSpace > ExplicitBuilderType;
 
     typedef typename BaseType::StrategyLabel StrategyLabel;
     typedef typename BaseType::TurbulenceModelLabel TurbulenceModelLabel;
@@ -185,6 +191,43 @@ public:
         KRATOS_CATCH("");
     }
 
+    void SetExplicitStrategy(StrategyLabel const& rStrategyLabel) override
+    {
+        KRATOS_TRY;
+
+        typedef typename ExplicitBuilderType::Pointer ExplicitBuilderPointerType;
+
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        unsigned int EchoLevel = BaseType::GetEchoLevel();
+        unsigned int StrategyEchoLevel = (EchoLevel > 0) ? (EchoLevel-1) : 0;
+
+        if ( rStrategyLabel == BaseType::Velocity )
+        {
+            bool ReformDofSet = false;
+            KRATOS_INFO_IF("FractionalStepSettings", BaseType::GetReformDofSet()) << "'reform_dofs_at_each_step' is set to false" << std::endl;
+            const int MoveMeshFlag = 0;
+            KRATOS_INFO_IF("FractionalStepSettings", BaseType::MoveMesh()) << "'move_mesh_flag' is set to false" << std::endl;
+
+            // Velocity Builder and Solver
+            ExplicitBuilderPointerType pExplicitBuilder = ExplicitBuilderPointerType();
+
+            // Strategy
+            mExplicitStrategies[rStrategyLabel] = ExplicitStrategyPointerType(new ExplicitSolvingStrategyRungeKutta4<TSparseSpace,TDenseSpace>(
+                rModelPart,
+                pExplicitBuilder,
+                MoveMeshFlag,
+                ReformDofSet));
+        }
+        else
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Error in FractionalStepSettings: Unknown strategy label.","");
+        }
+
+        mExplicitStrategies[rStrategyLabel]->SetEchoLevel(StrategyEchoLevel);
+
+        KRATOS_CATCH("");
+    }
+
     void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
@@ -256,6 +299,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    std::map< StrategyLabel, ExplicitStrategyPointerType > mExplicitStrategies;
 
     ///@}
     ///@name Protected Operators
