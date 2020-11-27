@@ -51,7 +51,7 @@ public:
 	KRATOS_CLASS_POINTER_DEFINITION(EstimateDtUtility);
 
     /// Function type for the element size calculator function
-    typedef std::function<double(const Geometry<Node<3>>&, const array_1d<double,3>)> ElementSizeFunctionType;
+    typedef std::function<double(const Geometry<Node<3>>&)> ElementSizeFunctionType;
 
 	///@}
 	///@name Life Cycle
@@ -184,13 +184,13 @@ private:
         const double Dt);
 
     /**
-     * @brief Get the projected element size calculation function
+     * @brief Get the minimum element size calculation function
      * This method checks the geometry of the provided element and returns the corresponding
-     * velocity projection element size calculation fucntion.
+     * minimum element size calculation fucntion.
      * @param rGeometry Geoemtry in which the element size is to be computed
-     * @return ElementSizeFunctionType Function to calculate the projected element size
+     * @return ElementSizeFunctionType Function to calculate the minimum element size
      */
-    static ElementSizeFunctionType GetProjectedElementSizeFunction(const Geometry<Node<3>>& rGeometry);
+    static ElementSizeFunctionType GetMinimumElementSizeFunction(const Geometry<Node<3>>& rGeometry);
     
     ///@} // Private Operations
 };

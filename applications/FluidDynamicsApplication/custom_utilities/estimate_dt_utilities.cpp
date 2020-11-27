@@ -54,7 +54,7 @@ namespace Kratos
         // Get the projected element size function according to the corresponding geometry
         // Note that in here it is assumed that all the elements in the model part feature the same geometry
         const auto& r_geom = mrModelPart.ElementsBegin()->GetGeometry();
-        ElementSizeFunctionType projected_h_func = EstimateDtUtility::GetProjectedElementSizeFunction(r_geom);
+        ElementSizeFunctionType projected_h_func = EstimateDtUtility::GetMinimumElementSizeFunction(r_geom);
 
         // Obtain the maximum CFL
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
@@ -94,7 +94,7 @@ namespace Kratos
         // Get the projected element size function according to the corresponding geometry
         // Note that in here it is assumed that all the elements in the model part feature the same geometry
         const auto& r_geom = rModelPart.ElementsBegin()->GetGeometry();
-        ElementSizeFunctionType projected_h_func = EstimateDtUtility::GetProjectedElementSizeFunction(r_geom);
+        ElementSizeFunctionType projected_h_func = EstimateDtUtility::GetMinimumElementSizeFunction(r_geom);
 
         // Calculate the CFL number in each element
         const double current_dt = rModelPart.GetProcessInfo().GetValue(DELTA_TIME);
@@ -121,24 +121,24 @@ namespace Kratos
         element_vel /= static_cast<double>(n_nodes);
 
         // Calculate element CFL
-        const double h_proj = rElementSizeCalculator(r_geometry, element_vel);
-        const double elem_cfl = norm_2(element_vel) * Dt / h_proj;
+        const double h_min = rElementSizeCalculator(r_geometry);
+        const double elem_cfl = norm_2(element_vel) * Dt / h_min;
 
         return elem_cfl;
     }
 
-    typename EstimateDtUtility::ElementSizeFunctionType EstimateDtUtility::GetProjectedElementSizeFunction(const Geometry<Node<3>>& rGeometry)
+    typename EstimateDtUtility::ElementSizeFunctionType EstimateDtUtility::GetMinimumElementSizeFunction(const Geometry<Node<3>>& rGeometry)
     {
         ElementSizeFunctionType projected_h_func;
         const auto geometry_type = rGeometry.GetGeometryType();
         if (geometry_type == GeometryData::Kratos_Triangle2D3) {
-            projected_h_func = [&](const Geometry<Node<3>>& rGeometry, const array_1d<double,3>& rVelocity){return ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry, rVelocity);};
+            projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::MinimumElementSize(rGeometry);};
         } else if (geometry_type == GeometryData::Kratos_Quadrilateral2D4) {
-            projected_h_func = [&](const Geometry<Node<3>>& rGeometry, const array_1d<double,3>& rVelocity){return ElementSizeCalculator<2,4>::ProjectedElementSize(rGeometry, rVelocity);};
+            projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,4>::MinimumElementSize(rGeometry);};
         } else if (geometry_type == GeometryData::Kratos_Tetrahedra3D4) {
-            projected_h_func = [&](const Geometry<Node<3>>& rGeometry, const array_1d<double,3>& rVelocity){return ElementSizeCalculator<3,4>::ProjectedElementSize(rGeometry, rVelocity);};
+            projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::MinimumElementSize(rGeometry);};
         } else if (geometry_type == GeometryData::Kratos_Quadrilateral3D8) {
-            projected_h_func = [&](const Geometry<Node<3>>& rGeometry, const array_1d<double,3>& rVelocity){return ElementSizeCalculator<3,8>::ProjectedElementSize(rGeometry, rVelocity);};
+            projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,8>::MinimumElementSize(rGeometry);};
         } else {
             KRATOS_ERROR << "Non supported geometry type." << std::endl;
         }
