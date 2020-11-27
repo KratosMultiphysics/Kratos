@@ -32,6 +32,28 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+int QSVMSResidualDerivatives<TDim, TNumNodes>::Check(
+    const GeometryType& rGeometry,
+    const ProcessInfo& rProcessInfo)
+{
+    KRATOS_TRY
+
+    for (const auto& r_node : rGeometry) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RELAXED_ACCELERATION, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADVPROJ, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DIVPROJ, r_node);
+    }
+
+    return 0;
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIntegrationMethod()
 {
     return GeometryData::GI_GAUSS_2;
@@ -226,11 +248,14 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
 
     // get gauss point evaluated values
     element_utilities::EvaluateInPoint(
-        r_geometry, rGaussPointShapeFunctions, std::tie(mPressure, PRESSURE),
-        std::tie(mBodyForce, BODY_FORCE), std::tie(mVelocity, VELOCITY),
+        r_geometry, rGaussPointShapeFunctions,
+        std::tie(mPressure, PRESSURE),
+        std::tie(mBodyForce, BODY_FORCE),
+        std::tie(mVelocity, VELOCITY),
         std::tie(mMeshVelocity, MESH_VELOCITY),
         std::tie(mRelaxedAcceleration, RELAXED_ACCELERATION),
-        std::tie(mMomentumProjection, ADVPROJ), std::tie(mMassProjection, DIVPROJ));
+        std::tie(mMomentumProjection, ADVPROJ),
+        std::tie(mMassProjection, DIVPROJ));
 
     mBodyForce *= mDensity;
 

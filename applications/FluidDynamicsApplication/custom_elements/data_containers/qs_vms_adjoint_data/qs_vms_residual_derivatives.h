@@ -62,6 +62,10 @@ public:
     ///@name Static Operations
     ///@{
 
+    static int Check(
+        const GeometryType& rGeometry,
+        const ProcessInfo& rProcessInfo);
+
     static GeometryData::IntegrationMethod GetIntegrationMethod();
 
     ///@}
