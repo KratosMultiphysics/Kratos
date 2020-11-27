@@ -891,7 +891,9 @@ private:
 
         BaseImplicitType::SetEchoLevel(rSolverConfig.GetEchoLevel());
 
-        // Initialize strategy for step 2
+        // Initialize strategy for momentum equation
+
+        // Initialize strategy for mass equation
         bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,mpPressureStrategy);
 
         if (HavePressStrategy)
@@ -903,13 +905,6 @@ private:
         {
             KRATOS_ERROR << "ExplicitFractionalStepStrategy error: No Pressure strategy defined in FractionalStepSettings" << std::endl;
         }
-
-        Process::Pointer pTurbulenceProcess;
-        bool HaveTurbulence = rSolverConfig.GetTurbulenceModel(pTurbulenceProcess);
-
-        if (HaveTurbulence)
-            mExtraIterationSteps.push_back(pTurbulenceProcess);
-
 
         // Check input parameters
         this->Check();
