@@ -14,6 +14,7 @@
 /applications/MetisApplication/                        @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
 /applications/LinearSolversApplication/                @KratosMultiphysics/technical-committee @KratosMultiphysics/linearsolvers
 /applications/StructuralMechanicsApplication/          @KratosMultiphysics/structural-mechanics
+/applications/ConstitutiveLawsApplication/             @KratosMultiphysics/structural-mechanics
 /applications/ContactStructuralMechanicsApplication/   @KratosMultiphysics/structural-mechanics
 /applications/FluidDynamicsApplication/                @KratosMultiphysics/fluid-maintainers
 /applications/ConvectionDiffusionApplication           @KratosMultiphysics/fluid-maintainers
