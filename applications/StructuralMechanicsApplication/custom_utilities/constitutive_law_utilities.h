@@ -509,14 +509,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /**
      * @brief This method the uniaxial equivalent stress for Von Mises
      * @param rStressVector The stress vector S = C:E
-     * @param rStrainVector The StrainVector vector
+     * @return The VM equivalent stress
+     * @tparam TVector The themplate for the vector class
      */
     template<class TVector>
-    static void CalculateVonMisesEquivalentStress(
-        const TVector& rStressVector,
-        const Vector& rStrainVector,
-        double& rEquivalentStress
-        )
+    static double CalculateVonMisesEquivalentStress(const TVector& rStressVector)
     {
         double I1, J2;
         array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
@@ -524,7 +521,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
 
-        rEquivalentStress = std::sqrt(3.0 * J2);
+        return std::sqrt(3.0 * J2);
     }
 
 private:

@@ -897,9 +897,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 // Compute VM stress
                 if (dimension == 2 ) {
-                    ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector, this_constitutive_variables.StrainVector, rOutput[point_number]);
+                    rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 } else {
-                    ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector, this_constitutive_variables.StrainVector, rOutput[point_number]);
+                    rOutput[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 }
             }
         } else {
