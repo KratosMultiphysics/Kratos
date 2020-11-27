@@ -120,7 +120,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(rPredictiveStressVector, rStrainVector, rEquivalentStress);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(rPredictiveStressVector, rEquivalentStress);
     }
 
     /**
