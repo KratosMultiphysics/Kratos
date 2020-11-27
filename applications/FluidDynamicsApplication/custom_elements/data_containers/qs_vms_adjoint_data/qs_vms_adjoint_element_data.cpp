@@ -26,8 +26,23 @@
 
 namespace Kratos
 {
-///@name Kratos Classes
-///@{
+namespace {
+template <unsigned int TDim>
+std::vector<const Variable<double>*> GetQSVMSAdjointDofsList();
+
+template <>
+std::vector<const Variable<double>*> GetQSVMSAdjointDofsList<2>()
+{
+    return {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1};
+}
+
+template <>
+std::vector<const Variable<double>*> GetQSVMSAdjointDofsList<3>()
+{
+    return {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y,
+            &ADJOINT_FLUID_VECTOR_1_Z, &ADJOINT_FLUID_SCALAR_1};
+}
+} // namespace
 
 template <unsigned int TDim, unsigned int TNumNodes>
 int QSVMSAdjointElementData<TDim, TNumNodes>::Check(
@@ -44,28 +59,10 @@ GeometryData::IntegrationMethod QSVMSAdjointElementData<TDim, TNumNodes>::GetInt
     return TResidualDerivatives::GetIntegrationMethod();
 }
 
-template <>
-std::vector<const Variable<double>*> QSVMSAdjointElementData<2, 3>::GetDofVariablesList()
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<const Variable<double>*> QSVMSAdjointElementData<TDim, TNumNodes>::GetDofVariablesList()
 {
-    return {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1};
-}
-
-template <>
-std::vector<const Variable<double>*> QSVMSAdjointElementData<2, 4>::GetDofVariablesList()
-{
-    return {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1};
-}
-
-template <>
-std::vector<const Variable<double>*> QSVMSAdjointElementData<3, 4>::GetDofVariablesList()
-{
-    return {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_VECTOR_1_Z, &ADJOINT_FLUID_SCALAR_1};
-}
-
-template <>
-std::vector<const Variable<double>*> QSVMSAdjointElementData<3, 8>::GetDofVariablesList()
-{
-    return {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_VECTOR_1_Z, &ADJOINT_FLUID_SCALAR_1};
+    return GetQSVMSAdjointDofsList<TDim>();
 }
 
 // template instantiations

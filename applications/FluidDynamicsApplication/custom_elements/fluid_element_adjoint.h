@@ -51,15 +51,15 @@ class FluidAdjointElement : public Element
             std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
-            std::size_t index = 0;
-            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_X, Step);
-            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Y, Step);
-            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) {
-                rVector[index++] =
-                    MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Z, Step);
+            rVector.resize(TDim + 1);
+
+            const auto& dofs_list = TAdjointElementData::GetDofVariablesList();
+
+            for (unsigned int i = 0; i < TDim; ++i) {
+                rVector[i] = MakeIndirectScalar(r_node, (*dofs_list[i]).GetTimeDerivative(), Step);
             }
-            rVector[index] = IndirectScalar<double>{}; // pressure
+
+            rVector[TDim] = IndirectScalar<double>{}; // pressure
         }
 
         void GetSecondDerivativesVector(
@@ -68,15 +68,15 @@ class FluidAdjointElement : public Element
             std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
-            std::size_t index = 0;
-            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_X, Step);
-            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Y, Step);
-            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) {
-                rVector[index++] =
-                    MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Z, Step);
+            rVector.resize(TDim + 1);
+
+            const auto& dofs_list = TAdjointElementData::GetDofVariablesList();
+
+            for (unsigned int i = 0; i < TDim; ++i) {
+                rVector[i] = MakeIndirectScalar(r_node, (*dofs_list[i]).GetTimeDerivative().GetTimeDerivative(), Step);
             }
-            rVector[index] = IndirectScalar<double>{}; // pressure
+
+            rVector[TDim] = IndirectScalar<double>{}; // pressure
         }
 
         void GetAuxiliaryVector(
@@ -85,17 +85,15 @@ class FluidAdjointElement : public Element
             std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
-            std::size_t index = 0;
-            rVector[index++] =
-                MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_X, Step);
-            rVector[index++] =
-                MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Y, Step);
-            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) {
-                rVector[index++] =
-                    MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Z, Step);
+            rVector.resize(TDim + 1);
+
+            const auto& dofs_list = TAdjointElementData::GetDofVariablesList();
+
+            for (unsigned int i = 0; i < TDim; ++i) {
+                rVector[i] = MakeIndirectScalar(r_node, (*dofs_list[i]).GetTimeDerivative().GetTimeDerivative().GetTimeDerivative(), Step);
             }
-            rVector[index] = IndirectScalar<double>{}; // pressure
+
+            rVector[TDim] = IndirectScalar<double>{}; // pressure
         }
 
         void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
