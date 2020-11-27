@@ -52,6 +52,10 @@ public:
     /// Pointer definition of LumpedInterfacePositiveNegativePressureGradient
     KRATOS_CLASS_POINTER_DEFINITION(CalulateLevelsetConsistentNodalGradientProcess);
 
+    /// Auxiliary container to be used as TLS
+    typedef std::tuple<BoundedMatrix<double,3,2>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>> TLSContainerType2D;
+    typedef std::tuple<BoundedMatrix<double,4,3>, array_1d<double,4>, array_1d<double,4>, array_1d<double,4>, array_1d<double,3>, array_1d<double,4>> TLSContainerType3D;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -150,6 +154,19 @@ private:
 
         bool IsSplit(const Vector& rDistances);
 
+        TLSContainerType2D SetTLSContainer2D();
+
+        TLSContainerType3D SetTLSContainer3D();
+
+        std::function<void(Element& rElement, TLSContainerType2D& rTLSContainer)> GetScalarNodalGradientElementFunction2D();
+
+        std::function<void(Element& rElement, TLSContainerType3D& rTLSContainer)> GetScalarNodalGradientElementFunction3D();
+
+        template<class TTLSContainer>
+        void CalculateScalarNodalGradientElementContribution(
+            Element& rElement,
+            TTLSContainer& rTLSContainer);
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -184,5 +201,3 @@ private:
 };  // namespace Kratos.
 
 #endif // KRATOS_LEVELSET_CONSISTENT_NODAL_GRADIENT_H
-
-
