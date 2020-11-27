@@ -74,62 +74,6 @@ void ConstitutiveLawUtilities<3>::CalculateI3Invariant(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateJ2Invariant(
-    const BoundedVectorType& rStressVector,
-    const double I1,
-    BoundedVectorType& rDeviator,
-    double& rJ2
-    )
-{
-    CalculateJ2Invariant3D
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<3>::CalculateJ2Invariant(
-    const BoundedVectorType& rStressVector,
-    const double I1,
-    BoundedVectorType& rDeviator,
-    double& rJ2
-    )
-{
-    CalculateJ2Invariant2D
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<6>::CalculateJ2Invariant(
-    const Vector& rStressVector,
-    const double I1,
-    BoundedVectorType& rDeviator,
-    double& rJ2
-    )
-{
-    CalculateJ2Invariant3D
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<3>::CalculateJ2Invariant(
-    const Vector& rStressVector,
-    const double I1,
-    BoundedVectorType& rDeviator,
-    double& rJ2
-    )
-{
-    CalculateJ2Invariant2D
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
 void ConstitutiveLawUtilities<6>::CalculateJ3Invariant(
     const BoundedVectorType& rDeviator,
     double& rJ3

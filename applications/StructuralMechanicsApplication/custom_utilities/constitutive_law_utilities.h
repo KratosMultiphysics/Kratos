@@ -96,27 +96,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
-    #define CalculateJ2Invariant3D                                 \
-        rDeviator = rStressVector;                                 \
-        const double p_mean = I1 / 3.0;                            \
-        for (IndexType i = 0; i < Dimension; ++i)                  \
-            rDeviator[i] -= p_mean;                                \
-        rJ2 = 0.0;                                                 \
-        for (IndexType i = 0; i < Dimension; ++i)                  \
-            rJ2 += 0.5 * std::pow(rDeviator[i], 2);                \
-        for (IndexType i = Dimension; i < 6; ++i)                  \
-            rJ2 += std::pow(rDeviator[i], 2);
-
-    #define CalculateJ2Invariant2D                                 \
-        rDeviator = rStressVector;                                 \
-        const double p_mean = I1 / 3.0;                            \
-        for (IndexType i = 0; i < Dimension; ++i)                  \
-            rDeviator[i] -= p_mean;                                \
-        rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) +                 \
-                     std::pow(rDeviator[1], 2.0) +                 \
-                     std::pow(p_mean, 2.0)) +                      \
-                     std::pow(rDeviator[2], 2.0);
-
     ///@}
     ///@name  Enum's
     ///@{
@@ -173,27 +152,34 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param I1 The first invariant
      * @param rDeviator The deviator of the stress
      * @param rJ2 The second invariant of J
+     * @tparam TVector The themplate for the vector class
      */
+    template<class TVector>
     static void CalculateJ2Invariant(
-        const BoundedVectorType& rStressVector,
+        const TVector& rStressVector,
         const double I1,
         BoundedVectorType& rDeviator,
         double& rJ2
-        );
-
-    /**
-     * @brief This method computes the second invariant of J
-     * @param rStressVector The stress vector on Voigt notation
-     * @param I1 The first invariant
-     * @param rDeviator The deviator of the stress
-     * @param rJ2 The second invariant of J
-     */
-    static void CalculateJ2Invariant(
-        const Vector& rStressVector,
-        const double I1,
-        BoundedVectorType& rDeviator,
-        double& rJ2
-        );
+        )
+    {
+        if (Dimension == 3) {
+            rDeviator = rStressVector;
+            const double p_mean = I1 / 3.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rDeviator[i] -= p_mean;
+            rJ2 = 0.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rJ2 += 0.5 * std::pow(rDeviator[i], 2);
+            for (IndexType i = Dimension; i < 6; ++i)
+                rJ2 += std::pow(rDeviator[i], 2);
+        } else {
+            rDeviator = rStressVector;
+            const double p_mean = I1 / 3.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rDeviator[i] -= p_mean;
+            rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) + std::pow(rDeviator[2], 2.0);
+        }
+    }
 
     /**
      * @brief This method computes the third invariant of J
