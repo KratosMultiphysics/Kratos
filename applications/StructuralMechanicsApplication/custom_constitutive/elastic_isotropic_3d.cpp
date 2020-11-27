@@ -16,7 +16,7 @@
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "includes/checks.h"
-
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -88,7 +88,14 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 
 void ElasticIsotropic3D::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
 {
+    // First we compute PK2
     CalculateMaterialResponsePK2(rValues);
+
+    // TODO: Implement this!
+//     // Now if required (large rotation fdr UL and TL) we compute PK1
+//     if( rValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+//         ConstitutiveLawUtilities<6>::TransformPK2ToPK1Stress(rValues);
+//     }
 }
 
 /***********************************************************************************/
@@ -96,9 +103,14 @@ void ElasticIsotropic3D::CalculateMaterialResponsePK1 (ConstitutiveLaw::Paramete
 
 void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
+    // First we compute PK2
     CalculateMaterialResponsePK2(rValues);
 
-    //TODO: needs to do the transoformation here!!
+    // TODO: Implement this!
+//     // Now if required (large rotation fdr UL and TL) we compute Kirchoff
+//     if( rValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+//         ConstitutiveLawUtilities<6>::TransformPK2ToKirchhoffStress(rValues);
+//     }
 }
 
 /***********************************************************************************/
@@ -106,16 +118,13 @@ void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Pa
 
 void ElasticIsotropic3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
 {
-    //first compute the PK2
+    // First we compute PK2
     CalculateMaterialResponsePK2(rValues);
 
-    //now transform to cauchy
-    Matrix S = MathUtils<double>::StressVectorToTensor( rValues.GetStressVector() );
-    const Matrix& F = rValues.GetDeformationGradientF();
-    const Matrix tmp = prod(S, trans(F));
-    const double J = rValues.GetDeterminantF();
-    Matrix cauchy_stress = 1/J * prod( F, tmp) ;
-    noalias(rValues.GetStressVector()) = MathUtils<double>::StressTensorToVector( cauchy_stress);
+    // Now if required (large rotation fdr UL and TL) we compute Cauchy
+    if( rValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+        ConstitutiveLawUtilities<6>::TransformPK2ToCauchyStress(rValues);
+    }
 }
 
 /***********************************************************************************/
@@ -218,7 +227,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
     if (rThisVariable == STRAIN ||
         rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
         rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        //TODO: this is wrong. almansi strain does not coincide with GreenLagrangeStrain
+        //TODO: This is wrong. almansi strain does not coincide with GreenLagrangeStrain
         this->CalculateCauchyGreenStrain( rParameterValues, rValue);
     } else if (rThisVariable == STRESSES ||
         rThisVariable == CAUCHY_STRESS_VECTOR ||
@@ -235,7 +244,13 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         // We compute the stress
-        ElasticIsotropic3D::CalculateMaterialResponseCauchy(rParameterValues);
+        if (rThisVariable == CAUCHY_STRESS_VECTOR ) {
+            ElasticIsotropic3D::CalculateMaterialResponseCauchy(rParameterValues);
+        } else if (rThisVariable == KIRCHHOFF_STRESS_VECTOR ) {
+            ElasticIsotropic3D::CalculateMaterialResponseKirchhoff(rParameterValues);
+        } else {
+            ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        }
         rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
@@ -383,7 +398,7 @@ void ElasticIsotropic3D::CalculatePK2Stress(
 
 /***********************************************************************************/
 /***********************************************************************************/
-//TODO: change  the name of this function, in here the Green-Lagrange strain is computed
+//TODO: Change  the name of this function, in here the Green-Lagrange strain is computed
 void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
