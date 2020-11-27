@@ -306,14 +306,19 @@ public:
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                 bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin, 100, tolerance);
 
-                GeometryType& r_found_geom = p_elem->GetGeometry();
-                r_found_geom.PointLocalCoordinates(local_coordinates, coordinates);
+                if (is_found)
+                {
+                    GeometryType& r_found_geom = p_elem->GetGeometry();
+                    r_found_geom.PointLocalCoordinates(local_coordinates, coordinates);
 
-                CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
-                    bin_search_quad_geoms[i]->pGetGeometryPart(mpm_index),
-                    local_coordinates,
-                    bin_search_quad_geoms[i]->IntegrationPoints()[0].Weight(),
-                    r_found_geom);
+                    CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
+                        bin_search_quad_geoms[i]->pGetGeometryPart(mpm_index),
+                        local_coordinates,
+                        bin_search_quad_geoms[i]->IntegrationPoints()[0].Weight(),
+                        r_found_geom);
+                }
+                else KRATOS_ERROR << "Coupling quadrature point moved outside MPM background grid!";
+
             }
         );
     }
