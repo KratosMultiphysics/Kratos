@@ -73,8 +73,7 @@ namespace Testing
         Vector rhs;
         const auto& const_procinfo_ref = r_model_part.GetProcessInfo();
         double factor = 1.0;
-        for(unsigned int step=0; step<5; step++)
-        {
+        for(std::size_t step=0; step<5; step++) {
             factor+=1.0;
             Matrix A = factor*A0;
             for (auto& r_node : r_model_part.Nodes()){
@@ -94,8 +93,8 @@ namespace Testing
             std::vector<double> reference_strain = {strain_mat(0,0), strain_mat(1,1), 2.0*strain_mat(0,1)};
 
             Matrix F22 = ZeroMatrix(2,2);
-            for(unsigned int i=0; i<2; i++)
-                for(unsigned int j=0; j<2; j++)
+            for(std::size_t i=0; i<2; i++)
+                for(std::size_t j=0; j<2; j++)
                     F22(i,j) = F(i,j);
 
             // Also the stress can be computed analytically as (PK2 stress)
@@ -106,18 +105,17 @@ namespace Testing
 
             Matrix reference_stress_tensor =  MathUtils<double>::StressVectorToTensor( reference_stress );
 
-            const double reference_von_mises_pk2 = std::sqrt( 
-                                             reference_stress[0]*reference_stress[0] 
+            const double reference_von_mises_pk2 = std::sqrt(
+                                             reference_stress[0]*reference_stress[0]
                                              + reference_stress[1]*reference_stress[1]
                                              - reference_stress[0]*reference_stress[1]
                                              + 3.0*reference_stress[2]*reference_stress[2]
                                             );
 
             //compute cauchy stress
-            const auto& S = reference_stress_tensor;
+            const auto& rS = reference_stress_tensor;
             double J = MathUtils<double>::Det(F22);
-            Matrix reference_cauchy_stress_tensor = 1/J*prod(F22, Matrix(prod(S,trans(F22))));
-
+            Matrix reference_cauchy_stress_tensor = 1/J*prod(F22, Matrix(prod(rS,trans(F22))));
 
 
             std::vector<Vector> output_strains(1);
@@ -143,16 +141,11 @@ namespace Testing
             KRATOS_CHECK_NEAR((output_von_mises[0]-reference_von_mises_pk2)/reference_von_mises_pk2, 0.0,1e-14);
             KRATOS_CHECK_MATRIX_EQUAL(output_pk2_tensor[0], reference_stress_tensor);
 
-            for(unsigned int i=0; i<reference_cauchy_stress_tensor.size1(); ++i){
-                for(unsigned int j=0; j<reference_cauchy_stress_tensor.size2(); ++j){
+            for(std::size_t i=0; i<reference_cauchy_stress_tensor.size1(); ++i){
+                for(std::size_t j=0; j<reference_cauchy_stress_tensor.size2(); ++j){
                     KRATOS_CHECK_NEAR( (output_cauchy_tensor[0](i,j) - reference_cauchy_stress_tensor(i,j))/reference_cauchy_stress_tensor(i,j),0.0,1e-14);
                 }
             }
-
-
-
-
-
         }
     }
 }
