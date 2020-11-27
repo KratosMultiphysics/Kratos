@@ -22,22 +22,8 @@
 namespace Kratos
 {
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateI1Invariant(
-    const BoundedVectorType& rStressVector,
-    double& rI1
-    )
-{
-    rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i)
-        rI1 += rStressVector[i];
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
     const BoundedVectorType& rStressVector,
     double& rI1
     )
