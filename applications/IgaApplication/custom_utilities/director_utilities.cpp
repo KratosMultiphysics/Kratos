@@ -8,10 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-
-#if !defined(KRATOS_IGA_FLAGS_CPP_INCLUDED )
-#define  KRATOS_IGA_FLAGS_CPP_INCLUDED
-
 // System includes
 
 // External includes
