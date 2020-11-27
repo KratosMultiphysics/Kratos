@@ -44,13 +44,8 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         ? true
         : false;
 
-    const auto& sf_values_master = r_geometry_master.ShapeFunctionsValues();
-    const auto& sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
-
-    const std::size_t number_of_nodes_master = sf_values_master.size2();
-    const std::size_t number_of_nodes_slave = sf_values_slave.size2();
-
-    const double weight = r_geometry_slave.IntegrationPoints()[0].Weight();
+    const std::size_t number_of_nodes_master = r_geometry_master.size();
+    const std::size_t number_of_nodes_slave = r_geometry_slave.size();
 
     rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
 
@@ -60,12 +55,14 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     if (rOriginIds.size()      != number_of_nodes_master) rOriginIds.resize(number_of_nodes_master);
     if (rDestinationIds.size() != number_of_nodes_slave) rDestinationIds.resize(number_of_nodes_slave);
 
+    const auto& sf_values_master = r_geometry_master.ShapeFunctionsValues();
+    const auto& sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
     Vector det_jacobian;
     if (&(r_geometry_slave.GetGeometryParent(0)) == nullptr) r_geometry_slave.DeterminantOfJacobian(det_jacobian);
     else r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
-
     KRATOS_DEBUG_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
+    const double weight = r_geometry_slave.IntegrationPoints()[0].Weight();
 
     if (is_dual_mortar) {
         rLocalMappingMatrix.clear();

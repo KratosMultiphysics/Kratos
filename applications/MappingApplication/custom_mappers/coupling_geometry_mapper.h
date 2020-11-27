@@ -332,24 +332,6 @@ private:
 
     void CreateLinearSolver();
 
-    void PrintMatrix(const Matrix& rMat, std::string name)
-    {
-        std::cout << "\n\nmatrix " << name << ":";
-        for (size_t i = 0; i < rMat.size1(); i++)
-        {
-            double row_sum = 0.0;
-            std::cout << "\n";
-            for (size_t j = 0; j < rMat.size2(); j++)
-            {
-                std::cout << std::setw(6) << std::setprecision(3) << "  " << rMat(i, j);
-                row_sum += rMat(i, j);
-                //if (j < rMat.size2() - 1) std::cout << "\t";
-            }
-            std::cout << "\t\trow sum = " << row_sum;
-        }
-        std::cout << "\n\n";
-    }
-
     void CalculateMappingMatrixWithSolver(MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix);
 
     void CheckCouplingInputs();
