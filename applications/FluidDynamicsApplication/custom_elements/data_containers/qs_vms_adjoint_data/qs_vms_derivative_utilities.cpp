@@ -400,6 +400,4 @@ template class QSVMSDerivativeUtilities<3>::ShapeDerivative<8>;
 template class QSVMSDerivativeUtilities<2>;
 template class QSVMSDerivativeUtilities<3>;
 
-
-
 } // namespace Kratos
