@@ -109,6 +109,14 @@ void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Pa
     // TODO: Implement this!
 //     // Now if required (large rotation fdr UL and TL) we compute Kirchoff
 //     if( rValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+//         // 1.-Compute total deformation gradient
+//         const Matrix& rF = rValues.GetDeformationGradientF();
+//
+//         // 2.-Compute e = 0.5*(1-inv(B))
+//         const Matrix B_tensor = prod(rF,trans(rF));
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rValues.GetStrainVector());
+//
+//         // Compute the stress
 //         ConstitutiveLawUtilities<6>::TransformPK2ToKirchhoffStress(rValues);
 //     }
 }
@@ -123,6 +131,14 @@ void ElasticIsotropic3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Param
 
     // Now if required (large rotation fdr UL and TL) we compute Cauchy
     if( rValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+        // 1.-Compute total deformation gradient
+        const Matrix& rF = rValues.GetDeformationGradientF();
+
+        // 2.-Compute e = 0.5*(1-inv(B))
+        const Matrix B_tensor = prod(rF,trans(rF));
+        ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rValues.GetStrainVector());
+
+        // Compute the stress
         ConstitutiveLawUtilities<6>::TransformPK2ToCauchyStress(rValues);
     }
 }
