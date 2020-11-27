@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "Structure.Parts_beam",
+        "model_part_name" : "Structure.Parts_plate",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
@@ -8,7 +8,7 @@
             },
             "Variables"        : {
                 "DENSITY"       : 7850.0,
-                "YOUNG_MODULUS" : 4000000000.0,
+                "YOUNG_MODULUS" : 1000.0,
                 "POISSON_RATIO" : 0.0,
                 "THICKNESS"     : 1.0
             },

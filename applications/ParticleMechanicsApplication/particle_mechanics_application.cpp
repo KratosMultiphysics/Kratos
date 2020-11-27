@@ -147,6 +147,8 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition2D4N", mMPMParticlePointLoadCondition2D4N )
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition3D8N", mMPMParticlePointLoadCondition3D8N )
 
+        KRATOS_REGISTER_MODELER("StructureMpmModeler", mStructureMpmModeler)
+
         // Registering elements
         KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )
         KRATOS_REGISTER_VARIABLE( PARTICLES_PER_ELEMENT )
