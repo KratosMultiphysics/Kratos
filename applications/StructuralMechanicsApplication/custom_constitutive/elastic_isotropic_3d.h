@@ -363,6 +363,16 @@ protected:
         Vector& rStrainVector
         );
 
+    /**
+     * @brief Calculates the Almansi strains
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    virtual void CalculateAlmansiStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        );
+
     ///@}
 
 private:

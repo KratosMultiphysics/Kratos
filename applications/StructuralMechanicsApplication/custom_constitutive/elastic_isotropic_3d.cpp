@@ -94,7 +94,7 @@ void ElasticIsotropic3D::CalculateMaterialResponsePK1 (ConstitutiveLaw::Paramete
     // TODO: Implement this!
 //     // Now if required (large rotation fdr UL and TL) we compute PK1
 //     if( rValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-//         ConstitutiveLawUtilities<6>::TransformPK2ToPK1Stress(rValues);
+//         ConstitutiveLawUtilities<VoigtSize>::TransformPK2ToPK1Stress(rValues);
 //     }
 }
 
@@ -109,15 +109,11 @@ void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Pa
     // TODO: Implement this!
 //     // Now if required (large rotation fdr UL and TL) we compute Kirchoff
 //     if( rValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-//         // 1.-Compute total deformation gradient
-//         const Matrix& rF = rValues.GetDeformationGradientF();
-//
-//         // 2.-Compute e = 0.5*(1-inv(B))
-//         const Matrix B_tensor = prod(rF,trans(rF));
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rValues.GetStrainVector());
+//         // Compute strain
+//         this->CalculateAlmansiStrain(rValues, rValues.GetStrainVector());
 //
 //         // Compute the stress
-//         ConstitutiveLawUtilities<6>::TransformPK2ToKirchhoffStress(rValues);
+//         ConstitutiveLawUtilities<VoigtSize>::TransformPK2ToKirchhoffStress(rValues);
 //     }
 }
 
@@ -131,15 +127,11 @@ void ElasticIsotropic3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Param
 
     // Now if required (large rotation fdr UL and TL) we compute Cauchy
     if( rValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        // 1.-Compute total deformation gradient
-        const Matrix& rF = rValues.GetDeformationGradientF();
-
-        // 2.-Compute e = 0.5*(1-inv(B))
-        const Matrix B_tensor = prod(rF,trans(rF));
-        ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rValues.GetStrainVector());
+        // Compute strain
+        this->CalculateAlmansiStrain(rValues, rValues.GetStrainVector());
 
         // Compute the stress
-        ConstitutiveLawUtilities<6>::TransformPK2ToCauchyStress(rValues);
+        ConstitutiveLawUtilities<VoigtSize>::TransformPK2ToCauchyStress(rValues);
     }
 }
 
@@ -243,8 +235,15 @@ Vector& ElasticIsotropic3D::CalculateValue(
     if (rThisVariable == STRAIN ||
         rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
         rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        //TODO: This is wrong. almansi strain does not coincide with GreenLagrangeStrain
-        this->CalculateCauchyGreenStrain( rParameterValues, rValue);
+        if( rParameterValues.GetOptions().IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+            if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
+                this->CalculateAlmansiStrain(rParameterValues, rValue);
+            } else {
+                this->CalculateCauchyGreenStrain( rParameterValues, rValue);
+            }
+        } else {
+            this->CalculateCauchyGreenStrain( rParameterValues, rValue);
+        }
     } else if (rThisVariable == STRESSES ||
         rThisVariable == CAUCHY_STRESS_VECTOR ||
         rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
@@ -414,7 +413,7 @@ void ElasticIsotropic3D::CalculatePK2Stress(
 
 /***********************************************************************************/
 /***********************************************************************************/
-//TODO: Change  the name of this function, in here the Green-Lagrange strain is computed
+
 void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
@@ -428,11 +427,27 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
         << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
 
     Matrix E_tensor = prod(trans(F),F);
-    for(unsigned int i=0; i<space_dimension; ++i)
+    for(std::size_t i=0; i<space_dimension; ++i)
       E_tensor(i,i) -= 1.0;
     E_tensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::CalculateAlmansiStrain(
+    ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector
+    )
+{
+    // 1.-Compute total deformation gradient
+    const Matrix& rF = rValues.GetDeformationGradientF();
+
+    // 2.-Compute e = 0.5*(1-inv(B))
+    const Matrix B_tensor = prod(rF,trans(rF));
+    ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 
 } // Namespace Kratos
