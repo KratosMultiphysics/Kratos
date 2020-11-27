@@ -59,6 +59,7 @@ namespace Kratos {
 ///@{
 
 /**
+ * TODO: As soon as base class FractionalStepStrategy is cleaned-up, derive ExplicitFractionalStepStrategy from FractionalStepStrategy.
  * @brief Explicit fractional-step strategy for incompressible Navier-Stokes formulation
  * This strategy implements a splitting scheme for the incompressible Navier-Stokes equations.
  * It is intended to be used in combination with the FractionalStep element in the FluidDynamicsApplication.
