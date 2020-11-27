@@ -81,17 +81,7 @@ void ConstitutiveLawUtilities<6>::CalculateJ2Invariant(
     double& rJ2
     )
 {
-    rDeviator = rStressVector;
-    const double p_mean = I1 / static_cast<double>(Dimension);
-
-    for (IndexType i = 0; i < Dimension; ++i)
-        rDeviator[i] -= p_mean;
-
-    rJ2 = 0.0;
-    for (IndexType i = 0; i < Dimension; ++i)
-        rJ2 += 0.5 * std::pow(rDeviator[i], 2);
-    for (IndexType i = Dimension; i < 6; ++i)
-        rJ2 += std::pow(rDeviator[i], 2);
+    CalculateJ2Invariant3D
 }
 
 /***********************************************************************************/
@@ -105,17 +95,10 @@ void ConstitutiveLawUtilities<3>::CalculateJ2Invariant(
     double& rJ2
     )
 {
-    rDeviator = rStressVector;
-    const double p_mean = I1 / 3.0;
-
-    for (IndexType i = 0; i < Dimension; ++i)
-        rDeviator[i] -= p_mean;
-
-    rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) +
-          std::pow(rDeviator[2], 2.0);
+    CalculateJ2Invariant2D
 }
 
-/****************************BEGIN HARDCODEC COPY***********************************/
+/***********************************************************************************/
 /***********************************************************************************/
 
 template<>
@@ -126,17 +109,7 @@ void ConstitutiveLawUtilities<6>::CalculateJ2Invariant(
     double& rJ2
     )
 {
-    rDeviator = rStressVector;
-    const double p_mean = I1 / static_cast<double>(Dimension);
-
-    for (IndexType i = 0; i < Dimension; ++i)
-        rDeviator[i] -= p_mean;
-
-    rJ2 = 0.0;
-    for (IndexType i = 0; i < Dimension; ++i)
-        rJ2 += 0.5 * std::pow(rDeviator[i], 2);
-    for (IndexType i = Dimension; i < 6; ++i)
-        rJ2 += std::pow(rDeviator[i], 2);
+    CalculateJ2Invariant3D
 }
 
 /***********************************************************************************/
@@ -150,17 +123,10 @@ void ConstitutiveLawUtilities<3>::CalculateJ2Invariant(
     double& rJ2
     )
 {
-    rDeviator = rStressVector;
-    const double p_mean = I1 / 3.0;
-
-    for (IndexType i = 0; i < Dimension; ++i)
-        rDeviator[i] -= p_mean;
-
-    rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) +
-          std::pow(rDeviator[2], 2.0);
+    CalculateJ2Invariant2D
 }
 
-/*****************************END HARDCODEC COPY************************************/
+/***********************************************************************************/
 /***********************************************************************************/
 
 template<>
