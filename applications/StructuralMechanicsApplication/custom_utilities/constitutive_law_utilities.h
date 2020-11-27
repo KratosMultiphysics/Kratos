@@ -490,11 +490,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rStressVector The stress vector S = C:E
      * @param rStrainVector The StrainVector vector
      */
+    template<class TVector>
     static void CalculateVonMisesEquivalentStress(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const TVector& rStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress
-        );
+        )
+    {
+        double I1, J2;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
+
+        rEquivalentStress = std::sqrt(3.0 * J2);
+    }
 
 private:
 
