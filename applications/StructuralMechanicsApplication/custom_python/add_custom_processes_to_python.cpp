@@ -30,6 +30,7 @@
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "custom_processes/impose_z_strain_process.h"
 #include "custom_processes/distribute_load_on_surface_process.h"
+#include "custom_processes/master_stiffness_process.h"
 
 namespace Kratos {
 namespace Python {
