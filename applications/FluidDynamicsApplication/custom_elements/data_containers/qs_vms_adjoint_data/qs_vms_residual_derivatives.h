@@ -49,6 +49,8 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
+    using PropertiesType = typename Element::PropertiesType;
+
     static constexpr IndexType TBlockSize = TDim + 1;
 
     /// Size of the strain and stress vectors (in Voigt notation) for the formulation
@@ -76,6 +78,12 @@ public:
     class VariableDerivatives
     {
     public:
+        ///@name Type Definitions
+        ///@{
+
+        constexpr static IndexType TDerivativeDimension = TDerivativesType::TDerivativeDimension;
+
+        ///@}
         ///name@ Life Cycle
         ///@{
 
@@ -86,7 +94,7 @@ public:
         ///@{
 
         void Initialize(
-            const Matrix& rOutput,
+            Matrix& rOutput,
             const ProcessInfo& rProcessInfo)
         {
             mBlockSize = rOutput.size2() / TNumNodes;
@@ -315,7 +323,7 @@ public:
         }
 
         void Finalize(
-            const Matrix& rOutput,
+            Matrix& rOutput,
             const ProcessInfo& rProcessInfo)
         {
         }
@@ -374,6 +382,66 @@ public:
         }
 
         ///@}
+    };
+
+    class SecondDerivatives
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        SecondDerivatives(
+            const Element& rElement,
+            FluidConstitutiveLaw& rFluidConstitutiveLaw);
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        void Initialize(
+            Matrix& rOutput,
+            const ProcessInfo& rProcessInfo);
+
+        void AddResidualDerivativeContributions(
+            Matrix& rOutput,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX);
+
+        void Finalize(
+            Matrix& rOutput,
+            const ProcessInfo& rProcessInfo);
+
+        ///@}
+    private:
+        ///@name Private Members
+        ///@{
+
+        const Element& mrElement;
+        FluidConstitutiveLaw& mrFluidConstitutiveLaw;
+
+        IndexType mBlockSize;
+
+        double mDensity;
+        double mDynamicViscosity;
+        double mElementSize;
+        double mDynamicTau;
+        double mDeltaTime;
+
+        BoundedMatrix<double, TNumNodes, TDim> mNodalVelocity;
+
+        ConstitutiveLaw::Parameters mConstitutiveLawValues;
+        BoundedMatrix<double, TStrainSize, TElementLocalSize> mStrainMatrix;
+        Vector mStrainRate;
+        Vector mShearStress;
+        Matrix mC;
+
+        ///@}
+
     };
 
     class Data
@@ -502,6 +570,15 @@ public:
         const double ViscosityDerivative,
         const double VelocityNorm,
         const double VelocityNormDerivative);
+
+    static void InitializeConstitutiveLaw(
+        ConstitutiveLaw::Parameters& rParameters,
+        Vector& rStrainVector,
+        Vector& rStressVector,
+        Matrix& rConstitutiveMatrix,
+        const GeometryType& rGeometry,
+        const PropertiesType& rProperties,
+        const ProcessInfo& rProcessInfo);
 
     ///@}
 };

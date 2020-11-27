@@ -395,17 +395,17 @@ public:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        // if (rLeftHandSideMatrix.size1() != TElementLocalSize ||
-        //     rLeftHandSideMatrix.size2() != TElementLocalSize) {
-        //     rLeftHandSideMatrix.resize(TElementLocalSize, TElementLocalSize, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != TElementLocalSize ||
+            rLeftHandSideMatrix.size2() != TElementLocalSize) {
+            rLeftHandSideMatrix.resize(TElementLocalSize, TElementLocalSize, false);
+        }
 
-        // rLeftHandSideMatrix.clear();
+        rLeftHandSideMatrix.clear();
 
-        // AddVelocityPressureDerivatives<typename TAdjointElementData::StateDerivatives::SecondDerivatives>(
-        //     rLeftHandSideMatrix,
-        //     TAdjointElementData::GetIntegrationMethod(),
-        //     rCurrentProcessInfo);
+        AddVelocityPressureSecondDerivatives<typename TAdjointElementData::StateDerivatives::SecondDerivatives>(
+            rLeftHandSideMatrix,
+            TAdjointElementData::GetIntegrationMethod(),
+            rCurrentProcessInfo);
     }
 
     void CalculateMassMatrix(
@@ -440,8 +440,8 @@ public:
         KRATOS_TRY
 
         if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-            using derivatives_type = typename TAdjointElementData::SensitivityDerivatives::ShapeSensitivities;
-            constexpr IndexType shape_derivatives_size = TNumNodes * derivatives_type::TDerivativesDimension;
+            using derivatives_type = typename TAdjointElementData::SensitivityDerivatives;
+            constexpr IndexType shape_derivatives_size = TNumNodes * derivatives_type::ShapeSensitivities::TDerivativeDimension;
 
             if (rOutput.size1() != shape_derivatives_size || rOutput.size2() != TElementLocalSize) {
                 rOutput.resize(shape_derivatives_size, TElementLocalSize, false);
@@ -545,6 +545,36 @@ protected:
     }
 
     template<class TDerivativesType>
+    void AddVelocityPressureSecondDerivatives(
+        MatrixType& rLeftHandSideMatrix,
+        const GeometryData::IntegrationMethod& rIntegrationMethod,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives, rIntegrationMethod);
+
+        TDerivativesType element_data(*this, *mpFluidConstitutiveLaw);
+
+        element_data.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+        for (IndexType g = 0; g < gauss_weights.size(); ++g) {
+            const Vector& N = row(shape_functions, g);
+            const Matrix& dNdX = shape_derivatives[g];
+            const double weight = gauss_weights[g];
+
+            element_data.AddResidualDerivativeContributions(rLeftHandSideMatrix, weight, N, dNdX);
+        }
+
+        element_data.Finalize(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+        KRATOS_CATCH("");
+    }
+
+    template<class TDerivativesType>
     void AddVelocityPressureSensitivityDerivatives(
         Matrix& rOutput,
         const GeometryData::IntegrationMethod& rIntegrationMethod,
@@ -558,7 +588,7 @@ protected:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives, rIntegrationMethod);
 
         typename TDerivativesType::Data element_data(*this, *mpFluidConstitutiveLaw);
-        typename TDerivativesType::Sensitivity derivatives(element_data);
+        typename TDerivativesType::ShapeSensitivities derivatives(element_data);
 
         derivatives.Initialize(rOutput, rCurrentProcessInfo);
         element_data.Initialize(rCurrentProcessInfo);
@@ -585,8 +615,8 @@ protected:
 
             ShapeParameter deriv;
             for (deriv.NodeIndex = 0; deriv.NodeIndex < TNumNodes; ++deriv.NodeIndex) {
-                const IndexType derivative_row = deriv.NodeIndex * TDerivativesType::TDerivativesDimension;
-                for (deriv.Direction = 0; deriv.Direction < TDerivativesType::TDerivativesDimension; ++deriv.Direction) {
+                const IndexType derivative_row = deriv.NodeIndex * TDerivativesType::ShapeSensitivities::TDerivativeDimension;
+                for (deriv.Direction = 0; deriv.Direction < TDerivativesType::ShapeSensitivities::TDerivativeDimension; ++deriv.Direction) {
 
                     double detJ_deriv;
                     geom_sensitivity.CalculateSensitivity(deriv, detJ_deriv, dNdX_deriv);

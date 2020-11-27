@@ -123,6 +123,8 @@ public:
 
         static constexpr double PressureDerivativeFactor = 0.0;
 
+        static constexpr unsigned int TDerivativeDimension = TDim;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -173,6 +175,8 @@ public:
 
         static constexpr double PressureDerivativeFactor = 1.0;
 
+        static constexpr unsigned int TDerivativeDimension = 1;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -222,6 +226,8 @@ public:
         static constexpr double VelocityDerivativeFactor = 0.0;
 
         static constexpr double PressureDerivativeFactor = 0.0;
+
+        static constexpr unsigned int TDerivativeDimension = TDim;
 
         ///@}
         ///@name Life Cycle

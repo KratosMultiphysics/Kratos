@@ -22,6 +22,7 @@
 #include "utilities/element_size_calculator.h"
 
 // Application includes
+#include "custom_utilities/fluid_element_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 
 // Include base h
@@ -34,6 +35,117 @@ template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIntegrationMethod()
 {
     return GeometryData::GI_GAUSS_2;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::SecondDerivatives(
+    const Element& rElement,
+    FluidConstitutiveLaw& rFluidConstitutiveLaw)
+    : mrElement(rElement),
+      mrFluidConstitutiveLaw(rFluidConstitutiveLaw)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::Initialize(
+    Matrix& rOutput,
+    const ProcessInfo& rProcessInfo)
+{
+    const auto& r_geometry = mrElement.GetGeometry();
+
+    const auto& properties = mrElement.GetProperties();
+    mDensity = properties.GetValue(DENSITY);
+    mDynamicViscosity = properties.GetValue(DYNAMIC_VISCOSITY);
+    mElementSize = ElementSizeCalculator<TDim, TNumNodes>::MinimumElementSize(r_geometry);
+
+    // setting up primal constitutive law
+    InitializeConstitutiveLaw(mConstitutiveLawValues, mStrainRate, mShearStress, mC,
+                              r_geometry, mrElement.GetProperties(), rProcessInfo);
+
+    mDynamicTau = rProcessInfo[DYNAMIC_TAU];
+    mDeltaTime = rProcessInfo[DELTA_TIME];
+    KRATOS_ERROR_IF(mDeltaTime > 0.0)
+        << "Adjoint is calculated in reverse time, therefore "
+           "DELTA_TIME should be negative. [ DELTA_TIME = "
+        << mDeltaTime << " ].\n";
+    mDeltaTime *= -1.0;
+
+    // filling nodal values
+    for (IndexType a = 0; a < TNumNodes; ++a) {
+        const auto& r_node = r_geometry[a];
+        for (IndexType i = 0; i < TDim; ++i) {
+            mNodalVelocity(a, i) = r_node.FastGetSolutionStepValue(VELOCITY)[i];
+        }
+    }
+
+    mBlockSize = rOutput.size2() / TNumNodes;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::AddResidualDerivativeContributions(
+    Matrix& rOutput,
+    const double W,
+    const Vector& rN,
+    const Matrix& rdNdX)
+{
+    using element_utilities = FluidElementUtilities<TNumNodes>;
+    using derivative_utilities = QSVMSDerivativeUtilities<TDim>;
+
+    const auto& r_geometry = mrElement.GetGeometry();
+
+    array_1d<double, 3> velocity, mesh_velocity;
+
+    // get gauss point evaluated values
+    element_utilities::EvaluateInPoint(
+        r_geometry, rN,
+        std::tie(velocity, VELOCITY),
+        std::tie(mesh_velocity, MESH_VELOCITY));
+
+    const array_1d<double, 3> convective_velocity = velocity - mesh_velocity;
+    const double convective_velocity_norm = norm_2(convective_velocity);
+
+    BoundedVector<double, TNumNodes> convective_velocity_dot_dn_dx;
+    element_utilities::Product(convective_velocity_dot_dn_dx, rdNdX, convective_velocity);
+
+    double effective_viscosity;
+    derivative_utilities::CalculateStrainRate(
+        mStrainRate, mNodalVelocity, rdNdX);
+    mConstitutiveLawValues.SetShapeFunctionsValues(rN);
+    mrFluidConstitutiveLaw.CalculateMaterialResponseCauchy(mConstitutiveLawValues);
+    mrFluidConstitutiveLaw.CalculateValue(
+        mConstitutiveLawValues, EFFECTIVE_VISCOSITY, effective_viscosity);
+
+    double tau_one, tau_two;
+    CalculateTau(tau_one, tau_two, mElementSize, mDensity, effective_viscosity,
+                 convective_velocity_norm, mDynamicTau, mDeltaTime);
+
+    const double coeff_1 = W * mDensity;
+    const double coeff_2 = coeff_1 * tau_one;
+
+    // Note: Dof order is (u,v,[w,]p) for each node
+    for (IndexType c = 0; c < TNumNodes; ++c) {
+        const IndexType row = c * mBlockSize;
+        for (IndexType a = 0; a < TNumNodes; ++a) {
+            const IndexType col = a * mBlockSize;
+            const double mass = coeff_1 * rN[a] * rN[c];
+            for (IndexType d = 0; d < TDim; ++d) {
+                double value = 0.0;
+
+                value -= mass;
+                value -= coeff_2 * mDensity * convective_velocity_dot_dn_dx[a] * rN[c];
+
+                rOutput(row + d, col + d) += value;
+                rOutput(row + d, col + TDim) -= coeff_2 * rdNdX(a, d) * rN[c];
+            }
+        }
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::Finalize(
+    Matrix& rOutput,
+    const ProcessInfo& rProcessInfo)
+{
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -90,36 +202,13 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Initialize(const ProcessIn
     mElementSize = ElementSizeCalculator<TDim, TNumNodes>::MinimumElementSize(r_geometry);
 
     // setting up primal constitutive law
-    mStrainRate.resize(TStrainSize);
-    mShearStress.resize(TStrainSize);
-    mC.resize(TStrainSize, TStrainSize, false);
-
-    mConstitutiveLawValues = ConstitutiveLaw::Parameters(
-        r_geometry, mrElement.GetProperties(), rProcessInfo);
-
-    auto& cl_options = mConstitutiveLawValues.GetOptions();
-    cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-    mConstitutiveLawValues.SetStrainVector(mStrainRate); // this is the input parameter
-    mConstitutiveLawValues.SetStressVector(mShearStress); // this is an ouput parameter
-    mConstitutiveLawValues.SetConstitutiveMatrix(mC); // this is an ouput parameter
+    InitializeConstitutiveLaw(mConstitutiveLawValues, mStrainRate, mShearStress, mC,
+                              r_geometry, mrElement.GetProperties(), rProcessInfo);
 
     // setting up derivative constitutive law
-    mStrainRateDerivative.resize(TStrainSize);
-    mShearStressDerivative.resize(TStrainSize);
-    mCDerivative.resize(TStrainSize, TStrainSize, false);
-
-    mConstitutiveLawValuesDerivative = ConstitutiveLaw::Parameters(
-        r_geometry, mrElement.GetProperties(), rProcessInfo);
-
-    auto& cl_options_derivative = mConstitutiveLawValuesDerivative.GetOptions();
-    cl_options_derivative.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    cl_options_derivative.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-    mConstitutiveLawValuesDerivative.SetStrainVector(mStrainRateDerivative); // this is the input parameter
-    mConstitutiveLawValuesDerivative.SetStressVector(mShearStressDerivative); // this is an ouput parameter
-    mConstitutiveLawValuesDerivative.SetConstitutiveMatrix(mCDerivative); // this is an ouput parameter
+    InitializeConstitutiveLaw(mConstitutiveLawValuesDerivative, mStrainRateDerivative,
+                              mShearStressDerivative, mCDerivative, r_geometry,
+                              mrElement.GetProperties(), rProcessInfo);
 
     KRATOS_CATCH("");
 }
@@ -273,8 +362,32 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::CalculateTauDerivative(
     TauTwoDerivative += c2 * Density * VelocityNorm * ElementSizeDerivative / c1;
 }
 
-// template instantiations
+template <unsigned int TDim, unsigned int TNumNodes>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::InitializeConstitutiveLaw(
+    ConstitutiveLaw::Parameters& rParameters,
+    Vector& rStrainVector,
+    Vector& rStressVector,
+    Matrix& rConstitutiveMatrix,
+    const GeometryType& rGeometry,
+    const PropertiesType& rProperties,
+    const ProcessInfo& rProcessInfo)
+{
+    rStrainVector.resize(TStrainSize);
+    rStressVector.resize(TStrainSize);
+    rConstitutiveMatrix.resize(TStrainSize, TStrainSize, false);
 
+    rParameters = ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);
+
+    auto& cl_options = rParameters.GetOptions();
+    cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    rParameters.SetStrainVector(rStrainVector); // this is the input parameter
+    rParameters.SetStressVector(rStressVector); // this is an ouput parameter
+    rParameters.SetConstitutiveMatrix(rConstitutiveMatrix); // this is an ouput parameter
+}
+
+// template instantiations
 template class QSVMSResidualDerivatives<2, 3>;
 template class QSVMSResidualDerivatives<2, 4>;
 

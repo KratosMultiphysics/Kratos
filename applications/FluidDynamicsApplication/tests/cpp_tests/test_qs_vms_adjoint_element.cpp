@@ -50,17 +50,16 @@ void RunFluidQSVMSAdjointElementTest(
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 0);
-
-        // following values do not need to be set when OSS projections are supported by Adjoints
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
-
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 1);
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
         FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 1);
+
+        // following values do not need to be set when OSS projections are supported by Adjoints
+        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
+        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
 
         auto& r_process_info = rModelPart.GetProcessInfo();
         r_process_info.SetValue(DOMAIN_SIZE, 2);
@@ -168,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSPressure, Flui
     RunFluidQSVMSAdjointElementTest(PRESSURE, derivatives_method, 0, 2, 1e-6, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSShape, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateSensitivityMatrixShape, FluidDynamicsApplicationFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
                                         const ProcessInfo& rProcessInfo) {
@@ -176,6 +175,18 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateFirstDerivativesLHSShape, FluidDy
     };
 
     RunFluidQSVMSAdjointElementTest(SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointCalculateSecondDerivativesLHS, FluidDynamicsApplicationFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
+                                        const ProcessInfo& rProcessInfo) {
+        rElement.CalculateSecondDerivativesLHS(rMatrix, rProcessInfo);
+        const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
+        noalias(rMatrix) = rMatrix * (1.0 - bossak_alpha);
+    };
+
+    RunFluidQSVMSAdjointElementTest(ACCELERATION, derivatives_method, 0, 0, 1e-7, 1e-5);
 }
 
 } // namespace Testing

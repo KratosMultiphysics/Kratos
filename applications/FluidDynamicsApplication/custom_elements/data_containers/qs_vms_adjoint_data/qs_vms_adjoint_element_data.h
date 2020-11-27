@@ -73,6 +73,12 @@ public:
     class StateDerivatives
     {
     public:
+        ///@name Type Definitions
+        ///@{
+
+        using SecondDerivatives = typename TResidualDerivatives::SecondDerivatives;
+
+        ///@}
         ///@name Classes
         ///@{
 
@@ -91,40 +97,18 @@ public:
             ///@}
         };
 
-        class SecondDerivatives
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
-
-            // using Acceleration = nullptr;
-
-            ///@}
-        };
-
         ///@}
     };
 
     class SensitivityDerivatives
     {
     public:
-        ///@name Classes
+        ///@name Type Definitions
         ///@{
 
-        class ShapeSensitivities
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
+        using Data = typename TResidualDerivatives::Data;
 
-            constexpr static IndexType TDerivativesDimension = TDim;
-
-            using Data = typename TResidualDerivatives::Data;
-
-            using Sensitivity = typename TResidualDerivatives::VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>, 0>;
-
-            ///@}
-        };
+        using ShapeSensitivities = typename TResidualDerivatives::VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>, 0>;
 
         ///@}
     };
