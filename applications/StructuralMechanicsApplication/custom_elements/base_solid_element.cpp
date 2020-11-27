@@ -899,12 +899,15 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 double sigma_equivalent = 0.0;
 
                 if (dimension == 2) {
-                    sigma_equivalent = std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2.0) +
-                                                3*(stress_tensor(0,1) * stress_tensor(1,0));
+
+                    sigma_equivalent = std::pow(stress_tensor(0,0),2) 
+                                     + std::pow(stress_tensor(1,1),2) 
+                                     - stress_tensor(0,0)*stress_tensor(1,1) 
+                                     + 3*(stress_tensor(0,1) * stress_tensor(1,0));
                 } else {
-                    sigma_equivalent = 0.5*(std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2.0) +
-                                            std::pow((stress_tensor(1,1) - stress_tensor(2,2)), 2.0) +
-                                            std::pow((stress_tensor(2,2) - stress_tensor(0,0)), 2.0) +
+                    sigma_equivalent = 0.5*(std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2) +
+                                            std::pow((stress_tensor(1,1) - stress_tensor(2,2)), 2) +
+                                            std::pow((stress_tensor(2,2) - stress_tensor(0,0)), 2) +
                                                     6*(stress_tensor(0,1) * stress_tensor(1,0) +
                                                         stress_tensor(1,2) * stress_tensor(2,1) +
                                                         stress_tensor(2,0) * stress_tensor(0,2)));
