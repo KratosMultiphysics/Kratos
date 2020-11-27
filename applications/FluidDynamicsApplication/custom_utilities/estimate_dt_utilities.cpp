@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/cfd_variables.h"
+#include "utilities/element_size_calculator.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
 
@@ -54,11 +55,15 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        // Get the projected element size function according to the corresponding geometry
+        // Note that in here it is assumed that all the elements in the model part feature the same geometry
+        const auto& r_geom = mrModelPart.ElementsBegin()->GetGeometry();
+        ElementSizeFunctionType projected_h_func = EstimateDtUtility<TDim>::GetProjectedElementSizeFunction(r_geom);
+
         // Obtain the maximum CFL
-        GeometryDataContainer geometry_info;
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
-        const double current_cfl = block_for_each<MaxReduction<double>>(mrModelPart.Elements(), geometry_info, [&](Element& rElement, GeometryDataContainer& rGeometryInfo) -> double {
-            return CalculateElementCFL(rElement, rGeometryInfo, current_dt);
+        const double current_cfl = block_for_each<MaxReduction<double>>(mrModelPart.Elements(), [&](Element& rElement) -> double {
+            return CalculateElementCFL(rElement, projected_h_func, current_dt);
         });
 
         // Calculate the new time increment from the maximum local CFL in the mesh
@@ -91,10 +96,16 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        // Get the projected element size function according to the corresponding geometry
+        // Note that in here it is assumed that all the elements in the model part feature the same geometry
+        const auto& r_geom = rModelPart.ElementsBegin()->GetGeometry();
+        ElementSizeFunctionType projected_h_func = EstimateDtUtility<TDim>::GetProjectedElementSizeFunction(r_geom);
+
+        // Calculate the CFL number in each element
         GeometryDataContainer geometry_info;
         const double current_dt = rModelPart.GetProcessInfo().GetValue(DELTA_TIME);
-        block_for_each(rModelPart.Elements(), geometry_info, [&](Element& rElement, GeometryDataContainer& rGeometryInfo){
-            const double element_cfl = EstimateDtUtility<TDim>::CalculateElementCFL(rElement, rGeometryInfo, current_dt);
+        block_for_each(rModelPart.Elements(), [&](Element& rElement){
+            const double element_cfl = EstimateDtUtility<TDim>::CalculateElementCFL(rElement, projected_h_func, current_dt);
             rElement.SetValue(CFL_NUMBER, element_cfl);
         });
 
@@ -104,29 +115,43 @@ namespace Kratos
     template<unsigned int TDim>
     double EstimateDtUtility<TDim>::CalculateElementCFL(
         const Element &rElement,
-        GeometryDataContainer& rGeometryInfo,
+        const ElementSizeFunctionType& rElementSizeCalculator,
         const double Dt)
     {
-        // Get the element's geometric parameters
-        const auto& r_geometry = rElement.GetGeometry();
-        GeometryUtils::CalculateGeometryData(r_geometry, rGeometryInfo.DN_DX, rGeometryInfo.N, rGeometryInfo.Area);
-
         // Calculate the midpoint velocity
-        array_1d<double,3> element_vel = rGeometryInfo.N[0]*r_geometry[0].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int i = 1; i < TDim+1; ++i) {
-            element_vel += rGeometryInfo.N[i]*r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+        const auto& r_geometry = rElement.GetGeometry();
+        const unsigned int n_nodes = r_geometry.PointsNumber();
+        array_1d<double,3> element_vel = r_geometry[0].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int i = 1; i < n_nodes; ++i) {
+            element_vel += r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+        }
+        element_vel /= static_cast<double>(n_nodes);
+
+        // Calculate element CFL
+        const double h_proj = rElementSizeCalculator(r_geometry, element_vel);
+        const double elem_cfl = norm_2(element_vel) * Dt / h_proj;
+
+        return elem_cfl;
+    }
+
+    template<unsigned int TDim>
+    typename EstimateDtUtility<TDim>::ElementSizeFunctionType EstimateDtUtility<TDim>::GetProjectedElementSizeFunction(const Geometry<Node<3>>& rGeometry)
+    {
+        ElementSizeFunctionType projected_h_func;
+        const auto geometry_type = rGeometry.GetGeometryType();
+        if (geometry_type == GeometryData::Kratos_Triangle2D3) {
+            projected_h_func = [&](const Geometry<Node<3>>& rGeometry, const array_1d<double,3>& rVelocity){return ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry, rVelocity);};
+        } else if (geometry_type == GeometryData::Kratos_Quadrilateral2D4) {
+            projected_h_func = [&](const Geometry<Node<3>>& rGeometry, const array_1d<double,3>& rVelocity){return ElementSizeCalculator<2,4>::ProjectedElementSize(rGeometry, rVelocity);};
+        } else if (geometry_type == GeometryData::Kratos_Tetrahedra3D4) {
+            projected_h_func = [&](const Geometry<Node<3>>& rGeometry, const array_1d<double,3>& rVelocity){return ElementSizeCalculator<3,4>::ProjectedElementSize(rGeometry, rVelocity);};
+        } else if (geometry_type == GeometryData::Kratos_Quadrilateral3D8) {
+            projected_h_func = [&](const Geometry<Node<3>>& rGeometry, const array_1d<double,3>& rVelocity){return ElementSizeCalculator<3,8>::ProjectedElementSize(rGeometry, rVelocity);};
+        } else {
+            KRATOS_ERROR << "Non supported geometry type." << std::endl;
         }
 
-        // Calculate u/h as the maximum projection of the velocity along element heights
-        double v_proj = 0.0;
-        for (unsigned int i = 0; i < TDim+1; ++i) {
-            for (unsigned int d = 0; d < TDim; ++d) {
-                v_proj += element_vel[d]*rGeometryInfo.DN_DX(i,d);
-            }
-            v_proj = std::abs(v_proj);
-        }
-
-        return v_proj*Dt;
+        return projected_h_func;
     }
 
     template<unsigned int TDim>

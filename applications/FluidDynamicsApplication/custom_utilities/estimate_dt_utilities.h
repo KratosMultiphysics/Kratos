@@ -45,8 +45,18 @@ class EstimateDtUtility
 {
 public:
 
-    ///@name Life Cycle
-    ///@{
+	///@name Type Definitions
+	///@{
+
+	/// Pointer definition of EstimateDtUtility
+	KRATOS_CLASS_POINTER_DEFINITION(EstimateDtUtility);
+
+    /// Function type for the element size calculator function
+    typedef std::function<double(const Geometry<Node<3>>&, const array_1d<double,3>)> ElementSizeFunctionType;
+
+	///@}
+	///@name Life Cycle
+	///@{
 
     /// Constructor
     /**
@@ -186,9 +196,18 @@ private:
      */
     static double CalculateElementCFL(
         const Element &rElement,
-        GeometryDataContainer& rGeometryInfo,
+        const ElementSizeFunctionType& rElementSizeCalculator,
         const double Dt);
 
+    /**
+     * @brief Get the projected element size calculation function
+     * This method checks the geometry of the provided element and returns the corresponding
+     * velocity projection element size calculation fucntion.
+     * @param rGeometry Geoemtry in which the element size is to be computed
+     * @return ElementSizeFunctionType Function to calculate the projected element size
+     */
+    static ElementSizeFunctionType GetProjectedElementSizeFunction(const Geometry<Node<3>>& rGeometry);
+    
     ///@} // Private Operations
 };
 

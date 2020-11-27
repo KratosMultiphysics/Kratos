@@ -80,8 +80,8 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDt, FluidDynamicsApplicatio
     const double obtained_dt = estimate_dt_utility.EstimateDt();
 
     // Check results
-    const double expected_dt = 0.1;
-    const double tolerance = 1.0e-12;
+    const double expected_dt = 0.238938;
+    const double tolerance = 2.0e-6;
     KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
 }
 
@@ -99,9 +99,9 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesCalculateLocalCFL, FluidDynamicsApp
     EstimateDtUtility<2>::CalculateLocalCFL(r_model_part);
 
     // Check results
-    const double tolerance = 1.0e-12;
-    KRATOS_CHECK_NEAR(r_model_part.GetElement(1).GetValue(CFL_NUMBER), 1.0/3.0, tolerance);
-    KRATOS_CHECK_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 1.0, tolerance);
+    const double tolerance = 2.0e-6;
+    KRATOS_CHECK_NEAR(r_model_part.GetElement(1).GetValue(CFL_NUMBER), 0.104167, tolerance);
+    KRATOS_CHECK_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 0.418519, tolerance);
 }
 
 }
