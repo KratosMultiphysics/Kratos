@@ -92,8 +92,8 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
-        if custom_settings["formulation"]["element_type"].GetString() != "FractionalStep":
-            raise Exception("NavierStokesFractionalStepSolver only accepts FractionalStep as the \"element_type\" in \"formulation\"")
+        if custom_settings["formulation"]["element_type"].GetString() not in ["FractionalStep","QSNavierStokesExplicit"]:
+            raise Exception("NavierStokesFractionalStepSolver only accepts FractionalStep or QSNavierStokesExplicit as the \"element_type\" in \"formulation\"")
 
         self.element_name = custom_settings["formulation"]["element_type"].GetString()
         self.condition_name = custom_settings["formulation"]["condition_type"].GetString()
