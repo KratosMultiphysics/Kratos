@@ -17,6 +17,8 @@
 
 // System includes
 #include <string>
+#include <vector>
+#include <unordered_map>
 
 // External includes
 
@@ -28,6 +30,7 @@
 #include "includes/parallel_environment.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -95,9 +98,17 @@ public:
 
     using TGPDataMap = GlobalPointersUnorderedMap<TPointerDataType, TValueDataType>;
 
-    using TGPNonLocalDataMap = std::unordered_map<int, TGPDataMap>;
-
     using TGPMapCommunicator = GlobalPointerMapCommunicator<TPointerDataType, TValueDataType>;
+
+    using GlobalPointerType = GlobalPointer<TPointerDataType>;
+
+    using GlobalPointerVectorType = std::vector<GlobalPointerType>;
+
+    using GlobalPointerMapType = std::unordered_map<int, GlobalPointerVectorType>;
+
+    using DataVectorType = std::vector<TValueDataType>;
+
+    using DataVectorMapType = std::unordered_map<int, DataVectorType>;
 
     ///@}
     ///@name Life cycle
@@ -106,17 +117,20 @@ public:
     /**
      * @brief Construct a new Apply Proxy object
      *
-     * @param rApplyFunctor             Thread safe update lambda method
-     * @param rNonLocalDataMap          Non-local gp map
-     * @param rPointerCommunicator      Map communicator
+     * @param rApplyFunctor                         Thread safe update lambda method
+     * @param rNonLocalGlobalPointerMapsVector      Vector of maps to store (rank, gp)
+     * @param rNonLocalDataValueMapsVector          Vector of maps to store (rank, value)
+     * @param rPointerCommunicator                  Map communicator
      */
     ApplyProxy(
         const TApplyFunctor& rApplyFunctor,
-        TGPNonLocalDataMap& rNonLocalDataMap,
+        std::vector<GlobalPointerMapType>& rNonLocalGlobalPointerMapsVector,
+        std::vector<DataVectorMapType>& rNonLocalDataValueMapsVector,
         TGPMapCommunicator& rPointerCommunicator)
         : mCurrentRank(rPointerCommunicator.GetMyPID()),
           mrApplyFunctor(rApplyFunctor),
-          mrNonLocalDataMap(rNonLocalDataMap),
+          mrNonLocalGlobalPointerMapsVector(rNonLocalGlobalPointerMapsVector),
+          mrNonLocalDataValueMapsVector(rNonLocalDataValueMapsVector),
           mrPointerCommunicator(rPointerCommunicator)
     {
         // identify proper methods to be used in updates
@@ -124,13 +138,6 @@ public:
             this->mUpdateMethod = &ProxyType::AssignLocalAndRemoteData;
         } else {
             this->mUpdateMethod = &ProxyType::AssignLocalData;
-        }
-
-        // identify proper methods to be used in updating non-local gp data
-        if (mrPointerCommunicator.IsAssembly()) {
-            this->mNonLocalGPDataUpdateMethod = &ProxyType::NonLocalDataAssemblyMethod;
-        } else {
-            this->mNonLocalGPDataUpdateMethod = &ProxyType::NonLocalDataAssignMethod;
         }
     }
 
@@ -142,7 +149,7 @@ public:
      * @brief Assigns values with given values map
      *
      * This method assigns local gps using mrApplyFunctor instantly. Values
-     * belonging to remote gps are stored in the mrNonLocalDataMap.
+     * belonging to remote gps are stored in the mrNonLocalGlobalPointerMapsVector and mrNonLocalDataValueMapsVector.
      *
      * In the case of serial job, this method calls AssignLocalData, where no checks are done
      * to ensure gps are local because all gps are local.
@@ -151,14 +158,7 @@ public:
      * performed to identify gps are local or non-local, based on that mrApplyFunctor
      * methods are called or values corresponding to remote gps are stored.
      *
-     * The input rGPDataMap map should not contain any key gps which are not included in creating the
-     * GlobalPointerMapCommunicator used in this proxy (i.e. mrPointerCommunicator)
-     *
-     * This method can be called several times without severe additional computational cost
-     * since this does not do any mpi communication. But in this case, remote gp values
-     * will be overwritten, whereas local gp values will be applied using mrApplyFunctor.
-     *
-     * This does not have additional cost in serial run
+     * This does not have additional cost in serial run (except for function pointer call)
      *
      * @see GlobalPointerMapCommunicator
      *
@@ -166,6 +166,11 @@ public:
      */
     void Assign(const TGPDataMap& rGPDataMap)
     {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0)
+            << "Assigning map of values in a parallel region is not allowed.\n";
+
         // get gp vector for parallel omp run
         const auto& gps = TGPMapCommunicator::GetKeys(rGPDataMap);
 
@@ -173,49 +178,6 @@ public:
         IndexPartition<int>(gps.size()).for_each([&](const int Index) {
             auto p_itr = rGPDataMap.find(gps[Index]);
             Assign(p_itr->first, p_itr->second);
-        });
-    }
-
-    /**
-     * @brief Assigns values with given list and values
-     *
-     * This method assigns local gps in rGPs using mrApplyFunctor instantly. Values
-     * belonging to remote gps are stored in the mrNonLocalDataMap.
-     *
-     * In the case of serial job, this method calls AssignLocalData, where no checks are done
-     * to ensure gps are local because all gps should be always local.
-     *
-     * In case of distributed job, this method calls AssignLocalAndRemoteData where checks are
-     * performed to identify gps are local or non-local, based on that mrApplyFunctor
-     * methods are called or values corresponding to remote gps are stored.
-     *
-     * The input rGPs map should not contain any key gps which are not included in creating the
-     * GlobalPointerMapCommunicator used in this proxy (i.e. mrPointerCommunicator)
-     *
-     * This method can be called several times without severe additional computational cost
-     * since this does not do any mpi communication. But in this case, remote gp values
-     * will be overwritten, whereas local gp values will be applied using mrApplyFunctor.
-     *
-     * This does not have additional cost in serial run
-     *
-     * @see GlobalPointerMapCommunicator
-     *
-     * @param rGPs              List of GlobalPointers
-     * @param rValues           List of values
-     */
-    void Assign(
-        const TGPVector& rGPs,
-        const std::vector<TValueDataType>& rValues)
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF(rGPs.size() != rValues.size())
-            << "Number of global pointers does not match with number of "
-               "values. [ rGPs.size() = "
-            << rGPs.size() << ", rValues.size() = " << rValues.size() << " ].\n";
-
-        IndexPartition<int>(rGPs.size()).for_each([&](const int Index){
-            Assign(rGPs(Index), rValues[Index]);
         });
 
         KRATOS_CATCH("");
@@ -225,8 +187,11 @@ public:
      * @brief Assigns value of the GlobalPointer
      *
      * This method assigns gp value by rValue using mrApplyFunctor in the case if
-     * given rGlobalPointer is a local gp, otherwise mrNonLocalDataMap is assigned with
-     * new value, which will be used in mpi communication.
+     * given rGlobalPointer is a local gp, otherwise mrNonLocalGlobalPointerMapsVector and
+     * mrNonLocalDataValueMapsVector are used to store new gp and value,
+     * which will be used in mpi communication.
+     *
+     * This does not have additional cost in serial run (except for function pointer call)
      *
      * @see GlobalPointerMapCommunicator
      *
@@ -265,9 +230,9 @@ private:
     const TApplyFunctor& mrApplyFunctor;
 
     void (ProxyType::*mUpdateMethod)(const GlobalPointer<TPointerDataType>&, const TValueDataType&);
-    void (ProxyType::*mNonLocalGPDataUpdateMethod)(TValueDataType&, const TValueDataType&);
 
-    TGPNonLocalDataMap& mrNonLocalDataMap;
+    std::vector<GlobalPointerMapType>& mrNonLocalGlobalPointerMapsVector;
+    std::vector<DataVectorMapType>& mrNonLocalDataValueMapsVector;
     TGPMapCommunicator& mrPointerCommunicator;
 
     ///@}
@@ -317,61 +282,16 @@ private:
         const GlobalPointer<TPointerDataType>& rGlobalPointer,
         const TValueDataType& rValue)
     {
-        KRATOS_TRY
-
         const int data_rank = rGlobalPointer.GetRank();
 
         if (data_rank == mCurrentRank) {
             AssignLocalData(rGlobalPointer, rValue);
         } else {
-            // update mrNonLocalDataMap map for remote data,
-            // which will be used in future for communication
-            auto p_non_local_map = mrNonLocalDataMap.find(data_rank);
+            const int k = OpenMPUtils::ThisThread();
 
-            KRATOS_DEBUG_ERROR_IF(p_non_local_map == mrNonLocalDataMap.end())
-                << "Data rank not found in non local maps. [ MyPID = " << mCurrentRank
-                << ", DataRank = " << data_rank << " ].\n";
-
-            auto p_non_local_itr = p_non_local_map->second.find(rGlobalPointer);
-
-            KRATOS_DEBUG_ERROR_IF(p_non_local_itr == p_non_local_map->second.end())
-                << "Global pointer not found in rank " << data_rank
-                << " non local map. [ MyPID = " << mCurrentRank << " ].\n";
-
-            (this->*(this->mNonLocalGPDataUpdateMethod))(p_non_local_itr->second, rValue);
+            mrNonLocalGlobalPointerMapsVector[k][data_rank].push_back(rGlobalPointer);
+            mrNonLocalDataValueMapsVector[k][data_rank].push_back(rValue);
         }
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This is used in assembly of values
-     *
-     * This method assembles non-local gp data in the non-local gp data map
-     *
-     * @param rNonLocalGPDataValue          Output value
-     * @param rNewValue                     New input value
-     */
-    void NonLocalDataAssemblyMethod(
-        TValueDataType& rNonLocalGPDataValue,
-        const TValueDataType& rNewValue)
-    {
-        rNonLocalGPDataValue += rNewValue;
-    }
-
-    /**
-     * @brief This is used in assigning of values
-     *
-     * This method assigns non-local gp data in the non-local gp data map
-     *
-     * @param rNonLocalGPDataValue          Output value
-     * @param rNewValue                     New input value
-     */
-    void NonLocalDataAssignMethod(
-        TValueDataType& rNonLocalGPDataValue,
-        const TValueDataType& rNewValue)
-    {
-        rNonLocalGPDataValue = rNewValue;
     }
 
     ///@}
@@ -394,14 +314,20 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using IndexType = std::size_t;
+
+    using GlobalPointerType = GlobalPointer<TPointerDataType>;
+
+    using GlobalPointerVectorType = std::vector<GlobalPointerType>;
+
+    using GlobalPointerMapType = std::unordered_map<int, GlobalPointerVectorType>;
+
+    using DataVectorType = std::vector<TValueDataType>;
+
+    using DataVectorMapType = std::unordered_map<int, DataVectorType>;
+
     template<class TApplyFunctor>
     using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>;
-
-    using TGPVector = GlobalPointersVector<TPointerDataType>;
-
-    using TGPDataMap = GlobalPointersUnorderedMap<TPointerDataType, TValueDataType>;
-
-    using TGPNonLocalDataMap = std::unordered_map<int, TGPDataMap>;
 
     /// Pointer definition of GlobalPointerMapCommunicator
     KRATOS_CLASS_POINTER_DEFINITION(GlobalPointerMapCommunicator);
@@ -413,75 +339,30 @@ public:
     /**
      * @brief Construct a new Global Pointer Map Communicator object
      *
-     * This constructor can be used if there is already a GPVector
-     * constructed by the user.
-     *
-     * This constructor will also compute communication scheduling
-     * for given list of GPs.
-     *
-     * The rInitializationValue is used to initialize the gp map created
-     * for GPs provided (for non local gps).
+     * This constructor should only be called in non-parallel regions
      *
      * @param rDataCommunicator         Data communicator
-     * @param rGPVector                 Global pointers vector
-     * @param rInitializationValue      Initialization value
      */
     GlobalPointerMapCommunicator(
-        const DataCommunicator& rDataCommunicator,
-        const TGPVector& rGPVector,
-        const TValueDataType& rInitializationValue,
-        const bool IsAssembly = true)
+        const DataCommunicator& rDataCommunicator)
         : mrDataCommunicator(rDataCommunicator),
-          mCurrentRank(rDataCommunicator.Rank()),
-          mIsAssembly(IsAssembly)
+          mCurrentRank(rDataCommunicator.Rank())
     {
-        if (IsDistributed()) {
-            AddPointers(rGPVector, rInitializationValue);
-            ComputeCommunicationPlan();
-        }
-    }
+        KRATOS_TRY
 
-    /**
-     * @brief Construct a new Global Pointer Map Communicator object
-     *
-     * This constructor uses a functor to create the Gps vector
-     *
-     * TVectorFunctorType signature
-     *      const DataCommunicator& -> GlobalPointersVector<TPointerDataType>
-     *
-     * @tparam TVectorFunctorType
-     * @param rDataCommunicator         Data communicator
-     * @param rInitializationValue      Initialization value
-     * @param rVectorFunctor            Functor which returns a GPVector
-     */
-    template <class TVectorFunctorType>
-    GlobalPointerMapCommunicator(
-        const DataCommunicator& rDataCommunicator,
-        const TValueDataType& rInitializationValue,
-        TVectorFunctorType&& rVectorFunctor,
-        const bool IsAssembly = true)
-        : mrDataCommunicator(rDataCommunicator),
-          mCurrentRank(rDataCommunicator.Rank()),
-          mIsAssembly(IsAssembly)
-    {
         if (IsDistributed()) {
-            const auto& r_gp_vector = rVectorFunctor(mrDataCommunicator);
-            AddPointers(r_gp_vector, rInitializationValue);
-            ComputeCommunicationPlan();
-        }
-    }
 
-    template <class TVectorFunctorType>
-    GlobalPointerMapCommunicator(
-        const TValueDataType& rInitializationValue,
-        TVectorFunctorType&& rFunctor,
-        const bool IsAssembly = true)
-        : GlobalPointerMapCommunicator(
-              ParallelEnvironment::GetDefaultDataCommunicator(),
-              rInitializationValue,
-              std::forward<TVectorFunctorType>(rFunctor),
-              IsAssembly)
-    {
+            KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0)
+                << "Constructing a GlobalPointerMapCommunicator in a parallel "
+                   "region is not allowed.\n";
+
+            // resizing for OMP parallel loops
+            const int number_of_threads = OpenMPUtils::GetNumThreads();
+            mNonLocalGlobalPointerMapsVector.resize(number_of_threads);
+            mNonLocalValueMapsVector.resize(number_of_threads);
+        }
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -511,41 +392,103 @@ public:
     template <class TApplyFunctor>
     void SendAndApplyRemotely(ProxyType<TApplyFunctor>& rApplyProxy)
     {
-        if (IsDistributed()) {
-            for (auto color : mColors) {
-                if (color >= 0) {
-                    const auto& received_gp_map = mrDataCommunicator.SendRecv(
-                        mrNonLocalPointers[color], color, color);
+        KRATOS_TRY
 
-                    // get gp vector for parallel omp run
+        if (IsDistributed()) {
+
+            KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0)
+                << "Calling SendAndApplyRemotely in a parallel region is not "
+                   "allowed.\n";
+
+            // get the final map for communications
+            std::unordered_map<int, GlobalPointersUnorderedMap<TPointerDataType, std::vector<TValueDataType>>> non_local_map;
+
+            for (IndexType i = 0; i < mNonLocalGlobalPointerMapsVector.size(); ++i) {
+                const GlobalPointerMapType& current_gp_map = mNonLocalGlobalPointerMapsVector[i];
+                const DataVectorMapType& current_data_map = mNonLocalValueMapsVector[i];
+
+                for (const auto& r_gp_map_item : current_gp_map) {
+                    auto& current_rank_gp_map = non_local_map[r_gp_map_item.first];
+
+                    const auto& r_gp_vector = r_gp_map_item.second;
+                    const auto& r_data_vector = current_data_map.find(r_gp_map_item.first)->second;
+
+                    for (IndexType i = 0; i < r_gp_vector.size(); ++i) {
+                        current_rank_gp_map[r_gp_vector[i]].push_back(r_data_vector[i]);
+                    }
+                }
+            }
+
+            // compute the communication plan
+            const auto& colors = ComputeCommunicationPlan(non_local_map);
+
+            // perform send and receives to get and send remote data
+            for (const auto color : colors) {
+                if (color >= 0) {
+                    // In here
+                    //      1. We can do communication twice using default serializer for two map vectors.
+                    //              First map: (rank, gp)
+                    //              Second map: (rank, data_value)
+                    //      2. We can combine non_local_gp_map and non_local_data_map to one map, and do communication once
+                    //         after serializing the custom map.
+                    //              Current implementation
+                    //
+                    // Pros and Cons of 1:
+                    //      default serialization is used -> Pro
+                    //      OMP parallel loops cannot be used because received_gps_vector may not be unique -> Con
+                    //          This will be a performance hit if the lambda proxy is computationally expensive
+                    //      Communication need to be done twice once for gps, once for values -> Con
+                    // Pros and Const of 2:
+                    //      custom serialization will be used -> Con
+                    //      OMP parallel loops can be used in applying the proxy because the gps will be unique in the map -> Pro
+                    //      communication need to be done only once -> Pro
+                    //
+                    // I think the 2nd options outweighs the first one, so I implemented the second one. Suggestions are
+                    // greately appreciated.
+                    const auto& received_gp_map = mrDataCommunicator.SendRecv(non_local_map[color], color, color);
                     const auto& gps = GetKeys(received_gp_map);
 
                     // running this in parallel assuming mrApplyFunctor is thread safe
                     IndexPartition<int>(gps.size()).for_each([&](const int Index) {
-                        auto p_itr = received_gp_map.find(gps[Index]);
-                        // it is safer to call the serial update method here
-                        // because we should only get process's local gps when communication is done
-                        rApplyProxy.AssignLocalData(p_itr->first, p_itr->second);
+                        const auto& gp = gps[Index];
+                        auto p_itr = received_gp_map.find(gp);
+
+                        for (IndexType i = 0; i < p_itr->second.size(); ++i) {
+                            // it is safer to call the serial update method here
+                            // because we should only get process's local gps when communication is done
+                            rApplyProxy.AssignLocalData(gp, p_itr->second[i]);
+                        }
                     });
                 }
             }
+
+            // clear data containers once communication is done
+            for (IndexType i = 0; i < mNonLocalGlobalPointerMapsVector.size(); ++i) {
+                mNonLocalGlobalPointerMapsVector[i].clear();
+                mNonLocalValueMapsVector[i].clear();
+            }
         }
+
+        KRATOS_CATCH("");
     }
 
     /**
      * @brief Get the Apply Proxy object
      *
+     * The functor passed via rApplyFunctor should be thread safe
+     *
      * Returns the Apply proxy.
      *
      * @tparam TApplyFunctor
-     * @param rApplyFunctor
+     * @param rApplyFunctor                Thread safe functor
      * @return ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>
      */
     template <class TApplyFunctor>
     ProxyType<TApplyFunctor> GetApplyProxy(TApplyFunctor&& rApplyFunctor)
     {
-        return ProxyType<TApplyFunctor>(
-            std::forward<TApplyFunctor>(rApplyFunctor), mrNonLocalPointers, *this);
+        return ProxyType<TApplyFunctor>(std::forward<TApplyFunctor>(rApplyFunctor),
+                                        mNonLocalGlobalPointerMapsVector,
+                                        mNonLocalValueMapsVector, *this);
     }
 
     /**
@@ -557,14 +500,13 @@ public:
         return mrDataCommunicator.IsDistributed();
     }
 
+    /**
+     * @brief Get the current rank
+     *
+     */
     int GetMyPID() const
     {
         return mCurrentRank;
-    }
-
-    bool IsAssembly() const
-    {
-        return mIsAssembly;
     }
 
     ///@}
@@ -620,7 +562,18 @@ protected:
     ///@name Protected Member Variables
     ///@{
 
-    TGPNonLocalDataMap mrNonLocalPointers;
+    // here we store this in two vector maps(vector of gps, vector of values) instead of one vector map(key:gp, value: std::vector)
+    // because, when updating
+    //      1. Two vector maps will have to only have to append the two vectors for each non-local update.
+    //          Whenever std::vector reaches the capacity, it is doubled,
+    //          so the cost of resizing for vector appending is in O(log N)
+    //      2. If a single vector map is used, first it has to find the gp in the map [ O(log N) if found, otherwise larger] and then append one vector
+    //          for each non-local update.
+    // The method 2 is little bit more expensive than first one AFAIK. so implemented the vector versions. Suggestions are highly appreciated :)
+    //
+    std::vector<GlobalPointerMapType> mNonLocalGlobalPointerMapsVector;
+    std::vector<DataVectorMapType> mNonLocalValueMapsVector;
+
     const DataCommunicator& mrDataCommunicator;
     const int mCurrentRank;
 
@@ -628,36 +581,16 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    void AddPointers(
-        const TGPVector& rGPVector,
-        const TValueDataType& rInitializationValue)
+    template<class... TArgs>
+    std::vector<int> ComputeCommunicationPlan(const std::unordered_map<int, TArgs...>& rNonLocalGlobalPointerMap)
     {
-        // this method is called always at the constructor.
-        // this should only be called in MPI
-        for (const auto& r_gp : rGPVector.GetContainer()) {
-            if (r_gp.GetRank() != mCurrentRank) {
-                    auto& rank_local_map = mrNonLocalPointers[r_gp.GetRank()];
-                    rank_local_map[r_gp] = rInitializationValue;
-            }
-        }
-    }
-
-    void ComputeCommunicationPlan()
-    {
-        auto send_list = GetKeys(mrNonLocalPointers);
+        std::vector<int> colors;
+        auto send_list = GetKeys(rNonLocalGlobalPointerMap);
         std::sort(send_list.begin(), send_list.end());
-        mColors = MPIColoringUtilities::ComputeCommunicationScheduling(
+        colors = MPIColoringUtilities::ComputeCommunicationScheduling(
             send_list, mrDataCommunicator);
+        return colors;
     }
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-
-    std::vector<int> mColors;
-    const bool mIsAssembly;
 
     ///@}
 
