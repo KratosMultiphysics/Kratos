@@ -118,27 +118,34 @@ public:
      * @brief Construct a new Apply Proxy object
      *
      * @param rApplyFunctor                         Thread safe update lambda method
-     * @param rNonLocalGlobalPointerMapsVector      Vector of maps to store (rank, gp)
-     * @param rNonLocalDataValueMapsVector          Vector of maps to store (rank, value)
      * @param rPointerCommunicator                  Map communicator
      */
     ApplyProxy(
         const TApplyFunctor& rApplyFunctor,
-        std::vector<GlobalPointerMapType>& rNonLocalGlobalPointerMapsVector,
-        std::vector<DataVectorMapType>& rNonLocalDataValueMapsVector,
         TGPMapCommunicator& rPointerCommunicator)
         : mCurrentRank(rPointerCommunicator.GetMyPID()),
           mrApplyFunctor(rApplyFunctor),
-          mrNonLocalGlobalPointerMapsVector(rNonLocalGlobalPointerMapsVector),
-          mrNonLocalDataValueMapsVector(rNonLocalDataValueMapsVector),
           mrPointerCommunicator(rPointerCommunicator)
     {
-        // identify proper methods to be used in updates
-        if (mrPointerCommunicator.IsDistributed()) {
+        KRATOS_TRY
+
+        if (rPointerCommunicator.IsDistributed()) {
+
+            KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0)
+                << "Constructing a proxy in a parallel "
+                   "region is not allowed.\n";
+
+            // resizing for OMP parallel loops
+            const int number_of_threads = OpenMPUtils::GetNumThreads();
+            mNonLocalGlobalPointerMapsVector.resize(number_of_threads);
+            mNonLocalDataValueMapsVector.resize(number_of_threads);
+
             this->mUpdateMethod = &ProxyType::AssignLocalAndRemoteData;
         } else {
             this->mUpdateMethod = &ProxyType::AssignLocalData;
         }
+
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -231,8 +238,18 @@ private:
 
     void (ProxyType::*mUpdateMethod)(const GlobalPointer<TPointerDataType>&, const TValueDataType&);
 
-    std::vector<GlobalPointerMapType>& mrNonLocalGlobalPointerMapsVector;
-    std::vector<DataVectorMapType>& mrNonLocalDataValueMapsVector;
+    // here we store this in two vector maps(vector of gps, vector of values) instead of one vector map(key:gp, value: std::vector)
+    // because, when updating
+    //      1. Two vector maps will have to only have to append the two vectors for each non-local update.
+    //          Whenever std::vector reaches the capacity, it is doubled,
+    //          so the cost of resizing for vector appending is in O(log N)
+    //      2. If a single vector map is used, first it has to find the gp in the map [ O(log N) if found, otherwise larger] and then append one vector
+    //          for each non-local update.
+    // The method 2 is little bit more expensive than first one AFAIK. so implemented the vector versions. Suggestions are highly appreciated :)
+    //
+    std::vector<GlobalPointerMapType> mNonLocalGlobalPointerMapsVector;
+    std::vector<DataVectorMapType> mNonLocalDataValueMapsVector;
+
     TGPMapCommunicator& mrPointerCommunicator;
 
     ///@}
@@ -289,8 +306,8 @@ private:
         } else {
             const int k = OpenMPUtils::ThisThread();
 
-            mrNonLocalGlobalPointerMapsVector[k][data_rank].push_back(rGlobalPointer);
-            mrNonLocalDataValueMapsVector[k][data_rank].push_back(rValue);
+            mNonLocalGlobalPointerMapsVector[k][data_rank].push_back(rGlobalPointer);
+            mNonLocalDataValueMapsVector[k][data_rank].push_back(rValue);
         }
     }
 
@@ -348,21 +365,6 @@ public:
         : mrDataCommunicator(rDataCommunicator),
           mCurrentRank(rDataCommunicator.Rank())
     {
-        KRATOS_TRY
-
-        if (IsDistributed()) {
-
-            KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0)
-                << "Constructing a GlobalPointerMapCommunicator in a parallel "
-                   "region is not allowed.\n";
-
-            // resizing for OMP parallel loops
-            const int number_of_threads = OpenMPUtils::GetNumThreads();
-            mNonLocalGlobalPointerMapsVector.resize(number_of_threads);
-            mNonLocalValueMapsVector.resize(number_of_threads);
-        }
-
-        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -403,9 +405,9 @@ public:
             // get the final map for communications
             std::unordered_map<int, GlobalPointersUnorderedMap<TPointerDataType, std::vector<TValueDataType>>> non_local_map;
 
-            for (IndexType i = 0; i < mNonLocalGlobalPointerMapsVector.size(); ++i) {
-                const GlobalPointerMapType& current_gp_map = mNonLocalGlobalPointerMapsVector[i];
-                const DataVectorMapType& current_data_map = mNonLocalValueMapsVector[i];
+            for (IndexType i = 0; i < rApplyProxy.mNonLocalGlobalPointerMapsVector.size(); ++i) {
+                const GlobalPointerMapType& current_gp_map = rApplyProxy.mNonLocalGlobalPointerMapsVector[i];
+                const DataVectorMapType& current_data_map = rApplyProxy.mNonLocalDataValueMapsVector[i];
 
                 for (const auto& r_gp_map_item : current_gp_map) {
                     auto& current_rank_gp_map = non_local_map[r_gp_map_item.first];
@@ -463,9 +465,9 @@ public:
             }
 
             // clear data containers once communication is done
-            for (IndexType i = 0; i < mNonLocalGlobalPointerMapsVector.size(); ++i) {
-                mNonLocalGlobalPointerMapsVector[i].clear();
-                mNonLocalValueMapsVector[i].clear();
+            for (IndexType i = 0; i < rApplyProxy.mNonLocalGlobalPointerMapsVector.size(); ++i) {
+                rApplyProxy.mNonLocalGlobalPointerMapsVector[i].clear();
+                rApplyProxy.mNonLocalDataValueMapsVector[i].clear();
             }
         }
 
@@ -486,9 +488,7 @@ public:
     template <class TApplyFunctor>
     ProxyType<TApplyFunctor> GetApplyProxy(TApplyFunctor&& rApplyFunctor)
     {
-        return ProxyType<TApplyFunctor>(std::forward<TApplyFunctor>(rApplyFunctor),
-                                        mNonLocalGlobalPointerMapsVector,
-                                        mNonLocalValueMapsVector, *this);
+        return ProxyType<TApplyFunctor>(std::forward<TApplyFunctor>(rApplyFunctor), *this);
     }
 
     /**
@@ -561,18 +561,6 @@ public:
 protected:
     ///@name Protected Member Variables
     ///@{
-
-    // here we store this in two vector maps(vector of gps, vector of values) instead of one vector map(key:gp, value: std::vector)
-    // because, when updating
-    //      1. Two vector maps will have to only have to append the two vectors for each non-local update.
-    //          Whenever std::vector reaches the capacity, it is doubled,
-    //          so the cost of resizing for vector appending is in O(log N)
-    //      2. If a single vector map is used, first it has to find the gp in the map [ O(log N) if found, otherwise larger] and then append one vector
-    //          for each non-local update.
-    // The method 2 is little bit more expensive than first one AFAIK. so implemented the vector versions. Suggestions are highly appreciated :)
-    //
-    std::vector<GlobalPointerMapType> mNonLocalGlobalPointerMapsVector;
-    std::vector<DataVectorMapType> mNonLocalValueMapsVector;
 
     const DataCommunicator& mrDataCommunicator;
     const int mCurrentRank;
