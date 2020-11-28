@@ -403,6 +403,8 @@ public:
                    "allowed.\n";
 
             // get the final map for communications
+            // constructing an rank based GlobalPointersUnorderedMap will make unique keys list in GlobalPointersUnorderedMap
+            // which will result in lower communication for keys. These unique keys can be easily OMP parallelized
             std::unordered_map<int, GlobalPointersUnorderedMap<TPointerDataType, std::vector<TValueDataType>>> non_local_map;
 
             for (IndexType i = 0; i < rApplyProxy.mNonLocalGlobalPointerMapsVector.size(); ++i) {
