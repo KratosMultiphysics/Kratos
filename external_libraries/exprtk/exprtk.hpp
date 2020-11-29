@@ -55,6 +55,10 @@
 #include <utility>
 #include <vector>
 
+// Auxiliar definition to avoid problems with x and X, etc...
+#if !defined(exprtk_disable_caseinsensitivity)
+#define exprtk_disable_caseinsensitivity
+#endif
 
 namespace exprtk
 {
