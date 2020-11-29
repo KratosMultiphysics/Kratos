@@ -16,9 +16,63 @@
 
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
 
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+#include "custom_constitutive/windows.hpp"
+#endif
+
+#ifdef KRATOS_COMPILED_IN_LINUX
+#include <dlfcn.h>
+#endif
+
 
 namespace Kratos
 {
+/*
+   - structure of the functions in PLAXIS UDSM:
+   - Function to get stress, stiffness matrix, attribute, number of state variables, ...
+   void User_Mod(int *IDTASK, int *IMOD, int *ISUNDR,
+                 int *ISTEP, int *ITER, int *IEL, int *INT,
+                 double *X, double *Y, double *Z,
+                 double *TIME0, double *DTIME,
+                 double *PROPS, double *SIG0, double *SWP0, double *STVAR0,
+                 double *DEPS, double **D, double *BULKW,
+                 double *SIG, double *SWP, double *STVAR, int *IPL,
+                 int *NSTAT, int *NONSYM, int *ISTRSDEP, int *ITIMEDEP, int *ITANG,
+                 int *IPRDIR, int *IPRJLEN, int *IABORT);
+
+   void GetParamCount(int *IMOD, int *NPARAM);
+   void GetStateVarCount(int *IMOD, int *NSTVAR);
+*/
+
+// calling convention (__cdecl, __stdcall, ...)
+// __stdcall is the convention used by the WinAPI
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+typedef void(__stdcall *f_GetParamCount)   (int *, int *);
+typedef void(__stdcall *f_GetStateVarCount)(int *, int *);
+typedef void(__stdcall *f_UserMod) (int    *, int     *, int    *,
+                                    int    *, int     *, int    *, int *,
+                                    double *, double  *, double *,
+                                    double *, double  *,
+                                    double *, double  *, double *, double *,
+                                    double *, double **, double *,
+                                    double *, double  *, double *, int *,
+                                    int    *, int     *, int    *, int *, int *,
+                                    int    *, int     *, int    *);
+#endif
+
+#ifdef KRATOS_COMPILED_IN_LINUX
+typedef void(*f_GetParamCount)   (int *, int *);
+typedef void(*f_GetStateVarCount)(int *, int *);
+typedef void(*f_UserMod) (int    *, int     *, int    *,
+                          int    *, int     *, int    *, int *,
+                          double *, double  *, double *,
+                          double *, double  *,
+                          double *, double  *, double *, double *,
+                          double *, double **, double *,
+                          double *, double  *, double *, int *,
+                          int    *, int     *, int    *, int *, int *,
+                          int    *, int     *, int    *);
+#endif
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************

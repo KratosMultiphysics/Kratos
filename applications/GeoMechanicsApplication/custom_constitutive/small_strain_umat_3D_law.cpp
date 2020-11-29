@@ -16,9 +16,37 @@
 
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+#include "custom_constitutive/windows.hpp"
+#endif
+
+#ifdef KRATOS_COMPILED_IN_LINUX
+#include <dlfcn.h>
+#endif
+
 
 namespace Kratos
 {
+
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+typedef void(__stdcall *f_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, double* SSE, double* SPD, double* SCD,
+                                    double* RPL, double* DDSDDT, double* DRPLDE, double* DRPLDT, double* STRAN, double* DSTRAN,
+                                    double* TIME, double* DTIME, double* TEMP, double* DTEMP, double* PREDEF, double* DPRED,
+                                    char* MATERL, int* NDI, int* NSHR, int* NTENS, int* NSTATV, double* PROPS, int* NPROPS,
+                                    double* COORDS, double** DROT, double* PNEWDT, double* CELENT, double** DFGRD0,
+                                    double** DFGRD1, int* NOEL, int* NPT, double* KSLAY, double* KSPT, int* KSTEP,
+                                    int* KINC);
+#endif
+
+#ifdef KRATOS_COMPILED_IN_LINUX
+typedef void(*f_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, double* SSE, double* SPD, double* SCD,
+                          double* rpl, double* ddsddt, double* drplde, double* drpldt, double* stran, double* dstran,
+                          double* time, double* dtime, double* temp, double* dtemp, double* predef, double* dpred,
+                          char* materl, int* ndi, int* nshr, int* ntens, int* nstatv, double* props, int* nprops,
+                          double* coords, double** drot, double* pnewdt, double* celent, double** dfgrd0,
+                          double** dfgrd1, int* noel, int* npt, double* kslay, double* kspt, int* kstep,
+                          int* kinc);
+#endif
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************

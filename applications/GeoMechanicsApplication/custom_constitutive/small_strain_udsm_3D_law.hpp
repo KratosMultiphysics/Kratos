@@ -17,15 +17,6 @@
 #include <string>
 #include <iostream>
 #include "includes/define.h"
-
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-#include "custom_constitutive/windows.hpp"
-#endif
-
-#ifdef KRATOS_COMPILED_IN_LINUX
-#include <dlfcn.h>
-#endif
-
 // External includes
 
 // Project includes
@@ -55,26 +46,9 @@ namespace Kratos
    void GetStateVarCount(int *IMOD, int *NSTVAR);
 */
 
-// calling convention (__cdecl, __stdcall, ...)
-// __stdcall is the convention used by the WinAPI
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-typedef void(__stdcall *f_GetParamCount)   (int *, int *);
-typedef void(__stdcall *f_GetStateVarCount)(int *, int *);
-typedef void(__stdcall *f_UserMod) (int    *, int     *, int    *,
-                                    int    *, int     *, int    *, int *,
-                                    double *, double  *, double *,
-                                    double *, double  *,
-                                    double *, double  *, double *, double *,
-                                    double *, double **, double *,
-                                    double *, double  *, double *, int *,
-                                    int    *, int     *, int    *, int *, int *,
-                                    int    *, int     *, int    *);
-#endif
-
-#ifdef KRATOS_COMPILED_IN_LINUX
-typedef void(*f_GetParamCount)   (int *, int *);
-typedef void(*f_GetStateVarCount)(int *, int *);
-typedef void(*f_UserMod) (int    *, int     *, int    *,
+typedef void(*pF_GetParamCount)   (int *, int *);
+typedef void(*pF_GetStateVarCount)(int *, int *);
+typedef void(*pF_UserMod) (int    *, int     *, int    *,
                           int    *, int     *, int    *, int *,
                           double *, double  *, double *,
                           double *, double  *,
@@ -83,7 +57,7 @@ typedef void(*f_UserMod) (int    *, int     *, int    *,
                           double *, double  *, double *, int *,
                           int    *, int     *, int    *, int *, int *,
                           int    *, int     *, int    *);
-#endif
+
    ///@addtogroup ConstitutiveModelsApplication
    ///@{
 
@@ -478,9 +452,9 @@ typedef void(*f_UserMod) (int    *, int     *, int    *,
       ///@}
       ///@name Member Variables
       ///@{
-      f_GetParamCount    pGetParamCount;
-      f_GetStateVarCount pGetStateVarCount;
-      f_UserMod          pUserMod;
+      pF_GetParamCount    pGetParamCount;
+      pF_GetStateVarCount pGetStateVarCount;
+      pF_UserMod          pUserMod;
 
       bool mIsModelInitialized;
       bool mIsUDSMLoaded;
