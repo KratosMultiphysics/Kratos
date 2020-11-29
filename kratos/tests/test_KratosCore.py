@@ -41,7 +41,6 @@ import test_object_printing
 import test_array_1d_interface
 import test_flags
 import test_time_discretization
-import test_python_generic_function_utility
 import test_serializer
 import test_file_logger
 import test_dofs
@@ -118,7 +117,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_array_1d_interface.TestArray1DInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_flags.TestFlags]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_time_discretization.TestTimeDiscretization]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_python_generic_function_utility.TestPythonGenericFunctionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_serializer.TestSerializer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_logger.TestFileLogger]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_dofs.TestDofs]))

@@ -10,6 +10,46 @@ def GetFilePath(fileName):
 
 class TestPythonGenericFunctionUtility(KratosUnittest.TestCase):
 
+    def test_PythonGenericFunctionUtility0(self):
+        settings = KM.Parameters("""
+        {
+            "local_axes"      : {}
+        }
+        """
+        )
+
+        current_model = KM.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        node = model_part.CreateNewNode(1, 1.00,0.00,0.00)
+        node.X += 0.1
+        current_time = model_part.ProcessInfo[KM.TIME]
+
+        aux_function = KM.PythonGenericFunctionUtility("x", settings["local_axes"])
+        value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
+
+        self.assertEqual(value, 1.1)
+
+        aux_function = KM.PythonGenericFunctionUtility("X", settings["local_axes"])
+        value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
+
+        self.assertEqual(value, 1.0)
+
+        aux_function = KM.PythonGenericFunctionUtility("X+Y", settings["local_axes"])
+        value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
+
+        self.assertEqual(value, 1.0)
+
+        aux_function = KM.PythonGenericFunctionUtility("x+X", settings["local_axes"])
+        value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
+
+        self.assertEqual(value, 2.1)
+
+        aux_function = KM.PythonGenericFunctionUtility("t", settings["local_axes"])
+        value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
+
+        self.assertEqual(value, 0.0)
+
     def test_PythonGenericFunctionUtility1(self):
         function1 = KM.PythonGenericFunctionUtility("x**2+y**2")
 
