@@ -16,10 +16,10 @@
 
 // System includes
 #include <cmath>
+#include <unordered_map>
 
 // External includes
-#include <pybind11/pybind11.h>
-#include <pybind11/eval.h>
+#include "exprtk/exprtk.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -77,6 +77,11 @@ public:
     /// The index type definition
     typedef std::size_t IndexType;
 
+    /// exprtk definitions
+    typedef exprtk::symbol_table<double> symbol_table_t;
+    typedef exprtk::expression<double>     expression_t;
+    typedef exprtk::parser<double>             parser_t;
+
     /// Counted pointer of GenericFunctionUtility
     KRATOS_CLASS_POINTER_DEFINITION(GenericFunctionUtility);
 
@@ -92,18 +97,39 @@ public:
     GenericFunctionUtility(
         const std::string& rFunctionBody,
         Parameters LocalSystem = Parameters{}
-        ) : mFunctionBody(rFunctionBody)
+        ) : mFunctionBody(ReplaceAllSubstrings(rFunctionBody, "**", "^")) // Correcting function from python style to exprtk
     {
-        // Compile the function starting from the string function body
-        try {
-            mMainModule = pybind11::module::import("__main__");
-            mMainNameSpace = mMainModule.attr("__dict__");
-            pybind11::exec("from math import *", mMainNameSpace);
-            // TODO: this is commented. if we are able to compile the function it will be easier anc cheaper to evaluate the function
-//             mByteCode = pybind11::object( pybind11::handle<>( (PyObject*) Py_CompileString(rFunctionBody.c_str(), "pyscript", Py_eval_input) ) );
-        } catch(pybind11::error_already_set const&) {
-            PyErr_Print();
-        }
+        // Defining namespace
+        mNameSpace.insert(std::pair<std::string, double>("x", 0.0));
+        mNameSpace.insert(std::pair<std::string, double>("y", 0.0));
+        mNameSpace.insert(std::pair<std::string, double>("z", 0.0));
+        mNameSpace.insert(std::pair<std::string, double>("t", 0.0));
+        mNameSpace.insert(std::pair<std::string, double>("X", 0.0));
+        mNameSpace.insert(std::pair<std::string, double>("Y", 0.0));
+        mNameSpace.insert(std::pair<std::string, double>("Z", 0.0));
+
+        // Defining table
+        double& x = mNameSpace["x"];
+        double& y = mNameSpace["y"];
+        double& z = mNameSpace["z"];
+        double& t = mNameSpace["t"];
+        double& X = mNameSpace["X"];
+        double& Y = mNameSpace["Y"];
+        double& Z = mNameSpace["Z"];
+
+        mSymbolTable.add_variable("x",x);
+        mSymbolTable.add_variable("y",y);
+        mSymbolTable.add_variable("z",z);
+        mSymbolTable.add_variable("t",t);
+        mSymbolTable.add_variable("X",X);
+        mSymbolTable.add_variable("Y",Y);
+        mSymbolTable.add_variable("Z",Z);
+
+        // Creating expression
+        mExpression.register_symbol_table(mSymbolTable);
+
+        // Compiling expression
+        mParser.compile(mFunctionBody, mExpression);
 
         // Here get the local system if it is provided
         if(LocalSystem.Has("origin")) {
@@ -120,12 +146,12 @@ public:
         }
 
         // Check if it depends on space
-        if (rFunctionBody.find(std::string("x")) == std::string::npos &&
-            rFunctionBody.find(std::string("y")) == std::string::npos &&
-            rFunctionBody.find(std::string("z")) == std::string::npos &&
-            rFunctionBody.find(std::string("X")) == std::string::npos &&
-            rFunctionBody.find(std::string("Y")) == std::string::npos &&
-            rFunctionBody.find(std::string("Z")) == std::string::npos) {
+        if (mFunctionBody.find(std::string("x")) == std::string::npos &&
+            mFunctionBody.find(std::string("y")) == std::string::npos &&
+            mFunctionBody.find(std::string("z")) == std::string::npos &&
+            mFunctionBody.find(std::string("X")) == std::string::npos &&
+            mFunctionBody.find(std::string("Y")) == std::string::npos &&
+            mFunctionBody.find(std::string("Z")) == std::string::npos) {
             mDependsOnSpace = false;
         }
     }
@@ -158,7 +184,7 @@ public:
      */
     std::string FunctionBody()
     {
-        return mFunctionBody;
+        return ReplaceAllSubstrings(mFunctionBody, "^", "**");
     }
 
     /**
@@ -214,15 +240,15 @@ public:
         const double Z = 0.0
         )
     {
-        mMainNameSpace["x"] = x;
-        mMainNameSpace["y"] = y;
-        mMainNameSpace["z"] = z;
-        mMainNameSpace["X"] = X;
-        mMainNameSpace["Y"] = Y;
-        mMainNameSpace["Z"] = Z;
-        mMainNameSpace["t"] = t;
+        mNameSpace["x"] = x;
+        mNameSpace["y"] = y;
+        mNameSpace["z"] = z;
+        mNameSpace["X"] = X;
+        mNameSpace["Y"] = Y;
+        mNameSpace["Z"] = Z;
+        mNameSpace["t"] = t;
 
-        return pybind11::eval(mFunctionBody, mMainNameSpace).cast<double>();
+        return mExpression.value();
     }
 
     ///@}
@@ -232,15 +258,34 @@ private:
     ///@name Member Variables
     ///@{
 
-    pybind11::object mMainModule;       /// The main python module
-    pybind11::object mMainNameSpace;    /// The main python namespace (the variables considered on the python function)
-    const std::string mFunctionBody;    /// The function body
-//     pybind11::object mByteCode;         /// Some byte code
+    std::unordered_map<std::string, double>  mNameSpace; /// The variables considered on the function
+    symbol_table_t mSymbolTable;                         /// The symbol table of exprtk
+    expression_t   mExpression;                          /// The expression of exprtk
+    parser_t       mParser;                              /// The parser of exprtk
+    std::string mFunctionBody;                           /// The function body
 
     bool mDependsOnSpace = true;                 /// If it depends on space
     bool mUseLocalSystem = false;                /// If we use a local system
     BoundedMatrix<double, 3, 3> mRotationMatrix; /// The rotation matrix
     array_1d<double, 3> mCenterCoordinates;      /// The center of coordinates
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief This function replaces from a string all times a certain substring is repeated
+     * @param from The original string to be replaced
+     * @param to The string which replaces the substring
+     */
+    std::string ReplaceAllSubstrings(std::string str, const std::string& from, const std::string& to) {
+        std::size_t start_pos = 0;
+        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+            str.replace(start_pos, from.length(), to);
+            start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+        }
+        return str;
+    }
 
     ///@}
 }; /// GenericFunctionUtility
