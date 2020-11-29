@@ -425,7 +425,7 @@ private:
      * @param pModifiedShapeFunctions Pointer to the element splitting utility
      */
     void ComputeSplitInterface(
-        TElementData& rData,
+        const TElementData& rData,
         MatrixType& rInterfaceShapeFunctionNeg,
         MatrixType& rEnrInterfaceShapeFunctionPos,
         MatrixType& rEnrInterfaceShapeFunctionNeg,
@@ -439,7 +439,7 @@ private:
      * @param pGeometry Pointer to the element geometry
      * @param rDistances Distance at the nodes
      */
-    ModifiedShapeFunctions::UniquePointer ModifiedShapeFunctionsUtility(
+    ModifiedShapeFunctions::UniquePointer pGetModifiedShapeFunctionsUtility(
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances);
 
@@ -448,13 +448,13 @@ private:
      * @param rInterfaceCurvature Vector containing curvature values at the gauss points
      * @param rInterfaceShapeFunctions Shape functions calculated at the interface gauss points
      */
-    void CalculateCurvature(
+    void CalculateCurvatureOnInterfaceGaussPoints(
         const Matrix& rInterfaceShapeFunctions,
         Vector& rInterfaceCurvature);
 
     /**
      * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
-     * @param coefficient surface tension coefficient
+     * @param SurfaceTensionCoefficient surface tension coefficient
      * @param rCurvature curvature calculated at the interface gauss points
      * @param rInterfaceWeights Weights associated with interface gauss points
      * @param rInterfaceShapeFunctions Shape functions calculated at the interface gauss points
@@ -462,7 +462,7 @@ private:
      * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
      */
     void SurfaceTension(
-        const double coefficient,
+        const double SurfaceTensionCoefficient,
         const Vector& rCurvature,
         const Vector& rInterfaceWeights,
         const Matrix& rInterfaceShapeFunctions,
@@ -479,7 +479,7 @@ private:
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
     void PressureGradientStabilization(
-        TElementData& rData,
+        const TElementData& rData,
         const Vector& rInterfaceWeights,
         const Matrix& rEnrInterfaceShapeFunctionPos,
         const Matrix& rEnrInterfaceShapeFunctionNeg,
@@ -499,7 +499,7 @@ private:
      * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
-	void CondenseEnrichment(
+	void CondenseEnrichmentWithContinuity(
 		const TElementData& rData,
 		Matrix& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,
@@ -528,6 +528,16 @@ private:
 		const MatrixType& rHTot,
 		MatrixType& rKeeTot,
 		const VectorType& rRHSeeTot);
+
+    void AddSurfaceTensionContribution(
+        const TElementData& rData,
+        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+        Matrix &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const MatrixType &rHtot,
+        const MatrixType &rVtot,
+        MatrixType &rKeeTot,
+        VectorType &rRHSeeTot);
 
     ///@}
     ///@name Private  Access

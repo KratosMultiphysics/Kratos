@@ -71,8 +71,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
-            "eulerian_error_compensation" : false,
-            "split_levelset" : false,
             "distance_reinitialization" : "variational",
             "distance_smoothing" : false,
             "distance_smoothing_coefficient" : 1.0
@@ -178,7 +176,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         neighbour_search.Execute()
 
         dimensions = computing_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-        avg_num_elements = dimensions + 1
+        avg_num_elements = 10
         elemental_neighbour_search = KratosMultiphysics.FindElementalNeighboursProcess(
             computing_model_part,
             dimensions,
@@ -210,6 +208,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
+
             # Recompute the distance field according to the new level-set position
             if (self._reinitialization_type == "variational"):
                 self._GetDistanceReinitializationProcess().Execute()
@@ -237,6 +237,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Smoothing process is finished.")
 
             if (self.main_model_part.ProcessInfo[KratosCFD.SURFACE_TENSION]):
+                # distance gradient is called again to comply with the smoothed/modified DISTANCE
                 self._GetDistanceGradientProcess().Execute()
                 # curvature is calculated using nodal distance gradient
                 self._GetDistanceCurvatureProcess().Execute()
@@ -476,7 +477,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return distance_reinitialization_process
 
     def _CreateDistanceSmoothingProcess(self):
-        # construct the distznce smoothing process
+        # construct the distance smoothing process
         linear_solver = self._GetLinearSolver()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             distance_smoothing_process = KratosCFD.DistanceSmoothingProcess2D(

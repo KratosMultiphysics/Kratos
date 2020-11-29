@@ -41,7 +41,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility to due the redistancing based on the time-dependednt Eikonal equation
+/// Utility to calculate the nodal gradient separately for the positive and negative sides of the zero level-set function (interface)
 
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalulateLevelsetConsistentNodalGradientProcess : public Process
 {
@@ -51,6 +51,10 @@ public:
 
     /// Pointer definition of LumpedInterfacePositiveNegativePressureGradient
     KRATOS_CLASS_POINTER_DEFINITION(CalulateLevelsetConsistentNodalGradientProcess);
+
+    /// Auxiliary container to be used as TLS
+    typedef std::tuple<BoundedMatrix<double,3,2>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>> TLSContainerType2D;
+    typedef std::tuple<BoundedMatrix<double,4,3>, array_1d<double,4>, array_1d<double,4>, array_1d<double,4>, array_1d<double,3>, array_1d<double,4>> TLSContainerType3D;
 
     ///@}
     ///@name Life Cycle
@@ -94,6 +98,11 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief This method provides the default parameters
+     */
+    const Parameters GetDefaultParameters() const override;
+
     // ///@}
     // ///@name Inquiry
     // ///@{
@@ -115,7 +124,6 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
-
 
     ///@}
     ///@name Friends
@@ -144,6 +152,20 @@ private:
     ///@name Private Operations
     ///@{
 
+        bool IsSplit(const Vector& rDistances);
+
+        TLSContainerType2D SetTLSContainer2D();
+
+        TLSContainerType3D SetTLSContainer3D();
+
+        std::function<void(Element& rElement, TLSContainerType2D& rTLSContainer)> GetScalarNodalGradientElementFunction2D();
+
+        std::function<void(Element& rElement, TLSContainerType3D& rTLSContainer)> GetScalarNodalGradientElementFunction3D();
+
+        template<class TTLSContainer>
+        void CalculateScalarNodalGradientElementContribution(
+            Element& rElement,
+            TTLSContainer& rTLSContainer);
 
     ///@}
     ///@name Private  Access
@@ -179,5 +201,3 @@ private:
 };  // namespace Kratos.
 
 #endif // KRATOS_LEVELSET_CONSISTENT_NODAL_GRADIENT_H
-
-

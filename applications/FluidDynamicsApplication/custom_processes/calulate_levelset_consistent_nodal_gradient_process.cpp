@@ -13,6 +13,7 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -60,81 +61,17 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
     const unsigned int num_dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const unsigned int num_nodes = num_dim + 1; //For tetrahedra and triangles
 
-    // Auxiliar containers
-    double detJ0 = 0.0;
-    Matrix DN_DX, J0, InvJ0;
-    Vector N(num_nodes), pressures(num_nodes), distances(num_nodes), grad(num_dim);
-
-    // First element iterator
-    const auto it_element_begin = mrModelPart.ElementsBegin();
-
-    const int elements_number = mrModelPart.Elements().size();
-
-    // Iterate over the elements
-    #pragma omp parallel for firstprivate(DN_DX, N, J0, InvJ0, detJ0, pressures, distances, grad)
-    for(int i_elem = 0; i_elem < elements_number; ++i_elem) {
-
-        const auto it_elem = it_element_begin + i_elem;
-        auto& r_geometry = it_elem->GetGeometry();
-
-        // Current geometry information
-        const unsigned number_of_nodes = r_geometry.PointsNumber();
-
-        for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node){
-            distances(i_node) = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
-        }
-
-        unsigned int nneg=0, npos=0;
-        for(unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            if(distances(i) > 0) {
-                npos += 1;
-            } else {
-                nneg += 1;
-            }
-        }
-
-        if(nneg == 0 || npos == 0)
-        {
-            // The integration points
-            const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
-            const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
-            const unsigned int number_of_integration_points = r_integration_points.size();
-
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
-                pressures[i_node] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
-
-            // The containers of the shape functions and the local gradients
-            const auto& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
-            const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
-
-            for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
-                // Getting the shape functions
-                noalias(N) = row(rNcontainer, point_number);
-
-                // Getting the jacobians and local gradients
-                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
-                MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
-                const auto& rDN_De = rDN_DeContainer[point_number];
-                GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
-
-                noalias(grad) = prod(trans(DN_DX), pressures);
-                const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
-
-                for(unsigned int i_node=0; i_node<number_of_nodes; ++i_node) {
-                    array_1d<double, 3>& r_gradient = r_geometry[i_node].GetValue(PRESSURE_GRADIENT);
-                    for(unsigned int k=0; k<num_dim; ++k) {
-                        #pragma omp atomic
-                        r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];
-                    }
-
-                    double& r_vol = r_geometry[i_node].GetValue(NODAL_AREA);
-
-                    #pragma omp atomic
-                    r_vol += N[i_node] * gauss_point_volume;
-                }
-            }
-        }
+    // Calculate elemental gradient contribution
+    if (num_nodes == 3 && num_dim == 2) {
+        auto tls_container_2d = SetTLSContainer2D();
+        auto elemental_function_2d = GetScalarNodalGradientElementFunction2D();
+        block_for_each(mrModelPart.Elements(), tls_container_2d, elemental_function_2d);
+    } else if (num_nodes == 4 && num_dim == 3) {
+        auto tls_container_3d = SetTLSContainer3D();
+        auto elemental_function_3d = GetScalarNodalGradientElementFunction3D();
+        block_for_each(mrModelPart.Elements(), tls_container_3d, elemental_function_3d);
+    } else {
+        KRATOS_ERROR << "Asking for a non-implemented geometry type." << std::endl;
     }
 
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
@@ -143,6 +80,140 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
     });
 
     KRATOS_CATCH("")
+}
+
+bool CalulateLevelsetConsistentNodalGradientProcess::IsSplit(const Vector& rDistances)
+{
+    bool is_split = false;
+
+    unsigned int nneg=0, npos=0;
+    for(unsigned int i = 0; i < rDistances.size(); ++i)
+    {
+        if(rDistances[i] > 0) {
+            npos += 1;
+        } else {
+            nneg += 1;
+        }
+    }
+
+    if(nneg > 0 && npos > 0)
+        is_split = true;
+
+    return is_split;
+}
+
+const Parameters CalulateLevelsetConsistentNodalGradientProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"             : "please_specify_model_part_name"
+    })" );
+
+    return default_parameters;
+}
+
+CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D CalulateLevelsetConsistentNodalGradientProcess::SetTLSContainer2D()
+{
+    BoundedMatrix<double,3,2> aux_mat;
+    array_1d<double,3> aux_vect_1;
+    array_1d<double,3> aux_vect_2;
+    array_1d<double,3> aux_vect_3;
+    array_1d<double,3> aux_vect_4;
+    array_1d<double,3> aux_vect_5;
+    TLSContainerType2D tls_container_2d = std::make_tuple(aux_mat, aux_vect_1, aux_vect_2, aux_vect_3, aux_vect_4, aux_vect_5);
+
+    return tls_container_2d;
+}
+
+CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D CalulateLevelsetConsistentNodalGradientProcess::SetTLSContainer3D()
+{
+    BoundedMatrix<double,4,3> aux_mat;
+    array_1d<double,4> aux_vect_1;
+    array_1d<double,4> aux_vect_2;
+    array_1d<double,4> aux_vect_3;
+    array_1d<double,3> aux_vect_4;
+    array_1d<double,4> aux_vect_5;
+    TLSContainerType3D tls_container_3d = std::make_tuple(aux_mat, aux_vect_1, aux_vect_2, aux_vect_3, aux_vect_4, aux_vect_5);
+
+    return tls_container_3d;
+}
+
+std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer)> CalulateLevelsetConsistentNodalGradientProcess::GetScalarNodalGradientElementFunction2D()
+{
+    std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer)> aux_func = [&, this](Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer){
+        this->CalculateScalarNodalGradientElementContribution(rElement, rTLSContainer);
+    };
+
+    return aux_func;
+}
+
+std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer)> CalulateLevelsetConsistentNodalGradientProcess::GetScalarNodalGradientElementFunction3D()
+{
+    std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer)> aux_func = [&, this](Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer){
+        this->CalculateScalarNodalGradientElementContribution(rElement, rTLSContainer);
+    };
+
+    return aux_func;
+}
+
+template<class TTLSContainer>
+void CalulateLevelsetConsistentNodalGradientProcess::CalculateScalarNodalGradientElementContribution(
+    Element& rElement,
+    TTLSContainer& rTLSContainer)
+{
+    // Get auxiliary arrays from the TLS container
+    auto& r_DN_DX = std::get<0>(rTLSContainer);
+    auto& r_N = std::get<1>(rTLSContainer);
+    auto& r_pressures = std::get<2>(rTLSContainer);
+    auto& r_distances = std::get<3>(rTLSContainer);
+    auto& r_grad = std::get<4>(rTLSContainer);
+    auto& r_midpoint_N = std::get<5>(rTLSContainer);
+
+    // Current geometry information
+    auto& r_geometry = rElement.GetGeometry();
+    const unsigned number_of_nodes = r_geometry.PointsNumber();
+
+    for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node){
+        r_distances(i_node) = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
+    }
+
+    if(!IsSplit(r_distances))
+    {
+        // The integration points
+        const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
+        const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
+        const unsigned int number_of_integration_points = r_integration_points.size();
+
+        // Set nodal scalar variable values to calculate the gradient
+        for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
+            r_pressures[i_node] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
+        }
+
+        // The containers of the shape functions and the local gradients
+        double volume;
+        const auto& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
+        GeometryUtils::CalculateGeometryData(r_geometry, r_DN_DX, r_midpoint_N, volume);
+
+        for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+            // Getting the shape functions and calculate values
+            noalias(r_N) = row(rNcontainer, point_number);
+            noalias(r_grad) = ZeroVector(3);
+            for (unsigned int i = 0; i < r_DN_DX.size1(); ++i) {
+                for (unsigned int j = 0; j < r_DN_DX.size2(); ++j) {
+                    r_grad[j] += r_DN_DX(i,j) * r_pressures(i);
+                }
+            }
+            const double gauss_point_volume = r_integration_points[point_number].Weight() * volume;
+            // Atomic addition of the gradient and the weight
+            for(unsigned int i_node=0; i_node<number_of_nodes; ++i_node) {
+                auto& r_gradient = r_geometry[i_node].GetValue(PRESSURE_GRADIENT);
+                AtomicAdd(r_gradient, r_N[i_node]*gauss_point_volume*r_grad);
+
+                double& r_vol = r_geometry[i_node].GetValue(NODAL_AREA);
+                AtomicAdd(r_vol, r_N[i_node] * gauss_point_volume);
+            }
+        }
+    }
 }
 
 };  // namespace Kratos.
