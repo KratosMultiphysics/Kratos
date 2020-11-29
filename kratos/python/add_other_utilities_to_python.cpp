@@ -27,6 +27,7 @@
 
 //Other utilities
 #include "utilities/function_parser_utility.h"
+#include "utilities/apply_function_to_nodes_utility.h"
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
