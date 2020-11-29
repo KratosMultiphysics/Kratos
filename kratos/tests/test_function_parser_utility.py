@@ -8,9 +8,9 @@ import sys
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class TestPythonGenericFunctionUtility(KratosUnittest.TestCase):
+class TestGenericFunctionUtility(KratosUnittest.TestCase):
 
-    def test_PythonGenericFunctionUtility0(self):
+    def test_GenericFunctionUtility0(self):
         settings = KM.Parameters("""
         {
             "local_axes"      : {}
@@ -25,68 +25,68 @@ class TestPythonGenericFunctionUtility(KratosUnittest.TestCase):
         node.X += 0.1
         current_time = model_part.ProcessInfo[KM.TIME]
 
-        aux_function = KM.PythonGenericFunctionUtility("x", settings["local_axes"])
+        aux_function = KM.GenericFunctionUtility("x", settings["local_axes"])
         value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
 
         self.assertEqual(value, 1.1)
 
-        aux_function = KM.PythonGenericFunctionUtility("X", settings["local_axes"])
+        aux_function = KM.GenericFunctionUtility("X", settings["local_axes"])
         value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
 
         self.assertEqual(value, 1.0)
 
-        aux_function = KM.PythonGenericFunctionUtility("X+Y", settings["local_axes"])
+        aux_function = KM.GenericFunctionUtility("X+Y", settings["local_axes"])
         value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
 
         self.assertEqual(value, 1.0)
 
-        aux_function = KM.PythonGenericFunctionUtility("x+X", settings["local_axes"])
+        aux_function = KM.GenericFunctionUtility("x+X", settings["local_axes"])
         value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
 
         self.assertEqual(value, 2.1)
 
-        aux_function = KM.PythonGenericFunctionUtility("t", settings["local_axes"])
+        aux_function = KM.GenericFunctionUtility("t", settings["local_axes"])
         value = aux_function.CallFunction(node.X , node.Y , node.Z, current_time, node.X0, node.Y0, node.Z0)
 
         self.assertEqual(value, 0.0)
 
-    def test_PythonGenericFunctionUtility1(self):
-        function1 = KM.PythonGenericFunctionUtility("x**2+y**2")
+    def test_GenericFunctionUtility1(self):
+        function1 = KM.GenericFunctionUtility("x**2+y**2")
 
         self.assertTrue(function1.DependsOnSpace())
         self.assertFalse(function1.UseLocalSystem())
         self.assertEqual(function1.FunctionBody(), "x**2+y**2")
         self.assertEqual(function1.CallFunction(4.0,3.0,0.0,0.0,0.0,0.0,0.0), 25)
 
-        function2 = KM.PythonGenericFunctionUtility("3*t")
+        function2 = KM.GenericFunctionUtility("3*t")
 
         self.assertFalse(function2.DependsOnSpace())
         self.assertFalse(function2.UseLocalSystem())
         self.assertEqual(function2.FunctionBody(), "3*t")
         self.assertEqual(function2.CallFunction(0.0,0.0,0.0,5.0,0.0,0.0,0.0), 15)
 
-        function3 = KM.PythonGenericFunctionUtility("X**2+Y**2")
+        function3 = KM.GenericFunctionUtility("X**2+Y**2")
 
         self.assertTrue(function3.DependsOnSpace())
         self.assertFalse(function3.UseLocalSystem())
         self.assertEqual(function3.FunctionBody(), "X**2+Y**2")
         self.assertEqual(function3.CallFunction(0.0,0.0,0.0,0.0,4.0,3.0,0.0), 25)
 
-        function4 = KM.PythonGenericFunctionUtility("(cos(x)+sin(y))*t")
+        function4 = KM.GenericFunctionUtility("(cos(x)+sin(y))*t")
 
         self.assertTrue(function4.DependsOnSpace())
         self.assertFalse(function4.UseLocalSystem())
         self.assertEqual(function4.FunctionBody(), "(cos(x)+sin(y))*t")
         self.assertEqual(function4.CallFunction(0.25,0.15,0.0,1.5,0.0,0.0,0.0), 1.5*(math.cos(0.25) + math.sin(0.15)))
 
-    def test_PythonGenericFunctionUtility2(self):
+    def test_GenericFunctionUtility2(self):
         parameters = KM.Parameters ("""{
             "origin" : [0,0,0],
             "axes"   : [[0,1,0],[1,0,0],[0,0,1]]
 
         }""")
 
-        function = KM.PythonGenericFunctionUtility("x+2*y", parameters)
+        function = KM.GenericFunctionUtility("x+2*y", parameters)
 
         self.assertTrue(function.DependsOnSpace())
         self.assertTrue(function.UseLocalSystem())
@@ -101,7 +101,7 @@ class TestPythonGenericFunctionUtility(KratosUnittest.TestCase):
 
         }""")
 
-        function = KM.PythonGenericFunctionUtility("x+2*y", parameters)
+        function = KM.GenericFunctionUtility("x+2*y", parameters)
 
         self.assertTrue(function.DependsOnSpace())
         self.assertTrue(function.UseLocalSystem())
