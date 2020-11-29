@@ -11,8 +11,8 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_FUNCTION_CALLBACK_UTILITY_H_INCLUDED)
-#define  KRATOS_FUNCTION_CALLBACK_UTILITY_H_INCLUDED
+#if !defined(KRATOS_FUNCTION_PARSER_UTILITY_H_INCLUDED)
+#define  KRATOS_FUNCTION_PARSER_UTILITY_H_INCLUDED
 
 // System includes
 #include <cmath>
@@ -405,4 +405,4 @@ private:
 
 } /// namespace Kratos
 
-#endif // KRATOS_FUNCTION_CALLBACK_UTILITY_H_INCLUDED
+#endif // KRATOS_FUNCTION_PARSER_UTILITY_H_INCLUDED
