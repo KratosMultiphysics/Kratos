@@ -1,3 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Arash Partow (This an adaptation of http://www.partow.net/programming/exprtk/index.html )
+//                   Vicente Mataix Ferrandiz
+//
+//
+
 /*
  **************************************************************
  *         C++ Mathematical Expression Toolkit Library        *
@@ -16,6 +30,7 @@
 */
 
 
+// System includes
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -27,8 +42,15 @@
 #include <string>
 #include <vector>
 
+// External includes
 #include "exprtk/exprtk.hpp"
 
+// Project includes
+#include "testing/testing.h"
+
+namespace Kratos {
+
+namespace Testing {
 
 #ifdef exprtk_test_float32_type
 typedef float numeric_type;
@@ -8896,53 +8918,198 @@ template <> struct type_name<float>       { static inline std::string value() { 
 template <> struct type_name<double>      { static inline std::string value() { return "double";      } };
 template <> struct type_name<long double> { static inline std::string value() { return "long double"; } };
 
-int main()
+#define perform_test(Type,Number)                                                                                                                \
+{                                                                                                                                                \
+  bool check = true;                                                                                                                             \
+  exprtk::timer timer;                                                                                                                           \
+  timer.start();                                                                                                                                 \
+  if (!run_test##Number<Type>()) {                                                                                                               \
+      std::cout << "run_test#Number" << type_name<Type>::value().c_str() << "*** FAILED! ***" << std::endl;                                      \
+      check = false;                                                                                                                             \
+  } else  {                                                                                                                                      \
+      timer.stop();                                                                                                                              \
+      std::cout << "run_test#Number" << type_name<Type>::value().c_str() << "- Result: SUCCESS   Time: " << timer.time() << " sec" << std::endl; \
+  }                                                                                                                                              \
+  KRATOS_CHECK(check)                                                                                                                            \
+}                                                                                                                                                \
+
+/**
+ * Checks that exprtk 00
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary00, KratosExternalLibrariesFastSuite)
 {
-   #define perform_test(Type,Number)                                           \
-   {                                                                           \
-      exprtk::timer timer;                                                     \
-      timer.start();                                                           \
-      if (!run_test##Number<Type>())                                           \
-      {                                                                        \
-         printf("run_test"#Number" (%s) *** FAILED! ***\n",                    \
-                type_name<Type>::value().c_str());                             \
-         result = EXIT_FAILURE;                                                \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-         timer.stop();                                                         \
-         printf("run_test"#Number" (%s) - Result: SUCCESS   Time: %8.4fsec\n", \
-                type_name<Type>::value().c_str(),                              \
-                timer.time());                                                 \
-      }                                                                        \
-   }                                                                           \
-
-   int result = 0;
-
-   perform_test(numeric_type,00)
-   perform_test(numeric_type,01)
-   perform_test(numeric_type,02)
-   perform_test(numeric_type,03)
-   perform_test(numeric_type,04)
-   perform_test(numeric_type,05)
-   perform_test(numeric_type,06)
-   perform_test(numeric_type,07)
-   perform_test(numeric_type,08)
-   perform_test(numeric_type,09)
-   perform_test(numeric_type,10)
-   perform_test(numeric_type,11)
-   perform_test(numeric_type,12)
-   perform_test(numeric_type,13)
-   perform_test(numeric_type,14)
-   perform_test(numeric_type,15)
-   perform_test(numeric_type,16)
-   perform_test(numeric_type,17)
-   perform_test(numeric_type,18)
-   perform_test(numeric_type,19)
-   perform_test(numeric_type,20)
-   perform_test(numeric_type,21)
-
-   #undef perform_test
-
-   return result;
+    perform_test(numeric_type,00);
 }
+
+/**
+ * Checks that exprtk 01
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary01, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,01);
+}
+
+/**
+ * Checks that exprtk 02
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary02, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,02);
+}
+
+/**
+ * Checks that exprtk 03
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary03, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,03);
+}
+
+/**
+ * Checks that exprtk 04
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary04, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,04);
+}
+
+/**
+ * Checks that exprtk 05
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary05, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,05);
+}
+
+/**
+ * Checks that exprtk 06
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary06, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,06);
+}
+
+/**
+ * Checks that exprtk 07
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary07, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,07);
+}
+
+/**
+ * Checks that exprtk 08
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary08, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,08);
+}
+
+/**
+ * Checks that exprtk 09
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary09, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,09);
+}
+
+/**
+ * Checks that exprtk 10
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary10, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,10);
+}
+
+/**
+ * Checks that exprtk 11
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary11, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,11);
+}
+
+/**
+ * Checks that exprtk 12
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary12, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,12);
+}
+
+/**
+ * Checks that exprtk 13
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary13, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,13);
+}
+
+/**
+ * Checks that exprtk 14
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary14, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,14);
+}
+
+/**
+ * Checks that exprtk 15
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary15, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,15);
+}
+
+/**
+ * Checks that exprtk 16
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary16, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,16);
+}
+
+/**
+ * Checks that exprtk 17
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary17, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,17);
+}
+
+/**
+ * Checks that exprtk 18
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary18, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,18);
+}
+
+/**
+ * Checks that exprtk 19
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary19, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,19);
+}
+
+/**
+ * Checks that exprtk 20
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary20, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,20);
+}
+
+/**
+ * Checks that exprtk 21
+ */
+KRATOS_TEST_CASE_IN_SUITE(exprtkLLibrary21, KratosExternalLibrariesFastSuite)
+{
+    perform_test(numeric_type,21);
+}
+
+#undef perform_test
+
+} // namespace Testing.
+} // namespace Kratos.
