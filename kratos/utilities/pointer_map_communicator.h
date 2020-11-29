@@ -170,7 +170,7 @@ public:
      *
      * @see GlobalPointerMapCommunicator
      *
-     * @param rGPDataMap        Input values map (key: GlobalPointer<TPointerDataType>, value: TValueDataType)
+     * @param rGPDataMap        Input values map (key: GlobalPointerType, value: TValueDataType)
      */
     void Assign(const TGPDataMap& rGPDataMap)
     {
@@ -180,13 +180,15 @@ public:
             << "Assigning map of values in a parallel region is not allowed.\n";
 
         // get gp vector for parallel omp run
-        const auto& gps = TGPMapCommunicator::GetKeys(rGPDataMap);
+        std::vector<std::pair<GlobalPointerType, TValueDataType>> gp_value_pair_list;
+        gp_value_pair_list.resize(rGPDataMap.size());
+        std::copy(rGPDataMap.begin(), rGPDataMap.end(), gp_value_pair_list.begin());
 
         // running this in parallel assuming mrApplyFunctor is thread safe
-        IndexPartition<int>(gps.size()).for_each([&](const int Index) {
-            auto p_itr = rGPDataMap.find(gps[Index]);
-            Assign(p_itr->first, p_itr->second);
-        });
+        BlockPartition<std::vector<std::pair<GlobalPointerType, TValueDataType>>>(gp_value_pair_list)
+            .for_each([&](std::pair<GlobalPointerType, TValueDataType>& rPair) {
+                this->Assign(rPair.first, rPair.second);
+            });
 
         KRATOS_CATCH("");
     }
@@ -207,7 +209,7 @@ public:
      * @param rValue            Value to be used in assigning
      */
     void Assign(
-        const GlobalPointer<TPointerDataType>& rGlobalPointer,
+        GlobalPointerType& rGlobalPointer,
         const TValueDataType& rValue)
     {
         (this->*(this->mUpdateMethod))(rGlobalPointer, rValue);
@@ -237,7 +239,7 @@ private:
     const int mCurrentRank;
     const TApplyFunctor& mrApplyFunctor;
 
-    void (ProxyType::*mUpdateMethod)(const GlobalPointer<TPointerDataType>&, const TValueDataType&);
+    void (ProxyType::*mUpdateMethod)(GlobalPointerType&, const TValueDataType&);
 
     // here we store this in two vector maps(vector of gps, vector of values) instead of one vector map(key:gp, value: std::vector)
     // because, when updating
@@ -268,11 +270,10 @@ private:
      * @param rValue            Value to be used in assigning
      */
     void AssignLocalData(
-        const GlobalPointer<TPointerDataType>& rGlobalPointer,
+        GlobalPointerType& rGlobalPointer,
         const TValueDataType& rValue)
     {
-        // calling the move constructor to remove const
-        mrApplyFunctor(*GlobalPointer<TPointerDataType>(std::move(rGlobalPointer)), rValue);
+        mrApplyFunctor(*rGlobalPointer, rValue);
     }
 
 
@@ -287,17 +288,16 @@ private:
      * @param rValue            Value to be used in assigning
      */
     void AssignLocalAndRemoteData(
-        const GlobalPointer<TPointerDataType>& rGlobalPointer,
+        GlobalPointerType& rGlobalPointer,
         const TValueDataType& rValue)
     {
         const int data_rank = rGlobalPointer.GetRank();
 
         if (data_rank == mCurrentRank) {
-            AssignLocalData(rGlobalPointer, rValue);
+            mrApplyFunctor(*rGlobalPointer, rValue);
         } else {
             const int k = OpenMPUtils::ThisThread();
-
-            mNonLocalGlobalPointerMapsVector[k][data_rank].push_back(rGlobalPointer);
+            mNonLocalGlobalPointerMapsVector[k][data_rank].push_back(std::move(rGlobalPointer));
             mNonLocalDataValueMapsVector[k][data_rank].push_back(rValue);
         }
     }
@@ -333,6 +333,8 @@ public:
     using DataVectorType = std::vector<TValueDataType>;
 
     using DataVectorMapType = std::unordered_map<int, DataVectorType>;
+
+    using GlobalPointerValuePair = std::pair<GlobalPointerType, DataVectorType>;
 
     template<class TApplyFunctor>
     using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>;
@@ -409,7 +411,7 @@ public:
                     const auto& r_data_vector = current_data_map.find(r_gp_map_item.first)->second;
 
                     for (IndexType i = 0; i < r_gp_vector.size(); ++i) {
-                        current_rank_gp_map[r_gp_vector[i]].push_back(r_data_vector[i]);
+                        current_rank_gp_map[r_gp_vector[i]].push_back(std::move(r_data_vector[i]));
                     }
                 }
             }
@@ -440,18 +442,19 @@ public:
                     //
                     // I think the 2nd options outweighs the first one, so I implemented the second one. Suggestions are
                     // greately appreciated.
+
                     const auto& received_gp_map = mrDataCommunicator.SendRecv(non_local_map[color], color, color);
-                    const auto& gps = GetKeys(received_gp_map);
 
-                    // running this in parallel assuming mrApplyFunctor is thread safe
-                    IndexPartition<int>(gps.size()).for_each([&](const int Index) {
-                        const auto& gp = gps[Index];
-                        auto p_itr = received_gp_map.find(gp);
+                    // create list for OMP parallel looping
+                    std::vector<GlobalPointerValuePair> gp_value_pair_list;
+                    GetPairListFromMap(gp_value_pair_list, received_gp_map);
 
-                        for (IndexType i = 0; i < p_itr->second.size(); ++i) {
+                    // running this in parallel assuming rApplyProxy.mrApplyFunctor is thread safe
+                    BlockPartition<std::vector<GlobalPointerValuePair>>(gp_value_pair_list).for_each([&](GlobalPointerValuePair& rItem) {
+                        for (IndexType i = 0; i < rItem.second.size(); ++i) {
                             // it is safer to call the serial update method here
                             // because we should only get process's local gps when communication is done
-                            rApplyProxy.AssignLocalData(gp, p_itr->second[i]);
+                            rApplyProxy.mrApplyFunctor(*(rItem.first), rItem.second[i]);
                         }
                     });
                 }
@@ -506,26 +509,15 @@ public:
     ///@name Public static operations
     ///@{
 
-    /**
-     * @brief Get keys vector from a map
-     *
-     * @tparam TKey                 Key type
-     * @tparam TArgs                Additional args
-     * @param rMap                  Map input
-     * @return std::vector<TKey>    Vector of keys
-     */
-    template<class TKey, class... TArgs>
-    static std::vector<TKey> GetKeys(const std::unordered_map<TKey, TArgs...>& rMap)
+    template<class TKeyType, class TDataType, class... TArgs>
+    static void GetPairListFromMap(
+        std::vector<std::pair<TKeyType, TDataType>>& rList,
+        const std::unordered_map<TKeyType, TDataType, TArgs...>& rMap)
     {
-        std::vector<TKey> keys;
-        keys.resize(rMap.size());
-
-        int local_index = 0;
-        for (const auto& r_item : rMap) {
-            keys[local_index++] = r_item.first;
+        rList.resize(rMap.size());
+        for (const auto& r_pair : rMap) {
+            rList.push_back(std::move(r_pair));
         }
-
-        return keys;
     }
 
     ///@}
@@ -565,12 +557,15 @@ protected:
     template<class... TArgs>
     std::vector<int> ComputeCommunicationPlan(const std::unordered_map<int, TArgs...>& rNonLocalGlobalPointerMap)
     {
-        std::vector<int> colors;
-        auto send_list = GetKeys(rNonLocalGlobalPointerMap);
+        std::vector<int> send_list;
+        send_list.reserve(rNonLocalGlobalPointerMap.size());
+        for (const auto& r_pair : rNonLocalGlobalPointerMap) {
+            send_list.push_back(r_pair.first);
+        }
         std::sort(send_list.begin(), send_list.end());
-        colors = MPIColoringUtilities::ComputeCommunicationScheduling(
+
+        return MPIColoringUtilities::ComputeCommunicationScheduling(
             send_list, mrDataCommunicator);
-        return colors;
     }
 
     ///@}
