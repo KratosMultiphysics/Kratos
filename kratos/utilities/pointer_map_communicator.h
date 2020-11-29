@@ -446,8 +446,13 @@ public:
                     const auto& received_gp_map = mrDataCommunicator.SendRecv(non_local_map[color], color, color);
 
                     // create list for OMP parallel looping
+                    // using move semantics to move data of GP and std::vector<TValueDataType>
+                    // objects in received_gp_map
                     std::vector<GlobalPointerValuePair> gp_value_pair_list;
-                    GetPairListFromMap(gp_value_pair_list, received_gp_map);
+                    gp_value_pair_list.resize(received_gp_map.size());
+                    for (const auto& r_pair : received_gp_map) {
+                        gp_value_pair_list.push_back(std::move(r_pair));
+                    }
 
                     // running this in parallel assuming rApplyProxy.mrApplyFunctor is thread safe
                     BlockPartition<std::vector<GlobalPointerValuePair>>(gp_value_pair_list).for_each([&](GlobalPointerValuePair& rItem) {
@@ -503,21 +508,6 @@ public:
     int GetMyPID() const
     {
         return mCurrentRank;
-    }
-
-    ///@}
-    ///@name Public static operations
-    ///@{
-
-    template<class TKeyType, class TDataType, class... TArgs>
-    static void GetPairListFromMap(
-        std::vector<std::pair<TKeyType, TDataType>>& rList,
-        const std::unordered_map<TKeyType, TDataType, TArgs...>& rMap)
-    {
-        rList.resize(rMap.size());
-        for (const auto& r_pair : rMap) {
-            rList.push_back(std::move(r_pair));
-        }
     }
 
     ///@}
