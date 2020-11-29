@@ -95,21 +95,17 @@ public:
 
     using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>;
 
-    using TGPVector = GlobalPointersVector<TPointerDataType>;
-
-    using TGPDataMap = GlobalPointersUnorderedMap<TPointerDataType, TValueDataType>;
-
     using TGPMapCommunicator = GlobalPointerMapCommunicator<TPointerDataType, TValueDataType>;
 
     using GlobalPointerType = GlobalPointer<TPointerDataType>;
 
     using GlobalPointerVectorType = std::vector<GlobalPointerType>;
 
-    using GlobalPointerMapType = std::unordered_map<int, GlobalPointerVectorType>;
+    using GlobalPointerProcessMapType = std::unordered_map<int, GlobalPointerVectorType>;
 
     using DataVectorType = std::vector<TValueDataType>;
 
-    using DataVectorMapType = std::unordered_map<int, DataVectorType>;
+    using DataVectorProcessMapType = std::unordered_map<int, DataVectorType>;
 
     ///@}
     ///@name Life cycle
@@ -154,10 +150,12 @@ public:
     ///@{
 
     /**
-     * @brief Assigns values with given values map
+     * @brief Assigns value of the GlobalPointer
      *
-     * This method assigns local gps using mrApplyFunctor instantly. Values
-     * belonging to remote gps are stored in the mrNonLocalGlobalPointerMapsVector and mrNonLocalDataValueMapsVector.
+     * This method assigns gp value by rValue using mrApplyFunctor in the case if
+     * given rGlobalPointer is a local gp, otherwise mrNonLocalGlobalPointerMapsVector and
+     * mrNonLocalDataValueMapsVector are used to store new gp and value,
+     * which will be used in mpi communication.
      *
      * In the case of serial job, this method calls AssignLocalData, where no checks are done
      * to ensure gps are local because all gps are local.
@@ -165,41 +163,6 @@ public:
      * In case of distributed job, this method calls AssignLocalAndRemoteData where checks are
      * performed to identify gps are local or non-local, based on that mrApplyFunctor
      * methods are called or values corresponding to remote gps are stored.
-     *
-     * This does not have additional cost in serial run (except for function pointer call)
-     *
-     * @see GlobalPointerMapCommunicator
-     *
-     * @param rGPDataMap        Input values map (key: GlobalPointerType, value: TValueDataType)
-     */
-    void Assign(const TGPDataMap& rGPDataMap)
-    {
-        KRATOS_TRY
-
-        KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0)
-            << "Assigning map of values in a parallel region is not allowed.\n";
-
-        // get gp vector for parallel omp run
-        std::vector<std::pair<GlobalPointerType, TValueDataType>> gp_value_pair_list;
-        gp_value_pair_list.resize(rGPDataMap.size());
-        std::copy(rGPDataMap.begin(), rGPDataMap.end(), gp_value_pair_list.begin());
-
-        // running this in parallel assuming mrApplyFunctor is thread safe
-        BlockPartition<std::vector<std::pair<GlobalPointerType, TValueDataType>>>(gp_value_pair_list)
-            .for_each([&](std::pair<GlobalPointerType, TValueDataType>& rPair) {
-                this->Assign(rPair.first, rPair.second);
-            });
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Assigns value of the GlobalPointer
-     *
-     * This method assigns gp value by rValue using mrApplyFunctor in the case if
-     * given rGlobalPointer is a local gp, otherwise mrNonLocalGlobalPointerMapsVector and
-     * mrNonLocalDataValueMapsVector are used to store new gp and value,
-     * which will be used in mpi communication.
      *
      * This does not have additional cost in serial run (except for function pointer call)
      *
@@ -250,8 +213,8 @@ private:
     //          for each non-local update.
     // The method 2 is little bit more expensive than first one AFAIK. so implemented the vector versions. Suggestions are highly appreciated :)
     //
-    std::vector<GlobalPointerMapType> mNonLocalGlobalPointerMapsVector;
-    std::vector<DataVectorMapType> mNonLocalDataValueMapsVector;
+    std::vector<GlobalPointerProcessMapType> mNonLocalGlobalPointerMapsVector;
+    std::vector<DataVectorProcessMapType> mNonLocalDataValueMapsVector;
 
     TGPMapCommunicator& mrPointerCommunicator;
 
@@ -328,11 +291,11 @@ public:
 
     using GlobalPointerVectorType = std::vector<GlobalPointerType>;
 
-    using GlobalPointerMapType = std::unordered_map<int, GlobalPointerVectorType>;
+    using GlobalPointerProcessMapType = std::unordered_map<int, GlobalPointerVectorType>;
 
     using DataVectorType = std::vector<TValueDataType>;
 
-    using DataVectorMapType = std::unordered_map<int, DataVectorType>;
+    using DataVectorProcessMapType = std::unordered_map<int, DataVectorType>;
 
     using GlobalPointerValuePair = std::pair<GlobalPointerType, DataVectorType>;
 
@@ -398,11 +361,11 @@ public:
             // get the final map for communications
             // constructing an rank based GlobalPointersUnorderedMap will make unique keys list in GlobalPointersUnorderedMap
             // which will result in lower communication for keys. These unique keys can be easily OMP parallelized
-            std::unordered_map<int, GlobalPointersUnorderedMap<TPointerDataType, std::vector<TValueDataType>>> non_local_map;
+            std::unordered_map<int, GlobalPointersUnorderedMap<TPointerDataType, DataVectorType>> non_local_map;
 
             for (IndexType i = 0; i < rApplyProxy.mNonLocalGlobalPointerMapsVector.size(); ++i) {
-                const GlobalPointerMapType& current_gp_map = rApplyProxy.mNonLocalGlobalPointerMapsVector[i];
-                const DataVectorMapType& current_data_map = rApplyProxy.mNonLocalDataValueMapsVector[i];
+                const auto& current_gp_map = rApplyProxy.mNonLocalGlobalPointerMapsVector[i];
+                const auto& current_data_map = rApplyProxy.mNonLocalDataValueMapsVector[i];
 
                 for (const auto& r_gp_map_item : current_gp_map) {
                     auto& current_rank_gp_map = non_local_map[r_gp_map_item.first];
@@ -456,10 +419,11 @@ public:
 
                     // running this in parallel assuming rApplyProxy.mrApplyFunctor is thread safe
                     BlockPartition<std::vector<GlobalPointerValuePair>>(gp_value_pair_list).for_each([&](GlobalPointerValuePair& rItem) {
+                        auto& r_pointer_data_type_entity = *(rItem.first);
                         for (IndexType i = 0; i < rItem.second.size(); ++i) {
                             // it is safer to call the serial update method here
                             // because we should only get process's local gps when communication is done
-                            rApplyProxy.mrApplyFunctor(*(rItem.first), rItem.second[i]);
+                            rApplyProxy.mrApplyFunctor(r_pointer_data_type_entity, rItem.second[i]);
                         }
                     });
                 }

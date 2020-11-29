@@ -227,25 +227,17 @@ KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicatorAssembly, KratosMPICoreFastSuite
     }
     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm);
 
-    GlobalPointersUnorderedMap<Node<3>, double> assembly_double_values_map;
-    GlobalPointersUnorderedMap<Node<3>, array_1d<double, 3>> assembly_array3_values_map;
     for (int i = 0; i < current_rank + 1; ++i) {
         auto gp = gp_list(i);
         const double value = (gp.GetRank() + 1.0) * 2;
-        assembly_double_values_map[gp] = value;
-        assembly_array3_values_map[gp] = array_1d<double, 3>(3, value);
         apply_temperature_assemble_proxy.Assign(gp, value * 3);
         apply_velocity_assemble_proxy.Assign(gp, array_1d<double, 3>(3, value * 3));
     }
 
     // Assigns local gps and stores remote gps in a map for future communication
-    apply_temperature_assemble_proxy.Assign(assembly_double_values_map);
-    apply_temperature_assemble_proxy.Assign(assembly_double_values_map);
     apply_temperature_assemble_proxy.Assign(gp_list(0), 1);
     apply_temperature_assemble_proxy.Assign(gp_list(0), 2);
 
-    apply_velocity_assemble_proxy.Assign(assembly_array3_values_map);
-    apply_velocity_assemble_proxy.Assign(assembly_array3_values_map);
     apply_velocity_assemble_proxy.Assign(gp_list(0), array_1d<double, 3>(3, 1));
     apply_velocity_assemble_proxy.Assign(gp_list(0), array_1d<double, 3>(3, 2));
 
@@ -255,8 +247,8 @@ KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicatorAssembly, KratosMPICoreFastSuite
 
     const double check_value =
         (current_rank == 0.0)
-            ? world_size * (2 * 2 + 6) + world_size * 3
-            : current_rank + (world_size - current_rank) * (current_rank + 1) * (2.0 * 2.0 + 6);
+            ? world_size * 6 + world_size * 3
+            : current_rank + (world_size - current_rank) * (current_rank + 1) * 6;
 
     KRATOS_CHECK_EQUAL(pnode->GetValue(TEMPERATURE), check_value);
     const array_1d<double, 3> check_vector(3, check_value);
