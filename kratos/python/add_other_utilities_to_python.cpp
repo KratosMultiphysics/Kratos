@@ -26,6 +26,7 @@
 #include "includes/global_pointer_variables.h"
 
 //Other utilities
+#include "utilities/function_parser_utility.h"
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
@@ -146,20 +147,25 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-    // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
-    py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
+    py::class_<GenericFunctionUtility,  GenericFunctionUtility::Pointer >(m,"GenericFunctionUtility")
         .def(py::init<const std::string&>() )
         .def(py::init<const std::string&, Parameters>())
-        .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
-        .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
-        .def("FunctionBody", &PythonGenericFunctionUtility::FunctionBody)
-        .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
-        .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
+        .def("UseLocalSystem", &GenericFunctionUtility::UseLocalSystem)
+        .def("DependsOnSpace", &GenericFunctionUtility::DependsOnSpace)
+        .def("FunctionBody", &GenericFunctionUtility::FunctionBody)
+        .def("RotateAndCallFunction", &GenericFunctionUtility::RotateAndCallFunction)
+        .def("CallFunction", &GenericFunctionUtility::CallFunction)
+        ;
+
+    // NOTE: This is a legacy function
+    py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer, GenericFunctionUtility>(m,"PythonGenericFunctionUtility")
+        .def(py::init<const std::string&>() )
+        .def(py::init<const std::string&, Parameters>())
         ;
 
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
-        .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
+        .def(py::init<ModelPart::NodesContainerType&, GenericFunctionUtility::Pointer >() )
+        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction)
         .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
         ;
 
