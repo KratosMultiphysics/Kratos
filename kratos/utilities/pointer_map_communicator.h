@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <utility>
 
 // External includes
 
@@ -270,18 +271,8 @@ private:
         const GlobalPointer<TPointerDataType>& rGlobalPointer,
         const TValueDataType& rValue)
     {
-        KRATOS_TRY
-
-        KRATOS_DEBUG_ERROR_IF(rGlobalPointer.GetRank() != mCurrentRank)
-            << "Using local global pointer update method with a non-local "
-               "global pointer. [ MyPID = "
-            << mCurrentRank
-            << " GlobalPointerRank = " << rGlobalPointer.GetRank() << " ].\n";
-
-        auto gp_pointer = rGlobalPointer;  // required to remove the const from rGlobalPointer
-        mrApplyFunctor(*gp_pointer, rValue);
-
-        KRATOS_CATCH("");
+        // calling the move constructor to remove const
+        mrApplyFunctor(*GlobalPointer<TPointerDataType>(std::move(rGlobalPointer)), rValue);
     }
 
 
