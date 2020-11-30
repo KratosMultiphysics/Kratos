@@ -20,7 +20,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if time_integration_method == "semiexplicit":
-            solver_module_name = "navier_stokes_semiexplicit_solver"
+            solver_module_name = "navier_stokes_solver_fractionalstep_semiexplicit"
         elif time_integration_method == "implicit":
             if (solver_type == "Monolithic"):
                 solver_module_name = "navier_stokes_solver_vmsmonolithic"

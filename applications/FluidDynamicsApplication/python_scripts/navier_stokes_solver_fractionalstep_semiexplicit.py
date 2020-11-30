@@ -8,19 +8,19 @@ from KratosMultiphysics import python_linear_solver_factory as linear_solver_fac
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
-    return NavierStokesSemiExplicitSolver(model, custom_settings)
+    return NavierStokesSolverFractionalStepSemiExplicit(model, custom_settings)
 
-class NavierStokesSemiExplicitSolver(NavierStokesSolverFractionalStep):
+class NavierStokesSolverFractionalStepSemiExplicit(NavierStokesSolverFractionalStep):
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass = True
         super().__init__(model,custom_settings)
 
         if custom_settings["formulation"]["element_type"].GetString() != "QSNavierStokesSemiExplicit":
-            raise Exception("NavierStokesSemiExplicitSolver only accepts QSNavierStokesSemiExplicit as the \"element_type\" in \"formulation\"")
+            raise Exception("NavierStokesSolverFractionalStepSemiExplicit only accepts QSNavierStokesSemiExplicit as the \"element_type\" in \"formulation\"")
 
         self.min_buffer_size = 3
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSemiExplicitSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverFractionalStepSemiExplicit finished.")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -81,7 +81,7 @@ class NavierStokesSemiExplicitSolver(NavierStokesSolverFractionalStep):
             "time_integration_method": "semiexplicit"
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesSemiExplicitSolver, cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStepSemiExplicit, cls).GetDefaultParameters())
         return default_settings
 
     def _CreateLinearSolver(self):
