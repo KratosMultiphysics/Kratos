@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "includes/global_variables.h"
 #include "utilities/function_parser_utility.h"
 
 namespace Kratos
@@ -34,6 +35,7 @@ GenericFunctionUtility::GenericFunctionUtility(
     mNameSpace.insert(std::pair<std::string, double>("X", 0.0));
     mNameSpace.insert(std::pair<std::string, double>("Y", 0.0));
     mNameSpace.insert(std::pair<std::string, double>("Z", 0.0));
+    mNameSpace.insert(std::pair<std::string, double>("pi", Globals::Pi));
 
     // Defining table
     double& x = mNameSpace["x"];
@@ -43,6 +45,7 @@ GenericFunctionUtility::GenericFunctionUtility(
     double& X = mNameSpace["X"];
     double& Y = mNameSpace["Y"];
     double& Z = mNameSpace["Z"];
+    double& pi = mNameSpace["pi"];
 
     mSymbolTable.add_variable("x",x);
     mSymbolTable.add_variable("y",y);
@@ -51,6 +54,7 @@ GenericFunctionUtility::GenericFunctionUtility(
     mSymbolTable.add_variable("X",X);
     mSymbolTable.add_variable("Y",Y);
     mSymbolTable.add_variable("Z",Z);
+    mSymbolTable.add_variable("pi", pi);
 
     // Creating expression
     mExpression.register_symbol_table(mSymbolTable);
