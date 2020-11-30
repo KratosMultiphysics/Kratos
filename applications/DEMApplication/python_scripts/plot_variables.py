@@ -22,7 +22,6 @@ class variable_plotter:
                     file_writer.write("ANGULAR_VELOCITY_X  ANGULAR_VELOCITY_Y  ANGULAR_VELOCITY_Z  ")
                     file_writer.write("PARTICLE_MOMENT_X  PARTICLE_MOMENT_Y  PARTICLE_MOMENT_Z\n")
                     self.files.append(file_writer)
-                    #print("The Id " + str(id) + " was found in the model part")
                     break
 
         if len(self.list_of_nodes) != len(list_of_nodes_ids):

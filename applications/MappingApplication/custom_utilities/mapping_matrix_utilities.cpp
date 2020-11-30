@@ -144,7 +144,8 @@ template<>
 void CheckRowSum<SparseSpaceType, DenseSpaceType>(
     const typename SparseSpaceType::MatrixType& rM,
     const std::string& rBaseFileName,
-    const bool ThrowError)
+    const bool ThrowError,
+    const double Tolerance)
 {
     SparseSpaceType::VectorType unit_vector(SparseSpaceType::Size2(rM));
     SparseSpaceType::Set(unit_vector, 1.0);
@@ -155,7 +156,7 @@ void CheckRowSum<SparseSpaceType, DenseSpaceType>(
 
     bool write_mm_file = false;
     for (std::size_t i = 0; i < SparseSpaceType::Size(row_sums_vector); ++i) {
-        if (std::abs(row_sums_vector[i] - 1.0) > 1e-15) {
+        if (std::abs(row_sums_vector[i] - 1.0) > Tolerance) {
             KRATOS_WARNING("MappingMatrixAssembly") << "The row sum in row " << i << " is unequal 1.0: " << row_sums_vector[i] << std::endl;
             write_mm_file = true;
         }

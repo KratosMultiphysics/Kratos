@@ -375,7 +375,9 @@ class ResidualBasedNewtonRaphsonStrategy
           mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
-
+        // Validate and assign defaults
+        Settings = this->ValidateAndAssignParameters(Settings, this->GetDefaultParameters());
+        this->AssignSettings(Settings);
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
 
