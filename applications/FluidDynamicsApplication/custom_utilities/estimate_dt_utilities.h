@@ -160,11 +160,6 @@ private:
 	///@name Serialization
 	///@{
 
-	friend class Serializer;
-
-	void save(Serializer& rSerializer) const;
-
-	void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private Operations

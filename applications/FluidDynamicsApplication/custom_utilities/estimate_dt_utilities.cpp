@@ -151,20 +151,4 @@ namespace Kratos
         return projected_h_func;
     }
 
-    void EstimateDtUtility::save(Serializer& rSerializer) const
-    {
-        rSerializer.save("mCFL", mCFL);
-        rSerializer.save("mDtMax", mDtMax);
-        rSerializer.save("mDtMin", mDtMin);
-        rSerializer.save("mrModelPart", mrModelPart);
-    }
-
-    void EstimateDtUtility::load(Serializer& rSerializer)
-    {
-        rSerializer.load("mCFL", mCFL);
-        rSerializer.load("mDtMax", mDtMax);
-        rSerializer.load("mDtMin", mDtMin);
-        rSerializer.load("mrModelPart", mrModelPart);
-    }
-
 } // namespace Kratos.
