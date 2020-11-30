@@ -64,8 +64,8 @@ public:
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         BoundedMatrix<double, TNumNodes, TDim > forcing;
         BoundedMatrix<double, TNumNodes, TDim > fractional_velocity;
-        BoundedMatrix<double, TNumNodes, TDim > fractional_velocity_convective;
-        BoundedMatrix<double, TNumNodes, TDim > fractional_velocity_old;
+        BoundedMatrix<double, TNumNodes, TDim > fractional_convective_velocity;
+        BoundedMatrix<double, TNumNodes, TNumNodes> N_gausspoint;
         BoundedMatrix<double, TNumNodes, TDim > velocity;
         BoundedMatrix<double, TNumNodes, TDim > velocity_convective;
         BoundedMatrix<double, TNumNodes, TDim > velocity_old;
@@ -74,14 +74,15 @@ public:
         array_1d<double,TNumNodes> pressure;
         array_1d<double,TNumNodes> pressure_old;
 
-        double dt;          // Time step
-        double gamma = 1;   // Fractional step splitting parameter
-        double h;           // Element size
-        double mu;          // Dynamic viscosity
-        double nu;          // Kinematic viscosity
-        double rho;         // Density
-        bool UseOSS;        // Use orthogonal subscales
-        double volume;      // In 2D: element area. In 3D: element volume
+        double dt;             // Time step
+        double gamma = 1;      // Fractional step splitting parameter
+        double h;              // Element size
+        double lumping_factor; // Factor accounting for dimension
+        double mu;             // Dynamic viscosity
+        double nu;             // Kinematic viscosity
+        double rho;            // Density
+        bool UseOSS;           // Use orthogonal subscales
+        double volume;         // In 2D: element area. In 3D: element volume
     };
 
     ///@}

@@ -48,7 +48,8 @@ void QSNavierStokesSemiExplicit<TDim,TNumNodes>::EquationIdVector(
     {
         case 1:
         {
-            this->FractionalVelocityEquationIdVector(rResult,rCurrentProcessInfo);
+            // this->FractionalVelocityEquationIdVector(rResult,rCurrentProcessInfo);
+            this->VelocityEquationIdVector(rResult,rCurrentProcessInfo);
             break;
         }
         case 3:
@@ -85,15 +86,16 @@ void QSNavierStokesSemiExplicit<TDim,TNumNodes>::GetDofList(
         {
         case 1:
         {
-            this->GetFractionalVelocityDofList(rElementalDofList,rCurrentProcessInfo);
+            // this->GetFractionalVelocityDofList(rElementalDofList,rCurrentProcessInfo);
+            this->GetVelocityDofList(rElementalDofList,rCurrentProcessInfo);
             break;
         }
-        case 5:
+        case 3:
         {
             this->GetPressureDofList(rElementalDofList,rCurrentProcessInfo);
             break;
         }
-        case 6:
+        case 4:
         {
             this->GetVelocityDofList(rElementalDofList,rCurrentProcessInfo);
             break;
@@ -160,8 +162,8 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateLocalFractionalVelocitySystem(
     const auto &dt = data.dt;
     const auto &f = data.forcing;
     const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_velocity_convective;
-    const auto &fracvn = data.fractional_velocity_old;
+    const auto &fracvconv = data.fractional_convective_velocity;
+
     const auto &gamma = data.gamma;
     const auto &h = data.h;
     const auto &nu = data.nu;
@@ -213,8 +215,8 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLocalFractionalVelocitySystem(
     const auto &dt = data.dt;
     const auto &f = data.forcing;
     const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_velocity_convective;
-    const auto &fracvn = data.fractional_velocity_old;
+    const auto &fracvconv = data.fractional_convective_velocity;
+
     const auto &gamma = data.gamma;
     const auto &h = data.h;
     const auto &nu = data.nu;
@@ -274,8 +276,8 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateLocalPressureSystem(
     const auto &dt = data.dt;
     const auto &f = data.forcing;
     const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_velocity_convective;
-    const auto &fracvn = data.fractional_velocity_old;
+    const auto &fracvconv = data.fractional_convective_velocity;
+
     const auto &gamma = data.gamma;
     const auto &h = data.h;
     const auto &nu = data.nu;
@@ -330,8 +332,8 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLocalPressureSystem(
     const auto &dt = data.dt;
     const auto &f = data.forcing;
     const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_velocity_convective;
-    const auto &fracvn = data.fractional_velocity_old;
+    const auto &fracvconv = data.fractional_convective_velocity;
+
     const auto &gamma = data.gamma;
     const auto &h = data.h;
     const auto &nu = data.nu;
@@ -393,8 +395,8 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateLocalEndOfStepSystem(
     const auto &dt = data.dt;
     const auto &f = data.forcing;
     const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_velocity_convective;
-    const auto &fracvn = data.fractional_velocity_old;
+    const auto &fracvconv = data.fractional_convective_velocity;
+
     const auto &gamma = data.gamma;
     const auto &h = data.h;
     const auto &nu = data.nu;
@@ -449,8 +451,8 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLocalEndOfStepSystem(
     const auto &dt = data.dt;
     const auto &f = data.forcing;
     const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_velocity_convective;
-    const auto &fracvn = data.fractional_velocity_old;
+    const auto &fracvconv = data.fractional_convective_velocity;
+
     const auto &gamma = data.gamma;
     const auto &h = data.h;
     const auto &nu = data.nu;
@@ -586,22 +588,19 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateMassMatrix(
     const ProcessInfo &rCurrentProcessInfo)
 {
     constexpr IndexType n_nodes = 3;
-    constexpr IndexType block_size = 3;
+    constexpr IndexType block_size = 2;
 
     // Initialize and fill the mass matrix values
     const double one_six = 1.0 / 6.0;
     const double one_twelve = 1.0 / 12.0;
     const unsigned int size = n_nodes * block_size;
     rMassMatrix = ZeroMatrix(size, size);
-    rMassMatrix(0, 0) = one_six;    rMassMatrix(0, 3) = one_twelve; rMassMatrix(0, 6) = one_twelve;
-    rMassMatrix(1, 1) = one_six;    rMassMatrix(1, 4) = one_twelve; rMassMatrix(1, 7) = one_twelve;
-    rMassMatrix(2, 2) = one_six;    rMassMatrix(2, 5) = one_twelve; rMassMatrix(2, 8) = one_twelve;
-    rMassMatrix(3, 0) = one_twelve; rMassMatrix(3, 3) = one_six;    rMassMatrix(3, 6) = one_twelve;
-    rMassMatrix(4, 1) = one_twelve; rMassMatrix(4, 4) = one_six;    rMassMatrix(4, 7) = one_twelve;
-    rMassMatrix(5, 2) = one_twelve; rMassMatrix(5, 5) = one_six;    rMassMatrix(5, 8) = one_twelve;
-    rMassMatrix(6, 0) = one_twelve; rMassMatrix(6, 3) = one_twelve; rMassMatrix(6, 6) = one_six;
-    rMassMatrix(7, 1) = one_twelve; rMassMatrix(7, 4) = one_twelve; rMassMatrix(7, 7) = one_six;
-    rMassMatrix(8, 2) = one_twelve; rMassMatrix(8, 5) = one_twelve; rMassMatrix(8, 8) = one_six;
+    rMassMatrix(0, 0) = one_six;    rMassMatrix(0, 2) = one_twelve; rMassMatrix(0, 4) = one_twelve;
+    rMassMatrix(1, 1) = one_six;    rMassMatrix(1, 3) = one_twelve; rMassMatrix(1, 5) = one_twelve;
+    rMassMatrix(2, 0) = one_twelve; rMassMatrix(2, 2) = one_six;    rMassMatrix(2, 4) = one_twelve;
+    rMassMatrix(3, 1) = one_twelve; rMassMatrix(3, 3) = one_six;    rMassMatrix(3, 5) = one_twelve;
+    rMassMatrix(4, 0) = one_twelve; rMassMatrix(4, 2) = one_twelve; rMassMatrix(4, 4) = one_six;
+    rMassMatrix(5, 1) = one_twelve; rMassMatrix(5, 3) = one_twelve; rMassMatrix(5, 5) = one_six;
 
     // Here we assume that all the Gauss points have the same weight so we multiply by the volume
     rMassMatrix *= GetGeometry().Area();
@@ -615,29 +614,25 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateMassMatrix(
     const ProcessInfo &rCurrentProcessInfo)
 {
     constexpr IndexType n_nodes = 4;
-    constexpr IndexType block_size = 4;
+    constexpr IndexType block_size = 3;
 
     // Initialize and fill the mass matrix values
     const double one_ten = 0.1;
     const double one_twenty = 0.05;
     const unsigned int size = n_nodes * block_size;
     rMassMatrix = ZeroMatrix(size, size);
-    rMassMatrix(0, 0) = one_ten;     rMassMatrix(0, 4) = one_twenty;  rMassMatrix(0, 8) = one_twenty;   rMassMatrix(0,12) = one_twenty;
-    rMassMatrix(1, 1) = one_ten;     rMassMatrix(1, 5) = one_twenty;  rMassMatrix(1, 9) = one_twenty;   rMassMatrix(1,13) = one_twenty;
-    rMassMatrix(2, 2) = one_ten;     rMassMatrix(2, 6) = one_twenty;  rMassMatrix(2, 10) = one_twenty;  rMassMatrix(2,14) = one_twenty;
-    rMassMatrix(3, 3) = one_ten;     rMassMatrix(3, 7) = one_twenty;  rMassMatrix(3, 11) = one_twenty;  rMassMatrix(3,15) = one_twenty;
-    rMassMatrix(4, 0) = one_twenty;  rMassMatrix(4, 4) = one_ten;     rMassMatrix(4, 8) = one_twenty;   rMassMatrix(4,12) = one_twenty;
-    rMassMatrix(5, 1) = one_twenty;  rMassMatrix(5, 5) = one_ten;     rMassMatrix(5, 9) = one_twenty;   rMassMatrix(5,13) = one_twenty;
-    rMassMatrix(6, 2) = one_twenty;  rMassMatrix(6, 6) = one_ten;     rMassMatrix(6, 10) = one_twenty;  rMassMatrix(6,14) = one_twenty;
-    rMassMatrix(7, 3) = one_twenty;  rMassMatrix(7, 7) = one_ten;     rMassMatrix(7, 11) = one_twenty;  rMassMatrix(7,15) = one_twenty;
-    rMassMatrix(8, 0) = one_twenty;  rMassMatrix(8, 4) = one_twenty;  rMassMatrix(8, 8) = one_ten;      rMassMatrix(8,12) = one_twenty;
-    rMassMatrix(9, 1) = one_twenty;  rMassMatrix(9, 5) = one_twenty;  rMassMatrix(9, 9) = one_ten;      rMassMatrix(9,13) = one_twenty;
-    rMassMatrix(10, 2) = one_twenty; rMassMatrix(10, 6) = one_twenty; rMassMatrix(10, 10) = one_ten;    rMassMatrix(10,14) = one_twenty;
-    rMassMatrix(11, 3) = one_twenty; rMassMatrix(11, 7) = one_twenty; rMassMatrix(11, 11) = one_ten;    rMassMatrix(11,15) = one_twenty;
-    rMassMatrix(12, 0) = one_twenty; rMassMatrix(12, 4) = one_twenty; rMassMatrix(12, 8) = one_twenty;  rMassMatrix(12,12) = one_ten;
-    rMassMatrix(13, 1) = one_twenty; rMassMatrix(13, 5) = one_twenty; rMassMatrix(13, 9) = one_twenty;  rMassMatrix(13,13) = one_ten;
-    rMassMatrix(14, 2) = one_twenty; rMassMatrix(14, 6) = one_twenty; rMassMatrix(14, 10) = one_twenty; rMassMatrix(14,14) = one_ten;
-    rMassMatrix(15, 3) = one_twenty; rMassMatrix(15, 7) = one_twenty; rMassMatrix(15, 11) = one_twenty; rMassMatrix(15,15) = one_ten;
+    rMassMatrix(0, 0) = one_ten;     rMassMatrix(0, 3) = one_twenty;  rMassMatrix(0, 6) = one_twenty;  rMassMatrix(0,9) = one_twenty;
+    rMassMatrix(1, 1) = one_ten;     rMassMatrix(1, 4) = one_twenty;  rMassMatrix(1, 7) = one_twenty;  rMassMatrix(1,10) = one_twenty;
+    rMassMatrix(2, 2) = one_ten;     rMassMatrix(2, 5) = one_twenty;  rMassMatrix(2, 8) = one_twenty;  rMassMatrix(2,11) = one_twenty;
+    rMassMatrix(3, 0) = one_twenty;  rMassMatrix(3, 3) = one_ten;     rMassMatrix(3, 6) = one_twenty;  rMassMatrix(3,9) = one_twenty;
+    rMassMatrix(4, 1) = one_twenty;  rMassMatrix(4, 4) = one_ten;     rMassMatrix(4, 7) = one_twenty;  rMassMatrix(4,10) = one_twenty;
+    rMassMatrix(5, 2) = one_twenty;  rMassMatrix(5, 5) = one_ten;     rMassMatrix(5, 8) = one_twenty;  rMassMatrix(5,11) = one_twenty;
+    rMassMatrix(6, 0) = one_twenty;  rMassMatrix(6, 3) = one_twenty;  rMassMatrix(6, 6) = one_ten;     rMassMatrix(6,9) = one_twenty;
+    rMassMatrix(7, 1) = one_twenty;  rMassMatrix(7, 4) = one_twenty;  rMassMatrix(7, 7) = one_ten;     rMassMatrix(7,10) = one_twenty;
+    rMassMatrix(8, 2) = one_twenty;  rMassMatrix(8, 5) = one_twenty;  rMassMatrix(8, 8) = one_ten;     rMassMatrix(8,11) = one_twenty;
+    rMassMatrix(9, 0) = one_twenty;  rMassMatrix(9, 3) = one_twenty;  rMassMatrix(9, 6) = one_twenty;  rMassMatrix(9,9) = one_ten;
+    rMassMatrix(10, 1) = one_twenty; rMassMatrix(10, 4) = one_twenty; rMassMatrix(10, 7) = one_twenty; rMassMatrix(10,10) = one_ten;
+    rMassMatrix(11, 2) = one_twenty; rMassMatrix(11, 5) = one_twenty; rMassMatrix(11, 8) = one_twenty; rMassMatrix(11,11) = one_ten;
 
     // Here we assume that all the Gauss points have the same weight so we multiply by the volume
     rMassMatrix *= GetGeometry().Area();
@@ -669,6 +664,69 @@ void QSNavierStokesSemiExplicit<TDim,TNumNodes>::FillElementData(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Getting data for the given geometry and integration method
+    const auto& r_geometry = GetGeometry();
+    const unsigned int local_size = r_geometry.size();
+    array_1d<double,TNumNodes> N_aux;
+    GeometryUtils::CalculateGeometryData(r_geometry,rData.DN_DX,N_aux,rData.volume);
+    rData.N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+    // Initialize some scalar data
+    rData.lumping_factor = 1.00 / double(TNumNodes);
+    rData.mu = 0.0;
+    rData.dt = rCurrentProcessInfo[DELTA_TIME];
+    // rData.dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+    rData.rho = 0.0;
+    // Commented code should become useful when adding stabilization and to replace theta computation
+    double theta = rCurrentProcessInfo[RUNGE_KUTTA_STEP];
+    if (theta == 1) {
+        theta = 0.0;
+    }
+    else if (theta == 2 or theta == 3) {
+        theta = 0.5;
+    }
+    else {
+        theta = 1;
+    }
+    // double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
+    // if (theta == 0.0) {
+    //     rData.explicit_step_coefficient = 0.0;
+    // }
+    // else {
+    //     rData.explicit_step_coefficient = 1.0/((theta)*r_process_info[DELTA_TIME]);
+    // }
+
+    for(unsigned int node_element = 0; node_element<local_size; node_element++) {
+        // Observations
+        // * unknown acceleration approximated as (u-u_old)*explicit_step_coefficient = (u-u_old)/((theta)*dt)
+        //   observe that for theta = 0.0, u = u_old and explicit_step_coefficient = 0
+        // forcing term: interpolation exploiting theta
+        rData.forcing(node_element,0) = (1-theta) * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE,1)[0] + theta * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE)[0];
+        rData.forcing(node_element,1) = (1-theta) * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE,1)[1] + theta * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE)[1];
+        rData.forcing(node_element,2) = (1-theta) * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE,1)[2] + theta * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE)[2];
+        // velocity previous time step
+        rData.velocity_old(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY,1)[0];
+        rData.velocity_old(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY,1)[1];
+        rData.velocity_old(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY,1)[2];
+        // fractional velocity current time step
+        // observe that VELOCITY and not FRACT_VEL is being used as dof, to avoid saving additional dofs
+        rData.fractional_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[0];
+        rData.fractional_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[1];
+        rData.fractional_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[2];
+        // convective fractional velocity is fractional velocity of current explicit step
+        // observe that VELOCITY and not FRACT_VEL is being used as dof, to avoid saving additional dofs
+        rData.fractional_convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[0];
+        rData.fractional_convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[1];
+        rData.fractional_convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[2];
+
+        // rData.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue();
+        rData.mu += r_geometry[node_element].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+        rData.rho += r_geometry[node_element].FastGetSolutionStepValue(DENSITY);
+    }
+    // divide by number of nodes scalar data
+    rData.mu *= rData.lumping_factor;
+    rData.rho *= rData.lumping_factor;
 
     KRATOS_CATCH("");
 }
