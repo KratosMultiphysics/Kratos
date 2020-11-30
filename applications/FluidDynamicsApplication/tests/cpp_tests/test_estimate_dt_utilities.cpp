@@ -44,8 +44,8 @@ void TestEstimateDtUtilitiesInitializeModelPart(
     rModelPart.CreateNewNode(4, 1.0, 1.0, 0.0);
     std::vector<ModelPart::IndexType> element_nodes_1{1, 2, 3};
     std::vector<ModelPart::IndexType> element_nodes_2{3, 2, 4};
-    rModelPart.CreateNewElement("QSVMS2D3N", 1, element_nodes_1, p_properties);
-    rModelPart.CreateNewElement("QSVMS2D3N", 2, element_nodes_2, p_properties);
+    rModelPart.CreateNewElement("Element2D3N", 1, element_nodes_1, p_properties);
+    rModelPart.CreateNewElement("Element2D3N", 2, element_nodes_2, p_properties);
 
     // Set a fake current delta time
     rModelPart.GetProcessInfo().SetValue(DELTA_TIME, DeltaTime);

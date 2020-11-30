@@ -131,16 +131,21 @@ namespace Kratos
     {
         ElementSizeFunctionType projected_h_func;
         const auto geometry_type = rGeometry.GetGeometryType();
-        if (geometry_type == GeometryData::Kratos_Triangle2D3) {
-            projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::MinimumElementSize(rGeometry);};
-        } else if (geometry_type == GeometryData::Kratos_Quadrilateral2D4) {
-            projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,4>::MinimumElementSize(rGeometry);};
-        } else if (geometry_type == GeometryData::Kratos_Tetrahedra3D4) {
-            projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::MinimumElementSize(rGeometry);};
-        } else if (geometry_type == GeometryData::Kratos_Quadrilateral3D8) {
-            projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,8>::MinimumElementSize(rGeometry);};
-        } else {
-            KRATOS_ERROR << "Non supported geometry type." << std::endl;
+        switch (geometry_type) {
+            case GeometryData::Kratos_Triangle2D3:
+                projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::MinimumElementSize(rGeometry);};
+                break;
+            case GeometryData::Kratos_Quadrilateral2D4:
+                projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,4>::MinimumElementSize(rGeometry);};
+                break;
+            case GeometryData::Kratos_Tetrahedra3D4:
+                projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::MinimumElementSize(rGeometry);};
+                break;
+            case GeometryData::Kratos_Quadrilateral3D8:
+                projected_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,8>::MinimumElementSize(rGeometry);};
+                break;
+            default:
+                KRATOS_ERROR << "Non supported geometry type." << std::endl;
         }
 
         return projected_h_func;
