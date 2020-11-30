@@ -12,13 +12,19 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesSolverFractionalStepSemiExplicit(NavierStokesSolverFractionalStep):
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass = True
         super().__init__(model,custom_settings)
 
         if custom_settings["formulation"]["element_type"].GetString() != "QSNavierStokesSemiExplicit":
             raise Exception("NavierStokesSolverFractionalStepSemiExplicit only accepts QSNavierStokesSemiExplicit as the \"element_type\" in \"formulation\"")
+        if custom_settings["domain_size"].GetInt() == 2:
+            self.condition_name = "LineCondition"
+        elif custom_settings["domain_size"].GetInt() == 3:
+            self.condition_name = "SurfaceCondition"
+        else:
+            err_mgs = "Wrong domain size "
+            raise Exception(err_msg)
 
-        self.min_buffer_size = 3
+        self.min_buffer_size = 2
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverFractionalStepSemiExplicit finished.")
 
@@ -76,13 +82,23 @@ class NavierStokesSolverFractionalStepSemiExplicit(NavierStokesSolverFractionalS
             "use_slip_conditions": true,
             "formulation": {
                 "element_type": "QSNavierStokesSemiExplicit",
-                "condition_type": "WallCondition"
+                "condition_type": ""
             },
             "time_integration_method": "semiexplicit"
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStepSemiExplicit, cls).GetDefaultParameters())
         return default_settings
+
+    def AddDofs(self):
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        if domain_size == 3:
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
     def _CreateLinearSolver(self):
         pressure_linear_solver_configuration = self.settings["pressure_linear_solver_settings"]
