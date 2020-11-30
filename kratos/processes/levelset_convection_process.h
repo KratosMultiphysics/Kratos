@@ -447,9 +447,9 @@ protected:
           mrLevelSetVar(rLevelSetVar),
           mMaxAllowedCFL(MaxCFL),
           mMaxSubsteps(MaxSubSteps),
-          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart"),
           mrConvectVar(VELOCITY),
-          mBfeccOrder(0)
+          mBfeccOrder(0),
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         mDistancePartIsInitialized = false;
     }
