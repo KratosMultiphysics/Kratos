@@ -195,8 +195,6 @@ public:
     {
         KRATOS_TRY;
 
-        typedef typename ExplicitBuilderType::Pointer ExplicitBuilderPointerType;
-
         ModelPart& rModelPart = BaseType::GetModelPart();
         unsigned int EchoLevel = BaseType::GetEchoLevel();
         unsigned int StrategyEchoLevel = (EchoLevel > 0) ? (EchoLevel-1) : 0;
@@ -209,7 +207,7 @@ public:
             KRATOS_INFO_IF("FractionalStepSettings", BaseType::MoveMesh()) << "'move_mesh_flag' is set to false" << std::endl;
 
             // Velocity Builder and Solver
-            ExplicitBuilderPointerType pExplicitBuilder = ExplicitBuilderPointerType();
+            auto pExplicitBuilder = Kratos::make_shared<ExplicitBuilderType>();
 
             // Strategy
             BaseType::mExplicitStrategies[rStrategyLabel] = ExplicitStrategyPointerType(new ExplicitSolvingStrategyRungeKutta4<TSparseSpace,TDenseSpace>(
