@@ -119,7 +119,7 @@ namespace Kratos
             solver_index = SolverIndex::Destination;
             const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
             if (mProjectorDestination.size1() != destination_interface_dofs || mProjectorDestination.size2() != destination_dofs)
-                mProjectorDestination.resize(destination_interface_dofs, destination_dofs);
+                mProjectorDestination.resize(destination_interface_dofs, destination_dofs, false);
             ComposeProjector(mProjectorDestination, solver_index);
 
             // 3 - Determine domain response to unit loads
@@ -128,12 +128,12 @@ namespace Kratos
 
             solver_index = SolverIndex::Destination;
             if (mUnitResponseDestination.size1() != mProjectorDestination.size2() || mUnitResponseDestination.size2() != mProjectorDestination.size1())
-                mUnitResponseDestination.resize(mProjectorDestination.size2(), mProjectorDestination.size1());
+                mUnitResponseDestination.resize(mProjectorDestination.size2(), mProjectorDestination.size1(), false);
             DetermineDomainUnitAccelerationResponse(mpKDestination, mProjectorDestination, mUnitResponseDestination, solver_index);
 
             // 4 - Calculate condensation matrix
             if (mCondensationMatrix.size1() != destination_interface_dofs || mCondensationMatrix.size2() != destination_interface_dofs)
-                mCondensationMatrix.resize(destination_interface_dofs, destination_interface_dofs);
+                mCondensationMatrix.resize(destination_interface_dofs, destination_interface_dofs, false);
             CalculateCondensationMatrix(mCondensationMatrix, mUnitResponseOrigin,
                 mUnitResponseDestination, mProjectorOrigin, mProjectorDestination);
 
@@ -481,7 +481,7 @@ namespace Kratos
         KRATOS_TRY
 
         if (rContainer.size() != rInterface.NumberOfNodes() * nDOFs)
-            rContainer.resize(rInterface.NumberOfNodes() * nDOFs);
+            rContainer.resize(rInterface.NumberOfNodes() * nDOFs, false);
         rContainer.clear();
 
         KRATOS_ERROR_IF(rInterface.NumberOfNodes() == 0)
@@ -511,7 +511,7 @@ namespace Kratos
         KRATOS_TRY
 
         if (rContainer.size() != rInterface.NumberOfNodes())
-            rContainer.resize(rInterface.NumberOfNodes());
+            rContainer.resize(rInterface.NumberOfNodes(), false);
         else rContainer.clear();
 
         KRATOS_ERROR_IF(rInterface.NumberOfNodes() == 0)
@@ -540,7 +540,7 @@ namespace Kratos
 
         if (rExpandedMappingMat.size1() != mpMappingMatrix->size1() * nDOFs ||
             rExpandedMappingMat.size2() != mpMappingMatrix->size2() * nDOFs)
-            rExpandedMappingMat.resize(mpMappingMatrix->size1() * nDOFs, mpMappingMatrix->size2() * nDOFs,false);
+            rExpandedMappingMat.resize(mpMappingMatrix->size1() * nDOFs, mpMappingMatrix->size2() * nDOFs, false);
 
         rExpandedMappingMat.clear();
 
@@ -806,7 +806,7 @@ namespace Kratos
         const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
 
         if (mInitialOriginInterfaceKinematics.size() != origin_interface_dofs)
-            mInitialOriginInterfaceKinematics.resize(origin_interface_dofs);
+            mInitialOriginInterfaceKinematics.resize(origin_interface_dofs, false);
         mInitialOriginInterfaceKinematics.clear();
 
         GetInterfaceQuantity(mrOriginInterfaceModelPart, GetEquilibriumVariable(), mInitialOriginInterfaceKinematics, dim_origin);
