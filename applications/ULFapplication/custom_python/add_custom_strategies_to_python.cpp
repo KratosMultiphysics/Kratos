@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //builder_and_solvers
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_quasiincompresible_builder_and_solver.h"
 #include "custom_strategies/strategies/modified_linear_strategy.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 //schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -86,7 +86,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
@@ -205,9 +205,9 @@ py::class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalS
 
     //********************************************************************
     //********************************************************************
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //strategy base class
-    py::class_< BaseSolvingStrategyType, BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy", py::module_local())
+    py::class_< BaseSolvingStrategyType, BaseSolvingStrategyType::Pointer >(m,"ImplicitSolvingStrategy", py::module_local())
     .def(py::init< ModelPart&, bool >() )
     .def("Predict", &BaseSolvingStrategyType::Predict )
     .def("Solve", &BaseSolvingStrategyType::Solve )

@@ -36,7 +36,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsRammArcLengthNonlocalStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> Grandx2MotherType;
     typedef PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef PoromechanicsRammArcLengthStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;

@@ -22,7 +22,7 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -79,7 +79,7 @@ template <class TSparseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
 class GaussSeidelLinearStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     /**@name Type Definitions */
@@ -88,7 +88,7 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(GaussSeidelLinearStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -127,7 +127,7 @@ public:
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         bool ReformDofSetAtEachStep = true,
         bool CalculateNormDxFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
         KRATOS_TRY
 

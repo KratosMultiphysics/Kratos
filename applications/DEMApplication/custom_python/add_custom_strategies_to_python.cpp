@@ -6,7 +6,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_strategies/strategies/explicit_solver_continuum.h"
 #include "custom_strategies/strategies/iterative_solver_strategy.h"

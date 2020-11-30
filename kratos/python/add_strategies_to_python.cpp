@@ -27,7 +27,7 @@
 #include "includes/ublas_complex_interface.h"
 
 // Strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -545,9 +545,9 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             //strategy base class
-            typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+            typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
-            py::class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy")
+            py::class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"ImplicitSolvingStrategy")
                     .def(py::init<ModelPart&, Parameters >() )
                     .def(py::init < ModelPart&, bool >())
                     .def("Create", &BaseSolvingStrategyType::Create)

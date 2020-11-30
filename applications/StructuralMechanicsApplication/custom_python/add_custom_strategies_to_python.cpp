@@ -55,7 +55,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;

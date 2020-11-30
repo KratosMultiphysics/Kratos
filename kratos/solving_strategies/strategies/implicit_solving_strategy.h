@@ -4,15 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_SOLVING_STRATEGY )
-#define  KRATOS_SOLVING_STRATEGY
+#if !defined(KRATOS_IMPLICIt_SOLVING_STRATEGY)
+#define KRATOS_IMPLICIt_SOLVING_STRATEGY
 
 /* System includes */
 
@@ -49,21 +49,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Solving strategy base class
- * @details This is the base class from which we will derive all the strategies (line-search, NR, etc...)
+/**
+ * @brief Implicit solving strategy base class
+ * This is the base class from which we will derive all the implicit strategies (line-search, NR, etc...)
+ * @tparam TSparseSpace Linear algebra sparse space
+ * @tparam TDenseSpace Linear algebra dense space
+ * @tparam TLinearSolver Linear solver type
  */
-
-template<class TSparseSpace,
-         class TDenseSpace,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-         >
-class SolvingStrategy
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+class ImplicitSolvingStrategy
 {
 public:
     ///@name Type Definitions
     ///@{
-
-//     typedef std::set<Dof::Pointer,ComparePDof>                                    DofSetType;
 
     typedef typename TSparseSpace::DataType                                        TDataType;
 
@@ -83,17 +81,11 @@ public:
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> TBuilderAndSolverType;
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              ClassType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>      ClassType;
 
     typedef typename ModelPart::DofType                                             TDofType;
 
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
-
-//     typedef Dof<TDataType>                                                          TDofType;
-
-//     typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> >            DofsArrayType;
-
-//     typedef PointerVectorSet<TDofType, IndexedObject>                          DofsArrayType;
 
     typedef typename DofsArrayType::iterator                                 DofIteratorType;
 
@@ -106,7 +98,7 @@ public:
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
 
     /** Counted pointer of ClassName */
-    KRATOS_CLASS_POINTER_DEFINITION(SolvingStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(ImplicitSolvingStrategy);
 
     ///@}
     ///@name Life Cycle
@@ -115,14 +107,14 @@ public:
     /**
      * @brief Default constructor
      */
-    explicit SolvingStrategy() { }
+    explicit ImplicitSolvingStrategy() { }
 
     /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+    explicit ImplicitSolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : mpModelPart(&rModelPart)
     {
         // Validate and assign defaults
@@ -135,7 +127,7 @@ public:
      * @param rModelPart The model part to be computed
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-    explicit SolvingStrategy(
+    explicit ImplicitSolvingStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
         ) : mpModelPart(&rModelPart)
@@ -145,7 +137,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~SolvingStrategy(){}
+    virtual ~ImplicitSolvingStrategy(){}
 
     ///@}
     ///@name Operators
@@ -354,7 +346,7 @@ public:
             noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
         }
 
-        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
+        KRATOS_INFO_IF("ImplicitSolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
 
         KRATOS_CATCH("")
     }
@@ -365,7 +357,7 @@ public:
      */
     inline ModelPart& GetModelPart()
     {
-        KRATOS_ERROR_IF_NOT(mpModelPart) << "ModelPart in the SolvingStrategy is not initialized" << std::endl;
+        KRATOS_ERROR_IF_NOT(mpModelPart) << "ModelPart in the ImplicitSolvingStrategy is not initialized" << std::endl;
         return *mpModelPart;
     };
 
@@ -428,7 +420,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "GetSystemMatrix not implemented in base SolvingStrategy" << std::endl;
+        KRATOS_ERROR << "GetSystemMatrix not implemented in base ImplicitSolvingStrategy" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -441,7 +433,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "GetSystemVector not implemented in base SolvingStrategy" << std::endl;
+        KRATOS_ERROR << "GetSystemVector not implemented in base ImplicitSolvingStrategy" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -454,7 +446,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "GetSolutionVector not implemented in base SolvingStrategy" << std::endl;
+        KRATOS_ERROR << "GetSolutionVector not implemented in base ImplicitSolvingStrategy" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -465,7 +457,7 @@ public:
      */
     static std::string Name()
     {
-        return "solving_strategy";
+        return "implicit_solving_strategy";
     }
 
     ///@}
@@ -475,7 +467,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "SolvingStrategy";
+        return "ImplicitSolvingStrategy";
     }
 
     /// Print information about this object.
@@ -602,12 +594,12 @@ private:
 
     /** Copy constructor.
      */
-    SolvingStrategy(const SolvingStrategy& Other);
+    ImplicitSolvingStrategy(const ImplicitSolvingStrategy& Other);
 
 
     ///@}
 
-}; /* Class NewSolvingStrategy */
+}; /* Class ImplicitSolvingStrategy */
 
 ///@}
 
@@ -619,4 +611,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_SOLVING_STRATEGY  defined */
+#endif /* KRATOS_IMPLICIt_SOLVING_STRATEGY  defined */

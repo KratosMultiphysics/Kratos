@@ -70,7 +70,7 @@ public:
     ///@{
 
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
-    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+    typedef ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
     ///@}
     ///@name Pointer Definitions

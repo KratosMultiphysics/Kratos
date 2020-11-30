@@ -80,7 +80,7 @@ public:
         ModelPart& rReferenceModelPart = BaseType::mrReferenceModelPart;
         typename TLinearSolver::Pointer& pBaseLinearSolver = BaseType::mpLinearSolver;
         unsigned int BaseDomainSize = BaseType::mDomainSize;
-        typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
+        typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
         if(rModelPart.GetModel().HasModelPart("StokesModelPart"))

@@ -291,7 +291,7 @@ class MoveMesh:
     '''
 
     def __call__(self, model_part, *args):
-        KratosMultiphysics.SolvingStrategy(model_part, True).MoveMesh()
+        KratosMultiphysics.ImplicitSolvingStrategy(model_part, True).MoveMesh()
 
 
 def Create(settings):
