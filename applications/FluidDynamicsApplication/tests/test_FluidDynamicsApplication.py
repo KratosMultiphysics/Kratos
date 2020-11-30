@@ -31,6 +31,7 @@ from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 from cfl_output_process_test import CFLOutputProcessTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
+from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -103,6 +104,7 @@ def AssembleTestSuites():
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
+    nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
