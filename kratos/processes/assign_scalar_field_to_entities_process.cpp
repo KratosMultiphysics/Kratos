@@ -37,7 +37,7 @@ AssignScalarFieldToEntitiesProcess<TEntity>::AssignScalarFieldToEntitiesProcess(
     mMeshId       = rParameters["mesh_id"].GetInt();
     mVariableName = rParameters["variable_name"].GetString();
 
-    mpFunction = PythonGenericFunctionUtility::Pointer( new PythonGenericFunctionUtility(rParameters["value"].GetString(),  rParameters["local_axes"]));
+    mpFunction = GenericFunctionUtility::Pointer( new GenericFunctionUtility(rParameters["value"].GetString(),  rParameters["local_axes"]));
 
     KRATOS_CATCH("");
 }

@@ -21,11 +21,10 @@
 // External includes
 
 // Project includes
-#include "utilities/python_function_callback_utility.h"
+#include "utilities/function_parser_utility.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-
 
 namespace Kratos
 {
@@ -191,13 +190,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                           /// The modelpart where compute
+    ModelPart& mrModelPart;                     /// The modelpart where compute
 
-    PythonGenericFunctionUtility::Pointer mpFunction; /// The python function used, depends on X, Y, Z, and t
+    GenericFunctionUtility::Pointer mpFunction; /// The python function used, depends on X, Y, Z, and t
 
-    std::string mVariableName;                        /// The name of the vaiable to assign
+    std::string mVariableName;                  /// The name of the vaiable to assign
 
-    std::size_t mMeshId = 0;                          /// The id of the mesh (0 by deafault)
+    std::size_t mMeshId = 0;                    /// The id of the mesh (0 by deafault)
 
     ///@}
     ///@name Private Operators
