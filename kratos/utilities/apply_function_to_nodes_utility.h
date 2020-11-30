@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "utilities/function_parser_utility.h"
 
 namespace Kratos
