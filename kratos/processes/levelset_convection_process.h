@@ -445,9 +445,9 @@ protected:
         : mrBaseModelPart(rBaseModelPart),
           mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
+          mrConvectVar(VELOCITY),
           mMaxAllowedCFL(MaxCFL),
           mMaxSubsteps(MaxSubSteps),
-          mrConvectVar(VELOCITY),
           mBfeccOrder(0),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
