@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Tosi
 //
 
-#ifndef KRATOS_EXPLICIT_FRACTIONAL_STEP_STRATEGY
-#define KRATOS_EXPLICIT_FRACTIONAL_STEP_STRATEGY
+#ifndef KRATOS_SEMIEXPLICIT_FRACTIONAL_STEP_STRATEGY
+#define KRATOS_SEMIEXPLICIT_FRACTIONAL_STEP_STRATEGY
 
 // System includes
 
@@ -59,10 +59,10 @@ namespace Kratos {
 ///@{
 
 /**
- * TODO: As soon as base class FractionalStepStrategy is cleaned-up, derive ExplicitFractionalStepStrategy from FractionalStepStrategy.
- * @brief Explicit fractional-step strategy for incompressible Navier-Stokes formulation
+ * TODO: As soon as base class FractionalStepStrategy is cleaned-up, derive SemiExplicitFractionalStepStrategy from FractionalStepStrategy.
+ * @brief SemiExplicit fractional-step strategy for incompressible Navier-Stokes formulation
  * This strategy implements a splitting scheme for the incompressible Navier-Stokes equations.
- * It is intended to be used in combination with the FractionalStep element in the FluidDynamicsApplication.
+ * It is intended to be used in combination with the semi-explicit fractional step element in the FluidDynamicsApplication.
  * The fractional step index, which is stored in the ProcessInfo, takes the values
  * 1 : Momentum step (calculate fractional step velocity)
  * 2 : Pressure step
@@ -73,14 +73,14 @@ namespace Kratos {
  * @tparam TLinearSolver Linear solver template type
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class ExplicitFractionalStepStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class SemiExplicitFractionalStepStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of ExplicitFractionalStepStrategy
-    KRATOS_CLASS_POINTER_DEFINITION(ExplicitFractionalStepStrategy);
+    /// Counted pointer of SemiExplicitFractionalStepStrategy
+    KRATOS_CLASS_POINTER_DEFINITION(SemiExplicitFractionalStepStrategy);
 
     // Implicit base class definition
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseImplicitType;
@@ -100,7 +100,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ExplicitFractionalStepStrategy(
+    SemiExplicitFractionalStepStrategy(
         ModelPart& rModelPart,
         SolverSettingsType& rSolverConfig,
         bool PredictorCorrector,
@@ -112,7 +112,7 @@ public:
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
-    ExplicitFractionalStepStrategy(
+    SemiExplicitFractionalStepStrategy(
         ModelPart& rModelPart,
         SolverSettingsType& rSolverConfig,
         bool PredictorCorrector,
@@ -126,7 +126,7 @@ public:
     }
 
     /// Destructor.
-    ~ExplicitFractionalStepStrategy() override{}
+    ~SemiExplicitFractionalStepStrategy() override{}
 
     ///@}
     ///@name Operators
@@ -211,15 +211,15 @@ public:
             const unsigned int echo_level = BaseImplicitType::GetEchoLevel();
             // Iterative solution for pressure
             for (unsigned int it = 0; it < mMaxPressureIter; ++it) {
-                KRATOS_INFO_IF("ExplicitFractionalStepStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
+                KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
                 const auto convergence_output = this->SolveStep();
                 converged = this->CheckPressureConvergence(std::get<1>(convergence_output));
                 if (converged) {
-                    KRATOS_INFO_IF("ExplicitFractionalStepStrategy", echo_level > 0) << "Predictor-corrector converged in " << it + 1 << " iterations." << std::endl;
+                    KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", echo_level > 0) << "Predictor-corrector converged in " << it + 1 << " iterations." << std::endl;
                     break;
                 }
             }
-            KRATOS_WARNING_IF("ExplicitFractionalStepStrategy", !converged && echo_level > 0) << "Predictor-corrector iterations did not converge." << std::endl;
+            KRATOS_WARNING_IF("SemiExplicitFractionalStepStrategy", !converged && echo_level > 0) << "Predictor-corrector iterations did not converge." << std::endl;
         } else {
             // Solve for fractional step velocity, then update pressure once
             const auto convergence_output = this->SolveStep();
@@ -357,7 +357,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ExplicitFractionalStepStrategy" ;
+        buffer << "SemiExplicitFractionalStepStrategy" ;
         return buffer.str();
     }
 
@@ -481,7 +481,7 @@ protected:
 
         // 1. Compute fractional velocity
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
-        KRATOS_INFO_IF("ExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 1) << "Computing fractional velocity" << std::endl;
+        KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 1) << "Computing fractional velocity" << std::endl;
         double NormDv = mpMomentumStrategy->SolveSolutionStep();
 
         // Compute projections (for stabilization)
@@ -498,7 +498,7 @@ protected:
             it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -mPressureGradientRelaxationFactor * old_press;
         }
 
-        KRATOS_INFO_IF("ExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 0) << "Computing pressure" << std::endl;
+        KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 0) << "Computing pressure" << std::endl;
         double NormDp = mpPressureStrategy->Solve();
 
 #pragma omp parallel for
@@ -508,7 +508,7 @@ protected:
         }
 
         // 3. Compute end-of-step velocity
-        KRATOS_INFO_IF("ExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 0) << "Updating Velocity" << std::endl;
+        KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 0) << "Updating Velocity" << std::endl;
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
         this->CalculateEndOfStepVelocity();
 
@@ -539,7 +539,7 @@ protected:
         const double zero_tol = 1.0e-12;
         const double Ratio = (NormP < zero_tol) ? NormDp : NormDp / NormP;
 
-        KRATOS_INFO_IF("ExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 0) << "Pressure relative error: " << Ratio << std::endl;
+        KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 0) << "Pressure relative error: " << Ratio << std::endl;
 
         if (Ratio < mPressureTolerance)
         {
@@ -882,7 +882,7 @@ private:
         auto& r_process_info = BaseImplicitType::GetModelPart().GetProcessInfo();
         if (r_process_info.Has(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR)) {
             mPressureGradientRelaxationFactor = r_process_info[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
-            KRATOS_INFO("ExplicitFractionalStepStrategy") << "Using fractional step strategy with "
+            KRATOS_INFO("SemiExplicitFractionalStepStrategy") << "Using fractional step strategy with "
                                          "pressure gradient relaxation = "
                                       << mPressureGradientRelaxationFactor << ".\n";
         } else {
@@ -904,7 +904,7 @@ private:
         }
         else
         {
-            KRATOS_ERROR << "ExplicitFractionalStepStrategy error: No Pressure strategy defined in FractionalStepSettings" << std::endl;
+            KRATOS_ERROR << "SemiExplicitFractionalStepStrategy error: No Pressure strategy defined in FractionalStepSettings" << std::endl;
         }
 
         // Check input parameters
@@ -929,15 +929,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ExplicitFractionalStepStrategy& operator=(ExplicitFractionalStepStrategy const& rOther){}
+    SemiExplicitFractionalStepStrategy& operator=(SemiExplicitFractionalStepStrategy const& rOther){}
 
     /// Copy constructor.
-    ExplicitFractionalStepStrategy(ExplicitFractionalStepStrategy const& rOther){}
+    SemiExplicitFractionalStepStrategy(SemiExplicitFractionalStepStrategy const& rOther){}
 
 
     ///@}
 
-}; /// Class ExplicitFractionalStepStrategy
+}; /// Class SemiExplicitFractionalStepStrategy
 
 ///@}
 ///@name Type Definitions
@@ -950,4 +950,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EXPLICIT_FRACTIONAL_STEP_STRATEGY
+#endif // KRATOS_SEMIEXPLICIT_FRACTIONAL_STEP_STRATEGY

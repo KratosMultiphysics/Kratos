@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "qs_navier_stokes_explicit.h"
+#include "qs_navier_stokes_semiexplicit.h"
 
 namespace Kratos
 {
@@ -20,7 +20,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-QSNavierStokesExplicit<TDim,TNumNodes>::QSNavierStokesExplicit(
+QSNavierStokesSemiExplicit<TDim,TNumNodes>::QSNavierStokesSemiExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {}
@@ -28,7 +28,7 @@ QSNavierStokesExplicit<TDim,TNumNodes>::QSNavierStokesExplicit(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-QSNavierStokesExplicit<TDim,TNumNodes>::QSNavierStokesExplicit(
+QSNavierStokesSemiExplicit<TDim,TNumNodes>::QSNavierStokesSemiExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
@@ -38,7 +38,7 @@ QSNavierStokesExplicit<TDim,TNumNodes>::QSNavierStokesExplicit(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void QSNavierStokesExplicit<TDim,TNumNodes>::EquationIdVector(
+void QSNavierStokesSemiExplicit<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -75,7 +75,7 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::EquationIdVector(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void QSNavierStokesExplicit<TDim,TNumNodes>::GetDofList(
+void QSNavierStokesSemiExplicit<TDim,TNumNodes>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -111,7 +111,7 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::GetDofList(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void QSNavierStokesExplicit<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void QSNavierStokesSemiExplicit<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -144,7 +144,7 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rL
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::CalculateLocalFractionalVelocitySystem(
+void QSNavierStokesSemiExplicit<2,3>::CalculateLocalFractionalVelocitySystem(
     BoundedVector<double, 6> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -250,7 +250,7 @@ const double crRightHandSideBoundedVector46 =             DN_DX_2_1*gamma;
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::CalculateLocalFractionalVelocitySystem(
+void QSNavierStokesSemiExplicit<3,4>::CalculateLocalFractionalVelocitySystem(
     BoundedVector<double, 12> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -440,7 +440,7 @@ const double crRightHandSideBoundedVector117 =             DN_DX_3_2*gamma;
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::CalculateLocalPressureSystem(
+void QSNavierStokesSemiExplicit<2,3>::CalculateLocalPressureSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -525,7 +525,7 @@ const double crLeftHandSideMatrix3 =             -crLeftHandSideMatrix0*(DN_DX_1
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::CalculateLocalPressureSystem(
+void QSNavierStokesSemiExplicit<3,4>::CalculateLocalPressureSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -624,7 +624,7 @@ const double crLeftHandSideMatrix6 =             -crLeftHandSideMatrix0*(DN_DX_2
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::CalculateLocalEndOfStepSystem(
+void QSNavierStokesSemiExplicit<2,3>::CalculateLocalEndOfStepSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -757,7 +757,7 @@ const double crLeftHandSideMatrix2 =             0.25*crLeftHandSideMatrix0;
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::CalculateLocalEndOfStepSystem(
+void QSNavierStokesSemiExplicit<3,4>::CalculateLocalEndOfStepSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -1053,7 +1053,7 @@ const double crLeftHandSideMatrix2 =             0.19999999899376*crLeftHandSide
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::AddExplicitContribution(
+void QSNavierStokesSemiExplicit<2,3>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -1095,7 +1095,7 @@ void QSNavierStokesExplicit<2,3>::AddExplicitContribution(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::AddExplicitContribution(
+void QSNavierStokesSemiExplicit<3,4>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -1139,7 +1139,7 @@ void QSNavierStokesExplicit<3,4>::AddExplicitContribution(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::CalculateMassMatrix(
+void QSNavierStokesSemiExplicit<2,3>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -1168,7 +1168,7 @@ void QSNavierStokesExplicit<2,3>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::CalculateMassMatrix(
+void QSNavierStokesSemiExplicit<3,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -1205,7 +1205,7 @@ void QSNavierStokesExplicit<3,4>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-int QSNavierStokesExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
+int QSNavierStokesSemiExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -1222,7 +1222,7 @@ int QSNavierStokesExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentPro
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void QSNavierStokesExplicit<TDim,TNumNodes>::FillElementData(
+void QSNavierStokesSemiExplicit<TDim,TNumNodes>::FillElementData(
     ElementDataStruct &rData,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -1235,7 +1235,7 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::FillElementData(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-double QSNavierStokesExplicit<TDim,TNumNodes>::CalculateElementSize(
+double QSNavierStokesSemiExplicit<TDim,TNumNodes>::CalculateElementSize(
     const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX)
 {
     KRATOS_TRY;
@@ -1258,7 +1258,7 @@ double QSNavierStokesExplicit<TDim,TNumNodes>::CalculateElementSize(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::FractionalVelocityEquationIdVector(
+void QSNavierStokesSemiExplicit<2,3>::FractionalVelocityEquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1283,7 +1283,7 @@ void QSNavierStokesExplicit<2,3>::FractionalVelocityEquationIdVector(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::FractionalVelocityEquationIdVector(
+void QSNavierStokesSemiExplicit<3,4>::FractionalVelocityEquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1310,7 +1310,7 @@ void QSNavierStokesExplicit<3,4>::FractionalVelocityEquationIdVector(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::VelocityEquationIdVector(
+void QSNavierStokesSemiExplicit<2,3>::VelocityEquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1335,7 +1335,7 @@ void QSNavierStokesExplicit<2,3>::VelocityEquationIdVector(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::VelocityEquationIdVector(
+void QSNavierStokesSemiExplicit<3,4>::VelocityEquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1362,7 +1362,7 @@ void QSNavierStokesExplicit<3,4>::VelocityEquationIdVector(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void QSNavierStokesExplicit<TDim,TNumNodes>::PressureEquationIdVector(
+void QSNavierStokesSemiExplicit<TDim,TNumNodes>::PressureEquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1382,7 +1382,7 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::PressureEquationIdVector(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::GetFractionalVelocityDofList(
+void QSNavierStokesSemiExplicit<2,3>::GetFractionalVelocityDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1405,7 +1405,7 @@ void QSNavierStokesExplicit<2,3>::GetFractionalVelocityDofList(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::GetFractionalVelocityDofList(
+void QSNavierStokesSemiExplicit<3,4>::GetFractionalVelocityDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1430,7 +1430,7 @@ void QSNavierStokesExplicit<3,4>::GetFractionalVelocityDofList(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<2,3>::GetVelocityDofList(
+void QSNavierStokesSemiExplicit<2,3>::GetVelocityDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1453,7 +1453,7 @@ void QSNavierStokesExplicit<2,3>::GetVelocityDofList(
 /***********************************************************************************/
 
 template<>
-void QSNavierStokesExplicit<3,4>::GetVelocityDofList(
+void QSNavierStokesSemiExplicit<3,4>::GetVelocityDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1478,7 +1478,7 @@ void QSNavierStokesExplicit<3,4>::GetVelocityDofList(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void QSNavierStokesExplicit<TDim,TNumNodes>::GetPressureDofList(DofsVectorType& rElementalDofList,
+void QSNavierStokesSemiExplicit<TDim,TNumNodes>::GetPressureDofList(DofsVectorType& rElementalDofList,
                                               const ProcessInfo& rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
@@ -1498,8 +1498,8 @@ void QSNavierStokesExplicit<TDim,TNumNodes>::GetPressureDofList(DofsVectorType& 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class QSNavierStokesExplicit<2,3>;
-template class QSNavierStokesExplicit<3,4>;
+template class QSNavierStokesSemiExplicit<2,3>;
+template class QSNavierStokesSemiExplicit<3,4>;
 
 /***********************************************************************************/
 /***********************************************************************************/

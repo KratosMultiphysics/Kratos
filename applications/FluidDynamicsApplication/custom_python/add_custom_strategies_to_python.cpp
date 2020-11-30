@@ -32,7 +32,7 @@
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/fractional_step_strategy.h"
-#include "custom_strategies/strategies/explicit_fractional_step_strategy.h"
+#include "custom_strategies/strategies/semiexplicit_fractional_step_strategy.h"
 
 //schemes
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
@@ -113,9 +113,9 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     ;
 
     py::class_<
-        ExplicitFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
-        typename ExplicitFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
-        BaseSolvingStrategyType>(m, "ExplicitFractionalStepStrategy")
+        SemiExplicitFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
+        typename SemiExplicitFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+        BaseSolvingStrategyType>(m, "SemiExplicitFractionalStepStrategy")
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool>())
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool, const Kratos::Variable<int> &>())
     ;

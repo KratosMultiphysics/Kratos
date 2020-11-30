@@ -10,8 +10,8 @@
 //  Main author:     Riccardo Tosi
 //
 
-#ifndef QS_NAVIER_STOKES_EXPLICIT_H
-#define QS_NAVIER_STOKES_EXPLICIT_H
+#ifndef QS_NAVIER_STOKES_SEMIEXPLICIT_H
+#define QS_NAVIER_STOKES_SEMIEXPLICIT_H
 
 // Project includes
 #include "includes/define.h"
@@ -50,14 +50,14 @@ namespace Kratos
 ///@{
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class QSNavierStokesExplicit : public Element
+class QSNavierStokesSemiExplicit : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of QSNavierStokesExplicit
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(QSNavierStokesExplicit);
+    /// Pointer definition of QSNavierStokesSemiExplicit
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(QSNavierStokesSemiExplicit);
 
     struct ElementDataStruct
     {
@@ -89,17 +89,17 @@ public:
     ///@{
 
     /// Default constructor
-    QSNavierStokesExplicit(
+    QSNavierStokesSemiExplicit(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    QSNavierStokesExplicit(
+    QSNavierStokesSemiExplicit(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~QSNavierStokesExplicit() override = default;
+    ~QSNavierStokesSemiExplicit() override = default;
 
     ///@}
     ///@name Operators
@@ -117,7 +117,7 @@ public:
         PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
-        return Kratos::make_intrusive< QSNavierStokesExplicit < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_intrusive< QSNavierStokesSemiExplicit < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -127,7 +127,7 @@ public:
         PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
-        return Kratos::make_intrusive< QSNavierStokesExplicit < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< QSNavierStokesSemiExplicit < TDim, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -179,7 +179,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Navier-Stokes element. Call the internal method instead.";
+        KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the semi-explicit Navier-Stokes element. Call the internal method instead.";
 
         KRATOS_CATCH("");
     }
@@ -229,7 +229,7 @@ public:
     /// Turn back information as a string
     std::string Info() const override
     {
-        return "QSNavierStokesExplicit #";
+        return "QSNavierStokesSemiExplicit #";
     }
 
     /// Print information about this object
@@ -358,7 +358,7 @@ protected:
     ///@{
 
     // Protected default constructor necessary for serialization
-    QSNavierStokesExplicit() : Element()
+    QSNavierStokesSemiExplicit() : Element()
     {
     }
 
@@ -414,15 +414,15 @@ private:
     ///@{
 
     /// Assignment operator
-    QSNavierStokesExplicit& operator=(QSNavierStokesExplicit const& rOther);
+    QSNavierStokesSemiExplicit& operator=(QSNavierStokesSemiExplicit const& rOther);
 
     /// Copy constructor
-    QSNavierStokesExplicit(QSNavierStokesExplicit const& rOther);
+    QSNavierStokesSemiExplicit(QSNavierStokesSemiExplicit const& rOther);
 
     ///@}
 
 
-}; // Class QSNavierStokesExplicit
+}; // Class QSNavierStokesSemiExplicit
 
 ///@}
 
@@ -438,7 +438,7 @@ private:
 /// input stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 QSNavierStokesExplicit<TDim,TNumNodes>& rThis)
+                                 QSNavierStokesSemiExplicit<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -446,7 +446,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const QSNavierStokesExplicit<TDim,TNumNodes>& rThis)
+                                 const QSNavierStokesSemiExplicit<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -460,4 +460,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // QS_NAVIER_STOKES_EXPLICIT_H
+#endif // QS_NAVIER_STOKES_SEMIEXPLICIT_H

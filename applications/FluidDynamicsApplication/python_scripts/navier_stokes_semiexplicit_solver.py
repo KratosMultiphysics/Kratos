@@ -8,19 +8,19 @@ from KratosMultiphysics import python_linear_solver_factory as linear_solver_fac
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
-    return NavierStokesExplicitSolver(model, custom_settings)
+    return NavierStokesSemiExplicitSolver(model, custom_settings)
 
-class NavierStokesExplicitSolver(NavierStokesSolverFractionalStep):
+class NavierStokesSemiExplicitSolver(NavierStokesSolverFractionalStep):
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass = True
         super().__init__(model,custom_settings)
 
-        if custom_settings["formulation"]["element_type"].GetString() != "QSNavierStokesExplicit":
-            raise Exception("NavierStokesExplicitSolver only accepts QSNavierStokesExplicit as the \"element_type\" in \"formulation\"")
+        if custom_settings["formulation"]["element_type"].GetString() != "QSNavierStokesSemiExplicit":
+            raise Exception("NavierStokesSemiExplicitSolver only accepts QSNavierStokesSemiExplicit as the \"element_type\" in \"formulation\"")
 
         self.min_buffer_size = 3
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesExplicitSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSemiExplicitSolver finished.")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -75,13 +75,13 @@ class NavierStokesExplicitSolver(NavierStokesSolverFractionalStep):
             "move_mesh_flag": false,
             "use_slip_conditions": true,
             "formulation": {
-                "element_type": "QSNavierStokesExplicit",
+                "element_type": "QSNavierStokesSemiExplicit",
                 "condition_type": "WallCondition"
             },
-            "time_integration_method": "explicit"
+            "time_integration_method": "semiexplicit"
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesExplicitSolver, cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super(NavierStokesSemiExplicitSolver, cls).GetDefaultParameters())
         return default_settings
 
     def _CreateLinearSolver(self):
@@ -116,7 +116,7 @@ class NavierStokesExplicitSolver(NavierStokesSolverFractionalStep):
 
         fractional_step_settings.SetExplicitStrategy(FluidDynamicsApplication.StrategyLabel.Velocity)
 
-        solution_strategy = FluidDynamicsApplication.ExplicitFractionalStepStrategy(
+        solution_strategy = FluidDynamicsApplication.SemiExplicitFractionalStepStrategy(
             computing_model_part,
             fractional_step_settings,
             self.settings["predictor_corrector"].GetBool(),
