@@ -70,12 +70,13 @@ public:
 
         // Allocate non-historical variables and update old velocity as per dt_factor
         #pragma omp parallel for
-        for (auto &r_node : rModelPart.Nodes()) {
-            r_node.SetValue(rVar, 0.0);
-            const Vector old_velocity = r_node.FastGetSolutionStepValue(conv_var, 1);
-            const Vector current_velocity = r_node.FastGetSolutionStepValue(conv_var);
-            r_node.SetValue(conv_var, old_velocity);
-            r_node.FastGetSolutionStepValue(conv_var, 1) = dt_factor*old_velocity + (1.0 - dt_factor)*current_velocity;
+        for (int i = 0; i < nparticles; i++) {
+            auto iparticle = rModelPart.NodesBegin() + i;
+            iparticle->SetValue(rVar, 0.0);
+            const auto old_velocity = iparticle->FastGetSolutionStepValue(conv_var, 1);
+            const auto current_velocity = iparticle->FastGetSolutionStepValue(conv_var);
+            iparticle->SetValue(conv_var, old_velocity);
+            iparticle->FastGetSolutionStepValue(conv_var, 1) = dt_factor*old_velocity + (1.0 - dt_factor)*current_velocity;
         }
 
         //FIRST LOOP: estimate rVar(n+1)
