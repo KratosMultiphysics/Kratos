@@ -47,8 +47,6 @@ namespace Kratos
 
         KRATOS_ERROR_IF(background_grid_model_part.NumberOfElements() == 0) << "Background_Grid model part has zero elements!\n";
 
-        KRATOS_WARNING("DEBUG") << "6666\n";
-
         // create coupling conditions on interface depending on the dimension
         ModelPart& r_fem_interface = (mIsOriginMpm)
             ? p_model_fem->GetModelPart(destination_interface_sub_model_part_name)
@@ -63,7 +61,6 @@ namespace Kratos
         {
             KRATOS_ERROR << "Not implemented yet" << std::endl;
         }
-        KRATOS_WARNING("DEBUG") << "77777\n";
         const IndexType gauss_order = mParameters["gauss_integration_order"].GetInt();
         GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod(gauss_order-1);
 
@@ -71,11 +68,10 @@ namespace Kratos
         CreateStructureQuadraturePointGeometries<
             std::vector<GeometryPointerType>, std::vector<GeometryPointerType>>(
                 interface_geoms, quads_structure, integration_method);
-        KRATOS_WARNING("DEBUG") << "88888\n";
+
         std::vector<GeometryPointerType> quads_mpm(quads_structure.size());
         CreateMpmQuadraturePointGeometries<2, std::vector<GeometryPointerType>>(
             quads_structure, quads_mpm, background_grid_model_part);
-        KRATOS_WARNING("DEBUG") << "99999\n";
 
         // Transfer everything into the coupling modelpart
         ModelPart& coupling_interface_origin = (coupling_model_part.HasSubModelPart("interface_origin"))
@@ -129,12 +125,10 @@ namespace Kratos
         // Determine next condition number
         IndexType condition_id = (coupling_model_part.GetRootModelPart().NumberOfConditions() == 0)
             ? 1 : (coupling_model_part.GetRootModelPart().ConditionsEnd() - 1)->Id() + 1;
-        KRATOS_WARNING("DEBUG") << "aaaaaa\n";
         for (IndexType i = 0; i < p_quads_origin.size(); ++i) {
             coupling_model_part.AddCondition(Kratos::make_intrusive<Condition>(
                 condition_id + i, Kratos::make_shared<CouplingGeometry<Node<3>>>(p_quads_origin[i], p_quads_dest[i])));
         }
-        KRATOS_WARNING("DEBUG") << "bbbbbbb\n";
     }
 
     void StructureMpmModeler::UpdateGeometryModel()

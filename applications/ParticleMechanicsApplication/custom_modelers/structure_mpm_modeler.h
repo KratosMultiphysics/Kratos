@@ -198,18 +198,14 @@ public:
                 N_matrix.resize(1, non_zero_counter, true);
                 DN_De_non_zero.resize(non_zero_counter, DN_De.size2(), true);
 
-
-
                 Matrix jacci;
                 rInputQuadraturePointGeometries[i]->Jacobian(jacci, 0);
-                array_1d<double, 3> space_derivatives;
-                space_derivatives[0] = jacci(0, 0);
-                space_derivatives[1] = jacci(1, 0);
-                space_derivatives[2] = 0;
+                Vector space_derivatives = column(jacci, 0);
 
                 Matrix inv;
                 r_geometry.InverseOfJacobian(inv, local_coordinates);
-                Vector local_tangent = prod(inv, space_derivatives);
+                KRATOS_DEBUG_ERROR_IF_NOT(inv.size2() == space_derivatives.size()) << "Jacobian and space derivative sizes are mismatched!\n";
+                Vector local_tangent = prod(inv, space_derivatives); // error
                 Matrix jacci_the_wacci;
                 r_geometry.Jacobian(jacci_the_wacci, local_coordinates);
                 double J2 = norm_2(column(jacci_the_wacci, 0) * local_tangent[0] + column(jacci_the_wacci, 1) * local_tangent[1]);
@@ -223,15 +219,15 @@ public:
                     N_matrix,
                     DN_De_non_zero);
 
-
                 rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
                     points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
 
                 #ifdef KRATOS_DEBUG
-                std::vector<array_1d<double, 3>> space_derivatives_check(2);
+                std::vector<array_1d<double, 3>> space_derivatives_check(0.0);
                 rOuputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives_check, 0, 1);
-                array_1d<double, 3> tangent_check = space_derivatives_check[1] * local_tangent[0] +
+                Vector tangent_check = space_derivatives_check[1] * local_tangent[0] +
                     space_derivatives_check[2] * local_tangent[1];
+                tangent_check.resize(space_derivatives.size(), true);
 
                 KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > tolerance)
                     << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
