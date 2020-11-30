@@ -31,7 +31,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # The CoSimulation runs at the SMALLEST Timestep.
         # The solver with the smallest timestep will dictate the CoSimulation.
         # The solver(s) with the larger timesteps will be called only at times that match their time
-        advanced_time = 0
+        advanced_time = current_time
         self.departing_time = current_time # the time we are departing from - this is used to sync everything
 
         if self.is_initial_step:
@@ -47,21 +47,28 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.__InitializeFetiMethod()
         else:
             for solver_name, solver in self.solver_wrappers.items():
-                if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
-                    solver_time = solver.AdvanceInTime(current_time)
+                if self.SolverSolvesAtThisTime(solver_name):
+                    solver_time = solver.AdvanceInTime(self.departing_time)
                     if self._solver_origin_dest_dict[solver_name] == CoSim.FetiSolverIndexType.Destination:
                         advanced_time = solver_time #only advance global time finely
 
-        return advanced_time
+        if advanced_time == current_time:
+            raise Exception("No solvers advanced any timestep.")
+        else:
+            return advanced_time
 
-    def SolverSolvesAtThisTime(self, current_time, solver_name):
+    def SolverSolvesAtThisTime(self, solver_name):
         solver_delta_time = self._solver_delta_times[solver_name]
         # the following only works if timesteps are multiple of each other
-        return (current_time % solver_delta_time) < 1E-12
+        time_error = (self.departing_time % solver_delta_time)
+        if time_error < 1E-12 or abs(time_error - solver_delta_time) < 1E-12:
+            return True
+        else:
+            return False
 
     def InitializeSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 solver.InitializeSolutionStep()
 
         for coupling_op in self.coupling_operations_dict.values():
@@ -69,12 +76,12 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
     def Predict(self):
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 solver.Predict()
 
     def FinalizeSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 solver.FinalizeSolutionStep()
 
         for coupling_op in self.coupling_operations_dict.values():
@@ -82,7 +89,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
     def OutputSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 solver.OutputSolutionStep()
 
     def SolveSolutionStep(self):
@@ -90,7 +97,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             coupling_op.InitializeCouplingIteration()
 
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 #self._SynchronizeInputData(solver_name) @phil not needed since corrections are applied within the feti cpp
                 solver.SolveSolutionStep()
                 #self._SynchronizeOutputData(solver_name) @phil not needed since corrections are applied within the feti cpp
