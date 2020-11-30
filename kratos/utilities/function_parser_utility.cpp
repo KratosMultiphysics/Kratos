@@ -90,6 +90,43 @@ GenericFunctionUtility::GenericFunctionUtility(
 /***********************************************************************************/
 /***********************************************************************************/
 
+GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOther)
+    : mNameSpace(rOther.mNameSpace),
+      mFunctionBody(rOther.mFunctionBody),
+      mDependsOnSpace(rOther.mDependsOnSpace),
+      mUseLocalSystem(rOther.mUseLocalSystem),
+      mRotationMatrix(rOther.mRotationMatrix),
+      mCenterCoordinates(rOther.mCenterCoordinates)
+{
+    // Defining table
+    double& x = mNameSpace["x"];
+    double& y = mNameSpace["y"];
+    double& z = mNameSpace["z"];
+    double& t = mNameSpace["t"];
+    double& X = mNameSpace["X"];
+    double& Y = mNameSpace["Y"];
+    double& Z = mNameSpace["Z"];
+    double& pi = mNameSpace["pi"];
+
+    mSymbolTable.add_variable("x",x);
+    mSymbolTable.add_variable("y",y);
+    mSymbolTable.add_variable("z",z);
+    mSymbolTable.add_variable("t",t);
+    mSymbolTable.add_variable("X",X);
+    mSymbolTable.add_variable("Y",Y);
+    mSymbolTable.add_variable("Z",Z);
+    mSymbolTable.add_variable("pi", pi);
+
+    // Creating expression
+    mExpression.register_symbol_table(mSymbolTable);
+
+    // Compiling expression
+    mParser.compile(mFunctionBody, mExpression);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 double GenericFunctionUtility::RotateAndCallFunction(
     const double x,
     const double y,

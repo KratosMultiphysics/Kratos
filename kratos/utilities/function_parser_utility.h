@@ -92,9 +92,21 @@ public:
         Parameters LocalSystem = Parameters{}
         );
 
+    ///Copy constructor
+    GenericFunctionUtility(GenericFunctionUtility const& rOther);
+
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method clones the current function instance
+     * @return A clone of the current class
+     */
+    Pointer Clone()
+    {
+        return Kratos::make_shared<GenericFunctionUtility>(*this);
+    }
 
     /**
      * @brief This method returns if it depends on space
