@@ -330,7 +330,7 @@ public:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(VELOCITY) = mVelocity[i_node];
 #ifdef KRATOS_DEBUG
-            KRATOS_ERROR_IF("LevelsetConvectionProcess", dt_factor < 1.0e-12)
+            KRATOS_ERROR_IF(dt_factor < 1.0e-12)
                 << "ERROR: dt_factor shoild be larger than zero." <<std::endl;
 #endif
             it_node->FastGetSolutionStepValue(VELOCITY,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
