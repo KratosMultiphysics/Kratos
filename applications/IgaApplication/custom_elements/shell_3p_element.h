@@ -382,40 +382,40 @@ private:
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    );
+    ) const;
 
     /// Initialize Operations
     void InitializeMaterial();
 
     void CalculateKinematics(
-        IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables);
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables) const;
 
     // Computes transformation
     void CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
-        Matrix& rT);
+        Matrix& rT) const;
 
     // Computes transformation for the stress tensor 
     void CalculateTransformationFromCovariantToCartesian(
         const KinematicVariables& rKinematicVariables,
-        Matrix& rTCovToCar);
+        Matrix& rTCovToCar) const;
 
     void CalculateBMembrane(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         Matrix& rB,
-        const KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic) const;
 
     void CalculateBCurvature(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         Matrix& rB,
-        const KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic) const;
 
     void CalculateSecondVariationStrainCurvature(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
-        const KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic) const;
 
     /**
     * This functions updates the constitutive variables
@@ -425,64 +425,64 @@ private:
     * @param ThisStressMeasure: The stress measure considered
     */
     void CalculateConstitutiveVariables(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    );
+    ) const;
 
     inline void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
         const Matrix& D,
-        const double IntegrationWeight);
+        const double IntegrationWeight) const;
 
     inline void CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
-        const double IntegrationWeight);
+        const double IntegrationWeight) const;
 
     
     // Calculation of the Cauchy stress by transforming the PK2 stress
     void CalculateCauchyStress(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
         array_1d<double, 3>& rCauchyBendingStressesCartesian, 
         const array_1d<double, 3>& rPK2MembraneStressCartesian,
         const array_1d<double, 3>& rPK2BendingStressCartesian,
-        const KinematicVariables& rKinematicVariables);
+        const KinematicVariables& rKinematicVariables) const;
 
     /**
      * @brief Calculation of the shear force, shear force = derivative of moment
      * @detail based on Carat ElementShell_NURBS_KL.cpp
      */
     void CalculateShearForce(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         array_1d<double, 2>& rq, 
         const KinematicVariables& rKinematicVariables,
-        const ConstitutiveVariables& rConstitutiveVariablesCurvature);
+        const ConstitutiveVariables& rConstitutiveVariablesCurvature) const;
 
     void CalculateDerivativeOfCurvatureInitial(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rDCurvature_D1,
         array_1d<double, 3>& rDCurvature_D2,
-        const Matrix& rHessian);
+        const Matrix& rHessian) const;
 
     void CalculateDerivativeOfCurvatureActual(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rDCurvature_D1,
         array_1d<double, 3>& rDCurvature_D2,
         const Matrix& rHessian,
-        const KinematicVariables& rKinematicVariables);
+        const KinematicVariables& rKinematicVariables) const;
 
     void CalculateDerivativeTransformationMatrices(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         std::vector<Matrix>& rDQ_Dalpha_init,
         std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
-        const Matrix& rHessian);
+        const Matrix& rHessian) const;
 
     ///@}
     ///@name Geometrical Functions
@@ -490,14 +490,14 @@ private:
 
     void CalculateHessian(
         Matrix& Hessian,
-        const Matrix& rDDN_DDe);
+        const Matrix& rDDN_DDe) const;
 
     void CalculateSecondDerivativesOfBaseVectors(
         const Matrix& rDDDN_DDDe,
         array_1d<double, 3>& rDDa1_DD11,
         array_1d<double, 3>& rDDa1_DD12,
         array_1d<double, 3>& rDDa2_DD21,
-        array_1d<double, 3>& rDDa2_DD22);
+        array_1d<double, 3>& rDDa2_DD22) const;
 
     ///@}
     ///@name Serialization

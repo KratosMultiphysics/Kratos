@@ -238,7 +238,7 @@ namespace Kratos
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    )
+    ) const
     {
         KRATOS_TRY
 
@@ -342,9 +342,9 @@ namespace Kratos
     ///@{
 
     void Shell3pElement::CalculateKinematics(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables
-    )
+    ) const
     {
         Matrix J;
         GetGeometry().Jacobian(J, IntegrationPointIndex);
@@ -385,7 +385,7 @@ namespace Kratos
     void Shell3pElement::CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
         Matrix& rT
-    )
+    ) const
     {
         //Contravariant metric g_ab_con
         double inv_det_g_ab = 1.0 /
@@ -439,7 +439,7 @@ namespace Kratos
     void Shell3pElement::CalculateTransformationFromCovariantToCartesian(
         const KinematicVariables& rKinematicVariables,
         Matrix& rTCovToCar
-    )
+    ) const
     {
         //Contravariant metric g_ab_con
         double inv_det_g_ab = 1.0 /
@@ -475,13 +475,13 @@ namespace Kratos
     }
 
     void Shell3pElement::CalculateConstitutiveVariables(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    )
+    ) const
     {
         rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -511,9 +511,9 @@ namespace Kratos
     }
 
     void Shell3pElement::CalculateBMembrane(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         Matrix& rB,
-        const KinematicVariables& rActualKinematic)
+        const KinematicVariables& rActualKinematic) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -543,9 +543,9 @@ namespace Kratos
     }
 
     void Shell3pElement::CalculateBCurvature(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         Matrix& rB,
-        const KinematicVariables& rActualKinematic)
+        const KinematicVariables& rActualKinematic) const
     {
         KRATOS_TRY
 
@@ -616,10 +616,10 @@ namespace Kratos
     }
 
     void Shell3pElement::CalculateSecondVariationStrainCurvature(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
-        const KinematicVariables& rActualKinematic)
+        const KinematicVariables& rActualKinematic) const
     {
         const auto& r_geometry = GetGeometry();
 
@@ -742,7 +742,7 @@ namespace Kratos
         const Matrix& rB,
         const Matrix& rD,
         const double IntegrationWeight
-    )
+    ) const
     {
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(rB), Matrix(prod(rD, rB)));
     }
@@ -751,7 +751,7 @@ namespace Kratos
         Matrix& rLeftHandSideMatrix,
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
-        const double IntegrationWeight)
+        const double IntegrationWeight) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -776,12 +776,12 @@ namespace Kratos
     ///@{
     
     void Shell3pElement::CalculateCauchyStress(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
         array_1d<double, 3>& rCauchyBendingStressesCartesian, 
         const array_1d<double, 3>& rPK2MembraneStressCartesian,
         const array_1d<double, 3>& rPK2BendingStressCartesian,
-        const KinematicVariables& rKinematicVariables)
+        const KinematicVariables& rKinematicVariables) const
     {
         double detF = rKinematicVariables.dA / m_dA_vector[IntegrationPointIndex];
 
@@ -810,10 +810,10 @@ namespace Kratos
     }
 
     void Shell3pElement::CalculateShearForce(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         array_1d<double, 2>& rq, 
         const KinematicVariables& rKinematicVariables,
-        const ConstitutiveVariables& rConstitutiveVariablesCurvature)
+        const ConstitutiveVariables& rConstitutiveVariablesCurvature) const
     {   
         //Transformation matrix T from local cartesian coordinate system to covariant basis
         Matrix T_car_to_cov = ZeroMatrix(3,3);
@@ -919,10 +919,10 @@ namespace Kratos
     }
 
     void Shell3pElement::CalculateDerivativeOfCurvatureInitial(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rDCurvature_D1,
         array_1d<double, 3>& rDCurvature_D2,
-        const Matrix& rHessian)
+        const Matrix& rHessian) const
     {
         // base vector at initial configuration
         const SizeType number_of_nodes = GetGeometry().size();
@@ -998,11 +998,11 @@ namespace Kratos
     }
     
     void Shell3pElement::CalculateDerivativeOfCurvatureActual(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rDCurvature_D1,
         array_1d<double, 3>& rDCurvature_D2,
         const Matrix& rHessian,
-        const KinematicVariables& rKinematicVariables)
+        const KinematicVariables& rKinematicVariables) const
     {
         // second derivatives of the base vectors w.r.t. the curvilinear coords.
         const Matrix& rDDDN_DDDe = GetGeometry().ShapeFunctionDerivatives(3, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
@@ -1045,10 +1045,10 @@ namespace Kratos
     }
 
     void Shell3pElement::CalculateDerivativeTransformationMatrices(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         std::vector<Matrix>& rDQ_Dalpha_init,
         std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
-        const Matrix& rHessian)
+        const Matrix& rHessian) const
     {
         // base vector at initial configuration
         const SizeType number_of_nodes = GetGeometry().size();
@@ -1344,7 +1344,7 @@ namespace Kratos
 
     void Shell3pElement::CalculateHessian(
         Matrix& Hessian,
-        const Matrix& rDDN_DDe)
+        const Matrix& rDDN_DDe) const
     {
         const SizeType number_of_points = GetGeometry().size();
         const SizeType working_space_dimension = 3;
@@ -1374,7 +1374,7 @@ namespace Kratos
         array_1d<double, 3>& rDDa1_DD11,
         array_1d<double, 3>& rDDa1_DD12,
         array_1d<double, 3>& rDDa2_DD21,
-        array_1d<double, 3>& rDDa2_DD22)
+        array_1d<double, 3>& rDDa2_DD22) const
     {
         const SizeType number_of_points = GetGeometry().size();
     
