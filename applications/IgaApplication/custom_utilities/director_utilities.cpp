@@ -32,39 +32,29 @@ namespace Kratos
     {
         Vector brep_ids = mParameters["brep_ids"].GetVector();
         for (IndexType i = 0; i < brep_ids.size(); ++i) {
-            auto p_geom = mrModelPart.GetRootModelPart().pGetGeometry((IndexType)brep_ids[i]);
-            KRATOS_WATCH(p_geom->Id())
-        }
+            auto geometry = mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]);
 
-        auto elementList = mrModelPart.GetRootModelPart().pElements();
+            size_t number_of_control_points = geometry.size();
 
-        size_t elenum = mrModelPart.NumberOfElements();
-        size_t number_of_control_points = mrModelPart.NumberOfNodes();
+            SparseMatrixType NTN(number_of_control_points, number_of_control_points, number_of_control_points*4); //inital guess how much non-zero are there
+            // Can't we solve each patch independently? -> much more efficient
+            DenseVectorType directorAtIntgrationPoints(number_of_control_points, 3);
 
-        SparseMatrixType NTN(number_of_control_points, number_of_control_points, number_of_control_points*4); //inital guess how much non-zero are there
-        DenseVectorType directorAtIntgrationPoints(number_of_control_points, 3);
+            SparseSpaceType::SetToZero(NTN);
+            SparseSpaceType::SetToZero(directorAtIntgrationPoints);
+            Matrix Nele;
+            Matrix NTNele;
+            Matrix RhsEle;
 
-        SparseSpaceType::SetToZero(NTN);
-        SparseSpaceType::SetToZero(directorAtIntgrationPoints);
-        Matrix Nele;
-        Matrix NTNele;
-        Matrix RhsEle;
+            RhsEle = zero_matrix<double>(number_of_control_points,3);
+            NTNele = zero_matrix<double>(number_of_control_points);
 
-        for (SizeType i = 0; i < elenum; ++i)
-        {
-            const auto& ele = mrModelPart.pGetElement(i);
-            const auto& eleGeometry = ele->GetGeometry();
-
-            const SizeType numNodes = eleGeometry.size();
-            RhsEle = zero_matrix<double>(numNodes,3);
-            NTNele = zero_matrix<double>(numNodes);
-
-            Nele = eleGeometry.ShapeFunctionsValues();
-            const SizeType r_number_of_integration_points = ele->GetGeometry().IntegrationPointsNumber();
+            Nele = geometry.ShapeFunctionsValues();
+            const SizeType r_number_of_integration_points = geometry.IntegrationPointsNumber();
             for (SizeType iP = 0; iP < r_number_of_integration_points; ++iP)
             {
                 const Vector& Nip = row(Nele, iP);
-                const array_1d<double, 3> A3 = ele->GetGeometry().UnitNormal(iP);
+                const array_1d<double, 3> A3 = geometry.UnitNormal(iP);
 
                 NTNele += outer_prod(Nip, Nip);
 
@@ -74,29 +64,32 @@ namespace Kratos
             }
             for (SizeType inodes = 0; inodes < numNodes; ++inodes)
             {
-                row(directorAtIntgrationPoints, eleGeometry[inodes].GetId()) += row(RhsEle, inodes);
+                row(directorAtIntgrationPoints, geometry[inodes].GetId()) += row(RhsEle, inodes);
 
                 //how to  effiecently use ublas_space AssembleLHS
                 for (SizeType jnodes = 0; inodes < numNodes; ++jnodes)
-                    NTN(eleGeometry[inodes].GetId(), eleGeometry[jnodes].GetId()) += NTNele(inodes, jnodes);
+                    NTN(geometry[inodes].GetId(), geometry[jnodes].GetId()) += NTNele(inodes, jnodes);
 
             }
-        }
         
-        Parameters solver_parameters(mParameters["linear_solver_settings"]);
-        if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
+            Parameters solver_parameters(mParameters["linear_solver_settings"]);
+            if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
 
-    DenseVectorType nodalDirectors(number_of_control_points, 3);
-        auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
+            DenseVectorType nodalDirectors(number_of_control_points, 3);
+            auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
 
-        solver->Solve(NTN, nodalDirectors, directorAtIntgrationPoints);
+            solver->Solve(NTN, nodalDirectors, directorAtIntgrationPoints);
 
-        for (SizeType i = 0; i < number_of_control_points; ++i)
+            for (SizeType i = 0; i < number_of_control_points; ++i) {
+                geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i);
+            }
+
             //mrModelPart.GetRootModelPart().pGetGeometry()[i].set //How to send solution back to nodes?
-            mrModelPart.Nodes()[i].SetValue(DIRECTOR, row(nodalDirectors, i);
+            //mrModelPart.Nodes()[i].SetValue(DIRECTOR, row(nodalDirectors, i);
 
 
         KRATOS_WATCH(solution)
+    }
 
     }
 
