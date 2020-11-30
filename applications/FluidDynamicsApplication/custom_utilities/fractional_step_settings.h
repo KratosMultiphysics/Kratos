@@ -212,7 +212,7 @@ public:
             ExplicitBuilderPointerType pExplicitBuilder = ExplicitBuilderPointerType();
 
             // Strategy
-            mExplicitStrategies[rStrategyLabel] = ExplicitStrategyPointerType(new ExplicitSolvingStrategyRungeKutta4<TSparseSpace,TDenseSpace>(
+            BaseType::mExplicitStrategies[rStrategyLabel] = ExplicitStrategyPointerType(new ExplicitSolvingStrategyRungeKutta4<TSparseSpace,TDenseSpace>(
                 rModelPart,
                 pExplicitBuilder,
                 MoveMeshFlag,
@@ -223,15 +223,15 @@ public:
             KRATOS_THROW_ERROR(std::runtime_error,"Error in FractionalStepSettings: Unknown strategy label.","");
         }
 
-        mExplicitStrategies[rStrategyLabel]->SetEchoLevel(StrategyEchoLevel);
+        BaseType::mExplicitStrategies[rStrategyLabel]->SetEchoLevel(StrategyEchoLevel);
 
         KRATOS_CATCH("");
     }
 
     void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
-                                    typename TLinearSolver::Pointer pLinearSolver,
-                                    const double Tolerance,
-                                    const unsigned int MaxIter) override
+                            typename TLinearSolver::Pointer pLinearSolver,
+                            const double Tolerance,
+                            const unsigned int MaxIter) override
     {
         KRATOS_TRY;
 
@@ -299,7 +299,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::map< StrategyLabel, ExplicitStrategyPointerType > mExplicitStrategies;
 
     ///@}
     ///@name Protected Operators

@@ -16,6 +16,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "processes/process.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
 
 // Application includes
 
@@ -62,6 +63,7 @@ public:
     typedef typename StrategyType::Pointer StrategyPointerType;
     typedef typename Process::Pointer ProcessPointerType;
     typedef BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> TBuilderAndSolverType;
+    typedef typename ExplicitSolvingStrategyRungeKutta4<TSparseSpace,TDenseSpace>::Pointer ExplicitStrategyPointerType;
 
     enum StrategyLabel { Velocity, Pressure, /*EddyViscosity,*/ NumLabels };
 
@@ -187,6 +189,28 @@ public:
         }
     }
 
+    virtual bool FindExplicitStrategy(StrategyLabel const& rStrategyLabel,
+                                      ExplicitStrategyPointerType& pThisStrategy)
+    {
+        typename std::map<StrategyLabel,ExplicitStrategyPointerType>::iterator itStrategy = mExplicitStrategies.find(rStrategyLabel);
+
+        if ( itStrategy != mExplicitStrategies.end() )
+        {
+            if(itStrategy->second != nullptr)
+            {
+                pThisStrategy.swap(itStrategy->second);
+                return true;
+            } else {
+                KRATOS_INFO("SolverSettingsFractionalStepStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+                return false;
+            }
+        }
+        else {
+            KRATOS_INFO("SolverSettingsFractionalStepStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+            return false;
+        }
+    }
+
     virtual bool FindTolerance(StrategyLabel const& rStrategyLabel,
                                double& rTolerance)
     {
@@ -290,6 +314,8 @@ protected:
     }
 
     std::map< StrategyLabel, StrategyPointerType > mStrategies;
+
+    std::map< StrategyLabel, ExplicitStrategyPointerType > mExplicitStrategies;
 
     std::map< StrategyLabel, double > mTolerances;
 

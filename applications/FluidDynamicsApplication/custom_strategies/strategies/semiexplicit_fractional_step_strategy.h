@@ -482,11 +482,11 @@ protected:
         // 1. Compute fractional velocity
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
         KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 1) << "Computing fractional velocity" << std::endl;
-        double NormDv = mpMomentumStrategy->SolveSolutionStep();
+        const auto convergence_output = mpMomentumStrategy->SolveSolutionStep();
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,2);
-        this->ComputeSplitOssProjections(rModelPart);
+        // this->ComputeSplitOssProjections(rModelPart);
 
         // 2. Compute pressure (store pressure variation in PRESSURE_OLD_IT)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,3);
@@ -879,6 +879,7 @@ private:
 
         mReformDofSet = rSolverConfig.GetReformDofSet();
 
+        // TODO: do we need pressure relaxation?
         auto& r_process_info = BaseImplicitType::GetModelPart().GetProcessInfo();
         if (r_process_info.Has(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR)) {
             mPressureGradientRelaxationFactor = r_process_info[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
@@ -893,11 +894,17 @@ private:
         BaseImplicitType::SetEchoLevel(rSolverConfig.GetEchoLevel());
 
         // Initialize strategy for momentum equation
+        bool HaveMomentumStrategy = rSolverConfig.FindExplicitStrategy(SolverSettingsType::Velocity,mpMomentumStrategy);
+
+        if (!HaveMomentumStrategy)
+        {
+            KRATOS_ERROR << "SemiExplicitFractionalStepStrategy error: No Velocity strategy defined in FractionalStepSettings" << std::endl;
+        }
 
         // Initialize strategy for mass equation
-        bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,mpPressureStrategy);
+        bool HaveMassStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,mpPressureStrategy);
 
-        if (HavePressStrategy)
+        if (HaveMassStrategy)
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Pressure,mPressureTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,mMaxPressureIter);
