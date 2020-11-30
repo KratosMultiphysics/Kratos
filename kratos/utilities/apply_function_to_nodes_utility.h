@@ -93,57 +93,13 @@ public:
     void ApplyFunction(
         const Variable<double>& rVariable,
         const double t
-        )
-    {
-        // The first node iterator
-        const auto it_node_begin = mrNodes.begin();
-
-        if(!mpFunction->UseLocalSystem()) {
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (IndexType k = 0; k< mrNodes.size(); k++) {
-                auto it_node = it_node_begin + k;
-                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-                it_node->FastGetSolutionStepValue(rVariable) = value;
-            }
-        } else {
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (IndexType k = 0; k< mrNodes.size(); k++) {
-                auto it_node = it_node_begin + k;
-                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-                it_node->FastGetSolutionStepValue(rVariable) = value;
-            }
-        }
-    }
+        );
 
     /**
      * @brief This method returns all the evaluated values in a given time
      * @param t The time variable
      */
-    std::vector<double> ReturnFunction(const double t)
-    {
-        // The first node iterator
-        const auto it_node_begin = mrNodes.begin();
-
-        // The vector containing the values
-        std::vector<double> values(mrNodes.size());
-
-        //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-        if(!mpFunction->UseLocalSystem()) {
-            for (IndexType k = 0; k< mrNodes.size(); k++) {
-                auto it_node = it_node_begin + k;
-                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-                values[k] = value;
-            }
-        } else {
-            for (IndexType k = 0; k< mrNodes.size(); k++) {
-                auto it_node = it_node_begin + k;
-                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-                values[k] = value;
-            }
-        }
-
-        return values;
-    }
+    std::vector<double> ReturnFunction(const double t);
 
 private:
 
