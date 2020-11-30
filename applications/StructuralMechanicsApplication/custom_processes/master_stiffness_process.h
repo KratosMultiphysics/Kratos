@@ -20,7 +20,7 @@
 // Project includes
 #include "processes/process.h"
 #include "includes/model_part.h"
-
+#include "includes/kratos_filesystem.h"
 
 namespace Kratos
 {
@@ -94,6 +94,7 @@ public:
 
     /// This method is executed in order to finalize the current step
     void ExecuteFinalizeSolutionStep() override;
+
 
     /// This function gives an infinitesimal displacement for the 3D model part
     void Value(){
@@ -250,19 +251,46 @@ public:
             }
         }
 
+        float constraint;
+        if(this->DoF<3){
+            constraint = this->value;
+        }else{
+            constraint = this->inf_rot;
+        }
+
         //Stiffness Calculation
         for(int i=0; i<this->dim;i++){
-            master_stiffness(i,this->DoF) = resultant(i)/this->value;
-            master_stiffness(i+this->dim,this->DoF) = resultant(i+this->dim)/this->inf_rot;
+            master_stiffness(i,this->DoF) = resultant(i)/constraint;
+            master_stiffness(i+this->dim,this->DoF) = resultant(i+this->dim)/constraint;
         }
 
         if(this->DoF==5){
             std::cout<<"Master Stiffness: "<<this->slave_surface_name[0]<<std::endl;
             std::cout<<this->master_stiffness<<std::endl;
+            this->json_parameters.AddEmptyValue(this->slave_surface_name[0]);//Creates a value on the json_parameters object for the current slave's stiffnes matrix
+            this->json_parameters[this->slave_surface_name[0]].SetMatrix(this->master_stiffness);//Sets the current slave's stiffness matrix
             //Reorders the list to its original form.
             std::reverse(std::begin(this->slave_surface_name),std::begin(this->slave_surface_name)+this->n+1);
+            if(this->n==this->number_master_nodes-1){
+                std::cout<<"-------------------------------------------------------------------------------------------------"<<std::endl;
+                this->CreateJSONfile();
+            }
         }
 
+        KRATOS_CATCH("");
+    }
+
+    //This function creates a .json file containing the master stiffness matrices of the slave surfaces.
+    void CreateJSONfile(){
+        KRATOS_TRY;
+
+        const std::string &r_json_text = this->json_parameters.PrettyPrintJsonString();
+        std::filebuf buffer;
+        buffer.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "Master_Stiffness_Matrices.json"}), std::ios::out);
+        std::ostream os(&buffer);
+        os << r_json_text;
+        buffer.close();
+        
         KRATOS_CATCH("");
     }
 
@@ -298,7 +326,7 @@ public:
 ///-----------------------------------------------------------------------------------------------------
 
 protected:
-    Parameters parameters;
+    Parameters parameters, json_parameters;
     float eps_perturbation,value,inf_rot;
     int number_master_nodes,dim,n,DoF;
     std::vector<std::string> slave_surface_name;

@@ -98,6 +98,8 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<DistributeLoadOnSurfaceProcess, DistributeLoadOnSurfaceProcess::Pointer, Process>(m,"DistributeLoadOnSurfaceProcess")
         .def(py::init<ModelPart&, Parameters>());
 
+    py::class_<MasterStiffnessProcess, MasterStiffnessProcess::Pointer, Process>(m, "MasterStiffnessProcess")
+        .def( py::init< ModelPart&, Parameters>());
 }
 
 }  // namespace Python.
