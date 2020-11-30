@@ -39,7 +39,7 @@ namespace Kratos
         typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
         typedef typename SparseSpaceType::MatrixType SparseMatrixType;
-        typedef typename LocalSpaceType::VectorType DenseVectorType;
+        typedef typename LocalSpaceType::VectorType DenseVectorType; //right hand side should be n times 3
 
         /// Constructor
         DirectorUtilities(
