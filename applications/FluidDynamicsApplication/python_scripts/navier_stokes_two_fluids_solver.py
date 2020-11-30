@@ -71,6 +71,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
+            "eulerian_error_compensation" : false,
+            "split_levelset" : false,
             "distance_reinitialization" : "variational",
             "distance_smoothing" : false,
             "distance_smoothing_coefficient" : 1.0
@@ -418,15 +420,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 bfecc_order = 0
 
+            max_cfl = 1.0
+            cross_wind = 0.7
+            max_substeps = 0
+
             if domain_size == 2:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess2D(
                     KratosMultiphysics.DISTANCE,
                     KratosMultiphysics.VELOCITY,
                     computing_model_part,
                     linear_solver,
-                    1.0, # max_cfl
-                    0.7, # cross_wind
-                    0, # max_substeps
+                    max_cfl,
+                    cross_wind,
+                    max_substeps,
                     bfecc_order)
             else:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess3D(
@@ -434,9 +440,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.VELOCITY,
                     computing_model_part,
                     linear_solver,
-                    1.0, # max_cfl
-                    0.7, # cross_wind
-                    0, # max_substeps
+                    max_cfl,
+                    cross_wind,
+                    max_substeps,
                     bfecc_order)
 
         return level_set_convection_process
