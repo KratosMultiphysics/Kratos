@@ -233,7 +233,9 @@ public:
         KRATOS_TRY;
 
         const auto k = OpenMPUtils::ThisThread();
-        rCurrentElement.GetValuesVector(mAdjointValuesVector[k]);
+        const auto& r_const_elem_ref = rCurrentElement;
+
+        r_const_elem_ref.GetValuesVector(mAdjointValuesVector[k]);
         const auto local_size = mAdjointValuesVector[k].size();
         if (rRHS_Contribution.size() != local_size)
         {
@@ -288,7 +290,8 @@ public:
         KRATOS_TRY;
 
         const auto k = OpenMPUtils::ThisThread();
-        rCurrentCondition.GetValuesVector(mAdjointValuesVector[k]);
+        const auto& r_const_cond_ref = rCurrentCondition;
+        r_const_cond_ref.GetValuesVector(mAdjointValuesVector[k]);
         const auto local_size = mAdjointValuesVector[k].size();
         if (rRHS_Contribution.size() != local_size)
         {
@@ -565,7 +568,8 @@ private:
     {
         int k = OpenMPUtils::ThisThread();
         auto& r_residual_adjoint = mAdjointValuesVector[k];
-        rCurrentEntity.GetValuesVector(r_residual_adjoint);
+        const auto& r_const_entity_ref = rCurrentEntity;
+        r_const_entity_ref.GetValuesVector(r_residual_adjoint);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
     }
 
@@ -740,8 +744,8 @@ private:
         KRATOS_TRY
 
         const int k = OpenMPUtils::ThisThread();
-
-        rCurrentEntity.GetValuesVector(mAdjointValuesVector[k]);
+        const auto& r_const_entity_ref = rCurrentEntity;
+        r_const_entity_ref.GetValuesVector(mAdjointValuesVector[k]);
         this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
 
         /// starting to build residual for next time step calculations
@@ -789,8 +793,8 @@ private:
         KRATOS_TRY
 
         const int k = OpenMPUtils::ThisThread();
-
-        rCurrentEntity.GetValuesVector(mAdjointValuesVector[k]);
+        const auto& r_const_entity_ref = rCurrentEntity;
+        r_const_entity_ref.GetValuesVector(mAdjointValuesVector[k]);
         this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
 
         rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rProcessInfo);

@@ -232,7 +232,7 @@ public:
      * Note that this needs to be done at each time step for that cases
      * in where the distance function varies.
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override {
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override {
         KRATOS_TRY;
 
         // Set a reference to the current condition geometry
@@ -325,7 +325,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
+                              const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -421,7 +421,7 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
+                               const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -501,7 +501,7 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -584,7 +584,7 @@ public:
     /**
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -645,14 +645,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

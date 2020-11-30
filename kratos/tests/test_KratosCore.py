@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 # import Kratos
 import KratosMultiphysics
 
@@ -56,6 +54,8 @@ import test_compare_elements_conditions
 import test_matrix_market_interface
 import test_coordinate_transformation_utils
 import test_sensitivity_builder
+import test_file_name_data_collector
+import test_python_function_callback_utility
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -78,6 +78,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_embedded_skin_mapping.TestEmbeddedSkinMapping]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part.TestModelPart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_io.TestModelPartIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_io.TestModelPartIOMPI]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input.TestMaterialsInput]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries.TestGeometry]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_parameters.TestParameters]))
@@ -132,6 +133,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilitiesCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilities2DSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_builder.TestSensitivityBuilderTwoDimSymmetricalSquare]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_name_data_collector.TestFileNameDataCollector]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_python_function_callback_utility.TestPythonGenericFunctionUtility]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

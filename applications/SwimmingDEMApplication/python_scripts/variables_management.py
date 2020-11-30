@@ -435,11 +435,14 @@ class VariablesManager:
 
         if self.do_backward_coupling:
             if parameters["coupling"]["backward_coupling"]["apply_time_filter_to_fluid_fraction_option"].GetBool():
-                self.time_filtered_vars += [Kratos.FLUID_FRACTION_FILTERED]
+                self.time_filtered_vars += [Kratos.FLUID_FRACTION]
 
         if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
             self.time_filtered_vars += [Kratos.PARTICLE_VEL_FILTERED]
 
+        if self.time_filtered_vars:
+            self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_DOUBLE]
+            self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_ARRAY_3]
 
     def ChangeListOfFluidNodalResultsToPrint(self, parameters):
         fluid_list = self.project_parameters["fluid_nodal_results"]

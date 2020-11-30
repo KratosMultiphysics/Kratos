@@ -33,7 +33,7 @@ namespace Kratos
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                                                              VectorType &rRightHandSideVector,
-                                                                             ProcessInfo &rCurrentProcessInfo)
+                                                                             const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -60,7 +60,9 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
+                                                                                        VectorType &rRightHandSideVector,
+                                                                                        const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
