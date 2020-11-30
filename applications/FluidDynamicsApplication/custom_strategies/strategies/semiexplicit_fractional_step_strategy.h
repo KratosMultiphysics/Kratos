@@ -139,9 +139,9 @@ public:
 
     void Initialize() override
     {
+        auto& r_model_part = BaseImplicitType::GetModelPart();
         // Set up nodes to use slip conditions if needed.
         if (mUseSlipConditions) {
-            auto& r_model_part = BaseImplicitType::GetModelPart();
             const int n_conds = r_model_part.NumberOfConditions();
 #pragma omp parallel for
             for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
@@ -156,6 +156,8 @@ public:
                 }
             }
         }
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
+        mpMomentumStrategy->Initialize();
     }
 
     int Check() override
@@ -482,7 +484,6 @@ protected:
         // 1. Compute fractional velocity
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
         KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 1) << "Computing fractional velocity" << std::endl;
-        mpMomentumStrategy->Initialize();
         mpMomentumStrategy->InitializeSolutionStep();
         const auto convergence_output = mpMomentumStrategy->SolveSolutionStep();
         mpMomentumStrategy->FinalizeSolutionStep();
