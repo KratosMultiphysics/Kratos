@@ -143,6 +143,12 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.modelpart_interface_destination_from_mapper,
             self.settings)
 
+        # set the mapper
+        if mapper_type == "coupling_geometry":
+            self.feti_coupling.SetMappingMatrix(self.mapper.GetMappingMatrix())
+        else:
+            raise Exception("Dynamic coupled solver currently only compatible with the coupling_geometry mapper.")
+
         # The origin and destination interfaces from the mapper submitted above are both
         # stored within the origin modelpart. Now we submit the 'original' origin and destination
         # interface model parts stored on the origin and destination models to get access to the
@@ -154,12 +160,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # create the solver
         linear_solver = self._CreateLinearSolver()
         self.feti_coupling.SetLinearSolver(linear_solver)
-
-        # set the mapper
-        if mapper_type == "coupling_geometry":
-            self.feti_coupling.SetMappingMatrix(self.mapper.GetMappingMatrix())
-        else:
-            raise Exception("Dynamic coupled solver currently only compatible with the coupling_geometry mapper.")
 
         # Set origin initial velocities
         self.feti_coupling.SetOriginInitialKinematics()
