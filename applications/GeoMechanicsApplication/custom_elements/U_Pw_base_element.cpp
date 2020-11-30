@@ -55,13 +55,6 @@ int UPwBaseElement<TDim,TNumNodes>::
     const GeometryType& Geom = this->GetGeometry();
 
     // verify nodal variables and dofs
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(WATER_PRESSURE)
-    KRATOS_CHECK_VARIABLE_KEY(DT_WATER_PRESSURE)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-
 
     for ( unsigned int i = 0; i < TNumNodes; i++ )
     {
@@ -85,10 +78,6 @@ int UPwBaseElement<TDim,TNumNodes>::
     }
 
     // Verify ProcessInfo variables
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY_COEFFICIENT)
-    KRATOS_CHECK_VARIABLE_KEY(DT_PRESSURE_COEFFICIENT)
-    KRATOS_CHECK_VARIABLE_KEY(RAYLEIGH_ALPHA)
-    KRATOS_CHECK_VARIABLE_KEY(RAYLEIGH_BETA)
 
     // Verify properties
     if ( DENSITY_SOLID.Key() == 0 || Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )

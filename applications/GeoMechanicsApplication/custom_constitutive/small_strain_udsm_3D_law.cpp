@@ -17,7 +17,7 @@
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-#include "custom_constitutive/windows.hpp"
+#include <windows.h>
 #endif
 
 #ifdef KRATOS_COMPILED_IN_LINUX

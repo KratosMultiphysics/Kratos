@@ -7,8 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Ignasi de Pouplana,
-//                   Vahid Galavi
+//  Main authors:    Vahid Galavi
 //
 
 #if !defined(KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_HYDROSTATIC_PRESSURE_PROCESS )
