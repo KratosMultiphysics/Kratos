@@ -1022,8 +1022,13 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR) {
-                    // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
+                    this_constitutive_variables.StressVector = mConstitutiveLawVector[point_number]->TransformStresses(  this_constitutive_variables.StressVector, 
+                                        this_kinematic_variables.F, 
+                                        this_kinematic_variables.detF,
+                                        ConstitutiveLaw::StressMeasure_PK2,
+                                        ConstitutiveLaw::StressMeasure_Cauchy
+                                        );
                 } else {
                     // Compute material reponse
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);

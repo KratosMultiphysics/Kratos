@@ -15,7 +15,7 @@
 
 // Project includes
 #include "custom_constitutive/linear_plane_strain.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -178,22 +178,6 @@ void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, Vector& 
     E_tensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearPlaneStrain::CalculateAlmansiStrain(
-    ConstitutiveLaw::Parameters& rValues,
-    Vector& rStrainVector
-    )
-{
-    // 1.-Compute total deformation gradient
-    const Matrix& rF = rValues.GetDeformationGradientF();
-
-    // 2.-Compute e = 0.5*(1-inv(B))
-    const Matrix B_tensor = prod(rF,trans(rF));
-    ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 
 } // Namespace Kratos
