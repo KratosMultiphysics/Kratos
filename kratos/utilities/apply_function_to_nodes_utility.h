@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/openmp_utils.h"
 #include "utilities/function_parser_utility.h"
 
 namespace Kratos
@@ -75,10 +76,12 @@ public:
     ApplyFunctionToNodesUtility(
         ModelPart::NodesContainerType& rNodes,
         GenericFunctionUtility::Pointer pFunction
-        ): mrNodes(rNodes),
-           mpFunction(pFunction)
+        ): mrNodes(rNodes)
     {
-
+        mpFunction.resize(OpenMPUtils::GetNumThreads());
+        for (std::size_t i = 0; i < mpFunction.size(); ++i) {
+            mpFunction[i] = pFunction->Clone();
+        }
     };
 
     ///@}
@@ -106,8 +109,8 @@ private:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart::NodesContainerType& mrNodes;           /// The nodes where to set the function
-    GenericFunctionUtility::Pointer mpFunction; /// The function to set
+    ModelPart::NodesContainerType& mrNodes;                  /// The nodes where to set the function
+    std::vector<GenericFunctionUtility::Pointer> mpFunction; /// The function to set
 
     ///@}
 }; /// ApplyFunctionToNodesUtility
