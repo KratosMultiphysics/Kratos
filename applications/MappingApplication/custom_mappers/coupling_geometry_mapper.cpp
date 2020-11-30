@@ -134,17 +134,25 @@ CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
         mrModelPartDestination(rModelPartDestination),
         mMapperSettings(JsonParameters)
 {
+    std::cout << "mapper constructor called\n";
+
     JsonParameters.ValidateAndAssignDefaults(GetMapperDefaultSettings());
     const bool destination_is_slave = mMapperSettings["destination_is_slave"].GetBool();
+
+    std::cout << "before modeler create\n";
 
     mpModeler = (ModelerFactory::Create(
         mMapperSettings["modeler_name"].GetString(),
         rModelPartOrigin.GetModel(),
         mMapperSettings["modeler_parameters"]));
 
+    std::cout << "after modeler create\n";
+
     // adds destination model part
     mpModeler->GenerateNodes(rModelPartDestination);
+    std::cout << "111111\n";
     mpModeler->SetupGeometryModel();
+    std::cout << "2222222\n";
 
     // here use whatever ModelPart(s) was created by the Modeler
     mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
@@ -160,8 +168,11 @@ CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
     mpInterfaceVectorContainerSlave = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceSlave);
 
     this->CheckCouplingInputs();
+    std::cout << "33333\n";
     this->CreateLinearSolver();
+    std::cout << "44444\n";
     this->InitializeInterface();
+    std::cout << "55555\n";
 }
 
 

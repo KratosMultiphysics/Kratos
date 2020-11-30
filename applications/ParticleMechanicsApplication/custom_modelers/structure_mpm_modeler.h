@@ -147,13 +147,9 @@ public:
             rOuputQuadraturePointGeometries.resize(rInputQuadraturePointGeometries.size());
         }
 
-        //TODO determine good cell size
-
-
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
-        //SearchStructure.UpdateSearchDatabaseAssignedSize()
-            typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
+        typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
         typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
         const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
