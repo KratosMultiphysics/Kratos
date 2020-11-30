@@ -27,6 +27,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -129,8 +130,8 @@ public:
      */
     explicit SolvingStrategy(
         ModelPart& rModelPart,
-        bool MoveMeshFlag = false
-        ) : mpModelPart(&rModelPart)
+        bool MoveMeshFlag = false)
+        : mpModelPart(&rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
@@ -271,7 +272,7 @@ public:
      * }
      * @return Level of echo for the solving strategy
      */
-    virtual int GetEchoLevel()
+    int GetEchoLevel()
     {
         return mEchoLevel;
     }
@@ -285,11 +286,21 @@ public:
         mMoveMeshFlag = Flag;
     }
 
+    // TODO: DEPRECATE THIS IN FAVOR OF GetMoveMeshFlag()
     /**
      * @brief This function returns the flag that says if the mesh is moved
      * @return True if the mesh is moved, false otherwise
      */
     bool MoveMeshFlag()
+    {
+        return mMoveMeshFlag;
+    }
+
+    /**
+     * @brief This function returns the flag that says if the mesh is moved
+     * @return True if the mesh is moved, false otherwise
+     */
+    bool GetMoveMeshFlag()
     {
         return mMoveMeshFlag;
     }
@@ -302,31 +313,29 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+        auto& r_nodes_array = GetModelPart().Nodes();
+        VariableUtils().UpdateCurrentPosition(r_nodes_array);
 
-        NodesArrayType& NodesArray = GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
-
-        #pragma omp parallel for
-        for(int i = 0; i < numNodes; ++i) {
-            auto it_node = NodesArray.begin() + i;
-
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-        }
-
-        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() > 0) << "Mesh moved." << std::endl;
 
         KRATOS_CATCH("")
     }
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return mpModelPart: The model part member variable
+     * @return *mpModelPart: The model part member variable
      */
-    inline ModelPart& GetModelPart()
+    ModelPart& GetModelPart()
     {
-        KRATOS_ERROR_IF_NOT(mpModelPart) << "ModelPart in the SolvingStrategy is not initialized" << std::endl;
+        return *mpModelPart;
+    };
+
+    /**
+     * @brief Operations to get the pointer to the model
+     * @return *mpModelPart: The model part member variable
+     */
+    const ModelPart& GetModelPart() const
+    {
         return *mpModelPart;
     };
 
@@ -349,11 +358,19 @@ public:
 
         // Check if displacement var is needed
         if (mMoveMeshFlag) {
-            for (auto& rNode : GetModelPart().Nodes()) {
-                if (!rNode.SolutionStepsDataHas(DISPLACEMENT)) {
-                    KRATOS_ERROR << "ERROR:: Problem on node with Id " << rNode.Id() << "\nIt is impossible to move the mesh since the DISPLACEMENT var is not in the rModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-                }
-            }
+            VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
+        }
+
+        // Check elements, conditions and constraints
+        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        for (const auto& r_elem : GetModelPart().Elements()) {
+            r_elem.Check(r_process_info);
+        }
+        for (const auto& r_cond : GetModelPart().Conditions()) {
+            r_cond.Check(r_process_info);
+        }
+        for (const auto& r_cons : GetModelPart().MasterSlaveConstraints()) {
+            r_cons.Check(r_process_info);
         }
 
         return 0;

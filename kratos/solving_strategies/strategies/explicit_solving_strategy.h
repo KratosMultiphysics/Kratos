@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "solving_strategy.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
@@ -52,7 +53,7 @@ namespace Kratos
  * @details This is the base class from which we will derive all the explicit strategies (FE, RK4, ...)
  */
 template <class TSparseSpace, class TDenseSpace>
-class ExplicitSolvingStrategy
+class ExplicitSolvingStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -66,6 +67,9 @@ public:
 
     // The DOF type from the explicit builder and solver class
     typedef typename ExplicitBuilderType::DofType DofType;
+
+    /// The definition of the base class
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
 
     /// The definition of the current class
     typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> ClassType;
@@ -92,11 +96,8 @@ public:
     explicit ExplicitSolvingStrategy(
         ModelPart &rModelPart,
         Parameters ThisParameters)
-        : mpModelPart(&rModelPart)
+        : BaseType(rModelPart, ThisParameters)
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
         mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
 
@@ -112,10 +113,9 @@ public:
         typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
-        : mpModelPart(&rModelPart),
-          mpExplicitBuilder(pExplicitBuilder)
+        : BaseType(rModelPart, MoveMeshFlag)
+        , mpExplicitBuilder(pExplicitBuilder)
     {
-        SetMoveMeshFlag(MoveMeshFlag);
         SetRebuildLevel(RebuildLevel);
     }
 
@@ -129,9 +129,8 @@ public:
         ModelPart &rModelPart,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
-        : mpModelPart(&rModelPart)
+        : BaseType(rModelPart, MoveMeshFlag)
     {
-        SetMoveMeshFlag(MoveMeshFlag);
         SetRebuildLevel(RebuildLevel);
         mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
@@ -142,10 +141,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ExplicitSolvingStrategy()
-    {
-        mpModelPart =  nullptr;
-    }
+    virtual ~ExplicitSolvingStrategy() {}
 
     /**
      * @brief Create method
@@ -169,22 +165,14 @@ public:
     ///@{
 
     /**
-     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
-     * values of the solution step of interest are assumed equal to the old values
-     */
-    virtual void Predict()
-    {
-    }
-
-    /**
      * @brief Initialization of member variables and prior operations
      */
-    virtual void Initialize()
+    void Initialize() override
     {
         // Initialize elements, conditions and constraints
-        InitializeContainer(GetModelPart().Elements());
-        InitializeContainer(GetModelPart().Conditions());
-        InitializeContainer(GetModelPart().MasterSlaveConstraints());
+        InitializeContainer(BaseType::GetModelPart().Elements());
+        InitializeContainer(BaseType::GetModelPart().Conditions());
+        InitializeContainer(BaseType::GetModelPart().MasterSlaveConstraints());
 
         // Set the explicit DOFs rebuild level
         if (mRebuildLevel != 0) {
@@ -192,12 +180,12 @@ public:
         }
 
         // If the mesh is updated at each step, we require to accordingly update the lumped mass at each step
-        if (mMoveMeshFlag) {
+        if (BaseType::GetMoveMeshFlag()) {
             mpExplicitBuilder->SetResetLumpedMassVectorFlag(true);
         }
 
         // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
-        mpExplicitBuilder->Initialize(*mpModelPart);
+        mpExplicitBuilder->Initialize(BaseType::GetModelPart());
 
         // Initialize the solution values
         InitializeDofSetValues();
@@ -206,113 +194,72 @@ public:
     /**
      * @brief Clears the internal storage
      */
-    virtual void Clear()
+    void Clear() override
     {
         // This clears the DOF set and lumped mass vector
         mpExplicitBuilder->Clear();
     }
 
     /**
-     * @brief This should be considered as a "post solution" convergence check which is useful for coupled analysis
-     * @details The convergence criteria used is the one used inside the "solve" step
-     */
-    virtual bool IsConverged()
-    {
-        return true;
-    }
-
-    /**
      * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
-    virtual void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         // InitializeSolutionStep elements, conditions and constraints
-        InitializeSolutionStepContainer(GetModelPart().Elements());
-        InitializeSolutionStepContainer(GetModelPart().Conditions());
-        InitializeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
+        InitializeSolutionStepContainer(BaseType::GetModelPart().Elements());
+        InitializeSolutionStepContainer(BaseType::GetModelPart().Conditions());
+        InitializeSolutionStepContainer(BaseType::GetModelPart().MasterSlaveConstraints());
 
         // Call the builder and solver initialize solution step
-        mpExplicitBuilder->InitializeSolutionStep(*mpModelPart);
+        mpExplicitBuilder->InitializeSolutionStep(BaseType::GetModelPart());
     }
 
     /**
      * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
-    virtual void FinalizeSolutionStep()
+    void FinalizeSolutionStep() override
     {
         // FinalizeSolutionStep elements, conditions and constraints
-        FinalizeSolutionStepContainer(GetModelPart().Elements());
-        FinalizeSolutionStepContainer(GetModelPart().Conditions());
-        FinalizeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
+        FinalizeSolutionStepContainer(BaseType::GetModelPart().Elements());
+        FinalizeSolutionStepContainer(BaseType::GetModelPart().Conditions());
+        FinalizeSolutionStepContainer(BaseType::GetModelPart().MasterSlaveConstraints());
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
-        mpExplicitBuilder->FinalizeSolutionStep(*mpModelPart);
+        mpExplicitBuilder->FinalizeSolutionStep(BaseType::GetModelPart());
     }
 
     /**
      * @brief Solves the current step.
      * The function always return true as convergence is not checked in the explicit framework
      */
-    virtual bool SolveSolutionStep()
+    bool SolveSolutionStep() override
     {
         // Call the initialize non-linear iteration
-        InitializeNonLinearIterationContainer(GetModelPart().Elements());
-        InitializeNonLinearIterationContainer(GetModelPart().Conditions());
-        InitializeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
+        InitializeNonLinearIterationContainer(BaseType::GetModelPart().Elements());
+        InitializeNonLinearIterationContainer(BaseType::GetModelPart().Conditions());
+        InitializeNonLinearIterationContainer(BaseType::GetModelPart().MasterSlaveConstraints());
 
         // Apply constraints
-        if(mpModelPart->MasterSlaveConstraints().size() != 0) {
-            mpExplicitBuilder->ApplyConstraints(*mpModelPart);
+        if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0) {
+            mpExplicitBuilder->ApplyConstraints(BaseType::GetModelPart());
         }
 
         // Solve the problem assuming that a lumped mass matrix is used
         SolveWithLumpedMassMatrix();
 
         // If required, update the mesh with the obtained solution
-        if (mMoveMeshFlag) {
-            MoveMesh();
+        if (BaseType::GetMoveMeshFlag()) {
+            BaseType::MoveMesh();
         }
 
         // Call the finalize non-linear iteration
-        FinalizeNonLinearIterationContainer(GetModelPart().Elements());
-        FinalizeNonLinearIterationContainer(GetModelPart().Conditions());
-        FinalizeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
+        FinalizeNonLinearIterationContainer(BaseType::GetModelPart().Elements());
+        FinalizeNonLinearIterationContainer(BaseType::GetModelPart().Conditions());
+        FinalizeNonLinearIterationContainer(BaseType::GetModelPart().MasterSlaveConstraints());
 
         return true;
-    }
-
-    /**
-     * @brief This sets the level of echo for the solving strategy
-     * @param Level of echo for the solving strategy
-     * @details
-     * {
-     * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic informations
-     * 2 -> Printing advanced information
-     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
-     * }
-     */
-    void SetEchoLevel(const int Level)
-    {
-        mEchoLevel = Level;
-    }
-
-    /**
-     * @brief This returns the level of echo for the solving strategy
-     * @details
-     * {
-     * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic informations
-     * 2 -> Printing advanced information
-     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
-     * }
-     * @return Level of echo for the solving strategy
-     */
-    int GetEchoLevel() const
-    {
-        return mEchoLevel;
     }
 
     /**
@@ -344,58 +291,6 @@ public:
     }
 
     /**
-     * @brief This function sets the flag that says if the mesh is moved
-     * @param Flag True if the mesh is moved, false otherwise
-     */
-    void SetMoveMeshFlag(bool Flag)
-    {
-        mMoveMeshFlag = Flag;
-    }
-
-    /**
-     * @brief This function returns the flag that says if the mesh is moved
-     * @return True if the mesh is moved, false otherwise
-     */
-    bool MoveMeshFlag() const
-    {
-        return mMoveMeshFlag;
-    }
-
-    /**
-     * @brief This function is designed to move the mesh
-     * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
-     */
-    virtual void MoveMesh()
-    {
-        KRATOS_TRY
-
-        auto& r_nodes_array = GetModelPart().Nodes();
-        VariableUtils().UpdateCurrentPosition(r_nodes_array);
-
-        KRATOS_INFO_IF("ExplicitSolvingStrategy", this->GetEchoLevel() > 0) << "Mesh moved." << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Operations to get the pointer to the model
-     * @return *mpModelPart: The model part member variable
-     */
-    ModelPart& GetModelPart()
-    {
-        return *mpModelPart;
-    };
-
-    /**
-     * @brief Operations to get the pointer to the model
-     * @return *mpModelPart: The model part member variable
-     */
-    const ModelPart& GetModelPart() const
-    {
-        return *mpModelPart;
-    };
-
-    /**
      * @brief Operations to get the pointer to the explicit builder and solver
      * @return mpExplicitBuilder: The explicit builder and solver
      */
@@ -408,14 +303,14 @@ public:
      * @brief Operations to get the residual norm
      * @return The residual norm
      */
-    virtual double GetResidualNorm()
+    double GetResidualNorm() override
     {
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
 
         // Calculate the explicit residual
-        p_explicit_bs->BuildRHS(GetModelPart());
+        p_explicit_bs->BuildRHS(BaseType::GetModelPart());
 
         // Calculate the residual norm
         double res_norm = 0.0;
@@ -428,51 +323,24 @@ public:
     }
 
     /**
-     * @brief Function to perform expensive checks.
-     * @details It is designed to be called ONCE to verify that the input is correct.
-     */
-    virtual int Check() const
-    {
-        KRATOS_TRY
-
-        // Check if displacement var is needed
-        if (mMoveMeshFlag) {
-            VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
-        }
-
-        // Check elements, conditions and constraints
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
-        for (const auto& r_elem : GetModelPart().Elements()) {
-            r_elem.Check(r_process_info);
-        }
-        for (const auto& r_cond : GetModelPart().Conditions()) {
-            r_cond.Check(r_process_info);
-        }
-        for (const auto& r_cons : GetModelPart().MasterSlaveConstraints()) {
-            r_cons.Check(r_process_info);
-        }
-
-        return 0;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
      */
-    virtual Parameters GetDefaultParameters() const
+    Parameters GetDefaultParameters() const override
     {
-        const Parameters default_parameters = Parameters(R"(
+        Parameters default_parameters = Parameters(R"(
         {
             "explicit_solving_strategy" : "explicit_solving_strategy",
-            "move_mesh_flag"            : false,
             "rebuild_level"             : 0,
-            "echo_level"                : 1,
             "explicit_builder_settings" : {
                 "name": "explicit_builder"
             }
         })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
         return default_parameters;
     }
 
@@ -490,31 +358,15 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "ExplicitSolvingStrategy";
     }
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream &rOStream) const
-    {
-        rOStream << Info();
-    }
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
-    // Level of echo for the solving strategy
-    int mEchoLevel;
 
     // Settings for the rebuilding of the DOF set
     int mRebuildLevel;
@@ -548,33 +400,19 @@ protected:
      */
     virtual inline double GetDeltaTime()
     {
-        return GetModelPart().GetProcessInfo().GetValue(DELTA_TIME);
-    }
-
-    /**
-     * @brief This method validate and assign default parameters
-     * @param rParameters Parameters to be validated
-     * @param DefaultParameters The default parameters
-     * @return Returns validated Parameters
-     */
-    virtual Parameters ValidateAndAssignParameters(
-        Parameters ThisParameters,
-        const Parameters DefaultParameters
-        ) const
-    {
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        return ThisParameters;
+        return BaseType::GetModelPart().GetProcessInfo().GetValue(DELTA_TIME);
     }
 
     /**
      * @brief This method assigns settings to member variables
      * @param ThisParameters Parameters that are assigned to the member variables
      */
-    virtual void AssignSettings(const Parameters ThisParameters)
+    virtual void AssignSettings(const Parameters ThisParameters) override
     {
+        // Add base strategy settings
+        BaseType::AssignSettings(ThisParameters);
+
         const bool rebuild_level = ThisParameters["rebuild_level"].GetInt();
-        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
-        SetMoveMeshFlag(move_mesh_flag);
         SetRebuildLevel(rebuild_level);
     }
 
@@ -598,10 +436,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    ModelPart* mpModelPart = nullptr;
-
-    bool mMoveMeshFlag;
 
     ExplicitBuilderPointerType mpExplicitBuilder = nullptr;
 
@@ -639,7 +473,7 @@ private:
     template <class TContainerType>
     void InitializeContainer(TContainerType &rContainer)
     {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         block_for_each(
             rContainer,
             [&](typename TContainerType::value_type& rEntity){rEntity.Initialize(r_process_info);}
@@ -655,7 +489,7 @@ private:
     template <class TContainerType>
     void InitializeSolutionStepContainer(TContainerType &rContainer)
     {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         block_for_each(
             rContainer,
             [&](typename TContainerType::value_type& rEntity){rEntity.InitializeSolutionStep(r_process_info);}
@@ -671,7 +505,7 @@ private:
     template <class TContainerType>
     void InitializeNonLinearIterationContainer(TContainerType &rContainer)
     {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         block_for_each(
             rContainer,
             [&](typename TContainerType::value_type& rEntity){rEntity.InitializeNonLinearIteration(r_process_info);}
@@ -687,7 +521,7 @@ private:
     template <class TContainerType>
     void FinalizeNonLinearIterationContainer(TContainerType &rContainer)
     {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         block_for_each(
             rContainer,
             [&](typename TContainerType::value_type& rEntity){rEntity.FinalizeNonLinearIteration(r_process_info);}
@@ -703,7 +537,7 @@ private:
     template <class TContainerType>
     void FinalizeSolutionStepContainer(TContainerType &rContainer)
     {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         block_for_each(
             rContainer,
             [&](typename TContainerType::value_type& rEntity){rEntity.FinalizeSolutionStep(r_process_info);}
