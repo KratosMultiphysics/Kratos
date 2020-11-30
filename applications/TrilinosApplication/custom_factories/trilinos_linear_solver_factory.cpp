@@ -78,7 +78,7 @@ void RegisterTrilinosLinearSolvers()
         TrilinosLocalSpaceType,
         Amesos2SolverType>();
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amesos2",        Amesos2SolverFactory);
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("klu",           Amesos2SolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("klu2",           Amesos2SolverFactory);
 #endif
 
 #ifndef TRILINOS_EXCLUDE_ML_SOLVER

@@ -21,7 +21,6 @@
 
 // Amesos solver includes
 #include "Amesos2.hpp"
-#include <Teuchos_RCP.hpp>
 
 namespace Kratos
 {
