@@ -18,11 +18,23 @@
 #include <unordered_map>
 
 // External includes
-#include "exprtk/exprtk.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+
+// Forward declaration of exprtk
+namespace exprtk
+{
+    template<class TClass>
+    class symbol_table;
+
+    template<class TClass>
+    class expression;
+
+    template<class TClass>
+    class parser;
+};
 
 namespace Kratos
 {
@@ -94,6 +106,9 @@ public:
 
     ///Copy constructor
     GenericFunctionUtility(GenericFunctionUtility const& rOther);
+
+    /// Destructor.
+    ~GenericFunctionUtility();
 
     ///@}
     ///@name Operations
@@ -182,11 +197,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::unordered_map<std::string, double>  mNameSpace; /// The variables considered on the function
-    exprtk::symbol_table<double> mSymbolTable;           /// The symbol table of exprtk
-    exprtk::expression<double>   mExpression;            /// The expression of exprtk
-    exprtk::parser<double>       mParser;                /// The parser of exprtk
-    std::string mFunctionBody;                           /// The function body
+    std::unordered_map<std::string, double>  mNameSpace;   /// The variables considered on the function
+    exprtk::symbol_table<double>* mpSymbolTable = nullptr; /// The symbol table of exprtk
+    exprtk::expression<double>*   mpExpression = nullptr;  /// The expression of exprtk
+    exprtk::parser<double>*       mpParser = nullptr;      /// The parser of exprtk
+    std::string mFunctionBody;                             /// The function body
 
     bool mDependsOnSpace = true;                 /// If it depends on space
     bool mUseLocalSystem = false;                /// If we use a local system

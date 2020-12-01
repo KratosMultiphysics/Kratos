@@ -14,6 +14,7 @@
 // System includes
 
 // External includes
+#include "exprtk/exprtk.hpp"
 
 // Project includes
 #include "includes/global_variables.h"
@@ -47,20 +48,23 @@ GenericFunctionUtility::GenericFunctionUtility(
     double& Z = mNameSpace["Z"];
     double& pi = mNameSpace["pi"];
 
-    mSymbolTable.add_variable("x",x);
-    mSymbolTable.add_variable("y",y);
-    mSymbolTable.add_variable("z",z);
-    mSymbolTable.add_variable("t",t);
-    mSymbolTable.add_variable("X",X);
-    mSymbolTable.add_variable("Y",Y);
-    mSymbolTable.add_variable("Z",Z);
-    mSymbolTable.add_variable("pi", pi);
+    mpSymbolTable = new exprtk::symbol_table<double>();
+    mpSymbolTable->add_variable("x",x);
+    mpSymbolTable->add_variable("y",y);
+    mpSymbolTable->add_variable("z",z);
+    mpSymbolTable->add_variable("t",t);
+    mpSymbolTable->add_variable("X",X);
+    mpSymbolTable->add_variable("Y",Y);
+    mpSymbolTable->add_variable("Z",Z);
+    mpSymbolTable->add_variable("pi", pi);
 
     // Creating expression
-    mExpression.register_symbol_table(mSymbolTable);
+    mpExpression = new exprtk::expression<double>();
+    mpExpression->register_symbol_table(*mpSymbolTable);
 
     // Compiling expression
-    mParser.compile(mFunctionBody, mExpression);
+    mpParser = new exprtk::parser<double>();
+    mpParser->compile(mFunctionBody, *mpExpression);
 
     // Here get the local system if it is provided
     if(LocalSystem.Has("origin")) {
@@ -108,20 +112,33 @@ GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOt
     double& Z = mNameSpace["Z"];
     double& pi = mNameSpace["pi"];
 
-    mSymbolTable.add_variable("x",x);
-    mSymbolTable.add_variable("y",y);
-    mSymbolTable.add_variable("z",z);
-    mSymbolTable.add_variable("t",t);
-    mSymbolTable.add_variable("X",X);
-    mSymbolTable.add_variable("Y",Y);
-    mSymbolTable.add_variable("Z",Z);
-    mSymbolTable.add_variable("pi", pi);
+    mpSymbolTable = new exprtk::symbol_table<double>();
+    mpSymbolTable->add_variable("x",x);
+    mpSymbolTable->add_variable("y",y);
+    mpSymbolTable->add_variable("z",z);
+    mpSymbolTable->add_variable("t",t);
+    mpSymbolTable->add_variable("X",X);
+    mpSymbolTable->add_variable("Y",Y);
+    mpSymbolTable->add_variable("Z",Z);
+    mpSymbolTable->add_variable("pi", pi);
 
     // Creating expression
-    mExpression.register_symbol_table(mSymbolTable);
+    mpExpression = new exprtk::expression<double>();
+    mpExpression->register_symbol_table(*mpSymbolTable);
 
     // Compiling expression
-    mParser.compile(mFunctionBody, mExpression);
+    mpParser = new exprtk::parser<double>();
+    mpParser->compile(mFunctionBody, *mpExpression);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GenericFunctionUtility::~GenericFunctionUtility()
+{
+//     delete [] mpSymbolTable; /// The symbol table of exprtk
+//     delete [] mpExpression;  /// The expression of exprtk
+//     delete [] mpParser;      /// The parser of exprtk
 }
 
 /***********************************************************************************/
@@ -171,7 +188,7 @@ double GenericFunctionUtility::CallFunction(
     mNameSpace["Z"] = Z;
     mNameSpace["t"] = t;
 
-    return mExpression.value();
+    return mpExpression->value();
 }
 
 /***********************************************************************************/
