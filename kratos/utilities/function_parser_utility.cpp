@@ -39,29 +39,8 @@ GenericFunctionUtility::GenericFunctionUtility(
     mNameSpace.insert(std::pair<std::string, double>("Z", 0.0));
     mNameSpace.insert(std::pair<std::string, double>("pi", Globals::Pi));
 
-    // Defining table
-    double& x = mNameSpace["x"];
-    double& y = mNameSpace["y"];
-    double& z = mNameSpace["z"];
-    double& t = mNameSpace["t"];
-    double& X = mNameSpace["X"];
-    double& Y = mNameSpace["Y"];
-    double& Z = mNameSpace["Z"];
-    double& pi = mNameSpace["pi"];
-
-    mpSymbolTable = new exprtk::symbol_table<double>();
-    mpSymbolTable->add_variable("x",x);
-    mpSymbolTable->add_variable("y",y);
-    mpSymbolTable->add_variable("z",z);
-    mpSymbolTable->add_variable("t",t);
-    mpSymbolTable->add_variable("X",X);
-    mpSymbolTable->add_variable("Y",Y);
-    mpSymbolTable->add_variable("Z",Z);
-    mpSymbolTable->add_variable("pi", pi);
-
-    // Creating expression
-    mpExpression = new exprtk::expression<double>();
-    mpExpression->register_symbol_table(*mpSymbolTable);
+    // Initialize exprtk classes
+    InitializeExprtk();
 
     // Compiling expression
     mpParser = new exprtk::parser<double>();
@@ -103,33 +82,8 @@ GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOt
       mRotationMatrix(rOther.mRotationMatrix),
       mCenterCoordinates(rOther.mCenterCoordinates)
 {
-    // Defining table
-    double& x = mNameSpace["x"];
-    double& y = mNameSpace["y"];
-    double& z = mNameSpace["z"];
-    double& t = mNameSpace["t"];
-    double& X = mNameSpace["X"];
-    double& Y = mNameSpace["Y"];
-    double& Z = mNameSpace["Z"];
-    double& pi = mNameSpace["pi"];
-
-    mpSymbolTable = new exprtk::symbol_table<double>();
-    mpSymbolTable->add_variable("x",x);
-    mpSymbolTable->add_variable("y",y);
-    mpSymbolTable->add_variable("z",z);
-    mpSymbolTable->add_variable("t",t);
-    mpSymbolTable->add_variable("X",X);
-    mpSymbolTable->add_variable("Y",Y);
-    mpSymbolTable->add_variable("Z",Z);
-    mpSymbolTable->add_variable("pi", pi);
-
-    // Creating expression
-    mpExpression = new exprtk::expression<double>();
-    mpExpression->register_symbol_table(*mpSymbolTable);
-
-    // Compiling expression
-    mpParser = new exprtk::parser<double>();
-    mpParser->compile(mFunctionBody, *mpExpression);
+    // Initialize exprtk classes
+    InitializeExprtk();
 }
 
 /***********************************************************************************/
@@ -198,6 +152,40 @@ double GenericFunctionUtility::CallFunction(
     mNameSpace["t"] = t;
 
     return mpExpression->value();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GenericFunctionUtility::InitializeExprtk()
+{
+    // Defining table
+    double& x = mNameSpace["x"];
+    double& y = mNameSpace["y"];
+    double& z = mNameSpace["z"];
+    double& t = mNameSpace["t"];
+    double& X = mNameSpace["X"];
+    double& Y = mNameSpace["Y"];
+    double& Z = mNameSpace["Z"];
+    double& pi = mNameSpace["pi"];
+
+    mpSymbolTable = new exprtk::symbol_table<double>();
+    mpSymbolTable->add_variable("x",x);
+    mpSymbolTable->add_variable("y",y);
+    mpSymbolTable->add_variable("z",z);
+    mpSymbolTable->add_variable("t",t);
+    mpSymbolTable->add_variable("X",X);
+    mpSymbolTable->add_variable("Y",Y);
+    mpSymbolTable->add_variable("Z",Z);
+    mpSymbolTable->add_variable("pi", pi);
+
+    // Creating expression
+    mpExpression = new exprtk::expression<double>();
+    mpExpression->register_symbol_table(*mpSymbolTable);
+
+    // Compiling expression
+    mpParser = new exprtk::parser<double>();
+    mpParser->compile(mFunctionBody, *mpExpression);
 }
 
 } /// namespace Kratos

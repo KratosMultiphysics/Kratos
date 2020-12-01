@@ -206,6 +206,15 @@ private:
     array_1d<double, 3> mCenterCoordinates;      /// The center of coordinates
 
     ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief This method initializes the exprtk classes
+     */
+    void InitializeExprtk();
+
+    ///@}
 }; /// GenericFunctionUtility
 
 } /// namespace Kratos
