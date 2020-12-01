@@ -666,18 +666,20 @@ namespace Kratos
 			for (int i = 0; i < GetGeometry().size(); i++)
 			{
 				std::cout << "================================NODE: " << i << "====================" << std::endl;
-				array_1d<double, 3 > director = GetGeometry()[i].GetValue(DIRECTOR);
+				const double normt =  GetGeometry()[i].GetValue(DIRECTORLENGTH);
+				array_1d<double, 3 > director = GetGeometry()[i].GetValue(DIRECTOR)/ normt;
 
 				const array_1d<double, 3 > inc2d3 = GetGeometry()[i].FastGetSolutionStepValue(DIRECTORINC);
 				array_1d<double, 2 > inc2d;
-				inc2d[0] = inc2d3[0];
-				inc2d[1] = inc2d3[1];
+				inc2d[0] = inc2d3[0]/ normt;
+				inc2d[1] = inc2d3[1]/ normt;
 				std::cout << "inc2d: " << inc2d << std::endl;
 				const Matrix32d BLA = GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
 				const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
 
 				director = director + inc3d;
 				director = director / sqrt(director[0] * director[0] + director[1] * director[1] + director[2] * director[2]);
+				director *= normt;
 				std::cout << "director: " << director << std::endl;
 				
 				GetGeometry()[i].SetValue(DIRECTOR, director);

@@ -80,14 +80,13 @@ namespace Kratos
 
             solver->Solve(NTN, nodalDirectors, directorAtIntgrationPoints);
 
-            for (SizeType i = 0; i < number_of_control_points; ++i) 
-                geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
-
             for (SizeType i = 0; i < number_of_control_points; ++i)
+            {
+                geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
+                geometry[i].SetValue(DIRECTORLENGTH, norm_2(row(nodalDirectors, i)));
                 geometry[i].SetValue(DIRECTORTANGENTSPACE, Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)));
- 
-            
-        KRATOS_WATCH(nodalDirectors)
+            }
+            KRATOS_WATCH(nodalDirectors)
         }
 
     }
