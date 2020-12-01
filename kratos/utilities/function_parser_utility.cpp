@@ -91,9 +91,9 @@ GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOt
 
 GenericFunctionUtility::~GenericFunctionUtility()
 {
-//     delete [] mpSymbolTable; /// The symbol table of exprtk
-//     delete [] mpExpression;  /// The expression of exprtk
-//     delete [] mpParser;      /// The parser of exprtk
+    delete mpSymbolTable; /// The symbol table of exprtk
+    delete mpExpression;  /// The expression of exprtk
+    delete mpParser;      /// The parser of exprtk
 }
 
 /***********************************************************************************/
