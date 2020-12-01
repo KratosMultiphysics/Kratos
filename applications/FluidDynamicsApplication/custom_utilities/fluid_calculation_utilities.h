@@ -86,8 +86,8 @@ public:
                 typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
                 >
                 (
-                    std::get<0>(rValueVariablePairs),
-                    r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value
+                    r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value,
+                    std::get<0>(rValueVariablePairs)
                 ),
             0)...};
 
@@ -104,8 +104,8 @@ public:
                     typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
                     >
                     (
-                        std::get<0>(rValueVariablePairs),
-                        r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value
+                        r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value,
+                        std::get<0>(rValueVariablePairs)
                     ),
                 0)...};
 
