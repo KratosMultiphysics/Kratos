@@ -51,7 +51,7 @@ namespace Kratos
  * @details The functions can be constructed by providing a python-defined method of the type
  * @author Riccardo Rossi
  */
-class ApplyFunctionToNodesUtility
+class KRATOS_API(KRATOS_CORE) ApplyFunctionToNodesUtility
 {
 public:
     ///@name Type definitions
