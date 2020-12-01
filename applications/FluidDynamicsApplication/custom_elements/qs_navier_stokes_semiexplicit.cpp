@@ -493,7 +493,6 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateLocalPressureSystem(
     const double &DN_DX_2_0 = data.DN_DX(2, 0);
     const double &DN_DX_2_1 = data.DN_DX(2, 1);
 
-    KRATOS_WATCH("Start pressure computation...");
     const double crRightHandSideVector0 =             3*DN_DX_0_0*p[0] + 3*DN_DX_1_0*p[1] + 3*DN_DX_2_0*p[2];
 const double crRightHandSideVector1 =             3*DN_DX_0_1*p[0] + 3*DN_DX_1_1*p[1] + 3*DN_DX_2_1*p[2];
 const double crRightHandSideVector2 =             rho*(DN_DX_0_0*fracv(0,0) + DN_DX_0_1*fracv(0,1) + DN_DX_1_0*fracv(1,0) + DN_DX_1_1*fracv(1,1) + DN_DX_2_0*fracv(2,0) + DN_DX_2_1*fracv(2,1))/dt;
@@ -518,7 +517,6 @@ const double crLeftHandSideMatrix2 =             3*(DN_DX_1_0*DN_DX_2_0 + DN_DX_
             rLeftHandSideMatrix(2,1)=crLeftHandSideMatrix2;
             rLeftHandSideMatrix(2,2)=3*(pow(DN_DX_2_0, 2) + pow(DN_DX_2_1, 2));
 
-    KRATOS_WATCH("End pressure computation...");
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
     rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);

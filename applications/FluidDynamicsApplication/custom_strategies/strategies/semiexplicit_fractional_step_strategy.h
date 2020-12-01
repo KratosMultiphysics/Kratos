@@ -483,11 +483,10 @@ protected:
 
         // 1. Compute fractional velocity
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
-        KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 1) << "Computing fractional velocity" << std::endl;
+        KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 0) << "Computing fractional velocity" << std::endl;
         mpMomentumStrategy->InitializeSolutionStep();
         const auto convergence_output = mpMomentumStrategy->SolveSolutionStep();
         mpMomentumStrategy->FinalizeSolutionStep();
-        KRATOS_INFO_IF("SemiExplicitFractionalStepStrategy", BaseImplicitType::GetEchoLevel() > 1) << "Finished computing fractional velocity" << std::endl;
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,2);
@@ -523,7 +522,7 @@ protected:
             (*iExtraSteps)->Execute();
 
         // Set the output tuple as the fractional velocity convergence and pressure norm
-        return std::make_tuple(true, NormDp);
+        return std::make_tuple(convergence_output, NormDp);
     }
 
     bool CheckPressureConvergence(const double NormDp)
