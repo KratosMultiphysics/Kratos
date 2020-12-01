@@ -21,7 +21,7 @@ namespace Kratos
 /// Short class definition.
 /** Reissner-Mindlin shell using Green-Lagrangian strains and formulated using stress resultants
 */
-class Shell5pElement
+class Shell5pElement final
     : public Element
 {
 protected:
@@ -30,16 +30,18 @@ protected:
     struct KinematicVariables
     {
         // covariant metric
-        array_1d<double, 3> metric;
+        array_1d<double, 3> metricChange;
         array_1d<double, 3> curvature;
         array_1d<double, 2> transShear; //shear 
 
-        //base vector 1
+        //base vectors current and reference
         BoundedVector<double, 3> a1;
         BoundedVector<double, 3> a2;
+        BoundedVector<double, 3> A1;
+        BoundedVector<double, 3> A2;
 
-       //array_1d<double, 3> a1;
-      // array_1d<double, 3> a2;
+        BoundedVector<double, 3> dud1;
+        BoundedVector<double, 3> dud2;
         //director
         BoundedVector<double, 3> t;
         //array_1d<double, 3> t;
@@ -51,23 +53,23 @@ protected:
         //differential area
         double dA;
 
-        /**
-        * The default constructor
-        * @param Dimension: The size of working space dimension
-        */
-        KinematicVariables()
+        void setZero()
         {
-            noalias(metric) = ZeroVector(3);
-            noalias(curvature) = ZeroVector(3);
-            noalias(transShear) = ZeroVector(2);
+            metricChange = ZeroVector(3);
+            curvature = ZeroVector(3);
+            transShear = ZeroVector(2);
 
-            noalias(a1) = ZeroVector(3);
-            noalias(a2) = ZeroVector(3);
-            noalias(t) = ZeroVector(3);
-            noalias(dtd1) = ZeroVector(3);
-            noalias(dtd2) = ZeroVector(3);
+            a1 = ZeroVector(3);
+            a2 = ZeroVector(3);
+            A1 = ZeroVector(3);
+            A2 = ZeroVector(3);
+            t = ZeroVector(3);
+            dtd1 = ZeroVector(3);
+            dtd2 = ZeroVector(3);
+            dud1 = ZeroVector(3);
+            dud2 = ZeroVector(3);
 
-            dA = 1.0;
+            dA = 0;
         }
     };
 
@@ -105,26 +107,6 @@ protected:
         Matrix Chi12;
         Matrix Chi21;
         Matrix Chi22;
-        Matrix WI;
-        Matrix WJ;
-
-        /**
-        * The default constructor
-        */
-        VariationVariables()
-        {
-            P = ZeroMatrix(3, 3);
-            Q1 = ZeroMatrix(3, 3);
-            Q2 = ZeroMatrix(3, 3);
-            S1 = ZeroMatrix(3, 3);
-            S2 = ZeroMatrix(3, 3);
-            Chi11 = ZeroMatrix(3, 3);
-            Chi12 = ZeroMatrix(3, 3);
-            Chi21 = ZeroMatrix(3, 3);
-            Chi22 = ZeroMatrix(3, 3);
-            WI = ZeroMatrix(3, 3);
-            WJ = ZeroMatrix(3, 3);
-        }
     };
 
 public:
@@ -166,7 +148,7 @@ public:
     {};
 
     /// Destructor.
-    virtual ~Shell5pElement() override
+    virtual ~Shell5pElement() final
     {};
 
     ///@}
@@ -178,7 +160,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-    ) const override
+    ) const final
     {
         return Kratos::make_intrusive<Shell5pElement>(
             NewId, pGeom, pProperties);
@@ -189,7 +171,7 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-    ) const override
+    ) const final
     {
         return Kratos::make_intrusive< Shell5pElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
@@ -207,7 +189,7 @@ public:
     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) final
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 5;
@@ -220,7 +202,7 @@ public:
 
         CalculateAll(left_hand_side_matrix, rRightHandSideVector,
             rCurrentProcessInfo, false, true);
-    }
+    } 
 
     /**
     * @brief This is called during the assembling process in order
@@ -230,7 +212,7 @@ public:
     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) final
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 5;
@@ -256,7 +238,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) final
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 5;
@@ -281,7 +263,7 @@ public:
     void EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
-    ) override;
+    ) final;
 
     /**
     * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -291,29 +273,29 @@ public:
     void GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo
-    ) override;
+    ) final;
 
     ///@}
     ///@name Base Class Operations
     ///@{
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) final;
 
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) final;
 
     void GetValuesVector(
         Vector& rValues,
-        int Step) override;
+        int Step) const final;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step) override;
+        int Step) const final;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step) override;
+        int Step) const final;
 
     ///@}
     ///@name Check
@@ -326,14 +308,14 @@ public:
     * or that no common error is found.
     * @param rCurrentProcessInfo
     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const final { return 0; }
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const final
     {
         std::stringstream buffer;
         buffer << "RMElement #" << Id();
@@ -341,7 +323,7 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const final
     {
         rOStream << "RMElement #" << Id();
     }
@@ -386,7 +368,7 @@ private:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
@@ -395,23 +377,23 @@ private:
     void InitializeMaterial();
 
     void CalculateKinematics(
-        IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables, VariationVariables& rVariationVariables);
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables, VariationVariables& rVariationVariables) const;
 
     // Computes the cartesian derivatives from curvilinear ones
     Matrix CalculateCartesianDerivatives(
-        IndexType IntegrationPointIndex);
+        const IndexType IntegrationPointIndex);
 
     Matrix CalculateStrainDisplacementOperator(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         const KinematicVariables& rActualKinematic,
-        const VariationVariables& rVariations);
+        const VariationVariables& rVariations) const ;
 
     Matrix CalculateGeometricStiffness(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         const KinematicVariables& rActKin,
         const VariationVariables& ractVar,
-        const ConstitutiveVariables& rThisConstitutiveVariables);
+        const ConstitutiveVariables& rThisConstitutiveVariables) const;
 
     /**
     * This functions updates the constitutive variables
@@ -421,8 +403,8 @@ private:
     * @param ThisStressMeasure: The stress measure considered
     */
     void CalculateConstitutiveVariables(
-        IndexType IntegrationPointIndex,
-        KinematicVariables& rActualMetric,
+        const IndexType IntegrationPointIndex,
+        const KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
@@ -434,7 +416,7 @@ private:
     using Matrix23d = BoundedMatrix<double, 2, 3>;
 
 
-    void CalculateSVKMaterialTangent();
+    void CalculateSVKMaterialTangent() ;
     public:
     static BoundedMatrix<double, 3, 2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director);
     private:
@@ -444,7 +426,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const final
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
         rSerializer.save("reference_Curvature", reference_Curvature);
@@ -454,7 +436,7 @@ private:
         rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) final
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
         rSerializer.load("curvature", reference_Curvature);
