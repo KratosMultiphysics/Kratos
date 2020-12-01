@@ -22,8 +22,6 @@
 // Application includes
 #include "custom_elements/shell_5p_element.h"
 
-
-
 namespace Kratos
 {
 	///@name Initialize Functions
@@ -160,7 +158,7 @@ namespace Kratos
 				* m_dA_vector[point_number]; 
 
 			// LEFT HAND SIDE MATRIX
-			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
+			if (CalculateStiffnessMatrixFlag == true)
 			{
 				// Geometric stiffness matrix
 				Matrix Kg =
@@ -197,7 +195,6 @@ namespace Kratos
 		VariationVariables& rVar
 	)
 	{
-
 		rKin.t = ZeroVector(3);
 		rKin.dtd1 = ZeroVector(3);
 		rKin.dtd2 = ZeroVector(3);
@@ -212,33 +209,19 @@ namespace Kratos
 			rKin.a1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].Coordinates();
 			rKin.a2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].Coordinates();
 		}
-		Matrix J;
-		GetGeometry().Jacobian(J, IntegrationPointIndex);
 
-		//rKin.a1 = column(J, 0);
-		//rKin.a2 = column(J, 1);
-	
-		//GetCovariantMetric
 		rKin.metric[0] = norm_2_square(rKin.a1); //TODO calculate metric from displacements and not from geometry. This is more accurate for small strains due cancelation with reference metric since 1.0-1.0 ~ loses digits 
 		rKin.metric[1] = norm_2_square(rKin.a2);
 		rKin.metric[2] = inner_prod(rKin.a1, rKin.a2);
 
-		//rKin.t = ZeroVector(3);
-		//rKin.dtd1 = ZeroVector(3);
-		//rKin.dtd2 = ZeroVector(3);
-
-
-
-
 		double invL_t = 1.0 / norm_2(rKin.t);
 		rKin.t *= invL_t;
 
-
-		const array_1d<double, 3>& t = rKin.t; //define alias for cleaner code
-		const array_1d<double, 3>& dtd1 = rKin.dtd1; //define alias for cleaner code
-		const array_1d<double, 3>& dtd2 = rKin.dtd2; //define alias for cleaner code
-		const array_1d<double, 3>& a1 = rKin.a1; //define alias for cleaner code
-		const array_1d<double, 3>& a2 = rKin.a2; //define alias for cleaner code
+		const array_1d<double, 3>& t = rKin.t; 
+		const array_1d<double, 3>& dtd1 = rKin.dtd1; 
+		const array_1d<double, 3>& dtd2 = rKin.dtd2;
+		const array_1d<double, 3>& a1 = rKin.a1; 
+		const array_1d<double, 3>& a2 = rKin.a2;
 
 		//std::cout << "tGP: " << rKin.t << std::endl;
 		//std::cout << "a1: " << a1 << std::endl;
@@ -265,6 +248,10 @@ namespace Kratos
 		rVar.Chi12 = invL_t * (3.0 * inner_prod(t, dtd2) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd2) * tdyadt + rKin.transShear[0] * outer_prod(dtd2, t)) - outer_prod(a1, dtd2) - inner_prod(a1, dtd2) * 0.5 * IdentityMatrix(3));
 		rVar.Chi22 = invL_t * (3.0 * inner_prod(t, dtd2) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd2) * tdyadt + rKin.transShear[1] * outer_prod(dtd2, t)) - outer_prod(a2, dtd2) - inner_prod(a2, dtd2) * 0.5 * IdentityMatrix(3));
 
+		rVar.Chi11 = trans(rVar.Chi11) + rVar.Chi11;
+		rVar.Chi21 = trans(rVar.Chi21) + rVar.Chi21;
+		rVar.Chi12 = trans(rVar.Chi12) + rVar.Chi12;
+		rVar.Chi22 = trans(rVar.Chi22) + rVar.Chi22;
 		//up to there dtd_al corresponds to w_al
 		rKin.dtd1 = prod(rVar.P, dtd1);
 		rKin.dtd2 = prod(rVar.P, dtd2);
@@ -272,7 +259,6 @@ namespace Kratos
 		rKin.curvature[0] = inner_prod(rKin.a1, dtd1);
 		rKin.curvature[1] = inner_prod(rKin.a2, dtd2);
 		rKin.curvature[2] = inner_prod(rKin.a1, dtd2) + inner_prod(a2, dtd1);
-
 	}
 
 	/* Transforms derivatives to obtain cartesian quantities  */
@@ -284,7 +270,6 @@ namespace Kratos
 		array_1d<double, 3> a3;
 		Matrix J0;
 		GetGeometry().Jacobian(J0, IntegrationPointIndex);
-		//std::cout << "JO: " << J0 << std::endl;
 
 		const array_1d<double, 3> a1 = column(J0, 0);
 		const array_1d<double, 3> a2 = column(J0, 1);
@@ -343,12 +328,8 @@ namespace Kratos
 
 		subrange(strain_vector, 6, 8) = rActualKinematic.transShear - reference_TransShear[IntegrationPointIndex];
 
-		//std::cout << strain_vector << std::endl;
-		//std::cout << "reference_TransShear: "<< reference_TransShear << std::endl;
-		//std::cout << "rActualKinematic.transShear: "<< rActualKinematic.transShear << std::endl;
 		noalias(rThisConstitutiveVariables.StrainVector) = strain_vector;
 		noalias(rThisConstitutiveVariables.StressVector) = prod(mC,strain_vector);
-		//std::cout << rThisConstitutiveVariables.StressVector << std::endl;
 	}
 
 	Matrix Shell5pElement::CalculateStrainDisplacementOperator(
@@ -403,32 +384,6 @@ namespace Kratos
 			//std::cout << "WI1: "<< WI1 << std::endl;
 			//std::cout << "rActualKinematic.a1: "<< rActualKinematic.a1 << std::endl;
 			///=============== end of stupid version ===============
-
-
-			////membrane
-			//noalias(subrange(rB, 0, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.a1);
-			//noalias(subrange(rB, 1, 1, kr, 3)) = m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.a2);
-
-			//////inplane shear
-			//noalias(subrange(rB, 2, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.a2) + m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.a1);
-
-			//////BENDING PART displacement variation
-			//noalias(subrange(rB, 3, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.dtd1);
-			//noalias(subrange(rB, 4, 1, kr, 3)) = m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.dtd2);
-			//noalias(subrange(rB, 5, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.dtd2); + m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.dtd1);
-
-			//////BENDING PART director variation
-			//noalias(subrange(rB, 3, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a1), WI1),BLAI);
-			//noalias(subrange(rB, 4, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), WI2),BLAI);
-			//noalias(subrange(rB, 5, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
-
-			//////TransverseShear displacement variation
-			//noalias(subrange(rB, 6, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.t);
-			//noalias(subrange(rB, 7, 1, kr, 3)) = m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.t);
-
-			//////TransverseShear director variation
-			//noalias(subrange(rB, 6, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntPoint, r), BLAI);
-			//noalias(subrange(rB, 7, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntPoint, r), BLAI);
 		}
 		return rB;
 	}
@@ -452,8 +407,8 @@ namespace Kratos
 
 		for (SizeType i = 0; i < number_of_control_points; i++)
 		{
-			const int i1 = 5 * i;
-			const int i4 = i1 + 3;
+			const SizeType i1 = 5 * i;
+			const SizeType i4 = i1 + 3;
 
 			const double Ni = m_N(iP, i);
 			const double dN1i = m_cart_deriv[iP](0, i);
@@ -464,8 +419,8 @@ namespace Kratos
 			const Matrix23d BLAI_T = trans(r_geometry[i].GetValue(DIRECTORTANGENTSPACE));
 			for (SizeType j = i; j < number_of_control_points; j++)
 			{
-				const int j1 = 5 * j;
-				const int j4 = j1 + 3;
+				const SizeType j1 = 5 * j;
+				const SizeType j4 = j1 + 3;
 
 				const double Nj = m_N(iP, j);
 				const double dN1j = m_cart_deriv[iP](0, j);
@@ -476,7 +431,7 @@ namespace Kratos
 				const Matrix32d BLAJ = r_geometry[j].GetValue(DIRECTORTANGENTSPACE);
 
 				const double NS = dN1i * dN1j * S[0] + dN2i * dN2j * S[1] + (dN1i * dN2j + dN2i * dN1j) * S[2];
-				Kg(i1, j1) = Kg(i1+1, j1+1) = Kg(i1+2, j1+2) = NS; // membrane_{,disp,disp}*N
+				Kg(i1, j1) = Kg(i1 + 1, j1 + 1) = Kg(i1 + 2, j1 + 2) = NS; // membrane_{,disp,disp}*N
 
 				Matrix3d Temp = S[3] * dN1i * WJ1 + S[4] * dN2i * WJ2 + S[5] * (dN1i * WJ2 + dN2i * WJ1); // bending_{,dir,disp}*M
 				Temp += ractVar.P * Nj * (dN1i * S[6] + dN2i * S[7]);  // shear_{,dir,disp}*Q
