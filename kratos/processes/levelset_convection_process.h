@@ -436,7 +436,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Constructor without linear solver for derived classes
+    /// Constructor without linear solver for derived classes (without BFECC and only for VELOCITY)
     LevelSetConvectionProcess(
         Variable<double> &rLevelSetVar,
         ModelPart &rBaseModelPart,
