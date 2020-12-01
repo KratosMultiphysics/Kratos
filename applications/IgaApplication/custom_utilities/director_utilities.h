@@ -33,13 +33,13 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
-        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::matrix<double>> SparseSpaceType;
+        typedef UblasSpace<double, Matrix, Matrix> LocalSpaceType;
 
         typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
         typedef typename SparseSpaceType::MatrixType SparseMatrixType;
-        typedef typename LocalSpaceType::VectorType DenseVectorType; //right hand side should be n times 3
+        typedef typename LocalSpaceType::VectorType DenseVectorType; 
 
         /// Constructor
         DirectorUtilities(

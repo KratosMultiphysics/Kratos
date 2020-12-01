@@ -37,6 +37,10 @@ namespace Kratos
 
             size_t number_of_control_points = geometry.size();
 
+            std::vector<IndexType> eqID(number_of_control_points);
+            for (SizeType inodes = 0; inodes < number_of_control_points; ++inodes)
+                eqID[inodes] = geometry[inodes].GetId();
+
             SparseMatrixType NTN(number_of_control_points, number_of_control_points, number_of_control_points*4); //inital guess how much non-zero are there
             // Can't we solve each patch independently? -> much more efficient
             DenseVectorType directorAtIntgrationPoints(number_of_control_points, 3);
@@ -64,13 +68,9 @@ namespace Kratos
             }
 
             for (SizeType inodes = 0; inodes < number_of_control_points; ++inodes)
-            {
-                row(directorAtIntgrationPoints, geometry[inodes].GetId()) += row(RhsEle, inodes);
+                row(directorAtIntgrationPoints, eqID[inodes]) += row(RhsEle, inodes);
 
-                //how to  effiecently use ublas_space AssembleLHS
-                for (SizeType jnodes = 0; inodes < number_of_control_points; ++jnodes)
-                    NTN(geometry[inodes].GetId(), geometry[jnodes].GetId()) += NTNele(inodes, jnodes);
-            }
+            SparseSpaceType::AssembleLHS(NTN, NTNele, eqID);
         
             Parameters solver_parameters(mParameters["linear_solver_settings"]);
             if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
@@ -88,9 +88,5 @@ namespace Kratos
             }
             KRATOS_WATCH(nodalDirectors)
         }
-
     }
-
-
-
 }  // namespace Kratos.
