@@ -166,6 +166,11 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 			// Sub model part to be updated
 			ModelPart& r_sub_model_part = mrModelPart.GetSubModelPart(mListOfSubModelParts[i]);
 
+			// Remove nodes from sub model part
+			VariableUtils().SetFlag(TO_ERASE, true, r_sub_model_part.Nodes());
+			r_sub_model_part.RemoveNodes(TO_ERASE);
+			VariableUtils().SetFlag(TO_ERASE, false, mrModelPart.Nodes());
+
 			// Condition type to be used in the generation
 			const Condition& r_reference_condition = KratosComponents<Condition>::Get(mListOfReferenceConditions[i]);
 
@@ -192,8 +197,6 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 
 							Condition::NodesArrayType face_nodes;
 
-							Condition::GeometryType::Pointer ConditionVertices;
-
 							face_nodes.reserve(number_of_nodes_in_face);
 							unsigned int number_of_rigid_nodes = 0;
 							for (unsigned int j = 1; j <= number_of_nodes_in_face; ++j) {
@@ -209,6 +212,16 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 
 								mrModelPart.Conditions().push_back(p_condition);
 								r_sub_model_part.Conditions().push_back(p_condition);
+
+								// Add nodes to sub model part
+								for (unsigned int j = 1; j <= number_of_nodes_in_face; ++j) {
+									bool add = true;
+									for (auto i_node(r_sub_model_part.NodesBegin()); i_node != r_sub_model_part.NodesEnd(); ++i_node)
+										if (i_node->Id() == r_geometry(lpofa(j, iface))->Id())
+											add = false;
+									if (add)
+										r_sub_model_part.Nodes().push_back(r_geometry(lpofa(j, iface)));
+								}
 							}
 						}
 						iface += 1;
