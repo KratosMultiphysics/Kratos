@@ -46,7 +46,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 template<class TEntity>
-class AssignScalarFieldToEntitiesProcess
+class KRATOS_API(KRATOS_CORE) AssignScalarFieldToEntitiesProcess
     : public Process
 {
 public:
