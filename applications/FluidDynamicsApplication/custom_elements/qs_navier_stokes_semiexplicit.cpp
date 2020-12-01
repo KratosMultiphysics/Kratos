@@ -1256,30 +1256,29 @@ void QSNavierStokesSemiExplicit<TDim,TNumNodes>::FillElementData(
     // }
 
     for(unsigned int node_element = 0; node_element<local_size; node_element++) {
+        // Assign variables to local variables
+        const auto& r_body_force = r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE);
+        const auto& r_body_force_old = r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE,1);
+        const auto& r_velocity = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY);
+        const auto& r_velocity_old = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY,1);
         // Observations
         // * unknown acceleration approximated as (u-u_old)*explicit_step_coefficient = (u-u_old)/((theta)*dt)
         //   observe that for theta = 0.0, u = u_old and explicit_step_coefficient = 0
-        // forcing term: interpolation exploiting theta
-        rData.forcing(node_element,0) = (1-theta) * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE,1)[0] + theta * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE)[0];
-        rData.forcing(node_element,1) = (1-theta) * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE,1)[1] + theta * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE)[1];
-        rData.forcing(node_element,2) = (1-theta) * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE,1)[2] + theta * r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE)[2];
-        // velocity previous time step
-        rData.velocity_old(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY,1)[0];
-        rData.velocity_old(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY,1)[1];
-        rData.velocity_old(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY,1)[2];
-        // fractional velocity current time step
-        // observe that VELOCITY and not FRACT_VEL is being used as dof, to avoid saving additional dofs
-        rData.fractional_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[0];
-        rData.fractional_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[1];
-        rData.fractional_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[2];
-        // convective fractional velocity is fractional velocity of current explicit step
-        // observe that VELOCITY and not FRACT_VEL is being used as dof, to avoid saving additional dofs
-        rData.fractional_convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[0];
-        rData.fractional_convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[1];
-        rData.fractional_convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(VELOCITY)[2];
 
+        for (unsigned int k = 0; k < TDim; ++k) {
+            // forcing term: interpolation exploiting theta
+            rData.forcing(node_element,k) = (1-theta) * r_body_force_old[k] + theta * r_body_force[k];
+            // velocity previous time step
+            rData.velocity_old(node_element,k) = r_velocity_old[k];
+            // fractional velocity current time step
+            // observe that VELOCITY and not FRACT_VEL is being used as DoF, to avoid saving additional DoFs
+            rData.fractional_velocity(node_element,k) = r_velocity[k];
+            // convective fractional velocity is fractional velocity of current explicit step
+            // observe that VELOCITY and not FRACT_VEL is being used as dof, to avoid saving additional dofs
+            rData.fractional_convective_velocity(node_element,k) = r_velocity[k];
+        }
         // rData.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue();
-        rData.mu += r_geometry[node_element].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+        rData.mu += r_geometry[node_element].FastGetSolutionStepValue(VISCOSITY);
         rData.rho += r_geometry[node_element].FastGetSolutionStepValue(DENSITY);
     }
     // divide by number of nodes scalar data
