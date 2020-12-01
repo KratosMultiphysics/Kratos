@@ -153,13 +153,13 @@ private:
 
     template<class TOutputDataType, class TInputDataType = TOutputDataType>
     static void AssignValue(
-        TOutputDataType& rOutput,
-        const TInputDataType& rInput);
+        const TInputDataType& rInput,
+        TOutputDataType& rOutput);
 
     template<class TOutputDataType, class TInputDataType = TOutputDataType>
     static void UpdateValue(
-        TOutputDataType& rOutput,
-        const TInputDataType& rInput);
+        const TInputDataType& rInput,
+        TOutputDataType& rOutput);
 
     ///@}
 };
