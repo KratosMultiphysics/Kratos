@@ -617,7 +617,7 @@ namespace Kratos
 
 
 
-	BoundedMatrix<double,3,2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director)
+	 BoundedMatrix<double,3,2> Shell5pElement::TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director)
 	{
 		double st = (director[2] > 0) ? 1 : ((director[2] < 0) ? -1 : 1);
 		double s = 1 / (1 + fabs(director[2]));

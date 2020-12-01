@@ -435,9 +435,9 @@ private:
 
 
     void CalculateSVKMaterialTangent();
-
-
-
+    public:
+    static BoundedMatrix<double, 3, 2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director);
+    private:
     ///@}
     ///@name Serialization
     ///@{
