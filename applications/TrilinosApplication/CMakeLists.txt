@@ -19,11 +19,6 @@ if(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
     message("**** WARNING: Manually disabled Amesos-Solver ****")
 endif(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
 
-if(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
-    add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
-    message("**** WARNING: Manually disabled Amesos2-Solver ****")
-endif(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
-
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Find trilinos solver package -- this is our own find package!!
@@ -32,6 +27,14 @@ if (NOT TRILINOS_FOUND)
 endif()
 include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
+
+if(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
+    message("**** WARNING: Manually disabled Amesos2-Solver ****")
+elseif(DEFINED ${HAVE_AMESOS2})
+    add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
+    message("**** WARNING: Amesos2-Solver could not be found and will be disabled ****")
+endif(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
 
 # Including the amgcl, which is header only
 include_directories("../../external_libraries")
