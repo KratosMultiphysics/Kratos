@@ -78,7 +78,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class GenericFunctionUtility
+class KRATOS_API(KRATOS_CORE) GenericFunctionUtility
 {
 public:
     ///@name Type definitions
