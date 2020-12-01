@@ -22,8 +22,8 @@ namespace Kratos
 
 template<>
 void FluidCalculationUtilities::AssignValue(
-    array_1d<double, 2>& rOutput,
-    const array_1d<double, 3>& rInput)
+    const array_1d<double, 3>& rInput,
+    array_1d<double, 2>& rOutput)
 {
     rOutput[0] = rInput[0];
     rOutput[1] = rInput[1];
@@ -31,24 +31,24 @@ void FluidCalculationUtilities::AssignValue(
 
 template<class TOutputDataType, class TInputDataType>
 void FluidCalculationUtilities::AssignValue(
-    TOutputDataType& rOutput,
-    const TInputDataType& rInput)
+    const TInputDataType& rInput,
+    TOutputDataType& rOutput)
 {
     rOutput = rInput;
 }
 
 template<>
 void FluidCalculationUtilities::UpdateValue(
-    double& rOutput,
-    const double& rInput)
+    const double& rInput,
+    double& rOutput)
 {
     rOutput += rInput;
 }
 
 template<>
 void FluidCalculationUtilities::UpdateValue(
-    array_1d<double, 2>& rOutput,
-    const array_1d<double, 3>& rInput)
+    const array_1d<double, 3>& rInput,
+    array_1d<double, 2>& rOutput)
 {
     rOutput[0] += rInput[0];
     rOutput[1] += rInput[1];
@@ -56,20 +56,20 @@ void FluidCalculationUtilities::UpdateValue(
 
 template<class TOutputDataType, class TInputDataType>
 void FluidCalculationUtilities::UpdateValue(
-    TOutputDataType& rOutput,
-    const TInputDataType& rInput)
+    const TInputDataType& rInput,
+    TOutputDataType& rOutput)
 {
     noalias(rOutput) += rInput;
 }
 
 // template instantiations
-template void FluidCalculationUtilities::AssignValue<double>(double&, const double&);
-template void FluidCalculationUtilities::AssignValue<array_1d<double, 3>>(array_1d<double, 3>&, const array_1d<double, 3>&);
-template void FluidCalculationUtilities::AssignValue<Vector>(Vector&, const Vector&);
-template void FluidCalculationUtilities::AssignValue<Matrix>(Matrix&, const Matrix&);
+template void FluidCalculationUtilities::AssignValue<double>(const double&, double&);
+template void FluidCalculationUtilities::AssignValue<array_1d<double, 3>>(const array_1d<double, 3>&, array_1d<double, 3>&);
+template void FluidCalculationUtilities::AssignValue<Vector>(const Vector&, Vector&);
+template void FluidCalculationUtilities::AssignValue<Matrix>(const Matrix&, Matrix&);
 
-template void FluidCalculationUtilities::UpdateValue<array_1d<double, 3>>(array_1d<double, 3>&, const array_1d<double, 3>&);
-template void FluidCalculationUtilities::UpdateValue<Vector>(Vector&, const Vector&);
-template void FluidCalculationUtilities::UpdateValue<Matrix>(Matrix&, const Matrix&);
+template void FluidCalculationUtilities::UpdateValue<array_1d<double, 3>>(const array_1d<double, 3>&, array_1d<double, 3>&);
+template void FluidCalculationUtilities::UpdateValue<Vector>(const Vector&, Vector&);
+template void FluidCalculationUtilities::UpdateValue<Matrix>(const Matrix&, Matrix&);
 
 } // namespace Kratos
