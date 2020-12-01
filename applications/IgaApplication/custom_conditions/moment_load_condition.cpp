@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher
+//  Main authors:    Tobias Teschemacher, Alexander Müller
 //
 
 // System includes
@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/load_condition.h"
+#include "custom_conditions/moment_load_condition.h"
 #include "iga_application_variables.h"
 
 
@@ -91,11 +91,11 @@ namespace Kratos
         }
     }
 
-    void MomentLoadCondition::calculateMomentLoadTimesDirectorTestFunction(
+    array_1d<double, 3> MomentLoadCondition::calculateMomentLoadTimesDirectorTestFunction(
         const GeometryType& rGeometry,
-       const Matrix& r_N,
+        const Matrix& r_N,
         const IndexType& point_number,
-        array_1d<double, 3>& momentload)
+        const array_1d<double, 3>& momentload)
     {
         array_1d<double, 3> t = ZeroVector(3);
 
@@ -108,7 +108,7 @@ namespace Kratos
         t *= invL_t;
 
        const BoundedMatrix<double,3,3> P = (IdentityMatrix(3) - outer_prod(t, t))*invL_t;
-       momentload = prod(P, momentload);
+       return prod(P, momentload);
     }
 
     void MomentLoadCondition::DeterminantOfJacobianInitial(
@@ -162,7 +162,7 @@ namespace Kratos
         }
     }
 
-    void LoadCondition::GetDofList(
+    void MomentLoadCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo
     )

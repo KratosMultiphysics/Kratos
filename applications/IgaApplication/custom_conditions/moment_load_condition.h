@@ -194,11 +194,11 @@ namespace Kratos
             const GeometryType& rGeometry,
             Vector& rDeterminantOfJacobian);
 
-        void calculateMomentLoadTimesDirectorTestFunction(
+        array_1d<double, 3> calculateMomentLoadTimesDirectorTestFunction(
             const GeometryType& rGeometry,
             const Matrix& r_N,
             const IndexType& point_number,
-            array_1d<double, 3>& momentload)
+            const array_1d<double, 3>& momentload);
 
         ///@}
         ///@name Input and output
