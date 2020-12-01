@@ -20,6 +20,7 @@
 #include "linear_solvers/linear_solver.h"
 
 // Amesos solver includes
+#include <Teuchos_RCP.hpp>
 #include "Amesos2.hpp"
 
 namespace Kratos
@@ -97,46 +98,23 @@ public:
     {
         KRATOS_TRY
 
-        rA.Comm().Barrier();
+        using Teuchos::RCP;
+        using Teuchos::rcp;
 
-        const SparseMatrixType* pA = &rA;
-        const VectorType* pB = &rB;
+        const std::string solver_name("Superlu");
 
-        std::string solver_name("Superlu");
+        RCP<Amesos2::Solver<Epetra_CrsMatrix,Epetra_MultiVector> > solver;
 
-        using SolverType = Amesos2::Solver<SparseMatrixType,VectorType>;
+        RCP<SparseMatrixType> xA = rcp(&rA, false);
+        RCP<VectorType> xX = rcp(&rX, false);
+        RCP<VectorType> xB = rcp(&rB, false);
 
-        SolverType* (*create_ptr)(const std::string, const SparseMatrixType*, VectorType*, const VectorType*) = &Amesos2::create<SparseMatrixType,VectorType>;
+        solver = Amesos2::create<Epetra_CrsMatrix,Epetra_MultiVector>(solver_name, xA, xX, xB);
 
-        SolverType* p_amesos_solver = create_ptr(solver_name, pA, &rX, pB);
-
-        p_amesos_solver->symbolicFactorization().numericFactorization().solve();
-//           template < class Matrix,
-//              class Vector >
-//   Solver<Matrix,Vector>*
-//   create(const std::string solverName, const Matrix* A, Vector* X, const Vector* B);
-
-//         Teuchos::RCP<Amesos2::Solver<SparseMatrixType,VectorType>> p_amesos_solver = Amesos2::create<SparseMatrixType,VectorType>(solver_name, pA, &rX, pB);
-
-
-
-        // rA.Comm().Barrier();
-        // Epetra_LinearProblem linear_problem(&rA,&rX,&rB);
-        // Amesos_BaseSolver* p_amesos_solver;
-        // Amesos amesos_factory;
-        // p_amesos_solver = amesos_factory.Create(mSolverName, linear_problem); // that the solver exists is checked in the constructor
-
-        // p_amesos_solver->SetParameters( mParameterList );
-
-        // p_amesos_solver->SymbolicFactorization();
-        // p_amesos_solver->NumericFactorization();
-        // p_amesos_solver->Solve();
-
-        delete p_amesos_solver;
-
-        rA.Comm().Barrier();
+        solver->symbolicFactorization().numericFactorization().solve();
 
         return true;
+
         KRATOS_CATCH("");
     }
 
