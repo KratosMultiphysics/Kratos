@@ -17,6 +17,7 @@
 #include "director_utilities.h"
 #include "factories/linear_solver_factory.h"
 #include "iga_application_variables.h"
+#include "custom_elements/shell_5p_element.h"
 
 namespace Kratos
 {
@@ -81,6 +82,10 @@ namespace Kratos
 
             for (SizeType i = 0; i < number_of_control_points; ++i) 
                 geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
+
+            for (SizeType i = 0; i < number_of_control_points; ++i)
+                geometry[i].SetValue(DIRECTORTANGENTSPACE, Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)));
+ 
             
         KRATOS_WATCH(nodalDirectors)
         }
