@@ -547,11 +547,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("GetFileNameDataList", &FileNameDataCollector::GetFileNameDataList)
         .def_static("ExtractFileNamePattern", &FileNameDataCollector::ExtractFileNamePattern)
         .def_static("GetSortedListOfFileNameData", &GetSortedListOfFileNameDataHelper)
-//        .def_static("GetSortedListOfFileNameData",
-//            [](std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList, const std::vector<std::string>& rSortingFlagsOrder) {
-//                FileNameDataCollector::SortListOfFileNameData(rFileNameDataList, rSortingFlagsOrder);
-//                return rFileNameDataList;
-//            })
         ;
 
     // add FileNameData holder
