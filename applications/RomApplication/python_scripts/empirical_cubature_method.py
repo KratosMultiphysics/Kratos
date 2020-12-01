@@ -176,7 +176,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             else:
                 SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
         ### Taking the SVD ###  (randomized and truncated here)
-        u,s,_,_ = self.RSVDT_Object.Calculate(SnapshotMatrix)
+        u,s,_,_ = self.RSVDT_Object.Calculate(SnapshotMatrix, 1e-4)
         return u, s
 
     def WriteSelectedElements(self):

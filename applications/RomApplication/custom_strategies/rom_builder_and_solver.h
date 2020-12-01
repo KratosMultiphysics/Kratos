@@ -105,7 +105,12 @@ public:
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
 
         mNodalDofs = mNodalVariablesNames.size();
-        mRomDofs = ThisParameters["number_of_rom_dofs"][0].GetInt(); //hardcoding that it should take first componenet, this must be selected accroding to the current cluster
+        for (int i=0;i<(ThisParameters["number_of_rom_dofs"]).size(); i++){
+            mRomDofsVector.push_back(ThisParameters["number_of_rom_dofs"][i].GetInt());
+        }
+        for (int i=0;i<mRomDofsVector.size(); i++){
+            KRATOS_WATCH(mRomDofsVector.at(i))
+        }
 
         // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
         for(int k=0; k<mNodalDofs; k++){
@@ -142,7 +147,7 @@ public:
 
         typedef std::unordered_set<NodeType::DofType::Pointer, DofPointerHasher> set_type;
 
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads " << nthreads << "\n" << std::endl;
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
@@ -352,34 +357,32 @@ public:
         }
     }
 
-
-    // Vector ProjectToReducedBasis(
-	// 	const TSystemVectorType& rX,
-	// 	ModelPart::NodesContainerType& rNodes
-	// )
-    // {
-    //     Vector rom_unknowns = ZeroVector(mRomDofs);
-    //     for(const auto& node : rNodes)
-    //     {
-    //         unsigned int node_aux_id = node.GetValue(AUX_ID);
-    //         const auto& nodal_rom_basis = node.GetValue(ROM_BASIS);
-	// 			for (int i = 0; i < mRomDofs; ++i) {
-	// 				for (int j = 0; j < mNodalDofs; ++j) {
-	// 					rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mNodalDofs + j);
-	// 				}
-	// 			}
-    //     }
-    //     return rom_unknowns;
-	// }
-
     void SetUpBases(RomBases ThisBases){
         mRomBases = ThisBases;
-        //KRATOS_WATCH('I have my bases inside the B&S')
+    }
+
+    void SetUpDistances(DistanceToClusters ThisDistances){
+        mDistanceToClusters = ThisDistances;
+        //this->UpdateCurrentCluster();
+    }
+
+    Vector ProjectToReducedBasis()
+    {
+        const auto dofs_begin = BaseType::mDofSet.begin();
+        const auto dofs_number = BaseType::mDofSet.size();
+        Vector q = ZeroVector(mRomDofs);
+        for (unsigned int k = 0; k<dofs_number; k++){
+            auto dof = dofs_begin + k;
+            Matrix pcurrent_rom_nodal_basis = mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster()).GetNodalBasis(dof->Id());
+            //KRATOS_WATCH(dof->GetSolutionStepValue(0));//current solution
+            //KRATOS_WATCH(dof->GetSolutionStepValue(1));//prior solution
+            q +=  (dof->GetSolutionStepValue(0) - dof->GetSolutionStepValue(1)) *row(  pcurrent_rom_nodal_basis    , mMapPhi[dof->GetVariable().Key()]   ) ;  // Delta_q = Phi^T * Delta_u
+        }
+        return q;
     }
 
     void ProjectToFineBasis(
         const TSystemVectorType &rRomUnkowns,
-        ModelPart &rModelPart,
         TSystemVectorType &Dx)
     {
         const auto dofs_begin = BaseType::mDofSet.begin();
@@ -387,52 +390,119 @@ public:
 
         //#pragma omp parallel firstprivate(dofs_begin, dofs_number)
         {
-            const Matrix *pcurrent_rom_nodal_basis = nullptr;
-            unsigned int old_dof_id;
-            #pragma omp for nowait
+            //#pragma omp for nowait
             for (unsigned int k = 0; k<dofs_number; k++){
                 auto dof = dofs_begin + k;
-                if(pcurrent_rom_nodal_basis == nullptr){
-                    pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
-                    old_dof_id = dof->Id();
+                Matrix pcurrent_rom_nodal_basis = mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster()).GetNodalBasis(dof->Id());
+
+                bool print_this_quantity = false;
+                for(int i = 0; i< NodesToPrint.size(); i++){
+                    if (dof->Id() == NodesToPrint.at(i)){
+                        print_this_quantity = true;
+                    }
+
                 }
-                else if(dof->Id() != old_dof_id ){
-                    pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
-                    old_dof_id = dof->Id();
+                if (print_this_quantity){
+                    //KRATOS_WATCH(dof->Id())
+                    //KRATOS_WATCH(mDistanceToClusters.GetCurrentCluster())
+                    //KRATOS_WATCH(pcurrent_rom_nodal_basis)
                 }
-                //KRATOS_WATCH(dof->Id())
-                Dx[dof->EquationId()] = inner_prod(  row(  *pcurrent_rom_nodal_basis    , mMapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
+                Dx[dof->EquationId()] = inner_prod(  row(  pcurrent_rom_nodal_basis    , mMapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
             }
         }
     }
 
+
+    int GetCurrentCluster(){
+        return mDistanceToClusters.GetCurrentCluster();
+    }
+
+
+
     void GetPhiElemental(
         Matrix &PhiElemental,
         const Element::DofsVectorType &dofs,
-        const Element::GeometryType &geom)
+        const Element::GeometryType &geom,
+        int element_id)
     {
         Matrix pcurrent_rom_nodal_basis;
         int counter = 0;
-        for(unsigned int k = 0; k < dofs.size(); ++k){
+        for(int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
             if(k==0){
-                pcurrent_rom_nodal_basis = mRomBases.GetBasis(0).GetNodalBasis(dofs[k]->Id());
-                //KRATOS_WATCH('at least enters once')
-                //pcurrent_rom_nodal_basis = geom[counter].GetValue(ROM_BASIS);
+                pcurrent_rom_nodal_basis = mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster()).GetNodalBasis(dofs[k]->Id());
             }
             else if(dofs[k]->Id() != dofs[k-1]->Id()){
                 counter++;
-                pcurrent_rom_nodal_basis = mRomBases.GetBasis(0).GetNodalBasis(dofs[k]->Id());
-                //pcurrent_rom_nodal_basis = geom[counter].GetValue(ROM_BASIS);
+                pcurrent_rom_nodal_basis = mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster()).GetNodalBasis(dofs[k]->Id());
             }
             if (dofs[k]->IsFixed())
                 noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
             else
                 noalias(row(PhiElemental, k)) = row(pcurrent_rom_nodal_basis, mMapPhi[variable_key]);
         }
+        bool print_this_quantity = false;
+
+        for(int i = 0; i< ElementsToPrint.size(); i++){
+            if ((element_id) == ElementsToPrint.at(i)){
+                print_this_quantity = true;
+            }
+        }
+
+        if (print_this_quantity){
+            std::cout<<"\n\n\n\n"<<std::endl;
+            KRATOS_WATCH(element_id)
+            for(int i=0;i<PhiElemental.size1();i++){
+                for(int j=0;j<PhiElemental.size2();j++){
+                    std::cout<<PhiElemental(i,j)<<std::endl;
+                }
+            }
+            KRATOS_WATCH(PhiElemental)
+            std::cout<<"\n\n\n\n"<<std::endl;
+        }
+    }
+
+    void UpdateZMatrix(){
+        Deltaq = this->ProjectToReducedBasis();
+        mDistanceToClusters.UpdateZMatrix(Deltaq);
+    }
+
+    void UpdateCurrentCluster(){
+        mDistanceToClusters.UpdateCurrentCluster();
+        mRomDofs = mRomDofsVector.at(mDistanceToClusters.GetCurrentCluster());
+    }
+
+    void HardSetCurrentCluster(int this_index){
+        mDistanceToClusters.HardSetCurrentCluster(this_index);
     }
 
 
+    Vector GetCurrentReducedCoefficients(){
+        return Deltaq;
+    }
+
+
+    Vector GetCurrentFullDimensionalVector(){
+        if (just_a_counter==0){
+            CurrentFullDimensionalVector = ZeroVector(BaseType::mDofSet.size());
+            this->ProjectToFineBasis(Deltaq , CurrentFullDimensionalVector);
+        }
+        else{
+            Vector dummy = ZeroVector(BaseType::mDofSet.size());
+            this->ProjectToFineBasis(Deltaq, dummy);
+            CurrentFullDimensionalVector+= dummy;
+        }
+        just_a_counter++;
+        return CurrentFullDimensionalVector;
+    }
+
+    void SetNodeToPrint(int this_node_id){
+        NodesToPrint.push_back(this_node_id);
+    }
+
+    void SetElementToPrint(int this_element_id){
+        ElementsToPrint.push_back(this_element_id);
+    }
 
     /*@{ */
 
@@ -451,11 +521,15 @@ public:
         //define a dense matrix to hold the reduced problem
         Matrix Arom = ZeroMatrix(mRomDofs, mRomDofs);
         Vector brom = ZeroVector(mRomDofs);
-        TSystemVectorType x(Dx.size());
-
         double project_to_reduced_start = OpenMPUtils::GetCurrentTime();
-        Vector xrom = ZeroVector(mRomDofs);
-        //this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
+
+        Vector dq = ZeroVector(mRomDofs);
+
+        // if (! Deltaq_initialized){
+        //     Deltaq = this->ProjectToReducedBasis();
+        //     Deltaq_initialized = true;
+        // }
+
         const double project_to_reduced_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << project_to_reduced_end - project_to_reduced_start << std::endl;
 
@@ -496,7 +570,7 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
+        //#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
         {
             Matrix PhiElemental;
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
@@ -523,7 +597,7 @@ public:
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
                     if(aux.size1() != dofs.size() || aux.size2() != mRomDofs)
                         aux.resize(dofs.size(), mRomDofs,false);
-                    GetPhiElemental(PhiElemental, dofs, geom);
+                    GetPhiElemental(PhiElemental, dofs, geom, k+1);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
@@ -553,7 +627,7 @@ public:
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
                     if(aux.size1() != dofs.size() || aux.size2() != mRomDofs)
                         aux.resize(dofs.size(), mRomDofs,false);
-                    GetPhiElemental(PhiElemental, dofs, geom);
+                    GetPhiElemental(PhiElemental, dofs, geom, k);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
@@ -579,18 +653,18 @@ public:
 
 
         //solve for the rom unkowns dunk = Arom^-1 * brom
-        Vector dxrom(xrom.size());
         double start_solve = OpenMPUtils::GetCurrentTime();
-        MathUtils<double>::Solve(Arom, dxrom, brom);
+        MathUtils<double>::Solve(Arom, dq, brom);
+        // Deltaq += dq;
+        // KRATOS_WATCH(dq)
+        // KRATOS_WATCH(Deltaq);
+
         const double stop_solve = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_solve - start_solve << std::endl;
 
-        // //update database
-        // noalias(xrom) += dxrom;
-
         // project reduced solution back to full order model
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
-        ProjectToFineBasis(dxrom, rModelPart, Dx);
+        ProjectToFineBasis(dq, Dx);
         const double project_to_fine_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << project_to_fine_end - project_to_fine_start << std::endl;
     }
@@ -705,6 +779,7 @@ protected:
 
     std::vector<std::string> mNodalVariablesNames;
     int mNodalDofs;
+    std::vector<int> mRomDofsVector;
     unsigned int mRomDofs;
     std::unordered_map<Kratos::VariableData::KeyType,int> mMapPhi;
     ModelPart::ConditionsContainerType mSelectedConditions;
@@ -712,6 +787,14 @@ protected:
     bool mHromSimulation = false;
     int mTimeStep = 0;
     RomBases mRomBases;
+    DistanceToClusters mDistanceToClusters;
+    Vector Deltaq;
+    bool Deltaq_initialized = false;
+    int just_a_counter = 0;
+    Vector CurrentFullDimensionalVector;
+    std::vector<int> NodesToPrint;
+    std::vector<int> ElementsToPrint;
+
 
     /*@} */
     /**@name Protected Operations*/

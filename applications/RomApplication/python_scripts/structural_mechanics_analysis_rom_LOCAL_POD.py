@@ -24,7 +24,9 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 raise Exception(err_msg)
         else:
             self.hyper_reduction_element_selector = None
-        self.Bases = romapp.RomBases()
+
+        self.save_for_comparison = []
+
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -38,9 +40,14 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
     def _GetSimulationName(self):
         return "::[ROM Simulation]:: "
 
-    def ModifyInitialGeometry(self):
-        """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
-        super().ModifyInitialGeometry()
+    # def ModifyInitialGeometry(self):
+    #     """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
+    #     super().ModifyInitialGeometry()
+
+
+
+    def ModifyAfterSolverInitialize(self):
+        super().ModifyAfterSolverInitialize()
         computing_model_part = self._solver.GetComputingModelPart()
         with open('RomParameters.json') as f:
             data = json.load(f)
@@ -59,54 +66,80 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                     for j in range(nodal_dofs):
                         Counter=str(node.Id)
                         for i in range(rom_dofs[k]):
+                            print(nodal_modes[Counter][str(k)][j][i])
                             aux[j,i] = nodal_modes[Counter][str(k)][j][i]
+                    #pdb.set_trace()
+                    #print(aux)
                     POD_BASES[k].SetNodalBasis(node.Id, aux)
-                    print('this basis is: ',POD_BASES[k].GetNodalBasis(node.Id))
-                print('bases in node:', node.Id,'\n')
+                    if node.Id in data["nodes_to_print"]:
+                        print(k,'th basis, node ',node.Id,'this basis is: ',POD_BASES[k].GetNodalBasis(node.Id))
+
+            distance_to_clusters = romapp.DistanceToClusters(number_of_bases)
+            w = data["w"]
+            z0 = data["z0"]
+            for i in range(number_of_bases):
+                for j in range(number_of_bases):
+                    distance_to_clusters.SetZEntry(z0[f'{i}'][f'{j}'],i,j)
+
+                    for k in range(number_of_bases):
+                        entries = len(w[f'{i}'][f'{j}'][f'{k}'])
+                        temp_vector = KratosMultiphysics.Vector(entries)
+                        for entry in range(entries):
+                            temp_vector[entry] = w[f'{i}'][f'{j}'][f'{k}'][entry]
+                        distance_to_clusters.SetWEntry(temp_vector,i,j,k)
+                if i==0:
+                    self.ClusterCentroids = data["cluster_centroids"][i]
+                else:
+                    self.ClusterCentroids = np.c_[self.ClusterCentroids , data["cluster_centroids"][i]]
+
+
+            self.Delta_q = data["delta_q"]
+            self.current_cluster = data["correct_cluster"]
+
+            #pdb.set_trace()
+            print(distance_to_clusters.GetZMatrix())
+
+        Bases = romapp.RomBases()
         for i in range(number_of_bases):
-            self.Bases.AddBasis(i, POD_BASES[i])
-        print('\n\n\n\n\n\n\n')
-        print(self.Bases)
-        print('\n\n\n\n\n\n\n')
-        #setup bases in the solver
+            Bases.AddBasis(i, POD_BASES[i])
 
-        self._GetSolver().get_builder_and_solver().SetUpBases(self.Bases)
-        pdb.set_trace()
+        self.Number_Of_Clusters = number_of_bases
 
 
-        computing_model_part = self._solver.GetComputingModelPart()
-        with open('RomParameters.json') as f:
-            data = json.load(f)
-            nodal_dofs = len(data["rom_settings"]["nodal_unknowns"])
-            nodal_modes = data["nodal_modes"]
-            number_of_bases = 1
-            counter = 0
-            rom_dofs= self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"][0].GetInt()
-            for node in computing_model_part.Nodes:
-                for k in range(number_of_bases):
-                    aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
-                    for j in range(nodal_dofs):
-                        Counter=str(node.Id)
-                        for i in range(rom_dofs):
-                            aux[j,i] = nodal_modes[Counter][str(k)][j][i]
-                    node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
-                    node.SetValue(romapp.AUX_ID, counter) # Aux ID
-                    counter+=1
+        for i in range(len(data["nodes_to_print"])):
+            self._GetSolver().get_builder_and_solver().SetNodeToPrint( data["nodes_to_print"][i] )
+        for i in range(len(data["elements_to_print"])):
+            self._GetSolver().get_builder_and_solver().SetElementToPrint( data["elements_to_print"][i] )
 
+        self._GetSolver().get_builder_and_solver().SetUpBases(Bases)
+        self._GetSolver().get_builder_and_solver().SetUpDistances(distance_to_clusters)
 
+        self.step_index = 0
 
-
-
-
-
-    def ModifyAfterSolverInitialize(self):
-        super().ModifyAfterSolverInitialize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
 
+
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+        #select the current cluster ...
+        self._GetSolver().get_builder_and_solver().UpdateCurrentCluster()
+        #self._GetSolver().get_builder_and_solver().HardSetCurrentCluster(self.current_cluster[self.step_index])
+        self.step_index +=1
+
+
+
     def FinalizeSolutionStep(self):
+        #pdb.set_trace()
         super().FinalizeSolutionStep()
+        #update the zmatrix ...
+        #self.distance_to_clusters.UpdateZMatrix(self._GetSolver().get_builder_and_solver().GetCurrentReducedCoefficients())
+        self._GetSolver().get_builder_and_solver().UpdateZMatrix()
+        self.CurrentFullDimensionalVector = np.array(self._GetSolver().get_builder_and_solver().GetCurrentFullDimensionalVector())
+        print('The solution I got by summing is: ',np.linalg.norm(self.CurrentFullDimensionalVector))
+        self.save_for_comparison.append(self.CurrentFullDimensionalVector)
+        print('according to full dimnesional reconstruction, nearest cluster is: ', self.FindNearestClusterToFullDimensionalVector())
 
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
@@ -114,6 +147,17 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 ResMat = self.ResidualUtilityObject.GetResiduals()
                 NP_ResMat = np.array(ResMat, copy=False)
                 self.time_step_residual_matrix_container.append(NP_ResMat)
+
+
+    def FindNearestClusterToFullDimensionalVector(self):
+        #identify the nearest cluster centroid to state i
+        this_matrix = self.ClusterCentroids - self.CurrentFullDimensionalVector.reshape( len(self.CurrentFullDimensionalVector), 1)
+        distance = np.zeros((self.Number_Of_Clusters))
+        for j in range(self.Number_Of_Clusters):
+            distance[j] = np.linalg.norm(this_matrix[:,j])
+        nearest_cluster = np.argsort(distance)[0]
+        return nearest_cluster
+
 
     def Finalize(self):
         super().FinalizeSolutionStep()

@@ -62,6 +62,17 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetNodalBasis",&RomBasis::GetNodalBasis) //
     ;
 
+    class_<DistanceToClusters, typename DistanceToClusters::Pointer>(m, "DistanceToClusters")
+    .def(init<int>()) //
+    .def("SetZEntry",&DistanceToClusters::SetZEntry) //
+    .def("SetWEntry",&DistanceToClusters::SetWEntry) //
+    .def("GetWEntry",&DistanceToClusters::GetWEntry) //
+    .def("GetZMatrix",&DistanceToClusters::GetZMatrix) //
+    .def("UpdateCurrentCluster",&DistanceToClusters::UpdateCurrentCluster) //
+    .def("UpdateZMatrix",&DistanceToClusters::UpdateZMatrix) //
+    .def("GetCurrentCluster",&DistanceToClusters::GetCurrentCluster) //
+;
+
 }
 
 } // namespace Python.

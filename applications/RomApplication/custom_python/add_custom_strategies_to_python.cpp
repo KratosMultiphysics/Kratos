@@ -55,6 +55,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
      py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() ) //
         .def("SetUpBases",&ROMBuilderAndSolverType::SetUpBases) //
+        .def("SetUpDistances",&ROMBuilderAndSolverType::SetUpDistances) //
+        .def("UpdateZMatrix",&ROMBuilderAndSolverType::UpdateZMatrix) //
+        .def("UpdateCurrentCluster",&ROMBuilderAndSolverType::UpdateCurrentCluster) //
+        .def("GetCurrentFullDimensionalVector",&ROMBuilderAndSolverType::GetCurrentFullDimensionalVector) //
+        .def("HardSetCurrentCluster",&ROMBuilderAndSolverType::HardSetCurrentCluster) //
+        .def("SetNodeToPrint",&ROMBuilderAndSolverType::SetNodeToPrint) //
+        .def("SetElementToPrint",&ROMBuilderAndSolverType::SetElementToPrint) //
+        .def("GetCurrentReducedCoefficients",&ROMBuilderAndSolverType::GetCurrentReducedCoefficients) //
+        .def("GetCurrentCluster",&ROMBuilderAndSolverType::GetCurrentCluster) //
         ;
 
 }
