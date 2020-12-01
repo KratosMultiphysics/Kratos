@@ -154,7 +154,7 @@ for dim in dim_vector:
         grad_w = DfjDxi(DN,w)
         grad_q = DfjDxi(DN,q)
         grad_p = DfjDxi(DN,p)
-        grad_p_minus_gammapn = DfjDxi(DN,p-gamma*pn)
+        grad_pn = DfjDxi(DN,pn)
         grad_v = DfjDxi(DN,v)
         grad_fracv = DfjDxi(DN,fracv)
         div_v = ones(1,1)*sum([DN[i]*v[i] for i in range (0,len(DN))])
@@ -202,7 +202,7 @@ for dim in dim_vector:
             res_momentum_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
 
         # Update mass functional
-        res_mass_galerkin = q_gauss*div_fracv + dt/rho*(grad_p_minus_gammapn.transpose()*grad_q)
+        res_mass_galerkin = -rho/dt*(q_gauss*div_fracv) - (grad_p.transpose()*grad_q) + gamma*(grad_pn.transpose()*grad_q)
 
         # Update end-of-step functional
         res_endofstep_galerkin = -rho/dt*(v_gauss-fracv_gauss).transpose()*w_gauss + (p_gauss-gamma*pn_gauss)*div_w

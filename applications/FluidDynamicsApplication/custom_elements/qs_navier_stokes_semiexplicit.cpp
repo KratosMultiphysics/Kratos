@@ -451,6 +451,14 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateLocalPressureSystem(
 
     constexpr unsigned int n_nodes = 3;
 
+    // Check sizes and initialize
+    if( rLeftHandSideMatrix.size1() != n_nodes )
+        rLeftHandSideMatrix.resize(n_nodes,n_nodes);
+    rLeftHandSideMatrix = ZeroMatrix(n_nodes,n_nodes);
+    if( rRightHandSideVector.size() != n_nodes )
+        rRightHandSideVector.resize(n_nodes);
+    rRightHandSideVector = ZeroVector(n_nodes);
+
     // Struct to pass around the data
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
@@ -485,37 +493,32 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateLocalPressureSystem(
     const double &DN_DX_2_0 = data.DN_DX(2, 0);
     const double &DN_DX_2_1 = data.DN_DX(2, 1);
 
-    const double crRightHandSideVector0 =             DN_DX_0_0*fracv(0,0);
-const double crRightHandSideVector1 =             DN_DX_0_1*fracv(0,1);
-const double crRightHandSideVector2 =             DN_DX_1_0*fracv(1,0);
-const double crRightHandSideVector3 =             DN_DX_1_1*fracv(1,1);
-const double crRightHandSideVector4 =             DN_DX_2_0*fracv(2,0);
-const double crRightHandSideVector5 =             DN_DX_2_1*fracv(2,1);
-const double crRightHandSideVector6 =             3*dt/rho;
-const double crRightHandSideVector7 =             gamma*pn[0] - p[0];
-const double crRightHandSideVector8 =             gamma*pn[1] - p[1];
-const double crRightHandSideVector9 =             gamma*pn[2] - p[2];
-const double crRightHandSideVector10 =             DN_DX_0_0*crRightHandSideVector7 + DN_DX_1_0*crRightHandSideVector8 + DN_DX_2_0*crRightHandSideVector9;
-const double crRightHandSideVector11 =             DN_DX_0_1*crRightHandSideVector7 + DN_DX_1_1*crRightHandSideVector8 + DN_DX_2_1*crRightHandSideVector9;
-const double crRightHandSideVector12 =             1.0*crRightHandSideVector0 + 1.0*crRightHandSideVector1 + 1.0*crRightHandSideVector2 + 1.0*crRightHandSideVector3 + 1.0*crRightHandSideVector4 + 1.0*crRightHandSideVector5;
-            rRightHandSideVector[0]=1.0*crRightHandSideVector0 + 1.0*crRightHandSideVector1 + 1.0*crRightHandSideVector2 + 1.0*crRightHandSideVector3 + 1.0*crRightHandSideVector4 + 1.0*crRightHandSideVector5 - crRightHandSideVector6*(DN_DX_0_0*crRightHandSideVector10 + DN_DX_0_1*crRightHandSideVector11);
-            rRightHandSideVector[1]=crRightHandSideVector12 - crRightHandSideVector6*(DN_DX_1_0*crRightHandSideVector10 + DN_DX_1_1*crRightHandSideVector11);
-            rRightHandSideVector[2]=crRightHandSideVector12 - crRightHandSideVector6*(DN_DX_2_0*crRightHandSideVector10 + DN_DX_2_1*crRightHandSideVector11);
+    KRATOS_WATCH("Start pressure computation...");
+    const double crRightHandSideVector0 =             3*DN_DX_0_0*p[0] + 3*DN_DX_1_0*p[1] + 3*DN_DX_2_0*p[2];
+const double crRightHandSideVector1 =             3*DN_DX_0_1*p[0] + 3*DN_DX_1_1*p[1] + 3*DN_DX_2_1*p[2];
+const double crRightHandSideVector2 =             rho*(DN_DX_0_0*fracv(0,0) + DN_DX_0_1*fracv(0,1) + DN_DX_1_0*fracv(1,0) + DN_DX_1_1*fracv(1,1) + DN_DX_2_0*fracv(2,0) + DN_DX_2_1*fracv(2,1))/dt;
+const double crRightHandSideVector3 =             3*gamma;
+const double crRightHandSideVector4 =             DN_DX_0_0*pn[0] + DN_DX_1_0*pn[1] + DN_DX_2_0*pn[2];
+const double crRightHandSideVector5 =             DN_DX_0_1*pn[0] + DN_DX_1_1*pn[1] + DN_DX_2_1*pn[2];
+const double crRightHandSideVector6 =             -1.0*crRightHandSideVector2;
+            rRightHandSideVector[0]=-DN_DX_0_0*crRightHandSideVector0 - DN_DX_0_1*crRightHandSideVector1 - 1.0*crRightHandSideVector2 + crRightHandSideVector3*(DN_DX_0_0*crRightHandSideVector4 + DN_DX_0_1*crRightHandSideVector5);
+            rRightHandSideVector[1]=-DN_DX_1_0*crRightHandSideVector0 - DN_DX_1_1*crRightHandSideVector1 + crRightHandSideVector3*(DN_DX_1_0*crRightHandSideVector4 + DN_DX_1_1*crRightHandSideVector5) + crRightHandSideVector6;
+            rRightHandSideVector[2]=-DN_DX_2_0*crRightHandSideVector0 - DN_DX_2_1*crRightHandSideVector1 + crRightHandSideVector3*(DN_DX_2_0*crRightHandSideVector4 + DN_DX_2_1*crRightHandSideVector5) + crRightHandSideVector6;
 
-    const double crLeftHandSideMatrix0 =             3*dt/rho;
-const double crLeftHandSideMatrix1 =             -crLeftHandSideMatrix0*(DN_DX_0_0*DN_DX_1_0 + DN_DX_0_1*DN_DX_1_1);
-const double crLeftHandSideMatrix2 =             -crLeftHandSideMatrix0*(DN_DX_0_0*DN_DX_2_0 + DN_DX_0_1*DN_DX_2_1);
-const double crLeftHandSideMatrix3 =             -crLeftHandSideMatrix0*(DN_DX_1_0*DN_DX_2_0 + DN_DX_1_1*DN_DX_2_1);
-            rLeftHandSideMatrix(0,0)=-crLeftHandSideMatrix0*(pow(DN_DX_0_0, 2) + pow(DN_DX_0_1, 2));
-            rLeftHandSideMatrix(0,1)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(0,2)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(1,0)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(1,1)=-crLeftHandSideMatrix0*(pow(DN_DX_1_0, 2) + pow(DN_DX_1_1, 2));
-            rLeftHandSideMatrix(1,2)=crLeftHandSideMatrix3;
-            rLeftHandSideMatrix(2,0)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(2,1)=crLeftHandSideMatrix3;
-            rLeftHandSideMatrix(2,2)=-crLeftHandSideMatrix0*(pow(DN_DX_2_0, 2) + pow(DN_DX_2_1, 2));
+    const double crLeftHandSideMatrix0 =             3*(DN_DX_0_0*DN_DX_1_0 + DN_DX_0_1*DN_DX_1_1);
+const double crLeftHandSideMatrix1 =             3*(DN_DX_0_0*DN_DX_2_0 + DN_DX_0_1*DN_DX_2_1);
+const double crLeftHandSideMatrix2 =             3*(DN_DX_1_0*DN_DX_2_0 + DN_DX_1_1*DN_DX_2_1);
+            rLeftHandSideMatrix(0,0)=3*(pow(DN_DX_0_0, 2) + pow(DN_DX_0_1, 2));
+            rLeftHandSideMatrix(0,1)=crLeftHandSideMatrix0;
+            rLeftHandSideMatrix(0,2)=crLeftHandSideMatrix1;
+            rLeftHandSideMatrix(1,0)=crLeftHandSideMatrix0;
+            rLeftHandSideMatrix(1,1)=3*(pow(DN_DX_1_0, 2) + pow(DN_DX_1_1, 2));
+            rLeftHandSideMatrix(1,2)=crLeftHandSideMatrix2;
+            rLeftHandSideMatrix(2,0)=crLeftHandSideMatrix1;
+            rLeftHandSideMatrix(2,1)=crLeftHandSideMatrix2;
+            rLeftHandSideMatrix(2,2)=3*(pow(DN_DX_2_0, 2) + pow(DN_DX_2_1, 2));
 
+    KRATOS_WATCH("End pressure computation...");
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
     rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
@@ -535,6 +538,14 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLocalPressureSystem(
     KRATOS_TRY;
 
     constexpr unsigned int n_nodes = 4;
+
+    // Check sizes and initialize
+    if( rLeftHandSideMatrix.size1() != n_nodes )
+        rLeftHandSideMatrix.resize(n_nodes,n_nodes);
+    rLeftHandSideMatrix = ZeroMatrix(n_nodes,n_nodes);
+    if( rRightHandSideVector.size() != n_nodes )
+        rRightHandSideVector.resize(n_nodes);
+    rRightHandSideVector = ZeroVector(n_nodes);
 
     // Struct to pass around the data
     ElementDataStruct data;
@@ -576,43 +587,41 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLocalPressureSystem(
     const double &DN_DX_3_1 = data.DN_DX(3, 1);
     const double &DN_DX_3_2 = data.DN_DX(3, 2);
 
-    const double crRightHandSideVector0 =             1.0*DN_DX_0_0*fracv(0,0) + 1.0*DN_DX_0_1*fracv(0,1) + 1.0*DN_DX_0_2*fracv(0,2) + 1.0*DN_DX_1_0*fracv(1,0) + 1.0*DN_DX_1_1*fracv(1,1) + 1.0*DN_DX_1_2*fracv(1,2) + 1.0*DN_DX_2_0*fracv(2,0) + 1.0*DN_DX_2_1*fracv(2,1) + 1.0*DN_DX_2_2*fracv(2,2) + 1.0*DN_DX_3_0*fracv(3,0) + 1.0*DN_DX_3_1*fracv(3,1) + 1.0*DN_DX_3_2*fracv(3,2);
-const double crRightHandSideVector1 =             4*dt/rho;
-const double crRightHandSideVector2 =             gamma*pn[0] - p[0];
-const double crRightHandSideVector3 =             gamma*pn[1] - p[1];
-const double crRightHandSideVector4 =             gamma*pn[2] - p[2];
-const double crRightHandSideVector5 =             gamma*pn[3] - p[3];
-const double crRightHandSideVector6 =             DN_DX_0_0*crRightHandSideVector2 + DN_DX_1_0*crRightHandSideVector3 + DN_DX_2_0*crRightHandSideVector4 + DN_DX_3_0*crRightHandSideVector5;
-const double crRightHandSideVector7 =             DN_DX_0_1*crRightHandSideVector2 + DN_DX_1_1*crRightHandSideVector3 + DN_DX_2_1*crRightHandSideVector4 + DN_DX_3_1*crRightHandSideVector5;
-const double crRightHandSideVector8 =             DN_DX_0_2*crRightHandSideVector2 + DN_DX_1_2*crRightHandSideVector3 + DN_DX_2_2*crRightHandSideVector4 + DN_DX_3_2*crRightHandSideVector5;
-            rRightHandSideVector[0]=crRightHandSideVector0 - crRightHandSideVector1*(DN_DX_0_0*crRightHandSideVector6 + DN_DX_0_1*crRightHandSideVector7 + DN_DX_0_2*crRightHandSideVector8);
-            rRightHandSideVector[1]=crRightHandSideVector0 - crRightHandSideVector1*(DN_DX_1_0*crRightHandSideVector6 + DN_DX_1_1*crRightHandSideVector7 + DN_DX_1_2*crRightHandSideVector8);
-            rRightHandSideVector[2]=crRightHandSideVector0 - crRightHandSideVector1*(DN_DX_2_0*crRightHandSideVector6 + DN_DX_2_1*crRightHandSideVector7 + DN_DX_2_2*crRightHandSideVector8);
-            rRightHandSideVector[3]=crRightHandSideVector0 - crRightHandSideVector1*(DN_DX_3_0*crRightHandSideVector6 + DN_DX_3_1*crRightHandSideVector7 + DN_DX_3_2*crRightHandSideVector8);
+    const double crRightHandSideVector0 =             4*DN_DX_0_0*p[0] + 4*DN_DX_1_0*p[1] + 4*DN_DX_2_0*p[2] + 4*DN_DX_3_0*p[3];
+const double crRightHandSideVector1 =             4*DN_DX_0_1*p[0] + 4*DN_DX_1_1*p[1] + 4*DN_DX_2_1*p[2] + 4*DN_DX_3_1*p[3];
+const double crRightHandSideVector2 =             4*DN_DX_0_2*p[0] + 4*DN_DX_1_2*p[1] + 4*DN_DX_2_2*p[2] + 4*DN_DX_3_2*p[3];
+const double crRightHandSideVector3 =             -1.0*rho*(DN_DX_0_0*fracv(0,0) + DN_DX_0_1*fracv(0,1) + DN_DX_0_2*fracv(0,2) + DN_DX_1_0*fracv(1,0) + DN_DX_1_1*fracv(1,1) + DN_DX_1_2*fracv(1,2) + DN_DX_2_0*fracv(2,0) + DN_DX_2_1*fracv(2,1) + DN_DX_2_2*fracv(2,2) + DN_DX_3_0*fracv(3,0) + DN_DX_3_1*fracv(3,1) + DN_DX_3_2*fracv(3,2))/dt;
+const double crRightHandSideVector4 =             4*gamma;
+const double crRightHandSideVector5 =             DN_DX_0_0*pn[0] + DN_DX_1_0*pn[1] + DN_DX_2_0*pn[2] + DN_DX_3_0*pn[3];
+const double crRightHandSideVector6 =             DN_DX_0_1*pn[0] + DN_DX_1_1*pn[1] + DN_DX_2_1*pn[2] + DN_DX_3_1*pn[3];
+const double crRightHandSideVector7 =             DN_DX_0_2*pn[0] + DN_DX_1_2*pn[1] + DN_DX_2_2*pn[2] + DN_DX_3_2*pn[3];
+            rRightHandSideVector[0]=-DN_DX_0_0*crRightHandSideVector0 - DN_DX_0_1*crRightHandSideVector1 - DN_DX_0_2*crRightHandSideVector2 + crRightHandSideVector3 + crRightHandSideVector4*(DN_DX_0_0*crRightHandSideVector5 + DN_DX_0_1*crRightHandSideVector6 + DN_DX_0_2*crRightHandSideVector7);
+            rRightHandSideVector[1]=-DN_DX_1_0*crRightHandSideVector0 - DN_DX_1_1*crRightHandSideVector1 - DN_DX_1_2*crRightHandSideVector2 + crRightHandSideVector3 + crRightHandSideVector4*(DN_DX_1_0*crRightHandSideVector5 + DN_DX_1_1*crRightHandSideVector6 + DN_DX_1_2*crRightHandSideVector7);
+            rRightHandSideVector[2]=-DN_DX_2_0*crRightHandSideVector0 - DN_DX_2_1*crRightHandSideVector1 - DN_DX_2_2*crRightHandSideVector2 + crRightHandSideVector3 + crRightHandSideVector4*(DN_DX_2_0*crRightHandSideVector5 + DN_DX_2_1*crRightHandSideVector6 + DN_DX_2_2*crRightHandSideVector7);
+            rRightHandSideVector[3]=-DN_DX_3_0*crRightHandSideVector0 - DN_DX_3_1*crRightHandSideVector1 - DN_DX_3_2*crRightHandSideVector2 + crRightHandSideVector3 + crRightHandSideVector4*(DN_DX_3_0*crRightHandSideVector5 + DN_DX_3_1*crRightHandSideVector6 + DN_DX_3_2*crRightHandSideVector7);
 
-    const double crLeftHandSideMatrix0 =             4*dt/rho;
-const double crLeftHandSideMatrix1 =             -crLeftHandSideMatrix0*(DN_DX_0_0*DN_DX_1_0 + DN_DX_0_1*DN_DX_1_1 + DN_DX_0_2*DN_DX_1_2);
-const double crLeftHandSideMatrix2 =             -crLeftHandSideMatrix0*(DN_DX_0_0*DN_DX_2_0 + DN_DX_0_1*DN_DX_2_1 + DN_DX_0_2*DN_DX_2_2);
-const double crLeftHandSideMatrix3 =             -crLeftHandSideMatrix0*(DN_DX_0_0*DN_DX_3_0 + DN_DX_0_1*DN_DX_3_1 + DN_DX_0_2*DN_DX_3_2);
-const double crLeftHandSideMatrix4 =             -crLeftHandSideMatrix0*(DN_DX_1_0*DN_DX_2_0 + DN_DX_1_1*DN_DX_2_1 + DN_DX_1_2*DN_DX_2_2);
-const double crLeftHandSideMatrix5 =             -crLeftHandSideMatrix0*(DN_DX_1_0*DN_DX_3_0 + DN_DX_1_1*DN_DX_3_1 + DN_DX_1_2*DN_DX_3_2);
-const double crLeftHandSideMatrix6 =             -crLeftHandSideMatrix0*(DN_DX_2_0*DN_DX_3_0 + DN_DX_2_1*DN_DX_3_1 + DN_DX_2_2*DN_DX_3_2);
-            rLeftHandSideMatrix(0,0)=-crLeftHandSideMatrix0*(pow(DN_DX_0_0, 2) + pow(DN_DX_0_1, 2) + pow(DN_DX_0_2, 2));
-            rLeftHandSideMatrix(0,1)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(0,2)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(0,3)=crLeftHandSideMatrix3;
-            rLeftHandSideMatrix(1,0)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(1,1)=-crLeftHandSideMatrix0*(pow(DN_DX_1_0, 2) + pow(DN_DX_1_1, 2) + pow(DN_DX_1_2, 2));
-            rLeftHandSideMatrix(1,2)=crLeftHandSideMatrix4;
-            rLeftHandSideMatrix(1,3)=crLeftHandSideMatrix5;
-            rLeftHandSideMatrix(2,0)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(2,1)=crLeftHandSideMatrix4;
-            rLeftHandSideMatrix(2,2)=-crLeftHandSideMatrix0*(pow(DN_DX_2_0, 2) + pow(DN_DX_2_1, 2) + pow(DN_DX_2_2, 2));
-            rLeftHandSideMatrix(2,3)=crLeftHandSideMatrix6;
-            rLeftHandSideMatrix(3,0)=crLeftHandSideMatrix3;
-            rLeftHandSideMatrix(3,1)=crLeftHandSideMatrix5;
-            rLeftHandSideMatrix(3,2)=crLeftHandSideMatrix6;
-            rLeftHandSideMatrix(3,3)=-crLeftHandSideMatrix0*(pow(DN_DX_3_0, 2) + pow(DN_DX_3_1, 2) + pow(DN_DX_3_2, 2));
+    const double crLeftHandSideMatrix0 =             4*(DN_DX_0_0*DN_DX_1_0 + DN_DX_0_1*DN_DX_1_1 + DN_DX_0_2*DN_DX_1_2);
+const double crLeftHandSideMatrix1 =             4*(DN_DX_0_0*DN_DX_2_0 + DN_DX_0_1*DN_DX_2_1 + DN_DX_0_2*DN_DX_2_2);
+const double crLeftHandSideMatrix2 =             4*(DN_DX_0_0*DN_DX_3_0 + DN_DX_0_1*DN_DX_3_1 + DN_DX_0_2*DN_DX_3_2);
+const double crLeftHandSideMatrix3 =             4*(DN_DX_1_0*DN_DX_2_0 + DN_DX_1_1*DN_DX_2_1 + DN_DX_1_2*DN_DX_2_2);
+const double crLeftHandSideMatrix4 =             4*(DN_DX_1_0*DN_DX_3_0 + DN_DX_1_1*DN_DX_3_1 + DN_DX_1_2*DN_DX_3_2);
+const double crLeftHandSideMatrix5 =             4*(DN_DX_2_0*DN_DX_3_0 + DN_DX_2_1*DN_DX_3_1 + DN_DX_2_2*DN_DX_3_2);
+            rLeftHandSideMatrix(0,0)=4*(pow(DN_DX_0_0, 2) + pow(DN_DX_0_1, 2) + pow(DN_DX_0_2, 2));
+            rLeftHandSideMatrix(0,1)=crLeftHandSideMatrix0;
+            rLeftHandSideMatrix(0,2)=crLeftHandSideMatrix1;
+            rLeftHandSideMatrix(0,3)=crLeftHandSideMatrix2;
+            rLeftHandSideMatrix(1,0)=crLeftHandSideMatrix0;
+            rLeftHandSideMatrix(1,1)=4*(pow(DN_DX_1_0, 2) + pow(DN_DX_1_1, 2) + pow(DN_DX_1_2, 2));
+            rLeftHandSideMatrix(1,2)=crLeftHandSideMatrix3;
+            rLeftHandSideMatrix(1,3)=crLeftHandSideMatrix4;
+            rLeftHandSideMatrix(2,0)=crLeftHandSideMatrix1;
+            rLeftHandSideMatrix(2,1)=crLeftHandSideMatrix3;
+            rLeftHandSideMatrix(2,2)=4*(pow(DN_DX_2_0, 2) + pow(DN_DX_2_1, 2) + pow(DN_DX_2_2, 2));
+            rLeftHandSideMatrix(2,3)=crLeftHandSideMatrix5;
+            rLeftHandSideMatrix(3,0)=crLeftHandSideMatrix2;
+            rLeftHandSideMatrix(3,1)=crLeftHandSideMatrix4;
+            rLeftHandSideMatrix(3,2)=crLeftHandSideMatrix5;
+            rLeftHandSideMatrix(3,3)=4*(pow(DN_DX_3_0, 2) + pow(DN_DX_3_1, 2) + pow(DN_DX_3_2, 2));
 
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
@@ -1277,6 +1286,9 @@ void QSNavierStokesSemiExplicit<TDim,TNumNodes>::FillElementData(
             // observe that VELOCITY and not FRACT_VEL is being used as dof, to avoid saving additional dofs
             rData.fractional_convective_velocity(node_element,k) = r_velocity[k];
         }
+        // pressure current and previous time step
+        rData.pressure[node_element] = r_geometry[node_element].FastGetSolutionStepValue(PRESSURE);
+        rData.pressure_old[node_element] = r_geometry[node_element].FastGetSolutionStepValue(PRESSURE,1);
         // rData.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue();
         rData.mu += r_geometry[node_element].FastGetSolutionStepValue(VISCOSITY);
         rData.rho += r_geometry[node_element].FastGetSolutionStepValue(DENSITY);

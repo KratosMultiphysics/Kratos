@@ -268,6 +268,14 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateLocalPressureSystem(
 
     constexpr unsigned int n_nodes = 3;
 
+    // Check sizes and initialize
+    if( rLeftHandSideMatrix.size1() != n_nodes )
+        rLeftHandSideMatrix.resize(n_nodes,n_nodes);
+    rLeftHandSideMatrix = ZeroMatrix(n_nodes,n_nodes);
+    if( rRightHandSideVector.size() != n_nodes )
+        rRightHandSideVector.resize(n_nodes);
+    rRightHandSideVector = ZeroVector(n_nodes);
+
     // Struct to pass around the data
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
@@ -302,8 +310,10 @@ void QSNavierStokesSemiExplicit<2,3>::CalculateLocalPressureSystem(
     const double &DN_DX_2_0 = data.DN_DX(2, 0);
     const double &DN_DX_2_1 = data.DN_DX(2, 1);
 
+    KRATOS_WATCH("Start pressure computation...");
     //substitute_rhs_mass_2D
     //substitute_lhs_mass_2D
+    KRATOS_WATCH("End pressure computation...");
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
     rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
@@ -323,6 +333,14 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLocalPressureSystem(
     KRATOS_TRY;
 
     constexpr unsigned int n_nodes = 4;
+
+    // Check sizes and initialize
+    if( rLeftHandSideMatrix.size1() != n_nodes )
+        rLeftHandSideMatrix.resize(n_nodes,n_nodes);
+    rLeftHandSideMatrix = ZeroMatrix(n_nodes,n_nodes);
+    if( rRightHandSideVector.size() != n_nodes )
+        rRightHandSideVector.resize(n_nodes);
+    rRightHandSideVector = ZeroVector(n_nodes);
 
     // Struct to pass around the data
     ElementDataStruct data;
@@ -719,6 +737,9 @@ void QSNavierStokesSemiExplicit<TDim,TNumNodes>::FillElementData(
             // observe that VELOCITY and not FRACT_VEL is being used as dof, to avoid saving additional dofs
             rData.fractional_convective_velocity(node_element,k) = r_velocity[k];
         }
+        // pressure current and previous time step
+        rData.pressure[node_element] = r_geometry[node_element].FastGetSolutionStepValue(PRESSURE);
+        rData.pressure_old[node_element] = r_geometry[node_element].FastGetSolutionStepValue(PRESSURE,1);
         // rData.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue();
         rData.mu += r_geometry[node_element].FastGetSolutionStepValue(VISCOSITY);
         rData.rho += r_geometry[node_element].FastGetSolutionStepValue(DENSITY);
