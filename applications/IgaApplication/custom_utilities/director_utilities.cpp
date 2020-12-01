@@ -16,7 +16,7 @@
 #include "includes/define.h"
 #include "director_utilities.h"
 #include "factories/linear_solver_factory.h"
-
+#include "iga_application_variables.h"
 
 namespace Kratos
 {
@@ -58,18 +58,17 @@ namespace Kratos
 
                 NTNele += outer_prod(Nip, Nip);
 
-                for(SizeType inodes=0; inodes< numNodes;++inodes)
+                for(SizeType inodes=0; inodes< number_of_control_points;++inodes)
                    row( RhsEle,inodes) += Nip[inodes]*trans(A3);
-
             }
-            for (SizeType inodes = 0; inodes < numNodes; ++inodes)
+
+            for (SizeType inodes = 0; inodes < number_of_control_points; ++inodes)
             {
                 row(directorAtIntgrationPoints, geometry[inodes].GetId()) += row(RhsEle, inodes);
 
                 //how to  effiecently use ublas_space AssembleLHS
-                for (SizeType jnodes = 0; inodes < numNodes; ++jnodes)
+                for (SizeType jnodes = 0; inodes < number_of_control_points; ++jnodes)
                     NTN(geometry[inodes].GetId(), geometry[jnodes].GetId()) += NTNele(inodes, jnodes);
-
             }
         
             Parameters solver_parameters(mParameters["linear_solver_settings"]);
@@ -80,16 +79,11 @@ namespace Kratos
 
             solver->Solve(NTN, nodalDirectors, directorAtIntgrationPoints);
 
-            for (SizeType i = 0; i < number_of_control_points; ++i) {
-                geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i);
-            }
-
-            //mrModelPart.GetRootModelPart().pGetGeometry()[i].set //How to send solution back to nodes?
-            //mrModelPart.Nodes()[i].SetValue(DIRECTOR, row(nodalDirectors, i);
-
-
-        KRATOS_WATCH(solution)
-    }
+            for (SizeType i = 0; i < number_of_control_points; ++i) 
+                geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
+            
+        KRATOS_WATCH(nodalDirectors)
+        }
 
     }
 
