@@ -206,7 +206,7 @@ GeoTrussElement3D2N::CalculateBodyForces()
     KRATOS_CATCH("")
 }
 
-void GeoTrussElement3D2N::GetValuesVector(Vector& rValues, int Step)
+void GeoTrussElement3D2N::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -226,7 +226,7 @@ void GeoTrussElement3D2N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void GeoTrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void GeoTrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -246,7 +246,7 @@ void GeoTrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void GeoTrussElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void GeoTrussElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY

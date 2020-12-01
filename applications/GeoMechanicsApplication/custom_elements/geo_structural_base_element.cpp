@@ -378,7 +378,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoStructuralBaseElement<TDim,TNumNodes>::
-    GetValuesVector( Vector& rValues, int Step )
+    GetValuesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
@@ -417,7 +417,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoStructuralBaseElement<TDim,TNumNodes>::
-GetFirstDerivativesVector( Vector& rValues, int Step )
+GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
@@ -457,7 +457,7 @@ GetFirstDerivativesVector( Vector& rValues, int Step )
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoStructuralBaseElement<TDim,TNumNodes>::
-    GetSecondDerivativesVector( Vector& rValues, int Step )
+    GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 

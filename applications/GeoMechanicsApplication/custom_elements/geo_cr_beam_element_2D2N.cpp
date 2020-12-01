@@ -121,7 +121,7 @@ void GeoCrBeamElement2D2N::Initialize()
     KRATOS_CATCH("")
 }
 
-void GeoCrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step)
+void GeoCrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY

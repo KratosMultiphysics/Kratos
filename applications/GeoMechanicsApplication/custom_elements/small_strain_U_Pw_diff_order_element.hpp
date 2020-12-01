@@ -90,7 +90,7 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     void CalculateDampingMatrix( MatrixType& rDampingMatrix,
                                  const ProcessInfo& rCurrentProcessInfo ) override;

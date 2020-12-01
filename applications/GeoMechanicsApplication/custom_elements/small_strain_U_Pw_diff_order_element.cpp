@@ -579,7 +579,7 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 

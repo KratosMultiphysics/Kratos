@@ -445,7 +445,8 @@ void UPwBaseElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
+void UPwBaseElement<TDim,TNumNodes>::
+    GetValuesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
@@ -482,7 +483,8 @@ void UPwBaseElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step 
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step )
+void UPwBaseElement<TDim,TNumNodes>::
+    GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
@@ -521,7 +523,7 @@ void UPwBaseElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues,
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step )
+void UPwBaseElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 

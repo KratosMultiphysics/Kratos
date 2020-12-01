@@ -211,11 +211,11 @@ namespace Kratos
         ) override;
 
 
-        void GetValuesVector(Vector& rValues, int Step = 0) override;
+        void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
-        void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+        void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-        void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+        void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
         int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
