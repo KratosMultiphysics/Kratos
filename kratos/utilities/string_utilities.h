@@ -96,6 +96,13 @@ namespace StringUtilities
         const std::string& rString,
         const char Delimiter);
 
+    /**
+     * @brief This function replaces from a string all times a certain substring is repeated
+     * @param from The original string to be replaced
+     * @param to The string which replaces the substring
+     */
+    std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(std::string str, const std::string& from, const std::string& to);
+
 }; // namespace StringUtilities
 }  // namespace Kratos
 #endif /* KRATOS_STRING_UTILITIES defined */

@@ -145,10 +145,7 @@ public:
      * @brief This method returns the function body
      * @return The function body
      */
-    std::string FunctionBody()
-    {
-        return ReplaceAllSubstrings(mFunctionBody, "^", "**");
-    }
+    std::string FunctionBody();
 
     /**
      * @brief This method rotates and calls the evaluation function
@@ -207,17 +204,6 @@ private:
     bool mUseLocalSystem = false;                /// If we use a local system
     BoundedMatrix<double, 3, 3> mRotationMatrix; /// The rotation matrix
     array_1d<double, 3> mCenterCoordinates;      /// The center of coordinates
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /**
-     * @brief This function replaces from a string all times a certain substring is repeated
-     * @param from The original string to be replaced
-     * @param to The string which replaces the substring
-     */
-    std::string ReplaceAllSubstrings(std::string str, const std::string& from, const std::string& to);
 
     ///@}
 }; /// GenericFunctionUtility

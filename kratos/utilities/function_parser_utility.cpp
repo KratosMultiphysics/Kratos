@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/global_variables.h"
 #include "utilities/function_parser_utility.h"
+#include "utilities/string_utilities.h"
 
 namespace Kratos
 {
@@ -26,7 +27,7 @@ namespace Kratos
 GenericFunctionUtility::GenericFunctionUtility(
     const std::string& rFunctionBody,
     Parameters LocalSystem
-    ) : mFunctionBody(ReplaceAllSubstrings(rFunctionBody, "**", "^")) // Correcting function from python style to exprtk
+    ) : mFunctionBody(StringUtilities::ReplaceAllSubstrings(rFunctionBody, "**", "^")) // Correcting function from python style to exprtk
 {
     // Defining namespace
     mNameSpace.insert(std::pair<std::string, double>("x", 0.0));
@@ -144,6 +145,14 @@ GenericFunctionUtility::~GenericFunctionUtility()
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::string GenericFunctionUtility::FunctionBody()
+{
+    return StringUtilities::ReplaceAllSubstrings(mFunctionBody, "^", "**");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 double GenericFunctionUtility::RotateAndCallFunction(
     const double x,
     const double y,
@@ -189,19 +198,6 @@ double GenericFunctionUtility::CallFunction(
     mNameSpace["t"] = t;
 
     return mpExpression->value();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-std::string GenericFunctionUtility::ReplaceAllSubstrings(std::string str, const std::string& from, const std::string& to)
-{
-    std::size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
-    }
-    return str;
 }
 
 } /// namespace Kratos
