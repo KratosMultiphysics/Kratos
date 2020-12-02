@@ -222,9 +222,7 @@ public:
         p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
-        // Move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
+        
         if (is_converged == true)
         {
             // Initialisation of the convergence criteria
@@ -294,9 +292,7 @@ public:
             p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
             p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
-            // Move the mesh if needed
-            if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
+        
             // If converged
             if (is_converged == true)
             {
@@ -319,6 +315,64 @@ public:
         }
 
         return is_converged;
+    }
+
+    void FinalizeSolutionStep() override
+    {
+        KRATOS_TRY;
+
+        ModelPart& r_model_part = BaseType::GetModelPart();
+
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+
+        TSystemMatrixType& rA  = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb  = *mpb;
+
+        //Finalisation of the solution step,
+        //operations to be done after achieving convergence, for example the
+        //Final Residual Vector (mb) has to be saved in there
+        //to avoid error accumulation
+
+        p_scheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+        // Move the mesh if needed
+        if (BaseType::MoveMeshFlag() == true) {
+            // Definition of the first element iterator
+            const int num_nodes = r_model_part.Nodes().size();
+            const auto it_node_begin = r_model_part.Nodes().begin();
+
+            #pragma omp parallel for
+            for(int i = 0;  i < num_nodes; ++i) {
+                auto it_node = it_node_begin + i;
+                    
+                    noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+                    noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                    
+                    //Update Initial Poisition of the grid nodes as the displacements at the nodes are reset every time step
+                    it_node->SetInitialPosition(it_node->X0() + it_node->FastGetSolutionStepValue(DISPLACEMENT_X),it_node->Y0() 
+                        + it_node->FastGetSolutionStepValue(DISPLACEMENT_Y),it_node->Z0() + it_node->FastGetSolutionStepValue(DISPLACEMENT_Z));
+                }
+        }
+        p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+        mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
+
+        
+
+        //Cleaning memory after the solution
+        p_scheme->Clean();
+
+        //reset flags for next step
+        mSolutionStepIsInitialized = false;
+
+        if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
+        {
+            this->Clear();
+        }
+
+        KRATOS_CATCH("");
+        
+        
     }
 
 }; /* Class MPMResidualBasedNewtonRaphsonStrategy */
