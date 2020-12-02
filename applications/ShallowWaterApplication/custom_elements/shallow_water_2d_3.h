@@ -307,9 +307,9 @@ protected:
         double manning2;
         double effective_height;
 
-        array_1d<double, 9> depth;
-        array_1d<double, 9> rain;
-        array_1d<double, 9> unknown;
+        array_1d<double,3> depth;
+        array_1d<double,3> rain;
+        array_1d<double,9> unknown;
 
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);

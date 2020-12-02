@@ -75,7 +75,7 @@ void ShallowWater2D3::EquationIdVector(EquationIdVectorType& rResult, const Proc
 
     const GeometryType& rGeom = GetGeometry();
     int counter=0;
-    for (unsigned int i = 0; i < 3; i++)
+    for (size_t i = 0; i < 3; i++)
     {
         rResult[counter++] = rGeom[i].GetDof(MOMENTUM_X).EquationId();
         rResult[counter++] = rGeom[i].GetDof(MOMENTUM_Y).EquationId();
@@ -94,7 +94,7 @@ void ShallowWater2D3::GetDofList(DofsVectorType& rElementalDofList, const Proces
 
     const GeometryType& rGeom = GetGeometry();
     int counter=0;
-    for (unsigned int i = 0; i < 3; i++)
+    for (size_t i = 0; i < 3; i++)
     {
         rElementalDofList[counter++] = rGeom[i].pGetDof(MOMENTUM_X);
         rElementalDofList[counter++] = rGeom[i].pGetDof(MOMENTUM_Y);
@@ -235,7 +235,11 @@ void ShallowWater2D3::AddSourceTerms(
     rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
 
     // Rain
-    rRHS += prod(height_mass_matrix, rData.rain);
+    const double lumping_factor = 1.0 / 3.0;
+    for (size_t i = 0; i < 3; ++i) {
+        const size_t block = 3 * i;
+        rRHS(block+2) += lumping_factor * rData.rain[i];
+    }
 }
 
 void ShallowWater2D3::AddShockCapturingTerm(
@@ -271,7 +275,7 @@ void ShallowWater2D3::CalculateOnIntegrationPoints(
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
+    for (size_t PointNumber = 0; PointNumber < 1; PointNumber++)
         rValues[PointNumber] = double(this->GetValue(rVariable));
 }
 
@@ -293,8 +297,8 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
     manning2 = 0.0;
     effective_height = 0.0;
 
-    unsigned int j = 0;
-    for (unsigned int i = 0; i < 3; i++)
+    size_t j = 0;
+    for (size_t i = 0; i < 3; i++)
     {
         const auto h = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
         const auto f = rGeometry[i].FastGetSolutionStepValue(MOMENTUM);
@@ -308,20 +312,12 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         velocity_div += v[1] * rDN_DX(i,1);
         manning2 += n;
 
-        depth[j] = 0;
-        rain[j]  = 0;
-        unknown[j]  = f[0];
-        j++;
+        depth[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
+        rain[i] = rGeometry[i].FastGetSolutionStepValue(RAIN);
 
-        depth[j] = 0;
-        rain[j]  = 0;
-        unknown[j]  = f[1];
-        j++;
-
-        depth[j] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
-        rain[j]  = rGeometry[i].FastGetSolutionStepValue(RAIN);
-        unknown[j]  = h;
-        j++;
+        unknown[j++] = f[0];
+        unknown[j++] = f[1];
+        unknown[j++] = h;
 
         effective_height += std::max(0.0, h);
     }
@@ -558,23 +554,21 @@ void ShallowWater2D3::ComputeGradientVector(
         const size_t i_block = 3 * i;
         for (size_t j = 0; j < 3; ++j)
         {
-            const size_t j_block = 3 * j;
-
             /* First component */
-            rVector[i_block] -= c2 * rN[i] * rDN_DX(j,0) * depth[j_block + 2];
+            rVector[i_block] -= c2 * rN[i] * rDN_DX(j,0) * depth[j];
 
             /* Second component */
-            rVector[i_block + 1] -= c2 * rN[i] * rDN_DX(j,1) * depth[j_block + 2];
+            rVector[i_block + 1] -= c2 * rN[i] * rDN_DX(j,1) * depth[j];
 
             /* Stabilization x-x
              * H1*G1
              */
-            rVector[i_block + 2] -= l * c2 * rDN_DX(i,0) * rDN_DX(j,0) * depth[j_block + 2];
+            rVector[i_block + 2] -= l * c2 * rDN_DX(i,0) * rDN_DX(j,0) * depth[j];
 
             /* Stabilization y-y
              * H2*G2
              */
-            rVector[i_block + 2] -= l * c2 * rDN_DX(i,1) * rDN_DX(j,1) * depth[j_block + 2];
+            rVector[i_block + 2] -= l * c2 * rDN_DX(i,1) * rDN_DX(j,1) * depth[j];
 
             /* Stabilization x-y and y-x
              * H1*G2 = H2*G1 = 0
@@ -648,8 +642,7 @@ void ShallowWater2D3::AlgebraicResidual(
         flow_acc += r_geom[i].FastGetSolutionStepValue(ACCELERATION);
         height_acc += r_geom[i].FastGetSolutionStepValue(VERTICAL_VELOCITY);
 
-        const size_t block = 3 * i;
-        rain += rData.rain[block + 2];
+        rain += rData.rain[i];
     }
     const double lumping_factor = 1.0 / 3.0;
     flow_acc *= lumping_factor;
