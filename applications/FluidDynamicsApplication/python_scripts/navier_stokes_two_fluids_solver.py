@@ -253,7 +253,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        super(NavierStokesTwoFluidsSolver, self).SolveSolutionStep()
+        #super(NavierStokesTwoFluidsSolver, self).SolveSolutionStep()
 
         if (self._levelset_dt_factor < 1.0):
             # Perform the level-set convection to complete the solution step

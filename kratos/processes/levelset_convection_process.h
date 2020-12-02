@@ -26,11 +26,13 @@
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_flux.h"
 #include "geometries/geometry_data.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h"
+#include "processes/compute_nodal_gradient_process.h"
 
 namespace Kratos
 {
@@ -101,7 +103,13 @@ public:
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps),
           mBfeccOrder(bfecc_order),
-          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart"),
+          mProjectedGradientProcess(ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>(
+            rBaseModelPart,
+            rLevelSetVar,
+            DISTANCE_GRADIENT,      // Should be set as an input
+            NODAL_AREA,             // Should be set as an input
+            false))
     {
         KRATOS_TRY
 
@@ -277,7 +285,10 @@ public:
                 }
             }
 
-            mpSolvingStrategy->Solve(); // forward convection to reach phi_n+1
+            //for (unsigned int iter = 0; iter < 10; ++iter){
+                mProjectedGradientProcess.Execute();
+                mpSolvingStrategy->Solve(); // forward convection to reach phi_n+1
+            //}
 
             if (mBfeccOrder > 0) {// Error Compensation and Correction
                 #pragma omp parallel for
@@ -292,6 +303,7 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 }
 
+                mProjectedGradientProcess.Execute();
                 mpSolvingStrategy->Solve(); // backward convetion to obtain phi_n*
 
                 // Calculating the raw error without a limiter, etc.
@@ -316,6 +328,7 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
                 }
 
+                mProjectedGradientProcess.Execute();
                 mpSolvingStrategy->Solve(); // forward convection to obtain the corrected phi_n+1
             }
         }
@@ -428,6 +441,8 @@ protected:
 
     std::string mAuxModelPartName;
 
+    ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> mProjectedGradientProcess;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -489,7 +504,7 @@ protected:
         // Generating the elements
         mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
+            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplexFlux < TDim, TDim+1 > >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());
