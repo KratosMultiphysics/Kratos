@@ -6,6 +6,15 @@ import math
 
 class TestMatrixInterface(KratosUnittest.TestCase):
 
+    def test_len(self):
+        # creation
+        A = KM.Matrix(9, 8)
+        self.assertEqual(72, len(A))
+
+        # after resizing
+        A.Resize(5, 1)
+        self.assertEqual(5, len(A))
+
     def test_copy(self):
         A = KM.Matrix(2,3)
         A.fill(1.0)
@@ -100,6 +109,18 @@ class TestMatrixInterface(KratosUnittest.TestCase):
 
         A *= 2.0
         self.assertMatrixAlmostEqual(C, A)
+
+    def test_matrix_transpose(self):
+        A = KM.Matrix(2,3)
+        B = KM.Matrix(3,2)
+        for i in range(A.Size1()):
+            for j in range(A.Size2()):
+                A[i,j] = i
+        B = A.transpose()
+
+        for i in range(A.Size1()):
+            for j in range(A.Size2()):
+                self.assertEqual(A[i,j], B[j,i])
 
 if __name__ == '__main__':
     KratosUnittest.main()

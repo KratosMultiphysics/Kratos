@@ -37,7 +37,7 @@ namespace Kratos
  *              laws in Abaqus / Explicit finite element code.Mechanics & Industry, EDP Sciences, 2018, 19 (3),
  *              pp.308.10.1051 / meca / 2018021.hal - 01905414
  */
-class JohnsonCookThermalPlastic3DLaw : public HyperElastic3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) JohnsonCookThermalPlastic3DLaw : public HyperElastic3DLaw
 {
 public:
 

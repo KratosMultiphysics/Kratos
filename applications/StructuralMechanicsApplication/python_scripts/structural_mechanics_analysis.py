@@ -35,20 +35,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         solver_settings = project_parameters["solver_settings"]
         self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
 
-        if self.contact_problem:
-            if solver_settings.Has("use_computing_model_part"):
-                if not solver_settings["use_computing_model_part"].GetBool():
-                    KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", 'For a contact problem the "ComputingModelPart" has to be used for now! Switching to True')
-                    solver_settings["use_computing_model_part"].SetBool(True)
-            else:
-                solver_settings.AddEmptyValue("use_computing_model_part").SetBool(True)
-
-
-        super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(StructuralMechanicsAnalysis, self).Initialize()
+        super().Initialize()
 
         # In case of contact problem
         if self.contact_problem:
@@ -76,70 +67,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
 
         # Creating output
-        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
-
-
-    def Check(self):
-        super(StructuralMechanicsAnalysis, self).Check()
-
-        # performing some checks if the submodelparts used for the processes and
-        # the material-assignments are being added to the ComputingModelPart
-        solver_settings = self.project_parameters["solver_settings"]
-        if not solver_settings["use_computing_model_part"].GetBool():
-            return # no computing model part used, hence checks are not necessary
-
-        main_model_part_name = solver_settings["model_part_name"].GetString()
-
-        # Checking if the material-submodelparts are added to the ComputingModelPart
-        materials_filename = solver_settings["material_import_settings"]["materials_filename"].GetString()
-        if (materials_filename != ""): # Materials are specified through a file
-            # creating a list with the names of smps that will be added to the ComputingModelPart
-            # note that the names here are WITHOUT the MainModelPart-Name
-            domain_smp_param = solver_settings["problem_domain_sub_model_part_list"]
-            list_domain_mp_names = [domain_smp_param[i].GetString() for i in range(domain_smp_param.size())]
-
-            if not main_model_part_name in list_domain_mp_names:
-                # if the mainmodelpart is added to the computingmodelpart, then also all
-                # submodelparts are added, no need to further check the submodelparts
-
-                with open(materials_filename,'r') as materials_file: # reading the materials-file
-                    materials = KratosMultiphysics.Parameters(materials_file.read())
-
-                for i in range(materials["properties"].size()):
-                    model_part_name = materials["properties"][i]["model_part_name"].GetString()
-                    if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
-                        model_part_name = model_part_name.replace(main_model_part_name+".", "")
-                    if model_part_name not in list_domain_mp_names:
-                        warn_msg  = 'The ModelPart with name "' + model_part_name + '"\n'
-                        warn_msg += 'is used for assigning materials but is not added to the ComputingModelPart!\n'
-                        warn_msg += 'This can be done by adding it to "problem_domain_sub_model_part_list" '
-                        warn_msg += 'in "solver_settings"\n'
-                        KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
-
-        # Checking if the processes-submodelparts are added to the ComputingModelPart
-        # creating a list with the names of smps that will be added to the ComputingModelPart
-        # note that the names here are WITHOUT the MainModelPart-Name
-        processes_smp_param = solver_settings["processes_sub_model_part_list"]
-        list_proc_mp_names = [processes_smp_param[i].GetString() for i in range(processes_smp_param.size())]
-
-        if not main_model_part_name in list_proc_mp_names:
-            # if the mainmodelpart is added to the computingmodelpart, then also all
-            # submodelparts are added, no need to further check the submodelparts
-
-            for processes_block in self.project_parameters["processes"].values():
-                for i_proc in range(processes_block.size()):
-                    process_params = processes_block[i_proc]["Parameters"]
-                    if process_params.Has("model_part_name"):
-                        model_part_name = process_params["model_part_name"].GetString()
-                        if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
-                            model_part_name = model_part_name.replace(main_model_part_name+".", "")
-                        if model_part_name not in list_proc_mp_names:
-                            proc_name = processes_block[i_proc]["python_module"].GetString()
-                            warn_msg  = 'The ModelPart with name "' + model_part_name + '"\n'
-                            warn_msg += 'is used for a process ("{}") \nbut is not added to the '.format(proc_name)
-                            warn_msg += 'ComputingModelPart!\nThis can be done by adding it to '
-                            warn_msg += '"processes_sub_model_part_list" in "solver_settings"\n'
-                            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
+        super().OutputSolutionStep()
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -152,7 +80,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",

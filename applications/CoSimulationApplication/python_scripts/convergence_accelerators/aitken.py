@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 ## @module aitken
 # This module contains the class AitkenConvergenceAccelerator
 # Author: Wei He
@@ -31,7 +29,7 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param init_alpha Initial relaxation factor in the first time step.
     # @param init_alpha_max Maximum relaxation factor for the first iteration in each time step
     def __init__( self, settings):
-        super(AitkenConvergenceAccelerator, self).__init__(settings)
+        super().__init__(settings)
         self.R = deque( maxlen = 2 )
 
         self.alpha_old      = self.settings["init_alpha"].GetDouble()
@@ -77,12 +75,12 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             return delta_x
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "init_alpha"     :  0.1,
             "init_alpha_max" :  0.45,
             "alpha_max"      :  2.0,
             "alpha_min"      : -2.0
         }""")
-        this_defaults.AddMissingParameters(super(AitkenConvergenceAccelerator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

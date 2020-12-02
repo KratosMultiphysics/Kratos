@@ -1,10 +1,8 @@
-/*
-//  KRATOS _______
-//        / ____(_)___ ____  ____
-//       / __/ / / __ `/ _ \/ __ \
-//      / /___/ / /_/ /  __/ / / /
-//     /_____/_/\__, /\___/_/ /_/ SolversApplication
-//             /____/
+/* KRATOS  _     _                       ____        _
+//        | |   (_)_ __   ___  __ _ _ __/ ___|  ___ | |_   _____ _ __ ___
+//        | |   | | '_ \ / _ \/ _` | '__\___ \ / _ \| \ \ / / _ \ '__/ __|
+//        | |___| | | | |  __/ (_| | |   ___) | (_) | |\ V /  __/ |  \__ |
+//        |_____|_|_| |_|\___|\__,_|_|  |____/ \___/|_| \_/ \___|_|  |___/ Application
 //
 //  Author: Thomas Oberbichler
 */
@@ -22,7 +20,9 @@
 //MKL implements some of FEAST's function. This define excludes the definitions of MKL's FEAST
 //functions in mkl/include/mkl_solvers_ee.h. Otherwise, some functions are defined multiple times
 #if defined USE_EIGEN_FEAST
+// defining both as MKL uses either, depending on the version
 #define _MKL_SOLVERS_EE_H
+#define __MKL_SOLVERS_EE_H
 #endif
 
 namespace Kratos {

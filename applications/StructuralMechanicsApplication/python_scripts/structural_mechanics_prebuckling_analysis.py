@@ -5,7 +5,7 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 
 class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
     def __init__(self, model, project_parameters):
-        super(StructuralMechanicsPrebucklingAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
         """This function initializes the StructuralMechanicsPrebucklingAnalysis

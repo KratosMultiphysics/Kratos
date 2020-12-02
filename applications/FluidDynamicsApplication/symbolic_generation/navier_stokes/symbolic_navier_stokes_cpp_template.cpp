@@ -42,7 +42,7 @@ Element::Pointer SymbolicNavierStokes<TElementData>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<SymbolicNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SymbolicNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -52,7 +52,7 @@ Element::Pointer SymbolicNavierStokes<TElementData>::Create(
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<SymbolicNavierStokes>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SymbolicNavierStokes>(NewId, pGeom, pProperties);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +204,7 @@ void SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >::ComputeGaussPointLHS
 
     auto& lhs = rData.lhs;
 
-    //substitute_lhs_2D
+    //substitute_lhs_2D3N
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -241,7 +241,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSCo
 
     auto& lhs = rData.lhs;
 
-    //substitute_lhs_3D
+    //substitute_lhs_3D4N
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -286,7 +286,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSCo
 
     auto& rhs = rData.rhs;
 
-    //substitute_rhs_2D
+    //substitute_rhs_2D3N
 
     noalias(rRHS) += rData.Weight * rhs;
 }
@@ -330,7 +330,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSCo
 
     auto& rhs = rData.rhs;
 
-    //substitute_rhs_3D
+    //substitute_rhs_3D4N
 
     noalias(rRHS) += rData.Weight * rhs;
 }

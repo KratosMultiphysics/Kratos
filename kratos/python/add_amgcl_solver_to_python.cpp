@@ -78,7 +78,6 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     .def(py::init<>())
     .def(py::init<Parameters>())
     .def( "GetResidualNorm",&AMGCLSolverType::GetResidualNorm)
-    .def( "GetIterationsNumber",&AMGCLSolverType::GetIterationsNumber)
     ;
 
 

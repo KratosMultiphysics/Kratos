@@ -35,7 +35,6 @@
 
 ///VARIABLES used:
 //Data:     MASTER_ELEMENTS(set), MASTER_NODES(set), NEIGHBOUR_ELEMENTS
-//StepData: RIGID_WALL
 //Flags:    (checked) CONTACT
 //          (set)     BOUNDARY(set)
 //          (modified)
@@ -537,7 +536,7 @@ protected:
 		// //if there are no conditions check main modelpart mesh conditions
 		// if( !rModelPart.Conditions().size() ){
 
-		// 	for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.GetParentModelPart()->ConditionsBegin(); i_cond!= rModelPart.GetParentModelPart()->ConditionsEnd(); ++i_cond)
+		// 	for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.GetParentModelPart().ConditionsBegin(); i_cond!= rModelPart.GetParentModelPart().ConditionsEnd(); ++i_cond)
 		// 	  {
 		// 	    TemporaryConditions.push_back(*(i_cond.base()));
 		// 	    i_cond->SetId(ConditionId);
@@ -602,8 +601,8 @@ protected:
 		KRATOS_TRY
 
 		//properties to be used in the generation
-		int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-		Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties - 1);
+		int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+		Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
 		ModelPart::ElementsContainerType::iterator elements_begin = rModelPart.ElementsBegin();
 		ModelPart::ElementsContainerType::iterator elements_end = rModelPart.ElementsEnd();
@@ -687,8 +686,8 @@ protected:
 		this->ClearMasterEntities(rModelPart, rTemporaryConditions);
 
 		//properties to be used in the generation
-		int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-		Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties - 1);
+		int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+		Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
 		ModelPart::ElementsContainerType::iterator elements_begin = rModelPart.ElementsBegin();
 		ModelPart::ElementsContainerType::iterator elements_end = rModelPart.ElementsEnd();

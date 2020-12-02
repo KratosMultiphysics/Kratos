@@ -17,8 +17,10 @@ from response_function_tests import TestAdjointPointTemperatureResponseFunction
 ##### SMALL TESTS #####
 from convection_diffusion_test_factory import BasicConvectionDiffusionStationaryTest as TBasicConvectionDiffusionStationaryTest
 from convection_diffusion_test_factory import BasicConvectionDiffusionTransientTest as TBasicConvectionDiffusionTransientTest
+from convection_diffusion_test_factory import BasicConvectionDiffusionTransientSemiImplicitTest as TBasicConvectionDiffusionTransientSemiImplicitTest
 from convection_diffusion_test_factory import BasicDiffusionStationaryTest as TBasicDiffusionStationaryTest
 from convection_diffusion_test_factory import SimpleThermoMechanicalTest as TSimpleThermoMechanicalTest
+from test_convection_diffusion_bar import TestConvectionDiffusionBar
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -55,8 +57,14 @@ def AssembleTestSuites():
     ### Adding Small Tests
     smallSuite.addTest(TBasicConvectionDiffusionStationaryTest('test_execution'))
     smallSuite.addTest(TBasicConvectionDiffusionTransientTest('test_execution'))
+    smallSuite.addTest(TBasicConvectionDiffusionTransientSemiImplicitTest('test_execution'))
     smallSuite.addTest(TBasicDiffusionStationaryTest('test_execution'))
     smallSuite.addTest(TSimpleThermoMechanicalTest('test_execution'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarSemiImplicit'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDOSS'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQOSS'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDASGS'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQASGS'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)

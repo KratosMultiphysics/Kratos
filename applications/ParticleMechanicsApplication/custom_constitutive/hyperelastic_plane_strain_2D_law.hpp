@@ -34,7 +34,7 @@ namespace Kratos
  * to large displacements elasticity.
  */
 
-class HyperElasticPlaneStrain2DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HyperElasticPlaneStrain2DLaw
     : public HyperElastic3DLaw
 {
 public:

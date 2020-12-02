@@ -31,7 +31,7 @@
 #include "containers/pointer_vector_set.h"
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "includes/global_pointer_variables.h"
 
 namespace Kratos

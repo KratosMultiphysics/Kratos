@@ -37,6 +37,7 @@
 
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
+#include "custom_mappers/coupling_geometry_mapper.h"
 
 // Macro to register the mapper WITHOUT MPI
 #define KRATOS_REGISTER_MAPPER_SERIAL(MapperType, MapperName)                                         \
@@ -90,11 +91,16 @@ void KratosMappingApplication::Register()
                     << "                            /_/     /_/                 /____/\n"
                     << "Initializing KratosMappingApplication..." << std::endl;
 
-    // registering the mappers using the registration-macro
     KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
     KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
+    KRATOS_REGISTER_MAPPER_SERIAL(CouplingGeometryMapper,  "coupling_geometry");
+
+    KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
     KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )
+    KRATOS_REGISTER_VARIABLE( CURRENT_COORDINATES )
+    KRATOS_REGISTER_VARIABLE( IS_PROJECTED_LOCAL_SYSTEM)
+    KRATOS_REGISTER_VARIABLE( IS_DUAL_MORTAR)
 }
 }  // namespace Kratos.

@@ -222,7 +222,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         settings.RemoveValue("consider_strain_energy")
 
         # Construct the base process.
-        super(ContactRemeshMmgProcess, self).__init__(Model, settings)
+        super().__init__(Model, settings)
 
         # Create model parts
         model_part_name = settings["model_part_name"].GetString()
@@ -296,7 +296,7 @@ class ContactRemeshMmgProcess(MmgProcess):
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(ContactStructuralMechanicsApplication.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes)
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteInitialize()
+        super().ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -310,7 +310,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteBeforeSolutionLoop()
+        super().ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -324,7 +324,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteInitializeSolutionStep()
+        super().ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -334,7 +334,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         """
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -344,7 +344,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         """
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteBeforeOutputStep()
+        super().ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -354,7 +354,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         """
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteAfterOutputStep()
+        super().ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -367,7 +367,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         #self.integration_values_extrapolation_to_nodes_process.ExecuteFinalize()
 
         # We call to the base process
-        super(ContactRemeshMmgProcess, self).ExecuteFinalize()
+        super().ExecuteFinalize()
 
     def _AuxiliarCallsBeforeRemesh(self):
         """ This method is executed right before execute the remesh

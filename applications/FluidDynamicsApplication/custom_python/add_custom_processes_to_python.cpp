@@ -39,6 +39,7 @@
 #include "custom_processes/shock_detection_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "custom_processes/distance_smoothing_process.h"
+#include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -152,14 +153,18 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart&, LinearSolverType::Pointer >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
-    .def("Clear", &DistanceSmoothingProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear)
     ;
 
     py::class_<DistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, DistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"DistanceSmoothingProcess3D")
     .def(py::init< ModelPart&, LinearSolverType::Pointer >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
-    .def("Clear", &DistanceSmoothingProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear)
+    ;
+
+    py::class_<CalulateLevelsetConsistentNodalGradientProcess, CalulateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalulateLevelsetConsistentNodalGradientProcess")
+    .def(py::init< ModelPart& >())
+    .def(py::init< ModelPart&, Parameters >())
+    .def(py::init< Model&, Parameters >())
     ;
 }
 

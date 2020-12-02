@@ -48,6 +48,10 @@ void  AddQuaternionToPython(pybind11::module& m) {
     .def_property("Y", QuaternionGetY, QuaternionSetY)
     .def_property("Z", QuaternionGetZ, QuaternionSetZ)
     .def_property("W", QuaternionGetW, QuaternionSetW)
+    .def("Normalize",        &Quaternion<double>::normalize)
+    .def_static("Identity",  &Quaternion<double>::Identity)
+    .def("ToRotationMatrix", &Quaternion<double>::ToRotationMatrix<Matrix>)
+    .def("MultiplyQuaternion", [](Quaternion<double>& self, Quaternion<double>& a, Quaternion<double>& b){return Quaternion<double>(operator*(a,b));})
     ;
 }
 

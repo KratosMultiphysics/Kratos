@@ -49,6 +49,7 @@ NodalScalarData Pressure;
 double Density;
 double DeltaTime;      // Time increment
 double FICBeta;        // FIC Beta parameter
+double DynamicTau;     // Time stabilization coefficient for incompressibility stabilization
 
 /// Auxiliary container for the local matrix at the integration point (stored to save reallocation at each point)
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> LHS;
@@ -71,6 +72,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromProperties(Density,DENSITY,r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(FICBeta,FIC_BETA,rProcessInfo);
+    this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

@@ -38,7 +38,7 @@ namespace Kratos
 
 
 
-class HenckyBorjaCamClayPlasticAxisym2DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyBorjaCamClayPlasticAxisym2DLaw
   : public HenckyElasticPlasticAxisym2DLaw
 
 {

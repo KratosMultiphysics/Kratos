@@ -22,6 +22,7 @@
 #include "custom_elements/base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -70,7 +71,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // We initialize the material reponse if required
     bool required = false;
@@ -130,7 +131,7 @@ void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& r_geometry = GetGeometry();
     const Properties& r_properties = GetProperties();
@@ -144,7 +145,7 @@ void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& r_geometry = GetGeometry();
     const Properties& r_properties = GetProperties();
@@ -158,7 +159,7 @@ void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // We finalize the material reponse if required
     bool required = false;
@@ -518,25 +519,35 @@ void BaseSolidElement::AddExplicitContribution(
 void BaseSolidElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY;
+
     //calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
     const bool CalculateResidualVectorFlag = true;
 
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                             ProcessInfo& rCurrentProcessInfo)
+                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Calculation flags
+    const bool CalculateStiffnessMatrixFlag = true;
+    const bool CalculateResidualVectorFlag = false;
     VectorType RHS;
-    CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+
+    CalculateAll( rLeftHandSideMatrix, RHS, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+
     KRATOS_CATCH("");
 }
 
@@ -545,15 +556,19 @@ void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
 void BaseSolidElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY;
+
     // Calculation flags
     const bool CalculateStiffnessMatrixFlag = false;
     const bool CalculateResidualVectorFlag = true;
     MatrixType temp = Matrix();
 
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -561,7 +576,7 @@ void BaseSolidElement::CalculateRightHandSide(
 
 void BaseSolidElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -630,7 +645,7 @@ void BaseSolidElement::CalculateMassMatrix(
 
 void BaseSolidElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     const unsigned int mat_size = GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension();
@@ -880,26 +895,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
-                const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
-
-                double sigma_equivalent = 0.0;
-
-                if (dimension == 2) {
-                    sigma_equivalent = std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2.0) +
-                                                3*(stress_tensor(0,1) * stress_tensor(1,0));
+                // Compute VM stress
+                if (dimension == 2 ) {
+                    rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 } else {
-                    sigma_equivalent = 0.5*(std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2.0) +
-                                            std::pow((stress_tensor(1,1) - stress_tensor(2,2)), 2.0) +
-                                            std::pow((stress_tensor(2,2) - stress_tensor(0,0)), 2.0) +
-                                                    6*(stress_tensor(0,1) * stress_tensor(1,0) +
-                                                        stress_tensor(1,2) * stress_tensor(2,1) +
-                                                        stress_tensor(2,0) * stress_tensor(0,2)));
+                    rOutput[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 }
-
-                if( sigma_equivalent < 0.0 )
-                    rOutput[point_number] = 0.0;
-                else
-                    rOutput[point_number] = std::sqrt(sigma_equivalent);
             }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);

@@ -657,7 +657,7 @@ class InsertFluidNodesMesherProcess
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     std::vector<Node<3>::Pointer > list_of_new_nodes;
-    const unsigned int NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
+    const unsigned int NodeIdParent = MesherUtilities::GetMaxNodeId( mrModelPart.GetParentModelPart() );
     const unsigned int NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
     unsigned int Id = NodeIdParent + 1; //total model part node size
@@ -706,13 +706,13 @@ class InsertFluidNodesMesherProcess
       Node<3>::DofsContainerType& Reference_dofs = rNewDofs[nn];
 
       //generating the dofs
-      for(Node<3>::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); ++iii)
-      {
-        Node<3>::DofType& rDof = **iii;
-        Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+      // for(Node<3>::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); ++iii)
+      // {
+      //   Node<3>::DofType& rDof = **iii;
+      //   Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
-        //(p_new_dof)->FreeDof();
-      }
+      //   //(p_new_dof)->FreeDof();
+      // }
 
       Geometry<Node<3> >::PointsArrayType  PointsArray;
       PointsArray.push_back( mrModelPart.pGetNode(rNodeIdsToInterpolate[nn][0]) );

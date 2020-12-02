@@ -17,6 +17,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
+#include "utilities/normal_calculation_utils.h"
 // #include "includes/gid_io.h"
 #include "contact_structural_mechanics_application.h"
 #include "custom_processes/contact_search_wrapper_process.h"
@@ -132,7 +133,7 @@ namespace Kratos
             }
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(r_contact_model_part, true);
 
             // We move mesh in order to test the dynamic search
             if (MoveMesh) {

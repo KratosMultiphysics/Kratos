@@ -16,8 +16,10 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
+#include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
@@ -76,7 +78,7 @@ Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryTyp
 }
 
 template< class TElementData >
-void FluidElement<TElementData>::Initialize() {
+void FluidElement<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo) {
     KRATOS_TRY;
 
     // If we are restarting, the constitutive law will be already defined
@@ -100,7 +102,7 @@ void FluidElement<TElementData>::Initialize() {
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                       VectorType& rRightHandSideVector,
-                                                      ProcessInfo& rCurrentProcessInfo)
+                                                      const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -139,7 +141,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                       ProcessInfo& rCurrentProcessInfo)
+                                                       const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -172,7 +174,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                        ProcessInfo& rCurrentProcessInfo)
+                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     if (rRightHandSideVector.size() != LocalSize)
         rRightHandSideVector.resize(LocalSize, false);
@@ -204,7 +206,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalVelocityContribution(
-    MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if( rDampMatrix.size1() != LocalSize )
@@ -242,7 +244,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rMassMatrix.size1() != LocalSize)
@@ -274,9 +276,9 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 template< class TElementData >
-void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     unsigned int LocalIndex = 0;
 
@@ -297,9 +299,9 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
 
 
 template< class TElementData >
-void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
      if (rElementalDofList.size() != LocalSize)
          rElementalDofList.resize(LocalSize);
@@ -318,9 +320,9 @@ void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step)
+void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
@@ -338,9 +340,9 @@ void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int 
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step)
+void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const 
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
@@ -366,7 +368,7 @@ GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod
 // Inquiry
 
 template< class TElementData >
-int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     // Generic geometry check
     int out = Element::Check(rCurrentProcessInfo);
@@ -876,6 +878,12 @@ void StrainRateSpecialization<TElementData,3>::Calculate(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
 
+template class FluidElement< SymbolicStokesData<2,3> >;
+template class FluidElement< SymbolicStokesData<2,4> >;
+template class FluidElement< SymbolicStokesData<3,4> >;
+template class FluidElement< SymbolicStokesData<3,6> >;
+template class FluidElement< SymbolicStokesData<3,8> >;
+
 template class FluidElement< SymbolicNavierStokesData<2,3> >;
 template class FluidElement< SymbolicNavierStokesData<3,4> >;
 
@@ -887,6 +895,12 @@ template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
+
+template class FluidElement< QSVMSDEMCoupledData<2,3> >;
+template class FluidElement< QSVMSDEMCoupledData<3,4> >;
+
+template class FluidElement< QSVMSDEMCoupledData<2,4> >;
+template class FluidElement< QSVMSDEMCoupledData<3,8> >;
 
 template class FluidElement< FICData<2,3> >;
 template class FluidElement< FICData<3,4> >;

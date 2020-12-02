@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -13,7 +11,7 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
     """This operation computes the Normals (NORMAL) on a given ModelPart
     """
     def __init__(self, settings, solver_wrappers, process_info):
-        super(ComputeNormalsOperation, self).__init__(settings, process_info)
+        super().__init__(settings, process_info)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
@@ -48,12 +46,12 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
         pass
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED"
         }""")
-        this_defaults.AddMissingParameters(super(ComputeNormalsOperation, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
 

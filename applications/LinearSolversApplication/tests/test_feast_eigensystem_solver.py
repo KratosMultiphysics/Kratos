@@ -4,11 +4,11 @@ import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
-import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
+import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
 
 from math import sqrt
 
-@KratosUnittest.skipUnless(EigenSolversApplication.HasFEAST(),"FEAST not found in EigenSolversApplication, skipping.")
+@KratosUnittest.skipUnless(LinearSolversApplication.HasFEAST(),"FEAST not found in LinearSolversApplication, skipping.")
 class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     def test_real_symmetric_gev(self):
 

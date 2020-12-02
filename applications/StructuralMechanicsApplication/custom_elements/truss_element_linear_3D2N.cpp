@@ -55,7 +55,7 @@ TrussElementLinear3D2N::~TrussElementLinear3D2N() {}
 BoundedMatrix<double, TrussElement3D2N::msLocalSize,
 TrussElement3D2N::msLocalSize>
 TrussElementLinear3D2N::CreateElementStiffnessMatrix(
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -91,7 +91,7 @@ void TrussElementLinear3D2N::AddPrestressLinear(
 }
 
 void TrussElementLinear3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -110,7 +110,7 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
 }
 
 void TrussElementLinear3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -252,7 +252,7 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
     KRATOS_CATCH("");
 }
 
-void TrussElementLinear3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void TrussElementLinear3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     ProcessInfo temp_process_information;

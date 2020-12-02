@@ -32,9 +32,6 @@ class TestFactory(KratosUnittest.TestCase):
             # Create Model
             model = KratosMultiphysics.Model()
 
-            # To avoid too many prints
-            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
             self.test = SwimmingDEMAnalysis(model, parameters)
 
     def test_execution(self):
