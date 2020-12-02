@@ -1110,7 +1110,7 @@ namespace MPMSearchElementUtility
                     {
                         auto p_quadrature_point_geometry = element_itr->pGetGeometry();
                         array_1d<double, 3> local_coordinates;
-                        p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                        pelem->GetGeometry().PointLocalCoordinates(local_coordinates, xg[0]);
                         CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                             p_quadrature_point_geometry, local_coordinates,
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
