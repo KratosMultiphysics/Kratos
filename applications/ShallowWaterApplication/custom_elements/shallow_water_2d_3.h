@@ -335,21 +335,21 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void AddGradientTerms(
+    virtual void AddGradientTerms(
         MatrixType& rLHS,
         VectorType& rRHS,
         const ElementData& rData,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void AddSourceTerms(
+    virtual void AddSourceTerms(
         MatrixType& rLHS,
         VectorType& rRHS,
         const ElementData& rData,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void AddShockCapturingTerm(
+    virtual void AddShockCapturingTerm(
         MatrixType& rLHS,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
@@ -358,7 +358,7 @@ protected:
      * This method is adding a matrix with positive diagonal and negative
      * off diagonal terms. The sum of the rows and the columns is zero.
      */
-    void AddLowOrderDiffusion(
+    virtual void AddLowOrderDiffusion(
         MatrixType& rLHS,
         const ElementData& rData);
 

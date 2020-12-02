@@ -37,7 +37,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(SW.GROUND_IRREGULARITY, self.settings["ground_irregularity"].GetDouble())
 
     def InitializeSolutionStep(self):
-        SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT))
+        # SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)) # TODO: enable that process
         super().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
