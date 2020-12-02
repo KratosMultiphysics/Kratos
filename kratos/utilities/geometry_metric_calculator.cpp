@@ -46,7 +46,7 @@ void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator::CalculateMetricTensorData
     aux_mat(2,0) = std::pow(r_p_2[0]-r_p_3[0], 2); aux_mat(2,1) = 2.0*(r_p_2[0]-r_p_3[0])*(r_p_2[1]-r_p_3[1]); aux_mat(2,2) = std::pow(r_p_2[1]-r_p_3[1], 2);
     aux_vect[0] = 1.0;
     aux_vect[1] = 1.0;
-    aux_vect[2] = 1.0;        
+    aux_vect[2] = 1.0;
     MathUtils<double>::Solve(aux_mat, sol, aux_vect);
 
     // Set the metric tensor
@@ -65,7 +65,7 @@ void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator::CalculateMetricTensorData
     // Get te infimum and supremum of the metric
     rMetricInfimum = std::min(eigenvals(0,0), eigenvals(1,1));
     rMetricSupremum = std::max(eigenvals(0,0), eigenvals(1,1));
-    
+
     // Make the metric dimensionless
     rMetricTensor *= std::pow(rReferenceElementSize,2);
 }
@@ -80,7 +80,6 @@ void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator::CalculateMetricTensorData
 {
         // Solve the metric problem trans(e)*M*e = 1
         // This means, find the coefficients of the matrix M such that all the edges have unit length
-        //TODO: CHECK THIS, I THINK IT'S WRONG, WE NEED TO FOLLOW THE KRATOS EDGES CONVENTION...
         Vector sol;
         array_1d<double, 6> aux_vect;
         BoundedMatrix<double, 6, 6> aux_mat;
