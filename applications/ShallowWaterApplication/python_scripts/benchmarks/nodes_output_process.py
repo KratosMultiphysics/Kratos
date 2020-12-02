@@ -10,12 +10,11 @@ def Factory(settings, model):
 class NodesOutputProcess(KM.Process):
     """This process writes results from the nodes which are near to a line.
     If the distance from a node to the line is less than a tolerance, it is added
-    to the output. The tolerance is set to 0.25 times the average element size.
+    to the output.
     The line is extended from the start and ending point.
     """
     def __init__(self, model, settings):
-        """Constructor of the class.
-        """
+        """Constructor of the class."""
         super().__init__()
 
         default_settings = KM.Parameters("""
@@ -28,7 +27,9 @@ class NodesOutputProcess(KM.Process):
                 "end_point"               : [],
                 "output_variables"        : [],
                 "nonhistorical_variables" : [],
-                "printing_times"          : []
+                "printing_times"          : [],
+                "write_buffer_size"       : -1,
+                "relative_tol_to_line"    : 0.25
             }
             """
             )
@@ -52,12 +53,14 @@ class NodesOutputProcess(KM.Process):
         self.out_file_params = KM.Parameters()
         self.out_file_params.AddEmptyValue("file_name")
         self.out_file_params.AddValue("output_path", self.settings["output_path"])
+        self.out_file_params.AddValue("write_buffer_size", self.settings["write_buffer_size"])
 
         # The tolerance relative tho the average element size
-        self.rel_tolerance = 0.25
+        self.rel_tolerance = self.settings["relative_tol_to_line"].GetDouble()
 
     def ExecuteInitialize(self):
-        """The list of nodes is created.
+        """The model part related variables are initialized:
+        The list of nodes and the list of variables are created.
         """
         self.nodes = []
         tolerance = self._GetTolerance()
@@ -80,7 +83,8 @@ class NodesOutputProcess(KM.Process):
         return False
 
     def PrintOutput(self):
-        """The output file is created, filled and closed.
+        """The output file is created, filled and closed. If several output
+        timesteps are specified, there will be one file for each timestep.
         """
         time = self.model_part.ProcessInfo.GetValue(KM.TIME)
         file_name = self.settings["file_name"].GetString() + "_{:.4f}.dat".format(time)
@@ -140,7 +144,7 @@ class NodesOutputProcess(KM.Process):
 
     def _GetHeader(self):
         time = self.model_part.ProcessInfo.GetValue(KM.TIME)
-        header = "# Nodes along line:\n"
+        header  = "# Nodes along line:\n"
         header += "#    origin = ({:.4f}, {:.4f}, {:.4f})\n".format(*self.origin)
         header += "#    direction = ({:.4f}, {:.4f}, {:.4f})\n".format(*self.direction)
         header += "# Time = {:.4f}\n".format(time)
