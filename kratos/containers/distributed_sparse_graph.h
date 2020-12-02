@@ -65,7 +65,7 @@ namespace Kratos
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
 template< class TIndexType=std::size_t >
-class DistributedSparseGraph //: public SparseGraph
+class DistributedSparseGraph 
 {
 public:
     ///@name Type Definitions
@@ -82,7 +82,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// constructor.
     DistributedSparseGraph(const IndexType LocalSize,
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
     :

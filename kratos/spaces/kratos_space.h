@@ -56,7 +56,7 @@ class KratosSpace;
 typedef std::size_t IndexType;
 
 template <class TDataType>
-using TKratosSmpSparseSpace = KratosSpace<TDataType, CsrMatrix<TDataType,IndexType> , SystemVector<TDataType,IndexType>>;
+using TKratosSmpSparseSpace = KratosSpace<TDataType, CsrMatrix<TDataType,IndexType>, SystemVector<TDataType,IndexType>>;
 
 template <class TDataType>
 using TKratosSmpDenseSpace  =  KratosSpace<TDataType, DenseMatrix<TDataType>, DenseVector<TDataType>>;
@@ -161,26 +161,28 @@ public:
     }
 
     /// rXi = rMij
-	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
-	template<typename TColumnType>
-	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
-	{
-		if (rX.size() != rM.size1())
-			rX.resize(rM.size1(), false);
+    // This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+    template<typename TColumnType>
+    static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+    {
+        if (rX.size() != rM.size1())
+            rX.resize(rM.size1(), false);
 
-		for (IndexType i = 0; i < rM.size1(); i++) {
-			rX[i] = rM(i, j);
-		}
-	}
+        for (IndexType i = 0; i < rM.size1(); i++)
+        {
+            rX[i] = rM(i, j);
+        }
+    }
 
-	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
-	template<typename TColumnType>
-	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
-	{
-		for (IndexType i = 0; i < rM.size1(); i++) {
-			rM(i,j) = rX[i];
-		}
-	}
+    // This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+    template<typename TColumnType>
+    static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+    {
+        for (IndexType i = 0; i < rM.size1(); i++)
+        {
+            rM(i,j) = rX[i];
+        }
+    }
 
 
     /// rY = rX
@@ -236,27 +238,30 @@ public:
     static TDataType JacobiNorm(const Matrix& rA)
     {
         TDataType aux_sum = IndexPartition<IndexType>(rA.size1())
-            .for_each<SumReduction<TDataType>>( [&](IndexType i){
-                TDataType row_sum = TDataType();
-                for (IndexType j=0; j<rA.size2(); ++j)
-                    if (i != j) 
-                        row_sum += std::abs(rA(i,j));
-                return row_sum;
-            });
+                            .for_each<SumReduction<TDataType>>( [&](IndexType i)
+        {
+            TDataType row_sum = TDataType();
+            for (IndexType j=0; j<rA.size2(); ++j)
+                if (i != j)
+                    row_sum += std::abs(rA(i,j));
+            return row_sum;
+        });
         return aux_sum;
     }
 
     static TDataType JacobiNorm(const CsrMatrix<TDataType>& rA)
     {
         TDataType aux_sum = TDataType();
-        IndexPartition<IndexType>(rA.size1()).for_each( [&](IndexType i){
+        IndexPartition<IndexType>(rA.size1()).for_each( [&](IndexType i)
+        {
             IndexType row_begin = rA.index1_data()[i];
             IndexType row_end   = rA.index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k){
+            for(IndexType k = row_begin; k < row_end; ++k)
+            {
                 IndexType col = rA.index2_data()[k];
                 if(i != col)
                     AtomicAdd(aux_sum, std::abs(rA.value_data()[k]));
-            }  
+            }
         });
         return aux_sum;
     }
@@ -276,8 +281,8 @@ public:
     static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
     {
         // rY = rA^t * rX
-		rA.TransposeSpMV(rY,rX);
-    } 
+        rA.TransposeSpMV(rY,rX);
+    }
 
     static inline SizeType GraphDegree(IndexType i, const CsrMatrix<TDataType>& rA)
     {
@@ -285,8 +290,8 @@ public:
     }
 
     //this function is only implemented for the non-distributed case
-    static inline void GraphNeighbors(IndexType i, 
-                                      const CsrMatrix<TDataType>& rA, 
+    static inline void GraphNeighbors(IndexType i,
+                                      const CsrMatrix<TDataType>& rA,
                                       std::vector<IndexType>& neighbors)
     {
         neighbors.clear();
@@ -302,7 +307,7 @@ public:
 
     static void InplaceMult(VectorType& rX, const double A)
     {
-            rX *= A;
+        rX *= A;
     }
 
     //********************************************************************
@@ -595,10 +600,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosSpace & operator=(KratosSpace const& rOther);
+    KratosSpace & operator=(KratosSpace const& rOther){};
 
     /// Copy constructor.
-    KratosSpace(KratosSpace const& rOther);
+    KratosSpace(KratosSpace const& rOther){};
 
 
     ///@}

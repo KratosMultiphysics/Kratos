@@ -199,6 +199,14 @@ public:
         return value_data()[k];
     }
 
+    const TDataType& operator()(IndexType I, IndexType J) const{
+        const IndexType row_begin = index1_data()[I];
+        const IndexType row_end = index1_data()[I+1];
+        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        KRATOS_DEBUG_ERROR_IF(k<0) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
+        return value_data()[k];
+    }
+
     bool Has(IndexType I, IndexType J) const {
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
@@ -249,15 +257,14 @@ public:
     {
         KRATOS_ERROR_IF(size2() != y.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and destination vector size " << y.size() << std::endl;
         KRATOS_ERROR_IF(size1() != x.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and input vector size " << x.size() << std::endl;
-        for(IndexType i=0; i<size1(); ++i)
-        {
+        IndexPartition<IndexType>(size1()).for_each( [&](IndexType i){
             IndexType row_begin = index1_data()[i];
             IndexType row_end   = index1_data()[i+1];
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType j = index2_data()[k];
-                y(j) += value_data()[k] * x(i);
+                AtomicAdd(y(j), value_data()[k] * x(i) );
             }  
-        }
+        });
     }
 
     //y = alpha*y + beta*A^t*x
@@ -270,16 +277,16 @@ public:
         KRATOS_ERROR_IF(size2() != y.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and destination vector size " << y.size() << std::endl;
         KRATOS_ERROR_IF(size1() != x.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and input vector size " << x.size() << std::endl;
         y *= beta;
-        for(IndexType i=0; i<size1(); ++i)
+        IndexPartition<IndexType>(size1()).for_each( [&](IndexType i)
         {
             IndexType row_begin = index1_data()[i];
             IndexType row_end   = index1_data()[i+1];
             TDataType aux = alpha*x(i);
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType j = index2_data()[k];
-                y(j) += value_data()[k] * aux;
+                AtomicAdd(y(j), value_data()[k] * x(i) );
             }  
-        }
+        });
     }
 
     TDataType NormFrobenius() const
@@ -546,9 +553,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    vector<IndexType> mRowIndices;
-    vector<IndexType> mColIndices;
-    vector<TDataType> mValuesVector;
+    DenseVector<IndexType> mRowIndices;
+    DenseVector<IndexType> mColIndices;
+    DenseVector<TDataType> mValuesVector;
     IndexType mNrows=0;
     IndexType mNcols=0;
 

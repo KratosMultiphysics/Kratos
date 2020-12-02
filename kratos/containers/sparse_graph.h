@@ -94,10 +94,11 @@ public:
 
     /// Copy constructor. 
     SparseGraph(const SparseGraph& rOther)
+    :
+        mGraph(rOther.mGraph),
+        mGraphSize(rOther.mGraphSize),
+        mSizeIsAvailable(rOther.mSizeIsAvailable)
     {
-        this->mGraph = rOther.mGraph;
-        mGraphSize = rOther.mGraphSize;
-        mSizeIsAvailable = rOther.mSizeIsAvailable;
     }
 
     ///@}

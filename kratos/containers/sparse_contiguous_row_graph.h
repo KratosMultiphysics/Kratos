@@ -68,7 +68,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
-    typedef DenseVector<std::unordered_set<IndexType> > GraphType; //using a map since we need it ordered @RiccardoRossithis is outdated!!!
+    typedef DenseVector<std::unordered_set<IndexType> > GraphType; 
     typedef typename GraphType::const_iterator const_row_iterator;
 
     /// Pointer definition of SparseContiguousRowGraph
@@ -128,9 +128,7 @@ public:
     bool Has(const IndexType I, const IndexType J) const
     {
         const auto& row = mGraph[I];
-        if(row.find(J) != row.end())
-            return true;
-        return false;
+        return (row.find(J) != row.end());
     }
 
     const typename GraphType::value_type& operator[](const IndexType& Key) const
@@ -402,10 +400,8 @@ private:
         rSerializer.save("GraphSize",N);
         for(IndexType I=0; I<N; ++I)
         {
-//            rSerializer.save("I",I);
-
-            IndexType Nr = mGraph[I].size();
-            rSerializer.save("Nr",Nr);
+            IndexType row_size = mGraph[I].size();
+            rSerializer.save("row_size",row_size);
             for(auto J : mGraph[I]){
                 rSerializer.save("J",J);
             }
@@ -422,12 +418,9 @@ private:
 
         for(IndexType I=0; I<size; ++I)
         {
-//            IndexType I;
-//            rSerializer.load("I",I);
-
-            IndexType Nr;
-            rSerializer.load("Nr",Nr);
-            for(IndexType k=0; k<Nr; ++k){
+            IndexType row_size;
+            rSerializer.load("row_size",row_size);
+            for(IndexType k=0; k<row_size; ++k){
                 IndexType J;
                 rSerializer.load("J",J);
                 AddEntry(I,J);

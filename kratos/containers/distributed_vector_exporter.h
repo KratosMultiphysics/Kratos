@@ -85,10 +85,10 @@ public:
             IndexType global_i = rGlobalIndices[local_i];
             MpiIndexType owner_rank = mpNumbering->OwnerRank(global_i);
             IndexType remote_local_i = mpNumbering->RemoteLocalId(global_i, owner_rank);
-            mposition_within_data[owner_rank].push_back(local_i);
+            mPositionWithinData[owner_rank].push_back(local_i);
             to_send_remote_local_id[owner_rank].push_back(remote_local_i);
         }
-        mto_recv_local_id[GetComm().Rank()] = std::move(to_send_remote_local_id[GetComm().Rank()]); //for the current rank do a memcopy
+        mToRecvLocalId[GetComm().Rank()] = std::move(to_send_remote_local_id[GetComm().Rank()]); //for the current rank do a memcopy
 
         
 
@@ -100,30 +100,30 @@ public:
             if(cpu_id != GetComm().Rank())
                 send_list.push_back(cpu_id);
         }
-        mvector_comm_colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, rComm);
+        mVectorCommColors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, rComm);
 
         //communicate the remote_local_id so that the other node knows what to send
-        for(auto color : mvector_comm_colors)
+        for(auto color : mVectorCommColors)
         {
             if(color >= 0) //-1 would imply no communication
             {
                 //NOTE: this can be made nonblocking 
-                mto_recv_local_id[color] = rComm.SendRecv(to_send_remote_local_id[color], color, color); //TODO, we know all the sizes, we shall use that!
+                mToRecvLocalId[color] = rComm.SendRecv(to_send_remote_local_id[color], color, color); //TODO, we know all the sizes, we shall use that!
             }
         }
 
         //ensure that entries exist for each color involved
-        for(auto color : mvector_comm_colors)
+        for(auto color : mVectorCommColors)
         {
             if(color >= 0)
             {
                 //create if they do not exist
-                mto_recv_local_id[color]; 
-                mposition_within_data[color];
+                mToRecvLocalId[color]; 
+                mPositionWithinData[color];
             }
         }
-        mto_recv_local_id[GetComm().Rank()]; //create if it does not exist
-        mposition_within_data[GetComm().Rank()]; //create if it does not exist
+        mToRecvLocalId[GetComm().Rank()]; //create if it does not exist
+        mPositionWithinData[GetComm().Rank()]; //create if it does not exist
     }
 
     /// Copy constructor.
@@ -131,13 +131,13 @@ public:
         : 
         mrComm(rOther.mrComm),
         mpNumbering(Kratos::make_unique<DistributedNumbering<TIndexType>>(*rOther.mpNumbering)),
-        mto_recv_local_id(rOther.mto_recv_local_id),
-        mposition_within_data(rOther.mposition_within_data),
-        mvector_comm_colors(rOther.mvector_comm_colors)
+        mToRecvLocalId(rOther.mToRecvLocalId),
+        mPositionWithinData(rOther.mPositionWithinData),
+        mVectorCommColors(rOther.mVectorCommColors)
     {
     }
 
-    ///this function returns a local array containing the values identified by the rGlobalIndices list passed in the constructor
+    ///this function "returns" (writes onto rDestinationVector) a local array containing the values identified by the rGlobalIndices list passed in the constructor
     template< class TDistributedVectorType, class TLocalVectorType, class TApplyFunctorType=std::plus<typename TLocalVectorType::value_type>>
     void Apply(TDistributedVectorType& rDestinationVector, 
                const TLocalVectorType& rLocalDataVector
@@ -145,12 +145,12 @@ public:
     {
         std::vector<typename TLocalVectorType::value_type> send_buffer;
         std::vector<typename TLocalVectorType::value_type> recv_buffer;
-        for(auto color : mvector_comm_colors)
+        for(auto color : mVectorCommColors)
         {
             if(color >= 0) //-1 would imply no communication
             {
-                const auto& local_ids = mto_recv_local_id.find(color)->second;
-                const auto& position_within_data = mposition_within_data.find(color)->second;
+                const auto& local_ids = mToRecvLocalId.find(color)->second;
+                const auto& position_within_data = mPositionWithinData.find(color)->second;
                 recv_buffer.resize(local_ids.size());
                 send_buffer.resize(0);
                 for(IndexType i=0; i<position_within_data.size(); ++i)
@@ -167,8 +167,8 @@ public:
             }
         }
         //treat local datas (no communication is needed)
-        const auto& local_ids = mto_recv_local_id.find(GetComm().Rank())->second;
-        const auto& position_within_data = mposition_within_data.find(GetComm().Rank())->second;
+        const auto& local_ids = mToRecvLocalId.find(GetComm().Rank())->second;
+        const auto& position_within_data = mPositionWithinData.find(GetComm().Rank())->second;
         for(IndexType i=0; i<position_within_data.size(); ++i)
             rDestinationVector[local_ids[i]] = TApplyFunctorType()( rDestinationVector[local_ids[i]], rLocalDataVector[position_within_data[i]] );
     }
@@ -270,10 +270,9 @@ private:
     ///@{
     const DataCommunicator& mrComm;
     typename DistributedNumbering<IndexType>::UniquePointer mpNumbering;
-
-    std::unordered_map<int, std::vector<IndexType>> mto_recv_local_id;
-    std::unordered_map<int, std::vector<IndexType>> mposition_within_data;
-    std::vector<int> mvector_comm_colors;
+    std::unordered_map<int, std::vector<IndexType>> mToRecvLocalId;
+    std::unordered_map<int, std::vector<IndexType>> mPositionWithinData;
+    std::vector<int> mVectorCommColors;
 
     ///@}
     ///@name Private Operators
