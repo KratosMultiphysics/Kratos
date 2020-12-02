@@ -28,7 +28,7 @@ namespace Kratos {
 
 namespace {
 
-static constexpr char delim = '~';
+static constexpr char delim = ';';
 
 void GetSubModelPartHierarchy(const ModelPart& rModelPart, std::string& rModelPartHierarchy)
 {
