@@ -45,7 +45,6 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
     KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
     KRATOS_CHECK_VARIABLE_KEY(SHOCK_STABILIZATION_FACTOR)
-    KRATOS_CHECK_VARIABLE_KEY(GROUND_IRREGULARITY)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& node : this->GetGeometry())
@@ -232,7 +231,7 @@ void ShallowWater2D3::AddSourceTerms(
 
     // Friction term
     const double abs_vel = norm_2(rData.velocity);
-    const double height4_3 = std::pow(rData.effective_height, 1.33333333333) + rData.irregularity;
+    const double height4_3 = std::pow(rData.effective_height, 1.33333333333) + 1e-6;
     rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
 
     // Rain
@@ -280,11 +279,9 @@ void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentPro
 {
     const double delta_t = rCurrentProcessInfo[DELTA_TIME];
     dt_inv = 1.0 / delta_t;
-    lumped_mass_factor = 0.0; // TODO: remove that variable
     stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     gravity = rCurrentProcessInfo[GRAVITY_Z];
-    irregularity = rCurrentProcessInfo[GROUND_IRREGULARITY]; // TODO: remove that variable
 }
 
 void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX)
@@ -294,7 +291,6 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
     velocity = ZeroVector(3);
     velocity_div = 0.0;
     manning2 = 0.0;
-    wet_fraction = 0.0;
     effective_height = 0.0;
 
     unsigned int j = 0;
@@ -327,29 +323,16 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         unknown[j]  = h;
         j++;
 
-        double aux_wet_fraction, aux_effective_height;
-        PhaseFunctions(h, aux_wet_fraction, aux_effective_height);
-        wet_fraction += aux_wet_fraction;
-        effective_height += aux_effective_height;
+        effective_height += std::max(0.0, h);
     }
     const double lumping_factor = 1.0 / 3.0;
     height *= lumping_factor;
     flow_rate *= lumping_factor;
     velocity *= lumping_factor;
     velocity_div *= lumping_factor;
-    wet_fraction *= lumping_factor;
     effective_height *= lumping_factor;
     manning2 *= lumping_factor;
     manning2 = std::pow(manning2, 2);
-    manning2 += 10*(1.0 - std::exp(wet_fraction - 1.0));
-}
-
-void ShallowWater2D3::ElementData::PhaseFunctions(double Height, double& rWetFraction, double& rEffectiveHeight)
-{
-    const double unit_height = Height / irregularity;
-    rWetFraction = 0.5 * (1 + std::erf(2 * unit_height));
-    rEffectiveHeight = rWetFraction * Height;
-    rEffectiveHeight += 0.25 * irregularity * std::exp(-4 * std::pow(unit_height, 2)) / std::sqrt(M_PI);
 }
 
 void ShallowWater2D3::ComputeMassMatrix(
@@ -358,19 +341,18 @@ void ShallowWater2D3::ComputeMassMatrix(
     const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
-    // const double mu_q = 1.0;
-    const double mu_q = rData.wet_fraction;
-    const double mu_h = rData.wet_fraction;
-    const double lumping_factor = 1.0 / 3.0;
+    const double mu_q = 1.0;
+    const double mu_h = 1.0;
+    const double lumping_factor = 1.0 / 3.0 * 0.0; //TODO: definitively remove the lumped mass matrix
     for (size_t i = 0; i < 3; ++i)
     {
         const size_t block = 3 * i;
-        rMatrix(block, block) += rData.lumped_mass_factor * lumping_factor * mu_q;
-        rMatrix(block+1, block+1) += rData.lumped_mass_factor * lumping_factor * mu_q;
-        rMatrix(block+2, block+2) += rData.lumped_mass_factor * lumping_factor * mu_h;
+        rMatrix(block, block) += lumping_factor * mu_q;
+        rMatrix(block+1, block+1) += lumping_factor * mu_q;
+        rMatrix(block+2, block+2) += lumping_factor * mu_h;
     }
 
-    const double cmm = 1 - rData.lumped_mass_factor;
+    const double cmm = 1.0;
     const double one_twelve = 1.0 / 12.0;
     using std::pow;
     const double c2 = rData.gravity * rData.effective_height; // c=sqrt(gh)
@@ -428,7 +410,7 @@ void ShallowWater2D3::ComputeMassMatrix(
         const size_t block = 3 * i;
         rFlowMatrix(block, block) += lumping_factor;
         rFlowMatrix(block+1, block+1) += lumping_factor;
-        rHeightMatrix(block+2, block+2) += lumping_factor * rData.wet_fraction;
+        rHeightMatrix(block+2, block+2) += lumping_factor;
 
         // TODO: add consistent mass matrix with stabilization
     }

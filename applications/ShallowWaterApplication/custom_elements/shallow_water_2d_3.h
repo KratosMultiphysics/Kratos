@@ -51,34 +51,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    struct ElementData
-    {
-        double dt_inv;
-        double lumped_mass_factor;
-        double stab_factor;
-        double shock_stab_factor;
-        double gravity;
-        double irregularity;
-
-        double height;
-        array_1d<double,3> flow_rate;
-        array_1d<double,3> velocity;
-        double velocity_div;
-        double manning2;
-        double wet_fraction;
-        double effective_height;
-
-        array_1d<double, 9> depth;
-        array_1d<double, 9> rain;
-        array_1d<double, 9> unknown;
-
-        void InitializeData(const ProcessInfo& rCurrentProcessInfo);
-        void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
-
-    protected:
-        void PhaseFunctions(double Height, double& rWetFraction, double& rEffectiveHeight);
-    };
-
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ShallowWater2D3
@@ -318,6 +290,32 @@ public:
 
 protected:
 
+    ///@name Protected type definitions
+    ///@{
+
+    struct ElementData
+    {
+        double dt_inv;
+        double stab_factor;
+        double shock_stab_factor;
+        double gravity;
+
+        double height;
+        array_1d<double,3> flow_rate;
+        array_1d<double,3> velocity;
+        double velocity_div;
+        double manning2;
+        double effective_height;
+
+        array_1d<double, 9> depth;
+        array_1d<double, 9> rain;
+        array_1d<double, 9> unknown;
+
+        void InitializeData(const ProcessInfo& rCurrentProcessInfo);
+        void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
+    };
+
+    ///@}
     ///@name Protected static Member Variables
     ///@{
 
