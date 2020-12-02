@@ -303,11 +303,9 @@ protected:
         double height;
         array_1d<double,3> flow_rate;
         array_1d<double,3> velocity;
-        double velocity_div;
         double manning2;
-        double effective_height;
 
-        array_1d<double,3> depth;
+        array_1d<double,3> topography;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
 
@@ -393,10 +391,10 @@ protected:
     void AlgebraicResidual(
         array_1d<double,3>& rFlowResidual,
         double& rHeightresidual,
+        BoundedMatrix<double,3,3> rFlowGrad,
+        array_1d<double,3> rHeightGrad,
         const ElementData& rData,
-        const double& rFlowDiv,
-        const array_1d<double,3> rHeightGrad,
-        const BoundedMatrix<double,3,3> rFlowGrad);
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void StreamLineTensor(
         BoundedMatrix<double,2,2>& rTensor,
