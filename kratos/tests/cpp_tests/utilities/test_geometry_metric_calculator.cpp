@@ -19,30 +19,63 @@
 #include "testing/testing.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "tests/cpp_tests/geometries/test_geometry.h"
-#include "utilities/element_size_calculator.h"
+#include "utilities/geometry_metric_calculator.h"
 
 namespace Kratos
 {
 namespace Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTriangle, KratosCoreFastSuite)
+{
+    // Set triangle geometry
+    Geometry<Node<3>>::PointsArrayType nodes;
+    nodes.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.5, 0.866025404, 0.0)));
+    const auto p_triangle = Geometry<Node<3>>::Pointer(new Triangle2D3<Node<3>>(nodes));
 
-    // KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSizeCase1, KratosCoreFastSuite)
-    // {
-    //     Geometry<NodeType>::PointsArrayType nodes;
-    //     nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
-    //     nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 0.0, 0.0)));
-    //     nodes.push_back(NodeType::Pointer(new NodeType(3, 0.0, 1.0, 0.0)));
-    //     nodes.push_back(NodeType::Pointer(new NodeType(4, 0.0, 0.0, 1.0)));
-    //     nodes.push_back(NodeType::Pointer(new NodeType(5, 1.0, 0.0, 1.0)));
-    //     nodes.push_back(NodeType::Pointer(new NodeType(6, 0.0, 1.0, 1.0)));
-    //     const auto prism1 = *GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
-    //     const double minimum_size = ElementSizeCalculator<3, 6>::MinimumElementSize(prism1);
-    //     const double average_size = ElementSizeCalculator<3, 6>::AverageElementSize(prism1);
-    //     KRATOS_CHECK_NEAR(minimum_size, std::sqrt(0.5), TOLERANCE);
-    //     KRATOS_CHECK_NEAR(average_size, std::pow(0.5, 1.0 / 3.0), TOLERANCE);
-    // }
+    // Call the triangle metric calculator utility
+    double h_ref, met_inf, met_sup;
+    BoundedMatrix<double,2,2> metric_tensor;
+    GeometryMetricCalculator::CalculateMetricTensorData<2,3>(*p_triangle, metric_tensor, h_ref, met_inf, met_sup);
+
+    // Check results
+    const double tolerance = 1.0e-8;
+    KRATOS_CHECK_NEAR(h_ref, 1.0, tolerance);
+    KRATOS_CHECK_NEAR(met_inf, 1.0, tolerance);
+    KRATOS_CHECK_NEAR(met_sup, 1.0, tolerance);
+    BoundedMatrix<double,2,2> expected_metric_tensor;
+    expected_metric_tensor(0,0) = 1.0; expected_metric_tensor(0,1) = 0.0;
+    expected_metric_tensor(1,0) = 0.0; expected_metric_tensor(1,1) = 1.0;
+    KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTriangle2D3N, KratosCoreFastSuite)
+{
+    // Set triangle geometry
+    Geometry<Node<3>>::PointsArrayType nodes;
+    nodes.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.0, 1.0, 0.0)));
+    const auto p_triangle = Geometry<Node<3>>::Pointer(new Triangle2D3<Node<3>>(nodes));
+
+    // Call the triangle metric calculator utility
+    double h_ref, met_inf, met_sup;
+    BoundedMatrix<double,2,2> metric_tensor;
+    GeometryMetricCalculator::CalculateMetricTensorData<2,3>(*p_triangle, metric_tensor, h_ref, met_inf, met_sup);
+
+    // Check results
+    const double tolerance = 1.0e-5;
+    KRATOS_CHECK_NEAR(h_ref, 1.115360, tolerance);
+    KRATOS_CHECK_NEAR(met_inf, 0.5, tolerance);
+    KRATOS_CHECK_NEAR(met_sup, 1.5, tolerance);
+    BoundedMatrix<double,2,2> expected_metric_tensor;
+    expected_metric_tensor(0,0) = 1.244020; expected_metric_tensor(0,1) = 0.622008;
+    expected_metric_tensor(1,0) = 0.622008; expected_metric_tensor(1,1) = 1.244020;
+    KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
+
+}
 
 } // namespace Testing
 
