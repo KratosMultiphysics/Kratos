@@ -613,7 +613,7 @@ protected:
         }
 
         // Adding the limited anti-diffusion
-        // rLHS += c * (BDFBaseType::mBDF[0]*(rMc - rMl) - rD);
+        rLHS += c * (BDFBaseType::mBDF[0]*(rMc - rMl) - rD);
         rRHS += c * aec;
     }
 
