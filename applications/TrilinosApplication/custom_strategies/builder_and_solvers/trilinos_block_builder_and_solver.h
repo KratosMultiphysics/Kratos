@@ -177,9 +177,6 @@ public:
 
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-        // Resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
-
         // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -246,8 +243,6 @@ public:
                   TSystemMatrixType& rA) override
     {
         KRATOS_TRY
-        // Resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
         // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -410,6 +405,9 @@ public:
         KRATOS_TRY
 
         BuildRHS(pScheme, rModelPart, rb);
+
+        ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         KRATOS_CATCH("")
@@ -430,8 +428,6 @@ public:
         if (BaseType::GetEchoLevel() > 0) {
             START_TIMER("BuildRHS ", 0)
         }
-        // Resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
         // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
