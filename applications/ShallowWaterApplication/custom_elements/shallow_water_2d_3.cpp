@@ -298,7 +298,8 @@ void ShallowWater2D3::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR << "ShallowWater2D3: CalculateRightHandSide not implemented" << std::endl;
+    MatrixType aux_matrix;
+    CalculateLocalSystem(aux_matrix, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 void ShallowWater2D3::CalculateOnIntegrationPoints(
