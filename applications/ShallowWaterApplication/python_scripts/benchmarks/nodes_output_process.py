@@ -117,7 +117,7 @@ class NodesOutputProcess(KM.Process):
     def _CheckIsHistoricalVariable(self, input_variable):
         if not self.model_part.HasNodalSolutionStepVariable(input_variable):
             err_msg  = 'ModelPart "' + self.model_part.Name + '" does not have'
-            err_msg += ' "' + name + '" as SolutionStepVariable!'
+            err_msg += ' "' + input_variable.Name + '" as SolutionStepVariable!'
             raise Exception(err_msg)
 
     @staticmethod
