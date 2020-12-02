@@ -45,7 +45,6 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
     KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
     KRATOS_CHECK_VARIABLE_KEY(SHOCK_STABILIZATION_FACTOR)
-    KRATOS_CHECK_VARIABLE_KEY(LUMPED_MASS_FACTOR)
     KRATOS_CHECK_VARIABLE_KEY(GROUND_IRREGULARITY)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
@@ -173,8 +172,6 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     AddShockCapturingTerm(rLeftHandSideMatrix, data, DN_DX);
 
-    AddLowOrderDiffusion(rLeftHandSideMatrix, data);
-
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
 
@@ -255,38 +252,6 @@ void ShallowWater2D3::AddShockCapturingTerm(
     rLHS += diff_matrix;
 }
 
-void ShallowWater2D3::AddLowOrderDiffusion(
-    MatrixType& rLHS,
-    const ElementData& rData)
-{
-    if (rData.is_monotonic_calculation) {
-        BoundedMatrix<double,9,9> low_order_diff = ZeroMatrix(9,9);
-
-        const double lumping_factor = 1.0 / 3.0;
-        const double one_twelve = 1.0 / 12.0;
-        for (size_t i = 0; i < 3; ++i)
-        {
-            const size_t i_block = 3 * i;
-            // Lumped mass matrix
-            low_order_diff(i_block, i_block) += lumping_factor;
-            low_order_diff(i_block+1, i_block+1) += lumping_factor;
-            low_order_diff(i_block+2, i_block+2) += lumping_factor;
-
-            for (size_t j = 0; j < 3; ++j)
-            {
-                const size_t j_block = 3 * j;
-                // Algebraic consistent mass matrix
-                const double n = (i == j)? 2*one_twelve : one_twelve;
-                low_order_diff(i_block,     j_block)     -= n;
-                low_order_diff(i_block + 1, j_block + 1) -= n;
-                low_order_diff(i_block + 2, j_block + 2) -= n;
-            }
-        }
-        const double c_tau = 1.0;
-        rLHS += c_tau * rData.dt_inv * low_order_diff;
-    }
-}
-
 void ShallowWater2D3::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
@@ -315,12 +280,11 @@ void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentPro
 {
     const double delta_t = rCurrentProcessInfo[DELTA_TIME];
     dt_inv = 1.0 / delta_t;
-    lumped_mass_factor = rCurrentProcessInfo[LUMPED_MASS_FACTOR];
+    lumped_mass_factor = 0.0; // TODO: remove that variable
     stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     gravity = rCurrentProcessInfo[GRAVITY_Z];
-    irregularity = rCurrentProcessInfo[GROUND_IRREGULARITY];
-    is_monotonic_calculation = rCurrentProcessInfo[IS_MONOTONIC_CALCULATION];
+    irregularity = rCurrentProcessInfo[GROUND_IRREGULARITY]; // TODO: remove that variable
 }
 
 void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX)
