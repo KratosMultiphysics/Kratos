@@ -221,10 +221,6 @@ protected:
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX) override {}
 
-    void AddLowOrderDiffusion(
-        MatrixType& rLHS,
-        const ElementData& rData) override {}
-
     ///@}
     ///@name Protected  Access
     ///@{

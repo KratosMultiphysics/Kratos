@@ -72,8 +72,6 @@ public:
         array_1d<double, 9> rain;
         array_1d<double, 9> unknown;
 
-        bool is_monotonic_calculation;
-
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
 
@@ -353,14 +351,6 @@ protected:
         MatrixType& rLHS,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
-
-    /*
-     * This method is adding a matrix with positive diagonal and negative
-     * off diagonal terms. The sum of the rows and the columns is zero.
-     */
-    virtual void AddLowOrderDiffusion(
-        MatrixType& rLHS,
-        const ElementData& rData);
 
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
