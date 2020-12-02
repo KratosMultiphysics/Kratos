@@ -16,6 +16,7 @@
 
 // Project includes
 #include "processes/process.h"
+#include "processes/compute_nodal_gradient_process.h"
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "mor_application_variables.h"
@@ -57,9 +58,14 @@ class PMLDirectionProcess
 public:
     ///@name Type Definitions
     ///@{
+    typedef std::size_t SizeType;
 
     typedef Node < 3 > NodeType;
     typedef Node < 3 > ::Pointer NodeTypePointer;
+
+    /// The definitionof the geometry
+    typedef Geometry<NodeType> GeometryType;
+
     typedef std::vector<NodeTypePointer> NodeVector;
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
     typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
@@ -201,44 +207,24 @@ public:
 
 
         mpSolvingStrategy->Solve();
-        // TSystemMatrixType& r_K  = *mpK;
-        // TSystemVectorType& r_RHS  = *mpRHS;
-        // TSystemVectorType& r_Dx = *mpDx;
 
-        // //setting up the list of the DOFs to be solved
-        // BuiltinTimer setup_dofs_time;
-        // pBuilderSolver->SetUpDofSet(p_scheme, rModelPartPML);
-        // KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-        //     << setup_dofs_time.ElapsedSeconds() << std::endl;
+        
+        //  for ( ModelPart::NodesContainerType::iterator it_node = rPMLNodes.begin();
+        //         it_node != rPMLNodes.end() ; ++it_node)
+        // {
+        //     std::cout<<" Potential "<< it_node->FastGetSolutionStepValue(PRESSURE) <<std::endl;
+        // }
 
 
-        // //shaping correctly the system
-        // BuiltinTimer setup_system_time;
-        // pBuilderSolver->SetUpSystem(rModelPartPML);
-        // KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-        //     << setup_system_time.ElapsedSeconds() << std::endl;
+        typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> GradientType;
+        GradientType process = GradientType(mrModelPartPML, PRESSURE, PML_IMAG_DISTANCE, NODAL_AREA, false);
+        process.Execute();
 
-        // //setting up the Vectors involved to the correct size
-        // BuiltinTimer system_matrix_resize_time;
-        // pBuilderSolver->ResizeAndInitializeVectors(pScheme, r_K, r_RHS, r_Dx, rModelPartPML);
-
-        // if (mpDx->size() != pBuilderSolver->GetEquationSystemSize())
-        //     mpDx->resize(pBuilderSolver->GetEquationSystemSize(), false);
-
-        // KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-        //     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
-     
-
-        // //set up system matrices
-
-        // //set up the stiffness matrix and rhs
-        // TSparseSpace::SetToZero(r_tmp_RHS);
-        // pBuilderSolver->Build(pScheme, rModelPartPML, r_K, r_RHS);
-        // //DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_K, r_tmp_RHS, fixed_dofs, 1.0);
-
-
-
-
+        for ( ModelPart::NodesContainerType::iterator it_node = rPMLNodes.begin();
+                    it_node != rPMLNodes.end() ; ++it_node)
+            {
+                std::cout<<" PML direction "<< it_node->GetValue(PML_IMAG_DISTANCE) <<std::endl;
+            }
 
 
 

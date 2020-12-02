@@ -102,7 +102,7 @@ int  AcousticPMLElement::Check( const ProcessInfo& rCurrentProcessInfo )
 void AcousticPMLElement::Initialize()
 {
     KRATOS_TRY
-    std::cout << "i am initializing an acoustic pml element\n";
+    // std::cout << "i am initializing an acoustic pml element\n";
     KRATOS_CATCH("")
 }
 
@@ -140,7 +140,7 @@ void AcousticPMLElement::GetDofList(DofsVectorType& rElementalDofList, ProcessIn
     for (SizeType i_node = 0; i_node < num_nodes; i_node++)
         rElementalDofList[i_node] = GetGeometry()[i_node].pGetDof(PRESSURE);
 
-   KRATOS_WATCH(rElementalDofList)
+   //KRATOS_WATCH(rElementalDofList)
 }
 
 /***********************************************************************************/
@@ -445,14 +445,12 @@ void AcousticPMLElement::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorTyp
         {   
             noalias(rLeftHandSideMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
             Vector DetJ;
-            ShapeFunctionDerivativesArrayType DN_DX = geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ, ThisIntegrationMethod);
-            for(IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+            ShapeFunctionDerivativesArrayType DN_DX;
+            geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ, ThisIntegrationMethod);
+            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
             {
-                for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
-                {
-                    double int_weight = integration_points[point_number].Weight() * DetJ(point_number);           
-                    rLeftHandSideMatrix += int_weight * prod( DN_DX[point_number], trans(DN_DX[point_number]));
-                }
+                double int_weight = integration_points[point_number].Weight() * DetJ(point_number);           
+                rLeftHandSideMatrix += int_weight * prod( DN_DX[point_number], trans(DN_DX[point_number]));
             }
         }
     }
@@ -488,7 +486,7 @@ void AcousticPMLElement::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorTyp
 void AcousticPMLElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-
+    // std::cout << "i am calculating an acoustic pml element LHS\n";
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
     // auto& r_geometry = this->GetGeometry();
     // const SizeType number_of_nodes = r_geometry.size();
