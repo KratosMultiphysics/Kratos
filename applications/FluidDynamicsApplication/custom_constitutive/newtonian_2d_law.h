@@ -58,6 +58,8 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
+    FluidAdjointConstitutiveLaw::Pointer GetAdjointConstitutiveLaw() override;
+
     /**
      * Copy constructor.
      */
@@ -159,4 +161,4 @@ private:
 
 }; // Class Newtonian2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED  defined
