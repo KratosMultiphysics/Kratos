@@ -137,7 +137,7 @@ public:
      */
     static void CalculateMetricTensorDimensionless(
         const GeometryType& rGeometry,
-        BoundedMatrix<double, TDim, TDim>& rMetricTensor,
+        BoundedMatrix<double, TDim, TDim>& rMetricTensorDimensionless,
         double& rReferenceElementSize,
         double& rMetricInfimum,
         double& rMetricSupremum);
