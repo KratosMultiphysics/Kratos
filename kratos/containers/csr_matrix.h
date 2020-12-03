@@ -51,7 +51,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This function implements "serial" CSR matrix, including capabilities for FEM assembly
+/// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
 class CsrMatrix
 {
@@ -644,4 +644,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_CSR_MATRIX_H_INCLUDED  defined
-
