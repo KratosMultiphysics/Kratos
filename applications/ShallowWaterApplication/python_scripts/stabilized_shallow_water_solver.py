@@ -32,9 +32,8 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
 
     def Initialize(self):
         super().Initialize()
-        self.main_model_part.ProcessInfo.SetValue(SW.LUMPED_MASS_FACTOR, self.settings["lumped_mass_factor"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(SW.GROUND_IRREGULARITY, self.settings["ground_irregularity"].GetDouble())
 
     def InitializeSolutionStep(self):
         # SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)) # TODO: enable that process
@@ -55,9 +54,8 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         default_settings = KM.Parameters("""
         {
         "time_integration_order"     : 2,
-        "lumped_mass_factor"         : 1.0,
-        "shock_stabilization_factor" : 0.001,
-        "ground_irregularity"        : 0.0
+        "stabilization_factor"     : 0.005,
+        "shock_stabilization_factor" : 0.001
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
