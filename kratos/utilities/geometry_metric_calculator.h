@@ -69,8 +69,6 @@ public:
     /// Deleted copy constructor.
     GeometryMetricCalculator(GeometryMetricCalculator const& rOther) = delete;
 
-    /// Destructor.
-    ~GeometryMetricCalculator();
 
     ///@}
     ///@name Operators
@@ -155,5 +153,4 @@ public:
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined
-
 
