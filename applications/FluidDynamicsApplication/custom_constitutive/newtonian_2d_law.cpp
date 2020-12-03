@@ -18,6 +18,11 @@
 // Project includes
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
+
+// Application includes
+#include "custom_constitutive/newtonian_law/newtonian_2d_adjoint_law.h"
+
+// Include base h
 #include "custom_constitutive/newtonian_2d_law.h"
 
 namespace Kratos
@@ -42,6 +47,14 @@ Newtonian2DLaw::Newtonian2DLaw(const Newtonian2DLaw& rOther)
 
 ConstitutiveLaw::Pointer Newtonian2DLaw::Clone() const {
     return Kratos::make_shared<Newtonian2DLaw>(*this);
+}
+
+//*******************************Adjoint**********************************************
+//************************************************************************************
+
+FluidAdjointConstitutiveLaw::Pointer Newtonian2DLaw::GetAdjointConstitutiveLaw()
+{
+    return Kratos::make_shared<Newtonian2DAdjointLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -75,7 +88,7 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 
     if( options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        this->NewtonianConstitutiveMatrix2D(mu,rValues.GetConstitutiveMatrix());
+        FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(mu,rValues.GetConstitutiveMatrix());
     }
 }
 
