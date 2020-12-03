@@ -24,7 +24,7 @@
 namespace Kratos {
 namespace Testing {
 
-namespace SparseTestingInternals {
+namespace SparseSpaceTestingInternals {
     typedef std::size_t IndexType;
     typedef KratosSpace<double, CsrMatrix<double,IndexType> , SystemVector<double,IndexType>> SparseSpaceType;
     typedef KratosSpace<double, DenseMatrix<double>, DenseVector<double>> LocalSpaceType;
@@ -34,8 +34,7 @@ namespace SparseTestingInternals {
 
 KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
 {
-    using namespace Kratos::Testing::SparseTestingInternals;
-    const IndexType size = 10;
+    const SparseSpaceTestingInternals::IndexType size = 10;
 
     SparseContiguousRowGraph<IndexType> graph(size);
     for (IndexType i=0; i<size; ++i)	{
@@ -45,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
     }
     graph.Finalize();
 
-    SparseSpaceType::MatrixType mat(graph);
+    SparseSpaceTestingInternals::SparseSpaceType::MatrixType mat(graph);
     mat.BeginAssemble();
     for (IndexType i=0; i<mat.size1(); ++i)	{
         if (i>=1) mat.Assemble( -1.123, i, i-1);
@@ -55,16 +54,14 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
     mat.FinalizeAssemble();
     
 
-    KRATOS_CHECK_NEAR(16.216110045260546, SparseSpaceType::TwoNorm(mat), 1e-12);
-    KRATOS_CHECK_NEAR(31.131, SparseSpaceType::JacobiNorm(mat), 1e-12);
+    KRATOS_CHECK_NEAR(16.216110045260546, SparseSpaceTestingInternals::SparseSpaceType::TwoNorm(mat), 1e-12);
+    KRATOS_CHECK_NEAR(31.131, SparseSpaceTestingInternals::SparseSpaceType::JacobiNorm(mat), 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormDenseMatrix, KratosCoreFastSuite)
 {
-    using namespace Kratos::Testing::SparseTestingInternals;
-
-    const std::size_t size = 10;
-    LocalSpaceType::MatrixType mat(size, size, 0.0);
+    const SparseSpaceTestingInternals::IndexType size = 10;
+    SparseSpaceTestingInternals::LocalSpaceType::MatrixType mat(size, size, 0.0);
 
     for (std::size_t i=0; i<mat.size1(); ++i)	{
         mat(i,i) = 4.5;
@@ -74,8 +71,8 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormDenseMatrix, KratosCoreFastSuite)
         if (i+1<mat.size2()) {mat(i,i+1) = 2.336;}
     }
 
-    KRATOS_CHECK_NEAR(16.216110045260546, LocalSpaceType::TwoNorm(mat), 1e-12);
-    KRATOS_CHECK_NEAR(31.131, LocalSpaceType::JacobiNorm(mat), 1e-12);
+    KRATOS_CHECK_NEAR(16.216110045260546, SparseSpaceTestingInternals::LocalSpaceType::TwoNorm(mat), 1e-12);
+    KRATOS_CHECK_NEAR(31.131, SparseSpaceTestingInternals::LocalSpaceType::JacobiNorm(mat), 1e-12);
 }
 
 } // namespace Testing
