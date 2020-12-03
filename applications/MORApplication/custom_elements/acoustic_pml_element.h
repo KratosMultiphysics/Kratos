@@ -170,19 +170,19 @@ public:
     // ///@name Input and output
     // ///@{
 
-    // /// Turn back information as a string.
-    // std::string Info() const override
-    // {
-    //     std::stringstream buffer;
-    //     buffer << "Acoustic PML Element #" << Id() << "\n";
-    //     return buffer.str();
-    // }
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Acoustic PML Element #" << Id() << "\n";
+        return buffer.str();
+    }
 
-    // /// Print information about this object.
-    // void PrintInfo(std::ostream& rOStream) const override
-    // {
-    //     rOStream << "Acoustic PML Element #" << Id() << "\n";
-    // }
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Acoustic PML Element #" << Id() << "\n";
+    }
 
     // // Print object's data.
     // void PrintData(std::ostream& rOStream) const override
@@ -274,9 +274,9 @@ protected:
     // ///@{
 
     void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
-        
+
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     void ComplexJacobian(ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod);
