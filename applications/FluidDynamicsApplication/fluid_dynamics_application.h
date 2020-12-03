@@ -96,6 +96,9 @@
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
+// adjoint elements
+#include "custom_elements/fluid_element_adjoint.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_adjoint_element_data.h"
 
 namespace Kratos
 {
@@ -401,9 +404,6 @@ private:
     const TwoFluidNavierStokesWallCondition<2, 2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3, 3> mTwoFluidNavierStokesWallCondition3D;
 
-    const VMSAdjointElement<2> mVMSAdjointElement2D;
-    const VMSAdjointElement<3> mVMSAdjointElement3D;
-
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
     const Euler2DLaw mEuler2DLaw;
@@ -415,6 +415,15 @@ private:
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
     const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
     const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
+
+    /// Fluid adjoint elements
+    const VMSAdjointElement<2> mVMSAdjointElement2D;
+    const VMSAdjointElement<3> mVMSAdjointElement3D;
+
+    const FluidAdjointElement<2, 3, QSVMSAdjointElementData<2, 3>> mQSVMSAdjoint2D3N;
+    const FluidAdjointElement<2, 4, QSVMSAdjointElementData<2, 4>> mQSVMSAdjoint2D4N;
+    const FluidAdjointElement<3, 4, QSVMSAdjointElementData<3, 4>> mQSVMSAdjoint3D4N;
+    const FluidAdjointElement<3, 8, QSVMSAdjointElementData<3, 8>> mQSVMSAdjoint3D8N;
 
     ///@}
     ///@name Private Operators
