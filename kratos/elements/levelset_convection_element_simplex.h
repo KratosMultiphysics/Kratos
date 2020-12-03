@@ -133,6 +133,8 @@ public:
         array_1d<double,TNumNodes> phi, phi_old;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
 
+        array_1d<double,3 > grad_phi_mean_tmp = ZeroVector(3);
+
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
@@ -141,7 +143,16 @@ public:
 
             v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
+
+            grad_phi_mean_tmp += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
         }
+
+        array_1d<double,TDim> grad_phi_mean;
+        for(unsigned int k = 0; k < TDim; k++)
+        {
+            grad_phi_mean[k] = grad_phi_mean_tmp[k]/static_cast<double>(TNumNodes);
+        }
+
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
         const double norm_grad = norm_2(grad_phi_halfstep);
 
@@ -193,7 +204,7 @@ public:
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
 
             //cross-wind term
-            if(norm_grad > 1e-3 && norm_vel > 1e-9)
+            if(norm_2(prod(trans(DN_DX), phi)) > 1.2*norm_2(grad_phi_mean) && norm_grad > 1e-3 && norm_vel > 1e-9)
             {
                 const double C = rCurrentProcessInfo.GetValue(CROSS_WIND_STABILIZATION_FACTOR);
                 const double time_derivative = dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old));
