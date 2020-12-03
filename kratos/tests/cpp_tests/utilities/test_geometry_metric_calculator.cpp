@@ -74,7 +74,60 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTriangle2D3N, KratosCoreFastSuite)
     expected_metric_tensor(0,0) = 1.244020; expected_metric_tensor(0,1) = 0.622008;
     expected_metric_tensor(1,0) = 0.622008; expected_metric_tensor(1,1) = 1.244020;
     KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
+}
 
+KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTetrahedra3D4N, KratosCoreFastSuite)
+{
+    // Set triangle geometry
+    Geometry<Node<3>>::PointsArrayType nodes;
+    nodes.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(2, 0.5*std::sqrt(3), 0.5, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.5*std::sqrt(3), -0.5, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(3, std::sqrt(3) / 3.0, 0.0, std::sqrt(6) / 3.0)));
+    const auto p_tetrahedra = Geometry<Node<3>>::Pointer(new Tetrahedra3D4<Node<3>>(nodes));
+
+    // Call the triangle metric calculator utility
+    double h_ref, met_inf, met_sup;
+    BoundedMatrix<double,3,3> metric_tensor;
+    GeometryMetricCalculator::CalculateMetricTensorData<3,4>(*p_tetrahedra, metric_tensor, h_ref, met_inf, met_sup);
+
+    // Check results
+    const double tolerance = 1.0e-5;
+    KRATOS_CHECK_NEAR(h_ref, 1.0, tolerance);
+    KRATOS_CHECK_NEAR(met_inf, 1.0, tolerance);
+    KRATOS_CHECK_NEAR(met_sup, 1.0, tolerance);
+    BoundedMatrix<double,3,3> expected_metric_tensor;
+    expected_metric_tensor(0,0) = 1.0; expected_metric_tensor(0,1) = 0.0; expected_metric_tensor(0,2) = 0.0;
+    expected_metric_tensor(1,0) = 0.0; expected_metric_tensor(1,1) = 1.0; expected_metric_tensor(1,2) = 0.0;
+    expected_metric_tensor(2,0) = 0.0; expected_metric_tensor(2,1) = 0.0; expected_metric_tensor(2,2) = 1.0;
+    KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTetrahedra3D4N, KratosCoreFastSuite)
+{
+    // Set triangle geometry
+    Geometry<Node<3>>::PointsArrayType nodes;
+    nodes.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.0, 1.0, 0.0)));
+    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.0, 0.0, 1.0)));
+    const auto p_tetrahedra = Geometry<Node<3>>::Pointer(new Tetrahedra3D4<Node<3>>(nodes));
+
+    // Call the triangle metric calculator utility
+    double h_ref, met_inf, met_sup;
+    BoundedMatrix<double,3,3> metric_tensor;
+    GeometryMetricCalculator::CalculateMetricTensorData<3,4>(*p_tetrahedra, metric_tensor, h_ref, met_inf, met_sup);
+
+    // Check results
+    const double tolerance = 1.0e-5;
+    KRATOS_CHECK_NEAR(h_ref, 1.17851, tolerance);
+    KRATOS_CHECK_NEAR(met_inf, 0.5, tolerance);
+    KRATOS_CHECK_NEAR(met_sup, 2.0, tolerance);
+    BoundedMatrix<double,3,3> expected_metric_tensor;
+    expected_metric_tensor(0,0) = 1.0; expected_metric_tensor(0,1) = 0.5; expected_metric_tensor(0,2) = 0.5;
+    expected_metric_tensor(1,0) = 0.5; expected_metric_tensor(1,1) = 1.0; expected_metric_tensor(1,2) = 0.5;
+    expected_metric_tensor(2,0) = 0.5; expected_metric_tensor(2,1) = 0.5; expected_metric_tensor(2,2) = 1.0;
+    KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
 }
 
 } // namespace Testing
