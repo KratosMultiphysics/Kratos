@@ -62,6 +62,164 @@ void FluidCalculationUtilities::UpdateValue(
     noalias(rOutput) += rInput;
 }
 
+template<>
+void FluidCalculationUtilities::AssignGradientValue(
+    const double& rInput,
+    const double rShapeFunctionDerivative,
+    const IndexType DirectionIndex,
+    array_1d<double, 3>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2)
+        << "Unsupported Direction Index. DirectionIndex should be  less than 3 "
+           "[ DirectionIndex = "
+        << DirectionIndex << " ].\n";
+
+    rOutput[DirectionIndex] = rInput * rShapeFunctionDerivative;
+
+    KRATOS_CATCH("");
+}
+
+template<>
+void FluidCalculationUtilities::AssignGradientValue(
+    const double& rInput,
+    const double rShapeFunctionDerivative,
+    const IndexType DirectionIndex,
+    array_1d<double, 2>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 1)
+        << "Unsupported Direction Index. DirectionIndex should be  less than 2 "
+           "[ DirectionIndex = "
+        << DirectionIndex << " ].\n";
+
+    rOutput[DirectionIndex] = rInput * rShapeFunctionDerivative;
+
+    KRATOS_CATCH("");
+}
+
+template<>
+void FluidCalculationUtilities::AssignGradientValue(
+    const array_1d<double, 3>& rInput,
+    const double rShapeFunctionDerivative,
+    const IndexType DirectionIndex,
+    BoundedMatrix<double, 3, 3>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2)
+        << "Unsupported Direction Index. DirectionIndex should be  less than 3 "
+           "[ DirectionIndex = "
+        << DirectionIndex << " ].\n";
+
+    rOutput(0, DirectionIndex) = rInput[0] * rShapeFunctionDerivative;
+    rOutput(1, DirectionIndex) = rInput[1] * rShapeFunctionDerivative;
+    rOutput(2, DirectionIndex) = rInput[2] * rShapeFunctionDerivative;
+
+    KRATOS_CATCH("");
+}
+
+template<>
+void FluidCalculationUtilities::AssignGradientValue(
+    const array_1d<double, 3>& rInput,
+    const double rShapeFunctionDerivative,
+    const IndexType DirectionIndex,
+    BoundedMatrix<double, 2, 2>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 1)
+        << "Unsupported Direction Index. DirectionIndex should be  less than 2 "
+           "[ DirectionIndex = "
+        << DirectionIndex << " ].\n";
+
+    rOutput(0, DirectionIndex) = rInput[0] * rShapeFunctionDerivative;
+    rOutput(1, DirectionIndex) = rInput[1] * rShapeFunctionDerivative;
+
+    KRATOS_CATCH("");
+}
+
+template<>
+void FluidCalculationUtilities::UpdateGradientValue(
+    const double& rInput,
+    const double rShapeFunctionDerivative,
+    const IndexType DirectionIndex,
+    array_1d<double, 3>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2)
+        << "Unsupported Direction Index. DirectionIndex should be  less than 3 "
+           "[ DirectionIndex = "
+        << DirectionIndex << " ].\n";
+
+    rOutput[DirectionIndex] += rInput * rShapeFunctionDerivative;
+
+    KRATOS_CATCH("");
+}
+
+template<>
+void FluidCalculationUtilities::UpdateGradientValue(
+    const double& rInput,
+    const double rShapeFunctionDerivative,
+    const IndexType DirectionIndex,
+    array_1d<double, 2>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 1)
+        << "Unsupported Direction Index. DirectionIndex should be  less than 2 "
+           "[ DirectionIndex = "
+        << DirectionIndex << " ].\n";
+
+    rOutput[DirectionIndex] += rInput * rShapeFunctionDerivative;
+
+    KRATOS_CATCH("");
+}
+
+template<>
+void FluidCalculationUtilities::UpdateGradientValue(
+    const array_1d<double, 3>& rInput,
+    const double rShapeFunctionDerivative,
+    const IndexType DirectionIndex,
+    BoundedMatrix<double, 3, 3>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2)
+        << "Unsupported Direction Index. DirectionIndex should be  less than 3 "
+           "[ DirectionIndex = "
+        << DirectionIndex << " ].\n";
+
+    rOutput(0, DirectionIndex) += rInput[0] * rShapeFunctionDerivative;
+    rOutput(1, DirectionIndex) += rInput[1] * rShapeFunctionDerivative;
+    rOutput(2, DirectionIndex) += rInput[2] * rShapeFunctionDerivative;
+
+    KRATOS_CATCH("");
+}
+
+template<>
+void FluidCalculationUtilities::UpdateGradientValue(
+    const array_1d<double, 3>& rInput,
+    const double rShapeFunctionDerivative,
+    const IndexType DirectionIndex,
+    BoundedMatrix<double, 2, 2>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 1)
+        << "Unsupported Direction Index. DirectionIndex should be  less than 2 "
+           "[ DirectionIndex = "
+        << DirectionIndex << " ].\n";
+
+    rOutput(0, DirectionIndex) += rInput[0] * rShapeFunctionDerivative;
+    rOutput(1, DirectionIndex) += rInput[1] * rShapeFunctionDerivative;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 template void FluidCalculationUtilities::AssignValue<double>(const double&, double&);
 template void FluidCalculationUtilities::AssignValue<array_1d<double, 3>>(const array_1d<double, 3>&, array_1d<double, 3>&);
