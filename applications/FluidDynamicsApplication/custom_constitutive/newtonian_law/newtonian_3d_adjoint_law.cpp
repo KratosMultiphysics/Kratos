@@ -29,11 +29,6 @@ Newtonian3DAdjointLaw::~Newtonian3DAdjointLaw() {}
 
 // Public operations //////////////////////////////////////////////////////////
 
-FluidAdjointConstitutiveLaw::Pointer Newtonian3DAdjointLaw::Clone() const
-{
-    return Kratos::make_shared<Newtonian3DAdjointLaw>(*this);
-}
-
 void Newtonian3DAdjointLaw::CalculateMaterialResponseCauchyDerivative(
     ConstitutiveLaw::Parameters& rValuesDerivative,
     ConstitutiveLaw::Parameters& rValues,

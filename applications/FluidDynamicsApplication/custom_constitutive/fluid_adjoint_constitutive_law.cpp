@@ -32,15 +32,6 @@ FluidAdjointConstitutiveLaw::~FluidAdjointConstitutiveLaw() {}
 
 // Public operations //////////////////////////////////////////////////////////
 
-FluidAdjointConstitutiveLaw::Pointer FluidAdjointConstitutiveLaw::Clone() const
-{
-    KRATOS_ERROR << "Calling base FluidAdjointConstitutiveLaw::Clone method. This "
-                    "class should not be instantiated. Please check your "
-                    "constitutive law."
-                 << std::endl;
-    return Kratos::make_shared<FluidAdjointConstitutiveLaw>(*this);
-}
-
 void FluidAdjointConstitutiveLaw::CalculateMaterialResponseCauchyDerivative(
     ConstitutiveLaw::Parameters& rValuesDerivative,
     ConstitutiveLaw::Parameters& rValues,
