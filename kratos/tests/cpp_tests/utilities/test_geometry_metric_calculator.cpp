@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <limits>
 
 // External includes
 
@@ -38,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTriangle, KratosCoreFastSui
     // Call the triangle metric calculator utility
     double h_ref, met_inf, met_sup;
     BoundedMatrix<double,2,2> metric_tensor;
-    GeometryMetricCalculator::CalculateMetricTensorData<2,3>(*p_triangle, metric_tensor, h_ref, met_inf, met_sup);
+    GeometryMetricCalculator<2,3>::CalculateMetricTensorDimensionless(*p_triangle, metric_tensor, h_ref, met_inf, met_sup);
 
     // Check results
     const double tolerance = 1.0e-8;
@@ -63,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTriangle2D3N, KratosCoreFastSuite)
     // Call the triangle metric calculator utility
     double h_ref, met_inf, met_sup;
     BoundedMatrix<double,2,2> metric_tensor;
-    GeometryMetricCalculator::CalculateMetricTensorData<2,3>(*p_triangle, metric_tensor, h_ref, met_inf, met_sup);
+    GeometryMetricCalculator<2,3>::CalculateMetricTensorDimensionless(*p_triangle, metric_tensor, h_ref, met_inf, met_sup);
 
     // Check results
     const double tolerance = 1.0e-5;
@@ -89,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTetrahedra3D4N, KratosCoreF
     // Call the triangle metric calculator utility
     double h_ref, met_inf, met_sup;
     BoundedMatrix<double,3,3> metric_tensor;
-    GeometryMetricCalculator::CalculateMetricTensorData<3,4>(*p_tetrahedra, metric_tensor, h_ref, met_inf, met_sup);
+    GeometryMetricCalculator<3,4>::CalculateMetricTensorDimensionless(*p_tetrahedra, metric_tensor, h_ref, met_inf, met_sup);
 
     // Check results
     const double tolerance = 1.0e-5;
@@ -116,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTetrahedra3D4N, KratosCoreFastSuit
     // Call the triangle metric calculator utility
     double h_ref, met_inf, met_sup;
     BoundedMatrix<double,3,3> metric_tensor;
-    GeometryMetricCalculator::CalculateMetricTensorData<3,4>(*p_tetrahedra, metric_tensor, h_ref, met_inf, met_sup);
+    GeometryMetricCalculator<3,4>::CalculateMetricTensorDimensionless(*p_tetrahedra, metric_tensor, h_ref, met_inf, met_sup);
 
     // Check results
     const double tolerance = 1.0e-5;
@@ -124,9 +123,9 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTetrahedra3D4N, KratosCoreFastSuit
     KRATOS_CHECK_NEAR(met_inf, 0.5, tolerance);
     KRATOS_CHECK_NEAR(met_sup, 2.0, tolerance);
     BoundedMatrix<double,3,3> expected_metric_tensor;
-    expected_metric_tensor(0,0) = 1.0; expected_metric_tensor(0,1) = 0.5; expected_metric_tensor(0,2) = 0.5;
-    expected_metric_tensor(1,0) = 0.5; expected_metric_tensor(1,1) = 1.0; expected_metric_tensor(1,2) = 0.5;
-    expected_metric_tensor(2,0) = 0.5; expected_metric_tensor(2,1) = 0.5; expected_metric_tensor(2,2) = 1.0;
+    expected_metric_tensor(0,0) = 1.38889; expected_metric_tensor(0,1) = 0.694444; expected_metric_tensor(0,2) = 0.694444;
+    expected_metric_tensor(1,0) = 0.694444; expected_metric_tensor(1,1) = 1.38889; expected_metric_tensor(1,2) = 0.694444;
+    expected_metric_tensor(2,0) = 0.694444; expected_metric_tensor(2,1) = 0.694444; expected_metric_tensor(2,2) = 1.38889;
     KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
 }
 

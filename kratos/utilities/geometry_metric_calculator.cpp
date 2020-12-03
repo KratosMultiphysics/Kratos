@@ -25,12 +25,9 @@ namespace Kratos
 {
 
 template<>
-void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator::CalculateMetricTensorData<2,3>(
+void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<2,3>::CalculateMetricTensor(
     const GeometryType& rGeometry,
-    BoundedMatrix<double, 2, 2>& rMetricTensor,
-    double& rReferenceElementSize,
-    double& rMetricInfimum,
-    double& rMetricSupremum)
+    BoundedMatrix<double, 2, 2>& rMetricTensor)
 {
     const array_1d<double, 3>& r_p_1 = rGeometry[0].Coordinates();
     const array_1d<double, 3>& r_p_2 = rGeometry[1].Coordinates();
@@ -52,31 +49,12 @@ void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator::CalculateMetricTensorData
     // Set the metric tensor
     rMetricTensor(0,0) = sol[0]; rMetricTensor(0,1) = sol[1];
     rMetricTensor(1,0) = sol[1]; rMetricTensor(1,1) = sol[2];
-
-    // Calculate the eigenvalues of the metric tensor to obtain the ellipsis of inertia axes
-    BoundedMatrix<double,2,2> eigenvects, eigenvals;
-    MathUtils<double>::GaussSeidelEigenSystem(rMetricTensor, eigenvects, eigenvals);
-
-    // Calculate the reference element size as the average of the ellipsis of inertia axes lengths
-    const double h_1 = std::sqrt(1.0 / eigenvals(0,0));
-    const double h_2 = std::sqrt(1.0 / eigenvals(1,1));
-    rReferenceElementSize = 0.5 * (h_1 + h_2);
-
-    // Get te infimum and supremum of the metric
-    rMetricInfimum = std::min(eigenvals(0,0), eigenvals(1,1));
-    rMetricSupremum = std::max(eigenvals(0,0), eigenvals(1,1));
-
-    // Make the metric dimensionless
-    rMetricTensor *= std::pow(rReferenceElementSize,2);
 }
 
 template<>
-void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator::CalculateMetricTensorData<3,4>(
+void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<3,4>::CalculateMetricTensor(
     const GeometryType& rGeometry,
-    BoundedMatrix<double, 3, 3>& rMetricTensor,
-    double& rReferenceElementSize,
-    double& rMetricInfimum,
-    double& rMetricSupremum)
+    BoundedMatrix<double, 3, 3>& rMetricTensor)
 {
     // Solve the metric problem trans(e)*M*e = 1
     // This means, find the coefficients of the matrix M such that all the geometry edges have unit length
@@ -104,20 +82,59 @@ void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator::CalculateMetricTensorData
     rMetricTensor(0,0) = sol[0]; rMetricTensor(0,1) = sol[1]; rMetricTensor(0,2) = sol[2];
     rMetricTensor(1,0) = sol[1]; rMetricTensor(1,1) = sol[3]; rMetricTensor(1,2) = sol[4];
     rMetricTensor(2,0) = sol[2]; rMetricTensor(2,1) = sol[4]; rMetricTensor(2,2) = sol[5];
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensor(
+    const GeometryType& rGeometry,
+    BoundedMatrix<double, TDim, TDim>& rMetricTensor,
+    double& rReferenceElementSize,
+    double& rMetricInfimum,
+    double& rMetricSupremum)
+{
+    // Calculate the metric tensor
+    GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensor(rGeometry, rMetricTensor);
 
     // Calculate the eigenvalues of the metric tensor to obtain the ellipsis of inertia axes
-    BoundedMatrix<double,3,3> eigenvects, eigenvals;
+    BoundedMatrix<double,TDim,TDim> eigenvects, eigenvals;
     MathUtils<double>::GaussSeidelEigenSystem(rMetricTensor, eigenvects, eigenvals);
 
     // Calculate the reference element size as the average of the ellipsis of inertia axes lengths
-    const double h_1 = std::sqrt(1.0 / eigenvals(0,0));
-    const double h_2 = std::sqrt(1.0 / eigenvals(1,1));
-    const double h_3 = std::sqrt(1.0 / eigenvals(2,2));
-    rReferenceElementSize = (h_1 + h_2 + h_3) / 3.0;
-
-    // Get te infimum and supremum of the metric
-    rMetricInfimum = std::min(eigenvals(0,0), std::min(eigenvals(1,1), eigenvals(2,2)));
-    rMetricSupremum = std::max(eigenvals(0,0), std::max(eigenvals(1,1), eigenvals(2,2)));
+    // Note that the lenght of each semiaxe is computed from the metric tensor eigenvalues
+    // In here we also obtain the infimum and supremum values of the metric tensor
+    rReferenceElementSize = 0.0;
+    rMetricInfimum = std::numeric_limits<double>::max();
+    rMetricSupremum = std::numeric_limits<double>::min();
+    for (unsigned int i = 0; i < TDim; ++i) {
+        rReferenceElementSize += std::sqrt(1.0 / eigenvals(i,i));
+        if (eigenvals(i,i) < rMetricInfimum) {rMetricInfimum = eigenvals(i,i);}
+        if (eigenvals(i,i) > rMetricSupremum) {rMetricSupremum = eigenvals(i,i);}
+    }
+    rReferenceElementSize /= TDim;
 }
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensorDimensionless(
+    const GeometryType& rGeometry,
+    BoundedMatrix<double, TDim, TDim>& rMetricTensorDimensionless,
+    double& rReferenceElementSize,
+    double& rMetricInfimum,
+    double& rMetricSupremum)
+{
+    // Calculate the metric tensor
+    GeometryMetricCalculator<TDim, TNumNodes>::CalculateMetricTensor(
+        rGeometry,
+        rMetricTensorDimensionless,
+        rReferenceElementSize,
+        rMetricInfimum,
+        rMetricSupremum);
+
+    // Make the metric dimensionless
+    rMetricTensorDimensionless *= std::pow(rReferenceElementSize,2);
+}
+
+// Explicit template instantiations
+template class GeometryMetricCalculator<2,3>;
+template class GeometryMetricCalculator<3,4>;
 
 } // namespace Kratos.
