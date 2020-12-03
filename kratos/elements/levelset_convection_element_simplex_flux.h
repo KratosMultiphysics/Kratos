@@ -211,7 +211,7 @@ public:
             }
         }
 
-        if (norm_2(prod(trans(DN_DX), phi)) > 1.0e1*norm_2(grad_phi_mean))
+        if (norm_2(GetValue(DISTANCE_GRADIENT)) > 1.2*norm_2(grad_phi_mean))
         { //LO stabilization
             noalias(rLeftHandSideMatrix)  = dt_inv*Ml_matrix - K_matrix + nu_e*S_matrix;
             noalias(rRightHandSideVector) = dt_inv*prod(Ml_matrix,phi_old);// - nu_e*S_vector;
