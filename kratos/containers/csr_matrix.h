@@ -16,6 +16,7 @@
 
 // System includes
 #include <iostream>
+#include <limits>
 
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/system_vector.h"
@@ -75,7 +76,7 @@ public:
     {
     }
 
-    /// Default constructor.
+    /// constructor.
     template<class TGraphType>
     CsrMatrix(const TGraphType& rSparseGraph)
     {
@@ -195,7 +196,7 @@ public:
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
         IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
-        KRATOS_DEBUG_ERROR_IF(k<0) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
@@ -203,7 +204,7 @@ public:
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
         IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
-        KRATOS_DEBUG_ERROR_IF(k<0) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
@@ -211,7 +212,7 @@ public:
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
         IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
-        return k >= 0;
+        return k != std::numeric_limits<IndexType>::max();
     }
 
     // y += A*x  -- where A is *this
@@ -498,7 +499,7 @@ protected:
     ///@{
     // A non-recursive binary search function. It returns 
     // location of x in given array arr[l..r] is present, 
-    // otherwise -1
+    // otherwise std::dec << std::numeric_limits<IndexType>::max()
     template< class TVectorType > 
     inline IndexType BinarySearch(const TVectorType& arr, 
                         IndexType l, IndexType r, IndexType x) const
@@ -520,7 +521,7 @@ protected:
         } 
     
         // if we reach here, then element was not present 
-        return -1; 
+        return std::numeric_limits<IndexType>::max(); 
     } 
 
     ///@}

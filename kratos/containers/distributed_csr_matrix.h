@@ -52,7 +52,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This function implements "serial" CSR matrix, including capabilities for FEM assembly
+/// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
 class DistributedCsrMatrix
 {
