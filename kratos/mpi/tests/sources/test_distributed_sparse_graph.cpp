@@ -27,6 +27,8 @@
 namespace Kratos {
 namespace Testing {
 
+namespace DistributedTestingInternals {
+
 typedef std::size_t IndexType;
 typedef std::vector<std::vector<IndexType>> ElementConnectivityType;
 typedef std::unordered_map<std::pair<IndexType, IndexType>,
@@ -297,8 +299,12 @@ std::vector<TIndexType> ComputeBounds( TIndexType N,
     return bounds;
 }
 
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
+    using namespace Kratos::Testing::DistributedTestingInternals;
+
     typedef std::size_t IndexType;
 
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
@@ -324,6 +330,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPI
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosMPICoreFastSuite)
 {
+    using namespace Kratos::Testing::DistributedTestingInternals;
     typedef std::size_t IndexType;
 
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
@@ -369,6 +376,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosMPICo
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
+    using namespace Kratos::Testing::DistributedTestingInternals;
+
     typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -405,6 +414,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosMPICoreFastSuite)
 {
+    using namespace Kratos::Testing::DistributedTestingInternals;
+
     typedef std::size_t IndexType;
 
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
@@ -483,6 +494,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMPICoreFastSuite)
 {
+    using namespace Kratos::Testing::DistributedTestingInternals;
+
     typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     IndexType col_divider = 3; //ratio of size between columns and row indices
@@ -601,6 +614,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)
 {
+    using namespace Kratos::Testing::DistributedTestingInternals;
+
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
 
     IndexType local_size = 4;

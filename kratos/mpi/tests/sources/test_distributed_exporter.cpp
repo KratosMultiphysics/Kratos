@@ -23,10 +23,9 @@
 namespace Kratos {
 namespace Testing {
 
-typedef std::size_t IndexType;
-
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosCoreFastSuite)
 {
+    typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
 
     IndexType local_size = 4;

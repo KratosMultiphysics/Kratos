@@ -23,6 +23,7 @@
 
 namespace Kratos {
 namespace Testing {
+namespace SparseTestingInternals {
 
 typedef std::vector<std::vector<std::size_t>> ElementConnectivityType;
 typedef std::unordered_map<std::pair<std::size_t, std::size_t>,
@@ -281,9 +282,13 @@ std::unique_ptr<TGraphType> AssembleGraph(
     return pAgraph;
 }
 
+}
+
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
+
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
@@ -313,6 +318,7 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(GraphContiguousRowConstruction, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
@@ -341,6 +347,7 @@ KRATOS_TEST_CASE_IN_SUITE(GraphContiguousRowConstruction, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
@@ -368,6 +375,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphContiguousRowConstruction, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
@@ -397,6 +405,7 @@ KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphContiguousRowConstruction, KratosCoreFastSu
 
 KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     const IndexType block_size = 4;
     const IndexType nodes_in_elem = 4;
     const IndexType nel = 1e6;
@@ -413,6 +422,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     const IndexType block_size = 4;
     const IndexType nodes_in_elem = 4;
     const IndexType nel = 1e6;
@@ -435,6 +445,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
 
 KRATOS_TEST_CASE_IN_SUITE(SystemVectorAssembly, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     const auto connectivities = ElementConnectivities();
     const auto reference_A_map = GetReferenceMatrixAsMap();
 
@@ -475,6 +486,7 @@ std::cout << std::endl;
 
 KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
@@ -515,6 +527,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     IndexType vector_size = 4;
     SystemVector<double,IndexType> a(vector_size);
     a.SetValue(5.0);
@@ -546,6 +559,7 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
 {
+    using namespace Kratos::Testing::SparseTestingInternals;
     typedef std::size_t IndexType;
     IndexType col_divider = 3;
 

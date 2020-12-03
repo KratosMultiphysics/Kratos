@@ -24,12 +24,17 @@
 namespace Kratos {
 namespace Testing {
 
+namespace SparseTestingInternals {
+    typedef std::size_t IndexType;
+    typedef KratosSpace<double, CsrMatrix<double,IndexType> , SystemVector<double,IndexType>> SparseSpaceType;
+    typedef KratosSpace<double, DenseMatrix<double>, DenseVector<double>> LocalSpaceType;
+
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
 {
-    typedef std::size_t IndexType;
-    typedef KratosSpace<double, CsrMatrix<double,IndexType> , SystemVector<double,IndexType>> SparseSpaceType;
-
+    using namespace Kratos::Testing::SparseTestingInternals;
     const IndexType size = 10;
 
     SparseContiguousRowGraph<IndexType> graph(size);
@@ -56,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormDenseMatrix, KratosCoreFastSuite)
 {
-    typedef KratosSpace<double, DenseMatrix<double>, DenseVector<double>> LocalSpaceType;
+    using namespace Kratos::Testing::SparseTestingInternals;
 
     const std::size_t size = 10;
     LocalSpaceType::MatrixType mat(size, size, 0.0);
