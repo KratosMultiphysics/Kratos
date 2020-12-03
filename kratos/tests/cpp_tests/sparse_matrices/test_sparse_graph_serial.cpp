@@ -405,7 +405,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
 {
     const SparseTestingInternals::IndexType block_size = 4;
     const SparseTestingInternals::IndexType nodes_in_elem = 4;
-    const SparseTestingInternals::IndexType nel = 1e6;
+    const SparseTestingInternals::IndexType nel = 1e2; //set at least to 1e6 for a realistic benchmark
     const SparseTestingInternals::IndexType ndof = nel/6;
     const SparseTestingInternals::IndexType standard_dev = 100;
     auto connectivities = SparseTestingInternals::RandomElementConnectivities(block_size,nodes_in_elem, 0,nel,ndof,standard_dev);
@@ -422,7 +422,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
     
     const SparseTestingInternals::IndexType block_size = 4;
     const SparseTestingInternals::IndexType nodes_in_elem = 4;
-    const SparseTestingInternals::IndexType nel = 1e6;
+    const SparseTestingInternals::IndexType nel = 1e2; //set this to at least 1e6 for a realistic benchmark
     const SparseTestingInternals::IndexType ndof = nel/6;
     const SparseTestingInternals::IndexType standard_dev = 100;
     auto connectivities = SparseTestingInternals::RandomElementConnectivities(block_size,nodes_in_elem,0, nel,ndof,standard_dev);
