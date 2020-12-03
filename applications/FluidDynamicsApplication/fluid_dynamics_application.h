@@ -97,7 +97,7 @@
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 // adjoint elements
-#include "custom_elements/fluid_element_adjoint.h"
+#include "custom_elements/fluid_adjoint_element.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_adjoint_element_data.h"
 
 namespace Kratos
