@@ -97,8 +97,7 @@ class UpdateThermalModelPartProcess : public Process {
         rDestinationModelPart.AddNodes(rOriginModelPart.NodesBegin(), rOriginModelPart.NodesEnd());
 
         // Copy nodes to the rDestinationModelPart's sub model parts
-        for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd();
-             ++i_part) {
+        for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
             if (!rDestinationModelPart.HasSubModelPart(i_part->Name())) {
                 rDestinationModelPart.CreateSubModelPart(i_part->Name());
             }
