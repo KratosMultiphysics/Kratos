@@ -25,7 +25,6 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -112,7 +111,7 @@ public:
         mrModelPartBoundary(rModelPartBoundary)
     {
         KRATOS_TRY
-        
+
         // Check that there is at least one element and node in the model
         const auto n_nodes = mrModelPartPML.NumberOfNodes();
         const auto n_elems = mrModelPartPML.NumberOfElements();
@@ -122,7 +121,7 @@ public:
 
         // Set build level
 
-        mrModelPartPML.GetProcessInfo()[BUILD_LEVEL] = 401; 
+        mrModelPartPML.GetProcessInfo()[BUILD_LEVEL] = 401;
 
         // Generate a linear strategy
         typename SchemeType::Pointer pScheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -141,7 +140,7 @@ public:
             CalculateReactions,
             ReformDofAtEachIteration,
             CalculateNormDxFlag);
-        
+
 
 
         mpSolvingStrategy->SetEchoLevel(0);
@@ -149,7 +148,7 @@ public:
 
 
         // mpK = TSparseSpace::CreateEmptyMatrixPointer();
-        
+
         // mpRHS = TSparseSpace::CreateEmptyVectorPointer();
         // mpDx = TSparseSpace::CreateEmptyVectorPointer();
 
@@ -189,26 +188,30 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart::NodesContainerType& rPMLNodes = mrModelPartPML.Nodes();
         ModelPart::NodesContainerType& rInterfaceNodes = mrModelPartInterface.Nodes();
         ModelPart::NodesContainerType& rBoundaryNodes = mrModelPartBoundary.Nodes();
-        
+
+        #pragma omp parallel for
         for ( ModelPart::NodesContainerType::iterator it_node = rInterfaceNodes.begin();
                 it_node != rInterfaceNodes.end() ; ++it_node)
         {
-            it_node->SetValue(PRESCRIBED_POTENTIAL, -1);
+            it_node->SetValue(PRESCRIBED_POTENTIAL, -1);        // the value used for the rhs
+            it_node->GetSolutionStepValue(PRESSURE, 0) = -1;    // to have a consistent result
+            it_node->Fix(PRESSURE);                             // dof must be fixed
         }
-        
+
+        #pragma omp parallel for
         for ( ModelPart::NodesContainerType::iterator it_node = rBoundaryNodes.begin();
                 it_node != rBoundaryNodes.end() ; ++it_node)
         {
-            it_node->SetValue(PRESCRIBED_POTENTIAL, 1);
+            it_node->SetValue(PRESCRIBED_POTENTIAL, 1);         // the value used for the rhs
+            it_node->GetSolutionStepValue(PRESSURE, 0) = 1;     // to have a consistent result
+            it_node->Fix(PRESSURE);                             // dof must be fixed
         }
 
 
         mpSolvingStrategy->Solve();
 
-        
         //  for ( ModelPart::NodesContainerType::iterator it_node = rPMLNodes.begin();
         //         it_node != rPMLNodes.end() ; ++it_node)
         // {
@@ -220,11 +223,45 @@ public:
         GradientType process = GradientType(mrModelPartPML, PRESSURE, PML_IMAG_DISTANCE, NODAL_AREA, false);
         process.Execute();
 
-        for ( ModelPart::NodesContainerType::iterator it_node = rPMLNodes.begin();
-                    it_node != rPMLNodes.end() ; ++it_node)
-            {
-                std::cout<<" PML direction "<< it_node->GetValue(PML_IMAG_DISTANCE) <<std::endl;
+        // normalize gradients
+        #pragma omp parallel for
+        for( auto& it_node : mrModelPartPML.Nodes() ) {
+            array_1d<double, 3>& grad = it_node.GetValue(PML_IMAG_DISTANCE);
+            const double norm = norm_2( grad );
+            if( std::abs(norm) > std::numeric_limits<double>::epsilon() ) {
+                std::for_each( grad.begin(), grad.end(), [norm] (double &a) {a /= norm;});
             }
+        }
+
+        // use mean of adjacent nodes for zero gradients
+        #pragma omp parallel for
+        for( auto& it_elem : mrModelPartPML.Elements() ) {
+            for( auto& it_node : it_elem.GetGeometry() ) {
+                array_1d<double, 3> grad = it_node.GetValue(PML_IMAG_DISTANCE);
+                double norm = norm_2( grad );
+                if( std::abs(norm) < std::numeric_limits<double>::epsilon() ) {
+                    for( auto& it_elem_node : it_elem.GetGeometry() ) {
+                        grad += it_elem_node.GetValue(PML_IMAG_DISTANCE);
+                    }
+                    norm = norm_2( grad );
+                    std::for_each( grad.begin(), grad.end(), [norm] (double &a) {a /= norm;});
+                    it_node.SetValue(PML_IMAG_DISTANCE, grad);
+                }
+            }
+        }
+
+        // unfix all dofs and reset PRESSURE to be able to start computation with a clean model
+        #pragma omp parallel for
+        for( auto& it_node : mrModelPartPML.Nodes() ) {
+            it_node.Free(PRESSURE);
+            it_node.SetValue(PRESCRIBED_POTENTIAL, it_node.GetSolutionStepValue(PRESSURE, 0));
+            it_node.GetSolutionStepValue(PRESSURE, 0) = 0;
+        }
+
+        // for ( ModelPart::NodesContainerType::iterator it_node = rPMLNodes.begin(); it_node != rPMLNodes.end() ; ++it_node)
+        // {
+        //     std::cout<<" PML direction "<< it_node->GetValue(PML_IMAG_DISTANCE) <<std::endl;
+        // }
 
 
 
@@ -327,7 +364,7 @@ private:
     // TSystemVectorPointerType mpRHS; /// The RHS vector
     // TSystemVectorPointerType mpDx; /// The solution vector
     // TSystemMatrixPointerType mpK; /// The stiffness matrix (real part)
-    
+
 
     ///@}
     ///@name Private Operators
