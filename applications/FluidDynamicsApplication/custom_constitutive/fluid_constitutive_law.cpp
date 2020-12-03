@@ -36,9 +36,8 @@ ConstitutiveLaw::Pointer FluidConstitutiveLaw::Clone() const {
 
 FluidAdjointConstitutiveLaw::Pointer FluidConstitutiveLaw::GetAdjointConstitutiveLaw()
 {
-    KRATOS_ERROR << "Calling base FluidConstitutiveLaw::GetAdjointConstitutiveLaw method. This "
-                    "class should not be instantiated. Please check your "
-                    "constitutive law."
+    KRATOS_ERROR << "Calling base FluidConstitutiveLaw::GetAdjointConstitutiveLaw method."
+                 << "Fluid adjoint constitutive law is not defined for " << this->Info()
                  << std::endl;
     return Kratos::make_shared<FluidAdjointConstitutiveLaw>(*this);
 }

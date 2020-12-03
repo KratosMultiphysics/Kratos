@@ -61,9 +61,6 @@ public:
     ///@name Operations
     ///@{
 
-    /// Initialize a new instance of this type of law
-    virtual FluidAdjointConstitutiveLaw::Pointer Clone() const;
-
     virtual void CalculateMaterialResponseCauchyDerivative(
         ConstitutiveLaw::Parameters& rValuesDerivative,
         ConstitutiveLaw::Parameters& rValues,
