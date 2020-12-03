@@ -48,7 +48,7 @@ namespace Kratos
 ///@{
 
 template<unsigned int TDim, unsigned int TNumNodes>
-class GeometryMetricCalculator
+class KRATOS_API(KRATOS_CORE) GeometryMetricCalculator
 {
 public:
     ///@name Type Definitions
@@ -91,7 +91,7 @@ public:
      * @param rGeometry Reference to the geometry of interest
      * @param rMetricTensor Reference to the metric tensor
      */
-    static void KRATOS_API(KRATOS_CORE) CalculateMetricTensor(
+    static void CalculateMetricTensor(
         const GeometryType& rGeometry,
         BoundedMatrix<double, TDim, TDim>& rMetricTensor);
 
@@ -111,7 +111,7 @@ public:
      * @param rMetricInfimum Reference to the metric infimum
      * @param rMetricSupremum Reference to the metric supremum
      */
-    static void KRATOS_API(KRATOS_CORE) CalculateMetricTensor(
+    static void CalculateMetricTensor(
         const GeometryType& rGeometry,
         BoundedMatrix<double, TDim, TDim>& rMetricTensor,
         double& rReferenceElementSize,
@@ -136,7 +136,7 @@ public:
      * @param rMetricInfimum Reference to the metric infimum
      * @param rMetricSupremum Reference to the metric supremum
      */
-    static void KRATOS_API(KRATOS_CORE) CalculateMetricTensorDimensionless(
+    static void CalculateMetricTensorDimensionless(
         const GeometryType& rGeometry,
         BoundedMatrix<double, TDim, TDim>& rMetricTensor,
         double& rReferenceElementSize,

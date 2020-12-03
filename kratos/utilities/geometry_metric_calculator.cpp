@@ -25,7 +25,7 @@ namespace Kratos
 {
 
 template<>
-void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<2,3>::CalculateMetricTensor(
+void GeometryMetricCalculator<2,3>::CalculateMetricTensor(
     const GeometryType& rGeometry,
     BoundedMatrix<double, 2, 2>& rMetricTensor)
 {
@@ -52,7 +52,7 @@ void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<2,3>::CalculateMetricTenso
 }
 
 template<>
-void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<3,4>::CalculateMetricTensor(
+void GeometryMetricCalculator<3,4>::CalculateMetricTensor(
     const GeometryType& rGeometry,
     BoundedMatrix<double, 3, 3>& rMetricTensor)
 {
@@ -85,7 +85,7 @@ void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<3,4>::CalculateMetricTenso
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensor(
+void GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensor(
     const GeometryType& rGeometry,
     BoundedMatrix<double, TDim, TDim>& rMetricTensor,
     double& rReferenceElementSize,
@@ -114,7 +114,7 @@ void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<TDim,TNumNodes>::Calculate
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensorDimensionless(
+void GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensorDimensionless(
     const GeometryType& rGeometry,
     BoundedMatrix<double, TDim, TDim>& rMetricTensorDimensionless,
     double& rReferenceElementSize,
