@@ -79,7 +79,6 @@ public:
     {
         mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >(rNumbering);
         std::unordered_map<int, std::vector<IndexType>> to_send_remote_local_id; //do not need to store this
-
         for(unsigned int local_i=0; local_i<rGlobalIndices.size(); ++local_i)
         {
             IndexType global_i = rGlobalIndices[local_i];

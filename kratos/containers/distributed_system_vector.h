@@ -97,21 +97,19 @@ public:
     /// Copy constructor.
     explicit DistributedSystemVector(DistributedSystemVector const& rOther)
     :
-    mrComm(rOther.mrComm)
+    mrComm(rOther.GetComm())
     {
         mpNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(rOther.GetNumbering());
-
         KRATOS_ERROR_IF(LocalSize() != rOther.LocalSize());
         KRATOS_ERROR_IF(Size() != rOther.Size());
-
         //copying the data
         mLocalData.resize(rOther.LocalSize(),false); 
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] = rOther[i];
         });
-
         mNonLocalData = rOther.mNonLocalData;
-        mpexporter = Kratos::make_unique<DistributedVectorExporter<IndexType>>(rOther.GetExporter());
+        if(rOther.mpexporter != nullptr) //this will happen if Finalize was not called on the vector we construct from
+            mpexporter = Kratos::make_unique<DistributedVectorExporter<IndexType>>(rOther.GetExporter());
     }
 
     //WARNING: if a Distributed vector is constructed using this constructor, it cannot be used for assembly (non local entries are not precomputed)
@@ -184,6 +182,7 @@ public:
     }
 
     const DistributedVectorExporter<TIndexType>& GetExporter() const{
+        KRATOS_DEBUG_ERROR_IF(mpexporter==nullptr) << " mpexporter was not initialized, GetExporter() cannot be used" << std::endl;
         return *mpexporter;
     }
 

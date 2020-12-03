@@ -222,7 +222,7 @@ ElementConnectivityType RandomElementConnectivities(
     ElementConnectivityType connectivities((index_end-index_begin)*block_size);
 
     #pragma omp parallel for
-    for(int i=static_cast<int>(index_begin); i<static_cast<int>(index_end);++i)
+    for(unsigned int i=0; i<connectivities.size(); ++i)
     {
         connectivities[i].resize(nodes_in_elem*block_size);
         std::mt19937 gen(i);
@@ -297,7 +297,7 @@ std::vector<TIndexType> ComputeBounds( TIndexType N,
     return bounds;
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
 
@@ -322,7 +322,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
 
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
 
@@ -367,10 +367,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreF
 }
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
-
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
     int my_rank = rComm.Rank();
@@ -390,7 +389,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
                                 el_bounds[1],
                                 ndof,
                                 standard_dev);
-
     rComm.Barrier(); //to ensure fair timings
     double start_graph = OpenMPUtils::GetCurrentTime();
     DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
@@ -399,14 +397,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
         Agraph.AddEntries(connectivities[i]);
     });
     Agraph.Finalize();
-
     rComm.Barrier(); //to ensure fair timings
     double end_graph = OpenMPUtils::GetCurrentTime();
     std::cout << "graph - time = " << end_graph-start_graph << std::endl;
 
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
 
@@ -484,7 +481,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
 }
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
@@ -602,13 +599,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosCo
 
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
 
     IndexType local_size = 4;
     DistributedNumbering<IndexType> numbering(rComm,local_size);
-
     DistributedSystemVector<double,IndexType> a(numbering);
     KRATOS_CHECK_EQUAL(a.LocalSize(), local_size);
     a.SetValue(5.0);

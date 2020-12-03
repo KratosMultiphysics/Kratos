@@ -250,13 +250,20 @@ public:
             if(color >= 0) //-1 would imply no communication
             {
                 //TODO: this can be made nonblocking
-                const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
+                
+                //using serialization
+                //const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
+                // for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
+                // {
+                //     auto I = row_it.GetRowIndex();
+                //     mLocalGraph.AddEntries(I,*row_it);
+                // }
 
-                for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
-                {
-                    auto I = row_it.GetRowIndex();
-                    mLocalGraph.AddEntries(I,*row_it);
-                }
+                //using native calls
+                auto send_single_vector_repr = mNonLocalGraphs[color].ExportSingleVectorRepresentation();
+                const auto recv_single_vector_repr = mrComm.SendRecv(send_single_vector_repr, color, color);
+                mLocalGraph.AddFromSingleVectorRepresentation(recv_single_vector_repr);
+
             }
         }
 

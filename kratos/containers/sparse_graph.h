@@ -95,10 +95,16 @@ public:
     /// Copy constructor. 
     SparseGraph(const SparseGraph& rOther)
     :
-        mGraph(rOther.mGraph),
         mGraphSize(rOther.mGraphSize),
+        mGraph(rOther.mGraph),
         mSizeIsAvailable(rOther.mSizeIsAvailable)
     {
+    }
+
+    SparseGraph(const std::vector<IndexType>& rSingleVectorRepresentation)
+    {
+        AddFromSingleVectorRepresentation(rSingleVectorRepresentation);
+        mSizeIsAvailable = true;
     }
 
     ///@}
@@ -252,6 +258,38 @@ public:
         return nrows;
     }
 
+    //this function returns the Graph as a single vector
+    //in the form of 
+    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row 
+    //every row is pushed back one after the other 
+    std::vector<IndexType> ExportSingleVectorRepresentation() const
+    {
+        std::vector< IndexType > single_vector_representation;
+        single_vector_representation.push_back(GetGraph().size());
+        for(const auto& item : this->GetGraph()){
+            IndexType I = item.first;
+            single_vector_representation.push_back(I); //we store the index of the rows
+            single_vector_representation.push_back(item.second.size()); //the number of items in the row 
+            for(auto J : item.second)
+                single_vector_representation.push_back(J); //the columns
+        }
+        return single_vector_representation;
+    }
+
+    void AddFromSingleVectorRepresentation(const std::vector<IndexType>& rSingleVectorRepresentation)
+    {
+        mGraphSize = rSingleVectorRepresentation[0];
+        IndexType counter = 1;
+        while(counter < rSingleVectorRepresentation.size())
+        {
+            auto I = rSingleVectorRepresentation[counter++];
+            auto nrow = rSingleVectorRepresentation[counter++];
+            auto begin = &rSingleVectorRepresentation[counter];
+            AddEntries(I, begin, begin+nrow);
+            counter += nrow;
+        }
+    }
+
     ///@}
     ///@name Operations
 
@@ -386,16 +424,8 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        std::vector< IndexType > IJ;
-        for(const auto& item : this->GetGraph()){
-            IndexType I = item.first;
-            IJ.push_back(I);
-            IJ.push_back(item.second.size());
-            for(auto J : item.second)
-                IJ.push_back(J);
-        }
+        std::vector< IndexType > IJ = ExportSingleVectorRepresentation();
         rSerializer.save("IJ",IJ);
-        rSerializer.save("size",mGraphSize);
         rSerializer.save("mSizeIsAvailable",mSizeIsAvailable);
     }
 
@@ -403,23 +433,8 @@ private:
     {
         std::vector< IndexType > IJ;
         rSerializer.load("IJ",IJ);
-
-        if(IJ.size() != 0)
-        {
-            IndexType counter = 0;
-            while(counter < IJ.size())
-            {
-                auto I = IJ[counter++];
-                auto nrow = IJ[counter++];
-                auto begin = &IJ[counter];
-                AddEntries(I, begin, begin+nrow);
-                counter += nrow;
-            }
-        }
-
-        rSerializer.load("size",mGraphSize);
+        AddFromSingleVectorRepresentation(IJ);
         rSerializer.load("mSizeIsAvailable",mSizeIsAvailable);
-
     }
 
 

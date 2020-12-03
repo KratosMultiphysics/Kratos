@@ -266,6 +266,39 @@ public:
         return nrows;
     }
 
+    //this function returns the Graph as a single vector
+    //in the form of 
+    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row 
+    //every row is pushed back one after the other 
+    std::vector<IndexType> ExportSingleVectorRepresentation()
+    {
+        std::vector< IndexType > IJ;
+        IJ.push_back(GetGraph().size()); //number of rows
+        for(unsigned int I=0; I<GetGraph().size(); ++I)
+        {
+            IJ.push_back(I); //id of the row
+            IJ.push_back(mGraph[I].size()); //number of Js in the row
+            for(auto J : mGraph[I])
+                IJ.push_back(J); //J
+        }
+        return IJ;
+    }
+
+    void AddFromSingleVectorRepresentation(const std::vector<IndexType>& rSingleVectorRepresentation)
+    {
+        auto graph_size = rSingleVectorRepresentation[0];
+        KRATOS_ERROR_IF(graph_size > GetGraph().size() ) << "mismatching size - attempting to add a graph with more rows than the ones allowed in graph" << std::endl;
+        IndexType counter = 1;
+        while(counter < rSingleVectorRepresentation.size())
+        {
+            auto I = rSingleVectorRepresentation[counter++];
+            auto nrow = rSingleVectorRepresentation[counter++];
+            auto begin = &rSingleVectorRepresentation[counter];
+            AddEntries(I, begin, begin+nrow);
+            counter += nrow;
+        }
+    }
+
     ///@}
     ///@name Operations
     ///@{
