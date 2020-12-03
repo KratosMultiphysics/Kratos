@@ -394,7 +394,7 @@ public:
                 std::ofstream coordsfile;
                 coordsfile.open ("coordinates.txt");
                 for(unsigned int i=0; i<mCoordinates.size(); i++) {
-                    coordsfile << mCoordinates[i][0] << " " << mCoordinates[i][1] << " " << mCoordinates[i][2] << std::endl;
+                    coordsfile << mCoordinates[i][0] << " " << mCoordinates[i][1] << " " << mCoordinates[i][2] << "\n";
                 }
                 coordsfile.close();
             }
