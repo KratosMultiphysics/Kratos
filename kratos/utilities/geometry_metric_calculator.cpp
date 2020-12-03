@@ -84,7 +84,7 @@ void GeometryMetricCalculator<3,4>::CalculateMetricTensor(
     rMetricTensor(2,0) = sol[2]; rMetricTensor(2,1) = sol[4]; rMetricTensor(2,2) = sol[5];
 }
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensor(
     const GeometryType& rGeometry,
     BoundedMatrix<double, TDim, TDim>& rMetricTensor,
@@ -113,7 +113,7 @@ void GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensor(
     rReferenceElementSize /= TDim;
 }
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensorDimensionless(
     const GeometryType& rGeometry,
     BoundedMatrix<double, TDim, TDim>& rMetricTensorDimensionless,

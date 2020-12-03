@@ -47,7 +47,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 class KRATOS_API(KRATOS_CORE) GeometryMetricCalculator
 {
 public:
