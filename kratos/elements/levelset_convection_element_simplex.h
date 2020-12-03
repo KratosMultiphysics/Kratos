@@ -204,7 +204,10 @@ public:
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
 
             //cross-wind term
-            if(norm_2(prod(trans(DN_DX), phi)) > 1.2*norm_2(grad_phi_mean) && norm_grad > 1e-3 && norm_vel > 1e-9)
+            //if(norm_2(prod(trans(DN_DX), phi)) > 1.2*norm_2(grad_phi_mean) && norm_grad > 1e-3 && norm_vel > 1e-9)
+            //KRATOS_WATCH(norm_2(grad_phi_mean));
+            //KRATOS_WATCH(norm_2(GetValue(DISTANCE_GRADIENT)));
+            if(norm_2(GetValue(DISTANCE_GRADIENT)) > 1.2*norm_2(grad_phi_mean) && norm_grad > 1e-3 && norm_vel > 1e-9)
             {
                 const double C = rCurrentProcessInfo.GetValue(CROSS_WIND_STABILIZATION_FACTOR);
                 const double time_derivative = dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old));

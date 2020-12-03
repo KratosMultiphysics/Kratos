@@ -285,6 +285,31 @@ public:
                 }
             }
 
+            BoundedMatrix<double, TDim+1, TDim > DN_DX;
+            array_1d<double, TDim+1 > N;
+            double Volume;
+            array_1d<double, TDim+1> phi;
+            array_1d<double, 3> grad_phi = ZeroVector(3);
+            array_1d<double, TDim> grad_phi_TDim = ZeroVector(TDim);
+
+            #pragma omp parallel for firstprivate(Volume, N, DN_DX, phi, grad_phi, grad_phi_TDim)
+            for(int i_elem=0; i_elem<static_cast<int>(mpDistanceModelPart->Elements().size()); ++i_elem) {
+                auto it_elem = mpDistanceModelPart->ElementsBegin() + i_elem;
+                auto& r_geometry = it_elem->GetGeometry();
+
+                GeometryUtils::CalculateGeometryData(r_geometry, DN_DX, N, Volume);
+
+                for (unsigned int i = 0; i < TDim+1; i++)
+                    phi[i] = r_geometry[i].FastGetSolutionStepValue(mrLevelSetVar);
+
+                grad_phi_TDim = prod(trans(DN_DX), phi);
+
+                for (unsigned int i = 0; i < TDim; i++)
+                    grad_phi[i] = grad_phi_TDim[i];
+
+                it_elem->SetValue(DISTANCE_GRADIENT, grad_phi);
+            }
+
             //for (unsigned int iter = 0; iter < 10; ++iter){
                 mProjectedGradientProcess.Execute();
                 mpSolvingStrategy->Solve(); // forward convection to reach phi_n+1
@@ -303,7 +328,7 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 }
 
-                mProjectedGradientProcess.Execute();
+                //mProjectedGradientProcess.Execute();
                 mpSolvingStrategy->Solve(); // backward convetion to obtain phi_n*
 
                 // Calculating the raw error without a limiter, etc.
@@ -328,7 +353,7 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
                 }
 
-                mProjectedGradientProcess.Execute();
+                //mProjectedGradientProcess.Execute();
                 mpSolvingStrategy->Solve(); // forward convection to obtain the corrected phi_n+1
             }
         }
@@ -504,7 +529,7 @@ protected:
         // Generating the elements
         mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplexFlux < TDim, TDim+1 > >(
+            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());
