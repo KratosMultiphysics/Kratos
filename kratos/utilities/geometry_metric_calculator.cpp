@@ -134,7 +134,7 @@ void GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensorDimensionles
 }
 
 // Explicit template instantiations
-template class KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<2,3>;
-template class KRATOS_API(KRATOS_CORE) GeometryMetricCalculator<3,4>;
+template class GeometryMetricCalculator<2,3>;
+template class GeometryMetricCalculator<3,4>;
 
 } // namespace Kratos.

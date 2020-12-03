@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_GEOMETRY_UTILITIES_INCLUDED )
-#define  KRATOS_GEOMETRY_UTILITIES_INCLUDED
+#if !defined(KRATOS_GEOMETRY_METRIC_CALCULATOR_INCLUDED)
+#define  KRATOS_GEOMETRY_METRIC_CALCULATOR_INCLUDED
 
 // System includes
 
@@ -68,7 +68,6 @@ public:
 
     /// Deleted copy constructor.
     GeometryMetricCalculator(GeometryMetricCalculator const& rOther) = delete;
-
 
     ///@}
     ///@name Operators
@@ -152,5 +151,5 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined
+#endif // KRATOS_GEOMETRY_METRIC_CALCULATOR_INCLUDED  defined
 
