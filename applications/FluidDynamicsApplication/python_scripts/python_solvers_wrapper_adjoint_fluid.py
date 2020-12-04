@@ -17,7 +17,7 @@ def CreateSolver(model, custom_settings):
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "Monolithic"):
-            solver_module_name = "adjoint_vmsmonolithic_solver"
+            solver_module_name = "adjoint_monolithic_solver"
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper")
 
