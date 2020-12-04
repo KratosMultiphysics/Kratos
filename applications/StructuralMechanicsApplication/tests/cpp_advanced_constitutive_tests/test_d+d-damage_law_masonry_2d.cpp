@@ -92,8 +92,8 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
 
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
-    strain_vector[0] = 0.0008;
-    //strain_vector[0] = 0.0001;
+    //strain_vector[0] = 0.0008;
+    strain_vector[0] = 0.0001;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.0;
 
@@ -135,8 +135,8 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    //masonry2d_res = {387292.0, 77458.0, 0};
-    masonry2d_res = {1487840.0, 297567.0, 0};
+    masonry2d_res = {387292.0, 77458.0, 0};
+    //masonry2d_res = {1487840.0, 297567.0, 0};
 
     Vector test_masonry2d_stress;
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
@@ -164,7 +164,6 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
 
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
-    //strain_vector[0] = -0.00935;
     strain_vector[0] = -0.0093;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.0;
@@ -207,7 +206,6 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    //masonry2d_res = {-1.85893e+07,  -3.71785e+06, 0};
     masonry2d_res = {-1.85669e+07,  -3.71337e+06, 0};
 
     Vector test_masonry2d_stress;
@@ -215,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0000001e6);
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralMechanicsFastSuite)
@@ -238,8 +236,8 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     strain_vector = ZeroVector(3);
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
-    //strain_vector[2] = 0.003;
-    strain_vector[2] = -0.0029;
+    strain_vector[2] = -0.0004;
+    //strain_vector[2] = -0.0029;
 
     material_properties.SetValue(YOUNG_MODULUS, 3718.0e+6);
     material_properties.SetValue(POISSON_RATIO, 0.2);
@@ -279,8 +277,8 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    //masonry2d_res = {-1.62433e+06, -1.62433e+06, 2.06623e+06};
-    masonry2d_res = {-1.43383e+06, -1.43383e+06, -2.75196e+06};
+    masonry2d_res = {0.0, 0.0, -619667};
+    //masonry2d_res = {-1.43383e+06, -1.43383e+06, -2.75196e+06};
 
     Vector test_masonry2d_stress;
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
