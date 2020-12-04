@@ -90,10 +90,10 @@ namespace Kratos
         // Check and set number of elements and check dimension
         bool has_nodes = 0;
         if(mrModelPart.NumberOfNodes() != 0)
-            hasNodes = 1;
-        hasNodes = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(hasNodes);
+            has_nodes = 1;
+        has_nodes = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(has_nodes);
 
-        KRATOS_ERROR_IF_NOT(hasNodes) << "The number of nodes in the domain is zero. The power sums statistic cannot be applied."<< std::endl;
+        KRATOS_ERROR_IF_NOT(has_nodes) << "The number of nodes in the domain is zero. The power sums statistic cannot be applied."<< std::endl;
 
         const unsigned int number_nodes = mrModelPart.NumberOfNodes();
 
