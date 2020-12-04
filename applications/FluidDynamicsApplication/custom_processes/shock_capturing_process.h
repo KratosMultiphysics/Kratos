@@ -207,6 +207,10 @@ private:
      */
     void CalculatePhysicsBasedShockCapturing();
 
+    ShockCapturingTLSType2D3N SetTLSContainer2D3N();
+
+    ShockCapturingTLSType3D4N SetTLSContainer3D4N();
+
     template<std::size_t TDim, std::size_t TNumNodes, class TTLSContainerType>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculatePhysicsBasedShockCapturingElementContribution(
         Element &rElement,
@@ -311,7 +315,7 @@ private:
 
         if (mThermalSensor || mShearSensor) {
             // Calculate Jacobian matrix (non-required for the shock sensor)
-            Matrix mid_pt_jacobian;
+            Matrix mid_pt_jacobian; //FIXME: We should use a bounded matrix in here
             r_geom.Jacobian(mid_pt_jacobian, 0, GeometryData::GI_GAUSS_1);
 
             // Thermal sensor values
