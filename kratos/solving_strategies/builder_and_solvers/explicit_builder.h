@@ -738,7 +738,7 @@ protected:
         nonhist_nodalarea.Execute();
 
 #pragma omp parallel for
-        for (unsigned int i_dof = 0; i_dof < r_dofs_array.size(); ++i_dof) {
+        for (int i_dof = 0; i_dof < r_dofs_array.size(); ++i_dof) {
             const auto it_dof = r_dofs_array.begin() + i_dof;
             // Retrieve node id of dof
             const auto node_id = it_dof->GetId();
