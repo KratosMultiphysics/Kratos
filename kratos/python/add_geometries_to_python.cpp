@@ -126,6 +126,16 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
         { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
+    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, PointsArrayType rIntegrationPoints, std::vector<double>& weights)
+        { 
+            IntegrationPointsArrayType array(rIntegrationPoints.size());
+            for( int i = 0; i < rIntegrationPoints.size(); ++i){
+                IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],weights[i]);
+                array[i] = point_tmp;
+            }
+            
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, array)); })
     // Normal
     .def("Normal", [](GeometryType& self)
         { const auto& r_type = self.GetGeometryType();
@@ -249,6 +259,8 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPointsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsU)
         .def("NumberOfControlPointsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsV)
         .def("NumberOfControlPointsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsW)
+        .def("DeterminantOfJacobianSpecial", [](GeometryType& self, const CoordinatesArrayType& rPoint)
+        { return(self.DeterminantOfJacobian(rPoint)); })
         ;
 
     // NurbsSurfaceGeometry3D
