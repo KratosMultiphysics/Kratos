@@ -93,13 +93,14 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
     strain_vector[0] = 0.0008;
+    //strain_vector[0] = 0.0001;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.0;
 
     material_properties.SetValue(YOUNG_MODULUS, 3718.0e+6);
     material_properties.SetValue(POISSON_RATIO, 0.2);
     material_properties.SetValue(YIELD_STRESS_TENSION, 1.559e+6);
-    material_properties.SetValue(FRACTURE_ENERGY_TENSION, 10.0e+2);
+    material_properties.SetValue(FRACTURE_ENERGY_TENSION, 10.0e+3);
     material_properties.SetValue(DAMAGE_ONSET_STRESS_COMPRESSION, 10.0e+6);
     material_properties.SetValue(YIELD_STRESS_COMPRESSION, 17.99e+6);
     material_properties.SetValue(YIELD_STRAIN_COMPRESSION, 0.02);
@@ -110,6 +111,8 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
     material_properties.SetValue(BEZIER_CONTROLLER_C1, 0.65);
     material_properties.SetValue(BEZIER_CONTROLLER_C2,  0.45);
     material_properties.SetValue(BEZIER_CONTROLLER_C3, 1.5);
+    material_properties.SetValue(INTEGRATION_IMPLEX, 0);
+    material_properties.SetValue(TENSION_YIELD_MODEL, 0);
     material_properties.SetValue(DELAY_TIME, 1.0);
 
     Flags cl_options;
@@ -132,14 +135,15 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    masonry2d_res = {909887.0, 181977.0, 0};
+    //masonry2d_res = {387292.0, 77458.0, 0};
+    masonry2d_res = {1487840.0, 297567.0, 0};
 
     Vector test_masonry2d_stress;
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.01e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructuralMechanicsFastSuite)
@@ -160,14 +164,15 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
 
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
-    strain_vector[0] = -0.00935;
+    //strain_vector[0] = -0.00935;
+    strain_vector[0] = -0.0093;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.0;
 
     material_properties.SetValue(YOUNG_MODULUS, 3718.0e+6);
     material_properties.SetValue(POISSON_RATIO, 0.2);
     material_properties.SetValue(YIELD_STRESS_TENSION, 1.559e+6);
-    material_properties.SetValue(FRACTURE_ENERGY_TENSION, 10.0e+2);
+    material_properties.SetValue(FRACTURE_ENERGY_TENSION, 10.0e+3);
     material_properties.SetValue(DAMAGE_ONSET_STRESS_COMPRESSION, 10.0e+6);
     material_properties.SetValue(YIELD_STRESS_COMPRESSION, 17.99e+6);
     material_properties.SetValue(YIELD_STRAIN_COMPRESSION, 0.02);
@@ -178,6 +183,8 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
     material_properties.SetValue(BEZIER_CONTROLLER_C1, 0.65);
     material_properties.SetValue(BEZIER_CONTROLLER_C2,  0.45);
     material_properties.SetValue(BEZIER_CONTROLLER_C3, 1.5);
+    material_properties.SetValue(INTEGRATION_IMPLEX, 0);
+    material_properties.SetValue(TENSION_YIELD_MODEL, 0);
     material_properties.SetValue(DELAY_TIME, 1.0);
 
     Flags cl_options;
@@ -200,14 +207,15 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    masonry2d_res = {-1.85893e+07,  -3.71785e+06, 0};
+    //masonry2d_res = {-1.85893e+07,  -3.71785e+06, 0};
+    masonry2d_res = {-1.85669e+07,  -3.71337e+06, 0};
 
     Vector test_masonry2d_stress;
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0000001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralMechanicsFastSuite)
@@ -230,12 +238,13 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     strain_vector = ZeroVector(3);
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
-    strain_vector[2] = 0.003;
+    //strain_vector[2] = 0.003;
+    strain_vector[2] = -0.0029;
 
     material_properties.SetValue(YOUNG_MODULUS, 3718.0e+6);
     material_properties.SetValue(POISSON_RATIO, 0.2);
     material_properties.SetValue(YIELD_STRESS_TENSION, 1.559e+6);
-    material_properties.SetValue(FRACTURE_ENERGY_TENSION, 10.0e+2);
+    material_properties.SetValue(FRACTURE_ENERGY_TENSION, 10.0e+3);
     material_properties.SetValue(DAMAGE_ONSET_STRESS_COMPRESSION, 10.0e+6);
     material_properties.SetValue(YIELD_STRESS_COMPRESSION, 17.99e+6);
     material_properties.SetValue(YIELD_STRAIN_COMPRESSION, 0.02);
@@ -246,6 +255,8 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     material_properties.SetValue(BEZIER_CONTROLLER_C1, 0.65);
     material_properties.SetValue(BEZIER_CONTROLLER_C2,  0.45);
     material_properties.SetValue(BEZIER_CONTROLLER_C3, 1.5);
+    material_properties.SetValue(INTEGRATION_IMPLEX, 0);
+    material_properties.SetValue(TENSION_YIELD_MODEL, 0);
     material_properties.SetValue(DELAY_TIME, 1.0);
 
     Flags cl_options;
@@ -268,7 +279,8 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    masonry2d_res = {-1.62433e+06, -1.62433e+06, 2.06623e+06};
+    //masonry2d_res = {-1.62433e+06, -1.62433e+06, 2.06623e+06};
+    masonry2d_res = {-1.43383e+06, -1.43383e+06, -2.75196e+06};
 
     Vector test_masonry2d_stress;
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
