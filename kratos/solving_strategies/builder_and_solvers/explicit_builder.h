@@ -26,6 +26,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "includes/kratos_parameters.h"
+#include "processes/calculate_nodal_area_process.h"
 
 namespace Kratos
 {
@@ -709,18 +710,17 @@ protected:
     /**
      * @brief Set the Up Lumped Mass Vector object
      * This method sets up the lumped mass matrix used in the explicit update.
-     * Note that it requires that the equation ids. are already set and the
-     * implementation of the mass contributions to be done in the element level.
+     * Note that it requires that the equation ids. are already set.
      * @param rModelPart The model part to compute
      */
-    virtual void SetUpLumpedMassVector(const ModelPart &rModelPart)
+    virtual void SetUpLumpedMassVector(ModelPart &rModelPart)
     {
         KRATOS_TRY;
 
         KRATOS_INFO_IF("ExplicitBuilder", this->GetEchoLevel() > 1) << "Setting up the lumped mass matrix vector" << std::endl;
 
         // Initialize the lumped mass matrix vector
-        // Note that the lumped mass matrix vector size matches the dof set one
+        // Note that the lumped mass matrix vector size matches the dof set one of the element
         mpLumpedMassVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
         TDenseSpace::SetToZero(*mpLumpedMassVector);
 
@@ -730,43 +730,23 @@ protected:
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_process_info = rModelPart.GetProcessInfo();
         const int n_elems = static_cast<int>(r_elements_array.size());
+        const std::size_t domain_size = r_process_info[DOMAIN_SIZE];
+        const auto &r_dofs_array = GetDofSet();
 
-#pragma omp for private(elem_mass_vector, elem_mass_matrix) schedule(guided, 512) nowait
-        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-            const auto it_elem = r_elements_array.begin() + i_elem;
-            auto& r_geom = it_elem->GetGeometry();
+        // Compute nodal area
+        CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> nonhist_nodalarea(rModelPart, domain_size);
+        nonhist_nodalarea.Execute();
 
-            // Calculate the elemental lumped mass vector
-            it_elem->CalculateMassMatrix(elem_mass_matrix, r_process_info);
-            const SizeType n_dofs_elem = elem_mass_matrix.size2();
-            if (elem_mass_vector.size() != n_dofs_elem) {
-                TDenseSpace::Resize(elem_mass_vector, n_dofs_elem);
-            }
-            for (IndexType i = 0; i < elem_mass_matrix.size1(); ++i) {
-                elem_mass_vector(i) = 0.0;
-                for (IndexType j = 0; j < elem_mass_matrix.size2(); ++j) {
-                    elem_mass_vector(i) += elem_mass_matrix(i,j);
-                }
-            }
-
-            // Set it in the global lumped mass vector
-            const SizeType n_nodes = r_geom.PointsNumber();
-            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-                const auto& r_node_dofs = r_geom[i_node].GetDofs();
-                const SizeType n_dofs = r_node_dofs.size();
-                for (int i_dof = 0; i_dof < static_cast<int>(n_dofs); ++i_dof) {
-                    const SizeType eq_id = r_node_dofs[i_dof]->EquationId();
-                    const double aux_mass = elem_mass_vector(i_node * n_dofs + i_dof);
-// NOTE THAT THIS IS A BOTTLENECK--> WE ASSUME THAT WE WILL NOT USE THE SPACES IN HERE
-// #pragma omp critical
-//                     {
-//                     const double mass_value = TDenseSpace::GetValue(*mpLumpedMassVector, eq_id);
-//                     TDenseSpace::SetValue(*mpLumpedMassVector, eq_id, aux_mass + mass_value);
-//                     }
-#pragma omp atomic
-                    (*mpLumpedMassVector)[eq_id] += aux_mass;
-                }
-            }
+#pragma omp parallel for
+        for (unsigned int i_dof = 0; i_dof < r_dofs_array.size(); ++i_dof) {
+            const auto it_dof = r_dofs_array.begin() + i_dof;
+            // Retrieve node id of dof
+            const auto node_id = it_dof->GetId();
+            // Retrieve nodal area of dof's node
+            const auto aux_nodal_area = rModelPart.GetNode(node_id).GetValue(NODAL_AREA);
+            // Set value in lumped mass vector
+            const SizeType eq_id = it_dof->EquationId();
+            (*mpLumpedMassVector)[eq_id] += aux_nodal_area;
         }
 
         // Set the lumped mass vector flag as true
