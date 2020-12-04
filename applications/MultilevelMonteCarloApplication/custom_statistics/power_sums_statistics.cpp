@@ -88,7 +88,7 @@ namespace Kratos
         KRATOS_TRY;
 
         // Check and set number of elements and check dimension
-        bool hasNodes = 0;
+        bool has_nodes = 0;
         if(mrModelPart.NumberOfNodes() != 0)
             hasNodes = 1;
         hasNodes = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(hasNodes);
