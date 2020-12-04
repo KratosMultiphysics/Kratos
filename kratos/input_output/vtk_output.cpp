@@ -37,7 +37,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "output_control_type"                         : "step",
         "output_interval"                             : 1.0,
         "output_sub_model_parts"                      : false,
-        "folder_name"                                 : "VTK_Output",
+        "output_path"                                 : "VTK_Output",
         "custom_name_prefix"                          : "",
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
@@ -228,14 +228,14 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     output_file_name += ".vtk";
 
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        const std::string folder_name = mOutputSettings["folder_name"].GetString();
+        const std::string output_path = mOutputSettings["output_path"].GetString();
 
         // create folder if it doesn't exist before
-        if (!Kratos::filesystem::is_directory(folder_name)) {
-            Kratos::filesystem::create_directories(folder_name);
+        if (!Kratos::filesystem::is_directory(output_path)) {
+            Kratos::filesystem::create_directories(output_path);
         }
 
-        output_file_name = Kratos::FilesystemExtensions::JoinPaths({folder_name, output_file_name});
+        output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
     }
 
     return output_file_name;
