@@ -24,9 +24,19 @@
 #include "utilities/openmp_utils.h"
 
 namespace Kratos {
+
+Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
+                std::string("KratosMultiphysics"))) {
+    Initialize();
+}
+
 Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))) {
     mIsDistributedRun = IsDistributedRun;
+    Initialize();
+}
+
+void Kernel::Initialize() {
     KRATOS_INFO("") << " |  /           |\n"
                     << " ' /   __| _` | __|  _ \\   __|\n"
                     << " . \\  |   (   | |   (   |\\__ \\\n"
