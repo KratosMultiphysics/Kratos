@@ -967,14 +967,14 @@ public:
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
+    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0) const override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
+    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0) const override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**

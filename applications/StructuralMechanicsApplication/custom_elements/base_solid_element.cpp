@@ -22,6 +22,7 @@
 #include "custom_elements/base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -894,26 +895,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
-                const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
-
-                double sigma_equivalent = 0.0;
-
-                if (dimension == 2) {
-                    sigma_equivalent = std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2.0) +
-                                                3*(stress_tensor(0,1) * stress_tensor(1,0));
+                // Compute VM stress
+                if (dimension == 2 ) {
+                    rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 } else {
-                    sigma_equivalent = 0.5*(std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2.0) +
-                                            std::pow((stress_tensor(1,1) - stress_tensor(2,2)), 2.0) +
-                                            std::pow((stress_tensor(2,2) - stress_tensor(0,0)), 2.0) +
-                                                    6*(stress_tensor(0,1) * stress_tensor(1,0) +
-                                                        stress_tensor(1,2) * stress_tensor(2,1) +
-                                                        stress_tensor(2,0) * stress_tensor(0,2)));
+                    rOutput[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 }
-
-                if( sigma_equivalent < 0.0 )
-                    rOutput[point_number] = 0.0;
-                else
-                    rOutput[point_number] = std::sqrt(sigma_equivalent);
             }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);

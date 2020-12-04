@@ -260,7 +260,7 @@ protected:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const  override;
 
     bool UseElementProvidedStrain() const override;
 
