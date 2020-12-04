@@ -414,9 +414,13 @@ public:
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
                     double& error_i = mError[i_node];
 
+                    //KRATOS_WATCH(error_i)
+
                     for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
                         j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
                         const double error_j = mErrorTmp[ j_node->Id() - 1 ];
+
+                        //KRATOS_WATCH(error_j)
 
                         if(error_i*error_j <= 0.0){
                             error_i = 0;
@@ -424,6 +428,8 @@ public:
                             error_i = error_j;
                         }
                     }
+
+                    //KRATOS_WATCH(error_i)
                 }
 
                 #pragma omp parallel for
@@ -437,8 +443,8 @@ public:
 
                     const double new_distance_gradient = norm_2(it_node->GetValue(DISTANCE_GRADIENT));
 
-                    //if ( new_distance_gradient > 1.0 &&
-                    //    new_distance_gradient > 1.2*norm_2(it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT)))
+                    if ( new_distance_gradient > 1.0e-3 &&
+                        new_distance_gradient > 1.2*norm_2(it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT)))
                     {
                         const double phi_n_star = it_node->GetValue(mrLevelSetVar) + 1.0*mError[i_node];
                         it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
