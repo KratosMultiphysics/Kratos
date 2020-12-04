@@ -109,6 +109,12 @@ public:
             rLevelSetVar,
             DISTANCE_GRADIENT,      // Should be set as an input
             NODAL_AREA,             // Should be set as an input
+            false)),
+        mProjectedGradientProcessAux(ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
+            rBaseModelPart,
+            rLevelSetVar,
+            DISTANCE_GRADIENT,      // Should be set as an input
+            NODAL_AREA,             // Should be set as an input
             false))
     {
         KRATOS_TRY
@@ -348,9 +354,89 @@ public:
 
                     it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
                     it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
-                    const double phi_n_star = it_node->GetValue(mrLevelSetVar) + 0.5*mError[i_node];
+                    const double phi_n_star = it_node->GetValue(mrLevelSetVar) + 1.0*mError[i_node];
                     it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
+                }
+
+                mProjectedGradientProcessAux.Execute();
+
+                #pragma omp parallel for
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                    mErrorTmp[i] = 0.0;
+                    it_node->SetValue(NODAL_AREA, 0.0);
+                }
+
+                Vector nodal_error = ZeroVector(TDim + 1);
+
+                #pragma omp parallel for firstprivate(Volume, N, DN_DX, nodal_error)
+                for(int i_elem=0; i_elem<static_cast<int>(mpDistanceModelPart->NumberOfElements()); ++i_elem) {
+                    auto it_elem = mpDistanceModelPart->ElementsBegin() + i_elem;
+                    auto& r_geometry = it_elem->GetGeometry();
+
+                    GeometryUtils::CalculateGeometryData(r_geometry, DN_DX, N, Volume);
+
+                    for(unsigned int i_node=0; i_node < TDim+1; ++i_node){
+                        const double dist = r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar);
+                        nodal_error[i_node] = mError[ r_geometry[i_node].Id() - 1 ];
+                    }
+
+                    const auto& r_integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
+                    const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+                    noalias(N) = row(rNcontainer, 0);
+                    //KRATOS_INFO("convection process") << "N " << N << std::endl;
+                    const double elemental_error = inner_prod(N, nodal_error);
+                    //KRATOS_INFO("convection process") << "elemental_error " << elemental_error << std::endl;
+                    GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[0], J0);
+                    MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
+                    const double gauss_point_volume = r_integration_points[0].Weight() * detJ0;
+                    //KRATOS_INFO("convection process") << "gauss_point_volume " << gauss_point_volume << std::endl;
+
+                    for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
+                        double& dist_error = mErrorCopy[i_node]; //r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar, 1);
+                        #pragma omp atomic
+                        dist_error += N[i_node] * gauss_point_volume*elemental_error;
+
+                        double& vol = r_geometry[i_node].GetValue(NODAL_AREA);
+                        #pragma omp atomic
+                        vol += N[i_node] * gauss_point_volume;
+                    }
+                }
+
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
+                    auto it_node = it_node_begin + i;
+
+                    //KRATOS_INFO("convection process") << "it_node->GetValue(NODAL_AREA) " << it_node->GetValue(NODAL_AREA) << std::endl;
+                    if (it_node->GetValue(NODAL_AREA) > 1.0e-15){
+                        mError[i] = mErrorCopy[i] / it_node->GetValue(NODAL_AREA);
+                        //const double phi_n_star = it_node->GetValue(mrLevelSetVar) +
+                        //    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) / it_node->GetValue(NODAL_AREA);
+                        //it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
+                        //it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
+                    } else{
+                        mError[i] = 0.0;
+                        //const double phi_n_star = it_node->GetValue(mrLevelSetVar);
+                        //it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
+                        //it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
+                    }
+
+                }
+
+                #pragma omp parallel for
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+
+                    //KRATOS_WATCH(norm_2(it_node->GetValue(DISTANCE_GRADIENT)))
+                    //KRATOS_WATCH(norm_2(it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT)))
+                    /* if (norm_2(it_node->GetValue(DISTANCE_GRADIENT)) >
+                            1.2e0*norm_2(it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT)))
+                    {
+                        const double phi_old = it_node->GetValue(mrLevelSetVar);
+                        it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_old;
+                        it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_old;
+                    } */
                 }
 
                 //mProjectedGradientProcess.Execute();
@@ -459,7 +545,7 @@ protected:
     const unsigned int mBfeccOrder;
 
     std::vector< double > mOldDistance;
-    std::vector< double > mError;
+    std::vector< double > mError, mErrorTmp;
     std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
@@ -467,6 +553,7 @@ protected:
     std::string mAuxModelPartName;
 
     ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> mProjectedGradientProcess;
+    ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> mProjectedGradientProcessAux;
 
     ///@}
     ///@name Protected Operators
@@ -552,6 +639,7 @@ protected:
 
         if (mBfeccOrder > 0){
             mError.resize(n_nodes);
+            mErrorTmp.resize(n_nodes);
         }
 
         mDistancePartIsInitialized = true;
