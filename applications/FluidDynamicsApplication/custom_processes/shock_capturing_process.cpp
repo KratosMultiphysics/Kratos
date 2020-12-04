@@ -140,18 +140,9 @@ namespace Kratos
             nodal_area_process.Execute();
         }
 
-        // Set the functor to calculate the element size
-        // Note that this assumes a unique geometry in the computational mesh
-        auto elem_metric_function = SetElementMetricFunction();
-
-        // Loop the elements to project the gradients
-        // Note that it is assumed that the gradient is constant within the element
-        // Hence, only one Gauss point is used
-        const double eps = 1.0e-7;
-
         // Calculate the elemental contributions of the shock capturing
         const auto geometry_type = (mrModelPart.ElementsBegin()->GetGeometry()).GetGeometryType();
-        if (geometry_type = GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
             // Set auxiliary TLS container and elemental function
             ShockCapturingTLSType2D3N tls_container_2D3N;
             auto aux_function_2D3N = [&, this] (Element &rElement, ShockCapturingTLSType2D3N &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution<2,3>(rElement, rShockCapturingTLS);};
@@ -213,25 +204,43 @@ namespace Kratos
         return s - SmoothedMaxFunction(s);
     }
 
+
+    double ShockCapturingProcess::CalculateProjectedInverseMetricElementSize(
+        const Matrix& rInverseMetricTensor,
+        const array_1d<double,3>& rScalarGradient)
+    {
+        double h_proj = 0.0;
+        for (std::size_t i = 0; i < rInverseMetricTensor.size1(); ++i) {
+            for (std::size_t j = 0; j < rInverseMetricTensor.size2(); ++j) {
+                h_proj += rScalarGradient(i) * rInverseMetricTensor(i,j) * rScalarGradient(j);
+            }
+        }
+        return h_proj;
+    }
+
     template<>
-    void CalculateShockSensorDifferentialOperators<2,3>(
+    void ShockCapturingProcess::CalculateShockSensorValues<2,3>(
         const Geometry<Node<3>>& rGeometry,
+        const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX,
+        double& rMachNumber,
         double& rVelocityDivergence,
         array_1d<double,3>& rDensityGradient,
         array_1d<double,3>& rVelocityRotational)
     {
+        rMachNumber = 0.0;
         rVelocityDivergence = 0.0;
         rDensityGradient = ZeroVector(3);
         rVelocityRotational = ZeroVector(3);
         double dvy_dx = 0.0;
         double dvx_dy = 0.0;
         for (std::size_t j = 0; j < 3; ++j) {
+            rMachNumber = rN(j) * rGeometry[j].GetValue(MACH);
             const auto& r_v_j = rGeometry[j].FastGetSolutionStepValue(VELOCITY);
             const double& r_rho_j = rGeometry[j].FastGetSolutionStepValue(DENSITY);
             dvy_dx += r_v_j(1) * rDN_DX(j,0);
             dvx_dy += r_v_j(0) * rDN_DX(j,1);
-            for (std::size_t i = 0; i < 2, ++i) {
+            for (std::size_t i = 0; i < 2; ++i) {
                 rDensityGradient(i) += rDN_DX(j,i) * r_rho_j;
                 rVelocityDivergence += rDN_DX(j,i) * r_v_j(i);
             }
@@ -240,13 +249,16 @@ namespace Kratos
     }
 
     template<>
-    void CalculateShockSensorDifferentialOperators<3,4>(
+    void ShockCapturingProcess::CalculateShockSensorValues<3,4>(
         const Geometry<Node<3>>& rGeometry,
+        const array_1d<double,4>& rN,
         const BoundedMatrix<double,4,3>& rDN_DX,
+        double& rMachNumber,
         double& rVelocityDivergence,
         array_1d<double,3>& rDensityGradient,
         array_1d<double,3>& rVelocityRotational)
     {
+        rMachNumber = 0.0;
         rVelocityDivergence = 0.0;
         rDensityGradient = ZeroVector(3);
         rVelocityRotational = ZeroVector(3);
@@ -257,6 +269,7 @@ namespace Kratos
         double dvz_dx = 0.0;
         double dvz_dy = 0.0;
         for (std::size_t j = 0; j < 4; ++j) {
+            rMachNumber = rN(j) * rGeometry[j].GetValue(MACH);
             const auto& r_v_j = rGeometry[j].FastGetSolutionStepValue(VELOCITY);
             const double& r_rho_j = rGeometry[j].FastGetSolutionStepValue(DENSITY);
             dvx_dy += r_v_j(0) * rDN_DX(j,1);
@@ -265,7 +278,7 @@ namespace Kratos
             dvy_dz += r_v_j(1) * rDN_DX(j,2);
             dvz_dx += r_v_j(2) * rDN_DX(j,0);
             dvz_dy += r_v_j(2) * rDN_DX(j,1);
-            for (std::size_t i = 0; i < 3, ++i) {
+            for (std::size_t i = 0; i < 3; ++i) {
                 rDensityGradient(i) += rDN_DX(j,i) * r_rho_j;
                 rVelocityDivergence += rDN_DX(j,i) * r_v_j(i);
             }
@@ -276,19 +289,19 @@ namespace Kratos
     }
 
     template<std::size_t TDim, std::size_t TNumNodes>
-    void CalculateTemperatureGradients<TDim,TNumNodes>(
+    void ShockCapturingProcess::CalculateTemperatureGradients(
         const Geometry<Node<3>>& rGeometry,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
-        const BoundedMatrix<double,TDim,TDim>& rJacobianMatrix,
+        const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
         array_1d<double,3>& rTemperatureLocalGradient)
     {
         // Calculate temperature gradient
-        rTemperatureGradient = ZeroVector(3);
+        array_1d<double,3> grad_temp = ZeroVector(3);
         for (std::size_t j = 0; j < TNumNodes; ++j) {
             const double& r_temp_j = rGeometry[j].FastGetSolutionStepValue(TEMPERATURE);
-            for (std::size_t i = 0; i < TDim, ++i) {
-                rTemperatureGradient(i) += rDN_DX(j,i) * r_temp_j;
+            for (std::size_t i = 0; i < TDim; ++i) {
+                grad_temp(i) += rDN_DX(j,i) * r_temp_j;
             }
         }
 
@@ -302,11 +315,11 @@ namespace Kratos
     }
 
     template<std::size_t TDim, std::size_t TNumNodes>
-    void CalculateShearSensorValues<TDim,TNumNodes>(
+    void ShockCapturingProcess::CalculateShearSensorValues(
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
-        const BoundedMatrix<double,TDim,TDim>& rJacobianMatrix,
+        const Matrix& rJacobianMatrix,
         BoundedMatrix<double,TDim,TDim>& rLocalVelocityShearGradient,
         double& rSoundVelocity)
     {
@@ -341,5 +354,36 @@ namespace Kratos
         rThis.PrintData(rOStream);
         return rOStream;
     }
+
+    /* Explicit template instantiation ****************************************/
+    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateTemperatureGradients<2,3>(
+        const Geometry<Node<3>>& rGeometry,
+        const BoundedMatrix<double,3,2>& rDN_DX,
+        const Matrix& rJacobianMatrix,
+        array_1d<double,3>& rTemperatureGradient,
+        array_1d<double,3>& rTemperatureLocalGradient);
+
+    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateTemperatureGradients<3,4>(
+        const Geometry<Node<3>>& rGeometry,
+        const BoundedMatrix<double,4,3>& rDN_DX,
+        const Matrix& rJacobianMatrix,
+        array_1d<double,3>& rTemperatureGradient,
+        array_1d<double,3>& rTemperatureLocalGradient);
+
+    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateShearSensorValues<2,3>(
+        const Geometry<Node<3>>& rGeometry,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX,
+        const Matrix& rJacobianMatrix,
+        BoundedMatrix<double,2,2>& rLocalVelocityShearGradient,
+        double& rSoundVelocity);
+
+    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateShearSensorValues<3,4>(
+        const Geometry<Node<3>>& rGeometry,
+        const array_1d<double,4>& rN,
+        const BoundedMatrix<double,4,3>& rDN_DX,
+        const Matrix& rJacobianMatrix,
+        BoundedMatrix<double,3,3>& rLocalVelocityShearGradient,
+        double& rSoundVelocity);
 
 }

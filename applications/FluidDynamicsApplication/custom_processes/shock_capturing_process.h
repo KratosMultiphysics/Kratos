@@ -85,7 +85,7 @@ public:
         double,
         BoundedMatrix<double,4,3>,
         array_1d<double,4>,
-        BoundedMatrix<double,3,3,>,
+        BoundedMatrix<double,3,3>,
         array_1d<double,3>,
         array_1d<double,3>,
         array_1d<double,3>,
@@ -200,8 +200,6 @@ private:
 
     void ValidateAndAssignParameters(Parameters &rParameters);
 
-    ElementMetricFunctionType SetShockCapturingTLSContainer();
-
     /**
      * @brief Physics-based shock capturing
      * This function calculates the artificial magnitudes using a physics-based shock capturing method.
@@ -210,7 +208,7 @@ private:
     void CalculatePhysicsBasedShockCapturing();
 
     template<std::size_t TDim, std::size_t TNumNodes, class TTLSContainerType>
-    void CalculatePhysicsBasedShockCapturingElementContribution(
+    void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculatePhysicsBasedShockCapturingElementContribution(
         Element &rElement,
         TTLSContainerType &rShockCapturingTLS)
     {
@@ -227,11 +225,7 @@ private:
         auto& r_DN_DX = std::get<1>(rShockCapturingTLS);
         auto& r_N = std::get<2>(rShockCapturingTLS);
         GeometryUtils::CalculateGeometryData(r_geom, r_DN_DX, r_N, r_vol);
-        if (mThermalSensor || mShearSensor) {
-            BoundedMatrix<double,TDim,TDim> mid_pt_jacobian;
-            r_geom.Jacobian(mid_pt_jacobian, 0, GeometryData::GI_GAUSS_1);
-        }
-
+        
         // Calculate the geometry metric
         double h_ref, metric_tensor_inf, metric_tensor_sup;
         auto& r_metric_tensor = std::get<3>(rShockCapturingTLS);
@@ -277,10 +271,10 @@ private:
         // Shock sensor values
         if (mShockSensor) {
             // Calculate the required differential operators
-            double div_v;
+            double div_v, mach;
             auto& r_grad_rho = std::get<4>(rShockCapturingTLS);
             auto& r_rot_v = std::get<5>(rShockCapturingTLS);
-            CalculateShockSensorDifferentialOperators<TDim,TNumNodes>(r_geom, r_DN_DX, div_v, r_grad_rho, r_rot_v);
+            CalculateShockSensorValues<TDim,TNumNodes>(r_geom, r_N, r_DN_DX, mach, div_v, r_grad_rho, r_rot_v);
 
             // Characteristic element size along the direction of the density gradient
             const double h_beta = h_ref * norm_2(r_grad_rho) / std::sqrt(CalculateProjectedInverseMetricElementSize(inv_metric_tensor, r_grad_rho) + eps);
@@ -309,69 +303,73 @@ private:
             // Calculate elemental artificial conductivity (dilatancy)
             const double Pr_beta_min = 0.9;
             const double alpha_pr_beta = 2.0;
-            const double Mach_threshold = 3.0;
-            const double Mach = norm_2(midpoint_v) / c_ref; //FIXME: This is computed in the shear sensor only! is required here too! Or we can get the Mach either
-            const double Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (Mach - Mach_threshold)));
+            const double mach_threshold = 3.0;
+            const double Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
             const double elem_k1_star = (gamma * c_v / Pr_beta) * elem_b_star;
             rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k1_star;
         }
 
-        // Thermal sensor values
-        if (mThermalSensor) {
-            // Calculate temperature gradients
-            auto& r_grad_temp = std::get<6>(rShockCapturingTLS);
-            auto& r_grad_temp_local = std::get<7>(rShockCapturingTLS);
-            CalculateTemperatureGradients(r_geom, r_DN_DX, mid_pt_jacobian, r_grad_temp, r_grad_temp_local);
+        if (mThermalSensor || mShearSensor) {
+            // Calculate Jacobian matrix (non-required for the shock sensor)
+            Matrix mid_pt_jacobian;
+            r_geom.Jacobian(mid_pt_jacobian, 0, GeometryData::GI_GAUSS_1);
 
-            // Characteristic element size along the direction of the temperature gradient
-            const double h_kappa = h_ref * norm_2(r_grad_temp) / std::sqrt(CalculateProjectedInverseMetricElementSize(inv_metric_tensor, r_grad_temp) + eps);
+            // Thermal sensor values
+            if (mThermalSensor) {
+                // Calculate temperature gradients
+                auto& r_grad_temp = std::get<6>(rShockCapturingTLS);
+                auto& r_grad_temp_local = std::get<7>(rShockCapturingTLS);
+                CalculateTemperatureGradients(r_geom, r_DN_DX, mid_pt_jacobian, r_grad_temp, r_grad_temp_local);
 
-            // Thermal sensor (detect thermal gradients that are larger than possible with the grid resolution)
-            const double s_kappa_0 = 1.0;
-            const double s_kappa_max = 2.0;
-            const double s_kappa = h_ref * norm_2(r_grad_temp_local) / k / stagnation_temp;
-            const double s_kappa_hat = SmoothedLimitingFunction(s_kappa, s_kappa_0, s_kappa_max);
-            rElement.GetValue(THERMAL_SENSOR) = s_kappa_hat;
+                // Characteristic element size along the direction of the temperature gradient
+                const double h_kappa = h_ref * norm_2(r_grad_temp) / std::sqrt(CalculateProjectedInverseMetricElementSize(inv_metric_tensor, r_grad_temp) + eps);
 
-            // Calculate elemental artificial conductivity (thermal sensor)
-            const double k_kappa = 1.0;
-            const double elem_k2_star = (gamma * c_v) * (k_kappa * h_kappa / k) * ref_mom_norm * s_kappa_hat;
-            rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k2_star;
-        }
+                // Thermal sensor (detect thermal gradients that are larger than possible with the grid resolution)
+                const double s_kappa_0 = 1.0;
+                const double s_kappa_max = 2.0;
+                const double s_kappa = h_ref * norm_2(r_grad_temp_local) / k / stagnation_temp;
+                const double s_kappa_hat = SmoothedLimitingFunction(s_kappa, s_kappa_0, s_kappa_max);
+                rElement.GetValue(THERMAL_SENSOR) = s_kappa_hat;
 
-        // Shear sensor values
-        if (mShearSensor) {
-            // Calculate shear sensor values
-            double r_c;
-            auto& r_local_shear_grad_v = std::get<8>(rShockCapturingTLS);
-            CalculateShearSensorValues(r_geom, r_N, r_DN_DX, mid_pt_jacobian, r_local_shear_grad_v, r_c);
-            BoundedMatrix<double,TDim,TDim> eigen_vect_mat, eigen_val_mat;
-            MathUtils<double>::GaussSeidelEigenSystem(r_local_shear_grad_v, eigen_vect_mat, eigen_val_mat);
-            double shear_spect_norm = 0.0;
-            for (unsigned int d = 0; d < eigen_val_mat.size1(); ++d) {
-                if (eigen_val_mat(d, d) > shear_spect_norm) {
-                    shear_spect_norm = eigen_val_mat(d, d);
-                }
+                // Calculate elemental artificial conductivity (thermal sensor)
+                const double k_kappa = 1.0;
+                const double elem_k2_star = (gamma * c_v) * (k_kappa * h_kappa / k) * ref_mom_norm * s_kappa_hat;
+                rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k2_star;
             }
-            shear_spect_norm = std::sqrt(shear_spect_norm);
 
-            // Characteristic element size for the shear sensor
-            const double h_mu = h_ref * metric_tensor_inf;
+            // Shear sensor values
+            if (mShearSensor) {
+                // Calculate shear sensor values
+                double r_c;
+                auto& r_local_shear_grad_v = std::get<8>(rShockCapturingTLS);
+                CalculateShearSensorValues(r_geom, r_N, r_DN_DX, mid_pt_jacobian, r_local_shear_grad_v, r_c);
+                BoundedMatrix<double,TDim,TDim> eigen_vect_mat, eigen_val_mat;
+                MathUtils<double>::GaussSeidelEigenSystem(r_local_shear_grad_v, eigen_vect_mat, eigen_val_mat);
+                double shear_spect_norm = 0.0;
+                for (unsigned int d = 0; d < eigen_val_mat.size1(); ++d) {
+                    if (eigen_val_mat(d, d) > shear_spect_norm) {
+                        shear_spect_norm = eigen_val_mat(d, d);
+                    }
+                }
+                shear_spect_norm = std::sqrt(shear_spect_norm);
 
-            // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
-            const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) * std::pow(r_c, 2));
-            const double s_mu_0 = 1.0;
-            const double s_mu_max = 2.0;
-            const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
-            // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
-            const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
-            rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
+                // Characteristic element size for the shear sensor
+                const double h_mu = h_ref * metric_tensor_inf;
 
-            // Calculate elemental artificial dynamic viscosity
-            const double k_mu = 1.0;
-            const double elem_mu_star = (k_mu * h_mu / k) * ref_mom_norm * s_mu_hat;
-            rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
+                // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
+                const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) * std::pow(r_c, 2));
+                const double s_mu_0 = 1.0;
+                const double s_mu_max = 2.0;
+                const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
+                // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
+                const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
+                rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
 
+                // Calculate elemental artificial dynamic viscosity
+                const double k_mu = 1.0;
+                const double elem_mu_star = (k_mu * h_mu / k) * ref_mom_norm * s_mu_hat;
+                rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
+            }
         }
 
         // Project the shock capturing magnitudes to the nodes
@@ -406,42 +404,36 @@ private:
         return rArray[0]*rArray[0] + rArray[1]*rArray[1] + rArray[2]*rArray[2];
     }
 
-    template<std::size_t TDim>
     double CalculateProjectedInverseMetricElementSize(
-        const BoundedMatrix<double,TDim,TDim>& rInverseMetricTensor,
-        const array_1d<double,3>& rScalarGradient)
-    {
-        double h_proj = 0.0;
-        for (std::size_t i = 0; i < TDim, ++i) {
-            for (std::size_t j = 0; j < TDim; ++j) {
-                h_proj += rScalarGradient(i) * rInverseMetricTensor(i,j) * rScalarGradient(j);
-            }
-        }
-        return h_proj;
-    }
+        const Matrix& rInverseMetricTensor,
+        const array_1d<double,3>& rScalarGradient);
 
     template<std::size_t TDim, std::size_t TNumNodes>
-    void CalculateShockSensorDifferentialOperators(
+    void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateShockSensorValues(
         const Geometry<Node<3>>& rGeometry,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
+        double& rMachNumber,
         double& rVelocityDivergence,
         array_1d<double,3>& rDensityGradient,
         array_1d<double,3>& rVelocityRotational);
 
     template<std::size_t TDim, std::size_t TNumNodes>
-    void CalculateTemperatureGradients(
+    void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateTemperatureGradients(
         const Geometry<Node<3>>& rGeometry,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
+        const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
         array_1d<double,3>& rTemperatureLocalGradient);
 
     template<std::size_t TDim, std::size_t TNumNodes>
-    void CalculateShearSensorValues(
+    void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateShearSensorValues(
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
+        const Matrix& rJacobianMatrix,
         BoundedMatrix<double,TDim,TDim>& rVelocityGradient,
-        double& rSoundVelocity)
+        double& rSoundVelocity);
 
     ///@}
     ///@name Private  Access
