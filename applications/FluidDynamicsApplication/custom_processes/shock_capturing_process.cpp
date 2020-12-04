@@ -116,27 +116,6 @@ namespace Kratos
         mThermalSensor = rParameters["thermal_sensor"].GetBool();
     }
 
-    ShockCapturingProcess::ElementMetricFunctionType ShockCapturingProcess::SetElementMetricFunction()
-    {
-        // Get geometry type
-        ElementMetricFunctionType elem_metric_function;
-        const auto geometry_type = (mrModelPart.ElementsBegin()->GetGeometry()).GetGeometryType();
-
-        // Set the corresponding element metric tensor function
-        switch (geometry_type) {
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                elem_metric_function = [&](const Geometry<Node<3>> &rGeometry) { return CalculateTriangleMetricTensor(rGeometry); };
-                break;
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                elem_metric_function = [&](const Geometry<Node<3>> &rGeometry) { return CalculateTetrahedraMetricTensor(rGeometry); };
-                break;
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented geometry.";
-        }
-
-        return elem_metric_function;
-    }
-
     /**
      * @brief Physics-based shock capturing
      * This function calculates the artificial magnitudes using a physics-based shock capturing method.
@@ -175,13 +154,13 @@ namespace Kratos
         if (geometry_type = GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
             // Set auxiliary TLS container and elemental function
             ShockCapturingTLSType2D3N tls_container_2D3N;
-            auto aux_function_2D3N = [&, this] (Element &rElement, ShockCapturingTLSType2D &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution(rElement, rShockCapturingTLS);};
+            auto aux_function_2D3N = [&, this] (Element &rElement, ShockCapturingTLSType2D3N &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution<2,3>(rElement, rShockCapturingTLS);};
             // Perform the elemental loop
             block_for_each(mrModelPart.Elements(), tls_container_2D3N, aux_function_2D3N);
         } else if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) {
             // Set auxiliary TLS container and elemental function
             ShockCapturingTLSType3D4N tls_container_3D4N;
-            auto aux_function_3D4N = [&, this] (Element &rElement, ShockCapturingTLSType3D &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution(rElement, rShockCapturingTLS);};
+            auto aux_function_3D4N = [&, this] (Element &rElement, ShockCapturingTLSType3D4N &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution<3,4>(rElement, rShockCapturingTLS);};
             // Perform the elemental loop
             block_for_each(mrModelPart.Elements(), tls_container_3D4N, aux_function_3D4N);
         } else {
@@ -197,20 +176,6 @@ namespace Kratos
             it_node->GetValue(ARTIFICIAL_BULK_VISCOSITY) /= nodal_area;
             it_node->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) /= nodal_area;
         });
-    }
-
-    // TODO: REMOVE AFTER SUNETH'S PR
-    template <>
-    void ShockCapturingProcess::UpdateValue(double &rOutput, const double &rInput)
-    {
-        rOutput += rInput;
-    }
-
-    // TODO: REMOVE AFTER SUNETH'S PR
-    template <>
-    void ShockCapturingProcess::UpdateValue(array_1d<double,3> &rOutput, const array_1d<double,3> &rInput)
-    {
-        noalias(rOutput) += rInput;
     }
 
     double ShockCapturingProcess::LimitingFunction(
@@ -248,115 +213,122 @@ namespace Kratos
         return s - SmoothedMaxFunction(s);
     }
 
-    // https://es.wikipedia.org/wiki/Circunelipse_de_Steiner
-    std::tuple<double, double, Matrix> ShockCapturingProcess::CalculateTriangleMetricTensor(const Geometry<Node<3>> &rGeometry)
+    template<>
+    void CalculateShockSensorDifferentialOperators<2,3>(
+        const Geometry<Node<3>>& rGeometry,
+        const BoundedMatrix<double,3,2>& rDN_DX,
+        double& rVelocityDivergence,
+        array_1d<double,3>& rDensityGradient,
+        array_1d<double,3>& rVelocityRotational)
     {
-        const array_1d<double, 3> p_1 = rGeometry[0].Coordinates();
-        const array_1d<double, 3> p_2 = rGeometry[1].Coordinates();
-        const array_1d<double, 3> p_3 = rGeometry[2].Coordinates();
-
-        // Solve the metric problem trans(e)*M*e = 1
-        // This means, find the coefficients of the matrix M such that all the edges have unit length
-        Vector sol;
-        array_1d<double, 3> aux_vect;
-        BoundedMatrix<double, 3, 3> aux_mat;
-        aux_mat(0, 0) = std::pow(p_1[0] - p_2[0], 2);
-        aux_mat(0, 1) = 2.0 * (p_1[0] - p_2[0]) * (p_1[1] - p_2[1]);
-        aux_mat(0, 2) = std::pow(p_1[1] - p_2[1], 2);
-        aux_mat(1, 0) = std::pow(p_1[0] - p_3[0], 2);
-        aux_mat(1, 1) = 2.0 * (p_1[0] - p_3[0]) * (p_1[1] - p_3[1]);
-        aux_mat(1, 2) = std::pow(p_1[1] - p_3[1], 2);
-        aux_mat(2, 0) = std::pow(p_2[0] - p_3[0], 2);
-        aux_mat(2, 1) = 2.0 * (p_2[0] - p_3[0]) * (p_2[1] - p_3[1]);
-        aux_mat(2, 2) = std::pow(p_2[1] - p_3[1], 2);
-        aux_vect[0] = 1.0;
-        aux_vect[1] = 1.0;
-        aux_vect[2] = 1.0;
-        MathUtils<double>::Solve(aux_mat, sol, aux_vect);
-
-        // Set the metric tensor
-        Matrix metric(2, 2);
-        metric(0, 0) = sol[0];
-        metric(0, 1) = sol[1];
-        metric(1, 0) = sol[1];
-        metric(1, 1) = sol[2];
-
-        // Calculate the eigenvalues of the metric tensor to obtain the ellipsis of inertia axes lengths
-        BoundedMatrix<double, 2, 2> eigenvects, eigenvals;
-        MathUtils<double>::GaussSeidelEigenSystem(metric, eigenvects, eigenvals);
-        const double h_1 = std::sqrt(1.0 / eigenvals(0, 0));
-        const double h_2 = std::sqrt(1.0 / eigenvals(1, 1));
-
-        // Calculate the reference element size as the average of the ellipsis of intertia axes lengths
-        const double h_ref = 0.5 * (h_1 + h_2);
-
-        // Make the metric dimensionless
-        metric *= std::pow(h_ref, 2);
-
-        // Calculate metric infimum norm
-        // TODO: Using h_min should yield a similar behavior
-        const double metric_inf = std::min(eigenvals(0, 0), eigenvals(1, 1));
-
-        return std::make_tuple(h_ref, metric_inf, metric);
-    }
-
-    // https://es.wikipedia.org/wiki/Circunelipse_de_Steiner --> 3D extension
-    std::tuple<double, double, Matrix> ShockCapturingProcess::CalculateTetrahedraMetricTensor(const Geometry<Node<3>> &rGeometry)
-    {
-        // Solve the metric problem trans(e)*M*e = 1
-        // This means, find the coefficients of the matrix M such that all the edges have unit length
-        Vector sol;
-        array_1d<double, 6> aux_vect;
-        BoundedMatrix<double, 6, 6> aux_mat;
-        unsigned int row = 0;
-        for (unsigned int i = 0; i < 3; ++i)
-        {
-            const auto &i_coord = rGeometry[i].Coordinates();
-            for (unsigned int j = i + 1; j < 4; ++j)
-            {
-                const auto &j_coord = rGeometry[j].Coordinates();
-                aux_mat(row, 0) = std::pow(i_coord[0] - j_coord[0], 2);
-                aux_mat(row, 1) = 2.0 * (i_coord[0] - j_coord[0]) * (i_coord[1] - j_coord[1]);
-                aux_mat(row, 2) = 2.0 * (i_coord[0] - j_coord[0]) * (i_coord[2] - j_coord[2]);
-                aux_mat(row, 3) = std::pow(i_coord[1] - j_coord[1], 2);
-                aux_mat(row, 4) = 2.0 * (i_coord[1] - j_coord[1]) * (i_coord[2] - j_coord[2]);
-                aux_mat(row, 5) = std::pow(i_coord[2] - j_coord[2], 2);
-                aux_vect(row) = 1.0;
-                row++;
+        rVelocityDivergence = 0.0;
+        rDensityGradient = ZeroVector(3);
+        rVelocityRotational = ZeroVector(3);
+        double dvy_dx = 0.0;
+        double dvx_dy = 0.0;
+        for (std::size_t j = 0; j < 3; ++j) {
+            const auto& r_v_j = rGeometry[j].FastGetSolutionStepValue(VELOCITY);
+            const double& r_rho_j = rGeometry[j].FastGetSolutionStepValue(DENSITY);
+            dvy_dx += r_v_j(1) * rDN_DX(j,0);
+            dvx_dy += r_v_j(0) * rDN_DX(j,1);
+            for (std::size_t i = 0; i < 2, ++i) {
+                rDensityGradient(i) += rDN_DX(j,i) * r_rho_j;
+                rVelocityDivergence += rDN_DX(j,i) * r_v_j(i);
             }
         }
-        MathUtils<double>::Solve(aux_mat, sol, aux_vect);
+        rVelocityRotational(2) = dvy_dx - dvx_dy;
+    }
 
-        // Set the metric tensor
-        Matrix metric(3, 3);
-        metric(0, 0) = sol[0];
-        metric(0, 1) = sol[1];
-        metric(0, 2) = sol[2];
-        metric(1, 0) = sol[1];
-        metric(1, 1) = sol[3];
-        metric(1, 2) = sol[4];
-        metric(2, 0) = sol[2];
-        metric(2, 1) = sol[4];
-        metric(2, 2) = sol[5];
+    template<>
+    void CalculateShockSensorDifferentialOperators<3,4>(
+        const Geometry<Node<3>>& rGeometry,
+        const BoundedMatrix<double,4,3>& rDN_DX,
+        double& rVelocityDivergence,
+        array_1d<double,3>& rDensityGradient,
+        array_1d<double,3>& rVelocityRotational)
+    {
+        rVelocityDivergence = 0.0;
+        rDensityGradient = ZeroVector(3);
+        rVelocityRotational = ZeroVector(3);
+        double dvx_dy = 0.0;
+        double dvx_dz = 0.0;
+        double dvy_dx = 0.0;
+        double dvy_dz = 0.0;
+        double dvz_dx = 0.0;
+        double dvz_dy = 0.0;
+        for (std::size_t j = 0; j < 4; ++j) {
+            const auto& r_v_j = rGeometry[j].FastGetSolutionStepValue(VELOCITY);
+            const double& r_rho_j = rGeometry[j].FastGetSolutionStepValue(DENSITY);
+            dvx_dy += r_v_j(0) * rDN_DX(j,1);
+            dvx_dz += r_v_j(0) * rDN_DX(j,2);
+            dvy_dx += r_v_j(1) * rDN_DX(j,0);
+            dvy_dz += r_v_j(1) * rDN_DX(j,2);
+            dvz_dx += r_v_j(2) * rDN_DX(j,0);
+            dvz_dy += r_v_j(2) * rDN_DX(j,1);
+            for (std::size_t i = 0; i < 3, ++i) {
+                rDensityGradient(i) += rDN_DX(j,i) * r_rho_j;
+                rVelocityDivergence += rDN_DX(j,i) * r_v_j(i);
+            }
+        }
+        rVelocityRotational(0) = dvz_dy - dvy_dz;
+        rVelocityRotational(1) = dvx_dz - dvz_dx;
+        rVelocityRotational(2) = dvy_dx - dvx_dy;
+    }
 
-        // Calculate the eigenvalues of the metric tensor to obtain the ellipsis of inertia axes lengths
-        BoundedMatrix<double, 3, 3> eigenvects, eigenvals;
-        MathUtils<double>::GaussSeidelEigenSystem(metric, eigenvects, eigenvals);
-        const double h_1 = std::sqrt(1.0 / eigenvals(0, 0));
-        const double h_2 = std::sqrt(1.0 / eigenvals(1, 1));
-        const double h_3 = std::sqrt(1.0 / eigenvals(2, 2));
+    template<std::size_t TDim, std::size_t TNumNodes>
+    void CalculateTemperatureGradients<TDim,TNumNodes>(
+        const Geometry<Node<3>>& rGeometry,
+        const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
+        const BoundedMatrix<double,TDim,TDim>& rJacobianMatrix,
+        array_1d<double,3>& rTemperatureGradient,
+        array_1d<double,3>& rTemperatureLocalGradient)
+    {
+        // Calculate temperature gradient
+        rTemperatureGradient = ZeroVector(3);
+        for (std::size_t j = 0; j < TNumNodes; ++j) {
+            const double& r_temp_j = rGeometry[j].FastGetSolutionStepValue(TEMPERATURE);
+            for (std::size_t i = 0; i < TDim, ++i) {
+                rTemperatureGradient(i) += rDN_DX(j,i) * r_temp_j;
+            }
+        }
 
-        // Calculate the reference element size as the average of the ellipsis of intertia axes lengths
-        const double h_ref = (h_1 + h_2 + h_3) / 3.0;
+        // Calculate temperature local gradient
+        rTemperatureLocalGradient = ZeroVector(3);
+        for (unsigned int i = 0; i < TDim; ++i) {
+            for (unsigned int j = 0; j < TDim; ++j) {
+                rTemperatureLocalGradient(i) += rJacobianMatrix(j, i) * grad_temp(j);
+            }
+        }
+    }
 
-        // Make the metric dimensionless
-        metric *= std::pow(h_ref, 2);
+    template<std::size_t TDim, std::size_t TNumNodes>
+    void CalculateShearSensorValues<TDim,TNumNodes>(
+        const Geometry<Node<3>>& rGeometry,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
+        const BoundedMatrix<double,TDim,TDim>& rJacobianMatrix,
+        BoundedMatrix<double,TDim,TDim>& rLocalVelocityShearGradient,
+        double& rSoundVelocity)
+    {
+        rSoundVelocity = 0.0;
+        BoundedMatrix<double,TDim,TDim> shear_grad = ZeroMatrix(TDim,TDim);
+        for (std::size_t k = 0; k < TNumNodes; ++k) {
+            const auto& r_vel = rGeometry[k].FastGetSolutionStepValue(VELOCITY);
+            rSoundVelocity += rN(k) * rGeometry[k].GetValue(SOUND_VELOCITY);
+            for (std::size_t i = 0; i < TDim; ++i) {
+                for (std::size_t j = 0; j < TDim; ++j) {
+                    shear_grad(i,j) += rDN_DX(k,j) * r_vel(i);
+                }
+            }
+        }
 
-        // Calculate metric infimum norm
-        // TODO: Using h_min should yield a similar behavior
-        const double metric_inf = std::min(eigenvals(0, 0), std::min(eigenvals(1, 1), eigenvals(2, 2)));
+        // Only keep the shear component of the velocity gradient
+        for (unsigned int d = 0; d < TDim; ++d) {
+            shear_grad(d, d) = 0.0;
+        }
 
-        return std::make_tuple(h_ref, metric_inf, metric);
+        // Multiply by the Jacobian matrix to obtain the local gradient
+        rLocalVelocityShearGradient = prod(shear_grad, trans(rJacobianMatrix));
     }
 
     /* External functions *****************************************************/
