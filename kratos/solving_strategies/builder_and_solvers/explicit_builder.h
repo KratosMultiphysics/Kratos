@@ -720,23 +720,17 @@ protected:
         KRATOS_INFO_IF("ExplicitBuilder", this->GetEchoLevel() > 1) << "Setting up the lumped mass matrix vector" << std::endl;
 
         // Initialize the lumped mass matrix vector
-        // Note that the lumped mass matrix vector size matches the dof set one of the element
-        mpLumpedMassVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
+        // Note that the lumped mass matrix vector size matches the dof set of the element
+        const auto &r_dofs_array = GetDofSet();
+        mpLumpedMassVector = TSystemVectorPointerType(new TSystemVectorType(r_dofs_array.size()));
         TDenseSpace::SetToZero(*mpLumpedMassVector);
 
-        // Loop the elements to get the mass matrix
-        LocalSystemVectorType elem_mass_vector;
-        LocalSystemMatrixType elem_mass_matrix;
-        const auto &r_elements_array = rModelPart.Elements();
-        const auto &r_process_info = rModelPart.GetProcessInfo();
-        const int n_elems = static_cast<int>(r_elements_array.size());
-        const std::size_t domain_size = r_process_info[DOMAIN_SIZE];
-        const auto &r_dofs_array = GetDofSet();
-
         // Compute nodal area
+        const std::size_t domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
         CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> nonhist_nodalarea(rModelPart, domain_size);
         nonhist_nodalarea.Execute();
 
+        // Loop the dofs to get the mass matrix
 #pragma omp parallel for
         for (int i_dof = 0; i_dof < r_dofs_array.size(); ++i_dof) {
             const auto it_dof = r_dofs_array.begin() + i_dof;
