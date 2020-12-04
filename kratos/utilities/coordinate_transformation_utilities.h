@@ -322,7 +322,7 @@ public:
         rOutput(0, 1) = unit_normal_derivative[1];
         rOutput(0, 2) = unit_normal_derivative[2];
 
-        array_1d<double, 3> rT1(0.0);
+        array_1d<double, 3> rT1(3, 0.0);
         rT1[0] = 1.0;
         double dot = unit_normal[0];
         double dot_derivative = unit_normal_derivative[0];

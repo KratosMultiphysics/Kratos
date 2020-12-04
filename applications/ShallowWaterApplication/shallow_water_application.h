@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED )
-#define  KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#ifndef KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
 
 ///@defgroup ShallowWaterApplication Kratos Shallow Water Application
 ///@brief Basic set of tools to solve the shallow water equations.
@@ -32,6 +32,8 @@
 
 // Shallow water includes
 #include "custom_elements/swe.h"
+#include "custom_elements/shallow_water_2d_3.h"
+#include "custom_elements/monotonic_element_2d_3n.h"
 #include "custom_conditions/nothing_condition.hpp"
 
 
@@ -195,6 +197,8 @@ namespace Kratos
         const SWE<4, Eulerian> mSWE2D4N;
         const SWE<3, PFEM2> mLagrangianSWE2D3N;
         const SWE<4, PFEM2> mLagrangianSWE2D4N;
+        const ShallowWater2D3 mShallowWater2D3N;
+        const MonotonicElement2D3N mMonotonicElement2D3N;
         // Condition
         const NothingCondition<2> mNothingCondition2D2N;
 

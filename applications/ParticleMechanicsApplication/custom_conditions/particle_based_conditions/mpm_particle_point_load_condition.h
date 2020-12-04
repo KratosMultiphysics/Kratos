@@ -104,6 +104,10 @@ public:
     ///@name Access
     ///@{
 
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > > rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
@@ -240,10 +244,15 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
+        rSerializer.save("point_load", m_point_load);
+
     }
 
     void load( Serializer& rSerializer ) override
     {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
+        rSerializer.load("point_load", m_point_load);
     }
 
 

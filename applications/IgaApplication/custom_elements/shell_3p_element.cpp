@@ -25,7 +25,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void Shell3pElement::Initialize()
+    void Shell3pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -596,7 +596,7 @@ namespace Kratos
 
     void Shell3pElement::GetValuesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -617,7 +617,7 @@ namespace Kratos
 
     void Shell3pElement::GetFirstDerivativesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -637,7 +637,7 @@ namespace Kratos
 
     void Shell3pElement::GetSecondDerivativesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -657,8 +657,8 @@ namespace Kratos
 
     void Shell3pElement::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -681,8 +681,8 @@ namespace Kratos
 
     void Shell3pElement::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -704,7 +704,7 @@ namespace Kratos
     ///@name Check
     ///@{
 
-    int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)

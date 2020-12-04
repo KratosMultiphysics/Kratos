@@ -11,10 +11,8 @@
 
 # Setting paths. WARNING: one must properly set them before running this file
 
-# Setting PATHs for Kratos
-export PYTHONPATH="$HOME/Kratos:$PYTHONPATH"
-
 ## Linux
+export PYTHONPATH="$HOME/Kratos/bin/Release:$PYTHONPATH"
 export LD_LIBRARY_PATH="$HOME/Kratos/bin/Release/libs:$LD_LIBRARY_PATH"
 
 # Execute the program

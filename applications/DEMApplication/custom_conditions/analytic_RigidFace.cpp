@@ -98,7 +98,7 @@ std::vector<double> AnalyticRigidFace3D::GetMasses()
     return mMasses;
 }
 
-void AnalyticRigidFace3D::InitializeSolutionStep(ProcessInfo& r_process_info)
+void AnalyticRigidFace3D::InitializeSolutionStep(const ProcessInfo& r_process_info)
 {
     RigidFace3D::InitializeSolutionStep(r_process_info);
     mOldContactingNeighbourSignedIds.swap(mContactingNeighbourSignedIds);

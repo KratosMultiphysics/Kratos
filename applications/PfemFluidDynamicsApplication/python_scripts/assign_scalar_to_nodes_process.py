@@ -120,8 +120,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set time integration method
         self.SetTimeIntegration()
