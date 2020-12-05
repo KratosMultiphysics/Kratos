@@ -51,49 +51,49 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         test = AdjointFluidAnalysis(Model(), self._readParameters(parameter_file_name))
         return test
 
-    # def testOneElement(self):
-    #     with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-    #         # calculate sensitivity by finite difference
-    #         step_size = 6.4e-5
-    #         fd_analysis = FiniteDifferenceDragShapeSensitivityAnalysis(2, [1], './AdjointVMSSensitivity2DTest/one_element_test', lambda : self._createFluidTest("AdjointQSVMSSensitivity2DTest/one_element_test"))
-    #         FDSensitivity = fd_analysis.ComputeSensitivity([1.0, 0.0, 0.0], './MainModelPart.Structure_drag.dat', step_size)
+    def testOneElement(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # calculate sensitivity by finite difference
+            step_size = 6.4e-5
+            fd_analysis = FiniteDifferenceDragShapeSensitivityAnalysis(2, [1], './AdjointVMSSensitivity2DTest/one_element_test', lambda : self._createFluidTest("AdjointQSVMSSensitivity2DTest/one_element_test"))
+            FDSensitivity = fd_analysis.ComputeSensitivity([1.0, 0.0, 0.0], './MainModelPart.Structure_drag.dat', step_size)
 
-    #         # calculate adjoint sensitivity
-    #         test = AdjointFluidAnalysis(Model(), self._readParameters('AdjointQSVMSSensitivity2DTest/one_element_test_adjoint'))
-    #         test.Run()
-    #         Sensitivity = [[]]
-    #         Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
-    #         Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+            # calculate adjoint sensitivity
+            test = AdjointFluidAnalysis(Model(), self._readParameters('AdjointQSVMSSensitivity2DTest/one_element_test_adjoint'))
+            test.Run()
+            Sensitivity = [[]]
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
-    #         self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
-    #         self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
 
-    #         # cleanup
-    #         kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/one_element_test.time")
-    #         kratos_utils.DeleteFileIfExisting("./Structure_drag.dat")
-    #         kratos_utils.DeleteFileIfExisting("./one_element.post.bin")
+            # cleanup
+            kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/one_element_test.time")
+            kratos_utils.DeleteFileIfExisting("./Structure_drag.dat")
+            kratos_utils.DeleteFileIfExisting("./one_element.post.bin")
 
-    # def testCylinder(self):
-    #     with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-    #         # calculate sensitivity by finite difference
-    #         step_size = 1e-7
-    #         fd_analysis = FiniteDifferenceDragShapeSensitivityAnalysis(2, [1968], './AdjointVMSSensitivity2DTest/cylinder_test', lambda : self._createFluidTest("AdjointQSVMSSensitivity2DTest/cylinder_test"))
-    #         FDSensitivity = fd_analysis.ComputeSensitivity([1.0, 0.0, 0.0], 'MainModelPart.NoSlip2D_Cylinder_drag.dat', step_size)
+    def testCylinder(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # calculate sensitivity by finite difference
+            step_size = 1e-7
+            fd_analysis = FiniteDifferenceDragShapeSensitivityAnalysis(2, [1968], './AdjointVMSSensitivity2DTest/cylinder_test', lambda : self._createFluidTest("AdjointQSVMSSensitivity2DTest/cylinder_test"))
+            FDSensitivity = fd_analysis.ComputeSensitivity([1.0, 0.0, 0.0], 'MainModelPart.NoSlip2D_Cylinder_drag.dat', step_size)
 
-    #         # calculate adjoint sensitivity
-    #         test = self._createAdjointTest('AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint')
-    #         test.Run()
-    #         Sensitivity = [[]]
-    #         Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
-    #         Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+            # calculate adjoint sensitivity
+            test = self._createAdjointTest('AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint')
+            test.Run()
+            Sensitivity = [[]]
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
-    #         self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
-    #         self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
 
-    #         # cleanup
-    #         kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/cylinder_test.time")
-    #         kratos_utils.DeleteFileIfExisting("./NoSlip2D_Cylinder_drag.dat")
-    #         kratos_utils.DeleteFileIfExisting("./cylinder_test.post.bin")
+            # cleanup
+            kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/cylinder_test.time")
+            kratos_utils.DeleteFileIfExisting("./NoSlip2D_Cylinder_drag.dat")
+            kratos_utils.DeleteFileIfExisting("./cylinder_test.post.bin")
 
     def testSteadyCylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
