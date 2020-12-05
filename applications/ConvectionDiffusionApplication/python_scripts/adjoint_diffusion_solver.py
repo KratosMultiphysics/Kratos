@@ -70,7 +70,8 @@ class AdjointDiffusionSolver(PythonSolver):
             },
             "time_stepping" : {
                 "time_step" : 0.0
-            }
+            },
+            "time_integration_method": "implicit"
         }''')
 
         default_settings.AddMissingParameters(super().GetDefaultParameters())

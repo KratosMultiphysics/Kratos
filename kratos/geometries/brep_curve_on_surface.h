@@ -301,6 +301,39 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+     * and sets it to the closest border */
+    int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mCurveNurbsInterval.IsInside(rPointLocalCoordinates[0]);
+    }
+
+    ///@}
     ///@name Projection
     ///@{
 
@@ -334,38 +367,22 @@ public:
     }
 
     ///@}
-    ///@name IsInside
+    ///@name Geometrical Informations
     ///@{
 
-    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
-    int IsInsideLocalSpace(
-        const CoordinatesArrayType& rPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
+    /// Computes the length of a nurbs curve
+    double Length() const override
     {
-        const double min_parameter = mCurveNurbsInterval.MinParameter();
-        if (rPointLocalCoordinates[0] < min_parameter) {
-            return 0;
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = mpCurveOnSurface->DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
         }
-
-        const double max_parameter = mCurveNurbsInterval.MaxParameter();
-        if (rPointLocalCoordinates[0] > max_parameter) {
-            return 0;
-        }
-
-        return 1;
+        return length;
     }
-
-    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
-     * and sets it to the closest border */
-    int SetInsideLocalSpace(
-        CoordinatesArrayType& rPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
-    {
-        return mCurveNurbsInterval.IsInside(rPointLocalCoordinates[0]);
-    }
-
 
     ///@}
     ///@name Integration Points

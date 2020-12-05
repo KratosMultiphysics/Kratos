@@ -27,11 +27,11 @@ namespace Kratos
 
 void MPMParticleBaseCondition::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     if (rResult.size() != dimension * number_of_nodes)
@@ -67,12 +67,12 @@ void MPMParticleBaseCondition::EquationIdVector(
 //***********************************************************************
 void MPMParticleBaseCondition::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
     rElementalDofList.resize(0);
@@ -104,9 +104,9 @@ void MPMParticleBaseCondition::GetDofList(
 void MPMParticleBaseCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -133,9 +133,9 @@ void MPMParticleBaseCondition::GetValuesVector(
 void MPMParticleBaseCondition::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -162,9 +162,9 @@ void MPMParticleBaseCondition::GetFirstDerivativesVector(
 void MPMParticleBaseCondition::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -253,7 +253,7 @@ void MPMParticleBaseCondition::CalculateAll(
 //***********************************************************************
 //***********************************************************************
 
-int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);

@@ -190,6 +190,7 @@ public:
     ///@name IsInside
     ///@{
 
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
     int IsInsideLocalSpace(
         const CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -198,6 +199,8 @@ public:
         return mpNurbsCurve->IsInsideLocalSpace(rPointLocalCoordinates, Tolerance);
     }
 
+    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+     * and sets it to the closest border */
     int SetInsideLocalSpace(
         CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -206,9 +209,9 @@ public:
         return mpNurbsCurve->SetInsideLocalSpace(rPointLocalCoordinates, Tolerance);
     }
 
-    /////@}
-    /////@name Spatial Operations
-    /////@{
+    ///@}
+    ///@name Spatial Operations
+    ///@{
 
     int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
@@ -227,6 +230,37 @@ public:
         return (success)
             ? 1
             : 0;
+    }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
+
+    /// Computes the length of a nurbs curve
+    double Length() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
+        }
+        return length;
+    }
+
+    ///@}
+    ///@name Jacobian
+    ///@{
+
+    double DeterminantOfJacobian(
+        const CoordinatesArrayType& rPoint) const override
+    {
+        std::vector<CoordinatesArrayType> global_space_derivatives(2);
+        this->GlobalSpaceDerivatives(
+            global_space_derivatives, rPoint, 1);
+        return norm_2(global_space_derivatives[1]);
     }
 
     ///@}

@@ -85,6 +85,8 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    void ComputeEnergy(ModelPart& rModelPart);
+
     void ComputeAccelerations(ModelPart& rModelPart);
 
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
@@ -106,14 +108,10 @@ public:
         }
     }
 
-    void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
-
-    void ComputeVisualizationWaterSurface(ModelPart& rModelPart);
-
     void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
 
     template<class TVarType>
-    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, TVarType& rVariable)
+    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
@@ -124,6 +122,16 @@ public:
     }
 
     void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
+
+    /*
+     * @brief This method sets the z-coordinate of the mesh to zero
+     */
+    void SetMeshZCoordinateToZero(ModelPart& rModelPart);
+
+    /*
+     * @brief This method moves the z-coordinate of the mesh according to a variable
+     */
+    void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     ///@}
     ///@name Access

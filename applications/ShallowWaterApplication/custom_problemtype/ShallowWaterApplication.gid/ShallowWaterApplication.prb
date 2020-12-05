@@ -18,9 +18,9 @@ HELP: For the moment, the shallow water application only supports OpenMP.
 
 TITLE:Solver_Settings
 QUESTION: Stabilization_parameter
-VALUE: 0.005
+VALUE: 0.05
 QUESTION: Shock_stabilization_parameter
-VALUE: 0.001
+VALUE: 0.01
 QUESTION: Relative_tolerance
 VALUE: 1e-6
 QUESTION: Absolute_tolerance
