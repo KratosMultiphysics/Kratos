@@ -207,10 +207,30 @@ private:
      */
     void CalculatePhysicsBasedShockCapturing();
 
+    /**
+     * @brief Set the tetrahedra TLS container
+     * This method sets the TLS container for a 2D3N triangle geometry
+     * @return ShockCapturingTLSType2D3N The TLS container
+     */
     ShockCapturingTLSType2D3N SetTLSContainer2D3N();
 
+    /**
+     * @brief Set the tetrahedra TLS container
+     * This method sets the TLS container for a 3D4N tetrahedra geometry
+     * @return ShockCapturingTLSType3D4N The TLS container
+     */
     ShockCapturingTLSType3D4N SetTLSContainer3D4N();
 
+    /**
+     * @brief Calculate elemental shock capturing contribution
+     * This method calculates the elemental physics-based shock capturing contribution
+     * It is intended to be called from the lambda function used in the parallel region
+     * @tparam TDim Problem dimension
+     * @tparam TNumNodes Geometry number of nodes
+     * @tparam TTLSContainerType The TLS container type
+     * @param rElement Reference to the element of interest
+     * @param rShockCapturingTLS Reference to the TLS container
+     */
     template<std::size_t TDim, std::size_t TNumNodes, class TTLSContainerType>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculatePhysicsBasedShockCapturingElementContribution(
         Element &rElement,
@@ -386,32 +406,86 @@ private:
         }
     }
 
+    /**
+     * @brief Calculate the squared norm of an array_1d<double,3>
+     * Auxiliary inline function to calculate the squared norm of an array_1d<double,3>
+     * @param rArray The array to calculate the squared norm
+     * @return double The squared norm of the given array
+     */
+    inline double SquaredArrayNorm(const array_1d<double,3>& rArray)
+    {
+        return rArray[0]*rArray[0] + rArray[1]*rArray[1] + rArray[2]*rArray[2];
+    }
+
+    /**
+     * @brief Limiting function
+     * Function to limit a given value between two bounds
+     * @param s Value to limit
+     * @param s_0 Initial value
+     * @param s_max Maximum value
+     * @param s_min Minimum values
+     * @return double Provided value or the corresponding minimum or maximum one
+     */
     double LimitingFunction(
         const double s,
         const double s_0,
         const double s_max,
         const double s_min = 0.0);
 
+    /**
+     * @brief Smoothed limiting function
+     * Function to smoothly limit a given value between two bounds
+     * @param s Value to limit
+     * @param s_0 Initial value
+     * @param s_max Maximum value
+     * @return double Provided value or the corresponding minimum or maximum one
+     */
     double SmoothedLimitingFunction(
         const double s,
         const double s_0,
         const double s_max);
 
-    // Smooth approximation of the max(s,0) function
+    /**
+     * @brief Smoothed max function 
+     * Smooth approximation of the max function
+     * @param s Value to check
+     * @return double Provided value or the maximum one
+     */
     double SmoothedMaxFunction(const double s);
 
-    // Smooth approximation of the min(s,0) function
+    /**
+     * @brief Smoothed min function
+     * Smooth approximation of the min(s,0) function
+     * @param s Value to check
+     * @return double Provided value or the minimum one
+     */
     double SmoothedMinFunction(const double s);
 
-    inline double SquaredArrayNorm(const array_1d<double,3>& rArray)
-    {
-        return rArray[0]*rArray[0] + rArray[1]*rArray[1] + rArray[2]*rArray[2];
-    }
-
+    /**
+     * @brief Calculate projected metric-based element size
+     * This method calculates the element size as trans(grad(a))*inv(M)*grad(a)
+     * that is the element size along the projection of the provided gradient
+     * @param rInverseMetricTensor Inverse of the geometry metric tensor 
+     * @param rScalarGradient Scalar magnitude gradient to be projected
+     * @return double Projected element size
+     */
     double CalculateProjectedInverseMetricElementSize(
         const Matrix& rInverseMetricTensor,
         const array_1d<double,3>& rScalarGradient);
 
+    /**
+     * @brief Calculate the shock sensor values
+     * This method calculates the magnitudes required for the shock sensor
+     * @tparam TDim Problem dimension
+     * @tparam TNumNodes Geometry number of nodes
+     * @param rGeometry Element geometry
+     * @param rN Shape function values
+     * @param rDN_DX Shape function gradients
+     * @param rMachNumber Computed Mach number
+     * @param rVelocityDivergence Computed velocity divergence
+     * @param rDensityGradient Computed density gradient
+     * @param rVelocityRotational Computed velocity rotational
+     */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateShockSensorValues(
         const Geometry<Node<3>>& rGeometry,
@@ -422,6 +496,17 @@ private:
         array_1d<double,3>& rDensityGradient,
         array_1d<double,3>& rVelocityRotational);
 
+    /**
+     * @brief Calculate the temperature gradients
+     * This method calculates the temperature gradients required by the thermal sensor
+     * @tparam TDim Problem dimension
+     * @tparam TNumNodes Geometry number of nodes
+     * @param rGeometry Element geometry
+     * @param rDN_DX Shape function gradients
+     * @param rJacobianMatrix Geometry Jacobian matrix
+     * @param rTemperatureGradient Computed temperature gradient
+     * @param rTemperatureLocalGradient Computed temperature local gradient
+     */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateTemperatureGradients(
         const Geometry<Node<3>>& rGeometry,
@@ -430,13 +515,25 @@ private:
         array_1d<double,3>& rTemperatureGradient,
         array_1d<double,3>& rTemperatureLocalGradient);
 
+    /**
+     * @brief Calculate the shear sensor values
+     * This method calculates the values required by the shear sensor
+     * @tparam TDim Problem dimension
+     * @tparam TNumNodes Geometry number of nodes
+     * @param rGeometry Element geometry
+     * @param rN Shape function values
+     * @param rDN_DX Shape function gradients
+     * @param rJacobianMatrix Geometry Jacobian matrix
+     * @param rLocalVelocityShearGradient Computed velocity shear local gradient
+     * @param rSoundVelocity Computed sound velocity
+     */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateShearSensorValues(
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         const Matrix& rJacobianMatrix,
-        BoundedMatrix<double,TDim,TDim>& rVelocityGradient,
+        BoundedMatrix<double,TDim,TDim>& rLocalVelocityShearGradient,
         double& rSoundVelocity);
 
     ///@}
