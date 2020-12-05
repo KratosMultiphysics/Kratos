@@ -27,9 +27,9 @@
         "relative_pressure_tolerance": 1e-3,
         "absolute_pressure_tolerance": 1e-5,
         "linear_solver_settings": {
-            "solver_type": "amgcl_ns",
+            "solver_type": "amgcl",
             "coarse_enough": 500,
-            "tolerance": 1e-8
+            "tolerance": 1e-9
         },
         "volume_model_part_name": "Parts_Fluid",
         "skin_parts": [

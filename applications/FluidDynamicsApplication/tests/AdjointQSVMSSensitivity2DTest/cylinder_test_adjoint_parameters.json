@@ -44,7 +44,7 @@
         "linear_solver_settings": {
             "solver_type": "amgcl",
             "coarse_enough": 500,
-            "tolerance": 1e-8
+            "tolerance": 1e-9
         },
         "model_import_settings": {
             "input_type": "mdpa",
@@ -227,6 +227,42 @@
                         "SHAPE_SENSITIVITY_X",
                         "SHAPE_SENSITIVITY_Y"
                     ]
+                }
+            },
+            {
+                "python_module": "compare_two_files_check_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "CompareTwoFilesCheckProcess",
+                "Parameters": {
+                    "output_file_name": "AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_probe1.dat",
+                    "reference_file_name": "AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_probe1_ref.dat",
+                    "comparison_type": "dat_file",
+                    "tolerance": 1e-4
+                }
+            },
+            {
+                "python_module": "compare_two_files_check_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "CompareTwoFilesCheckProcess",
+                "Parameters": {
+                    "output_file_name": "AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_probe2.dat",
+                    "reference_file_name": "AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_probe2_ref.dat",
+                    "comparison_type": "dat_file",
+                    "tolerance": 1e-4
+                }
+            },
+            {
+                "python_module": "compare_two_files_check_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "CompareTwoFilesCheckProcess",
+                "Parameters": {
+                    "output_file_name": "AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_probe3.dat",
+                    "reference_file_name": "AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_probe3_ref.dat",
+                    "comparison_type": "dat_file",
+                    "tolerance": 1e-10
                 }
             }
         ]

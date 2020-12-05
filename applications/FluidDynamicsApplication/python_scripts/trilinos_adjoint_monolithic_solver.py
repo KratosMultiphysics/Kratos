@@ -5,14 +5,14 @@ import KratosMultiphysics.mpi as KratosMPI
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
-from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_monolithic_solver import AdjointMonolithicSolver
 
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(main_model_part, custom_settings):
-    return AdjointVMSMonolithicMPISolver(main_model_part, custom_settings)
+    return AdjointMonolithicMPISolver(main_model_part, custom_settings)
 
-class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
+class AdjointMonolithicMPISolver(AdjointMonolithicSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -39,8 +39,6 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
-            "dynamic_tau": 0.0,
-            "oss_switch": 0,
             "echo_level": 0,
             "time_stepping"               : {
                 "automatic_time_step" : false,
@@ -53,28 +51,20 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 "time_step"           : -0.1
             },
             "consider_periodic_conditions": false,
-            "assign_neighbour_elements_to_conditions": true
+            "assign_neighbour_elements_to_conditions": true,
+            "formulation": {
+                "element_type": "vms"
+            }
         }""")
 
-        default_settings.AddMissingParameters(super(AdjointVMSMonolithicMPISolver, cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super(AdjointMonolithicMPISolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(AdjointVMSMonolithicSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
-        self.element_name = "VMSAdjointElement"
-        if self.settings["domain_size"].GetInt() == 2:
-            self.condition_name = "LineCondition"
-        elif self.settings["domain_size"].GetInt() == 3:
-            self.condition_name = "SurfaceCondition"
-        self.min_buffer_size = 2
-        self.element_has_nodal_properties = True
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicMPISolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointMonolithicMPISolver finished.")
 
     def AddVariables(self):
         ## Add variables from the base class
@@ -83,7 +73,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables for the AdjointVMSMonolithicMPISolver added correctly in each processor.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables for the AdjointMonolithicMPISolver added correctly in each processor.")
 
     def ImportModelPart(self):
         ## Construct the distributed import model part utility
@@ -94,7 +84,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "MPI model reading finished.")
 
     def PrepareModelPart(self):
-        super(self.__class__,self).PrepareModelPart()
+        super().PrepareModelPart()
         ## Construct the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
 
