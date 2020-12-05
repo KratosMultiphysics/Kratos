@@ -457,21 +457,22 @@ private:
         const auto& r_prop = r_model_part.ElementsBegin()->GetProperties();
         const double c_v = r_prop.GetValue(SPECIFIC_HEAT); // Specific heat at constant volume
         const double gamma = r_prop.GetValue(HEAT_CAPACITY_RATIO); // Heat capacity ratio
-        const double R = (1.0 - gamma) * c_v; // Ideal gas constant
+        const double R = (gamma - 1.0) * c_v; // Ideal gas constant
 
         // Loop the nodes to calculate the non-conservative magnitudes
-        block_for_each(r_model_part.Nodes(), [&] (Node<3> &rNode) {
+        array_1d<double,3> aux_vel;
+        block_for_each(r_model_part.Nodes(), aux_vel,[&] (Node<3> &rNode, array_1d<double,3>&rVelocity) {
             const auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
             const double& r_rho = rNode.FastGetSolutionStepValue(DENSITY);
             const double& r_tot_ener = rNode.FastGetSolutionStepValue(TOTAL_ENERGY);
-            const array_1d<double,3> vel = r_mom / r_rho;
-            const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(vel, vel)) / c_v;
+            rVelocity = r_mom / r_rho;
+            const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(rVelocity, rVelocity)) / c_v;
             const double sound_velocity = std::sqrt(gamma * R * temp);
-            rNode.FastGetSolutionStepValue(VELOCITY) = vel;
+            rNode.FastGetSolutionStepValue(VELOCITY) = rVelocity;
             rNode.FastGetSolutionStepValue(TEMPERATURE) = temp;
             rNode.FastGetSolutionStepValue(PRESSURE) = r_rho * R * temp;
             rNode.GetValue(SOUND_VELOCITY) = sound_velocity;
-            rNode.GetValue(MACH) = norm_2(vel) / sound_velocity;
+            rNode.GetValue(MACH) = norm_2(rVelocity) / sound_velocity;
         });
     }
 
