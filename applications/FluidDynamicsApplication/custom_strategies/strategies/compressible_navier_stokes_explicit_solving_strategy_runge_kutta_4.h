@@ -154,7 +154,8 @@ public:
             "name" : "compressible_navier_stokes_explicit_explicit_solving_strategy_runge_kutta_4",
             "rebuild_level" : 0,
             "move_mesh_flag": false,
-            "shock_capturing" : true
+            "shock_capturing" : true,
+            "calculate_non_conservative_magnitudes" : true
         })");
 
         // Getting base class default parameters
@@ -183,6 +184,11 @@ public:
 
         // Set the specific compressible NS settings
         mShockCapturing = ThisParameters["shock_capturing"].GetBool();
+        mCalculateNonConservativeMagnitudes = ThisParameters["calculate_non_conservative_magnitudes"].GetBool();
+        if (mShockCapturing && !mCalculateNonConservativeMagnitudes) {
+            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4") << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
+            mCalculateNonConservativeMagnitudes = true;
+        }
     }
 
     /**
@@ -251,7 +257,9 @@ public:
 
         // Postprocess the non-conservative magnitudes
         // This needs to be done before the shock capturing as it is based on these
-        CalculateNonConservativeMagnitudes();
+        if (mCalculateNonConservativeMagnitudes) {
+            CalculateNonConservativeMagnitudes();
+        }
 
         // Perform the shock capturing detection and artificial values calculation
         // This needs to be done at the end of the step in order to include the future shock
@@ -389,6 +397,7 @@ private:
 
     bool mShockCapturing = true;
     bool mApplySlipCondition = true;
+    bool mCalculateNonConservativeMagnitudes = true;
 
     ///@}
     ///@name Private Operators
