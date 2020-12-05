@@ -4,10 +4,9 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 missing_applications_message = ["Missing required application(s):",]
-have_required_applications = CheckIfApplicationsAvailable("HDF5Application")
+have_required_applications = kratos_utils.CheckIfApplicationsAvailable("HDF5Application")
 if have_required_applications:
     import KratosMultiphysics.HDF5Application as kh5
 else:

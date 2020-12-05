@@ -28,7 +28,7 @@ class ControlledExecutionScope:
         os.chdir(self.currentPath)
 
 @KratosUnittest.skipUnless(have_required_applications," ".join(missing_applications_message))
-class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
+class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
     def setUp(self):
         pass
 

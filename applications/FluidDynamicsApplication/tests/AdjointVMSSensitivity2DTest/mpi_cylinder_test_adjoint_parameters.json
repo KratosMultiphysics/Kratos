@@ -39,13 +39,16 @@
         "volume_model_part_name" : "Parts_Fluid",
         "skin_parts"             : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
         "domain_size"            : 2,
-        "dynamic_tau"            : 1.0,
-        "oss_switch"             : 0,
         "echo_level"             : 0,
         "time_stepping"               : {
             "automatic_time_step" : false,
             "time_step"           : -0.01
-        }
+        },
+        "formulation" : {
+            "element_type"             : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 1.0
+        },
     },
     "processes": {
         "initial_conditions_process_list"  : [],

@@ -28,6 +28,7 @@ from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
 from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
+from adjoint_qsvms_sensitivity_2d import AdjointQSVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 from cfl_output_process_test import CFLOutputProcessTest
@@ -70,6 +71,7 @@ def AssembleTestSuites():
     smallSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     smallSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
+    smallSuite.addTest(AdjointQSVMSSensitivity2D('testOneElement'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -105,6 +107,7 @@ def AssembleTestSuites():
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
+    nightSuite.addTest(AdjointQSVMSSensitivity2D('testCylinder'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
@@ -119,6 +122,7 @@ def AssembleTestSuites():
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
+    validationSuite.addTest(AdjointQSVMSSensitivity2D('testSteadyCylinder'))
 
 
     # Create a test suite that contains all the tests:
