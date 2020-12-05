@@ -102,8 +102,6 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
             "volume_model_part_name" : "volume_model_part",
             "skin_parts"  : [""],
             "no_skin_parts"  : [""],
-            "dynamic_tau" : 0.0,
-            "oss_switch"  : 0,
             "echo_level"  : 0,
             "time_stepping"               : {
                 "automatic_time_step" : false,
