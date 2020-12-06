@@ -35,7 +35,7 @@ namespace Kratos
     {
         Check();
         ExecuteInitialize();
-        CalculatePhysicsBasedShockCapturing();
+        ExecuteFinalizeSolutionStep();
     }
 
     void ShockCapturingProcess::ExecuteInitialize()

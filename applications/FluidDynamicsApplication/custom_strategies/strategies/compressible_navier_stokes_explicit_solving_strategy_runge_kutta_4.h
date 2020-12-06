@@ -96,6 +96,19 @@ public:
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
+
+        // Create the shock capturing process pointer
+        if (mShockCapturing) {
+            Parameters sc_settings(R"(
+            {
+                "calculate_nodal_area_at_each_step" : false,
+                "shock_sensor" : true,
+                "shear_sensor" : true,
+                "thermal_sensor" : true,
+                "thermally_coupled_formulation" : true
+            })");
+            mpShockCapturingProcess = Kratos::make_unique<ShockCapturingProcess>(rModelPart, sc_settings);
+        }
     }
 
     /**
@@ -142,6 +155,18 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    int Check() const override
+    {
+        int err_code = BaseType::Check();
+
+        // Shock capturing process check
+        if (mShockCapturing) {
+            mpShockCapturingProcess->Check();
+        }
+
+        return err_code;
+    }
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -221,22 +246,7 @@ public:
 
         // If required, initialize the physics-based shock capturing variables
         if (mShockCapturing) {
-            // Initialize nodal values
-            for (auto& r_node : r_model_part.Nodes()) {
-                r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
-                r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
-                r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
-            }
-
-            // Initialize elemental values
-            for (auto& r_elem : r_model_part.Elements()) {
-                r_elem.SetValue(SHOCK_SENSOR, 0.0);
-                r_elem.SetValue(SHEAR_SENSOR, 0.0);
-                r_elem.SetValue(THERMAL_SENSOR, 0.0);
-                r_elem.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
-                r_elem.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
-                r_elem.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
-            }
+            mpShockCapturingProcess->ExecuteInitialize();
         }
     }
 
@@ -265,9 +275,7 @@ public:
         // This needs to be done at the end of the step in order to include the future shock
         // capturing magnitudes in the next automatic dt calculation
         if (mShockCapturing) {
-            Parameters shock_capturing_settings;
-            ShockCapturingProcess sc_process(BaseType::GetModelPart(), shock_capturing_settings);
-            sc_process.Execute();
+            mpShockCapturingProcess->ExecuteFinalizeSolutionStep();
         }
     }
 
@@ -398,6 +406,8 @@ private:
     bool mShockCapturing = true;
     bool mApplySlipCondition = true;
     bool mCalculateNonConservativeMagnitudes = true;
+
+    ShockCapturingProcess::UniquePointer mpShockCapturingProcess = nullptr;
 
     ///@}
     ///@name Private Operators
