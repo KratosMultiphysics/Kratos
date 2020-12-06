@@ -126,13 +126,14 @@ namespace Kratos
         BoundedMatrix<double,3,2> DN_DX;
         array_1d<double,3> N;
         BoundedMatrix<double,2,2> metric_tensor;
+        array_1d<double,3> midpoint_v;
         array_1d<double,3> grad_rho;
         array_1d<double,3> rot_v;
         array_1d<double,3> grad_temp;
         array_1d<double,3> grad_temp_local;
         BoundedMatrix<double,2,2> grad_v;
 
-        ShockCapturingTLSType2D3N aux_TLS_container = std::make_tuple(vol, DN_DX, N, metric_tensor, grad_rho, rot_v, grad_temp, grad_temp_local, grad_v);
+        ShockCapturingTLSType2D3N aux_TLS_container = std::make_tuple(vol, DN_DX, N, metric_tensor, midpoint_v, grad_rho, rot_v, grad_temp, grad_temp_local, grad_v);
         return aux_TLS_container;
     }
 
@@ -142,13 +143,14 @@ namespace Kratos
         BoundedMatrix<double,4,3> DN_DX;
         array_1d<double,4> N;
         BoundedMatrix<double,3,3> metric_tensor;
+        array_1d<double,3> midpoint_v;
         array_1d<double,3> grad_rho;
         array_1d<double,3> rot_v;
         array_1d<double,3> grad_temp;
         array_1d<double,3> grad_temp_local;
         BoundedMatrix<double,3,3> grad_v;
 
-        ShockCapturingTLSType3D4N aux_TLS_container = std::make_tuple(vol, DN_DX, N, metric_tensor, grad_rho, rot_v, grad_temp, grad_temp_local, grad_v);
+        ShockCapturingTLSType3D4N aux_TLS_container = std::make_tuple(vol, DN_DX, N, metric_tensor, midpoint_v, grad_rho, rot_v, grad_temp, grad_temp_local, grad_v);
         return aux_TLS_container;
     }
 

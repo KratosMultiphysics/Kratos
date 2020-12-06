@@ -78,6 +78,7 @@ public:
         array_1d<double,3>,
         array_1d<double,3>,
         array_1d<double,3>,
+        array_1d<double,3>,
         BoundedMatrix<double,2,2>> ShockCapturingTLSType2D3N;
 
     /// Type for the 3D (linear tetrahedra) TLS geometry data
@@ -86,6 +87,7 @@ public:
         BoundedMatrix<double,4,3>,
         array_1d<double,4>,
         BoundedMatrix<double,3,3>,
+        array_1d<double,3>,
         array_1d<double,3>,
         array_1d<double,3>,
         array_1d<double,3>,
@@ -245,15 +247,17 @@ private:
         if (mShearSensor) {rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = 0.0;}
         if (mThermalSensor || mShockSensor) {rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;} // Note that conductivity is modified in both sensors
 
-        // Get TLS values and calculate geometry data
+        // Get TLS values geometry values
         double& r_vol = std::get<0>(rShockCapturingTLS);
         auto& r_DN_DX = std::get<1>(rShockCapturingTLS);
         auto& r_N = std::get<2>(rShockCapturingTLS);
+        auto& r_metric_tensor = std::get<3>(rShockCapturingTLS);
+
+        // Calculate geometry data
         GeometryUtils::CalculateGeometryData(r_geom, r_DN_DX, r_N, r_vol);
 
         // Calculate the geometry metric
         double h_ref, metric_tensor_inf, metric_tensor_sup;
-        auto& r_metric_tensor = std::get<3>(rShockCapturingTLS);
         GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensorDimensionless(
             r_geom,
             r_metric_tensor,
@@ -276,23 +280,23 @@ private:
         const double eps = 1.0e-7; // Small constant to avoid division by 0
 
         // Calculate the midpoint values
-        array_1d<double,3> midpoint_v; //FIXME: Encapsulate in TLS
         double midpoint_rho, midpoint_tot_ener;
+        auto& r_midpoint_v = std::get<4>(rShockCapturingTLS);
         if (mThermallyCoupledFormulation) {
             // Get required midpoint values
             double midpoint_temp;
-            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY), std::tie(midpoint_temp, TEMPERATURE));
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY), std::tie(midpoint_temp, TEMPERATURE));
             // If the formulation is thermally coupled, the total energy is the summation of the thermal and kinetic ones
-            midpoint_tot_ener = midpoint_rho * (c_v * midpoint_temp + 0.5 * midpoint_rho * inner_prod(midpoint_v, midpoint_v));
+            midpoint_tot_ener = midpoint_rho * (c_v * midpoint_temp + 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v));
         } else {
             // Get required midpoint values
-            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY));
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY));
             // If the formulation is not energy coupled, the total energy equals the kinetic one
-            midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(midpoint_v, midpoint_v);
+            midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v);
         }
 
         // Calculate common values
-        const double v_norm_pow = SquaredArrayNorm(midpoint_v);
+        const double v_norm_pow = SquaredArrayNorm(r_midpoint_v);
         const double stagnation_temp = midpoint_tot_ener / midpoint_rho / c_v;
         const double c_star = std::sqrt(gamma * (gamma - 1.0) * c_v * stagnation_temp * (2.0 / (gamma + 1.0))); // Critical speed of sound
         const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_star, 2));
@@ -301,8 +305,8 @@ private:
         if (mShockSensor) {
             // Calculate the required differential operators
             double div_v, mach;
-            auto& r_grad_rho = std::get<4>(rShockCapturingTLS);
-            auto& r_rot_v = std::get<5>(rShockCapturingTLS);
+            auto& r_grad_rho = std::get<5>(rShockCapturingTLS);
+            auto& r_rot_v = std::get<6>(rShockCapturingTLS);
             CalculateShockSensorValues<TDim,TNumNodes>(r_geom, r_N, r_DN_DX, mach, div_v, r_grad_rho, r_rot_v);
 
             // Characteristic element size along the direction of the density gradient
@@ -346,8 +350,8 @@ private:
             // Thermal sensor values
             if (mThermalSensor) {
                 // Calculate temperature gradients
-                auto& r_grad_temp = std::get<6>(rShockCapturingTLS);
-                auto& r_grad_temp_local = std::get<7>(rShockCapturingTLS);
+                auto& r_grad_temp = std::get<7>(rShockCapturingTLS);
+                auto& r_grad_temp_local = std::get<8>(rShockCapturingTLS);
                 CalculateTemperatureGradients(r_geom, r_DN_DX, mid_pt_jacobian, r_grad_temp, r_grad_temp_local);
 
                 // Characteristic element size along the direction of the temperature gradient
@@ -370,7 +374,7 @@ private:
             if (mShearSensor) {
                 // Calculate shear sensor values
                 double r_c;
-                auto& r_local_shear_grad_v = std::get<8>(rShockCapturingTLS);
+                auto& r_local_shear_grad_v = std::get<9>(rShockCapturingTLS);
                 CalculateShearSensorValues(r_geom, r_N, r_DN_DX, mid_pt_jacobian, r_local_shear_grad_v, r_c);
                 BoundedMatrix<double,TDim,TDim> eigen_vect_mat, eigen_val_mat;
                 MathUtils<double>::GaussSeidelEigenSystem(r_local_shear_grad_v, eigen_vect_mat, eigen_val_mat);
