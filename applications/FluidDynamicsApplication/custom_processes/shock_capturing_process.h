@@ -188,6 +188,7 @@ private:
     bool mShockSensor;
     bool mShearSensor;
     bool mThermalSensor;
+    bool mThermallyCoupledFormulation;
 
     ///@}
     ///@name Private Operators
@@ -249,7 +250,7 @@ private:
         auto& r_DN_DX = std::get<1>(rShockCapturingTLS);
         auto& r_N = std::get<2>(rShockCapturingTLS);
         GeometryUtils::CalculateGeometryData(r_geom, r_DN_DX, r_N, r_vol);
-        
+
         // Calculate the geometry metric
         double h_ref, metric_tensor_inf, metric_tensor_sup;
         auto& r_metric_tensor = std::get<3>(rShockCapturingTLS);
@@ -275,19 +276,23 @@ private:
         const double eps = 1.0e-7; // Small constant to avoid division by 0
 
         // Calculate the midpoint values
-        array_1d<double,3> midpoint_v;
+        array_1d<double,3> midpoint_v; //FIXME: Encapsulate in TLS
         double midpoint_rho, midpoint_tot_ener;
-        FluidCalculationUtilities::EvaluateInPoint(
-            r_geom,
-            r_N,
-            std::tie(midpoint_v, VELOCITY),
-            std::tie(midpoint_rho, DENSITY),
-            std::tie(midpoint_tot_ener, TOTAL_ENERGY));
+        if (mThermallyCoupledFormulation) {
+            // Get required midpoint values
+            double midpoint_temp;
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY), std::tie(midpoint_temp, TEMPERATURE));
+            // If the formulation is thermally coupled, the total energy is the summation of the thermal and kinetic ones
+            midpoint_tot_ener = midpoint_rho * (c_v * midpoint_temp + 0.5 * midpoint_rho * inner_prod(midpoint_v, midpoint_v));
+        } else {
+            // Get required midpoint values
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY));
+            // If the formulation is not energy coupled, the total energy equals the kinetic one
+            midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(midpoint_v, midpoint_v);
+        }
 
         // Calculate common values
         const double v_norm_pow = SquaredArrayNorm(midpoint_v);
-        //TODO: Think about how we can compute the critical speed of sound in an incompressible framework
-        //TODO: Most probably we can avoid computing it and calculate the thermal sensor without it
         const double stagnation_temp = midpoint_tot_ener / midpoint_rho / c_v;
         const double c_star = std::sqrt(gamma * (gamma - 1.0) * c_v * stagnation_temp * (2.0 / (gamma + 1.0))); // Critical speed of sound
         const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_star, 2));
@@ -446,7 +451,7 @@ private:
         const double s_max);
 
     /**
-     * @brief Smoothed max function 
+     * @brief Smoothed max function
      * Smooth approximation of the max function
      * @param s Value to check
      * @return double Provided value or the maximum one
@@ -465,7 +470,7 @@ private:
      * @brief Calculate projected metric-based element size
      * This method calculates the element size as trans(grad(a))*inv(M)*grad(a)
      * that is the element size along the projection of the provided gradient
-     * @param rInverseMetricTensor Inverse of the geometry metric tensor 
+     * @param rInverseMetricTensor Inverse of the geometry metric tensor
      * @param rScalarGradient Scalar magnitude gradient to be projected
      * @return double Projected element size
      */

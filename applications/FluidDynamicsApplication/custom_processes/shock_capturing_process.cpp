@@ -74,7 +74,8 @@ namespace Kratos
             "calculate_nodal_area_at_each_step" : false,
             "shock_sensor" : true,
             "shear_sensor" : true,
-            "thermal_sensor" : true
+            "thermal_sensor" : true,
+            "thermally_coupled_formulation" : true
         })");
 
         return default_parameters;
@@ -89,7 +90,9 @@ namespace Kratos
         for (const auto& rNode : mrModelPart.Nodes()) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, rNode)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, rNode)
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE, rNode)
+            if (mThermalSensor || mThermallyCoupledFormulation) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE, rNode)
+            }
         }
 
         // Check that the required material properties are in the elemental properties
@@ -114,6 +117,7 @@ namespace Kratos
         mShockSensor = rParameters["shock_sensor"].GetBool();
         mShearSensor = rParameters["shear_sensor"].GetBool();
         mThermalSensor = rParameters["thermal_sensor"].GetBool();
+        mThermallyCoupledFormulation = rParameters["thermally_coupled_formulation"].GetBool();
     }
 
     ShockCapturingProcess::ShockCapturingTLSType2D3N ShockCapturingProcess::SetTLSContainer2D3N()
