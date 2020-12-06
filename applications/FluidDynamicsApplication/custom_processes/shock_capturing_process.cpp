@@ -42,19 +42,31 @@ namespace Kratos
     {
         // Initialize nodal values
         for (auto& r_node : mrModelPart.Nodes()) {
-            r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
-            r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
-            r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
+            if (mShockSensor) {r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);}
+            if (mShearSensor) {r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);}
+            if (mShockSensor || mThermalSensor) {r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);}
         }
 
         // Initialize elemental values
         for (auto& r_elem : mrModelPart.Elements()) {
-            r_elem.SetValue(SHOCK_SENSOR, 0.0);
-            r_elem.SetValue(SHEAR_SENSOR, 0.0);
-            r_elem.SetValue(THERMAL_SENSOR, 0.0);
-            r_elem.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
-            r_elem.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
-            r_elem.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
+            if (mShockSensor || mThermalSensor) {
+                // Artificial conductivity is used in both sensors
+                r_elem.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
+                // Shock sensor specific values
+                if (mShockSensor) {
+                    r_elem.SetValue(SHOCK_SENSOR, 0.0);
+                    r_elem.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
+                }
+                // Thermal sensor specific values
+                if (mThermalSensor) {
+                    r_elem.SetValue(THERMAL_SENSOR, 0.0);
+                }
+            }
+            // Shear sensor specific values
+            if (mShearSensor) {
+                r_elem.SetValue(SHEAR_SENSOR, 0.0);
+                r_elem.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
+            }
         }
 
         // Calculate the NODAL_AREA
@@ -118,6 +130,10 @@ namespace Kratos
         mShearSensor = rParameters["shear_sensor"].GetBool();
         mThermalSensor = rParameters["thermal_sensor"].GetBool();
         mThermallyCoupledFormulation = rParameters["thermally_coupled_formulation"].GetBool();
+
+        // Check user-provided assigned settings
+        KRATOS_ERROR_IF(mThermalSensor && !mThermallyCoupledFormulation)
+            << "Thermal sensor cannot be computed using a thermally non-coupled formulation. Check \'thermal_sensor\' and \'thermally_coupled_formulation\' provided settings." << std::endl;
     }
 
     ShockCapturingProcess::ShockCapturingTLSType2D3N ShockCapturingProcess::SetTLSContainer2D3N()

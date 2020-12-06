@@ -334,12 +334,15 @@ private:
             rElement.GetValue(ARTIFICIAL_BULK_VISCOSITY) = elem_b_star;
 
             // Calculate elemental artificial conductivity (dilatancy)
-            const double Pr_beta_min = 0.9;
-            const double alpha_pr_beta = 2.0;
-            const double mach_threshold = 3.0;
-            const double Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
-            const double elem_k1_star = (gamma * c_v / Pr_beta) * elem_b_star;
-            rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k1_star;
+            // Note that this is only required if the formulation is thermally coupled
+            if (mThermallyCoupledFormulation) {
+                const double Pr_beta_min = 0.9;
+                const double alpha_pr_beta = 2.0;
+                const double mach_threshold = 3.0;
+                const double Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
+                const double elem_k1_star = (gamma * c_v / Pr_beta) * elem_b_star;
+                rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k1_star;
+            }
         }
 
         if (mThermalSensor || mShearSensor) {
