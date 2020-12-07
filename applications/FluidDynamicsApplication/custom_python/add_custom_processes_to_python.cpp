@@ -146,8 +146,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ShockCapturingProcess, ShockCapturingProcess::Pointer, Process>
     (m, "ShockCapturingProcess")
-    .def(py::init < Model&, Parameters& >())
-    .def(py::init < ModelPart&, Parameters& >())
+    .def(py::init < Model&, Parameters >())
+    .def(py::init < ModelPart&, Parameters >())
     ;
 
     py::class_<TwoFluidsInletProcess, TwoFluidsInletProcess::Pointer, Process>
