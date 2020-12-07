@@ -19,6 +19,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -93,10 +94,11 @@ double OmegaUBasedWallConditionData::CalculateWallFlux(
     double nu, nu_t;
     array_1d<double, 3> velocity;
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions,
-                    std::tie(nu, KINEMATIC_VISCOSITY),
-                    std::tie(nu_t, TURBULENT_VISCOSITY),
-                    std::tie(velocity, VELOCITY));
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions,
+        std::tie(nu, KINEMATIC_VISCOSITY),
+        std::tie(nu_t, TURBULENT_VISCOSITY),
+        std::tie(velocity, VELOCITY));
 
     const double velocity_magnitude = norm_2(velocity);
 

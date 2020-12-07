@@ -25,6 +25,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -134,11 +135,12 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
 
-            EvaluateInPoint(r_geometry, gauss_shape_functions,
-                            std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                            std::tie(rho, DENSITY),
-                            std::tie(nu, KINEMATIC_VISCOSITY),
-                            std::tie(wall_velocity, VELOCITY));
+            FluidCalculationUtilities::EvaluateInPoint(
+                r_geometry, gauss_shape_functions,
+                std::tie(tke, TURBULENT_KINETIC_ENERGY),
+                std::tie(rho, DENSITY),
+                std::tie(nu, KINEMATIC_VISCOSITY),
+                std::tie(wall_velocity, VELOCITY));
 
             const double wall_velocity_magnitude = norm_2(wall_velocity);
 

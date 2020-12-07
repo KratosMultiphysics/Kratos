@@ -21,6 +21,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -138,7 +139,7 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const auto& gauss_shape_functions = row(shape_functions, g);
 
-            RansCalculationUtilities::EvaluateInPoint(
+            FluidCalculationUtilities::EvaluateInPoint(
                 rCondition.GetGeometry(), gauss_shape_functions,
                 std::tie(wall_velocity, VELOCITY), std::tie(nu, KINEMATIC_VISCOSITY),
                 std::tie(tke, TURBULENT_KINETIC_ENERGY));

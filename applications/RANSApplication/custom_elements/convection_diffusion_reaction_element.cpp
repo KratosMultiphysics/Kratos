@@ -27,6 +27,7 @@
 #include "custom_elements/data_containers/k_omega/omega_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 
 // Include base h
@@ -272,8 +273,6 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
             rDampingMatrix, reaction, effective_kinematic_viscosity,
             velocity_convective_terms, gauss_weights[g], r_shape_functions, dNa_dNb);
     }
-
-    r_current_data.UpdateElementDataValueContainer(*this);
 
     KRATOS_CATCH("");
 }

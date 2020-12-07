@@ -19,6 +19,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -90,10 +91,11 @@ double OmegaKBasedWallConditionData::CalculateWallFlux(
 
     double nu, nu_t, tke;
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions,
-                    std::tie(nu, KINEMATIC_VISCOSITY),
-                    std::tie(nu_t, TURBULENT_VISCOSITY),
-                    std::tie(tke, TURBULENT_KINETIC_ENERGY));
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions,
+        std::tie(nu, KINEMATIC_VISCOSITY),
+        std::tie(nu_t, TURBULENT_VISCOSITY),
+        std::tie(tke, TURBULENT_KINETIC_ENERGY));
 
     const double u_tau = mCmu25 * std::sqrt(std::max(tke, 0.0));
 

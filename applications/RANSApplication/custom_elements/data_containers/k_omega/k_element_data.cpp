@@ -23,6 +23,7 @@
 
 // Application includes
 #include "custom_elements/data_containers/k_epsilon/element_data_utilities.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -81,11 +82,12 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    std::tie(mEffectiveVelocity, VELOCITY));
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions, Step,
+        std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+        std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     mVelocityDivergence =
         GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);

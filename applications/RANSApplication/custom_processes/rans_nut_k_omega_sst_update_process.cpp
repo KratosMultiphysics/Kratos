@@ -25,6 +25,7 @@
 
 // Application includes
 #include "custom_elements/data_containers/k_omega_sst/element_data_utilities.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -189,7 +190,8 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& r_gauss_shape_functions = row(shape_functions, g);
 
-        RansCalculationUtilities::EvaluateInPoint(r_geometry, r_gauss_shape_functions,
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, r_gauss_shape_functions,
             std::tie(tke, TURBULENT_KINETIC_ENERGY),
             std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
             std::tie(nu, KINEMATIC_VISCOSITY),

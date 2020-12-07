@@ -18,6 +18,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "element_data_utilities.h"
 #include "rans_application_variables.h"
@@ -78,11 +79,12 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     double tke;
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    std::tie(mEffectiveVelocity, VELOCITY));
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions, Step,
+        std::tie(tke, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+        std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     mGamma = KEpsilonElementData::CalculateGamma(mCmu, tke, mTurbulentKinematicViscosity);
 

@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_elements/data_containers/k_epsilon/element_data_utilities.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "element_data_utilities.h"
 #include "rans_application_variables.h"
@@ -86,13 +87,14 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     const auto& r_geometry = this->GetGeometry();
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-                    std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    std::tie(mWallDistance, DISTANCE),
-                    std::tie(mEffectiveVelocity, VELOCITY));
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions, Step,
+        std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+        std::tie(mWallDistance, DISTANCE),
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 
