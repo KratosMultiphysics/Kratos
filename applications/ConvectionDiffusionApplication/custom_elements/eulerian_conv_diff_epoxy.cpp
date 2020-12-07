@@ -665,7 +665,7 @@ namespace Kratos
             : KRATOS_ERROR << "GLASS_TRANSITION_TEMPERATURE_LAMBDA is not defined.";
             //: 0.288;
 
-        double glass_transition_temperature = ((Tg0 + 273.15) + (Tginf - Tg0) * ((lamda * DegreeOfCure) / (1 - (1 - lamda) * DegreeOfCure)))-273.15;
+        double glass_transition_temperature = ((Tg0 + 273.15) + (Tginf - Tg0) * ((lamda * DegreeOfCure) / (1.0 - (1.0 - lamda) * DegreeOfCure)))-273.15;
 
         return glass_transition_temperature;
 
@@ -685,7 +685,7 @@ namespace Kratos
         double sigma_T = -0.454;
 
         double specific_heat_capacity = (Crub + Crub_alpha * DegreeOfCure + Crub_T * Temperature + (Cglass + Cglass_T * Temperature - Crub - Crub_alpha * DegreeOfCure - Crub_T * Temperature) /
-            (1 + exp(Cw * (Temperature - GlassTransitionTemperature - sigma - sigma_T * Temperature))))*1000;
+            (1.0 + exp(Cw * (Temperature - GlassTransitionTemperature - sigma - sigma_T * Temperature))))*1000.0;
 
         return specific_heat_capacity;
     }
@@ -699,7 +699,7 @@ namespace Kratos
         double gamma_conductivity = 0.061;
         
 
-        double thermal_conductivity = (1  + theta_conductivity * DegreeOfCure) / (beta_conductivity + gamma_conductivity * Temperature);
+        double thermal_conductivity = (1.0  + theta_conductivity * DegreeOfCure) / (beta_conductivity + gamma_conductivity * Temperature);
 
         return thermal_conductivity;
     }
@@ -716,7 +716,7 @@ namespace Kratos
         double gamma_sh_coeff = 0.083;
 
 
-        double adjusted_density = density_previous/(1 + alpha_vr * (temperature_current-temperature_previous) 
+        double adjusted_density = density_previous/(1.0 + alpha_vr * (temperature_current-temperature_previous) 
             - (gamma_sh_coeff*(degree_of_cure_current-degree_of_cure_previous)));
 
         return adjusted_density;
@@ -751,10 +751,10 @@ namespace Kratos
         const double CTE = 0.4;
 
         if (DegreeOfCureCurrent < 0.77) {
-            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (8.233 * DegreeOfCureCurrent - 0.4199)/100;
+            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (8.233 * DegreeOfCureCurrent - 0.4199)/100.0;
             return pre_strain_factor;
         }
-            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (18.75 * DegreeOfCureCurrent - 8.7915)/100;
+            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (18.75 * DegreeOfCureCurrent - 8.7915)/100.0;
                 return pre_strain_factor;
     }
 //----------------------------------------------------------------------------------------
