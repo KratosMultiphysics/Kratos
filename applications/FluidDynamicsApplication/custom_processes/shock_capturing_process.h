@@ -233,7 +233,7 @@ private:
      * @param rShockCapturingTLS Reference to the TLS container
      */
     template<std::size_t TDim, std::size_t TNumNodes, class TTLSContainerType>
-    void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculatePhysicsBasedShockCapturingElementContribution(
+    void CalculatePhysicsBasedShockCapturingElementContribution(
         Element &rElement,
         TTLSContainerType &rShockCapturingTLS)
     {
