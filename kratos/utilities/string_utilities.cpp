@@ -134,7 +134,7 @@ std::string ReplaceAllSubstrings(
 {
     std::string output_string(rInputString);
     std::size_t start_pos = 0;
-    while((start_pos = rInputString.find(rStringToBeReplaced, start_pos)) != std::string::npos) {
+    while((start_pos = output_string.find(rStringToBeReplaced, start_pos)) != std::string::npos) {
         output_string.replace(start_pos, rStringToBeReplaced.length(), rStringToReplace);
         start_pos += rStringToReplace.length(); // Handles case where 'to' is a substring of 'from'
     }
