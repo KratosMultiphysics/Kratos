@@ -127,17 +127,18 @@ std::vector<std::string> SplitStringByDelimiter(
 /***********************************************************************************/
 
 std::string ReplaceAllSubstrings(
-    const std::string& rInputString, 
-    const std::string& rStringToBeReplaced, 
+    const std::string& rInputString,
+    const std::string& rStringToBeReplaced,
     const std::string& rStringToReplace
     )
 {
+    std::string output_string(rInputString);
     std::size_t start_pos = 0;
     while((start_pos = rInputString.find(rStringToBeReplaced, start_pos)) != std::string::npos) {
-        rInputString.replace(start_pos, rStringToBeReplaced.length(), rStringToReplace);
+        output_string.replace(start_pos, rStringToBeReplaced.length(), rStringToReplace);
         start_pos += rStringToReplace.length(); // Handles case where 'to' is a substring of 'from'
     }
-    return str;
+    return output_string;
 }
 
 } // namespace StringUtilities
