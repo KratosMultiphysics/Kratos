@@ -36,6 +36,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
+                "step_size_in_geometry_space": false,
                 "step_size"                  : 1.0,
                 "estimation_tolerance"       : 0.1,
                 "increase_factor"            : 1.1,
@@ -70,6 +71,10 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         self.increase_factor = self.algorithm_settings["line_search"]["increase_factor"].GetDouble()
         self.max_step_size = self.step_size*self.algorithm_settings["line_search"]["max_increase_factor"].GetDouble()
+        self.step_size_in_geometry_space = self.algorithm_settings["line_search"]["step_size_in_geometry_space"].GetBool()
+
+        if self.step_size_in_geometry_space and self.line_search_type != "manual_stepping":
+            raise RuntimeError("'step_size_in_geometry_space' can only be used with line_search_type: 'manual_stepping'")
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         if self.mapper_settings.Has("normal") and self.mapper_settings["normal"].GetBool():
@@ -218,6 +223,12 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.mapper.Map(self._CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+
+        if self.step_size_in_geometry_space:
+            norm_shape_update = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.SHAPE_UPDATE)
+            for node in self.design_surface.Nodes:
+                shape_update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)
+                node.SetSolutionStepValue(KSO.SHAPE_UPDATE, shape_update / norm_shape_update * self.step_size)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
