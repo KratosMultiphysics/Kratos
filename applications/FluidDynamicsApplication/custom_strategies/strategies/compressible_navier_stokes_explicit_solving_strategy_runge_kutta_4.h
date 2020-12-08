@@ -160,6 +160,10 @@ public:
     {
         int err_code = BaseType::Check();
 
+        // Check that the process info already contains the OSS activation variable
+        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        KRATOS_ERROR_IF_NOT(r_process_info.Has(OSS_SWITCH)) << "OSS_SWITCH variable has not been set in the ProcessInfo container. Please set it in the strategy \'Initialize\'." << std::endl;
+
         // Shock capturing process check
         if (mShockCapturing) {
             mpShockCapturingProcess->Check();
@@ -230,18 +234,18 @@ public:
         BaseType::Initialize();
 
         // Initialize the postprocess non-historical variables
-        for (auto &r_node : r_model_part.Nodes()) {
-            r_node.SetValue(MACH, 0.0);
-            r_node.SetValue(SOUND_VELOCITY, 0.0);
-        }
+        block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+            rNode.SetValue(MACH, 0.0);
+            rNode.SetValue(SOUND_VELOCITY, 0.0);
+        });
 
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
-            for (auto& r_node : r_model_part.Nodes()) {
-                r_node.SetValue(DENSITY_PROJECTION, 0.0);
-                r_node.SetValue(TOTAL_ENERGY_PROJECTION, 0.0);
-                r_node.SetValue(MOMENTUM_PROJECTION, ZeroVector(3));
-            }
+            block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+                rNode.SetValue(DENSITY_PROJECTION, 0.0);
+                rNode.SetValue(TOTAL_ENERGY_PROJECTION, 0.0);
+                rNode.SetValue(MOMENTUM_PROJECTION, ZeroVector(3));
+            });
         }
 
         // If required, initialize the physics-based shock capturing variables

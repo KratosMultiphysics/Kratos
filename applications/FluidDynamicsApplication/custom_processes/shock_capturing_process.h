@@ -103,14 +103,14 @@ public:
 
     /// Constructor with model
     ShockCapturingProcess(
-        Model &rModel,
-        Parameters &rParameters)
+        Model& rModel,
+        Parameters rParameters)
         : ShockCapturingProcess(rModel.GetModelPart(rParameters["model_part_name"].GetString()), rParameters) {};
 
     /// Constructor with model part
     ShockCapturingProcess(
         ModelPart& rModelPart,
-        Parameters& rParameters)
+        Parameters rParameters)
         : Process()
         , mrModelPart(rModelPart)
     {

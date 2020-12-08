@@ -21,7 +21,6 @@
 #include "processes/calculate_nodal_area_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
 #include "shock_capturing_process.h"
@@ -41,33 +40,33 @@ namespace Kratos
     void ShockCapturingProcess::ExecuteInitialize()
     {
         // Initialize nodal values
-        for (auto& r_node : mrModelPart.Nodes()) {
-            if (mShockSensor) {r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);}
-            if (mShearSensor) {r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);}
-            if (mShockSensor || mThermalSensor) {r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);}
-        }
+        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode) {
+            if (mShockSensor) {rNode.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);}
+            if (mShearSensor) {rNode.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);}
+            if (mShockSensor || mThermalSensor) {rNode.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);}
+        });
 
         // Initialize elemental values
-        for (auto& r_elem : mrModelPart.Elements()) {
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement){
             if (mShockSensor || mThermalSensor) {
                 // Artificial conductivity is used in both sensors
-                r_elem.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
+                rElement.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
                 // Shock sensor specific values
                 if (mShockSensor) {
-                    r_elem.SetValue(SHOCK_SENSOR, 0.0);
-                    r_elem.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
+                    rElement.SetValue(SHOCK_SENSOR, 0.0);
+                    rElement.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
                 }
                 // Thermal sensor specific values
                 if (mThermalSensor) {
-                    r_elem.SetValue(THERMAL_SENSOR, 0.0);
+                    rElement.SetValue(THERMAL_SENSOR, 0.0);
                 }
             }
             // Shear sensor specific values
             if (mShearSensor) {
-                r_elem.SetValue(SHEAR_SENSOR, 0.0);
-                r_elem.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
+                rElement.SetValue(SHEAR_SENSOR, 0.0);
+                rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
             }
-        }
+        });
 
         // Calculate the NODAL_AREA
         CalculateNodalAreaProcess<false> nodal_area_process(mrModelPart);
