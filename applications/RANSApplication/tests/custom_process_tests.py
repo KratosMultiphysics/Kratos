@@ -44,7 +44,7 @@ class CustomProcessTest(UnitTest.TestCase):
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.VELOCITY, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.PRESSURE, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY, 0.0, 100.0, 0)
-        KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 0.0, 100.0, 0)
+        KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.KINEMATIC_VISCOSITY, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
 
