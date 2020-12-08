@@ -61,7 +61,6 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     typedef typename internal::traits<SelfAdjointView>::Scalar Scalar; 
     typedef typename MatrixType::StorageIndex StorageIndex;
     typedef typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;
-    typedef SelfAdjointView<typename internal::add_const<MatrixType>::type, UpLo> ConstSelfAdjointView;
 
     enum {
       Mode = internal::traits<SelfAdjointView>::Mode,
@@ -198,18 +197,6 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     inline const ConjugateReturnType conjugate() const
     { return ConjugateReturnType(m_matrix.conjugate()); }
 
-    /** \returns an expression of the complex conjugate of \c *this if Cond==true,
-     *           returns \c *this otherwise.
-     */
-    template<bool Cond>
-    EIGEN_DEVICE_FUNC
-    inline typename internal::conditional<Cond,ConjugateReturnType,ConstSelfAdjointView>::type
-    conjugateIf() const
-    {
-      typedef typename internal::conditional<Cond,ConjugateReturnType,ConstSelfAdjointView>::type ReturnType;
-      return ReturnType(m_matrix.template conjugateIf<Cond>());
-    }
-
     typedef SelfAdjointView<const typename MatrixType::AdjointReturnType,TransposeMode> AdjointReturnType;
     /** \sa MatrixBase::adjoint() const */
     EIGEN_DEVICE_FUNC
@@ -337,7 +324,7 @@ public:
 /** This is the const version of MatrixBase::selfadjointView() */
 template<typename Derived>
 template<unsigned int UpLo>
-EIGEN_DEVICE_FUNC typename MatrixBase<Derived>::template ConstSelfAdjointViewReturnType<UpLo>::Type
+typename MatrixBase<Derived>::template ConstSelfAdjointViewReturnType<UpLo>::Type
 MatrixBase<Derived>::selfadjointView() const
 {
   return typename ConstSelfAdjointViewReturnType<UpLo>::Type(derived());
@@ -354,7 +341,7 @@ MatrixBase<Derived>::selfadjointView() const
   */
 template<typename Derived>
 template<unsigned int UpLo>
-EIGEN_DEVICE_FUNC typename MatrixBase<Derived>::template SelfAdjointViewReturnType<UpLo>::Type
+typename MatrixBase<Derived>::template SelfAdjointViewReturnType<UpLo>::Type
 MatrixBase<Derived>::selfadjointView()
 {
   return typename SelfAdjointViewReturnType<UpLo>::Type(derived());

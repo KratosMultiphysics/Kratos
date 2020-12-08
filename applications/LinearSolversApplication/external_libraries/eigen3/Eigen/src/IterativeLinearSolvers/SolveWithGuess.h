@@ -108,7 +108,7 @@ struct Assignment<DstXprType, SolveWithGuess<DecType,RhsType,GuessType>, interna
   }
 };
 
-} // end namespace internal
+} // end namepsace internal
 
 } // end namespace Eigen
 

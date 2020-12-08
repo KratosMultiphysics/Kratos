@@ -128,7 +128,7 @@ DenseBase<Derived>::Random()
   * \sa class CwiseNullaryOp, setRandom(Index), setRandom(Index,Index)
   */
 template<typename Derived>
-EIGEN_DEVICE_FUNC inline Derived& DenseBase<Derived>::setRandom()
+inline Derived& DenseBase<Derived>::setRandom()
 {
   return *this = Random(rows(), cols());
 }
