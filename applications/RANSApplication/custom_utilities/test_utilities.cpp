@@ -48,14 +48,15 @@ void AssignRandomValues(
     const double MinValue,
     const double MaxValue)
 {
-    const int a = static_cast<int>(rSeed[0] - '0');
-    const int m = static_cast<int>(rSeed[1] - '0');
-    const int c = static_cast<int>(rSeed[2] - '0');
-
     int v_seed = 0;
     for (unsigned int i = 0; i < rSeed.length(); ++i) {
         v_seed += static_cast<double>(rSeed[i] - '0');
     }
+
+    const int a = static_cast<int>(rSeed[0] - '0');
+    int m = static_cast<int>(rSeed[1] - '0');
+    m = (m == 0) ? 23 : m;
+    const int c = static_cast<int>(rSeed[2] - '0');
 
     const double v1 = RandomGenerator(v_seed, a, m, c, v_seed % 10);
     const double v2 = RandomGenerator(v1, a, m, c, v_seed % 10 + 1);
@@ -66,7 +67,13 @@ void AssignRandomValues(
     const double v =
         (v1 != v_max && v1 != v_min) ? v1 : (v2 != v_max && v2 != v_min) ? v2 : v3;
 
-    rValue = MinValue + (MaxValue - MinValue) * (v - v_min) / (v_max - v_min);
+    double u_gap{ v - v_min}, l_gap{v_max - v_min};
+    if (l_gap == 0.0) {
+        l_gap = 100.0;
+        u_gap = 0.5 * std::max(std::min(a * (m + c), 100), 1);
+    }
+
+    rValue = MinValue + (MaxValue - MinValue) * u_gap / l_gap;
 }
 
 template <>
