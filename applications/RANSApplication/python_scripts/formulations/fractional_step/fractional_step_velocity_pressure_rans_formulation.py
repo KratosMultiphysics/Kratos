@@ -166,7 +166,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             InitializePeriodicConditions(
                 model_part,
                 self.fractional_step_model_part,
-                None,
+                [],
                 "FSPeriodicCondition{0:d}D".format(self.GetDomainSize()))
 
         settings = self.GetParameters()
@@ -329,6 +329,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def _CreateSolverSettings(self, *args):
         if (self.IsPeriodic()):
             solver_settings_type = GetKratosObjectPrototype("FractionalStepSettingsPeriodic")
+            args = (*args, KratosCFD.PATCH_INDEX)
         else:
             solver_settings_type = GetKratosObjectPrototype("FractionalStepSettings")
 
