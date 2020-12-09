@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/constitutive_law.h"
 
 // Application includes
 #include "custom_conditions/monolithic_wall_condition.h"
@@ -228,6 +229,9 @@ private:
     ///@{
 
     double mWallHeight;
+
+    //// Constitutive relation for the element
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Serialization

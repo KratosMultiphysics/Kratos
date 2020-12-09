@@ -40,7 +40,7 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Ini
     if (mpConstitutiveLaw == nullptr) {
         const Properties& r_properties = this->GetProperties();
         KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-            << "In initialization of Element " << this->Info()
+            << "In initialization of Condition " << this->Info()
             << ": No CONSTITUTIVE_LAW defined for property "
             << r_properties.Id() << "." << std::endl;
 

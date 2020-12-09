@@ -95,6 +95,7 @@ ModelPart& CreateTestModelPart(
     const std::string& rConditionName,
     const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
     const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
+    const std::function<void(Properties&)>& rSetProperties,
     const int BufferSize)
 {
     auto& r_model_part = rModel.CreateModelPart("test", BufferSize);
@@ -110,8 +111,7 @@ ModelPart& CreateTestModelPart(
 
     Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
     p_elem_prop->SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
-    p_elem_prop->SetValue(DENSITY, 1.0);
-    p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 1e-2);
+    rSetProperties(*p_elem_prop);
 
     using nid_list = std::vector<ModelPart::IndexType>;
 
@@ -131,7 +131,8 @@ ModelPart& CreateScalarVariableTestModelPart(
     Model& rModel,
     const std::string& rElementName,
     const std::string& rConditionName,
-    const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
+    const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,\
+    const std::function<void(Properties&)>& rSetProperties,
     const Variable<double>& rDofVariable,
     const int BufferSize,
     const bool DoInitializeElements,
@@ -142,6 +143,7 @@ ModelPart& CreateScalarVariableTestModelPart(
         [rDofVariable](ModelPart::NodeType& rNode) {
             rNode.AddDof(rDofVariable).SetEquationId(rNode.Id());
         },
+        rSetProperties,
         BufferSize);
 
     if (DoInitializeElements) {
