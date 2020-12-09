@@ -246,8 +246,7 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
-    {
+    for( unsigned int i=0; i<integration_points.size(); i++ ) {
         if(py::isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
             values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
         else
@@ -282,7 +281,7 @@ void ElementCalculateLumpedMassVector(Element& dummy,
                                       Vector& rMassVector,
                                       const ProcessInfo& rCurrentProcessInfo)
 {
-    dummy.ElementCalculateLumpedMassVector(rMassVector, rCurrentProcessInfo);
+    dummy.CalculateLumpedMassVector(rMassVector, rCurrentProcessInfo);
 }
 
 void ElementCalculateFirstDerivativesLHS(Element& dummy,
