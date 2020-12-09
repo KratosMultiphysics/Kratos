@@ -1,6 +1,7 @@
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import the mechanical solver base class
 import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
@@ -61,6 +62,10 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         elif(scheme_type == "Bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+        elif(scheme_type == "central_differences"):
+            mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.settings["max_delta_time"].GetDouble(),
+                                                                             self.settings["fraction_delta_time"].GetDouble(),
+                                                                             self.settings["time_step_prediction_level"].GetDouble())
         else:
             raise Exception("Unsupported scheme_type: " + scheme_type)
 
@@ -76,7 +81,10 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                 mechanical_solver = self._create_ramm_arc_length_strategy()
             else:
                 if self.DEMStrategy == None:
-                    mechanical_solver = self._create_newton_raphson_strategy()
+                    if self.settings["time_integration_method"].GetString() == "Implicit":
+                        mechanical_solver = self._create_newton_raphson_strategy()
+                    else:
+                        mechanical_solver = self._create_explicit_strategy()
                 else:
                     mechanical_solver = self._create_DEM_coupled_newton_raphson_strategy(self.DEMStrategy)
         return mechanical_solver
@@ -111,6 +119,15 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      self.settings["move_mesh_flag"].GetBool())
 
+    def _create_explicit_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        mechanical_scheme = self._get_solution_scheme()
+
+        return StructuralMechanicsApplication.MechanicalExplicitStrategy(computing_model_part,
+                                            mechanical_scheme,
+                                            self.settings["compute_reactions"].GetBool(),
+                                            self.settings["reform_dofs_at_each_step"].GetBool(),
+                                            self.settings["move_mesh_flag"].GetBool())
     # def _create_newton_raphson_hexaedrons_strategy(self):
     #     computing_model_part = self.GetComputingModelPart()
     #     mechanical_scheme = self._get_solution_scheme()
