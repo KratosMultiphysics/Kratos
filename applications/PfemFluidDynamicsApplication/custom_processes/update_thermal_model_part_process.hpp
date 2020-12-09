@@ -68,6 +68,13 @@ class UpdateThermalModelPartProcess : public Process {
         this->BuildThermalComputingDomain();
         this->UpdateConditions();
 
+        // It was verified that the residue of the thermal problem has large terms associated to DOFs
+        // of flux BC in free surface problems, when the node is not connected to fluid.
+        // If these DOFs are not considered in the residue, which is done by fixing them, the remaining terms satisfy the tolerance.
+        // This next function is to fix the flux DOFs that are not connected to fluid, 
+        // to avoid the unessesary iteration in nonlinear thermal analysis, but it is also changing the results.
+        // this->FixDOFs();
+
         KRATOS_CATCH("");
     }
 
@@ -194,6 +201,36 @@ class UpdateThermalModelPartProcess : public Process {
               rDestinationModelPart.Conditions().push_back(p_condition);
               rComputingModelPart.Conditions().push_back(p_condition);
             }
+          }
+        }
+      }
+    }
+
+    void FixDOFs() const {
+      // Loop over all conditions (currently, only flux on walls or free surface)
+      for (auto i_cond(rComputingModelPart.ConditionsBegin()); i_cond != rComputingModelPart.ConditionsEnd(); ++i_cond)
+      {
+        // Loop over each condition node
+        Geometry<Node<3>>& cond_geometry = i_cond->GetGeometry();
+        for (int i = 0; i < cond_geometry.size(); i++)
+        {
+          // Loop over neighbour elements
+          bool fix = true;
+          ElementWeakPtrVectorType& neighbour_elements = cond_geometry(i)->GetValue(NEIGHBOUR_ELEMENTS);
+          for (int j = 0; j < neighbour_elements.size(); j++)
+          {
+            // Check if neighbour element is fluid
+            GeometryType neighbour_elements_geom = neighbour_elements(j)->GetGeometry();
+            if (neighbour_elements_geom.size() != 2) {
+              fix = false;
+              break;
+            }
+          }
+          // Fix DOF if it is not connected to fluid elements
+          if (fix) {
+            const Node<3>::DofType::Pointer dof = cond_geometry(i)->pGetDof(TEMPERATURE);
+            if (!dof->IsFixed())
+              dof->FixDof();
           }
         }
       }
