@@ -62,6 +62,11 @@
 #include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
 
+// constitutive laws
+#include "custom_constitutive/rans_constitutive_law_extension.h"
+#include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_3d_law.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -229,6 +234,10 @@ private:
 
     const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
+
+    // constitutive laws
+    const RansConstitutiveLawExtension<Newtonian2DLaw> mRansNewtonian2DLaw;
+    const RansConstitutiveLawExtension<Newtonian3DLaw> mRansNewtonian3DLaw;
 
     ///@}
     ///@name Un accessible methods
