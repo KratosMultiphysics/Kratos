@@ -2,17 +2,13 @@ import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 
-import os
-
 def RunParametricTestCase(
     settings_file_name,
     work_folder,
     parameters_dict,
     print_output = False):
 
-    test_folder = os.path.join("..", "tests", work_folder)
-
-    with UnitTest.WorkFolderScope(test_folder, __file__):
+    with UnitTest.WorkFolderScope(work_folder, __file__):
         model = km.Model()
         with open(settings_file_name, 'r') as settings_file:
             file_data = settings_file.read()
