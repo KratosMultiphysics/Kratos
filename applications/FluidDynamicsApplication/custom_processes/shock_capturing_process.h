@@ -69,30 +69,34 @@ public:
     typedef std::function<std::tuple<double, double, Matrix>(Geometry<Node<3>> &rGeometry)> ElementMetricFunctionType;
 
     /// Type for the 2D (linear triangle) TLS geometry data
-    typedef std::tuple<
-        double,
-        BoundedMatrix<double,3,2>,
-        array_1d<double,3>,
-        BoundedMatrix<double,2,2>,
-        array_1d<double,3>,
-        array_1d<double,3>,
-        array_1d<double,3>,
-        array_1d<double,3>,
-        array_1d<double,3>,
-        BoundedMatrix<double,2,2>> ShockCapturingTLSType2D3N;
+    struct ShockCapturingTLSContainer2D3N
+    {
+        double Vol;
+        array_1d<double,3> N;
+        BoundedMatrix<double,3,2> DN_DX;
+        BoundedMatrix<double,2,2> MetricTensor;
+        array_1d<double,3> MidpointVelocity;
+        array_1d<double,3> DensityGradient;
+        array_1d<double,3> VelocityRotational;
+        array_1d<double,3> TemperatureGradient;
+        array_1d<double,3> TemperatureLocalGradient;
+        BoundedMatrix<double,2,2> VelocityShearLocalGradient;
+    };
 
     /// Type for the 3D (linear tetrahedra) TLS geometry data
-    typedef std::tuple<
-        double,
-        BoundedMatrix<double,4,3>,
-        array_1d<double,4>,
-        BoundedMatrix<double,3,3>,
-        array_1d<double,3>,
-        array_1d<double,3>,
-        array_1d<double,3>,
-        array_1d<double,3>,
-        array_1d<double,3>,
-        BoundedMatrix<double,3,3>> ShockCapturingTLSType3D4N;
+    struct ShockCapturingTLSContainer3D4N
+    {
+        double Vol;
+        array_1d<double,4> N;
+        BoundedMatrix<double,4,3> DN_DX;
+        BoundedMatrix<double,3,3> MetricTensor;
+        array_1d<double,3> MidpointVelocity;
+        array_1d<double,3> DensityGradient;
+        array_1d<double,3> VelocityRotational;
+        array_1d<double,3> TemperatureGradient;
+        array_1d<double,3> TemperatureLocalGradient;
+        BoundedMatrix<double,3,3> VelocityShearLocalGradient;
+    };
 
     /// Pointer definition of ShockCapturingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ShockCapturingProcess);
@@ -209,20 +213,6 @@ private:
     void CalculatePhysicsBasedShockCapturing();
 
     /**
-     * @brief Set the tetrahedra TLS container
-     * This method sets the TLS container for a 2D3N triangle geometry
-     * @return ShockCapturingTLSType2D3N The TLS container
-     */
-    ShockCapturingTLSType2D3N SetTLSContainer2D3N();
-
-    /**
-     * @brief Set the tetrahedra TLS container
-     * This method sets the TLS container for a 3D4N tetrahedra geometry
-     * @return ShockCapturingTLSType3D4N The TLS container
-     */
-    ShockCapturingTLSType3D4N SetTLSContainer3D4N();
-
-    /**
      * @brief Calculate elemental shock capturing contribution
      * This method calculates the elemental physics-based shock capturing contribution
      * It is intended to be called from the lambda function used in the parallel region
@@ -246,10 +236,10 @@ private:
         if (mThermalSensor || mShockSensor) {rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;} // Note that conductivity is modified in both sensors
 
         // Get TLS values geometry values
-        double& r_vol = std::get<0>(rShockCapturingTLS);
-        auto& r_DN_DX = std::get<1>(rShockCapturingTLS);
-        auto& r_N = std::get<2>(rShockCapturingTLS);
-        auto& r_metric_tensor = std::get<3>(rShockCapturingTLS);
+        double& r_vol = rShockCapturingTLS.Vol;
+        auto& r_DN_DX = rShockCapturingTLS.DN_DX;
+        auto& r_N = rShockCapturingTLS.N;
+        auto& r_metric_tensor = rShockCapturingTLS.MetricTensor;
 
         // Calculate geometry data
         GeometryUtils::CalculateGeometryData(r_geom, r_DN_DX, r_N, r_vol);
@@ -279,7 +269,7 @@ private:
 
         // Calculate the midpoint values
         double midpoint_rho, midpoint_tot_ener;
-        auto& r_midpoint_v = std::get<4>(rShockCapturingTLS);
+        auto& r_midpoint_v = rShockCapturingTLS.MidpointVelocity;
         if (mThermallyCoupledFormulation) {
             // Get required midpoint values
             double midpoint_temp;
@@ -303,8 +293,8 @@ private:
         if (mShockSensor) {
             // Calculate the required differential operators
             double div_v, mach;
-            auto& r_grad_rho = std::get<5>(rShockCapturingTLS);
-            auto& r_rot_v = std::get<6>(rShockCapturingTLS);
+            auto& r_grad_rho = rShockCapturingTLS.DensityGradient;
+            auto& r_rot_v = rShockCapturingTLS.VelocityRotational;
             CalculateShockSensorValues<TDim,TNumNodes>(r_geom, r_N, r_DN_DX, mach, div_v, r_grad_rho, r_rot_v);
 
             // Characteristic element size along the direction of the density gradient
@@ -351,8 +341,8 @@ private:
             // Thermal sensor values
             if (mThermalSensor) {
                 // Calculate temperature gradients
-                auto& r_grad_temp = std::get<7>(rShockCapturingTLS);
-                auto& r_grad_temp_local = std::get<8>(rShockCapturingTLS);
+                auto& r_grad_temp = rShockCapturingTLS.TemperatureGradient;
+                auto& r_grad_temp_local = rShockCapturingTLS.TemperatureLocalGradient;
                 CalculateTemperatureGradients(r_geom, r_DN_DX, mid_pt_jacobian, r_grad_temp, r_grad_temp_local);
 
                 // Characteristic element size along the direction of the temperature gradient
@@ -375,7 +365,7 @@ private:
             if (mShearSensor) {
                 // Calculate shear sensor values
                 double r_c;
-                auto& r_local_shear_grad_v = std::get<9>(rShockCapturingTLS);
+                auto& r_local_shear_grad_v = rShockCapturingTLS.VelocityShearLocalGradient;
                 CalculateShearSensorValues(r_geom, r_N, r_DN_DX, mid_pt_jacobian, r_local_shear_grad_v, r_c);
                 BoundedMatrix<double,TDim,TDim> eigen_vect_mat, eigen_val_mat;
                 MathUtils<double>::GaussSeidelEigenSystem(r_local_shear_grad_v, eigen_vect_mat, eigen_val_mat);

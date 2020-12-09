@@ -135,40 +135,6 @@ namespace Kratos
             << "Thermal sensor cannot be computed using a thermally non-coupled formulation. Check \'thermal_sensor\' and \'thermally_coupled_formulation\' provided settings." << std::endl;
     }
 
-    ShockCapturingProcess::ShockCapturingTLSType2D3N ShockCapturingProcess::SetTLSContainer2D3N()
-    {
-        double vol;
-        BoundedMatrix<double,3,2> DN_DX;
-        array_1d<double,3> N;
-        BoundedMatrix<double,2,2> metric_tensor;
-        array_1d<double,3> midpoint_v;
-        array_1d<double,3> grad_rho;
-        array_1d<double,3> rot_v;
-        array_1d<double,3> grad_temp;
-        array_1d<double,3> grad_temp_local;
-        BoundedMatrix<double,2,2> grad_v;
-
-        ShockCapturingTLSType2D3N aux_TLS_container = std::make_tuple(vol, DN_DX, N, metric_tensor, midpoint_v, grad_rho, rot_v, grad_temp, grad_temp_local, grad_v);
-        return aux_TLS_container;
-    }
-
-    ShockCapturingProcess::ShockCapturingTLSType3D4N ShockCapturingProcess::SetTLSContainer3D4N()
-    {
-        double vol;
-        BoundedMatrix<double,4,3> DN_DX;
-        array_1d<double,4> N;
-        BoundedMatrix<double,3,3> metric_tensor;
-        array_1d<double,3> midpoint_v;
-        array_1d<double,3> grad_rho;
-        array_1d<double,3> rot_v;
-        array_1d<double,3> grad_temp;
-        array_1d<double,3> grad_temp_local;
-        BoundedMatrix<double,3,3> grad_v;
-
-        ShockCapturingTLSType3D4N aux_TLS_container = std::make_tuple(vol, DN_DX, N, metric_tensor, midpoint_v, grad_rho, rot_v, grad_temp, grad_temp_local, grad_v);
-        return aux_TLS_container;
-    }
-
     /**
      * @brief Physics-based shock capturing
      * This function calculates the artificial magnitudes using a physics-based shock capturing method.
@@ -197,14 +163,14 @@ namespace Kratos
         const auto geometry_type = (mrModelPart.ElementsBegin()->GetGeometry()).GetGeometryType();
         if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
             // Set auxiliary TLS container and elemental function
-            ShockCapturingTLSType2D3N tls_container_2D3N = SetTLSContainer2D3N();
-            auto aux_function_2D3N = [&, this] (Element &rElement, ShockCapturingTLSType2D3N &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution<2,3>(rElement, rShockCapturingTLS);};
+            ShockCapturingTLSContainer2D3N tls_container_2D3N;
+            auto aux_function_2D3N = [&, this] (Element &rElement, ShockCapturingTLSContainer2D3N &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution<2,3>(rElement, rShockCapturingTLS);};
             // Perform the elemental loop
             block_for_each(mrModelPart.Elements(), tls_container_2D3N, aux_function_2D3N);
         } else if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) {
             // Set auxiliary TLS container and elemental function
-            ShockCapturingTLSType3D4N tls_container_3D4N = SetTLSContainer3D4N();
-            auto aux_function_3D4N = [&, this] (Element &rElement, ShockCapturingTLSType3D4N &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution<3,4>(rElement, rShockCapturingTLS);};
+            ShockCapturingTLSContainer3D4N tls_container_3D4N;
+            auto aux_function_3D4N = [&, this] (Element &rElement, ShockCapturingTLSContainer3D4N &rShockCapturingTLS) {this->CalculatePhysicsBasedShockCapturingElementContribution<3,4>(rElement, rShockCapturingTLS);};
             // Perform the elemental loop
             block_for_each(mrModelPart.Elements(), tls_container_3D4N, aux_function_3D4N);
         } else {
@@ -212,13 +178,11 @@ namespace Kratos
         }
 
         // Nodal smoothing of the shock capturing magnitudes
-        // Note that to avoid calculating the NODAL_AREA we took from the first DOF of the lumped mass vector
-        IndexPartition<>(n_nodes).for_each([&](const ModelPart::SizeType iNode) {
-            auto it_node = mrModelPart.NodesBegin() + iNode;
-            const double nodal_area = it_node->GetValue(NODAL_AREA);
-            it_node->GetValue(ARTIFICIAL_CONDUCTIVITY) /= nodal_area;
-            it_node->GetValue(ARTIFICIAL_BULK_VISCOSITY) /= nodal_area;
-            it_node->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) /= nodal_area;
+        block_for_each(mrModelPart.Nodes(), [](Node<3>& rNode) {
+            const double nodal_area = rNode.GetValue(NODAL_AREA);
+            rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) /= nodal_area;
+            rNode.GetValue(ARTIFICIAL_BULK_VISCOSITY) /= nodal_area;
+            rNode.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) /= nodal_area;
         });
     }
 
