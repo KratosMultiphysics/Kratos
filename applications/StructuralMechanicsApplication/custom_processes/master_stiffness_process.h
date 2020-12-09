@@ -131,13 +131,13 @@ public:
 
         this->DoF = current_step-(2*this->dim*this->n);//Local surface DoF
 
-        //Order the vector of strings to make the current slave surface be the first of the list.
+        /*//Order the vector of strings to make the current slave surface be the first of the list.
         if(this->DoF==0){
             std::reverse(std::begin(this->slave_surface_name),std::begin(this->slave_surface_name)+this->n+1);
         }
-
+        */
         //Assign the current submodel slave part.
-        ModelPart &slave_submodel_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[0]);
+        ModelPart &slave_submodel_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[this->n]);
         NodesArrayType &slave_nodes   = slave_submodel_part.Nodes();
         //Setting the infinitesimal displacement/rotation boundary condition for current slave surface.
         if(this->DoF<3){//Displacement DoF(0-2)
@@ -166,16 +166,18 @@ public:
         }
 
         //All other surfaces are fixed.
-        for(int i=1;i<this->number_master_nodes;i++){
-            ModelPart &fixed_submodel_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[i]);
-            NodesArrayType &fixed_nodes   = fixed_submodel_part.Nodes();
-            //Setting the infinitesimal fixed boundary condition.
-            for(NodeType& node : fixed_nodes){//Fixed surface
-                Kratos::Vector disp = Vector(this->dim,0);
-                node.FastGetSolutionStepValue(DISPLACEMENT) = disp;
-                node.Fix(DISPLACEMENT_X);
-                node.Fix(DISPLACEMENT_Y);
-                node.Fix(DISPLACEMENT_Z);
+        for(int i=0;i<this->number_master_nodes;i++){
+            if (i!=this->n){
+                ModelPart &fixed_submodel_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[i]);
+                NodesArrayType &fixed_nodes   = fixed_submodel_part.Nodes();
+                //Setting the infinitesimal fixed boundary condition.
+                for(NodeType& node : fixed_nodes){//Fixed surface
+                    Kratos::Vector disp = Vector(this->dim,0);
+                    node.FastGetSolutionStepValue(DISPLACEMENT) = disp;
+                    node.Fix(DISPLACEMENT_X);
+                    node.Fix(DISPLACEMENT_Y);
+                    node.Fix(DISPLACEMENT_Z);
+                }
             }
         }
         
@@ -203,53 +205,59 @@ public:
     void MasterStiffnessVector(){
         KRATOS_TRY;
 
-        ModelPart &slave_model_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[0]);
+        int current_step = mrThisModelPart.GetProcessInfo()[STEP]-1; 
 
-        if(this->DoF==0){//Only initialize once the master stiffness matrix for each slave surface
-            this->master_stiffness = Matrix(2*this->dim,2*this->dim,0);//Initialize Master Stiffness Matrix
+        if(this->DoF==0 && this->n==0){//Only initialize once the master stiffness matrix 
+            int matrix_size = this->number_master_nodes*2*this->dim;
+            this->master_stiffness = Matrix(matrix_size,matrix_size,0);//Initialize Master Stiffness Matrix
         }
 
-        //Initializaing results Matrices an Vectors
-        int slave_num_nodes = slave_model_part.NumberOfNodes();
-        Kratos::Matrix slave_undeformed_coordinates = Matrix(slave_num_nodes,this->dim);
-        Kratos::Matrix slave_reaction = Matrix(slave_num_nodes,this->dim);
-        int counter = 0;
+        Kratos::Matrix resultant = Matrix(this->number_master_nodes,2*this->dim,0);
+        for(int k=0;k<this->number_master_nodes;k++){
+            ModelPart &surface_model_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[k]);
+            //Initializaing results Matrices an Vectors
+            int surface_num_nodes = surface_model_part.NumberOfNodes();
+            Kratos::Matrix surface_undeformed_coordinates = Matrix(surface_num_nodes,this->dim);
+            Kratos::Matrix surface_reaction = Matrix(surface_num_nodes,this->dim);
+            int counter = 0;
 
-        NodesArrayType &slave_nodes   = slave_model_part.Nodes();
+            NodesArrayType &surface_nodes   = surface_model_part.Nodes();
 
-        for(NodeType& node : slave_nodes){
-            Kratos::Vector undeformed_coordinates = Vector(this->dim);
-            undeformed_coordinates(0) = node.X0();
-            undeformed_coordinates(1) = node.Y0();
-            undeformed_coordinates(2) = node.Z0();
-            for(int i=0;i<this->dim;i++){
-                slave_undeformed_coordinates(counter,i) = undeformed_coordinates(i); //Matrix of undeformed coordinates
-                slave_reaction(counter,i) = node.FastGetSolutionStepValue(REACTION)[i]; //Matirx of reactions
+            for(NodeType& node : surface_nodes){
+                Kratos::Vector undeformed_coordinates = Vector(this->dim);
+                undeformed_coordinates(0) = node.X0();
+                undeformed_coordinates(1) = node.Y0();
+                undeformed_coordinates(2) = node.Z0();
+                for(int i=0;i<this->dim;i++){
+                    surface_undeformed_coordinates(counter,i) = undeformed_coordinates(i); //Matrix of undeformed coordinates
+                    surface_reaction(counter,i) = node.FastGetSolutionStepValue(REACTION)[i]; //Matirx of reactions
 
+                }
+                counter += 1;
             }
-            counter += 1;
-        }
 
-        Kratos::Matrix r = Matrix(slave_num_nodes,this->dim); // Initialize Position vector r
+            Kratos::Matrix r = Matrix(surface_num_nodes,this->dim); // Initialize Position vector r
 
-        for(int i=0; i<slave_num_nodes; i++){
-            for(int j=0; j<this->dim; j++){
-                r(i,j) = slave_undeformed_coordinates(i,j)-this->master_coor(this->n,j);// Assign position vector r
+            for(int i=0; i<surface_num_nodes; i++){
+                for(int j=0; j<this->dim; j++){
+                    r(i,j) = surface_undeformed_coordinates(i,j)-this->master_coor(k,j);// Assign position vector r
+                }
             }
-        }
 
-        //Calculating the moments about the master node
-        Kratos::Matrix moments = Cross_product(r,slave_reaction,slave_num_nodes);
+            //Calculating the moments about the master node
+            Kratos::Matrix moments = Cross_product(r,surface_reaction,surface_num_nodes);
+            
+
+            // Resultant assembling
+            for(int i=0; i<surface_num_nodes; i++){
+                for(int j=0; j<this->dim; j++){
+                    resultant(k,j) += surface_reaction(i,j); // Resultant forces assembling
+                    resultant(k,j+this->dim) += moments(i,j); // Resultant moments assembling
+                }
+            }
+
+        }
         
-        Kratos::Vector resultant = Vector(2*this->dim,0);
-
-        // Resultant assembling
-        for(int i=0; i<slave_num_nodes; i++){
-            for(int j=0; j<this->dim; j++){
-                resultant(j) += slave_reaction(i,j); // Resultant forces assembling
-                resultant(j+this->dim) += moments(i,j); // Resultant moments assembling
-            }
-        }
 
         float constraint;
         if(this->DoF<3){
@@ -259,22 +267,19 @@ public:
         }
 
         //Stiffness Calculation
-        for(int i=0; i<this->dim;i++){
-            master_stiffness(i,this->DoF) = resultant(i)/constraint;
-            master_stiffness(i+this->dim,this->DoF) = resultant(i+this->dim)/constraint;
-        }
-
-        if(this->DoF==5){
-            std::cout<<"Master Stiffness: "<<this->slave_surface_name[0]<<std::endl;
-            std::cout<<this->master_stiffness<<std::endl;
-            this->json_parameters.AddEmptyValue(this->slave_surface_name[0]);//Creates a value on the json_parameters object for the current slave's stiffnes matrix
-            this->json_parameters[this->slave_surface_name[0]].SetMatrix(this->master_stiffness);//Sets the current slave's stiffness matrix
-            //Reorders the list to its original form.
-            std::reverse(std::begin(this->slave_surface_name),std::begin(this->slave_surface_name)+this->n+1);
-            if(this->n==this->number_master_nodes-1){
-                std::cout<<"-------------------------------------------------------------------------------------------------"<<std::endl;
-                this->CreateJSONfile();
+        for(int k=0; k<this->number_master_nodes;k++){
+            for(int i=0; i<2*this->dim;i++){
+                this->master_stiffness((2*k*this->dim)+i,current_step) = resultant(k,i)/constraint;
             }
+        }
+        
+
+        if(this->DoF==5 && this->n==this->number_master_nodes-1){
+            std::cout<<"Master Stiffness: "<<std::endl;
+            std::cout<<this->master_stiffness<<std::endl;
+            this->json_parameters.AddEmptyValue("Stiffness Matrix");
+            this->json_parameters["Stiffness Matrix"].SetMatrix(this->master_stiffness);
+            this->CreateJSONfile();
         }
 
         KRATOS_CATCH("");
@@ -286,7 +291,7 @@ public:
 
         const std::string &r_json_text = this->json_parameters.PrettyPrintJsonString();
         std::filebuf buffer;
-        buffer.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "Master_Stiffness_Matrices.json"}), std::ios::out);
+        buffer.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "Stiffness_Matrix.json"}), std::ios::out);
         std::ostream os(&buffer);
         os << r_json_text;
         buffer.close();
