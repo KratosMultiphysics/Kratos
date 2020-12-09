@@ -45,7 +45,6 @@ void EpsilonUBasedWallConditionData::Check(
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         const auto& r_node = rGeometry[i_node];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
@@ -77,6 +76,8 @@ void EpsilonUBasedWallConditionData::CalculateConstants(
     const double y_plus_limit = rCurrentProcessInfo[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
     mYPlus = std::max(this->GetGeometry().GetValue(RANS_Y_PLUS), y_plus_limit);
 
+    mDensity = this->GetProperties().GetValue(DENSITY);
+
     KRATOS_CATCH("");
 }
 
@@ -86,16 +87,21 @@ bool EpsilonUBasedWallConditionData::IsWallFluxComputable() const
 }
 
 double EpsilonUBasedWallConditionData::CalculateWallFlux(
-    const Vector& rShapeFunctions) const
+    const Vector& rShapeFunctions)
 {
     using namespace RansCalculationUtilities;
+
+    auto& cl_parameters = this->GetConstitutiveLawParameters();
+    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
 
     double nu, nu_t;
     array_1d<double, 3> velocity;
 
+    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+    nu /= mDensity;
+
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions,
-        std::tie(nu, KINEMATIC_VISCOSITY),
         std::tie(nu_t, TURBULENT_VISCOSITY),
         std::tie(velocity, VELOCITY));
 

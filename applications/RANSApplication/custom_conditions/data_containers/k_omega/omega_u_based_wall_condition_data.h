@@ -53,18 +53,21 @@ public:
     }
 
     OmegaUBasedWallConditionData(
-        const GeomtryType& rGeometry)
-    : BaseType(rGeometry)
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo,
+        ConstitutiveLaw& rConstitutiveLaw)
+    : BaseType(rGeometry, rProperties, rProcessInfo, rConstitutiveLaw)
     {
     }
 
     void CalculateConstants(
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo);
 
-    bool IsWallFluxComputable() const override;
+    bool IsWallFluxComputable() const;
 
     double CalculateWallFlux(
-        const Vector& rShapeFunctions) const override;
+        const Vector& rShapeFunctions);
 
 protected:
     double mOmegaSigma;
@@ -73,6 +76,7 @@ protected:
     double mBeta;
     double mYPlus;
     double mCmu25;
+    double mDensity;
 };
 
 ///@}

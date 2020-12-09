@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/condition.h"
 #include "includes/define.h"
+#include "includes/constitutive_law.h"
 
 // Application includes
 
@@ -187,6 +188,9 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Initialize(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& CurrentProcessInfo) const override;
@@ -273,6 +277,13 @@ public:
     ///@}
 
 private:
+    ///@name Private Members
+    ///@{
+
+    //// Constitutive relation for the element
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
+    ///@}
     ///@name Serialization
     ///@{
 
@@ -283,6 +294,7 @@ private:
         KRATOS_TRY
 
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+        rSerializer.save("mpConstitutiveLaw",*(this->mpConstitutiveLaw));
 
         KRATOS_CATCH("");
     }
@@ -291,6 +303,7 @@ private:
         KRATOS_TRY
 
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+        rSerializer.load("mpConstitutiveLaw",*(this->mpConstitutiveLaw));
 
         KRATOS_CATCH("");
     }

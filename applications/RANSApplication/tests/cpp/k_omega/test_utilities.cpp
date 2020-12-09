@@ -110,7 +110,6 @@ ModelPart& RansKOmegaOmega2D2NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
@@ -129,8 +128,6 @@ ModelPart& RansKOmegaOmega2D2NSetUp(
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
-
-    VariableUtils().SetVariable(KINEMATIC_VISCOSITY, 1e-2, r_model_part.Nodes());
 
     RandomFillContainerVariable<ModelPart::ConditionsContainerType>(
         r_model_part, RANS_Y_PLUS, 10.0, 100.0);

@@ -21,8 +21,10 @@
 #include "containers/variable.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
+#include "includes/constitutive_law.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
+#include "includes/properties.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -38,26 +40,43 @@ public:
     using GeometryType = Geometry<Node<3>>;
 
     ScalarWallFluxConditionData(
-        const GeometryType& rGeometry)
-    : mrGeometry(rGeometry)
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo,
+        ConstitutiveLaw& rConstitutiveLaw)
+        : mrGeometry(rGeometry),
+          mrProperties(rProperties),
+          mrConstitutiveLaw(rConstitutiveLaw)
     {
+        mConstitutiveLawParameters =
+            ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);
     }
 
-    virtual void CalculateConstants(
-        const ProcessInfo& rCurrentProcessInfo) = 0;
+    ConstitutiveLaw::Parameters& GetConstitutiveLawParameters()
+    {
+        return mConstitutiveLawParameters;
+    }
 
-    virtual bool IsWallFluxComputable() const = 0;
-
-    virtual double CalculateWallFlux(
-        const Vector& rShapeFunctions) const = 0;
+    ConstitutiveLaw& GetConstitutiveLaw()
+    {
+        return mrConstitutiveLaw;
+    }
 
     const GeometryType& GetGeometry() const
     {
         return mrGeometry;
     }
 
+    const Properties& GetProperties() const
+    {
+        return mrProperties;
+    }
+
 private:
     const GeometryType& mrGeometry;
+    const Properties& mrProperties;
+    ConstitutiveLaw& mrConstitutiveLaw;
+    ConstitutiveLaw::Parameters mConstitutiveLawParameters;
 };
 } // namespace Kratos
 
