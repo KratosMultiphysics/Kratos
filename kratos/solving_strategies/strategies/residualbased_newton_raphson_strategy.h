@@ -1405,11 +1405,10 @@ class ResidualBasedNewtonRaphsonStrategy
         
         out.precision(15);
         out << "EquationId,NodeId,VariableName,IsFixed,Value,coordx,coordy,coordz" << std::endl;
-        for(const auto& rdof : GetBuilderAndSolver()->GetDofSet())
-        {
+        for(const auto& rdof : GetBuilderAndSolver()->GetDofSet()) {
             const auto& coords = BaseType::GetModelPart().Nodes()[rdof.Id()].Coordinates();
             out << rdof.EquationId() << "," << rdof.Id() << "," << rdof.GetVariable().Name() << "," << rdof.IsFixed() << "," 
-                        << rdof.GetSolutionStepValue() << "," <<  "," << coords[0]  << "," << coords[1]  << "," << coords[2]<< std::endl;
+                        << rdof.GetSolutionStepValue() << "," <<  "," << coords[0]  << "," << coords[1]  << "," << coords[2]<< "\n";
         }
         out.close();
     }
