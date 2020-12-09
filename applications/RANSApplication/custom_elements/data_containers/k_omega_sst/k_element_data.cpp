@@ -63,6 +63,71 @@ void KElementData<TDim>::Check(
 }
 
 template <unsigned int TDim>
+void KElementData<TDim>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    using namespace RansCalculationUtilities;
+
+    // only needs TURBULENT_VISCOSITY, so no checks were done since this will be
+    // only an internal call
+
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    GeometryType::ShapeFunctionsGradientsType shape_derivatives;
+    CalculateGeometryData(this->GetGeometry(), GeometryData::IntegrationMethod::GI_GAUSS_1,
+                          gauss_weights, shape_functions, shape_derivatives);
+    const int num_gauss_points = gauss_weights.size();
+
+    BoundedMatrix<double, TDim, TDim> velocity_gradient;
+
+    double tke, omega, nu, y;
+    const double rho = this->GetProperties().GetValue(DENSITY);
+    const double a1 =  rCurrentProcessInfo[TURBULENCE_RANS_A1];
+    const double beta_star = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+
+    rOutput = 0.0;
+
+    for (int g = 0; g < num_gauss_points; ++g) {
+        const Matrix& r_shape_derivatives = shape_derivatives[g];
+        const Vector& r_gauss_shape_functions = row(shape_functions, g);
+
+        auto& cl_parameters = this->GetConstitutiveLawParameters();
+        cl_parameters.SetShapeFunctionsValues(r_gauss_shape_functions);
+
+        this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+        nu /= rho;
+
+        FluidCalculationUtilities::EvaluateInPoint(
+            this->GetGeometry(), r_gauss_shape_functions,
+            std::tie(tke, TURBULENT_KINETIC_ENERGY),
+            std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+            std::tie(y, DISTANCE)
+        );
+
+        CalculateGradient<TDim>(velocity_gradient, this->GetGeometry(), VELOCITY, r_shape_derivatives);
+
+        const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
+
+        const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
+            (velocity_gradient + trans(velocity_gradient)) * 0.5;
+
+        const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+
+        rOutput += KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(
+            tke, omega, t, f_2, a1);
+    }
+
+    rOutput /= num_gauss_points;
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim>
 void KElementData<TDim>::CalculateConstants(
     const ProcessInfo& rCurrentProcessInfo)
 {

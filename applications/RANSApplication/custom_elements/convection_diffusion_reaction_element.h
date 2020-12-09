@@ -295,6 +295,16 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * Calculate a Element variable usually associated to a integration point
+     * the Output is given on integration points and characterizes the element
+     * Calculate(..) methods are: OPTIONAL
+     */
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
      * It is designed to be called only once (or anyway, not often) typically at the beginning

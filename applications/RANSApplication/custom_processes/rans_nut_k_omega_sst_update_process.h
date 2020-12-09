@@ -67,8 +67,6 @@ public:
     RansNutKOmegaSSTUpdateProcess(
         Model& rModel,
         const std::string& rModelPartName,
-        const double A1,
-        const double BetaStar,
         const double MinValue,
         const int EchoLevel);
 
@@ -116,28 +114,9 @@ private:
 
     Model& mrModel;
     std::string mModelPartName;
-    double mA1;
-    double mBetaStar;
     double mMinValue;
     int mEchoLevel;
     bool mIsInitialized = false;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /**
-     * @brief Calculates NuT based on k_omega_sst formulation
-     *
-     * This method calculates NuT on element based on k_omega_sst formulation, then distributes
-     * it to nodes using neighbours count.
-     *
-     * @tparam TDim
-     * @param rElement
-     * @return double
-     */
-    template <unsigned int TDim>
-    double CalculateElementNuT(const Element& rElement) const;
 
     ///@}
 

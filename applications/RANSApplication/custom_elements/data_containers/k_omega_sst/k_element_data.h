@@ -61,6 +61,11 @@ public:
     {
     }
 
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
 

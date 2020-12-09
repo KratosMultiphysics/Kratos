@@ -49,6 +49,13 @@ public:
             ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);
     }
 
+    virtual void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     ConstitutiveLaw::Parameters& GetConstitutiveLawParameters()
     {
         return mConstitutiveLawParameters;

@@ -11,21 +11,17 @@
 //
 
 // System includes
-#include <cmath>
-#include <functional>
-#include <limits>
 
 // External includes
 
 // Project includes
+#include "geometries/geometry_data.h"
 #include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "custom_elements/data_containers/k_omega_sst/element_data_utilities.h"
-#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -46,8 +42,6 @@ RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
     mMinValue = rParameters["min_value"].GetDouble();
-    mA1 = rParameters["a1"].GetDouble();
-    mBetaStar = rParameters["beta_star"].GetDouble();
 
     KRATOS_CATCH("");
 }
@@ -55,14 +49,10 @@ RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(
 RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(
     Model& rModel,
     const std::string& rModelPartName,
-    const double A1,
-    const double BetaStar,
     const double MinValue,
     const int EchoLevel)
 : mrModel(rModel),
   mModelPartName(rModelPartName),
-  mA1(A1),
-  mBetaStar(BetaStar),
   mMinValue(MinValue),
   mEchoLevel(EchoLevel)
 {
@@ -121,24 +111,10 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
     auto& r_nodes = r_model_part.Nodes();
     VariableUtils().SetHistoricalVariableToZero(TURBULENT_VISCOSITY, r_nodes);
 
-    auto& r_elements = r_model_part.Elements();
+    block_for_each(r_model_part.Elements(), [&](ModelPart::ElementType& rElement) {
+        double nut;
+        rElement.Calculate(TURBULENT_VISCOSITY, nut, r_model_part.GetProcessInfo());
 
-    std::function<double(const Element&)> nut_calculation_method;
-    const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
-    if (domain_size == 2) {
-        nut_calculation_method = [this](const Element& rElement) {
-            return this->CalculateElementNuT<2>(rElement);
-        };
-    } else if (domain_size == 3) {
-        nut_calculation_method = [this](const Element& rElement) {
-            return this->CalculateElementNuT<3>(rElement);
-        };
-    } else {
-        KRATOS_ERROR << "Unsupported domain size.";
-    }
-
-    block_for_each(r_elements, [&](ModelPart::ElementType& rElement) {
-        const double nut = nut_calculation_method(rElement);
         auto& r_geometry = rElement.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             auto& r_node = r_geometry[i_node];
@@ -164,60 +140,6 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim>
-double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
-    const Element& rElement) const
-{
-    KRATOS_TRY
-
-    using namespace RansCalculationUtilities;
-
-    const auto& r_geometry = rElement.GetGeometry();
-
-    // Get Shape function data
-    Vector gauss_weights;
-    Matrix shape_functions;
-    GeometryType::ShapeFunctionsGradientsType shape_derivatives;
-    CalculateGeometryData(r_geometry, rElement.GetIntegrationMethod(),
-                          gauss_weights, shape_functions, shape_derivatives);
-    const int num_gauss_points = gauss_weights.size();
-
-    BoundedMatrix<double, TDim, TDim> velocity_gradient;
-
-    double nut{0.0}, tke, omega, nu, y;
-
-    for (int g = 0; g < num_gauss_points; ++g) {
-        const Matrix& r_shape_derivatives = shape_derivatives[g];
-        const Vector& r_gauss_shape_functions = row(shape_functions, g);
-
-        FluidCalculationUtilities::EvaluateInPoint(
-            r_geometry, r_gauss_shape_functions,
-            std::tie(tke, TURBULENT_KINETIC_ENERGY),
-            std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-            std::tie(nu, KINEMATIC_VISCOSITY),
-            std::tie(y, DISTANCE)
-        );
-
-        CalculateGradient<TDim>(velocity_gradient, r_geometry, VELOCITY, r_shape_derivatives);
-
-        const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, mBetaStar);
-
-        const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
-            (velocity_gradient + trans(velocity_gradient)) * 0.5;
-
-        const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
-
-        nut += KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(
-            tke, omega, t, f_2, mA1);
-    }
-
-    nut /= static_cast<double>(num_gauss_points);
-
-    return nut;
-
-    KRATOS_CATCH("");
-}
-
 std::string RansNutKOmegaSSTUpdateProcess::Info() const
 {
     return std::string("RansNutKOmegaSSTUpdateProcess");
@@ -238,15 +160,9 @@ const Parameters RansNutKOmegaSSTUpdateProcess::GetDefaultParameters() const
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
-            "a1"              : 0.31,
-            "beta_star"       : 0.09,
             "min_value"       : 1e-15
         })");
     return default_parameters;
 }
-
-// template instantiations
-template double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT<2>(const Element&) const;
-template double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT<3>(const Element&) const;
 
 } // namespace Kratos.

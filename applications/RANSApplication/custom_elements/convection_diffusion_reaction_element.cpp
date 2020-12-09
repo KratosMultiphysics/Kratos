@@ -314,6 +314,19 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
+void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::Calculate(
+    const Variable<double>& rVariable,
+    double& Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    TConvectionDiffusionReactionData r_current_data(
+        this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo,
+        *(this->mpConstitutiveLaw));
+
+    r_current_data.Calculate(rVariable, Output, rCurrentProcessInfo);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 int ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::Check(
     const ProcessInfo& rCurrentProcessInfo) const
 {
