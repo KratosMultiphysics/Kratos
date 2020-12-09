@@ -39,7 +39,6 @@ ModelPart& RansKEpsilonK2D3NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
@@ -59,8 +58,6 @@ ModelPart& RansKEpsilonK2D3NSetUp(
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
 
-    VariableUtils().SetVariable(KINEMATIC_VISCOSITY, 1e-2, r_model_part.Nodes());
-
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
     r_process_info.SetValue(TURBULENT_KINETIC_ENERGY_SIGMA, 0.5);
@@ -75,7 +72,6 @@ ModelPart& RansKEpsilonEpsilon2D3NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
@@ -96,8 +92,6 @@ ModelPart& RansKEpsilonEpsilon2D3NSetUp(
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
-
-    VariableUtils().SetVariable(KINEMATIC_VISCOSITY, 1e-2, r_model_part.Nodes());
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();

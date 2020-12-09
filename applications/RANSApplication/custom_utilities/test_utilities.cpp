@@ -21,6 +21,7 @@
 #include "includes/checks.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
+#include "includes/cfd_variables.h"
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
@@ -108,6 +109,9 @@ ModelPart& CreateTestModelPart(
     }
 
     Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
+    p_elem_prop->SetValue(DENSITY, 1.0);
+    p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 1e-2);
 
     using nid_list = std::vector<ModelPart::IndexType>;
 

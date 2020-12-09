@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
 
@@ -196,6 +197,9 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Initialize(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& CurrentProcessInfo) const override;
@@ -323,6 +327,16 @@ public:
     ///@}
 
 protected:
+    ///@name Protected members
+    ///@{
+
+    //// Constitutive relation for the element
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
+    ///@}
+    ///@name Protected operations
+    ///@{
+
     /**
      * @brief Get the Values Array
      *
@@ -370,8 +384,6 @@ protected:
         const array_1d<double, 3>& rVector,
         const Matrix& rShapeDerivatives) const;
 
-    ///@name Protected Operations
-    ///@{
     /**
      * @brief Calculates shape function data for this element
      *
@@ -410,6 +422,7 @@ private:
         KRATOS_TRY
 
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+        rSerializer.save("mpConstitutiveLaw",*(this->mpConstitutiveLaw));
 
         KRATOS_CATCH("");
     }
@@ -418,6 +431,7 @@ private:
         KRATOS_TRY
 
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+        rSerializer.load("mpConstitutiveLaw",*(this->mpConstitutiveLaw));
 
         KRATOS_CATCH("");
     }

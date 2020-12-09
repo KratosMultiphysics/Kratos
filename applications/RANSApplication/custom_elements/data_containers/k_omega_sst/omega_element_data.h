@@ -52,8 +52,12 @@ public:
         return "KOmegaSSTOmegaElementData";
     }
 
-    OmegaElementData(const GeomtryType& rGeometry)
-    : BaseType(rGeometry)
+    OmegaElementData(
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo,
+        ConstitutiveLaw& rConstitutiveLaw)
+        : BaseType(rGeometry, rProperties, rProcessInfo, rConstitutiveLaw)
     {
     }
 
@@ -104,6 +108,7 @@ protected:
     double mVelocityDivergence;
     double mTurbulentKinematicViscosity;
     double mKappa;
+    double mDensity;
 };
 
 ///@}

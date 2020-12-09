@@ -52,8 +52,12 @@ public:
         return "KOmegaSSTKElementData";
     }
 
-    KElementData(const GeomtryType& rGeometry)
-    : BaseType(rGeometry)
+    KElementData(
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo,
+        ConstitutiveLaw& rConstitutiveLaw)
+        : BaseType(rGeometry, rProperties, rProcessInfo, rConstitutiveLaw)
     {
     }
 
@@ -99,6 +103,7 @@ protected:
     double mCrossDiffusion;
     double mBlendedSimgaK;
     double mVelocityDivergence;
+    double mDensity;
 };
 
 ///@}

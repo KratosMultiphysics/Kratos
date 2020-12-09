@@ -50,7 +50,6 @@ void KElementData<TDim>::Check(
         const auto& r_node = rGeometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
@@ -71,6 +70,7 @@ void KElementData<TDim>::CalculateConstants(
     mSigmaK2 = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA_2];
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    mDensity = this->GetProperties().GetValue(DENSITY);
 }
 
 template <unsigned int TDim>
@@ -83,6 +83,12 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
+    auto& cl_parameters = this->GetConstitutiveLawParameters();
+    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
+
+    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
+    mKinematicViscosity /= mDensity;
+
     const auto& r_geometry = this->GetGeometry();
 
     FluidCalculationUtilities::EvaluateInPoint(
@@ -90,7 +96,6 @@ void KElementData<TDim>::CalculateGaussPointData(
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
         std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
         std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-        std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
         std::tie(mWallDistance, DISTANCE),
         std::tie(mEffectiveVelocity, VELOCITY));
 

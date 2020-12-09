@@ -85,7 +85,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     const double element_length = this->GetGeometry().Length();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo, *(this->mpConstitutiveLaw));
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -162,7 +162,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     const double element_length = this->GetGeometry().Length();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo, *(this->mpConstitutiveLaw));
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -271,7 +271,7 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
         primal_variable.GetTimeDerivative().GetTimeDerivative();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo, *(this->mpConstitutiveLaw));
     double variable_value, relaxed_variable_acceleration;
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
