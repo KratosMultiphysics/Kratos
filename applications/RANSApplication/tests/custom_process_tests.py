@@ -47,7 +47,7 @@ class CustomProcessTest(UnitTest.TestCase):
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
 
         Kratos.VariableUtils().SetVariable(Kratos.DENSITY, 1.0, self.model_part.Nodes)
-        Kratos.VariableUtils().SetVariable(Kratos.KINEMATIC_VISCOSITY, 10.0, self.model_part.Nodes)
+        Kratos.VariableUtils().SetVariable(Kratos.KINEMATIC_VISCOSITY, 100.0, self.model_part.Nodes)
 
     def testCheckScalarBoundsProcess(self):
         settings = Kratos.Parameters(r'''
