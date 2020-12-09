@@ -80,6 +80,66 @@ public:
         const double Dt);
 
     /**
+     * @brief Calculate the element Prandtl number
+     * For the given element, this method calculates the Prandtl number
+     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered 
+     * @param rElement Element to calculate the Prandtl number
+     * @return double The element Prandtl number
+     */
+    template<bool ConsiderArtificialMagnitudes>
+    static double CalculateElementPrandtlNumber(const Element& rElement);
+
+    /**
+     * @brief Calculate the elemental Peclet numbers
+     * For the given element, this method calculates the Peclet number considering both the
+     * dynamic viscosity and the shear conductivity 
+     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
+     * @tparam DensityIsNodal Template parameter specifying if the density is nodally stored
+     * @param rElement Element to calculate the Peclet number
+     * @return std::tuple<double,double> Tuple containing the viscosity (first position) and conductivity (second position) Peclet numbers
+     */
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    static std::tuple<double,double> CalculateElementPecletNumbers(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator);
+
+    /**
+     * @brief Calculate the elemental Peclet number
+     * For the given element, this method calculates the Peclet number
+     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
+     * @tparam DensityIsNodal Template parameter specifying if the density is nodally stored
+     * @param rElement Element to calculate the Peclet number
+     * @return double The element Peclet number
+     */
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    static double CalculateElementViscosityPecletNumber(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator);
+
+    /**
+     * @brief Calculate the elemental Peclet number
+     * For the given element, this method calculates the Peclet number
+     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
+     * @tparam DensityIsNodal Template parameter specifying if the density is nodally stored
+     * @param rElement Element to calculate the Peclet number
+     * @return double The element Peclet number
+     */
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    static double CalculateElementConductivityPecletNumber(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator);
+
+    /**
+     * @brief Calculate the element Mach number
+     * For the given element, this method calculates the midpoint Mach number
+     * Note that it requires the velocity to be stored in the nodal historical
+     * database and the sound velocity to be stored in the non-historical one
+     * @param rElement Element to calculate the Mach number
+     * @return double The element Mach number
+     */
+    static double CalculateElementMachNumber(const Element& rElement);
+
+    /**
      * @brief Get the minimum element size calculation function
      * This method checks the geometry of the provided element and returns the corresponding
      * minimum element size calculation fucntion.
@@ -87,8 +147,37 @@ public:
      * @return ElementSizeFunctionType Function to calculate the minimum element size
      */
     static ElementSizeFunctionType GetMinimumElementSizeFunction(const Geometry<Node<3>>& rGeometry);
+
+    /**
+     * @brief Get the average element size calculation function
+     * This method checks the geometry of the provided element and returns the corresponding
+     * average element size calculation fucntion.
+     * @param rGeometry Geoemtry in which the element size is to be computed
+     * @return ElementSizeFunctionType Function to calculate the average element size
+     */
+    static ElementSizeFunctionType GetAverageElementSizeFunction(const Geometry<Node<3>>& rGeometry);
     
-    ///@} // Private Operations
+    ///@}
+
+private:
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template<bool IsNodal>
+    static double AuxiliaryGetDensity(const Element& rElement);
+
+    template<bool AddArtificialValues>
+    static std::tuple<double,double> GetDiffusivityValues(const Element& rElement);
+
+    template<bool AddArtificialValues>
+    static double GetDynamicViscosityValue(const Element& rElement);
+
+    template<bool AddArtificialValues>
+    static double GetConductivityValue(const Element& rElement);
+
+    ///@}
 };
 
 ///@} // Kratos classes
