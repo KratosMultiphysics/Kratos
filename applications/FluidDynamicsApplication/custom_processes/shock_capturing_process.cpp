@@ -142,10 +142,6 @@ namespace Kratos
      */
     void ShockCapturingProcess::CalculatePhysicsBasedShockCapturing()
     {
-        // Calculate the model part data
-        const auto r_process_info = mrModelPart.GetProcessInfo();
-        const int n_nodes = mrModelPart.NumberOfNodes();
-
         // Initialize the values to zero
         block_for_each(mrModelPart.Nodes(), [](Node<3> &rNode) {
             rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;
