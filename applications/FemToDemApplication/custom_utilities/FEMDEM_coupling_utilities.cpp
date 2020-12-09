@@ -269,7 +269,26 @@ int FEMDEMCouplingUtilities::GetNumberOfNodes(
     ModelPart& rModelPart
     )
 {
-      return rModelPart.NumberOfNodes();
+    return rModelPart.NumberOfNodes();
 }
+
+
+bool FEMDEMCouplingUtilities::IsGenerateDEMRequired(
+    ModelPart &rModelPart
+    )
+{
+    const auto it_elem_begin = rModelPart.ElementsBegin();
+
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i) {
+        auto it_elem = it_elem_begin + i;
+        if (it_elem->GetValue(GENERATE_DEM))
+            return true;
+    }
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // namespace Kratos

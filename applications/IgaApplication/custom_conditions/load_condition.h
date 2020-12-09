@@ -161,8 +161,8 @@ namespace Kratos
         */
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo
-        ) override;
+            const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
         /**
         * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -171,8 +171,8 @@ namespace Kratos
         */
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo
-        ) override;
+            const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
         /**
         * This functions calculates both the RHS and the LHS

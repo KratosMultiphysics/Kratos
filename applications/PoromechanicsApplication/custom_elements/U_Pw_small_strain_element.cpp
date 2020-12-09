@@ -34,7 +34,7 @@ Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId, 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

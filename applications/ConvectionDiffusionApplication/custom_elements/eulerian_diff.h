@@ -7,6 +7,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Ruben Zorrilla
 //
 
 #if !defined(KRATOS_EULERIAN_DIFFUSION_ELEMENT_INCLUDED )
@@ -316,7 +317,9 @@ public:
         KRATOS_CATCH("Error in Eulerian diffusion element CalculateRightHandSide")
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -334,11 +337,9 @@ public:
 
     }
 
-
-
-
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override
+    void GetDofList(
+        DofsVectorType& ElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 

@@ -73,6 +73,7 @@ public:
         const double DeltaAlpha,
         const double Length,
         const double SqueezeAmplitude,
+        const double NSafety,
         const double X1Origin,
         const double X2Origin);
 
@@ -156,6 +157,7 @@ private:
     double                                   mMaxSqueezeFraction;
     double                                                mOmega;
     double                                     mSqueezeAmplitude;
+    double                                              mNSafety;
     double                                             mX1Origin;
     double                                             mX2Origin;
     ///@}
