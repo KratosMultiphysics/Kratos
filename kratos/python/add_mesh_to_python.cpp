@@ -278,6 +278,13 @@ void ElementCalculateDampingMatrix(Element& dummy,
     dummy.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
 }
 
+void ElementCalculateLumpedMassVector(Element& dummy,
+                                      Vector& rMassVector,
+                                      const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.ElementCalculateLumpedMassVector(rMassVector, rCurrentProcessInfo);
+}
+
 void ElementCalculateFirstDerivativesLHS(Element& dummy,
                                          Matrix& rLeftHandSideMatrix,
                                          const ProcessInfo& rCurrentProcessInfo)
@@ -469,6 +476,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Calculate", &ElementCalculateInterface<Matrix >)
     .def("CalculateMassMatrix", &ElementCalculateMassMatrix)
     .def("CalculateDampingMatrix", &ElementCalculateDampingMatrix)
+    .def("CalculateLumpedMassVector", &ElementCalculateLumpedMassVector)
     .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
     .def("CalculateFirstDerivativesLHS", &ElementCalculateFirstDerivativesLHS)
     .def("CalculateSecondDerivativesLHS", &ElementCalculateSecondDerivativesLHS)
