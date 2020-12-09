@@ -86,8 +86,8 @@ public:
     ///@{
 
     // Constructor
-    explicit FluxCorrectedShallowWaterScheme(const std::size_t Order = 2)
-        : SWBaseType(Order)
+    explicit FluxCorrectedShallowWaterScheme(const std::size_t Order = 2, bool UpdateVelocities = false)
+        : SWBaseType(Order, UpdateVelocities)
     {}
 
     // Copy Constructor
@@ -559,6 +559,10 @@ protected:
 
         // Getting the limiter
         double c = 1.0;
+        // for (auto& r_node : rEntity.GetGeometry())
+        // {
+        //     c = std::min({c, r_node.GetValue(POSITIVE_RATIO), r_node.GetValue(NEGATIVE_RATIO)});
+        // }
         if (element_contribution > 0.0) {
             for (auto& r_node : rEntity.GetGeometry())
             {
