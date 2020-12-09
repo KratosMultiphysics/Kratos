@@ -65,7 +65,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
                     "variable_name": "VISCOSITY",
-                    "value": 1.0
+                    "value": 100.0
                 }
             },
             {
