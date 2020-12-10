@@ -75,5 +75,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosTopologyMechanicsCore DESTINATION libs )
+install(TARGETS KratosTopologyOptimizationCore DESTINATION libs )
 install(TARGETS KratosTopologyOptimizationApplication DESTINATION libs )
