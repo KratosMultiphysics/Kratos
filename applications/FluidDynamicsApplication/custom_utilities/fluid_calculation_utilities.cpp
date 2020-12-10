@@ -63,13 +63,13 @@ void FluidCalculationUtilities::UpdateValue(
 }
 
 // template instantiations
-template void FluidCalculationUtilities::AssignValue<double>(const double&, double&);
-template void FluidCalculationUtilities::AssignValue<array_1d<double, 3>>(const array_1d<double, 3>&, array_1d<double, 3>&);
-template void FluidCalculationUtilities::AssignValue<Vector>(const Vector&, Vector&);
-template void FluidCalculationUtilities::AssignValue<Matrix>(const Matrix&, Matrix&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidCalculationUtilities::AssignValue<double>(const double&, double&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidCalculationUtilities::AssignValue<array_1d<double, 3>>(const array_1d<double, 3>&, array_1d<double, 3>&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidCalculationUtilities::AssignValue<Vector>(const Vector&, Vector&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidCalculationUtilities::AssignValue<Matrix>(const Matrix&, Matrix&);
 
-template void FluidCalculationUtilities::UpdateValue<array_1d<double, 3>>(const array_1d<double, 3>&, array_1d<double, 3>&);
-template void FluidCalculationUtilities::UpdateValue<Vector>(const Vector&, Vector&);
-template void FluidCalculationUtilities::UpdateValue<Matrix>(const Matrix&, Matrix&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidCalculationUtilities::UpdateValue<array_1d<double, 3>>(const array_1d<double, 3>&, array_1d<double, 3>&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidCalculationUtilities::UpdateValue<Vector>(const Vector&, Vector&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidCalculationUtilities::UpdateValue<Matrix>(const Matrix&, Matrix&);
 
 } // namespace Kratos
