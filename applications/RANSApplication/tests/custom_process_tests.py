@@ -465,30 +465,30 @@ class CustomProcessTest(UnitTest.TestCase):
         self.process_list = factory.ConstructListOfProcesses(settings)
         self.__ExecuteProcesses()
 
-    # def testComputeReactionsProcess(self):
-    #     settings = Kratos.Parameters(r'''
-    #     [
-    #         {
-    #             "kratos_module" : "KratosMultiphysics.RANSApplication",
-    #             "python_module" : "cpp_process_factory",
-    #             "process_name"  : "ComputeReactionsProcess",
-    #             "Parameters" : {
-    #                 "model_part_name"     : "FluidModelPart"
-    #             }
-    #         }
-    #     ]''')
+    def testComputeReactionsProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "ComputeReactionsProcess",
+                "Parameters" : {
+                    "model_part_name"     : "FluidModelPart"
+                }
+            }
+        ]''')
 
-    #     KratosRANS.RansTestUtilities.RandomFillConditionVariable(self.model.GetModelPart("FluidModelPart"), KratosRANS.FRICTION_VELOCITY, 10.0, 100.0)
+        KratosRANS.RansTestUtilities.RandomFillConditionVariable(self.model.GetModelPart("FluidModelPart"), KratosRANS.FRICTION_VELOCITY, 10.0, 100.0)
 
-    #     test_variables = ["REACTION"]
-    #     test_model_part_name = "FluidModelPart.Slip2D.Slip2D_walls"
-    #     test_file_name = "compute_reactions_test_output"
-    #     CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-    #     # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        test_variables = ["REACTION"]
+        test_model_part_name = "FluidModelPart.Slip2D.Slip2D_walls"
+        test_file_name = "compute_reactions_test_output"
+        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-    #     factory = KratosProcessFactory(self.model)
-    #     self.process_list = factory.ConstructListOfProcesses(settings)
-    #     self.__ExecuteProcesses()
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
 
     def testWallDistanceCalculationProcess(self):
         settings = Kratos.Parameters(r'''
