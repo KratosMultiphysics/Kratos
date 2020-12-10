@@ -108,8 +108,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_Calcu
     r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
     // settting reference values
-    ref_RHS[0] = -7.4912949377611748e-01;
-    ref_RHS[1] = -7.4912949377611748e-01;
+    ref_RHS[0] = -1.1197702304027259e+00;
+    ref_RHS[1] = -1.1197702304027259e+00;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
@@ -161,8 +161,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_Calcu
     r_condition.SetValue(RANS_IS_INLET, 1);
     r_condition.Initialize(r_process_info);
     r_condition.CalculateRightHandSide(RHS, r_process_info);
-    ref_RHS[0] = -7.4912949377611748e-01;
-    ref_RHS[1] = -7.4912949377611748e-01;
+    ref_RHS[0] = -1.1197702304027259e+00;
+    ref_RHS[1] = -1.1197702304027259e+00;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
