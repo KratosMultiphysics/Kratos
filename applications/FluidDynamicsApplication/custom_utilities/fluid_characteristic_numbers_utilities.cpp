@@ -358,4 +358,19 @@ namespace Kratos
 template double FluidCharacteristicNumbersUtilities::CalculateElementPrandtlNumber<true>(const Element&);
 template double FluidCharacteristicNumbersUtilities::CalculateElementPrandtlNumber<false>(const Element&);
 
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
+
+template double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
+
+template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, true>(const Element&, const ElementSizeFunctionType&);
+template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, false>(const Element&, const ElementSizeFunctionType&);
+template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<false, true>(const Element&, const ElementSizeFunctionType&);
+template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<false, false>(const Element&, const ElementSizeFunctionType&);
+
 } // namespace Kratos.
