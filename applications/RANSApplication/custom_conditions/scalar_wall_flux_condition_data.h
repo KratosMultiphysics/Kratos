@@ -20,7 +20,6 @@
 // Project includes
 #include "containers/variable.h"
 #include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
 #include "includes/constitutive_law.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
@@ -42,11 +41,10 @@ public:
     ScalarWallFluxConditionData(
         const GeometryType& rGeometry,
         const Properties& rProperties,
-        const ProcessInfo& rProcessInfo,
-        ConstitutiveLaw& rConstitutiveLaw)
+        const ProcessInfo& rProcessInfo)
         : mrGeometry(rGeometry),
           mrProperties(rProperties),
-          mrConstitutiveLaw(rConstitutiveLaw)
+          mrConstitutiveLaw(*rGeometry.GetValue(CONSTITUTIVE_LAW))
     {
         mConstitutiveLawParameters =
             ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);

@@ -117,11 +117,27 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
 
     block_for_each(r_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
         auto& r_geometry = rCondition.GetGeometry();
+        const auto& r_properties = rCondition.GetProperties();
+        auto constitutive_law = rCondition.GetValue(CONSTITUTIVE_LAW);
+
         const double y_plus = std::max(rCondition.GetValue(RANS_Y_PLUS), y_plus_limit);
+
+        Vector gauss_weights;
+        Matrix shape_functions;
+        RansCalculationUtilities::CalculateConditionGeometryData(
+            r_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1,
+            gauss_weights, shape_functions);
+
+        ConstitutiveLaw::Parameters cl_parameters(
+            r_geometry, r_properties, r_model_part.GetProcessInfo());
+        cl_parameters.SetShapeFunctionsValues(row(shape_functions, 0));
+
+        double nu;
+        constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+        nu /= r_properties.GetValue(DENSITY);
 
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             auto& r_node = r_geometry[i_node];
-            const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
             r_node.SetLock();
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) +=
                 mVonKarman * y_plus * nu;

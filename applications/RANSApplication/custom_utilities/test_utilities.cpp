@@ -25,6 +25,7 @@
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/rans_variable_utilities.h"
 
 // Include base h
 #include "test_utilities.h"
@@ -120,6 +121,9 @@ ModelPart& CreateTestModelPart(
     r_model_part.CreateNewCondition(rConditionName, 1, nid_list{1, 2}, p_elem_prop);
     r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_elem_prop);
     r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_elem_prop);
+
+    RansVariableUtilities::SetContainerConstitutiveLaws(r_model_part.Elements());
+    RansVariableUtilities::SetContainerConstitutiveLaws(r_model_part.Conditions());
 
     r_model_part.Elements().front().Check(r_model_part.GetProcessInfo());
     r_model_part.Conditions().front().Check(r_model_part.GetProcessInfo());

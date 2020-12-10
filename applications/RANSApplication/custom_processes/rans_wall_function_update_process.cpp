@@ -121,10 +121,14 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
 
     // TODO: Make vectors and matrices TLS
     block_for_each(r_conditions, [&](ModelPart::ConditionType& rCondition) {
+        const auto& r_geometry = rCondition.GetGeometry();
+        const auto& r_properties = rCondition.GetProperties();
+        auto constitutive_law = rCondition.GetValue(CONSTITUTIVE_LAW);
+
         Vector gauss_weights;
         Matrix shape_functions;
         RansCalculationUtilities::CalculateConditionGeometryData(
-            rCondition.GetGeometry(), rCondition.GetIntegrationMethod(),
+            r_geometry, rCondition.GetIntegrationMethod(),
             gauss_weights, shape_functions);
         const IndexType num_gauss_points = gauss_weights.size();
 
@@ -136,13 +140,22 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
         array_1d<double, 3> wall_velocity;
 
+        const double density = r_properties.GetValue(DENSITY);
+
+        ConstitutiveLaw::Parameters cl_parameters(
+            r_geometry, r_properties, r_model_part.GetProcessInfo());
+
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const auto& gauss_shape_functions = row(shape_functions, g);
+            cl_parameters.SetShapeFunctionsValues(gauss_shape_functions);
 
             FluidCalculationUtilities::EvaluateInPoint(
-                rCondition.GetGeometry(), gauss_shape_functions,
-                std::tie(wall_velocity, VELOCITY), std::tie(nu, KINEMATIC_VISCOSITY),
+                r_geometry, gauss_shape_functions,
+                std::tie(wall_velocity, VELOCITY),
                 std::tie(tke, TURBULENT_KINETIC_ENERGY));
+
+            constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+            nu /= density;
 
             const double wall_velocity_magnitude = norm_2(wall_velocity);
 
