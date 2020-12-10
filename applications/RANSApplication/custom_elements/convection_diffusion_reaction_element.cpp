@@ -37,42 +37,6 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::Initialize(
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    // If we are restarting, the constitutive law will be already defined
-    if (mpConstitutiveLaw == nullptr) {
-        const Properties& r_properties = this->GetProperties();
-        KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-            << "In initialization of Element " << this->Info()
-            << ": No CONSTITUTIVE_LAW defined for property "
-            << r_properties.Id() << "." << std::endl;
-
-        const auto rans_cl_name = r_properties[CONSTITUTIVE_LAW]->Info();
-
-        KRATOS_ERROR_IF(rans_cl_name.substr(0, 4) != "Rans")
-            << "Incompatible constitutive law is used. Please use constitutive "
-               "laws which starts with \"Rans*\" [ Constitutive law "
-               "name = "
-            << rans_cl_name << " ].\n";
-
-        // get the fluid constitutive law here because, turbulence models need the mu of fluid
-        mpConstitutiveLaw =
-            KratosComponents<ConstitutiveLaw>::Get(rans_cl_name.substr(4)).Clone();
-
-        const GeometryType& r_geometry = this->GetGeometry();
-        const auto& r_shape_functions =
-            r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-        mpConstitutiveLaw->InitializeMaterial(r_properties, r_geometry,
-                                              row(r_shape_functions, 0));
-    }
-
-    KRATOS_CATCH("");
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& CurrentProcessInfo) const
@@ -204,7 +168,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     const IndexType num_gauss_points = gauss_weights.size();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo, *(this->mpConstitutiveLaw));
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -281,7 +245,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     const IndexType num_gauss_points = gauss_weights.size();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo, *(this->mpConstitutiveLaw));
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -311,19 +275,6 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     }
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::Calculate(
-    const Variable<double>& rVariable,
-    double& Output,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    TConvectionDiffusionReactionData r_current_data(
-        this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo,
-        *(this->mpConstitutiveLaw));
-
-    r_current_data.Calculate(rVariable, Output, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>

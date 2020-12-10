@@ -114,12 +114,17 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
         self.AddProcess(wall_distance_process)
 
+        a1 = process_info[KratosRANS.TURBULENCE_RANS_A1]
+        beta_star = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
+
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
         minimum_nut = settings["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKOmegaSSTUpdateProcess(
                                             model,
-                                            self.formulation_1.GetModelPart().Name,
+                                            self.GetBaseModelPart().Name,
+                                            a1,
+                                            beta_star,
                                             minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_process)

@@ -55,9 +55,8 @@ public:
     OmegaElementData(
         const GeometryType& rGeometry,
         const Properties& rProperties,
-        const ProcessInfo& rProcessInfo,
-        ConstitutiveLaw& rConstitutiveLaw)
-        : BaseType(rGeometry, rProperties, rProcessInfo, rConstitutiveLaw)
+        const ProcessInfo& rProcessInfo)
+        : BaseType(rGeometry, rProperties, rProcessInfo)
     {
     }
 

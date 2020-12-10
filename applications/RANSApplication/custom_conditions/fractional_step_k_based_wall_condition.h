@@ -29,7 +29,6 @@
 #include "includes/process_info.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
-#include "includes/constitutive_law.h"
 
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"
@@ -353,44 +352,15 @@ public:
         KRATOS_TRY;
 
         if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-            // If we are restarting, the constitutive law will be already defined
-            if (mpConstitutiveLaw == nullptr) {
-                const Properties& r_properties = this->GetProperties();
-                KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-                    << "In initialization of Element " << this->Info()
-                    << ": No CONSTITUTIVE_LAW defined for property "
-                    << r_properties.Id() << "." << std::endl;
+            const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
+            KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
+                << "NORMAL must be calculated before using this "
+                << this->Info() << "\n";
 
-                const auto rans_cl_name = r_properties[CONSTITUTIVE_LAW]->Info();
+            KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0)
+                << this->Info() << " cannot find parent element\n";
 
-                KRATOS_ERROR_IF(rans_cl_name.substr(0, 4) != "Rans")
-                    << "Incompatible constitutive law is used. Please use "
-                       "constitutive "
-                       "laws which starts with \"Rans*\" [ Constitutive law "
-                       "name = "
-                    << rans_cl_name << " ].\n";
-
-                // get the fluid constitutive law here because, turbulence models need the mu of fluid
-                mpConstitutiveLaw =
-                    KratosComponents<ConstitutiveLaw>::Get(rans_cl_name.substr(4))
-                        .Clone();
-
-                const GeometryType& r_geometry = this->GetGeometry();
-                const auto& r_shape_functions =
-                    r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-                mpConstitutiveLaw->InitializeMaterial(
-                    r_properties, r_geometry, row(r_shape_functions, 0));
-
-                const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
-                KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
-                    << "NORMAL must be calculated before using this "
-                    << this->Info() << "\n";
-
-                KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0)
-                    << this->Info() << " cannot find parent element\n";
-
-                mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
-            }
+            mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
         }
 
         KRATOS_CATCH("");
@@ -576,13 +546,14 @@ protected:
             array_1d<double, 3> wall_velocity;
 
             ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_properties, rCurrentProcessInfo);
+            auto p_constitutive_law = this->GetValue(CONSTITUTIVE_LAW);
 
             for (size_t g = 0; g < num_gauss_points; ++g)
             {
                 const Vector& gauss_shape_functions = row(shape_functions, g);
 
                 cl_parameters.SetShapeFunctionsValues(gauss_shape_functions);
-                mpConstitutiveLaw->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+                p_constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
                 nu /= rho;
 
                 FluidCalculationUtilities::EvaluateInPoint(
@@ -638,9 +609,6 @@ private:
 
     double mWallHeight;
 
-    //// Constitutive relation for the element
-    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
-
     ///@}
     ///@name Serialization
     ///@{
@@ -652,8 +620,6 @@ private:
         KRATOS_TRY
 
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
-        rSerializer.save("mWallHeight", this->mWallHeight);
-        rSerializer.save("mpConstitutiveLaw",*(this->mpConstitutiveLaw));
 
         KRATOS_CATCH("");
     }
@@ -662,8 +628,6 @@ private:
         KRATOS_TRY
 
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
-        rSerializer.load("mWallHeight", this->mWallHeight);
-        rSerializer.load("mpConstitutiveLaw",*(this->mpConstitutiveLaw));
 
         KRATOS_CATCH("");
     }

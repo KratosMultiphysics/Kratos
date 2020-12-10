@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
 
@@ -197,9 +196,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Initialize(
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     void EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& CurrentProcessInfo) const override;
@@ -295,16 +291,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Calculate a Element variable usually associated to a integration point
-     * the Output is given on integration points and characterizes the element
-     * Calculate(..) methods are: OPTIONAL
-     */
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -337,13 +323,6 @@ public:
     ///@}
 
 protected:
-    ///@name Protected members
-    ///@{
-
-    //// Constitutive relation for the element
-    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
-
-    ///@}
     ///@name Protected operations
     ///@{
 
@@ -432,7 +411,6 @@ private:
         KRATOS_TRY
 
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("mpConstitutiveLaw",*(this->mpConstitutiveLaw));
 
         KRATOS_CATCH("");
     }
@@ -441,7 +419,6 @@ private:
         KRATOS_TRY
 
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("mpConstitutiveLaw",*(this->mpConstitutiveLaw));
 
         KRATOS_CATCH("");
     }

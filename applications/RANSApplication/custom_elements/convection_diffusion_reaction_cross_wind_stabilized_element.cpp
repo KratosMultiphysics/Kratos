@@ -73,7 +73,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo, *(this->mpConstitutiveLaw));
+    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     element_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -168,7 +168,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo, *(this->mpConstitutiveLaw));
+    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     element_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -247,7 +247,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
         primal_variable.GetTimeDerivative().GetTimeDerivative();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo, *(this->mpConstitutiveLaw));
+    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     element_data.CalculateConstants(rCurrentProcessInfo);
 

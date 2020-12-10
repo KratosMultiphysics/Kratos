@@ -39,11 +39,10 @@ public:
     ConvectionDiffusionReactionElementData(
         const GeometryType& rGeometry,
         const Properties& rProperties,
-        const ProcessInfo& rProcessInfo,
-        ConstitutiveLaw& rConstitutiveLaw)
+        const ProcessInfo& rProcessInfo)
         : mrGeometry(rGeometry),
           mrProperties(rProperties),
-          mrConstitutiveLaw(rConstitutiveLaw)
+          mrConstitutiveLaw(*(rGeometry.GetValue(CONSTITUTIVE_LAW)))
     {
         mConstitutiveLawParameters =
             ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);
