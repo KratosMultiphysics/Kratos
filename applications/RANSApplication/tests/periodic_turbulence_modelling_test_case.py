@@ -44,12 +44,12 @@ class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
 
         self._runTest()
 
-    # def testQSVMSRfcVelocitySteady(self):
-    #     self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
-    #     self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "velocity_based"
-    #     self.parameters["<FLOW_SOLVER_FORMULATION>"] = "qsvms"
+    def testQSVMSRfcVelocitySteady(self):
+        self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
+        self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "velocity_based"
+        self.parameters["<FLOW_SOLVER_FORMULATION>"] = "qsvms"
 
-    #     self._runTest()
+        self._runTest()
 
     def _runTest(self):
         self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
