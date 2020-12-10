@@ -21,6 +21,7 @@ namespace Kratos
 {
 
 template<>
+KRATOS_API(FLUID_DYNAMICS_APPLICATION)
 void FluidCalculationUtilities::AssignValue(
     const array_1d<double, 3>& rInput,
     array_1d<double, 2>& rOutput)
@@ -38,6 +39,7 @@ void FluidCalculationUtilities::AssignValue(
 }
 
 template<>
+KRATOS_API(FLUID_DYNAMICS_APPLICATION)
 void FluidCalculationUtilities::UpdateValue(
     const double& rInput,
     double& rOutput)
@@ -46,6 +48,7 @@ void FluidCalculationUtilities::UpdateValue(
 }
 
 template<>
+KRATOS_API(FLUID_DYNAMICS_APPLICATION)
 void FluidCalculationUtilities::UpdateValue(
     const array_1d<double, 3>& rInput,
     array_1d<double, 2>& rOutput)
