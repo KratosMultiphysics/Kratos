@@ -34,6 +34,7 @@ export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication
+add_app ${KRATOS_APP_DIR}/TopologyOptimizationApplication
 #add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
 # Clean
@@ -46,4 +47,4 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OFF -DUSE_EIGEN_MKL=OFF
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install
