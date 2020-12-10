@@ -218,7 +218,7 @@ ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<3,4>:
 // Inquiry
 
 template <int Dim, int NumNodes>
-int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

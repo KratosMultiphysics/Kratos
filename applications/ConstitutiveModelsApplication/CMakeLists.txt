@@ -5,7 +5,7 @@ message("**** configuring KratosConstitutiveModelsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Generate variables with the sources
 set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE

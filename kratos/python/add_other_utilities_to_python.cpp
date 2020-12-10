@@ -49,9 +49,27 @@
 #include "utilities/properties_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/assemble_utilities.h"
+#include "utilities/file_name_data_collector.h"
 
 namespace Kratos {
 namespace Python {
+
+/**
+ * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
+ */
+pybind11::list GetSortedListOfFileNameDataHelper(
+    std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList,
+    const std::vector<std::string> & rSortingFlagsOrder
+    )
+{
+    FileNameDataCollector::SortListOfFileNameData(rFileNameDataList, rSortingFlagsOrder);
+    pybind11::list result;
+    for (unsigned int j = 0; j < rFileNameDataList.size(); j++)
+    {
+        result.append(rFileNameDataList[j]);
+    }
+    return result;
+}
 
 /**
  * @brief Sets the current table utility on the process info
@@ -152,6 +170,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::string&, Parameters>())
         .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
         .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
+        .def("FunctionBody", &PythonGenericFunctionUtility::FunctionBody)
         .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
         .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
         ;
@@ -531,6 +550,40 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("AssembleElementDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<int>&, const std::unordered_map<int, int>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ElementsContainerType, int>))
         .def_static("AssembleElementDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<double>&, const std::unordered_map<int, double>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ElementsContainerType, double>))
         .def_static("AssembleElementDataWithValuesMap", static_cast<void(*)(ModelPart&, const Variable<array_1d<double, 3>>&, const std::unordered_map<int, array_1d<double, 3>>&)>(&AssembleUtilities::AssembleNonHistoricalDataWithValuesMap<ModelPart::ElementsContainerType, array_1d<double, 3>>))
+        ;
+
+    // add FileNameDataCollector
+    auto file_name_data_collector = py::class_<
+        FileNameDataCollector,
+        FileNameDataCollector::Pointer>
+        (m, "FileNameDataCollector")
+        .def(py::init<const ModelPart&, const std::string&, const std::unordered_map<std::string, std::string>&>())
+        .def("GetFileName", &FileNameDataCollector::GetFileName)
+        .def("GetPath", &FileNameDataCollector::GetPath)
+        .def("GetSortedFileNamesList", &FileNameDataCollector::GetSortedFileNamesList)
+        .def("RetrieveFileNameData", &FileNameDataCollector::RetrieveFileNameData)
+        .def("GetFileNameDataList", &FileNameDataCollector::GetFileNameDataList)
+        .def_static("ExtractFileNamePattern", &FileNameDataCollector::ExtractFileNamePattern)
+        .def_static("GetSortedListOfFileNameData", &GetSortedListOfFileNameDataHelper)
+        ;
+
+    // add FileNameData holder
+    py::class_<
+        FileNameDataCollector::FileNameData,
+        FileNameDataCollector::FileNameData::Pointer>
+        (file_name_data_collector, "FileNameData")
+        .def(py::init<>())
+        .def(py::init<const std::string&, int, int, double>())
+        .def("SetFileName", &FileNameDataCollector::FileNameData::SetFileName)
+        .def("GetFileName", &FileNameDataCollector::FileNameData::GetFileName)
+        .def("SetRank", &FileNameDataCollector::FileNameData::SetRank)
+        .def("GetRank", &FileNameDataCollector::FileNameData::GetRank)
+        .def("SetStep", &FileNameDataCollector::FileNameData::SetStep)
+        .def("GetStep", &FileNameDataCollector::FileNameData::GetStep)
+        .def("SetTime", &FileNameDataCollector::FileNameData::SetTime)
+        .def("GetTime", &FileNameDataCollector::FileNameData::GetTime)
+        .def("Clear", &FileNameDataCollector::FileNameData::Clear)
+        .def("__eq__", &FileNameDataCollector::FileNameData::operator==)
         ;
 }
 

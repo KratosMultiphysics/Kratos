@@ -22,8 +22,7 @@
         },
         "line_search"                        : false,
         "rotation_dofs"                      : true,
-        "move_mesh_flag"                     : false,
-        "use_computing_model_part"           : false
+        "move_mesh_flag"                     : false
     },
     "processes" : {
     "constraints_process_list" : [{

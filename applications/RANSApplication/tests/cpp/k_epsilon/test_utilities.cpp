@@ -20,6 +20,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "custom_utilities/test_utilities.h"
@@ -53,11 +54,12 @@ ModelPart& RansKEpsilonK2D3NSetUp(
 
     // set nodal historical variables
     RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    RandomFillNodalHistoricalVariable(r_model_part, KINEMATIC_VISCOSITY, 1e-5, 1e-3);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
+
+    VariableUtils().SetVariable(KINEMATIC_VISCOSITY, 1e-2, r_model_part.Nodes());
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
@@ -89,12 +91,13 @@ ModelPart& RansKEpsilonEpsilon2D3NSetUp(
 
     // set nodal historical variables
     RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    RandomFillNodalHistoricalVariable(r_model_part, KINEMATIC_VISCOSITY, 1e-5, 1e-3);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
+
+    VariableUtils().SetVariable(KINEMATIC_VISCOSITY, 1e-2, r_model_part.Nodes());
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
@@ -126,12 +129,13 @@ ModelPart& RansKEpsilonEpsilon2D2NSetUp(
         TURBULENT_ENERGY_DISSIPATION_RATE, 1);
 
     // set nodal historical variables
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    RandomFillNodalHistoricalVariable(r_model_part, KINEMATIC_VISCOSITY, 1e-5, 1e-3);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
+    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -100.0, 100.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1.5, 10.2);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+
+    VariableUtils().SetVariable(KINEMATIC_VISCOSITY, 1e-2, r_model_part.Nodes());
 
     RandomFillContainerVariable<ModelPart::ConditionsContainerType>(
         r_model_part, RANS_Y_PLUS, 10.0, 100.0);
