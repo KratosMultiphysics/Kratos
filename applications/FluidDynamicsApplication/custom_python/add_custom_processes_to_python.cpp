@@ -37,6 +37,7 @@
 #include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
 #include "custom_processes/shock_detection_process.h"
+#include "custom_processes/shock_capturing_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
@@ -141,6 +142,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ExecuteInitialize", &ShockDetectionProcess::ExecuteInitialize)
     .def("ExecuteInitializeSolutionStep", &ShockDetectionProcess::ExecuteInitialize)
     .def("Execute", &ShockDetectionProcess::Execute)
+    ;
+
+    py::class_<ShockCapturingProcess, ShockCapturingProcess::Pointer, Process>
+    (m, "ShockCapturingProcess")
+    .def(py::init < Model&, Parameters >())
+    .def(py::init < ModelPart&, Parameters >())
     ;
 
     py::class_<TwoFluidsInletProcess, TwoFluidsInletProcess::Pointer, Process>
