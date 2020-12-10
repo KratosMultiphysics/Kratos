@@ -84,6 +84,14 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                     if self.settings["time_integration_method"].GetString() == "Implicit":
                         mechanical_solver = self._create_newton_raphson_strategy()
                     else:
+                        print("  ______            _ _      _ _   ")
+                        print(" |  ____|          | (_)    (_) |  ")
+                        print(" | |__  __  ___ __ | |_  ___ _| |_ ")
+                        print(" |  __| \ \/ / '_ \| | |/ __| | __|")
+                        print(" | |____ >  <| |_) | | | (__| | |_ ")
+                        print(" |______/_/\_\ .__/|_|_|\___|_|\__| FEM-DEM version")
+                        print("             | |                   ")
+                        print("             |_|                   ")
                         mechanical_solver = self._create_explicit_strategy()
                 else:
                     mechanical_solver = self._create_DEM_coupled_newton_raphson_strategy(self.DEMStrategy)
