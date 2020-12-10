@@ -1,5 +1,5 @@
 from sympy import *
-from KratosMultiphysics import *
+#from KratosMultiphysics import *
 from sympy_fe_utilities import *
 
 ## Settings explanation
@@ -196,10 +196,16 @@ for dim in dim_vector:
 
 
     ## Compute LHS and RHS
+    initial_tabs = 3
+    max_index=30
+    optimizations='basic'
+    replace_indices=False
+
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    #rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(rhs,"rhs", mode, initial_tabs, max_index, optimizations,True)
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     # Note that the 'stress' (symbolic variable) is substituted by 'C*grad_sym_v_voigt' for the LHS differenctiation. Otherwise the velocity terms
@@ -207,7 +213,8 @@ for dim in dim_vector:
     # a velocity independent constant in the LHS.
     SubstituteMatrixValue(rhs, stress, C*grad_sym_v_voigt)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    #lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    lhs_out = OutputMatrix_CollectingFactors(lhs,"lhs", mode, initial_tabs, max_index, optimizations,replace_indices)
 
     #Enrichment Functional
     ##  K V   x    =  b + rhs_eV

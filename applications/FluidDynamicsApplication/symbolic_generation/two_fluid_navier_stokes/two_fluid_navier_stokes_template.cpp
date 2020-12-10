@@ -335,7 +335,12 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    //const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const double vconv_0_0 = rData.Velocity(0,0) - rData.MeshVelocity(0,0); const double vconv_0_1 = rData.Velocity(0,1) - rData.MeshVelocity(0,1); const double vconv_0_2 = rData.Velocity(0,2) - rData.MeshVelocity(0,2);
+    const double vconv_1_0 = rData.Velocity(1,0) - rData.MeshVelocity(1,0); const double vconv_1_1 = rData.Velocity(1,1) - rData.MeshVelocity(1,1); const double vconv_1_2 = rData.Velocity(1,2) - rData.MeshVelocity(1,2);
+    const double vconv_2_0 = rData.Velocity(2,0) - rData.MeshVelocity(2,0); const double vconv_2_1 = rData.Velocity(2,1) - rData.MeshVelocity(2,1); const double vconv_2_2 = rData.Velocity(2,2) - rData.MeshVelocity(2,2);
+    const double vconv_3_0 = rData.Velocity(3,0) - rData.MeshVelocity(3,0); const double vconv_3_1 = rData.Velocity(3,1) - rData.MeshVelocity(3,1); const double vconv_3_2 = rData.Velocity(3,2) - rData.MeshVelocity(3,2);
+
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -343,6 +348,18 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
+
+    const double DN_0_0 = DN(0,0); const double DN_0_1 = DN(0,1); 
+    const double DN_1_0 = DN(1,0); const double DN_1_1 = DN(1,1); 
+    const double DN_2_0 = DN(2,0); const double DN_2_1 = DN(2,1); 
+
+    const double N_0 = N[0];
+    const double N_1 = N[1];
+    const double N_2 = N[2];
+
+    const double C_0_0 = C(0,0); const double C_0_1 = C(0,1); const double C_0_2 = C(0,2);
+    const double C_1_0 = C(1,0); const double C_1_1 = C(1,1); const double C_1_2 = C(1,2);
+    const double C_2_0 = C(2,0); const double C_2_1 = C(2,1); const double C_2_2 = C(2,2);
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -373,7 +390,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    //const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const double vconv_0_0 = rData.Velocity(0,0) - rData.MeshVelocity(0,0); const double vconv_0_1 = rData.Velocity(0,1) - rData.MeshVelocity(0,1); const double vconv_0_2 = rData.Velocity(0,2) - rData.MeshVelocity(0,2);
+    const double vconv_1_0 = rData.Velocity(1,0) - rData.MeshVelocity(1,0); const double vconv_1_1 = rData.Velocity(1,1) - rData.MeshVelocity(1,1); const double vconv_1_2 = rData.Velocity(1,2) - rData.MeshVelocity(1,2);
+    const double vconv_2_0 = rData.Velocity(2,0) - rData.MeshVelocity(2,0); const double vconv_2_1 = rData.Velocity(2,1) - rData.MeshVelocity(2,1); const double vconv_2_2 = rData.Velocity(2,2) - rData.MeshVelocity(2,2);
+    const double vconv_3_0 = rData.Velocity(3,0) - rData.MeshVelocity(3,0); const double vconv_3_1 = rData.Velocity(3,1) - rData.MeshVelocity(3,1); const double vconv_3_2 = rData.Velocity(3,2) - rData.MeshVelocity(3,2);
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -381,6 +402,23 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
+
+    const double DN_0_0 = DN(0,0); const double DN_0_1 = DN(0,1); const double DN_0_2 = DN(0,2);
+    const double DN_1_0 = DN(1,0); const double DN_1_1 = DN(1,1); const double DN_1_2 = DN(1,2);
+    const double DN_2_0 = DN(2,0); const double DN_2_1 = DN(2,1); const double DN_2_2 = DN(2,2);
+    const double DN_3_0 = DN(3,0); const double DN_3_1 = DN(3,1); const double DN_3_2 = DN(3,2);
+
+    const double N_0 = N[0];
+    const double N_1 = N[1];
+    const double N_2 = N[2];
+    const double N_3 = N[3];
+
+    const double C_0_0 = C(0,0); const double C_0_1 = C(0,1); const double C_0_2 = C(0,2); const double C_0_3 = C(0,3); const double C_0_4 = C(0,4); const double C_0_5 = C(0,5);
+    const double C_1_0 = C(1,0); const double C_1_1 = C(1,1); const double C_1_2 = C(1,2); const double C_1_3 = C(1,3); const double C_1_4 = C(1,4); const double C_1_5 = C(1,5);
+    const double C_2_0 = C(2,0); const double C_2_1 = C(2,1); const double C_2_2 = C(2,2); const double C_2_3 = C(2,3); const double C_2_4 = C(2,4); const double C_2_5 = C(2,5);
+    const double C_3_0 = C(3,0); const double C_3_1 = C(3,1); const double C_3_2 = C(3,2); const double C_3_3 = C(3,3); const double C_3_4 = C(3,4); const double C_3_5 = C(3,5);
+    const double C_4_0 = C(4,0); const double C_4_1 = C(4,1); const double C_4_2 = C(4,2); const double C_4_3 = C(4,3); const double C_4_4 = C(4,4); const double C_4_5 = C(4,5);
+    const double C_5_0 = C(5,0); const double C_5_1 = C(5,1); const double C_5_2 = C(5,2); const double C_5_3 = C(5,3); const double C_5_4 = C(5,4); const double C_5_5 = C(5,5);
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -425,6 +463,8 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
+
+    
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;

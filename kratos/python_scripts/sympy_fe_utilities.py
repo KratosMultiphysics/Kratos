@@ -196,7 +196,7 @@ def Compute_RHS_and_LHS(functional, testfunc, dofs, do_simplifications=False):
 
     #return rhs,lhs
 
-def OutputVector(r,name, mode="python", initial_tabs = 3,max_index=30):
+def OutputVector(r,name, mode="python", initial_tabs = 3,max_index=30,replace_indices=True):
     initial_spaces = str("")
     for i in range(0,initial_tabs):
         initial_spaces += str("    ")
@@ -209,28 +209,29 @@ def OutputVector(r,name, mode="python", initial_tabs = 3,max_index=30):
         elif(mode=="c"):
             outstring += initial_spaces+name + str("[")+str(i)+str("]=")+ccode(r[i,0])+str(";\n")
 
-    #matrix entries (two indices)
-    for i in range(0,max_index):
-        for j in range(0,max_index):
-            if(mode == "python"):
-                replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
-            elif(mode=="c"):
-                replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
-            to_be_replaced  = str("_")+str(i)+str("_")+str(j)
+    if replace_indices:
+        #matrix entries (two indices)
+        for i in range(0,max_index):
+            for j in range(0,max_index):
+                if(mode == "python"):
+                    replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
+                elif(mode=="c"):
+                    replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
+                to_be_replaced  = str("_")+str(i)+str("_")+str(j)
+                newstring = outstring.replace(to_be_replaced, replacement_string)
+                outstring = newstring
+
+        #vector entries(one index(
+        for i in range(0,max_index):
+            replacement_string = str("[")+str(i)+str("]")
+            to_be_replaced  = str("_")+str(i)
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
-
-    #vector entries(one index(
-    for i in range(0,max_index):
-        replacement_string = str("[")+str(i)+str("]")
-        to_be_replaced  = str("_")+str(i)
-        newstring = outstring.replace(to_be_replaced, replacement_string)
-        outstring = newstring
 
     return outstring
 
 
-def OutputMatrix(lhs,name, mode, initial_tabs = 3, max_index=30):
+def OutputMatrix(lhs,name, mode, initial_tabs = 3, max_index=30, replace_indices=True):
     initial_spaces = str("")
     for i in range(0,initial_tabs):
         initial_spaces += str("    ")
@@ -243,26 +244,27 @@ def OutputMatrix(lhs,name, mode, initial_tabs = 3, max_index=30):
                 outstring += initial_spaces+name + str("(")+str(i)+str(",")+str(j)+str(")=")+ccode(lhs[i,j])+str(";\n")
 
     #matrix entries (two indices)
-    for i in range(0,max_index):
-        for j in range(0,max_index):
-            if(mode == "python"):
-                replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
-            elif(mode=="c"):
-                replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
-            to_be_replaced  = str("_")+str(i)+str("_")+str(j)
+    if replace_indices:
+        for i in range(0,max_index):
+            for j in range(0,max_index):
+                if(mode == "python"):
+                    replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
+                elif(mode=="c"):
+                    replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
+                to_be_replaced  = str("_")+str(i)+str("_")+str(j)
+                newstring = outstring.replace(to_be_replaced, replacement_string)
+                outstring = newstring
+
+        #vector entries(one index(
+        for i in range(0,max_index):
+            replacement_string = str("[")+str(i)+str("]")
+            to_be_replaced  = str("_")+str(i)
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
 
-    #vector entries(one index(
-    for i in range(0,max_index):
-        replacement_string = str("[")+str(i)+str("]")
-        to_be_replaced  = str("_")+str(i)
-        newstring = outstring.replace(to_be_replaced, replacement_string)
-        outstring = newstring
-
     return outstring
 
-def OutputSymbolicVariable(var, mode="python", initial_tabs = 3,max_index=30):
+def OutputSymbolicVariable(var, mode="python", initial_tabs = 3,max_index=30, replace_indices=True):
     initial_spaces = str("")
     for i in range(0,initial_tabs):
         initial_spaces += str("    ")
@@ -276,27 +278,27 @@ def OutputSymbolicVariable(var, mode="python", initial_tabs = 3,max_index=30):
         outstring += initial_spaces+ccode(var)+str(";\n")
     #print("aaa")
     #matrix entries (two indices)
-    for i in range(0,max_index):
-        for j in range(0,max_index):
-            if(mode == "python"):
-                replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
-            elif(mode=="c"):
-                replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
-            to_be_replaced  = str("_")+str(i)+str("_")+str(j)
+
+    if replace_indices:
+        for i in range(0,max_index):
+            for j in range(0,max_index):
+                if(mode == "python"):
+                    replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
+                elif(mode=="c"):
+                    replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
+                to_be_replaced  = str("_")+str(i)+str("_")+str(j)
+                newstring = outstring.replace(to_be_replaced, replacement_string)
+                outstring = newstring
+
+        for i in range(0,max_index):
+            replacement_string = str("[")+str(i)+str("]")
+            to_be_replaced  = str("_")+str(i)
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
-    #print("bbb")
-    #vector entries(one index(
-    for i in range(0,max_index):
-        replacement_string = str("[")+str(i)+str("]")
-        to_be_replaced  = str("_")+str(i)
-        newstring = outstring.replace(to_be_replaced, replacement_string)
-        outstring = newstring
-    #print("ccc")
 
     return outstring
 
-def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30, optimizations='basic'):
+def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30, optimizations='basic', replace_indices=True):
     symbol_name = "c"+name
     A_factors, A_collected = cse(A,numbered_symbols(symbol_name), optimizations)
     A = A_collected[0] #overwrite lhs with the one with the collected components
@@ -305,13 +307,13 @@ def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30,
     for factor in A_factors:
         varname = factor[0]
         value = factor[1]
-        output_value = OutputSymbolicVariable(value, mode)
+        output_value = OutputSymbolicVariable(value, mode,initial_tabs,max_index, replace_indices)
         Acoefficient_str += "const double " + str(varname.__str__()) + " = " + output_value
         #print(output_str)
-    A_out = Acoefficient_str+OutputMatrix(A,name,mode,initial_tabs,max_index)
+    A_out = Acoefficient_str+OutputMatrix(A,name,mode,initial_tabs,max_index,replace_indices)
     return A_out
 
-def OutputVector_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30, optimizations='basic'):
+def OutputVector_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30, optimizations='basic',replace_indices=True):
     symbol_name = "c"+name
     A_factors, A_collected = cse(A,numbered_symbols(symbol_name), optimizations)
     A = A_collected[0] #overwrite lhs with the one with the collected components
@@ -320,8 +322,8 @@ def OutputVector_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30,
     for factor in A_factors:
         varname = factor[0]
         value = factor[1]
-        output_value = OutputSymbolicVariable(value, mode)
+        output_value = OutputSymbolicVariable(value, mode,initial_tabs,max_index, replace_indices)
         Acoefficient_str += "const double " + str(varname.__str__()) + " = " + output_value
         #print(output_str)
-    A_out = Acoefficient_str+OutputVector(A,name,mode,initial_tabs,max_index)
+    A_out = Acoefficient_str+OutputVector(A,name,mode,initial_tabs,max_index,replace_indices)
     return A_out
