@@ -15,7 +15,7 @@
 #define	KRATOS_FLUID_CHARACTERISTIC_NUMBERS_UTILITIES_H
 
 // System includes
-
+#include <tuple>
 
 // External includes
 
