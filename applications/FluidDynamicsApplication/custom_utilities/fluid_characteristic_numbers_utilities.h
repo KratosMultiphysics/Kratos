@@ -37,6 +37,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Fluid characteristic numbers calculation utility
+ * This class provides static methods to calculate the common adimensional
+ * magnitudes that characterize any fluid flow.
+ */
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidCharacteristicNumbersUtilities
 {
 public:
@@ -54,6 +59,8 @@ public:
 	///@name Life Cycle
 	///@{
 
+    /// Intentionally deleting default constructor
+    FluidCharacteristicNumbersUtilities() = delete;
 
     ///@}
     ///@name Operations
