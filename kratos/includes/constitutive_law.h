@@ -523,10 +523,10 @@ public:
      * @return a Pointer to the new constitutive law
      */
     virtual Pointer Create(
-        Kratos::Parameters NewParameters, 
+        Kratos::Parameters NewParameters,
         const Properties& rProperties
         ) const;
-    
+
     /**
      * @return The working space dimension of the current constitutive law
      * @note This function HAS TO BE IMPLEMENTED by any derived class
@@ -1163,7 +1163,7 @@ public:
      */
     virtual int Check(const Properties& rMaterialProperties,
                       const GeometryType& rElementGeometry,
-                      const ProcessInfo& rCurrentProcessInfo);
+                      const ProcessInfo& rCurrentProcessInfo) const;
 
 
 

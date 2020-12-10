@@ -95,7 +95,7 @@ ConstitutiveLaw::Pointer ConstitutiveLaw::Create(Kratos::Parameters NewParameter
  * @return a Pointer to the new constitutive law
  */
 ConstitutiveLaw::Pointer ConstitutiveLaw::Create(
-    Kratos::Parameters NewParameters, 
+    Kratos::Parameters NewParameters,
     const Properties& rProperties
     ) const
 {
@@ -1285,7 +1285,7 @@ void ConstitutiveLaw::GetLawFeatures(Features& rFeatures)
  */
 int ConstitutiveLaw::Check(const Properties& rMaterialProperties,
                            const GeometryType& rElementGeometry,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
