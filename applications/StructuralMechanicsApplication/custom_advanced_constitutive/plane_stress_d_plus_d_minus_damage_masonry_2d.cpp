@@ -67,6 +67,8 @@ bool DamageDPlusDMinusMasonry2DLaw::Has(
 bool DamageDPlusDMinusMasonry2DLaw::Has(
 	const Variable<Vector>& rThisVariable)
 {
+	if(rThisVariable == INTERNAL_VARIABLES)
+		return true;
 	return false;
 }
 /***********************************************************************************/
@@ -249,7 +251,6 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 
 		this->ComputeCharacteristicLength(rElementGeometry, InitialCharacteristicLength);
 
-
 		// Begin IMPLEX Integration - Only if switched on
 		if (rMaterialProperties[INTEGRATION_IMPLEX] != 0){
 			PreviousThresholdTension 		= ThresholdTension;
@@ -296,7 +297,6 @@ void DamageDPlusDMinusMasonry2DLaw::FinalizeSolutionStep(
 		PreviousDeltaTime 				= CurrentDeltaTime;
 	}
 	// End IMPLEX Integration
-
 
 	// save converged values
 	CurrentThresholdTension 		= ThresholdTension;
@@ -345,7 +345,6 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	bool is_damaging_compression = false;
 	this->CheckDamageLoadingUnloading(is_damaging_tension, is_damaging_compression);
 
-
 	// Computation of the Constitutive Tensor
 	if (rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
 		if(is_damaging_tension || is_damaging_compression) {
@@ -355,8 +354,6 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 			this->CalculateSecantTensor(rValues, data);
 		}
 	}
-	KRATOS_WATCH(StrainVector)
-	KRATOS_WATCH(PredictiveStressVector)
 }
 
 /***********************************************************************************/
@@ -401,7 +398,6 @@ void DamageDPlusDMinusMasonry2DLaw::ResetMaterial(
 	DamageParameterCompression 	= 0.0;
 	InitialCharacteristicLength = 0.0;
 	InitializeDamageLaw 		= false;
-
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -568,7 +564,6 @@ void DamageDPlusDMinusMasonry2DLaw::TensionCompressionSplit(
 	ConstitutiveLawUtilities<3>::SpectralDecomposition(
 		effective_stress_vector, effective_tension_stress_vector, effective_compression_stress_vector);
 }
-
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::ConstructProjectionTensors(
@@ -742,8 +737,9 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 
 		if(characteristic_length >= material_length){
 			std::stringstream ss;
-			ss << "FRACTURE_ENERGY_TENSION is to low:  2*E*Gt/(ft*ft) = " << material_length
-				<< ",   Characteristic Length = " << characteristic_length << std::endl;
+			ss << "FRACTURE_ENERGY_TENSION is too low:  2*E*Gt/(ft*ft) = " << material_length
+				<< ",   Characteristic Length = " << characteristic_length 
+				<< ",   FRACTURE_ENERGY_TENSION should be at least = " << (characteristic_length * yield_tension * yield_tension) / (2.0 * young_modulus) <<std::endl;
 			std::cout << ss.str();
 			exit(-1);
 		}
@@ -804,15 +800,15 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 
 		if(stretcher <= -1.0){
 			std::stringstream ss;
-			ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
+			ss << "FRACTURE_ENERGY_COMPRESSION is too low" << std::endl;
+			ss << "Characteristic Length = " << characteristic_length <<std::endl;
 			ss << "Input Gc/lch = " << specific_fracture_energy << std::endl;
-			ss << "Minimum Gc to avoid constitutive snap-back = " << bezier_energy_1 << std::endl;
+			ss << "To avoid constitutive snap-back, FRACTURE_ENERGY_COMPRESSION should be at least = " << bezier_energy_1 << std::endl;
 			std::cout << ss.str();
 			exit(-1);
 			}
 
 		this->ApplyBezierStretcherToStrains(stretcher, e_p, e_j, e_k, e_r, e_u);
-
 
 		// current abscissa
 		const double strain_like_counterpart = internal_variable / young_modulus;
@@ -936,14 +932,10 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	if(PredictiveStressVector.size() != VoigtSize)
 		PredictiveStressVector.resize(VoigtSize,false);
 
-	//KRATOS_WATCH(StrainVector)
-
 	ThresholdTension     = CurrentThresholdTension;
 	ThresholdCompression = CurrentThresholdCompression;
 
 	noalias(data.EffectiveStressVector) = prod(data.ElasticityMatrix, StrainVector);
-
-	KRATOS_WATCH(data.EffectiveStressVector)
 
 	if(std::abs(data.EffectiveStressVector(0)) < tolerance) {data.EffectiveStressVector(0) = 0.0;}
 	if(std::abs(data.EffectiveStressVector(1)) < tolerance) {data.EffectiveStressVector(1) = 0.0;}
@@ -958,7 +950,6 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	this->CalculateEquivalentStressCompression(data, UniaxialStressCompression);
 
 	// damage update
-
 	if (props[INTEGRATION_IMPLEX] != 0){ //IMPLEX Integration
 		// time factor
 		double time_factor = 0.0;
@@ -1002,7 +993,6 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	// calculation of stress tensor
 	noalias(PredictiveStressVector)  = (1.0 - DamageParameterTension)     * data.EffectiveTensionStressVector;
 	noalias(PredictiveStressVector) += (1.0 - DamageParameterCompression) * data.EffectiveCompressionStressVector;
-	//KRATOS_WATCH(PredictiveStressVector)
 }
 /***********************************************************************************/
 /***********************************************************************************/
