@@ -76,7 +76,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Fluid characteristic numbers utilities
     py::class_<FluidCharacteristicNumbersUtilities>(m,"FluidCharacteristicNumbersUtilities")
-        .def(py::init< >())
         .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &FluidCharacteristicNumbersUtilities::CalculateLocalCFL)
         ;
 
