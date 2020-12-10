@@ -1675,7 +1675,7 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 void BaseSolidElement::CalculateLumpedMassVector(
     VectorType& rLumpedMassVector,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     KRATOS_TRY;
 
