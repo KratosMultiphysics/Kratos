@@ -77,11 +77,6 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
         self.update_conditions_on_free_surface = self.settings["update_conditions_on_free_surface"]["update_conditions"].GetBool()
 
-        # Create free surface to which conditions will be applied
-        if self.update_conditions_on_free_surface:
-            for parts in self.settings["update_conditions_on_free_surface"]["sub_model_part_list"]:
-                self.main_model_part.CreateSubModelPart(parts.GetString())
-
     def ExecuteInitialize(self):
         """This function performs the initialize of the process
         """
