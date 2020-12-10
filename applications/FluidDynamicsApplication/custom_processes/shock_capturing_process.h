@@ -75,6 +75,7 @@ public:
         array_1d<double,3> N;
         BoundedMatrix<double,3,2> DN_DX;
         BoundedMatrix<double,2,2> MetricTensor;
+        BoundedMatrix<double,2,2> InverseMetricTensor;
         array_1d<double,3> MidpointVelocity;
         array_1d<double,3> DensityGradient;
         array_1d<double,3> VelocityRotational;
@@ -90,6 +91,7 @@ public:
         array_1d<double,4> N;
         BoundedMatrix<double,4,3> DN_DX;
         BoundedMatrix<double,3,3> MetricTensor;
+        BoundedMatrix<double,3,3> InverseMetricTensor;
         array_1d<double,3> MidpointVelocity;
         array_1d<double,3> DensityGradient;
         array_1d<double,3> VelocityRotational;
@@ -240,6 +242,7 @@ private:
         auto& r_DN_DX = rShockCapturingTLS.DN_DX;
         auto& r_N = rShockCapturingTLS.N;
         auto& r_metric_tensor = rShockCapturingTLS.MetricTensor;
+        auto& r_inv_metric_tensor = rShockCapturingTLS.InverseMetricTensor;
 
         // Calculate geometry data
         GeometryUtils::CalculateGeometryData(r_geom, r_DN_DX, r_N, r_vol);
@@ -255,8 +258,7 @@ private:
 
         // Inverse metric tensor calculation
         double aux_det;
-        Matrix inv_metric_tensor; //FIXME: We should use a bounded matrix in here
-        MathUtils<double>::InvertMatrix(r_metric_tensor, inv_metric_tensor, aux_det);
+        MathUtils<double>::InvertMatrix(r_metric_tensor, r_inv_metric_tensor, aux_det);
 
         // Get fluid physical properties
         const auto& r_prop = rElement.GetProperties();
@@ -298,7 +300,7 @@ private:
             CalculateShockSensorValues<TDim,TNumNodes>(r_geom, r_N, r_DN_DX, mach, div_v, r_grad_rho, r_rot_v);
 
             // Characteristic element size along the direction of the density gradient
-            const double h_beta = h_ref * norm_2(r_grad_rho) / std::sqrt(CalculateProjectedInverseMetricElementSize(inv_metric_tensor, r_grad_rho) + eps);
+            const double h_beta = h_ref * norm_2(r_grad_rho) / std::sqrt(CalculateProjectedInverseMetricElementSize(r_inv_metric_tensor, r_grad_rho) + eps);
 
             // Dilatation sensor (activates in shock waves)
             const double s_omega = -h_beta * div_v / k / c_star;
@@ -346,7 +348,7 @@ private:
                 CalculateTemperatureGradients(r_geom, r_DN_DX, mid_pt_jacobian, r_grad_temp, r_grad_temp_local);
 
                 // Characteristic element size along the direction of the temperature gradient
-                const double h_kappa = h_ref * norm_2(r_grad_temp) / std::sqrt(CalculateProjectedInverseMetricElementSize(inv_metric_tensor, r_grad_temp) + eps);
+                const double h_kappa = h_ref * norm_2(r_grad_temp) / std::sqrt(CalculateProjectedInverseMetricElementSize(r_inv_metric_tensor, r_grad_temp) + eps);
 
                 // Thermal sensor (detect thermal gradients that are larger than possible with the grid resolution)
                 const double s_kappa_0 = 1.0;
