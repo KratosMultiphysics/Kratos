@@ -853,7 +853,12 @@ public:
      */
     virtual void CalculateLumpedMassVector(
         VectorType& rLumpedMassVector,
-        const ProcessInfo& rCurrentProcessInfo) {}
+        const ProcessInfo& rCurrentProcessInfo) const
+        {
+            KRATOS_TRY;
+            KRATOS_ERROR << "Calling the CalculateLumpedMassVector() method of the base element. The method must be implemented in the derived element.";
+            KRATOS_CATCH("");
+        }
 
 
     /**
