@@ -52,8 +52,11 @@
             },
             "move_mesh_strategy": 0,
             "move_mesh_flag": false,
-            "oss_switch": 0,
-            "dynamic_tau": 1.0
+            "flow_solver_formulation": {
+                "element_type": "<FLOW_SOLVER_FORMULATION>",
+                "use_orthogonal_subscales": false,
+                "dynamic_tau": 1.0
+            }
         }
     },
     "processes": {
