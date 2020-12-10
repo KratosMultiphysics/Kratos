@@ -277,9 +277,7 @@ void Check()
 {
     KRATOS_TRY
 
-    if (mHighTime < mLowTime || mHighX < mLowX || mHighY < mLowY || mHighZ < mLowZ){
-        KRATOS_THROW_ERROR(std::runtime_error, "Entered low bounds greater than corresponding bounds", "");
-    }
+    KRATOS_ERROR_IF(mHighTime < mLowTime || mHighX < mLowX || mHighY < mLowY || mHighZ < mLowZ) << "Entered low bounds greater than corresponding bounds" << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -404,13 +402,10 @@ bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_
 
 protected:
 
-void Check()
-{
+void Check() {
     KRATOS_TRY
 
-    if (mTol < 0.0){
-        KRATOS_THROW_ERROR(std::runtime_error, "Entered tolerance must be a positive number", "");
-    }
+    KRATOS_ERROR_IF(mTol < 0.0) << "Entered tolerance must be a positive number" << std::endl;
 
     KRATOS_CATCH("")
 }

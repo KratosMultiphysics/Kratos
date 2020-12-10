@@ -132,9 +132,9 @@ public:
 
 //		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-    void GetValuesVector(Vector& values, int Step) override;
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
+    void GetValuesVector(Vector& values, int Step) const override;
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo) override;
 

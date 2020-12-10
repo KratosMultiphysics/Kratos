@@ -98,10 +98,10 @@ void DVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
 
 template <class TElementData>
-void DVMS<TElementData>::Initialize()
+void DVMS<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     // Base class does things with constitutive law here.
-    QSVMS<TElementData>::Initialize();
+    QSVMS<TElementData>::Initialize(rCurrentProcessInfo);
 
     const unsigned int number_of_gauss_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
 
@@ -127,7 +127,7 @@ void DVMS<TElementData>::Initialize()
 }
 
 template <class TElementData>
-void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void DVMS<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     // Get Shape function data
     Vector gauss_weights;
@@ -154,7 +154,7 @@ void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 
 
 template <class TElementData>
-void DVMS<TElementData>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+void DVMS<TElementData>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     // Get Shape function data
     Vector gauss_weights;

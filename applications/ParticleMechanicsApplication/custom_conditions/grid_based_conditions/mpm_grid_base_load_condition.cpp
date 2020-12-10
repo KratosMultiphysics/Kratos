@@ -26,11 +26,11 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         if (rResult.size() != dimension * number_of_nodes)
@@ -66,12 +66,12 @@ namespace Kratos
     //***********************************************************************
     void MPMGridBaseLoadCondition::GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         KRATOS_TRY
 
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
         ElementalDofList.resize(0);
@@ -103,9 +103,9 @@ namespace Kratos
     void MPMGridBaseLoadCondition::GetValuesVector(
         Vector& rValues,
         int Step
-        )
+        ) const
     {
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int matrix_size = number_of_nodes * dimension;
@@ -252,7 +252,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+    int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         // Base check
         Condition::Check(rCurrentProcessInfo);

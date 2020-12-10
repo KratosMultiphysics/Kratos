@@ -203,7 +203,8 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
+        const auto& r_const_process_info = rCurrentProcessInfo;
+        pCurrentCondition->InitializeNonLinearIteration(r_const_process_info);
     }
 
     /**
@@ -216,7 +217,8 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        pCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
+        const auto& r_const_process_info = rCurrentProcessInfo;
+        pCurrentElement->InitializeNonLinearIteration(r_const_process_info);
     }
 
     /**

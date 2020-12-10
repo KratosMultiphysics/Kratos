@@ -49,6 +49,7 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
             "advection_epsilon"     : 1.0e-2,
             "permeability"          : 1.0e-4,
             "dry_discharge_penalty" : 1.0e+2,
+            "stabilization_factor"  : 0.005,
             "wetting_drying_model"  : {
                 "model_name"    : "negative_height",
                 "beta"          : 1e4
@@ -63,6 +64,7 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         discharge_penalty = self.settings["dry_discharge_penalty"].GetDouble()
         time_scale = self.settings["time_scale"].GetString()
         water_height_scale = self.settings["water_height_scale"].GetString()
+        stabilization_factor = self.settings["stabilization_factor"].GetDouble()
 
         # Checks
         if permeability == 0.0:
@@ -94,6 +96,7 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_DISCHARGE_PENALTY, discharge_penalty)
         self.main_model_part.ProcessInfo.SetValue(SW.TIME_UNIT_CONVERTER, time_unit_converter)
         self.main_model_part.ProcessInfo.SetValue(SW.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
+        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, stabilization_factor)
 
     def _GetWettingModel(self):
         if not hasattr(self, "_dry_wet_model"):

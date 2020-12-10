@@ -29,6 +29,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "Compressible"):
             solver_module_name = "navier_stokes_compressible_solver"
 
+        elif (solver_type == "CompressibleExplicit"):
+            solver_module_name = "navier_stokes_compressible_explicit_solver"
+
         elif (solver_type == "ConjugateHeatTransfer"):
             solver_module_name = "conjugate_heat_transfer_solver"
 
