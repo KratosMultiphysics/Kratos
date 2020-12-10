@@ -13,48 +13,52 @@
 // System includes 
 
 #if defined(KRATOS_PYTHON)
-// External includes 
-#include <boost/python.hpp>
+
 
 
 // Project includes 
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "topology_optimization_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+//#include "custom_python/add_custom_constitutive_laws_to_python.h"
+//#include "custom_python/add_custom_response_functions_to_python.h"
+//#include "custom_python/add_custom_advanced_constitutive_laws_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace boost::python;
+  
 
 
   
-  BOOST_PYTHON_MODULE(KratosTopologyOptimizationApplication)
+  PYBIND11_MODULE(KratosTopologyOptimizationApplication,m)
   {
+    namespace py = pybind11;
 
-	  class_<KratosTopologyOptimizationApplication, 
+	  py::class_<KratosTopologyOptimizationApplication, 
                           KratosTopologyOptimizationApplication::Pointer, 
-                          bases<KratosApplication>, boost::noncopyable >("KratosTopologyOptimizationApplication")
+                          KratosApplication >(m, "KratosTopologyOptimizationApplication")
+                          .def(py::init<>())
                          ;
 
-    AddCustomStrategiesToPython();
-    AddCustomUtilitiesToPython();
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //Registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( E_MIN )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( E_0 )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PENAL )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( X_PHYS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( X_PHYS_OLD )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DCDX )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DVDX )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_VOID )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOCAL_STRAIN_ENERGY )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, E_MIN )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, E_0 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENAL )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, X_PHYS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, X_PHYS_OLD )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DCDX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DVDX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SOLID_VOID )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_STRAIN_ENERGY )
 
 
   }

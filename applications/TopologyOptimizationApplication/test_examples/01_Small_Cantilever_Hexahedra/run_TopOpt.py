@@ -10,7 +10,7 @@ print(timer.ctime())
 
 #import kratos core and applications
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.TopologyOptimizationApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 

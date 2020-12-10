@@ -19,10 +19,7 @@
 #include <algorithm>
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
@@ -32,7 +29,7 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-#include "processes/find_nodal_neighbours_process.h" // To find node neighbours using conditions
+#include "processes/find_global_nodal_neighbours_process.h" // To find node neighbours using conditions
 
 
 namespace Kratos
@@ -112,9 +109,10 @@ public:
 
 		Vector smoothed_coordinates;
 		smoothed_coordinates.resize(mModelPart.NumberOfNodes() * 3);
+		const DataCommunicator& r_comm = mModelPart.GetCommunicator().GetDataCommunicator();
 
 		// Start neighbour search process
-		FindNodalNeighboursProcess nodal_finder = FindNodalNeighboursProcess(mModelPart, 10, 10);
+		FindGlobalNodalNeighboursProcess nodal_finder = FindGlobalNodalNeighboursProcess(r_comm, mModelPart, 10);
 		nodal_finder.Execute();
 
 		// Perform smoothing several times for

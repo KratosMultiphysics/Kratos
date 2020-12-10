@@ -19,10 +19,7 @@
 #include <algorithm>
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <pybind11/pybind11.h>
 
 #include "../custom_elements/small_displacement_simp_element.hpp"
 // Project includes
@@ -33,12 +30,11 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-#include "processes/find_nodal_neighbours_process.h" // To find node neighbours
+#include "processes/find_global_nodal_neighbours_process.h" // To find node neighbours
 #include "processes/find_conditions_neighbours_process.h" // To find condition neighbours
 #include "processes/node_erase_process.h" // To delete empty nodes
 #include "utilities/normal_calculation_utils.h" // To calculate element's normal
 #include "geometries/triangle_3d_3.h" // Skin face geometry template
-
 namespace Kratos
 {
 
@@ -140,6 +136,7 @@ public:
 
 		// Initializing mesh nodes
 		rExtractedModelPart.Nodes() = rModelPart.Nodes();
+		const DataCommunicator& r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
 
 		// Extracting mesh elements which are only above the threshold value
 		std::cout<<"  Extracting elements with X_PHYS > " << threshold <<std::endl;
@@ -158,7 +155,7 @@ public:
 
 		// Erase free nodes
 		std::cout<<"  Erasing free nodes and re-numbering kept nodes" <<std::endl;
-		FindNodalNeighboursProcess nodal_finder = FindNodalNeighboursProcess(rExtractedModelPart, 10, 10);
+		FindGlobalNodalNeighboursProcess nodal_finder = FindGlobalNodalNeighboursProcess(r_comm,rExtractedModelPart,10);
 		nodal_finder.Execute();
 
 		for(NodesContainerType::iterator node_i=rExtractedModelPart.NodesBegin(); node_i!=rExtractedModelPart.NodesEnd(); node_i++)
@@ -192,8 +189,8 @@ public:
 		std::cout<<"::[Surface Mesh Extraction]::"<<std::endl;
 
 		// Some type-definitions
-		typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
-		typedef boost::unordered_map<vector<unsigned int>, vector<unsigned int>, KeyHasher, KeyComparor > hashmap_vec;
+		typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+		typedef std::unordered_map<vector<unsigned int>, vector<unsigned int>, KeyHasher, KeyComparor > hashmap_vec;
 
 		// Some working variable
 		unsigned int domain_size = 3;

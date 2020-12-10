@@ -22,7 +22,6 @@
 // External includes
 
 // Core applications
-#include "topology_optimization_application.h"
 
 #include "custom_elements/small_displacement_simp_element.hpp"
 #include "includes/variables.h"
@@ -71,7 +70,8 @@ namespace Kratos
 	/// Short class definition.
 	/** Detail class definition.
 	*/
-	class KratosTopologyOptimizationApplication : public KratosApplication
+	//class KratosTopologyOptimizationApplication : public KratosApplication
+	class KRATOS_API(TOPOLOGY_OPTIMIZATION_APPLICATION) KratosTopologyOptimizationApplication : public KratosApplication
 	{
 	public:
 		///@name Type Definitions
@@ -101,7 +101,7 @@ namespace Kratos
 		///@name Operations
 		///@{
 
-		virtual void Register();
+	    void Register() override;
 
 
 
@@ -201,9 +201,9 @@ namespace Kratos
 		///@{
 
         //small_displacement
-      	const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
-        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
-        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
+      ///	const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
+        ///const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
+        ///const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
 
 //        Extra elements to be added in the future
 //        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D6N;

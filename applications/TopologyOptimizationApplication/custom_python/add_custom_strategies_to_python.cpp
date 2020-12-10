@@ -11,9 +11,7 @@
 // ==============================================================================
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
+
 
 // Project includes
 #include "includes/define.h"
@@ -34,10 +32,12 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
 
-void  AddCustomStrategiesToPython()
+
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
+	namespace py = pybind11;
+
 	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
@@ -55,20 +55,22 @@ void  AddCustomStrategiesToPython()
 	// =============================================================================================================================================
 
 	// Static TIMP Scheme Type
-	class_< ResidualBasedIncrementalUpdateStaticSIMPSchemeType,bases< BaseSchemeType >, boost::noncopyable >
-	("ResidualBasedIncrementalUpdateStaticSIMPScheme", init< >())
-	.def("Initialize", &ResidualBasedIncrementalUpdateStaticSIMPScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
+	py::class_< ResidualBasedIncrementalUpdateStaticSIMPSchemeType, ResidualBasedIncrementalUpdateStaticSIMPSchemeType::Pointer, BaseSchemeType >
+	(m,"ResidualBasedIncrementalUpdateStaticSIMPScheme")
+	.def(py::init<>());
 
 	// =============================================================================================================================================
 	// Strategy Classes
 	// =============================================================================================================================================
 
-	class_< StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-	("StructureAdjointSensitivityStrategy",init<ModelPart&, LinearSolverType::Pointer, int>())
+	py::class_< StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, BaseSolvingStrategyType >
+	(m, "StructureAdjointSensitivityStrategy")
+	.def(py::init<ModelPart&, LinearSolverType::Pointer, int>())
 	.def("ComputeStrainEnergySensitivities",&StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeStrainEnergySensitivities)
 	.def("ComputeVolumeFractionSensitivities",&StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeVolumeFractionSensitivities)
 	;
+
+	
 }
 
 }  // namespace Python.

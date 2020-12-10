@@ -14,8 +14,12 @@
 #define  KRATOS_SMALL_DISPLACEMENT_SIMP_ELEMENT_H_INCLUDED
 
 // Project includes
-#include "solid_mechanics_application.h"
-#include "custom_elements/solid_elements/small_displacement_element.hpp"
+//#include "solid_mechanics_application.h"
+#include "includes/define.h"
+#include "custom_elements/base_solid_element.h"
+#include "includes/variables.h"
+//#include "small_displacement_element.hpp"
+
 
 
 namespace Kratos
@@ -28,90 +32,110 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
+
 ///@}
 ///@name  Functions
 ///@{
+
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Topology Optimization Small Displacement Element for 3D geometries.
-
 /**
- * Implements a Topology Optimization Small Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D
+ * @class SmallDisplacement
+ * @ingroup StructuralMechanicsApplication
+ * @brief Small displacement element for 2D and 3D geometries.
+ * @details Implements a small displacement definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 
-class SmallDisplacementSIMPElement :
-        public SmallDisplacementElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementSIMPElement
+    : public BaseSolidElement
 {
 public:
-
     ///@name Type Definitions
     ///@{
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    ///Type for element variables
-    typedef SmallDisplacementElement::ElementDataType ElementDataType;
 
-    /// Counted pointer of SmallDisplacementSIMPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementSIMPElement );
-    
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
+    /// Counted pointer of SmallDisplacement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementSIMPElement);
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructors
-    SmallDisplacementSIMPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    /// Default constructor.
+    SmallDisplacementSIMPElement( IndexType NewId, GeometryType::Pointer pGeometry ):BaseSolidElement(NewId,pGeometry)
+    {};
+    SmallDisplacementSIMPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):BaseSolidElement(NewId,pGeometry,pProperties)
+    {};
 
-    SmallDisplacementSIMPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-    ///Copy constructor
-    SmallDisplacementSIMPElement(SmallDisplacementSIMPElement const& rOther);
+    // Copy constructor
+    SmallDisplacementSIMPElement(SmallDisplacementSIMPElement const& rOther)
+    {};
 
     /// Destructor.
-    virtual ~SmallDisplacementSIMPElement();
+    ~SmallDisplacementSIMPElement() override
+    {};
 
     ///@}
     ///@name Operators
     ///@{
-
-    /// Assignment operator.
-    SmallDisplacementSIMPElement& operator=(SmallDisplacementSIMPElement const& rOther);
-
     ///@}
     ///@name Operations
     ///@{
+
     /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
      */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
     /**
-     * creates a new total lagrangian updated element pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
-
-    /**
-     * clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
-
-
-    // =============================================================================================================================================
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
+ // =============================================================================================================================================
     // STARTING / ENDING METHODS
     // =============================================================================================================================================
 
@@ -125,10 +149,6 @@ public:
     /// That allows printing X_PHYS as elemental value in GiD
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
-    // =============================================================================================================================================
-    // =============================================================================================================================================
-
-
     ///@}
     ///@name Access
     ///@{
@@ -139,10 +159,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-    ///@}
-    ///@name Friends
-    ///@{
-    ///@}
+
 
 protected:
     ///@name Protected static Member Variables
@@ -155,7 +172,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    SmallDisplacementSIMPElement() : SmallDisplacementElement()
+    SmallDisplacementSIMPElement() : BaseSolidElement()
     {
     }
 
@@ -203,8 +220,9 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    virtual void save(Serializer& rSerializer) const;
-    virtual void load(Serializer& rSerializer);
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -225,4 +243,5 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_TOPLOGY_OPTIMIZATION_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined
+

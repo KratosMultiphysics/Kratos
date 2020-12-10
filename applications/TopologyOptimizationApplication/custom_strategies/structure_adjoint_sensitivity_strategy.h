@@ -19,10 +19,7 @@
 #include <algorithm>
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <pybind11/pybind11.h>
 
 #include "../custom_elements/small_displacement_simp_element.hpp"
 // Project includes
