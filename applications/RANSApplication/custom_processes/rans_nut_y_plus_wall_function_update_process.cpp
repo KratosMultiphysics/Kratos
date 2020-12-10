@@ -66,10 +66,6 @@ int RansNutYPlusWallFunctionUpdateProcess::Check()
 
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(KINEMATIC_VISCOSITY))
-        << "KINEMATIC_VISCOSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(VISCOSITY))
         << "VISCOSITY is not found in nodal solution step variables list of "
         << mModelPartName << ".";
@@ -153,8 +149,6 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
             rNode.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
         r_nut = RansCalculationUtilities::SoftMax(
             r_nut / number_of_neighbour_conditions, mMinValue);
-        rNode.FastGetSolutionStepValue(VISCOSITY) =
-            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + r_nut;
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)

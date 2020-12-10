@@ -85,7 +85,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         base_model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         base_model_part.AddNodalSolutionStepVariable(Kratos.Y_WALL)
         base_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
-        base_model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")

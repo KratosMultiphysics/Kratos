@@ -1,5 +1,6 @@
 # import kratos
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 # import formulation interface
@@ -39,6 +40,12 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             self.GetParameters()["auxiliar_process_list"])
         for process in self.auxiliar_process_list:
             self.AddProcess(process)
+
+        nut_nodal_update_process = KratosRANS.RansNutNodalUpdateProcess(
+                                            self.GetBaseModelPart().GetModel(),
+                                            self.GetBaseModelPart().Name,
+                                            self.echo_level)
+        self.AddProcess(nut_nodal_update_process)
 
         super().Initialize()
 

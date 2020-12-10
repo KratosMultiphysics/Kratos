@@ -68,10 +68,6 @@ int RansWallFunctionUpdateProcess::Check()
 
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(KINEMATIC_VISCOSITY))
-        << "KINEMATIC_VISCOSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(VELOCITY))
         << "VELOCITY is not found in nodal solution step variables list of "
         << mModelPartName << ".";

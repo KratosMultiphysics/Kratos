@@ -114,9 +114,6 @@ void RansNutKEpsilonUpdateProcess::ExecuteAfterCouplingSolveStep()
         } else {
             nu_t = mMinValue;
         }
-
-        rNode.FastGetSolutionStepValue(VISCOSITY) =
-            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nu_t;
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)

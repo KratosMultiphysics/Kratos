@@ -131,7 +131,6 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
             rNode.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
         double& nut = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         nut = std::max(nut / number_of_neighbour_elements, mMinValue);
-        rNode.FastGetSolutionStepValue(VISCOSITY) = rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nut;
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)

@@ -38,7 +38,6 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
         rModelPart.AddNodalSolutionStepVariable(PRESSURE);
         rModelPart.AddNodalSolutionStepVariable(DENSITY);
         rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
         rModelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
