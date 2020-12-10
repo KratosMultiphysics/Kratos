@@ -27,7 +27,6 @@
 #include "includes/model_part.h"
 #include "response_functions/adjoint_response_function.h"
 #include "solving_strategies/schemes/sensitivity_builder_scheme.h"
-#include "utilities/assemble_utilities.h"
 
 namespace Kratos
 {

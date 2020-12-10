@@ -25,7 +25,6 @@
 #include "includes/ublas_interface.h"
 #include "input_output/logger.h"
 #include "solving_strategies/schemes/residual_based_sensitivity_builder_scheme.h"
-#include "utilities/assemble_utilities.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/parallel_utilities.h"
@@ -128,91 +127,90 @@ ModelPart::ConditionsContainerType& GetContainer<ModelPart::ConditionsContainerT
     return rModelPart.Conditions();
 }
 
-template<unsigned int TDim, class TEntityType>
-void AssembleVectorValuesInGPValuesMap(
-    AssembleUtilities::TGPMap<TEntityType, double>& rGPMap,
-    const Vector& rValues,
-    const GlobalPointersVector<TEntityType>& rGPVector)
-{
-    KRATOS_TRY
+// template<unsigned int TDim, class TEntityType>
+// void AssembleVectorValuesInGPValuesMap(
+//     AssembleUtilities::TGPMap<TEntityType, double>& rGPMap,
+//     const Vector& rValues,
+//     const GlobalPointersVector<TEntityType>& rGPVector)
+// {
+//     KRATOS_TRY
 
-    KRATOS_ERROR_IF(rValues.size() != rGPVector.size())
-        << "Provided values size is not equal to provided global pointer "
-           "vector size. [ rValues.size() = "
-        << rValues.size() << ", rGPVector.size() = " << rGPVector.size() << " ].\n";
+//     KRATOS_ERROR_IF(rValues.size() != rGPVector.size())
+//         << "Provided values size is not equal to provided global pointer "
+//            "vector size. [ rValues.size() = "
+//         << rValues.size() << ", rGPVector.size() = " << rGPVector.size() << " ].\n";
 
-    for (std::size_t i = 0; i < rValues.size(); ++i) {
-        auto p_itr = rGPMap.find(rGPVector(i));
-        if (p_itr == rGPMap.end()) {
-            rGPMap[rGPVector(i)] = rValues[i];
-        } else {
-            p_itr->second += rValues[i];
-        }
-    }
+//     for (std::size_t i = 0; i < rValues.size(); ++i) {
+//         auto p_itr = rGPMap.find(rGPVector(i));
+//         if (p_itr == rGPMap.end()) {
+//             rGPMap[rGPVector(i)] = rValues[i];
+//         } else {
+//             p_itr->second += rValues[i];
+//         }
+//     }
 
-    KRATOS_CATCH("");
-}
+//     KRATOS_CATCH("");
+// }
 
-template<unsigned int TDim, class TEntityType>
-void AssembleVectorValuesInGPValuesMap(
-    AssembleUtilities::TGPMap<TEntityType, array_1d<double, 3>>& rGPMap,
-    const Vector& rValues,
-    const GlobalPointersVector<TEntityType>& rGPVector)
-{
-    KRATOS_TRY
+// template<unsigned int TDim, class TEntityType>
+// void AssembleVectorValuesInGPValuesMap(
+//     AssembleUtilities::TGPMap<TEntityType, array_1d<double, 3>>& rGPMap,
+//     const Vector& rValues,
+//     const GlobalPointersVector<TEntityType>& rGPVector)
+// {
+//     KRATOS_TRY
 
-    KRATOS_ERROR_IF(rValues.size() != rGPVector.size() * TDim)
-        << "Provided values size is not adequate to match with provided global pointer "
-           "vector size. [ rValues.size() = "
-        << rValues.size() << ", rGPVector.size() = " << rGPVector.size() << " ].\n";
+//     KRATOS_ERROR_IF(rValues.size() != rGPVector.size() * TDim)
+//         << "Provided values size is not adequate to match with provided global pointer "
+//            "vector size. [ rValues.size() = "
+//         << rValues.size() << ", rGPVector.size() = " << rGPVector.size() << " ].\n";
 
-    const auto& initialize_gp_value_2d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
-        rValue[0] = rValues[r_index++];
-        rValue[1] = rValues[r_index++];
-        rValue[2] = 0.0;
-    };
+//     const auto& initialize_gp_value_2d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
+//         rValue[0] = rValues[r_index++];
+//         rValue[1] = rValues[r_index++];
+//         rValue[2] = 0.0;
+//     };
 
-    const auto& initialize_gp_value_3d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
-        rValue[0] = rValues[r_index++];
-        rValue[1] = rValues[r_index++];
-        rValue[2] = rValues[r_index++];
-    };
+//     const auto& initialize_gp_value_3d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
+//         rValue[0] = rValues[r_index++];
+//         rValue[1] = rValues[r_index++];
+//         rValue[2] = rValues[r_index++];
+//     };
 
-    const auto& update_gp_value_2d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
-        rValue[0] += rValues[r_index++];
-        rValue[1] += rValues[r_index++];
-    };
+//     const auto& update_gp_value_2d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
+//         rValue[0] += rValues[r_index++];
+//         rValue[1] += rValues[r_index++];
+//     };
 
-    const auto& update_gp_value_3d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
-        rValue[0] += rValues[r_index++];
-        rValue[1] += rValues[r_index++];
-        rValue[2] += rValues[r_index++];
-    };
+//     const auto& update_gp_value_3d = [](array_1d<double, 3>& rValue, int& r_index, const Vector& rValues) {
+//         rValue[0] += rValues[r_index++];
+//         rValue[1] += rValues[r_index++];
+//         rValue[2] += rValues[r_index++];
+//     };
 
-    const auto& r_initialization_method = (TDim == 2) ? initialize_gp_value_2d : initialize_gp_value_3d;
-    const auto& r_update_method = (TDim == 2) ? update_gp_value_2d : update_gp_value_3d;
+//     const auto& r_initialization_method = (TDim == 2) ? initialize_gp_value_2d : initialize_gp_value_3d;
+//     const auto& r_update_method = (TDim == 2) ? update_gp_value_2d : update_gp_value_3d;
 
-    int local_index = 0;
-    for (std::size_t i = 0; i < rGPVector.size(); ++i) {
-        auto gp = rGPVector(i);
-        auto p_itr = rGPMap.find(gp);
-        if (p_itr == rGPMap.end()) {
-            array_1d<double, 3>& r_gp_value = rGPMap[gp];
-            r_initialization_method(r_gp_value, local_index, rValues);
-        } else {
-            r_update_method(p_itr->second, local_index, rValues);
-        }
-    }
+//     int local_index = 0;
+//     for (std::size_t i = 0; i < rGPVector.size(); ++i) {
+//         auto gp = rGPVector(i);
+//         auto p_itr = rGPMap.find(gp);
+//         if (p_itr == rGPMap.end()) {
+//             array_1d<double, 3>& r_gp_value = rGPMap[gp];
+//             r_initialization_method(r_gp_value, local_index, rValues);
+//         } else {
+//             r_update_method(p_itr->second, local_index, rValues);
+//         }
+//     }
 
-    KRATOS_CATCH("");
-}
+//     KRATOS_CATCH("");
+// }
 
 template<class TContainerType, class TDerivativeEntityType, class TDataType>
 void AssembleContainerContributions(
     TContainerType& rContainer,
     AdjointResponseFunction& rResponseFunction,
     SensitivityBuilderScheme& rSensitivityBuilderScheme,
-    AssembleUtilities::TGPMap<TDerivativeEntityType, TDataType>& rDerivativeEntityValuesGPMap,
     const Variable<TDataType>& rDesignVariable,
     const DataCommunicator& rDataCommunicator,
     const ProcessInfo& rProcessInfo,
@@ -220,71 +218,73 @@ void AssembleContainerContributions(
 {
     KRATOS_TRY
 
-    using gp_map = AssembleUtilities::TGPMap<TDerivativeEntityType, TDataType>;
 
-    const int domain_size = rProcessInfo[DOMAIN_SIZE];
 
-    const auto& r_map_assemble_method =
-        (domain_size == 2)
-            ? [](gp_map& rGPMap, const Vector& rValues, const GlobalPointersVector<TDerivativeEntityType>& rGPVector) {
-                    AssembleVectorValuesInGPValuesMap<2, TDerivativeEntityType>(rGPMap, rValues, rGPVector);
-                }
-            : [](gp_map& rGPMap, const Vector& rValues, const GlobalPointersVector<TDerivativeEntityType>& rGPVector) {
-                    AssembleVectorValuesInGPValuesMap<3, TDerivativeEntityType>(rGPMap, rValues, rGPVector);
-                };
+    // using gp_map = AssembleUtilities::TGPMap<TDerivativeEntityType, TDataType>;
 
-    GlobalPointersVector<TDerivativeEntityType> gp_global_vector;
-    const int number_of_entities = rContainer.size();
-    #pragma omp parallel
-    {
-        Vector sensitivities;
-        GlobalPointersVector<TDerivativeEntityType> gp_sensitivity_vector;
-        gp_map gp_values_map;
+    // const int domain_size = rProcessInfo[DOMAIN_SIZE];
 
-        #pragma omp for
-        for (int i_entity = 0; i_entity < number_of_entities; ++i_entity) {
-            auto& r_entity = *(rContainer.begin() + i_entity);
-            auto& r_geometry = r_entity.GetGeometry();
+    // const auto& r_map_assemble_method =
+    //     (domain_size == 2)
+    //         ? [](gp_map& rGPMap, const Vector& rValues, const GlobalPointersVector<TDerivativeEntityType>& rGPVector) {
+    //                 AssembleVectorValuesInGPValuesMap<2, TDerivativeEntityType>(rGPMap, rValues, rGPVector);
+    //             }
+    //         : [](gp_map& rGPMap, const Vector& rValues, const GlobalPointersVector<TDerivativeEntityType>& rGPVector) {
+    //                 AssembleVectorValuesInGPValuesMap<3, TDerivativeEntityType>(rGPMap, rValues, rGPVector);
+    //             };
 
-            if (HasSensitivityContributions<TDerivativeEntityType>(r_geometry)) {
-                rSensitivityBuilderScheme.CalculateSensitivity(
-                    r_entity, rResponseFunction, sensitivities,
-                    gp_sensitivity_vector, rDesignVariable, rProcessInfo);
+    // GlobalPointersVector<TDerivativeEntityType> gp_global_vector;
+    // const int number_of_entities = rContainer.size();
+    // #pragma omp parallel
+    // {
+    //     Vector sensitivities;
+    //     GlobalPointersVector<TDerivativeEntityType> gp_sensitivity_vector;
+    //     gp_map gp_values_map;
 
-                // now assemble to thread local gp_map
-                r_map_assemble_method(gp_values_map, sensitivities * ScalingFactor, gp_sensitivity_vector);
-            }
-        }
+    //     #pragma omp for
+    //     for (int i_entity = 0; i_entity < number_of_entities; ++i_entity) {
+    //         auto& r_entity = *(rContainer.begin() + i_entity);
+    //         auto& r_geometry = r_entity.GetGeometry();
 
-        // now assemble to global gp_map for current process
-        #pragma omp critical
-        {
-            for (const auto& r_item : gp_values_map) {
-                auto p_itr = rDerivativeEntityValuesGPMap.find(r_item.first);
-                if (p_itr == rDerivativeEntityValuesGPMap.end()) {
-                    rDerivativeEntityValuesGPMap[r_item.first] = r_item.second;
-                    gp_global_vector.push_back(r_item.first);
-                } else {
-                    p_itr->second += r_item.second;
-                }
-            }
-        }
-    }
+    //         if (HasSensitivityContributions<TDerivativeEntityType>(r_geometry)) {
+    //             rSensitivityBuilderScheme.CalculateSensitivity(
+    //                 r_entity, rResponseFunction, sensitivities,
+    //                 gp_sensitivity_vector, rDesignVariable, rProcessInfo);
 
-    // remove entries from gp_map which are marked as not to update
-    GlobalPointerCommunicator<TDerivativeEntityType> pointer_comm(rDataCommunicator, gp_global_vector);
+    //             // now assemble to thread local gp_map
+    //             r_map_assemble_method(gp_values_map, sensitivities * ScalingFactor, gp_sensitivity_vector);
+    //         }
+    //     }
 
-    auto update_proxy =
-        pointer_comm.Apply([](const GlobalPointer<TDerivativeEntityType>& gp) -> bool {
-            return (gp->Has(UPDATE_SENSITIVITIES) && gp->GetValue(UPDATE_SENSITIVITIES));
-        });
+    //     // now assemble to global gp_map for current process
+    //     #pragma omp critical
+    //     {
+    //         for (const auto& r_item : gp_values_map) {
+    //             auto p_itr = rDerivativeEntityValuesGPMap.find(r_item.first);
+    //             if (p_itr == rDerivativeEntityValuesGPMap.end()) {
+    //                 rDerivativeEntityValuesGPMap[r_item.first] = r_item.second;
+    //                 gp_global_vector.push_back(r_item.first);
+    //             } else {
+    //                 p_itr->second += r_item.second;
+    //             }
+    //         }
+    //     }
+    // }
 
-    for (unsigned int i = 0; i < gp_global_vector.size(); ++i) {
-        auto& gp = gp_global_vector(i);
-        if (!update_proxy.Get(gp)) {
-            rDerivativeEntityValuesGPMap.erase(gp);
-        }
-    }
+    // // remove entries from gp_map which are marked as not to update
+    // GlobalPointerCommunicator<TDerivativeEntityType> pointer_comm(rDataCommunicator, gp_global_vector);
+
+    // auto update_proxy =
+    //     pointer_comm.Apply([](const GlobalPointer<TDerivativeEntityType>& gp) -> bool {
+    //         return (gp->Has(UPDATE_SENSITIVITIES) && gp->GetValue(UPDATE_SENSITIVITIES));
+    //     });
+
+    // for (unsigned int i = 0; i < gp_global_vector.size(); ++i) {
+    //     auto& gp = gp_global_vector(i);
+    //     if (!update_proxy.Get(gp)) {
+    //         rDerivativeEntityValuesGPMap.erase(gp);
+    //     }
+    // }
 
     KRATOS_CATCH("");
 }
@@ -302,21 +302,15 @@ public:
     {
         KRATOS_TRY
 
-        AssembleUtilities::TGPMap<ModelPart::NodeType, TDataType> gp_global_values_map;
+        // AssembleContainerContributions(
+        //     rModelPart.Elements(), rResponseFunction, rSensitivityBuilderScheme,
+        //     *rVariable.pDesignVariable, rModelPart.GetCommunicator().GetDataCommunicator(),
+        //     rModelPart.GetProcessInfo(), ScalingFactor);
 
-        AssembleContainerContributions(
-            rModelPart.Elements(), rResponseFunction, rSensitivityBuilderScheme,
-            gp_global_values_map, *rVariable.pDesignVariable,
-            rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart.GetProcessInfo(), ScalingFactor);
-
-        AssembleContainerContributions(
-            rModelPart.Conditions(), rResponseFunction, rSensitivityBuilderScheme,
-            gp_global_values_map, *rVariable.pDesignVariable,
-            rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart.GetProcessInfo(), ScalingFactor);
-
-        // do the assembly
-        AssembleUtilities::AssembleCurrentDataWithValuesMap(
-            rModelPart, *rVariable.pOutputVariable, gp_global_values_map);
+        // AssembleContainerContributions(
+        //     rModelPart.Conditions(), rResponseFunction, rSensitivityBuilderScheme,
+        //     *rVariable.pDesignVariable, rModelPart.GetCommunicator().GetDataCommunicator(),
+        //     rModelPart.GetProcessInfo(), ScalingFactor);
 
         KRATOS_CATCH("");
     }
@@ -338,16 +332,9 @@ public:
     {
         KRATOS_TRY
 
-        AssembleUtilities::TGPContainerMap<TContainerType, TDataType> gp_global_values_map;
-
-        AssembleContainerContributions(
-            rContainer, rResponseFunction, rSensitivityBuilderScheme,
-            gp_global_values_map, *rVariable.pDesignVariable,
-            rDataCommunicator, rProcessInfo, ScalingFactor);
-
-        // do the assembly
-        AssembleUtilities::AssembleNonHistoricalDataWithValuesMap(
-            rContainer, rDataCommunicator, *rVariable.pOutputVariable, gp_global_values_map);
+        // AssembleContainerContributions(
+        //     rContainer, rResponseFunction, rSensitivityBuilderScheme,
+        //     *rVariable.pDesignVariable, rDataCommunicator, rProcessInfo, ScalingFactor);
 
         KRATOS_CATCH("");
     }
