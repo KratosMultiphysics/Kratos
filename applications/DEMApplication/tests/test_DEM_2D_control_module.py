@@ -24,7 +24,7 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase)
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def Initialize(self):
-        super(DEM2D_ControlModuleTestSolution, self).Initialize()
+        super().Initialize()
 
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
         cm_project_parameters_file_name = os.path.join(path, "cm_parameters.json")
@@ -38,17 +38,17 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase)
         self.multiaxial_control_module.ExecuteInitialize()
 
     def InitializeSolutionStep(self):
-        super(DEM2D_ControlModuleTestSolution, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
 
         self.multiaxial_control_module.ExecuteInitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(DEM2D_ControlModuleTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
         self.multiaxial_control_module.ExecuteFinalizeSolutionStep()
 
     def PrintResultsForGid(self, time):
-        super(DEM2D_ControlModuleTestSolution, self).PrintResultsForGid(time)
+        super().PrintResultsForGid(time)
 
         self.multiaxial_control_module.PrintResults()
 
@@ -64,7 +64,7 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase)
                 expected_value = 150.1
                 self.assertAlmostEqual(node_force_y, expected_value, delta=tolerance)
 
-        super(DEM2D_ControlModuleTestSolution, self).Finalize()
+        super().Finalize()
 
 class TestDEM2DControlModule(KratosUnittest.TestCase):
 

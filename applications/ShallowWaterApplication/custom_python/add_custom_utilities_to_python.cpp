@@ -58,6 +58,7 @@ namespace Python
         .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
+        .def("ComputeEnergy", &ShallowWaterUtilities::ComputeEnergy)
         .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
@@ -74,9 +75,9 @@ namespace Python
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
         ;
 
-    py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
+    py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")
         .def(py::init<ModelPart&, Parameters>())
-        .def("EstimateDt", &EstimateDtShallow::EstimateDt)
+        .def("Execute", &EstimateTimeStepUtility::Execute)
         ;
 
     py::class_< ReplicateModelPartUtility > (m, "ReplicateModelPartUtility")

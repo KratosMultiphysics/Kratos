@@ -18,7 +18,7 @@ def GetFilePath(fileName):
 class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     def Initialize(self):
-        super(DEM3D_ContinuumTestSolution, self).Initialize()
+        super().Initialize()
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
@@ -83,7 +83,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
                 x_tangential = node.GetSolutionStepValue(DEM.TANGENTIAL_ELASTIC_FORCES)[0]
 
         self.CheckValues(x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential)
-        super(DEM3D_ContinuumTestSolution, self).Finalize()
+        super().Finalize()
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):

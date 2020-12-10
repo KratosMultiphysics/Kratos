@@ -268,7 +268,7 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             "output_precision"                   : 8,
             "output_interval"                    : 2,
             "output_sub_model_parts"             : true,
-            "folder_name"                        : "test_vtk_output",
+            "output_path"                        : "test_vtk_output",
             "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
             "nodal_flags"                        : ["BOUNDARY"],
             "element_data_value_variables"       : ["DETERMINANT"],

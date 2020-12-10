@@ -128,7 +128,8 @@ public:
 			Vector u;
 
 			// Get state solution relevant for energy calculation
-			elem_i.GetValuesVector(u,0);
+			const auto& rConstElemRef = elem_i;
+			rConstElemRef.GetValuesVector(u,0);
 
 			elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
@@ -253,7 +254,8 @@ protected:
 			Vector RHS;
 
 			// Get state solution
-			elem_i.GetValuesVector(u,0);
+			const auto& rConstElemRef = elem_i;
+			rConstElemRef.GetValuesVector(u,0);
 
 			// Get adjoint variables (Corresponds to 1/2*u)
 			lambda = 0.5*u;
@@ -298,7 +300,8 @@ protected:
 				Vector RHS;
 
 				// Get adjoint variables (Corresponds to 1/2*u)
-				cond_i.GetValuesVector(u,0);
+				const auto& rConstCondRef = cond_i;
+				rConstCondRef.GetValuesVector(u,0);
 				lambda = 0.5*u;
 
 				// Semi-analytic computation of partial derivative of force vector w.r.t. node coordinates
@@ -364,7 +367,8 @@ protected:
 				Vector RHS;
 
 				// Get state solution
-				cond_i.GetValuesVector(u,0);
+				const auto& rConstCondRef = cond_i;
+				rConstCondRef.GetValuesVector(u,0);
 
 				// Perform finite differencing of RHS vector
 				cond_i.CalculateRightHandSide(RHS, CurrentProcessInfo);

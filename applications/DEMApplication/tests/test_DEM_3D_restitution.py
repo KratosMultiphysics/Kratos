@@ -18,7 +18,7 @@ def GetFilePath(fileName):
 class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     def Initialize(self):
-        super(DEM3D_RestitutionTestSolution, self).Initialize()
+        super().Initialize()
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
@@ -41,7 +41,7 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             Logger.PrintInfo("upper bound:",restitution_coefficient*tolerance)
             Logger.PrintInfo("lower bound:",restitution_coefficient/tolerance)
             self.assertAlmostEqual(self.coeff, restitution_coefficient, delta=tolerance)
-        super(DEM3D_RestitutionTestSolution, self).Finalize()
+        super().Finalize()
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):

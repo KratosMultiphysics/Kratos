@@ -5,7 +5,7 @@ message("**** configuring Kratos@{APP_NAME_CAMEL}Application ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## @{APP_NAME_CAMEL} Core sources
 file(GLOB_RECURSE KRATOS_@{APP_NAME_CAPS}_APPLICATION_CORE

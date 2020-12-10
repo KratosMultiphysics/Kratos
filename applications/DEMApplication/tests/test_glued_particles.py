@@ -24,7 +24,7 @@ class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnit
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(GluedParticlesTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1e-4
         for node in self.spheres_model_part.Nodes:
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)

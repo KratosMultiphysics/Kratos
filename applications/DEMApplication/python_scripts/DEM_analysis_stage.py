@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -114,7 +113,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.SetDt()
         self.SetFinalTime()
         self.AddVariables()
-        super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
+        super().__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
@@ -310,7 +309,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self._GetSolver().dt)
 
-        super(DEMAnalysisStage, self).Initialize()
+        super().Initialize()
 
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
@@ -482,7 +481,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeSolutionStep(self):
-        super(DEMAnalysisStage, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -517,7 +516,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.KratosPrintInfo(stepinfo)
 
     def FinalizeSolutionStep(self):
-        super(DEMAnalysisStage, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
             if self.IsTimeToPrintPostProcess():
@@ -578,7 +577,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def Finalize(self):
         self.KratosPrintInfo("Finalizing execution...")
-        super(DEMAnalysisStage, self).Finalize()
+        super().Finalize()
         if self.do_print_results_option:
             self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
