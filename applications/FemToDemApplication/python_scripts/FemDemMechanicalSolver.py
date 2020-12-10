@@ -175,6 +175,9 @@ class FemDemMechanicalSolver(object):
         scheme_type = self.settings["scheme_type"].GetString()
         if scheme_type == "central_differences":
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_DISPLACEMENT_DAMPING)
 
 
         print("::[Mechanical_Solver]:: General Variables ADDED")
