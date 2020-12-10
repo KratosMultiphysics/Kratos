@@ -144,7 +144,7 @@ ModelPart& CreateScalarVariableTestModelPart(
 {
     auto& r_model_part = CreateTestModelPart(
         rModel, rElementName, rConditionName, rAddNodalSolutionStepVariablesFuncion,
-        [rDofVariable](ModelPart::NodeType& rNode) {
+        [&rDofVariable](ModelPart::NodeType& rNode) {
             rNode.AddDof(rDofVariable).SetEquationId(rNode.Id());
         },
         rSetProperties,
