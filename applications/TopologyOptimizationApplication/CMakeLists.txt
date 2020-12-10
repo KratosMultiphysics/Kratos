@@ -2,23 +2,25 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosTopologyOptimizationApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
+################### PYBIND11
 include(pybind11Tools)
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-#dependecies on other applications
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructualMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructualMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/TopologyOptimizationApplication )
 
-## generate variables with the sources
+## TopologyOptimization core sources
 set( KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_CORE     
 	${CMAKE_CURRENT_SOURCE_DIR}/topology_optimization_application.cpp 
 	)
 
-## TopologyOptimization python interface sources
+## TopoloyOptimization python interface sources
 set( KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/topology_optimization_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_simp_element.cpp
 )
 
@@ -29,13 +31,8 @@ set_target_properties(KratosTopologyOptimizationCore PROPERTIES COMPILE_DEFINITI
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosTopologyOptimizationApplication MODULE THIN_LTO ${KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosTopologyOptimizationApplication PUBLIC KratosStructuralMechanicsCore)
+target_link_libraries(KratosTopologyOptimizationApplication PRIVATE KratosTopologyOptimizationCore)
 set_target_properties(KratosTopologyOptimizationApplication PROPERTIES PREFIX "")
-#install(TARGETS KratosTopologyOptimizationApplication DESTINATION libs )
-
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # changing the .dll suffix to .pyd 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -47,21 +44,16 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosTopologyOptimizationApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+if(${INSTALL_PYTHON_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
 # Cotire
 if(USE_COTIRE MATCHES ON)
     cotire(KratosTopologyOptimizationCore)
     cotire(KratosTopologyOptimizationApplication)
 endif(USE_COTIRE MATCHES ON)
-
-
-#if(${INSTALL_PYTHON_FILES} MATCHES ON)
-#  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-#  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-#endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/TopologyOptimizationApplication.py KratosMultiphysics/TopologyOptimizationApplication/__init__.py )
@@ -83,5 +75,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosTopologyOptimizationCore DESTINATION libs )
+install(TARGETS KratosTopologyMechanicsCore DESTINATION libs )
 install(TARGETS KratosTopologyOptimizationApplication DESTINATION libs )
