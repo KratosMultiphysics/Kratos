@@ -63,7 +63,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         elif self.params["search_configuration"].GetString() == "Current":
             self.search_configuration = KratosMultiphysics.Configuration.Current
         else:
-            raise Exception( "Invalid configuration: %s (Expecting 'Initial' or 'Current')" % self.params["search_configuration"].GetString() )
+            raise Exception( "Invalid configuration: {configuration} (Expecting 'Initial' or 'Current')".format( configuration=self.params["search_configuration"].GetString()) )
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
