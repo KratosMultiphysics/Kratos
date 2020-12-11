@@ -84,7 +84,7 @@ for dim in dim_vector:
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
     K_darcy = Symbol('K_darcy', positive = True)
-
+    Weight  = Symbol('Weight' , positive=True)
     ## Backward differences coefficients
     bdf0 = Symbol('bdf0')
     bdf1 = Symbol('bdf1')
@@ -183,6 +183,9 @@ for dim in dim_vector:
     else:
         rv = rv_galerkin
 
+    #multiply by integration weight
+    rv = Weight*rv
+
     ## Define DOFs and test function vectors
     dofs = Matrix( zeros(nnodes*(dim+1), 1) )
     testfunc = Matrix( zeros(nnodes*(dim+1), 1) )
@@ -205,7 +208,7 @@ for dim in dim_vector:
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
     #rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
-    rhs_out = OutputVector_CollectingFactors(rhs,"rhs", mode, initial_tabs, max_index, optimizations,True)
+    rhs_out = OutputVector_CollectingFactors(rhs,"rhs", mode, initial_tabs, max_index, optimizations,True,"+=")
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     # Note that the 'stress' (symbolic variable) is substituted by 'C*grad_sym_v_voigt' for the LHS differenctiation. Otherwise the velocity terms
@@ -214,7 +217,7 @@ for dim in dim_vector:
     SubstituteMatrixValue(rhs, stress, C*grad_sym_v_voigt)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
     #lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
-    lhs_out = OutputMatrix_CollectingFactors(lhs,"lhs", mode, initial_tabs, max_index, optimizations,replace_indices)
+    lhs_out = OutputMatrix_CollectingFactors(lhs,"lhs", mode, initial_tabs, max_index, optimizations,replace_indices,"+=")
 
     #Enrichment Functional
     ##  K V   x    =  b + rhs_eV

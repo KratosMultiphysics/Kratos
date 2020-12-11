@@ -11,6 +11,9 @@
 //  Co-authors:      Ruben Zorrilla
 //
 
+#pragma GCC optimize("Ofast")
+#pragma GCC target "avx"
+
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
@@ -365,12 +368,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    auto &lhs = rData.lhs;
+    const auto Weight = rData.Weight;
+    auto& lhs = rLHS;
 
     //substitute_lhs_2D
 
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
 }
 
 template <>
@@ -424,12 +426,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    auto &lhs = rData.lhs;
+    const double Weight = rData.Weight;
+    auto &lhs = rLHS;
 
     //substitute_lhs_3D
 
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
 }
 
 template <>
@@ -470,12 +471,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    auto &rhs = rData.rhs;
+    const double Weight = rData.Weight;
+    auto &rhs = rRHS;
 
     //substitute_rhs_2D
 
-    noalias(rRHS) += rData.Weight * rhs;
 }
+    
 
 template <>
 void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSContribution(
@@ -513,11 +515,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    auto &rhs = rData.rhs;
+    const double Weight = rData.Weight;
+    auto &rhs = rRHS;
 
     //substitute_rhs_3D
 
-    noalias(rRHS) += rData.Weight * rhs;
 }
 
 template <>

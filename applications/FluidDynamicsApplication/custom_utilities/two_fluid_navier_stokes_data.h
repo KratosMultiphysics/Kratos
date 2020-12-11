@@ -74,8 +74,8 @@ double bdf1;
 double bdf2;
 
 // Auxiliary containers for the symbolically-generated matrices
-BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
-array_1d<double,TNumNodes*(TDim+1)> rhs;
+//BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
+//array_1d<double,TNumNodes*(TDim+1)> rhs;
 BoundedMatrix<double, TNumNodes*(TDim + 1), TNumNodes> V;
 BoundedMatrix<double, TNumNodes, TNumNodes*(TDim + 1)> H;
 BoundedMatrix<double, TNumNodes, TNumNodes> Kee;
@@ -133,8 +133,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
 
-    noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
-    noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
+    //noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
+    //noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
     noalias(V) = ZeroMatrix(TNumNodes*(TDim + 1), TNumNodes);
     noalias(H) = ZeroMatrix(TNumNodes, TNumNodes*(TDim + 1));
     noalias(Kee) = ZeroMatrix(TNumNodes, TNumNodes);
