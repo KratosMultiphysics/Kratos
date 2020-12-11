@@ -10,58 +10,53 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_CONSTITUTIVE_LAW_EXTENSION_H_INCLUDED)
-#define KRATOS_RANS_CONSTITUTIVE_LAW_EXTENSION_H_INCLUDED
+#if !defined(KRATOS_RANS_NEWTONIAN_LAW_2D_H_INCLUDED)
+#define KRATOS_RANS_NEWTONIAN_LAW_2D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "geometries/geometry.h"
-#include "includes/constitutive_law.h"
-#include "includes/node.h"
-#include "includes/process_info.h"
-#include "includes/properties.h"
-#include "includes/serializer.h"
+#include "custom_constitutive/fluid_constitutive_law.h"
 
 namespace Kratos
 {
-///@name Classes
-///@{
-
 /**
- * @brief This class is extending FluidConstitutiveLaws in FluidDynamicsApplication
+ * @brief This class is extending Newtonian2DLaw in FluidDynamicsApplication
  *
- * This class is used to extend FluidConstitutiveLaws in FluidDynamicsApplication
+ * This class is used to extend Newtonian2DLaw in FluidDynamicsApplication
  * to include turbulent viscosity from Bossinesq Hypothesis.
  *
- * @tparam TFluidConstitutiveLawType        FluidConstitutiveLaw type
  */
-template <class TFluidConstitutiveLawType>
-class RansConstitutiveLawExtension : public TFluidConstitutiveLawType
+class KRATOS_API(RANS_APPLICATION) RansNewtonian2DLaw : public FluidConstitutiveLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = TFluidConstitutiveLawType;
+    using BaseType = FluidConstitutiveLaw;
 
-    using NodeType = Node<3>;
-
-    using GeometryType = Geometry<NodeType>;
-
-    using IndexType = std::size_t;
-
-    KRATOS_CLASS_POINTER_DEFINITION(RansConstitutiveLawExtension);
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    RansConstitutiveLawExtension();
+    /**
+     * Counted pointer of Newtonian3DLaw
+     */
 
-    RansConstitutiveLawExtension(const RansConstitutiveLawExtension& rOther);
+    KRATOS_CLASS_POINTER_DEFINITION(RansNewtonian2DLaw);
+
+    /**
+     * Life Cycle
+     */
+
+    /**
+     * Default constructor.
+     */
+    RansNewtonian2DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -69,11 +64,35 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
-    ~RansConstitutiveLawExtension() override;
+    /**
+     * Copy constructor.
+     */
+    RansNewtonian2DLaw(const RansNewtonian2DLaw& rOther);
+
+    /**
+     * Destructor.
+     */
+    ~RansNewtonian2DLaw() override;
+
+    /**
+     * Operations needed by the base class:
+     */
 
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @return Working space dimension constitutive law
+     */
+    SizeType WorkingSpaceDimension() override;
+
+    /**
+     * @return Size of the strain vector (in Voigt notation) for the constitutive law
+     */
+    SizeType GetStrainSize() override;
+
+    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
      * This function is designed to be called once to perform all the checks
@@ -94,6 +113,9 @@ public:
     ///@{
 
     /**
+     * Input and output
+     */
+    /**
      * Turn back information as a string.
      */
     std::string Info() const override;
@@ -108,7 +130,6 @@ protected:
     double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     ///@}
-
 private:
     ///@name Serialization
     ///@{
@@ -120,10 +141,6 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-
-}; // Class RansConstitutiveLawExtension
-
-///@}
-
+}; // Class RansNewtonian2DLaw
 } // namespace Kratos.
-#endif // KRATOS_RANS_CONSTITUTIVE_LAW_EXTENSION_H_INCLUDED  defined
+#endif // KRATOS_RANS_NEWTONIAN_LAW_2D_H_INCLUDED  defined
