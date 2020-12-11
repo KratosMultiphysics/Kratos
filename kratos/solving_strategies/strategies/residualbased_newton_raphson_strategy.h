@@ -14,6 +14,7 @@
 #define KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
 
 // System includes
+#include <iostream>
 
 // External includes
 
@@ -375,7 +376,9 @@ class ResidualBasedNewtonRaphsonStrategy
           mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
-
+        // Validate and assign defaults
+        Settings = this->ValidateAndAssignParameters(Settings, this->GetDefaultParameters());
+        this->AssignSettings(Settings);
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
 
@@ -807,24 +810,24 @@ class ResidualBasedNewtonRaphsonStrategy
                 //setting up the list of the DOFs to be solved
                 BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0)
+                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
                     << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 //shaping correctly the system
                 BuiltinTimer setup_system_time;
                 p_builder_and_solver->SetUpSystem(r_model_part);
-                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0)
+                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
                     << setup_system_time.ElapsedSeconds() << std::endl;
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  r_model_part);
-                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0)
+                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
 
-            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0)
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
                 << system_construction_time.ElapsedSeconds() << std::endl;
 
             TSystemMatrixType& rA  = *mpA;
@@ -1032,7 +1035,7 @@ class ResidualBasedNewtonRaphsonStrategy
         if (iteration_number >= mMaxIterationNumber) {
             MaxIterationsExceeded();
         } else {
-            KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / "
                 << mMaxIterationNumber << " iterations" << std::endl;
         }
@@ -1344,6 +1347,16 @@ class ResidualBasedNewtonRaphsonStrategy
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
             TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rb);
+
+            std::stringstream matrix_market_dxname;
+            matrix_market_dxname << "dx_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_dxname.str()).c_str(), rDx);
+
+            std::stringstream dof_data_name;
+            unsigned int rank=BaseType::GetModelPart().GetCommunicator().MyPID();
+            dof_data_name << "dofdata_" << BaseType::GetModelPart().GetProcessInfo()[TIME] 
+                << "_" << IterationNumber << "_rank_"<< rank << ".csv";
+            WriteDofInfo(dof_data_name.str(), rDx);
         }
     }
 
@@ -1353,7 +1366,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
     virtual void MaxIterationsExceeded()
     {
-        KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
+        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
             << "ATTENTION: max iterations ( " << mMaxIterationNumber
             << " ) exceeded!" << std::endl;
     }
@@ -1384,6 +1397,20 @@ class ResidualBasedNewtonRaphsonStrategy
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
             KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
+    }
+
+    void WriteDofInfo(std::string FileName, const TSystemVectorType& rDX)
+    {
+        std::ofstream out(FileName);
+        
+        out.precision(15);
+        out << "EquationId,NodeId,VariableName,IsFixed,Value,coordx,coordy,coordz" << std::endl;
+        for(const auto& rdof : GetBuilderAndSolver()->GetDofSet()) {
+            const auto& coords = BaseType::GetModelPart().Nodes()[rdof.Id()].Coordinates();
+            out << rdof.EquationId() << "," << rdof.Id() << "," << rdof.GetVariable().Name() << "," << rdof.IsFixed() << "," 
+                        << rdof.GetSolutionStepValue() << "," <<  "," << coords[0]  << "," << coords[1]  << "," << coords[2]<< "\n";
+        }
+        out.close();
     }
 
     ///@}

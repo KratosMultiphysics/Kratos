@@ -34,7 +34,7 @@ Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId, 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -100,7 +100,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
@@ -152,7 +152,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(Process
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     this->InitializeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -160,7 +160,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(ProcessIn
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

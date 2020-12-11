@@ -452,7 +452,6 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
-                                                                               self.linear_solver,
                                                                                self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -463,7 +462,6 @@ class UPwSolver(PythonSolver):
             else:
                 solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                        self.scheme,
-                                                                       self.linear_solver,
                                                                        self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,
@@ -488,7 +486,6 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solving_strategy = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
-                                                                               self.linear_solver,
                                                                                self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -499,7 +496,6 @@ class UPwSolver(PythonSolver):
             else:
                 solving_strategy = KratosPoro.PoromechanicsRammArcLengthStrategy(self.computing_model_part,
                                                                        self.scheme,
-                                                                       self.linear_solver,
                                                                        self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,

@@ -90,8 +90,6 @@ public:
 
     typedef typename BaseType::Pointer                                 BaseTypePointer;
 
-    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
-
     ///@}
     ///@name Life Cycle
     ///@{

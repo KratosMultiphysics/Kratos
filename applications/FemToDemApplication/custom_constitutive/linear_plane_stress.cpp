@@ -23,39 +23,39 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearPlaneStress::LinearPlaneStress()
-    : ElasticIsotropic3D()
+LinearPlaneStressFEMDEM::LinearPlaneStressFEMDEM()
+    : ElasticIsotropic3DFEMDEM()
 {
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-LinearPlaneStress::LinearPlaneStress(const LinearPlaneStress& rOther)
-    : ElasticIsotropic3D(rOther)
+LinearPlaneStressFEMDEM::LinearPlaneStressFEMDEM(const LinearPlaneStressFEMDEM& rOther)
+    : ElasticIsotropic3DFEMDEM(rOther)
 {
 }
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearPlaneStress::Clone() const
+ConstitutiveLaw::Pointer LinearPlaneStressFEMDEM::Clone() const
 {
-    LinearPlaneStress::Pointer p_clone(new LinearPlaneStress(*this));
+    LinearPlaneStressFEMDEM::Pointer p_clone(new LinearPlaneStressFEMDEM(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-LinearPlaneStress::~LinearPlaneStress()
+LinearPlaneStressFEMDEM::~LinearPlaneStressFEMDEM()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-bool& LinearPlaneStress::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+bool& LinearPlaneStressFEMDEM::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     return rValue;
 }
@@ -63,7 +63,7 @@ bool& LinearPlaneStress::GetValue(const Variable<bool>& rThisVariable, bool& rVa
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
+void LinearPlaneStressFEMDEM::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
     rFeatures.mOptions.Set( PLANE_STRESS_LAW );
@@ -84,7 +84,7 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStressFEMDEM::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -106,7 +106,7 @@ void LinearPlaneStress::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Param
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculatePK2Stress(
+void LinearPlaneStressFEMDEM::CalculatePK2Stress(
     const Vector& rStrainVector,
     Vector& rStressVector,
     ConstitutiveLaw::Parameters& rValues
@@ -128,7 +128,7 @@ void LinearPlaneStress::CalculatePK2Stress(
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
+void LinearPlaneStressFEMDEM::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();

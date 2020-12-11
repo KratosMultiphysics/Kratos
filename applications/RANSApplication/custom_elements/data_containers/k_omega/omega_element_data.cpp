@@ -40,18 +40,6 @@ const Variable<double>& OmegaElementData<TDim>::GetScalarVariable()
 }
 
 template <unsigned int TDim>
-const Variable<double>& OmegaElementData<TDim>::GetScalarRateVariable()
-{
-    return TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2;
-}
-
-template <unsigned int TDim>
-const Variable<double>& OmegaElementData<TDim>::GetScalarRelaxedRateVariable()
-{
-    return RANS_AUXILIARY_VARIABLE_2;
-}
-
-template <unsigned int TDim>
 void OmegaElementData<TDim>::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)

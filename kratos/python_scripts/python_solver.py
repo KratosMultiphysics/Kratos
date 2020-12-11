@@ -1,14 +1,11 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
-from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.restart_utility import RestartUtility
 
 # Other imports
 import os
 
-class PythonSolver(object):
+class PythonSolver:
     """The base class for the Python Solvers in the applications
     Changes to this BaseClass have to be discussed first!
     """
@@ -17,7 +14,7 @@ class PythonSolver(object):
 
         It is intended to be called from the constructor
         of deriving classes:
-        super(DerivedSolver, self).__init__(settings)
+        super().__init__(settings)
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -33,11 +30,7 @@ class PythonSolver(object):
         self.model = model
         self.settings = settings
 
-        # TODO remove the check once the derived solvers implement this
-        if hasattr(self, '_validate_settings_in_baseclass'):
-            self.ValidateSettings()
-        else:
-            IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))
+        self.ValidateSettings()
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
@@ -140,17 +133,6 @@ class PythonSolver(object):
         """
         pass
 
-    def Solve(self):
-        warning_msg  = 'Using "Solve" is deprecated and will be removed in the future!\n'
-        warning_msg += 'Use the separate calls to "Initialize", "InitializeSolutionStep", "Predict", '
-        warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
-        IssueDeprecationWarning('PythonSolver', warning_msg)
-        self.Initialize()
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
-
     def GetComputingModelPart(self):
         raise Exception("This function has to be implemented in the derived class")
 
@@ -222,76 +204,3 @@ class PythonSolver(object):
             restart_settings.AddValue("echo_level", model_part_import_settings["echo_level"])
 
         return restart_settings
-
-    #### Auxiliar functions ####
-
-    def print_on_rank_zero(self, *args):
-        IssueDeprecationWarning('PythonSolver', '"print_on_rank_zero" is deprecated, please use the Logger directly')
-        # This function will be overridden in the trilinos-solvers
-        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
-
-    def print_warning_on_rank_zero(self, *args):
-        IssueDeprecationWarning('PythonSolver', '"print_warning_on_rank_zero" is deprecated, please use the Logger directly')
-        # This function will be overridden in the trilinos-solvers
-        KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
-
-    def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
-        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultParameters"')
-
-        """Transfer matching settings from origin to destination.
-
-        If a name in origin matches a name in destination, then the setting is
-        validated against the destination.
-
-        The typical use is for validating and extracting settings in derived classes:
-
-        class A:
-            def __init__(self, model_part, a_settings):
-                default_a_settings = Parameters('''{
-                    ...
-                }''')
-                a_settings.ValidateAndAssignDefaults(default_a_settings)
-        class B(A):
-            def __init__(self, model_part, custom_settings):
-                b_settings = Parameters('''{
-                    ...
-                }''') # Here the settings contain default values.
-                self.validate_and_transfer_matching_settings(custom_settings, b_settings)
-                super().__init__(model_part, custom_settings)
-        """
-        for name, dest_value in destination_settings.items():
-            if origin_settings.Has(name): # Validate and transfer value.
-                orig_value = origin_settings[name]
-                if dest_value.IsDouble() and orig_value.IsDouble():
-                    destination_settings[name].SetDouble(origin_settings[name].GetDouble())
-                elif dest_value.IsInt() and orig_value.IsInt():
-                    destination_settings[name].SetInt(origin_settings[name].GetInt())
-                elif dest_value.IsBool() and orig_value.IsBool():
-                    destination_settings[name].SetBool(origin_settings[name].GetBool())
-                elif dest_value.IsString() and orig_value.IsString():
-                    destination_settings[name].SetString(origin_settings[name].GetString())
-                elif dest_value.IsArray() and orig_value.IsArray():
-                    if dest_value.size() != orig_value.size():
-                        raise Exception('len("' + name + '") != ' + str(dest_value.size()))
-                    for i in range(dest_value.size()):
-                        if dest_value[i].IsDouble() and orig_value[i].IsDouble():
-                            dest_value[i].SetDouble(orig_value[i].GetDouble())
-                        elif dest_value[i].IsInt() and orig_value[i].IsInt():
-                            dest_value[i].SetInt(orig_value[i].GetInt())
-                        elif dest_value[i].IsBool() and orig_value[i].IsBool():
-                            dest_value[i].SetBool(orig_value[i].GetBool())
-                        elif dest_value[i].IsString() and orig_value[i].IsString():
-                            dest_value[i].SetString(orig_value[i].GetString())
-                        elif dest_value[i].IsSubParameter() and orig_value[i].IsSubParameter():
-                            self.validate_and_transfer_matching_settings(orig_value[i], dest_value[i])
-                            if len(orig_value[i].items()) != 0:
-                                raise Exception('Json settings not found in default settings: ' + orig_value[i].PrettyPrintJsonString())
-                        else:
-                            raise Exception('Unsupported parameter type.')
-                elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
-                    self.validate_and_transfer_matching_settings(orig_value, dest_value)
-                    if len(orig_value.items()) != 0:
-                        raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
-                else:
-                    raise Exception('Unsupported parameter type.')
-                origin_settings.RemoveValue(name)

@@ -157,7 +157,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_test_adjoint_probe1.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest"
+                    "output_path": "AdjointVMSSensitivity2DTest"
                 },
                 "output_variables" : ["ADJOINT_FLUID_VECTOR_1_X", "ADJOINT_FLUID_VECTOR_1_Y"]
             }
@@ -171,7 +171,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_test_adjoint_probe2.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest"
+                    "output_path": "AdjointVMSSensitivity2DTest"
                 },
                 "output_variables" : ["ADJOINT_FLUID_SCALAR_1"]
             }
@@ -185,7 +185,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_test_adjoint_probe3.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest"
+                    "output_path": "AdjointVMSSensitivity2DTest"
                 },
                 "output_variables" : ["SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"]
             }

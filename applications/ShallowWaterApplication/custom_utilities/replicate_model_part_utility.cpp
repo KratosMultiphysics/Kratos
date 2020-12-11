@@ -154,7 +154,7 @@ void ReplicateModelPartUtility::Replicate()
         {
             mrDestinationModelPart.CreateSubModelPart(name);
         }
-        
+
         // Finally, we add the nodes, elements and conditions to the sub model parts
         for (auto model_part_collection : collections)
         {
@@ -171,52 +171,6 @@ void ReplicateModelPartUtility::Replicate()
             }
         }
     } // if (mReplicateSubModelParts)
-}
-
-
-void ReplicateModelPartUtility::SetOriginMeshZCoordinate()
-{
-    SetMeshZCoordinate(mrOriginModelPart);
-}
-
-
-void ReplicateModelPartUtility::SetOriginMeshZCoordinate(Variable<double>& rVariable)
-{
-    SetMeshZCoordinate(mrOriginModelPart, rVariable);
-}
-
-
-void ReplicateModelPartUtility::SetDestinationMeshZCoordinate()
-{
-    SetMeshZCoordinate(mrDestinationModelPart);
-}
-
-
-void ReplicateModelPartUtility::SetDestinationMeshZCoordinate(Variable<double>& rVariable)
-{
-    SetMeshZCoordinate(mrDestinationModelPart, rVariable);
-}
-
-
-void ReplicateModelPartUtility::SetMeshZCoordinate(ModelPart& rModelPart)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        it_node->Z() = 0.0;
-    }
-}
-
-
-void ReplicateModelPartUtility::SetMeshZCoordinate(ModelPart& rModelPart, Variable<double>& rVariable)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        it_node->Z() = it_node->FastGetSolutionStepValue(rVariable);
-    }
 }
 
 
