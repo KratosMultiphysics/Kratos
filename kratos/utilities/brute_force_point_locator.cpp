@@ -21,7 +21,7 @@ namespace Kratos
 {
 
 int BruteForcePointLocator::FindNode(const Point& rThePoint,
-                                     const Configuration configuration,
+                                     const Globals::Configuration configuration,
                                      const double DistanceThreshold) const
 {
     int found_node_id = -1; // if no node is found this will be returned
@@ -49,7 +49,7 @@ int BruteForcePointLocator::FindNode(const Point& rThePoint,
 
 int BruteForcePointLocator::FindElement(const Point& rThePoint,
                                         Vector& rShapeFunctionValues,
-                                        const Configuration configuration,
+                                        const Globals::Configuration configuration,
                                         const double LocalCoordTol) const
 {
     int found_element_id = -1; // if no element is found this will be returned
@@ -64,7 +64,7 @@ int BruteForcePointLocator::FindElement(const Point& rThePoint,
 
 int BruteForcePointLocator::FindCondition(const Point& rThePoint,
                                           Vector& rShapeFunctionValues,
-                                          const Configuration configuration,
+                                          const Globals::Configuration configuration,
                                           const double LocalCoordTol) const
 {
     int found_condition_id = -1; // if no condition is found this will be returned
@@ -83,7 +83,7 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
                                         const Point& rThePoint,
                                         int& rObjectId,
                                         Vector& rShapeFunctionValues,
-                                        const Configuration configuration,
+                                        const Globals::Configuration configuration,
                                         const double LocalCoordTol) const
 {
     int local_object_found = 0;
@@ -104,7 +104,7 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
         std::size_t number_of_nodes = r_geometry.size();
         std::vector<array_1d<double, 3>> current_node_coordinates(number_of_nodes);
 
-        if ( configuration == Configuration::Initial )
+        if ( configuration == Globals::Configuration::Initial )
             for ( std::size_t i_node=0; i_node<number_of_nodes; ++i_node )
             {
                 current_node_coordinates[i_node] = r_geometry[i_node].Coordinates();
@@ -123,7 +123,7 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
 
         // Restore current configuration
         // if searching the initial configuration
-        if ( configuration == Configuration::Initial )
+        if ( configuration == Globals::Configuration::Initial )
             for ( std::size_t i_node=0; i_node<number_of_nodes; ++i_node )
                 r_geometry[i_node].Coordinates() = current_node_coordinates[i_node];
 
@@ -151,12 +151,12 @@ void BruteForcePointLocator::CheckResults(const std::string& rObjectName,
 
 bool BruteForcePointLocator::NodeIsCloseEnough(const Node<3>& rNode,
                                                const Point& rThePoint,
-                                               const Configuration configuration,
+                                               const Globals::Configuration configuration,
                                                const double DistanceThreshold) const
 {
     // Select initial or current position
     const Point* p_position = &rNode;
-    if ( configuration == Configuration::Initial )
+    if ( configuration == Globals::Configuration::Initial )
         p_position = &rNode.GetInitialPosition();
 
     // Check distance

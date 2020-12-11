@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNodeCurrentConfiguration, Kratos
     Point query_point(coord_x, coord_y, coord_z);
 
     const int found_id = point_locator.FindNode( query_point,
-                                                 Configuration::Current,
+                                                 Globals::Configuration::Current,
                                                  tolerance );
 
     KRATOS_CHECK_EQUAL( found_id, node_id_to_be_found );

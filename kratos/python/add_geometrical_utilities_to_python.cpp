@@ -168,9 +168,9 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
         ;
 
-    py::enum_<Configuration>( m, "Configuration" )
-        .value( "Initial", Configuration::Initial )
-        .value( "Current", Configuration::Current )
+    py::enum_<Globals::Configuration>( m, "Configuration" )
+        .value( "Initial", Globals::Configuration::Initial )
+        .value( "Current", Globals::Configuration::Current )
         ;
 
     //brute force point locator

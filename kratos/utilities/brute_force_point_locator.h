@@ -20,27 +20,10 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/global_variables.h"
 
 namespace Kratos
 {
-
-///@name Enums
-///@{
-
-/**
- * @brief Enum for Initial and Current configurations
- * @note This enum is common enough to justify being global, and should be
- * moved to a dedicated enum header
- */
-enum struct Configuration
-{
-    Initial = 0,
-    Current = 1
-};
-
-///@}
-
-
 
 ///@addtogroup KratosCore
 ///@{
@@ -87,7 +70,7 @@ public:
      * @return Id of the found node. -1 if no node was found
      */
     int FindNode( const Point& rThePoint,
-                  const Configuration configuration = Configuration::Initial,
+                  const Globals::Configuration configuration = Globals::Configuration::Initial,
                   const double DistanceThreshold = 1e-6 ) const;
 
     /**
@@ -100,7 +83,7 @@ public:
      */
     int FindElement( const Point& rThePoint,
                      Vector& rShapeFunctionValues,
-                     const Configuration configuration = Configuration::Initial,
+                     const Globals::Configuration configuration = Globals::Configuration::Initial,
                      const double LocalCoordTol = 1e-6) const;
 
     /**
@@ -113,7 +96,7 @@ public:
      */
     int FindCondition( const Point& rThePoint,
                        Vector& rShapeFunctionValues,
-                       const Configuration configuration = Configuration::Initial,
+                       const Globals::Configuration configuration = Globals::Configuration::Initial,
                        const double LocalCoordTol = 1e-6) const;
 
     ///@}
@@ -159,7 +142,7 @@ private:
     template<typename TObjectType>
     void FindObject(const TObjectType& rObjects, const std::string& rObjectType,
                     const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues,
-                    const Configuration configuration, const double LocalCoordTol) const;
+                    const Globals::Configuration configuration, const double LocalCoordTol) const;
 
     /**
      * @brief This function performs some checks after the search
@@ -181,7 +164,7 @@ private:
      */
     bool NodeIsCloseEnough(const Node<3>& rNode,
                            const Point& rThePoint,
-                           const Configuration configuration,
+                           const Globals::Configuration configuration,
                            const double DistanceThreshold) const;
 
     ///@}
