@@ -190,6 +190,7 @@ class UpdateThermalModelPartProcess : public Process {
             if (rDomainSize == 2) {
               const Condition& r_reference_condition = KratosComponents<Condition>::Get("ThermalFace2D2N");
               Condition::Pointer p_condition = r_reference_condition.Create(++condition_id, cond_nodes, p_property);
+              p_condition->SetProperties(i_cond->pGetProperties());
               destination_part.Conditions().push_back(p_condition);
               rDestinationModelPart.Conditions().push_back(p_condition);
               rComputingModelPart.Conditions().push_back(p_condition);
@@ -197,6 +198,7 @@ class UpdateThermalModelPartProcess : public Process {
             else if (rDomainSize == 3) {
               const Condition& r_reference_condition = KratosComponents<Condition>::Get("ThermalFace3D3N");
               Condition::Pointer p_condition = r_reference_condition.Create(++condition_id, cond_nodes, p_property);
+              p_condition->SetProperties(i_cond->pGetProperties());
               destination_part.Conditions().push_back(p_condition);
               rDestinationModelPart.Conditions().push_back(p_condition);
               rComputingModelPart.Conditions().push_back(p_condition);
