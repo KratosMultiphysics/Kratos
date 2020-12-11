@@ -58,9 +58,9 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.historical_value = self.params["historical_value"].GetBool()
         self.search_tolerance = self.params["search_tolerance"].GetDouble()
 
-        if self.params["search_configuration"].GetString() == "Initial":
+        if self.params["search_configuration"].GetString() == "initial":
             self.search_configuration = KratosMultiphysics.Configuration.Initial
-        elif self.params["search_configuration"].GetString() == "Current":
+        elif self.params["search_configuration"].GetString() == "current":
             self.search_configuration = KratosMultiphysics.Configuration.Current
         else:
             raise Exception( "Invalid configuration: {configuration} (Expecting 'Initial' or 'Current')".format( configuration=self.params["search_configuration"].GetString()) )
