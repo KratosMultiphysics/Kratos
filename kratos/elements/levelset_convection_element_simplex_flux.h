@@ -211,14 +211,18 @@ public:
             }
         }
 
-        if (norm_2(GetValue(DISTANCE_GRADIENT)) > 1.2*norm_2(grad_phi_mean))
+        /* if (norm_2(GetValue(DISTANCE_GRADIENT)) > 1.0*norm_2(grad_phi_mean))
         { //LO stabilization
             noalias(rLeftHandSideMatrix)  = dt_inv*Ml_matrix - K_matrix + nu_e*S_matrix;
             noalias(rRightHandSideVector) = dt_inv*prod(Ml_matrix,phi_old);// - nu_e*S_vector;
         } else { //HO stabilization
             noalias(rLeftHandSideMatrix)  = dt_inv*Ml_matrix - K_matrix;//+ nu_e*S_matrix;
             noalias(rRightHandSideVector) = dt_inv*prod(Ml_matrix,phi_old) - nu_e*S_vector;
-        }
+        } */
+
+        const double limiter = GetValue(LIMITER_COEFFICIENT);
+        noalias(rLeftHandSideMatrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) - K_matrix + (1.0-limiter)*nu_e*S_matrix;
+        noalias(rRightHandSideVector) = dt_inv*prod((1.0-limiter)*Ml_matrix + limiter*Mc_matrix, phi_old) - limiter*nu_e*S_vector;
 
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);

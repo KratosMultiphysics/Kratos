@@ -118,7 +118,7 @@ public:
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
-        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+        const double dyn_st_beta = 0.0;//rCurrentProcessInfo[DYNAMIC_TAU];
 
 
         //getting data for the given geometry
@@ -193,7 +193,7 @@ public:
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
 
             const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + std::abs(/*beta**/div_v),  1e-2); //the term std::abs(div_v) is added following Pablo Becker's suggestion
-            const double tau = 1.0 / (tau_denom);
+            const double tau = 0.0;//1.0 / (tau_denom);
 
             //terms multiplying dphi/dt (aux1)
             noalias(aux1) += (1.0+tau*beta*div_v)*outer_prod(N, N);
@@ -207,7 +207,7 @@ public:
             //if(norm_2(prod(trans(DN_DX), phi)) > 1.2*norm_2(grad_phi_mean) && norm_grad > 1e-3 && norm_vel > 1e-9)
             //KRATOS_WATCH(norm_2(grad_phi_mean));
             //KRATOS_WATCH(norm_2(GetValue(DISTANCE_GRADIENT)));
-            if(norm_2(GetValue(DISTANCE_GRADIENT)) > 1.2*norm_2(grad_phi_mean) && norm_grad > 1e-3 && norm_vel > 1e-9)
+            if(norm_2(GetValue(DISTANCE_GRADIENT)) > 1.0*norm_2(grad_phi_mean) && norm_grad > 1e-3 && norm_vel > 1e-9)
             {
                 const double C = rCurrentProcessInfo.GetValue(CROSS_WIND_STABILIZATION_FACTOR);
                 const double time_derivative = dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old));
