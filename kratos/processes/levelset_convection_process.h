@@ -291,6 +291,9 @@ public:
                 }
             }
 
+            // Nodal gradient SavedAsHistoricalVariable
+            mProjectedGradientProcess.Execute();
+
 
             // ****************************************************************************************
             // ****************************************************************************************
@@ -298,10 +301,38 @@ public:
             // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
             const double epsilon = 1.0e-6;
             const double power = 3;
+
+            #pragma omp parallel for
+            for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                const auto X_i = it_node->Coordinates();
+                const auto grad_i = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
+
+                double S_plus = 0.0;
+                double S_minus = 0.0;
+
+                for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
+                    j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+
+                    if (it_node->Id() == j_node->Id())
+                        continue;
+
+                    const auto X_j = j_node->Coordinates();
+
+                    S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
+                    S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
+                }
+
+                mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
+                mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
+            }
+
             #pragma omp parallel for
             for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                 auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
                 const double distance_i = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                const auto X_i = it_node->Coordinates();
+                const auto grad_i = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
 
                 double numerator = 0.0;
                 double denominator = 0.0;
@@ -313,9 +344,16 @@ public:
                         continue;
 
                     const double distance_j = j_node->FastGetSolutionStepValue(mrLevelSetVar);
+                    const auto X_j = j_node->Coordinates();
 
-                    numerator += distance_i - distance_j;
-                    denominator += std::abs(distance_i - distance_j);
+                    double beta_ij = 1.0;
+                    if (inner_prod(grad_i, X_i-X_j) > 0)
+                        beta_ij = mSigmaPlus[i_node];
+                    else if (inner_prod(grad_i, X_i-X_j) < 0)
+                        beta_ij = mSigmaMinus[i_node];
+
+                    numerator += beta_ij*(distance_i - distance_j);
+                    denominator += beta_ij*std::abs(distance_i - distance_j);
                 }
 
                 const double fraction = (std::abs(numerator)+epsilon) / (denominator + epsilon);
@@ -366,10 +404,7 @@ public:
             } */
 
 
-            //for (unsigned int iter = 0; iter < 10; ++iter){
-                mProjectedGradientProcess.Execute();
-                mpSolvingStrategy->Solve(); // forward convection to reach phi_n+1
-            //}
+            mpSolvingStrategy->Solve(); // forward convection to reach phi_n+1
 
             if (mBfeccOrder > 0) {// Error Compensation and Correction
                 #pragma omp parallel for
@@ -624,6 +659,8 @@ protected:
     std::vector< double > mError, mErrorTmp;
     std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
 
+    std::vector< double > mSigmaPlus, mSigmaMinus;
+
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     std::string mAuxModelPartName;
@@ -712,6 +749,9 @@ protected:
         mVelocity.resize(n_nodes);
         mVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
+
+        mSigmaPlus.resize(n_nodes);
+        mSigmaMinus.resize(n_nodes);
 
         if (mBfeccOrder > 0){
             mError.resize(n_nodes);
