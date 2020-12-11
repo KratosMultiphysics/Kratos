@@ -839,7 +839,6 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 
@@ -937,7 +936,6 @@ void VtkOutput::WriteVectorContainerVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 
@@ -962,7 +960,6 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 
