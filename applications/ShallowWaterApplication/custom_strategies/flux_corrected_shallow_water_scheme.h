@@ -160,8 +160,8 @@ public:
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
             r_node.GetValue(POSITIVE_FLUX) = ZeroVector(2);
             r_node.GetValue(NEGATIVE_FLUX) = ZeroVector(2);
-            r_node.GetValue(POSITIVE_RATIO) = 0.0;
-            r_node.GetValue(NEGATIVE_RATIO) = 0.0;
+            r_node.GetValue(POSITIVE_RATIO) = 1.0;
+            r_node.GetValue(NEGATIVE_RATIO) = 1.0;
         });
 
         const ProcessInfo& r_const_process_info = rModelPart.GetProcessInfo();
@@ -545,23 +545,20 @@ protected:
         }
 
         // Setting the limiters
-        double pos_ratio = 1.0;
-        double neg_ratio = 1.0;
+        double& pos_ratio = rNode.GetValue(POSITIVE_RATIO); // the variable is initialized to 1.0
+        double& neg_ratio = rNode.GetValue(NEGATIVE_RATIO); // the variable is initialized to 1.0
 
-        for (IndexType l = 0; l < 2; ++l)
+        for (IndexType limiter = 0; limiter < 2; ++limiter)
         {
-            double pos_flux = rNode.GetValue(POSITIVE_FLUX)[0];
-            double neg_flux = rNode.GetValue(NEGATIVE_FLUX)[0];
+            double pos_flux = rNode.GetValue(POSITIVE_FLUX)[limiter];
+            double neg_flux = rNode.GetValue(NEGATIVE_FLUX)[limiter];
             if (pos_flux > 0.0) {
-                pos_ratio = std::min(pos_ratio, max_incr[0] / pos_flux);
+                pos_ratio = std::min(pos_ratio, max_incr[limiter] / pos_flux);
             }
             if (neg_flux < 0.0) {
-                neg_ratio = std::min(neg_ratio, min_decr[0] / neg_flux);
+                neg_ratio = std::min(neg_ratio, min_decr[limiter] / neg_flux);
             }
         }
-
-        rNode.GetValue(POSITIVE_RATIO) = pos_ratio;
-        rNode.GetValue(NEGATIVE_RATIO) = neg_ratio;
     }
 
     template<class EntityType>
