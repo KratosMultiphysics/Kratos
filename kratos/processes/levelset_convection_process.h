@@ -27,6 +27,7 @@
 #include "includes/kratos_flags.h"
 #include "elements/levelset_convection_element_simplex.h"
 #include "elements/levelset_convection_element_simplex_flux.h"
+#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "geometries/geometry_data.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -729,7 +730,7 @@ protected:
         // Generating the elements
         mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplexFlux < TDim, TDim+1 > >(
+            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplexAlgebraicStabilization < TDim, TDim+1 > >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());
