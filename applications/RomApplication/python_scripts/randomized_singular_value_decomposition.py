@@ -9,18 +9,15 @@ class RandomizedSingularValueDecomposition():
         self.USE_RANDOMIZATION = USE_RANDOMIZATION
 
     def Calculate(self, A, e0 = 0):
-        Rsup = min(np.shape( A))
         if self.USE_RANDOMIZATION == False:
             Q='full'
         else:
             Q, B, eORTH, a = self._RandomizedOrthogonalization(A)  #Randomized orthogonalization (machine precision parameter = mu)
-            if type(Q) != str:
-                Rsup = np.shape(Q)[1]
         if len(Q)==0:
             U=S=V=np.array([])
             eSVD=0
         else:
-            if type(Q) == str:
+            if isinstance(Q,str):
                 #A appears to be full rank
                 U,S,V,eSVD = self._SingularValueDecompostionTruncated( A, e0)
             else:
