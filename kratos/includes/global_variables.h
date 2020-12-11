@@ -45,7 +45,7 @@ namespace Globals
     /**
      * @brief Enum for Initial and Current configurations
      */
-    enum struct Configuration
+    enum class Configuration
     {
         Initial = 0,
         Current = 1
