@@ -21,7 +21,7 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
 
     ## Calculate the viscous stress tensor
     mu = params["mu"] # Dynamic viscosity
-    beta = -2.0 * mu / 3.0 # Bulk viscosity (Stoke's assumption)
+    beta = 0.0 # Null bulk viscosity (Stoke's assumption)
     tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
 
     ## Calculate the heat flux vector
@@ -59,7 +59,7 @@ def ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(dofs, dUdx, params, beta_
     ## Calculate the viscous stress tensor
     mu = params["mu"] # Dynamic viscosity
     mu += mu_sc # Artificial dynamic viscosity
-    beta = -2.0 * mu / 3.0 # Bulk viscosity (Stoke's assumption)
+    beta = 0.0 # Null physical bulk viscosity (Stoke's assumption)
     beta += beta_sc # Artificial bulk viscosity
     tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
 
@@ -100,8 +100,8 @@ def CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx):
             dv2_dx1 = (dUdx[d2 + 1, d1] * rho - mom[d2] * dUdx[0,d1]) / rho**2
             tau_stress[d1, d2] = mu * (dv1_dx2 + dv2_dx1)
             if d1 == d2:
-                tau_stress[d1, d2] += beta * div_vel
-                # tau_stress[d1, d2] += (-2.0 * mu / 3.0) * div_vel
+                # Note that in here the second viscosity coefficient is computed as the bulk viscosity minus 2/3 of the dynamic one
+                tau_stress[d1, d2] += (beta - 2.0 * mu / 3.0) * div_vel
 
     return tau_stress
 
