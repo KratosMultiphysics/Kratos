@@ -56,7 +56,7 @@ NewtonianTemperatureDependent2DLaw::~NewtonianTemperatureDependent2DLaw()
 int NewtonianTemperatureDependent2DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
 

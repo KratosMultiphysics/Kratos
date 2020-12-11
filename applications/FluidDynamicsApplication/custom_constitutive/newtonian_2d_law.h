@@ -95,7 +95,10 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output
@@ -159,4 +162,4 @@ private:
 
 }; // Class Newtonian2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED  defined

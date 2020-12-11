@@ -82,7 +82,7 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 int Newtonian2DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     // Check DYNAMIC_VISCOSITY variable
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
