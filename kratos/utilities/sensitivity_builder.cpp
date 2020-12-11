@@ -143,7 +143,7 @@ void GetDataFromVector(
     KRATOS_TRY
 
     KRATOS_DEBUG_ERROR_IF(rValues.size() <= Position)
-        << "rValues vector size mismatch [ rValues.size() = " << rValues.size()
+        << "rValues vector size mismatch in double type [ rValues.size() = " << rValues.size()
         << ", required size > " << Position << " ].\n";
 
     KRATOS_DEBUG_ERROR_IF(OutputSize != 1)
@@ -164,9 +164,12 @@ void GetDataFromVector(
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(rValues.size() <= Position + OutputSize)
-        << "rValues vector size mismatch [ rValues.size() = " << rValues.size()
-        << ", required size > " << (Position + OutputSize) << " ].\n";
+    KRATOS_DEBUG_ERROR_IF(rValues.size() < Position + OutputSize)
+        << "rValues vector size mismatch in array_1d<double, 3> type [ "
+           "rValues.size() = "
+        << rValues.size() << ", required size >= " << (Position + OutputSize)
+        << ", requested position = " << Position
+        << ", requested OutputSize = " << OutputSize << " ].\n";
 
     KRATOS_DEBUG_ERROR_IF(OutputSize > 3)
         << "OutputSize should be less than or equal to 3 [ OutputSize = " << OutputSize
@@ -214,8 +217,8 @@ void AssembleContainerContributions(
 
                 const IndexType data_size = sensitivities.size() / gp_vector.size();
 
-                for (IndexType i = 0; i < sensitivities.size(); ++i) {
-                    GetDataFromVector(sensitivities, i, data_size, data);
+                for (IndexType i = 0; i < gp_vector.size(); ++i) {
+                    GetDataFromVector(sensitivities, i * data_size, data_size, data);
                     rProxy.Assign(gp_vector(i), data);
                 }
             }
@@ -532,6 +535,8 @@ void SensitivityBuilder::CalculateNodalSolutionStepSensitivities(
 
     const auto& r_variables_list = GetVariableLists(rVariables);
     ResidualBasedSensitivityBuilderScheme scheme;
+
+    scheme.Initialize(rModelPart, rModelPart, rResponseFunction);
 
     CalculateNodalSolutionStepSensitivities(
         r_variables_list, rModelPart, rResponseFunction, scheme, ScalingFactor);
