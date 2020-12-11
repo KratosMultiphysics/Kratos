@@ -85,24 +85,5 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDt, FluidDynamicsApplicatio
     KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesCalculateLocalCFL, FluidDynamicsApplicationFastSuite)
-{
-    // Set the current delta time to calculate the CFL number
-    const double current_dt = 1.0e-1;
-
-    // Create the test model part
-    Model model;
-    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
-    Internals::TestEstimateDtUtilitiesInitializeModelPart(r_model_part, current_dt);
-
-    // Calculate the CFL number for each element
-    EstimateDtUtility::CalculateLocalCFL(r_model_part);
-
-    // Check results
-    const double tolerance = 2.0e-6;
-    KRATOS_CHECK_NEAR(r_model_part.GetElement(1).GetValue(CFL_NUMBER), 0.186339, tolerance);
-    KRATOS_CHECK_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 0.792324, tolerance);
-}
-
 }
 }
