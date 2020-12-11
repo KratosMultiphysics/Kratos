@@ -198,11 +198,20 @@ class RestartUtility(object):
         if restart_path.is_dir():
             for entry in restart_path.glob("**/*"):
                 if entry.is_file() and self.__IsRestartFile( entry.name ):
-                    label = self.__ExtractFileLabel(entry.name) # Get process ID and step ID
-                    if label[1] in restart_files:               # Check if this step has entries already
-                        restart_files[label[1]].append( entry.name )
+
+                    # Get step id
+                    file_name_data = self.__ExtractFileLabel( entry.name )
+                    if self.restart_control_type_is_time:
+                        step_id = file_name_data.GetTime()
                     else:
-                        restart_files[label[1]] = [ entry.name ]
+                        step_id = file_name_data.GetStep()
+
+                    # Check if this step has entries already,
+                    # and add the file to the list of tracked files
+                    if step_id in restart_files:
+                        restart_files[step_id].append( entry.name )
+                    else:
+                        restart_files[step_id] = [ entry.name ]
 
         return restart_files
 
@@ -275,6 +284,16 @@ class RestartUtility(object):
             return True
         return False
 
+    def __GetFileNamePattern( self ):
+        """Return the pattern of flags in the file name for FileNameDataCollector"""
+        file_name_pattern = "<model_part_name>"
+        if self.restart_control_type_is_time:
+            file_name_pattern += "_<time>"
+        else:
+            file_name_pattern += "_<step>"
+        file_name_pattern += ".step"
+        return file_name_pattern
+
     def __ExtractFileLabel(self, file_name):
         """
         Return a list of labels attached to a file name (list entries separated by '_').
@@ -284,7 +303,18 @@ class RestartUtility(object):
         The returned list always has 2 entries, but the first component will be '' for
         serial execution.
         """
-        label_begin = file_name.find(self.raw_file_name + '_') + len(self.raw_file_name + '_')
-        label_end   = file_name.find('.rest')
-        labels      = [ '' ] + file_name[label_begin:label_end].split('_')      # <-- no process_id in serial
-        return labels
+
+        # Get file name string (without path)
+        file_name = str( Path(file_name).name )
+
+        # Extract labels from the file name
+        file_name_data_collector = KratosMultiphysics.FileNameDataCollector( self.model_part,
+                                                                             self.__GetFileNamePattern(),
+                                                                             {} )
+        file_name_data = KratosMultiphysics.FileNameDataCollector.FileNameData()
+
+        file_name_data_collector.RetrieveFileNameData( file_name_data, file_name )
+
+        print( file_name_data )
+
+        return file_name_data
