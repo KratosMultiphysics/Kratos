@@ -272,7 +272,7 @@ void UpdatedLagrangianSegregatedFluidElement::FinalizeSolutionStep( ProcessInfo&
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::GetValuesVector( Vector& rValues, int Step )
+void UpdatedLagrangianSegregatedFluidElement::GetValuesVector( Vector& rValues, int Step ) const
 {
   const SizeType number_of_nodes = GetGeometry().size();
   const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
@@ -316,7 +316,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetValuesVector( Vector& rValues, 
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void UpdatedLagrangianSegregatedFluidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
   const SizeType number_of_nodes = GetGeometry().size();
   const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
@@ -358,7 +358,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFirstDerivativesVector( Vector&
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void UpdatedLagrangianSegregatedFluidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
   const SizeType number_of_nodes = GetGeometry().size();
   const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
@@ -896,7 +896,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateDampingMatrix( MatrixType
 //************************************************************************************
 //************************************************************************************
 
-unsigned int UpdatedLagrangianSegregatedFluidElement::GetDofsSize()
+unsigned int UpdatedLagrangianSegregatedFluidElement::GetDofsSize() const
 {
   KRATOS_TRY
 
