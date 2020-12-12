@@ -57,7 +57,7 @@ public:
 	///@name Life Cycle
 	///@{
 
-    /// Constructor
+    /// Constructor for CFD-based time step estimation
     /**
      * @param ModelPart The model part containing the problem mesh
      * @param CFL The user-defined Courant-Friedrichs-Lewy number
@@ -74,6 +74,42 @@ public:
         mCFL = CFL;
         mDtMin = DtMin;
         mDtMax = DtMax;
+        mPecletViscosity = 0.0;
+        mPecletConductivity = 0.0;
+        mConsiderArtificialDiffusion = false;
+
+        SetDtEstimationMagnitudesFlag();
+    }
+
+    /// Complete constructor
+    /**
+     * @param ModelPart The model part containing the problem mesh
+     * @param CFL The user-defined Courant-Friedrichs-Lewy number
+     * @param PecletViscosity The user-defined viscosity Peclet number
+     * @param PecletConductivity The user-defined thermal conductivity Peclet number
+     * @param DtMin user-defined minimum time increment allowed
+     * @param DtMax user-defined maximum time increment allowed
+     */
+    EstimateDtUtility(
+        ModelPart &ModelPart,
+        const double CFL,
+        const double PecletViscosity,
+        const double PecletConductivity,
+        const bool ConsiderArtificialDiffusion,
+        const bool NodalDensityFormulation,
+        const double DtMin,
+        const double DtMax)
+        : mrModelPart(ModelPart)
+    {
+        mCFL = CFL;
+        mDtMin = DtMin;
+        mDtMax = DtMax;
+        mPecletViscosity = PecletViscosity;
+        mPecletConductivity = PecletConductivity;
+        mConsiderArtificialDiffusion = ConsiderArtificialDiffusion;
+        mNodalDensityFormulation = NodalDensityFormulation;
+
+        SetDtEstimationMagnitudesFlag();
     }
 
     /// Constructor with Kratos parameters
@@ -87,17 +123,27 @@ public:
         : mrModelPart(ModelPart)
     {
         Parameters defaultParameters(R"({
-            "automatic_time_step"   : true,
-            "CFL_number"            : 1.0,
-            "minimum_delta_time"    : 1e-4,
-            "maximum_delta_time"    : 0.1
+            "automatic_time_step"           : true,
+            "CFL_number"                    : 1.0,
+            "Peclet_number_viscosity"       : 0.0,
+            "Peclet_number_conductivity"    : 0.0,
+            "consider_artificial_diffusion" : false,
+            "nodal_density_formulation"     : false,
+            "minimum_delta_time"            : 1e-4,
+            "maximum_delta_time"            : 0.1
         })");
 
         rParameters.ValidateAndAssignDefaults(defaultParameters);
 
         mCFL = rParameters["CFL_number"].GetDouble();
+        mPecletViscosity = rParameters["Peclet_number_viscosity"].GetDouble();
+        mPecletConductivity = rParameters["Peclet_number_conductivity"].GetDouble();
+        mConsiderArtificialDiffusion = rParameters["consider_artificial_diffusion"].GetBool();
+        mNodalDensityFormulation = rParameters["nodal_density_formulation"].GetBool();
         mDtMin = rParameters["minimum_delta_time"].GetDouble();
         mDtMax = rParameters["maximum_delta_time"].GetDouble();
+
+        SetDtEstimationMagnitudesFlag();
     }
 
     /// Destructor
@@ -114,6 +160,20 @@ public:
      * @param CFL Tue user-defined maximum CFL number
      */
     void SetCFL(const double CFL);
+
+    /**
+     * @brief Set the maximum viscosity Peclet value allowed
+     * This method allows setting the maximum user-defined viscosity Peclet number
+     * @param PecletViscosity Tue user-defined maximum viscosity Peclet number
+     */
+    void SetPecletViscosity(const double PecletViscosity);
+
+    /**
+     * @brief Set the maximum conductivity Peclet value allowed
+     * This method allows setting the maximum user-defined thermal conductivity Peclet number
+     * @param PecletConductivity Tue user-defined maximum conductivity Peclet number
+     */
+    void SetPecletConductivity(const double PecletConductivity);
 
     /**
      * @brief Set the minimum time step value allowed
@@ -141,13 +201,27 @@ public:
 
 private:
 
+    ///@name Type definitions
+    ///@{
+
+    /// Local flags to determine the magnitudes for the Dt estimation
+    KRATOS_DEFINE_LOCAL_FLAG(CFL_ESTIMATION);
+    KRATOS_DEFINE_LOCAL_FLAG(PECLET_VISCOSITY_ESTIMATION);
+    KRATOS_DEFINE_LOCAL_FLAG(PECLET_CONDUCTIVITY_ESTIMATION);
+
+	///@}
     ///@name Member Variables
     ///@{
 
-    double    mCFL;         // User-defined CFL number
-    double    mDtMax;       // User-defined maximum time increment allowed
-    double    mDtMin;       // User-defined minimum time increment allowed
-    ModelPart &mrModelPart; // The problem's model part
+    double    mCFL;                         // User-defined CFL number
+    double    mPecletViscosity;             // User-defined viscosity Peclet number 
+    double    mPecletConductivity;          // User-defined conductivity Peclet number
+    bool      mConsiderArtificialDiffusion; // Speficies if the artificial diffusion values are considered in the Peclet numbers
+    bool      mNodalDensityFormulation;     // Specifies if the density is nodally stored (only required for the Peclet number)
+    double    mDtMax;                       // User-defined maximum time increment allowed
+    double    mDtMin;                       // User-defined minimum time increment allowed
+    Flags     mDtEstimationMagnitudesFlags; // Flags indicating the reference magnitudes used in the Dt estimation
+    ModelPart &mrModelPart;                 // The problem's model part
 
 	///@}
 	///@name Serialization
@@ -158,7 +232,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    
+    void SetDtEstimationMagnitudesFlag();
+
+    template<const bool ConsiderCFL, const bool ConsiderPecletViscosity, const bool ConsiderPecletConductivity, const bool NodalDensityFormulation = false>
+    double InternalEstimateDt() const;
+
     ///@} // Private Operations
 };
 

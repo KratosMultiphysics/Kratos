@@ -85,5 +85,33 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDt, FluidDynamicsApplicatio
     KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDtComplete, FluidDynamicsApplicationFastSuite)
+{
+    // Set an extremely large current delta time to obtain a large CFL number
+    const double current_dt = 1.0;
+
+    // Create the test model part
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    Internals::TestEstimateDtUtilitiesInitializeModelPart(r_model_part, current_dt);
+
+    // Estimate the delta time
+    Parameters estimate_dt_settings = Parameters(R"({
+        "automatic_time_step"        : true,
+        "CFL_number"                 : 1.0,
+        "Peclet_number_viscosity"    : 1.0,
+        "Peclet_number_conductivity" : 1.0,
+        "minimum_delta_time"         : 1e-4,
+        "maximum_delta_time"         : 1e+1
+    })");
+    const auto estimate_dt_utility = EstimateDtUtility(r_model_part, estimate_dt_settings);
+    const double obtained_dt = estimate_dt_utility.EstimateDt();
+
+    // Check results
+    const double expected_dt = 0.126211;
+    const double tolerance = 2.0e-6;
+    KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
+}
+
 }
 }
