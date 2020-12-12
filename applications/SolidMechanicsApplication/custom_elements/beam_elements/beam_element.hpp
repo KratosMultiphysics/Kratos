@@ -371,17 +371,17 @@ public:
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     //on integration points:
     /**
@@ -642,7 +642,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    virtual unsigned int GetDofsSize();
+    virtual unsigned int GetDofsSize() const;
 
     /**
      * Initialize System Matrices
