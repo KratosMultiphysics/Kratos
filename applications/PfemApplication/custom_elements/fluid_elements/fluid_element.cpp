@@ -2389,7 +2389,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
 //************************************************************************************
 //************************************************************************************
 
-int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
