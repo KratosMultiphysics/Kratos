@@ -14,13 +14,14 @@ except ImportError as e:
 
 class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
-    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False):
+    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
         super().__init__()
         self.ECM_tolerance = ECM_tolerance
         self.SVD_tolerance = SVD_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
         self.Take_into_account_singular_values = Take_into_account_singular_values
+        self.Plotting = Plotting
 
     def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
         super().SetUp()
@@ -130,7 +131,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
         print(f'Total number of iterations = {k}')
 
-        if missing_matplotlib == False:
+        if missing_matplotlib == False and self.Plotting == True:
             plt.plot(NPOINTS[0], ERROR_GLO[0])
             plt.title('Element Selection Error Evolution')
             plt.xlabel('Number of elements')
