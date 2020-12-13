@@ -52,7 +52,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
         self.W = np.ones(np.shape(u)[0])
         if self.Take_into_account_singular_values == True:
-            G = u[...,:] * np.ones(len(s))
+            G = u*s
             G = G.T
             G = np.vstack([ G , np.ones( np.shape(G)[1] )]  )
             b = G @ self.W
