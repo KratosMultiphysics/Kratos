@@ -2,9 +2,13 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 #import python packages
-from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-import numpy as np
-import numpy.matlib
+try:
+    import numpy as np
+    import numpy.matlib
+    from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+    numpy_available = True
+except:
+    numpy_available = False
 
 def synthetic_matrix(degree, rows = 100,repetitions=20):
     TestMatrix = np.zeros((rows,degree))
@@ -15,6 +19,7 @@ def synthetic_matrix(degree, rows = 100,repetitions=20):
 
 class TestRandomizedSVD(KratosUnittest.TestCase):
 
+    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
     def test_radomized_svd(self):
 
         svd_truncation_tolerance = 1e-5
