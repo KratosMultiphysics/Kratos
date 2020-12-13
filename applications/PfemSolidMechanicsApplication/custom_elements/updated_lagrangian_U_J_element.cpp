@@ -296,7 +296,7 @@ namespace Kratos
    // **************************************************************************
    // **************************************************************************
 
-   UpdatedLagrangianUJElement::SizeType UpdatedLagrangianUJElement::GetDofsSize()
+   UpdatedLagrangianUJElement::SizeType UpdatedLagrangianUJElement::GetDofsSize() const
    {
       KRATOS_TRY
 

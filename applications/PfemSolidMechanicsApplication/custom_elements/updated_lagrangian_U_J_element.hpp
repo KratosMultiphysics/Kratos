@@ -276,7 +276,7 @@ namespace Kratos
          /**
           * Get element size from the dofs
           */
-         virtual SizeType GetDofsSize() override;
+         virtual SizeType GetDofsSize() const override;
 
          /**
           * Calculates the elemental contributions
