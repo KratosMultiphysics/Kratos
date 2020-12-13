@@ -1,14 +1,39 @@
 import numpy as np
 
 class RandomizedSingularValueDecomposition():
+    """
+    This class calculates the singular value decomposition of a matrix A (A = U@np.diag(S)@V.T + Error(truncation_tolerance)) using a randomized algorithm
+    Reference: Halko et al 2009. "Finding structure with randomness: Probabilistic algorithms for constructing approximate matrix decompositions"
+    """
 
+
+
+    """
+    Constructor setting up the parameters for calculation of the SVD
+        COMPUTE_U: whether to return the matrix of left singular vectors U
+        COMPUTE_V: whether to return the matrix of right singular vectors V
+        RELATIVE_SVD: If true, the truncation_tolerance is multiplied by the norm of the original matrix
+                    If false, the truncation_tolerance is taken as an absolute error tolerance
+        USE_RANDOMIZATION: If false, the standard svd algorith of numpy is followed
+    """
     def __init__(self, COMPUTE_U=True, COMPUTE_V=True, RELATIVE_SVD=True, USE_RANDOMIZATION=True):
         self.COMPUTE_U = COMPUTE_U
         self.COMPUTE_V = COMPUTE_V
         self.RELATIVE_SVD = RELATIVE_SVD
         self.USE_RANDOMIZATION = USE_RANDOMIZATION
 
-    def Calculate(self, A, e0 = 0):
+
+
+    """
+    Method for calculating the SVD
+    input:  A: numpy array containing the matrix to decompose
+            truncation_tolerance: this parameter is employed (as is or multiplied by the norm of A, depending on self.RELATIVE_SVD) to truncate the approximation
+    output: U: numpy array containing the matrix of left singular vectors
+            S: numpy array containing the matrix of singular values
+            V: numpy array containing the matrix of right singular vectors
+            eSVD : estimation of the error of the approximation
+    """
+    def Calculate(self, A, truncation_tolerance = 0):
         if self.USE_RANDOMIZATION == False:
             Q='full'
         else:
@@ -19,14 +44,14 @@ class RandomizedSingularValueDecomposition():
         else:
             if isinstance(Q,str):
                 #A appears to be full rank
-                U,S,V,eSVD = self._SingularValueDecompostionTruncated( A, e0)
+                U,S,V,eSVD = self._SingularValueDecompostionTruncated( A, truncation_tolerance)
             else:
-                if self.RELATIVE_SVD==1 and e0>0:
-                    e0 = e0*a
-                if e0 > eORTH:
-                    e=np.sqrt(e0**2 - eORTH**2)
+                if self.RELATIVE_SVD==1 and truncation_tolerance>0:
+                    truncation_tolerance = truncation_tolerance*a
+                if truncation_tolerance > eORTH:
+                    e=np.sqrt(truncation_tolerance**2 - eORTH**2)
                 else:
-                    e=e0
+                    e=truncation_tolerance
                 self.RELATIVE_SVD = 0
                 self.SVD_MaxSize = max(np.shape(A))
                 U,S,V,eSVDb = self._SingularValueDecompostionTruncated(B, e )
@@ -35,12 +60,24 @@ class RandomizedSingularValueDecomposition():
 
         return U,S,V,eSVD
 
+
+
+    """
+    Method for obtaining an othonormal basis for the range of the matrix to decompose (stage A, from reference Halko et al 2009 )
+    input:  C: numpy array containing the matrix from which the orthonornal basis will be obtained
+            mu: machine precision parameter, if not specified it is estimated
+            R: estimation for the rank of C, if not specified it is estimated
+    output: Q: numpy array containing the orthonormal basis such that norm(C - Q@Q.T@C) <= mu
+            B: numpy array Q.T@C
+            nC: numpy array estimation of the orthogonalization error
+            c : norm of C
+    """
     def _RandomizedOrthogonalization(self, C , mu=0, R=0):
 
         M,N=np.shape(C) # C has dimensions M by N
         c = nC = np.linalg.norm(C, 'fro')  # Norm of the initial residual
         if mu==0:
-            mu = max(M,N)*np.finfo(float).eps*nC/2  # Machine presicion parameter
+            mu = max(M,N)*np.finfo(float).eps*nC/2  # Machine precision parameter
 
         dRmax = np.ceil(0.25*(min(M,N)))
         dRmin = min(1,min(M,N))
@@ -113,6 +150,16 @@ class RandomizedSingularValueDecomposition():
 
         return Q, B, nC, c
 
+
+    """
+    Method for calculating a truncated version of numpy's svd
+    input:  B: numpy array containing a matrix to decompose
+            epsilon: truncation tolerance for the svd
+    output: U: numpy array containing the matrix of left singular vectors. If self.COMPUTE_U=False ==> U = np.nan
+            S: numpy array containing the matrix of singular values
+            V: numpy array containing the matrix of right singular vectors. If self.COMPUTE_V=False ==> V = np.nan
+            eSVD : estimation of the error of the approximation
+    """
     def _SingularValueDecompostionTruncated(self, B, epsilon = 0):
 
         M,N=np.shape(B)
