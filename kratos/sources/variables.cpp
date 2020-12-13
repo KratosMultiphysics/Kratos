@@ -458,7 +458,6 @@ KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 
 void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterDeprecatedVariables();
-    KratosApplication::RegisterC2CVariables();      //TODO: move to application
     KratosApplication::RegisterCFDVariables();      //TODO: move to application
     KratosApplication::RegisterALEVariables();      //TODO: move to application
     KratosApplication::RegisterMappingVariables();  //TODO: move to application
