@@ -2,8 +2,12 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 #import python packages
-from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
-import numpy as np
+try:
+    import numpy as np
+    from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
+    numpy_available = True
+except:
+    numpy_available = False
 
 def synthetic_matrix(degree, rows = 100):
     TestMatrix = np.zeros((rows,degree+1))
@@ -14,6 +18,7 @@ def synthetic_matrix(degree, rows = 100):
 
 class TestEmpiricalCubatureMethod(KratosUnittest.TestCase):
 
+    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
     def test_empirical_cubature_method(self):
 
         for degree in range(5,10):
