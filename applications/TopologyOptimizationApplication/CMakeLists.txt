@@ -2,13 +2,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosTopologyOptimizationApplication ****")
 
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
-
 ################### PYBIND11
 include(pybind11Tools)
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
-include_directories( ${KRATOS_SOURCE_DIR}/applications/StructualMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/TopologyOptimizationApplication )
 
 ## TopologyOptimization core sources
@@ -25,7 +25,7 @@ set( KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosTopologyOptimizationCore SHARED ${KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_CORE})
-target_link_libraries(KratosTopologyOptimizationCore PUBLIC KratosCore)
+target_link_libraries(KratosTopologyOptimizationCore PRIVATE KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosTopologyOptimizationCore PROPERTIES COMPILE_DEFINITIONS "TOPOLOGY_OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################

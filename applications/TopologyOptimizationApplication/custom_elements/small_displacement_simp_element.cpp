@@ -11,59 +11,63 @@
 // ==============================================================================
 
 // Application includes
-#include "small_displacement_simp_element.hpp"
 
+#include "small_displacement_simp_element.hpp"
+#include "compairson_utilities.hpp" ///nicht mehr vorhanden auf momentanem Stand von Kratos --> muss neue Verknüpfung gefunden werden, vorerst wird diese verwendet. Auch soli_mechanics_math_utilities
 #include "topology_optimization_application.h"
-#include "compairson_utilities.hpp"
-#include "base_solid_element.h"
+#include "custom_elements/small_displacement.h"
+
 
 namespace Kratos
 {
+
+// =============================================================================================================================================
+// CONSTRUCTOR
+// =============================================================================================================================================
+
 SmallDisplacementSIMPElement::SmallDisplacementSIMPElement( IndexType NewId, GeometryType::Pointer pGeometry )
-    : BaseSolidElement( NewId, pGeometry )
+: SmallDisplacement( NewId, pGeometry )
 {
-    //DO NOT ADD DOFS HERE!!!
+	//DO NOT ADD DOFS HERE!!!
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+
+// =============================================================================================================================================
+// CONSTRUCTOR
+// =============================================================================================================================================
 
 SmallDisplacementSIMPElement::SmallDisplacementSIMPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-        : BaseSolidElement( NewId, pGeometry, pProperties )
+: SmallDisplacement( NewId, pGeometry, pProperties )
 {
-    //DO NOT ADD DOFS HERE!!!
+	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
 
-Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
-{
-    return Kratos::make_intrusive<SmallDisplacementSIMPElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
-}
+// =============================================================================================================================================
+// COPY CONSTRUCTOR
+// =============================================================================================================================================
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
-{
-    return Kratos::make_intrusive<SmallDisplacementSIMPElement>( NewId, pGeom, pProperties );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-SmallDisplacementSIMPElement::~SmallDisplacementSIMPElement()
+SmallDisplacementSIMPElement::SmallDisplacementSIMPElement( SmallDisplacementSIMPElement const& rOther)
+:SmallDisplacement(rOther)
 {
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
 
-Element::Pointer SmallDisplacementSIMPElement::Clone (
-    IndexType NewId,
-    NodesArrayType const& rThisNodes
-    ) const
+// =============================================================================================================================================
+// OPERATIONS
+// =============================================================================================================================================
+
+Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+{
+	return Element::Pointer( new SmallDisplacementSIMPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+}
+
+
+// =============================================================================================================================================
+// CLONE
+// =============================================================================================================================================
+
+Element::Pointer SmallDisplacementSIMPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
 	SmallDisplacementSIMPElement NewElement ( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
@@ -84,11 +88,13 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 	return Element::Pointer( new SmallDisplacementSIMPElement(NewElement) );
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// =============================================================================================================================================
+// DESTRUCTOR
+// =============================================================================================================================================
 
-
-
+SmallDisplacementSIMPElement::~SmallDisplacementSIMPElement()
+{
+}
 
 
 // =============================================================================================================================================
@@ -211,11 +217,10 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 	if (rOutput.size() != integration_points_number)
 		rOutput.resize(integration_points_number, false);
 
-	if (rVariable == VON_MISES_STRESS) {
+///	if (rVariable == VON_MISES_STRESS) {
 		//create and initialize element variables:
-		ElementDataType Variables;
-		this->InitializeElementData(Variables, rCurrentProcessInfo);
-
+		// ElementType Variables;
+	/* 	this->InitializeElementData(Variables, rCurrentProcessInfo);
 		//create constitutive law parameters:
 		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
 				rCurrentProcessInfo);
@@ -228,7 +233,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 		for (unsigned int PointNumber = 0;
 				PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
 			//compute element kinematics B, F, DN_DX ...
-			this->CalculateKinematics(Variables, PointNumber);
+			this->CalculateKinematicVariables( Variables, PointNumber);
 
 			//set general variables to constitutivelaw parameters
 			this->SetElementData(Variables, Values, PointNumber);
@@ -241,10 +246,10 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 			rOutput[PointNumber] = EquivalentStress.CalculateVonMises(
 					Variables.StressVector);
 		}
-	}
+	} */
 
 	// Additional part for post-processing of the topology optimized model part
-	else if (rVariable == X_PHYS)
+	if (rVariable == X_PHYS)
 	{
 		for (unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++)
 			rOutput[PointNumber] = this->GetValue(X_PHYS);
@@ -265,15 +270,12 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 
 void SmallDisplacementSIMPElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement);
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacement )
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void SmallDisplacementSIMPElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement);
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacement )
 }
 
 } // Namespace Kratos
