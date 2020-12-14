@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_conditions/base_load_condition.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -319,6 +320,14 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     }
 
     return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool BaseLoadCondition::HasRotDof() const
+{
+    return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
 }
 
 /***********************************************************************************/
