@@ -34,12 +34,12 @@ class DistributedRestartUtility(RestartUtility):
         if self.set_mpi_communicator:
             KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart()).Execute()
 
-    def __GetFileNamePattern( self ):
+    def _GetFileNamePattern( self ):
         """Return the pattern of flags in the file name for FileNameDataCollector"""
         file_name_pattern = "<model_part_name>_<rank>"
         if self.restart_control_type_is_time:
             file_name_pattern += "_<time>"
         else:
             file_name_pattern += "_<step>"
-        file_name_pattern += ".step"
+        file_name_pattern += ".rest"
         return file_name_pattern

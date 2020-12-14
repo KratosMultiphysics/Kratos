@@ -196,22 +196,23 @@ class RestartUtility(object):
         restart_path    = Path( self.__GetFolderPathSave() )
         restart_files   = {}
         if restart_path.is_dir():
-            for entry in restart_path.glob("**/*"):
-                if entry.is_file() and self.__IsRestartFile( entry.name ):
 
-                    # Get step id
-                    file_name_data = self.__ExtractFileLabel( entry.name )
-                    if self.restart_control_type_is_time:
-                        step_id = file_name_data.GetTime()
-                    else:
-                        step_id = file_name_data.GetStep()
+            file_name_data_collector = KratosMultiphysics.FileNameDataCollector( self.model_part, self._GetFileNamePattern(), {} )
+            file_name_data_list = file_name_data_collector.GetFileNameDataList()
 
-                    # Check if this step has entries already,
-                    # and add the file to the list of tracked files
-                    if step_id in restart_files:
-                        restart_files[step_id].append( entry.name )
-                    else:
-                        restart_files[step_id] = [ entry.name ]
+            for file_name_data in file_name_data_list:
+                # Get step id
+                if self.restart_control_type_is_time:
+                    step_id = file_name_data.GetTime()
+                else:
+                    step_id = file_name_data.GetStep()
+
+                # Check if this step has entries already,
+                # and add the file to the list of tracked files
+                if step_id in restart_files:
+                    restart_files[step_id].append( file_name_data.GetName() )
+                else:
+                    restart_files[step_id] = [ file_name_data.GetName() ]
 
         return restart_files
 
@@ -244,6 +245,16 @@ class RestartUtility(object):
     def _ExecuteAfterLoad(self):
         """This function creates the communicators in MPI/trilinos"""
         pass
+
+    def _GetFileNamePattern( self ):
+        """Return the pattern of flags in the file name for FileNameDataCollector"""
+        file_name_pattern = "<model_part_name>"
+        if self.restart_control_type_is_time:
+            file_name_pattern += "_<time>"
+        else:
+            file_name_pattern += "_<step>"
+        file_name_pattern += ".rest"
+        return file_name_pattern
 
     #### Private functions ####
 
@@ -284,16 +295,6 @@ class RestartUtility(object):
             return True
         return False
 
-    def __GetFileNamePattern( self ):
-        """Return the pattern of flags in the file name for FileNameDataCollector"""
-        file_name_pattern = "<model_part_name>"
-        if self.restart_control_type_is_time:
-            file_name_pattern += "_<time>"
-        else:
-            file_name_pattern += "_<step>"
-        file_name_pattern += ".step"
-        return file_name_pattern
-
     def __ExtractFileLabel(self, file_name):
         """
         Return a list of labels attached to a file name (list entries separated by '_').
@@ -309,7 +310,7 @@ class RestartUtility(object):
 
         # Extract labels from the file name
         file_name_data_collector = KratosMultiphysics.FileNameDataCollector( self.model_part,
-                                                                             self.__GetFileNamePattern(),
+                                                                             self._GetFileNamePattern(),
                                                                              {} )
         file_name_data = KratosMultiphysics.FileNameDataCollector.FileNameData()
 
