@@ -71,7 +71,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             if self.SolverSolvesAtThisTime(solver_name):
                 solver.InitializeSolutionStep()
 
-        for coupling_op in self.coupling_operations_dict.values():
         for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
             if self.__CouplingOpActsNow(coupling_op_name):
                 coupling_op.InitializeSolutionStep()
