@@ -6,6 +6,10 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 # Import the mechanical solver base class
 import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
 
+def KratosPrintInfo(message):
+    KratosMultiphysics.Logger.Print(message, label="")
+    KratosMultiphysics.Logger.Flush()
+
 def CreateSolver(main_model_part, custom_settings, DEMStrategy = None):
     return ImplicitMechanicalSolver(main_model_part, custom_settings, DEMStrategy)
 
@@ -84,14 +88,14 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                     if self.settings["time_integration_method"].GetString() == "Implicit":
                         mechanical_solver = self._create_newton_raphson_strategy()
                     else:
-                        print("  ______            _ _      _ _   ")
-                        print(" |  ____|          | (_)    (_) |  ")
-                        print(" | |__  __  ___ __ | |_  ___ _| |_ ")
-                        print(" |  __| \ \/ / '_ \| | |/ __| | __|")
-                        print(" | |____ >  <| |_) | | | (__| | |_ ")
-                        print(" |______/_/\_\ .__/|_|_|\___|_|\__| FEM-DEM version")
-                        print("             | |                   ")
-                        print("             |_|                   ")
+                        KratosPrintInfo("  ______            _ _      _ _   " + "\n"
+                                        " |  ____|          | (_)    (_) |  " +"\n"
+                                        " | |__  __  ___ __ | |_  ___ _| |_ " +"\n"
+                                        " |  __| \ \/ / '_ \| | |/ __| | __|" +"\n"
+                                        " | |____ >  <| |_) | | | (__| | |_ " +"\n"
+                                        " |______/_/\_\ .__/|_|_|\___|_|\__| FEM-DEM version" +"\n"
+                                        "             | |                   " +"\n"
+                                        "             |_|                   ")
                         mechanical_solver = self._create_explicit_strategy()
                 else:
                     mechanical_solver = self._create_DEM_coupled_newton_raphson_strategy(self.DEMStrategy)
@@ -136,19 +140,6 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                                             self.settings["compute_reactions"].GetBool(),
                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                             self.settings["move_mesh_flag"].GetBool())
-    # def _create_newton_raphson_hexaedrons_strategy(self):
-    #     computing_model_part = self.GetComputingModelPart()
-    #     mechanical_scheme = self._get_solution_scheme()
-    #     linear_solver = self._get_linear_solver()
-    #     mechanical_convergence_criterion = self._get_convergence_criterion()
-    #     return KratosFemDem.HexahedraNewtonRaphsonStrategy(computing_model_part,
-    #                                                                  mechanical_scheme,
-    #                                                                  linear_solver,
-    #                                                                  mechanical_convergence_criterion,
-    #                                                                  self.settings["max_iteration"].GetInt(),
-    #                                                                  self.settings["compute_reactions"].GetBool(),
-    #                                                                  self.settings["reform_dofs_at_each_step"].GetBool(),
-    #                                                                  self.settings["move_mesh_flag"].GetBool())
 
     def _create_DEM_coupled_newton_raphson_strategy(self, DEM_strategy):
         computing_model_part = self.GetComputingModelPart()
