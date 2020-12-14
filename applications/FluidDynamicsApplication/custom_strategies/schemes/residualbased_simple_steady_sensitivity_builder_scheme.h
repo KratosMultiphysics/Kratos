@@ -551,6 +551,7 @@ private:
         }
 
         // add residual derivative contributions
+        rotated_sensitivity_matrix.clear();
         for (unsigned int a = 0; a < number_of_nodes; ++a) {
             const auto& r_node = r_geometry[a];
             if (r_node.Is(SLIP)) {
