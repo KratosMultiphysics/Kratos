@@ -147,6 +147,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solver.Predict()
 
     def InitializeSolutionStep(self):
+        for transfer_operator in self.data_transfer_operators_dict.values():
+            transfer_operator.InitializeSolutionStep()
+
         for solver in self.solver_wrappers.values():
             solver.InitializeSolutionStep()
 

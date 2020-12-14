@@ -150,11 +150,13 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        mpModeler->PrepareGeometryModel();
+        if (!mMapperSettings["use_initial_configuration"].GetBool()) {        
+            mpModeler->PrepareGeometryModel();
 
-        AssignInterfaceEquationIds();
+            AssignInterfaceEquationIds();
 
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+            KRATOS_ERROR << "Not implemented!" << std::endl;
+        }
     }
 
     void Map(
@@ -353,6 +355,7 @@ private:
             "consistency_scaling"           : true,
             "row_sum_tolerance"             : 1e-12,
             "destination_is_slave"          : true,
+            "use_initial_configuration"    : true,
             "linear_solver_settings"        : {}
         })");
     }
