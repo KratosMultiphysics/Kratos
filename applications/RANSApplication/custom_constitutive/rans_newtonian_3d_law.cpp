@@ -71,7 +71,7 @@ int RansNewtonian3DLaw::Check(
         << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] <= 0.0)
-        << "Incorrect or missing DENSITY provided in process info "
+        << "Incorrect or missing DENSITY provided in material properties "
            "for RansNewtonian3DLaw: "
         << rMaterialProperties[DENSITY] << std::endl;
 
