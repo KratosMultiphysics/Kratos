@@ -137,7 +137,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                 }
             } else {
-                MatrixType Vtot = ZeroMatrix(NumNodes * (Dim + 1), NumNodes);
+                MatrixType Vtot = ZeroMatrix(NumNodes * (Dim + 1), NumNodes); //TODO: use Bounded!
                 MatrixType Htot = ZeroMatrix(NumNodes, NumNodes * (Dim + 1));
                 MatrixType Kee_tot = ZeroMatrix(NumNodes, NumNodes);
                 VectorType rhs_ee_tot = ZeroVector(NumNodes);
@@ -664,7 +664,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
     // functions. On the contrary, for the positive distance region, the enrichment functions
     // corresponding to the positive distance nodes are null meanwhile the negative distance
     // nodes are equal to the standard. This yields a discontinuous enrichment space.
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
+    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes); 
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
 
     for (unsigned int i = 0; i < NumNodes; ++i){
@@ -690,19 +690,19 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
         GeometryData::GI_GAUSS_2);
 
     // Compute the enrichment shape function values using the enrichment interpolation matrices
-    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp);
+    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp); //TODO noalias
     rEnrichedShapeFunctionsNeg = prod(rShapeFunctionsNeg, enr_neg_interp);
 
     // Compute the enrichment shape function gradient values using the enrichment interpolation matrices
-    rEnrichedShapeDerivativesPos = rShapeDerivativesPos;
+    rEnrichedShapeDerivativesPos = rShapeDerivativesPos; //TODO noalias
     rEnrichedShapeDerivativesNeg = rShapeDerivativesNeg;
 
     for (unsigned int i = 0; i < rShapeDerivativesPos.size(); ++i){
-        rEnrichedShapeDerivativesPos[i] = prod(enr_pos_interp, rShapeDerivativesPos[i]);
+        rEnrichedShapeDerivativesPos[i] = prod(enr_pos_interp, rShapeDerivativesPos[i]); //TODO noalias
     }
 
     for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); ++i){
-        rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rShapeDerivativesNeg[i]);
+        rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rShapeDerivativesNeg[i]); //TODO noalias
     }
 
     rData.NumberOfDivisions = (pModifiedShapeFunctions->pGetSplittingUtil())->mDivisionsNumber;
@@ -719,7 +719,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     std::vector<Vector>& rInterfaceNormalsNeg,
     ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
 {
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
+    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes); //TODO here use bounded matrix
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
 
     for (unsigned int i = 0; i < NumNodes; ++i){
@@ -748,7 +748,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     }
 
     // Compute the enrichment shape function values at the interface gauss points using the enrichment interpolation matrices
-    rEnrInterfaceShapeFunctionPos = prod(rInterfaceShapeFunctionNeg, enr_pos_interp);
+    rEnrInterfaceShapeFunctionPos = prod(rInterfaceShapeFunctionNeg, enr_pos_interp); //TODO noalias
     rEnrInterfaceShapeFunctionNeg = prod(rInterfaceShapeFunctionNeg, enr_neg_interp);
 }
 
@@ -821,11 +821,11 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     MatrixType& rKeeTot,
     VectorType& rRHSeeTot)
 {
-    MatrixType kee = ZeroMatrix(NumNodes, NumNodes);
-    VectorType rhs_enr = ZeroVector(NumNodes);
+    MatrixType kee = ZeroMatrix(NumNodes, NumNodes); //TODO: use bounded matrix
+    VectorType rhs_enr = ZeroVector(NumNodes); //TODO use array
 
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
-    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
+    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes); //TODO use bounded
+    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes); //TODO use bounded
 
     double positive_density = 0.0;
     double negative_density = 0.0;
@@ -931,7 +931,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
         }
     }
 
-    noalias(rKeeTot) += kee;
+    noalias(rKeeTot) += kee; //TODO see if we can get rid of this kee and write directly onto rKeeTot
     noalias(rRHSeeTot) += rhs_enr;
 }
 
@@ -993,10 +993,10 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichmentWithContinuity(
 
         // Enrichment condensation (add to LHS and RHS the enrichment contributions)
         double det;
-        MatrixType inverse_diag(NumNodes, NumNodes);
+        MatrixType inverse_diag(NumNodes, NumNodes); //TODO use bounded
         MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
 
-        const Matrix tmp = prod(inverse_diag, rHtot);
+        const Matrix tmp = prod(inverse_diag, rHtot); //TODO use bounded
         noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
 
         const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
@@ -1015,13 +1015,13 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
 {
     // Enrichment condensation (add to LHS and RHS the enrichment contributions)
     double det;
-    MatrixType inverse_diag(NumNodes, NumNodes);
+    MatrixType inverse_diag(NumNodes, NumNodes); //TODO use bounded
     MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
 
-    const Matrix tmp = prod(inverse_diag, rHtot);
+    const Matrix tmp = prod(inverse_diag, rHtot); //TODO use bounded
     noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
 
-    const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
+    const Vector tmp2 = prod(inverse_diag, rRHSeeTot); //TODO use array
     noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
 }
 

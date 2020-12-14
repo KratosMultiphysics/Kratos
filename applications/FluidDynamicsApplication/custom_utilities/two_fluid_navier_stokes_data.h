@@ -234,7 +234,7 @@ void CalculateAirMaterialResponse() {
     Vector& stress = this->ShearStress;
     Vector& strain = this->StrainRate;
 
-    FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(mu, c_mat);
+    FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(mu, c_mat); //TODO remove temp c_mat
     this->C = c_mat;
 
 	if (TDim == 2)
