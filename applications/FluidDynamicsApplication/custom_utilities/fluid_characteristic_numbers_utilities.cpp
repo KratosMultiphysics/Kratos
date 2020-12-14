@@ -77,7 +77,7 @@ namespace Kratos
     {
         // Get diffusivevalues
         const double cp = rElement.GetProperties().GetValue(SPECIFIC_HEAT);
-        const auto diff_values = GetDiffusivityValues<ConsiderArtificialMagnitudes>(rElement); 
+        const auto diff_values = GetDiffusivityValues<ConsiderArtificialMagnitudes>(rElement);
 
         // Calculate Prandtl number
         const double elem_prandtl = cp * std::get<0>(diff_values) / std::get<1>(diff_values);
@@ -191,7 +191,7 @@ namespace Kratos
         const double h = rElementSizeCalculator(rElement.GetGeometry());
 
         // Calculate Fourier numbers
-        const double aux = Dt / rho / std::pow(h,2);
+        const double aux = Dt / (rho * std::pow(h,2));
         const double cp = rElement.GetProperties().GetValue(SPECIFIC_HEAT);
         const double visc_Fo = aux * std::get<0>(diff_values);
         const double thermal_Fo =  aux * std::get<1>(diff_values) / cp;
@@ -214,7 +214,7 @@ namespace Kratos
         const double h = rElementSizeCalculator(rElement.GetGeometry());
 
         // Calculate viscous Fourier number
-        const double visc_Fo = Dt * mu / rho / std::pow(h,2);
+        const double visc_Fo = Dt * mu / (rho * std::pow(h,2));
         return visc_Fo;
     }
 
@@ -236,7 +236,7 @@ namespace Kratos
 
         // Calculate thermal Fourier number
         const double cp = rElement.GetProperties().GetValue(SPECIFIC_HEAT);
-        const double thermal_Fo =  Dt * k / rho / cp / std::pow(h,2);
+        const double thermal_Fo =  Dt * k / (rho * cp * std::pow(h,2));
         return thermal_Fo;
     }
 
