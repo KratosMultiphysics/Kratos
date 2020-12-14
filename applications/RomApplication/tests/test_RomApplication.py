@@ -10,6 +10,8 @@ from thermal_dynamic_test_files.test_ROM import ROMDynamicConvDiff
 from structural_static_test_files.test_ROM import ROMStaticStruct
 from structural_dynamic_test_files.test_ROM import ROMDynamicStruct
 from test_randomized_singular_value_decomposition import TestRandomizedSVD
+from test_empirical_cubature_method import TestEmpiricalCubatureMethod
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -36,6 +38,8 @@ def AssembleTestSuites():
     smallSuite.addTest(ROMStaticStruct('test_Struct_Static_HROM_2D'))
     smallSuite.addTest(ROMDynamicStruct('test_Struct_Dynamic_ROM_2D'))
     smallSuite.addTest(TestRandomizedSVD('test_radomized_svd'))
+    smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
+
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
