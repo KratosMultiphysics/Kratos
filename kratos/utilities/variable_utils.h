@@ -1544,7 +1544,6 @@ public:
         KRATOS_TRY
 
         // First we do a chek
-        KRATOS_CHECK_VARIABLE_KEY(rVar)
         if(rModelPart.NumberOfNodes() != 0)
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
 
@@ -1573,9 +1572,6 @@ public:
         )
     {
         KRATOS_TRY
-
-        KRATOS_CHECK_VARIABLE_KEY(rVar)
-        KRATOS_CHECK_VARIABLE_KEY(rReactionVar)
 
         if(rModelPart.NumberOfNodes() != 0) {
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: DoF Variable : " << rVar << "not included in the Soluttion step data ";
