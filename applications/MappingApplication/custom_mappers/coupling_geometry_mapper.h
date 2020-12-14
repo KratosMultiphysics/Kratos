@@ -360,6 +360,7 @@ private:
             "consistency_scaling"           : true,
             "row_sum_tolerance"             : 1e-12,
             "destination_is_slave"          : true,
+            "use_initial_configuration"    : true,
             "linear_solver_settings"        : {}
         })");
     }

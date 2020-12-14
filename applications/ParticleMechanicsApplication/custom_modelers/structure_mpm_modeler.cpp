@@ -136,12 +136,12 @@ namespace Kratos
         Model* p_model_mpm = (mIsOriginMpm) ? mpModelOrigin : mpModelDest;
         const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
 
-        ModelPart& coupling_model_part = (mpModelOrigin->HasModelPart("coupling"))
-            ? mpModelOrigin->GetModelPart("coupling")
-            : mpModelOrigin->CreateModelPart("coupling");
+        KRATOS_ERROR_IF_NOT(mpModelOrigin->HasModelPart("coupling"))
+            << "The origin model does not have the 'coupling' model part. This should have been created during StructureMpmModeler::SetupGeometryModel\n";
+        ModelPart& coupling_model_part = mpModelOrigin->GetModelPart("coupling");
 
         KRATOS_ERROR_IF(coupling_model_part.NumberOfConditions() == 0)
-            << "The MPM model model part 'coupling_model_part' has no conditions, which should have been created in the structure_mpm_modeler setupGeometry";
+            << "The MPM model model part 'coupling_model_part' has no conditions, which should have been created in the StructureMpmModeler::SetupGeometryModel\n";
 
         std::string origin_interface_sub_model_part_name;
         std::string destination_interface_sub_model_part_name;
@@ -155,9 +155,7 @@ namespace Kratos
             KRATOS_ERROR << "Automatic interface creation is not implemented yet" << std::endl;
         }
 
-        ModelPart& mpm_background_grid_model_part = (p_model_mpm->HasModelPart("Background_Grid"))
-            ? p_model_mpm->GetModelPart("Background_Grid")
-            : p_model_mpm->CreateModelPart("Background_Grid");
+        ModelPart& mpm_background_grid_model_part = p_model_mpm->GetModelPart("Background_Grid");
 
         UpdateMpmQuadraturePointGeometries<3,
             typename ModelPart::ConditionsContainerType>(
