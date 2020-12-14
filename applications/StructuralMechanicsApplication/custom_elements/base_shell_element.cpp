@@ -348,7 +348,6 @@ int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     Element::Check(rCurrentProcessInfo);
 
-    CheckVariables();
     CheckDofs();
     CheckProperties(rCurrentProcessInfo);
 

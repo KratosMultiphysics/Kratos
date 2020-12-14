@@ -35,7 +35,6 @@ int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessIn
     KRATOS_ERROR_IF_NOT(this->mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
-    this->CheckVariables();
     this->CheckDofs();
     this->CheckProperties(rCurrentProcessInfo);
 
