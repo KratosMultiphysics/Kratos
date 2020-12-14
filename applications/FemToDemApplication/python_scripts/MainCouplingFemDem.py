@@ -475,7 +475,6 @@ class MainCoupledFemDem_Solution:
         # If we want to compute sand production
         # self.CountErasedVolume()
 
-        # if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
         if KratosFemDem.FEMDEMCouplingUtilities().IsGenerateDEMRequired(self.FEM_Solution.main_model_part):
 
             if self.PressureLoad:
@@ -487,8 +486,6 @@ class MainCoupledFemDem_Solution:
             dem_generator_process.Execute()
 
             # We remove the inactive DEM associated to fem_nodes
-            # self.RemoveAloneDEMElements()
-            # self.RemoveIsolatedFiniteElements()
             element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
             element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
 
@@ -907,10 +904,6 @@ class MainCoupledFemDem_Solution:
         """Here the erased are labeled as INACTIVE so you can access to them. After calling
            GenerateDEM they are totally erased """
         pass
-        # if self.PressureLoad:
-        #     self.ExpandWetNodes()
-        #     KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
-        #     self.ExpandWetNodes()
 
 #ExecuteAfterGeneratingDEM============================================================================================================================
     def ExecuteAfterGeneratingDEM(self):
