@@ -246,8 +246,7 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
-    {
+    for( unsigned int i=0; i<integration_points.size(); i++ ) {
         if(py::isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
             values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
         else
@@ -276,6 +275,13 @@ void ElementCalculateDampingMatrix(Element& dummy,
                                    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+}
+
+void ElementCalculateLumpedMassVector(Element& dummy,
+                                      Vector& rMassVector,
+                                      const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateLumpedMassVector(rMassVector, rCurrentProcessInfo);
 }
 
 void ElementCalculateFirstDerivativesLHS(Element& dummy,
@@ -469,6 +475,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Calculate", &ElementCalculateInterface<Matrix >)
     .def("CalculateMassMatrix", &ElementCalculateMassMatrix)
     .def("CalculateDampingMatrix", &ElementCalculateDampingMatrix)
+    .def("CalculateLumpedMassVector", &ElementCalculateLumpedMassVector)
     .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
     .def("CalculateFirstDerivativesLHS", &ElementCalculateFirstDerivativesLHS)
     .def("CalculateSecondDerivativesLHS", &ElementCalculateSecondDerivativesLHS)

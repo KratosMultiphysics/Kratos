@@ -271,10 +271,7 @@ public:
      * @brief Check if Rotational Dof existant
      * @return Trues if exists, false otherwise
      */
-    virtual bool HasRotDof() const
-    {
-        return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
-    }
+    virtual bool HasRotDof() const;
 
     /**
      * @brief This method computes the DoF block size

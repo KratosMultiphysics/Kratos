@@ -15,6 +15,8 @@
 
 // Project includes
 #include "custom_conditions/displacement_control_condition.h"
+#include "structural_mechanics_application_variables.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
