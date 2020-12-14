@@ -34,8 +34,8 @@ namespace Kratos
 {
     /// Local flags to determine the magnitudes for the Dt estimation
     KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, CFL_ESTIMATION, 0);
-    KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, PECLET_VISCOSITY_ESTIMATION, 1);
-    KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, PECLET_CONDUCTIVITY_ESTIMATION, 2);
+    KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, FOURIER_VISCOSITY_ESTIMATION, 1);
+    KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, FOURIER_CONDUCTIVITY_ESTIMATION, 2);
 
     void EstimateDtUtility::SetCFL(const double CFL)
     {
@@ -69,10 +69,10 @@ namespace Kratos
             mDtEstimationMagnitudesFlags.Set(CFL_ESTIMATION);
         }
         if (mPecletViscosity > 0.0) {
-            mDtEstimationMagnitudesFlags.Set(PECLET_VISCOSITY_ESTIMATION);
+            mDtEstimationMagnitudesFlags.Set(FOURIER_VISCOSITY_ESTIMATION);
         }
         if (mPecletConductivity > 0.0) {
-            mDtEstimationMagnitudesFlags.Set(PECLET_CONDUCTIVITY_ESTIMATION);
+            mDtEstimationMagnitudesFlags.Set(FOURIER_CONDUCTIVITY_ESTIMATION);
         }
     }
 
@@ -172,7 +172,9 @@ namespace Kratos
 
         double new_dt = 0.0;
 
-        if (mDtEstimationMagnitudesFlags.Is(CFL_ESTIMATION) && ) {
+        if (mDtEstimationMagnitudesFlags.Is(CFL_ESTIMATION) && 
+            mDtEstimationMagnitudesFlags.IsNot(FOURIER_VISCOSITY_ESTIMATION) &&
+            mDtEstimationMagnitudesFlags.IsNot(FOURIER_CONDUCTIVITY_ESTIMATION)) {
             new_dt = InternalEstimateDt<true, false, false>();
         }
 
