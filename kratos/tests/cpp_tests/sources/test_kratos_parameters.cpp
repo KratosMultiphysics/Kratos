@@ -40,7 +40,7 @@ std::string GetJSONString()
 
 std::string GetJSONStringPrettyOut()
 {
-    const std::string pretty_out =  R"(
+    const std::string pretty_out =  R"({
         "bool_value": true,
         "double_value": 2.0,
         "int_value": 10,
