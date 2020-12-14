@@ -207,7 +207,7 @@ private:
     /// Local flags to determine the magnitudes for the Dt estimation
     KRATOS_DEFINE_LOCAL_FLAG(CFL_ESTIMATION);
     KRATOS_DEFINE_LOCAL_FLAG(VISCOUS_FOURIER_ESTIMATION);
-    KRATOS_DEFINE_LOCAL_FLAG(THERMA_FOURIER_ESTIMATION);
+    KRATOS_DEFINE_LOCAL_FLAG(THERMAL_FOURIER_ESTIMATION);
 
 	///@}
     ///@name Member Variables

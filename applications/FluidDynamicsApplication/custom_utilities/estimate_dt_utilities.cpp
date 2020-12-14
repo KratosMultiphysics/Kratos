@@ -35,7 +35,7 @@ namespace Kratos
     /// Local flags to determine the magnitudes for the Dt estimation
     KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, CFL_ESTIMATION, 0);
     KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, VISCOUS_FOURIER_ESTIMATION, 1);
-    KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, THERMA_FOURIER_ESTIMATION, 2);
+    KRATOS_CREATE_LOCAL_FLAG(EstimateDtUtility, THERMAL_FOURIER_ESTIMATION, 2);
 
     void EstimateDtUtility::SetCFL(const double CFL)
     {
@@ -72,7 +72,7 @@ namespace Kratos
             mDtEstimationMagnitudesFlags.Set(VISCOUS_FOURIER_ESTIMATION);
         }
         if (mThermalFourier > 0.0) {
-            mDtEstimationMagnitudesFlags.Set(THERMA_FOURIER_ESTIMATION);
+            mDtEstimationMagnitudesFlags.Set(THERMAL_FOURIER_ESTIMATION);
         }
     }
 
@@ -203,13 +203,13 @@ namespace Kratos
 
         double new_dt = 0.0;
 
-        if (mDtEstimationMagnitudesFlags.Is(CFL_ESTIMATION) && mDtEstimationMagnitudesFlags.IsNot(VISCOUS_FOURIER_ESTIMATION) && mDtEstimationMagnitudesFlags.IsNot(THERMA_FOURIER_ESTIMATION)) {
+        if (mDtEstimationMagnitudesFlags.Is(CFL_ESTIMATION) && mDtEstimationMagnitudesFlags.IsNot(VISCOUS_FOURIER_ESTIMATION) && mDtEstimationMagnitudesFlags.IsNot(THERMAL_FOURIER_ESTIMATION)) {
             // CFL-based delta time estimation (i.e. incompressible flow)
             new_dt = InternalEstimateDt<true, false, false>();
-        } else if (mDtEstimationMagnitudesFlags.Is(CFL_ESTIMATION) && mDtEstimationMagnitudesFlags.IsNot(VISCOUS_FOURIER_ESTIMATION) && mDtEstimationMagnitudesFlags.Is(THERMA_FOURIER_ESTIMATION)) {
+        } else if (mDtEstimationMagnitudesFlags.Is(CFL_ESTIMATION) && mDtEstimationMagnitudesFlags.IsNot(VISCOUS_FOURIER_ESTIMATION) && mDtEstimationMagnitudesFlags.Is(THERMAL_FOURIER_ESTIMATION)) {
             // CFL and thermal Fourier delta time estimation (i.e. convection-diffusion problems)
             new_dt = InternalEstimateDt<true, false, true>();
-        } else if (mDtEstimationMagnitudesFlags.Is(CFL_ESTIMATION) && mDtEstimationMagnitudesFlags.Is(VISCOUS_FOURIER_ESTIMATION) && mDtEstimationMagnitudesFlags.Is(THERMA_FOURIER_ESTIMATION)) {
+        } else if (mDtEstimationMagnitudesFlags.Is(CFL_ESTIMATION) && mDtEstimationMagnitudesFlags.Is(VISCOUS_FOURIER_ESTIMATION) && mDtEstimationMagnitudesFlags.Is(THERMAL_FOURIER_ESTIMATION)) {
             // CFL and both Fourier numbers delta time estimation (i.e. compressible flow)
             new_dt = InternalEstimateDt<true, true, true>();
         } else {
