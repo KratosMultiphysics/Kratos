@@ -119,7 +119,7 @@ public:
      * @return double The element Peclet number
      */
     template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
-    static double CalculateElementViscosityPecletNumber(
+    static double CalculateElementViscousPecletNumber(
         const Element& rElement,
         const ElementSizeFunctionType& rElementSizeCalculator);
 
@@ -132,9 +132,52 @@ public:
      * @return double The element Peclet number
      */
     template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
-    static double CalculateElementConductivityPecletNumber(
+    static double CalculateElementThermalPecletNumber(
         const Element& rElement,
         const ElementSizeFunctionType& rElementSizeCalculator);
+
+    /**
+     * @brief Calculate the elemental Fourier numbers
+     * For the given element, this method calculates the Fourier number considering both the
+     * dynamic viscosity and the shear conductivity 
+     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
+     * @tparam DensityIsNodal Template parameter specifying if the density is nodally stored
+     * @param rElement Element to calculate the Fourier number
+     * @return std::tuple<double,double> Tuple containing the viscosity (first position) and thermal (second position) Fourier numbers
+     */
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    static std::tuple<double,double> CalculateElementFourierNumbers(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt);
+
+    /**
+     * @brief Calculate the elemental Fourier number
+     * For the given element, this method calculates the viscous Fourier number
+     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
+     * @tparam DensityIsNodal Template parameter specifying if the density is nodally stored
+     * @param rElement Element to calculate the Fourier number
+     * @return double The element Fourier number
+     */
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    static double CalculateElementViscousFourierNumber(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt);
+
+    /**
+     * @brief Calculate the elemental Fourier number
+     * For the given element, this method calculates the thermal Fourier number
+     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
+     * @tparam DensityIsNodal Template parameter specifying if the density is nodally stored
+     * @param rElement Element to calculate the Fourier number
+     * @return double The element Fourier number
+     */
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    static double CalculateElementThermalFourierNumber(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt);
 
     /**
      * @brief Calculate the element Mach number
