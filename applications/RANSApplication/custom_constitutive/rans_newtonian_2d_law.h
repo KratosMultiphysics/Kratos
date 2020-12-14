@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/fluid_constitutive_law.h"
+#include "custom_constitutive/newtonian_2d_law.h"
 
 namespace Kratos
 {
@@ -29,15 +29,13 @@ namespace Kratos
  * to include turbulent viscosity from Bossinesq Hypothesis.
  *
  */
-class KRATOS_API(RANS_APPLICATION) RansNewtonian2DLaw : public FluidConstitutiveLaw
+class KRATOS_API(RANS_APPLICATION) RansNewtonian2DLaw : public Newtonian2DLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = FluidConstitutiveLaw;
-
-    using SizeType = std::size_t;
+    using BaseType = Newtonian2DLaw;
 
     ///@}
     ///@name Life Cycle
@@ -81,18 +79,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @return Working space dimension constitutive law
-     */
-    SizeType WorkingSpaceDimension() override;
-
-    /**
-     * @return Size of the strain vector (in Voigt notation) for the constitutive law
-     */
-    SizeType GetStrainSize() override;
-
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
      * This function is designed to be called once to perform all the checks
