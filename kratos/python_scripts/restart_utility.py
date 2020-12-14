@@ -212,7 +212,7 @@ class RestartUtility(object):
                 if step_id in restart_files:
                     restart_files[step_id].append( file_name_data.GetName() )
                 else:
-                    restart_files[step_id] = [ file_name_data.GetName() ]
+                    restart_files[step_id] = [ file_name_data.GetFileName() ]
 
         return restart_files
 
@@ -254,7 +254,7 @@ class RestartUtility(object):
         else:
             file_name_pattern += "_<step>"
         file_name_pattern += ".rest"
-        return file_name_pattern
+        return os.path.join( self.__GetFolderPathLoad(), file_name_pattern )
 
     #### Private functions ####
 
