@@ -23,14 +23,14 @@ class SaveRestartProcess(KratosMultiphysics.Process):
             "restart_save_frequency"       : 0.0,
             "restart_control_type"         : "time",
             "save_restart_files_in_folder" : true,
-            "output_path"                : ""
+            "output_path"                  : ""
         }""")
 
         ## Overwrite the default settings with user-provided parameters
         if params.Has("io_foldername"):
-            params.AddValue("io_path",params["io_foldername"])
+            params.AddValue("output_path",params["io_foldername"])
             params.RemoveValue("io_foldername")
-            KratosMultiphysics.Logger.PrintWarning('SaveRestartProcess', '"io_foldername" key is deprecated. Use "io_path" instead.')
+            KratosMultiphysics.Logger.PrintWarning('SaveRestartProcess', '"io_foldername" key is deprecated. Use "output_path" instead.')
 
         params.ValidateAndAssignDefaults(default_settings)
 
@@ -41,10 +41,10 @@ class SaveRestartProcess(KratosMultiphysics.Process):
         else:
             from KratosMultiphysics.restart_utility import RestartUtility
 
-        if params["io_path"].GetString() == '':
-            io_path = params["model_part_name"].GetString() + "__restart_files"
-            info_msg  = 'No entry found for "io_path"\n'
-            info_msg += 'Using the default "' + io_path + '"'
+        if params["output_path"].GetString() == '':
+            output_path = params["model_part_name"].GetString() + "__restart_files"
+            info_msg  = 'No entry found for "output_path"\n'
+            info_msg += 'Using the default "' + output_path + '"'
             KratosMultiphysics.Logger.PrintInfo("SaveRestartProcess", info_msg)
 
         params.AddValue("input_filename", params["model_part_name"])
