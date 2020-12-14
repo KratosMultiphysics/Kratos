@@ -148,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateConductivityElement
 
     // Calculate the element Peclet numbers
     std::function<double(const Geometry<Node<3>>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
-    const double k_peclet_number = FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<true, false>(
+    const double k_peclet_number = FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, false>(
         r_model_part.GetElement(1),
         avg_elem_function);
 
@@ -157,7 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateConductivityElement
     KRATOS_CHECK_NEAR(k_peclet_number, 0.027777777777, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscosityPecletNumber, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousPecletNumber, FluidDynamicsApplicationFastSuite)
 {
     // Create the test element
     Model model;
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscosityPec
 
     // Calculate the element Peclet numbers
     std::function<double(const Geometry<Node<3>>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
-    const double mu_peclet_number = FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<true, false>(
+    const double mu_peclet_number = FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, false>(
         r_model_part.GetElement(1),
         avg_elem_function);
 

@@ -119,7 +119,7 @@ public:
      * @return double The element Peclet number
      */
     template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
-    static double CalculateElementViscosityPecletNumber(
+    static double CalculateElementViscousPecletNumber(
         const Element& rElement,
         const ElementSizeFunctionType& rElementSizeCalculator);
 
@@ -132,7 +132,7 @@ public:
      * @return double The element Peclet number
      */
     template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
-    static double CalculateElementConductivityPecletNumber(
+    static double CalculateElementThermalPecletNumber(
         const Element& rElement,
         const ElementSizeFunctionType& rElementSizeCalculator);
 

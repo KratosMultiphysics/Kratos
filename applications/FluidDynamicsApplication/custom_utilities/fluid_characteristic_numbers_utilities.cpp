@@ -117,7 +117,7 @@ namespace Kratos
     }
 
     template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
-    double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber(
+    double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber(
         const Element& rElement,
         const ElementSizeFunctionType& rElementSizeCalculator)
     {
@@ -146,7 +146,7 @@ namespace Kratos
 
 
     template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
-    double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber(
+    double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber(
         const Element& rElement,
         const ElementSizeFunctionType& rElementSizeCalculator)
     {
@@ -358,15 +358,15 @@ namespace Kratos
 template double FluidCharacteristicNumbersUtilities::CalculateElementPrandtlNumber<true>(const Element&);
 template double FluidCharacteristicNumbersUtilities::CalculateElementPrandtlNumber<false>(const Element&);
 
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscosityPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
 
-template double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementConductivityPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
+template double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
 
 template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, true>(const Element&, const ElementSizeFunctionType&);
 template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, false>(const Element&, const ElementSizeFunctionType&);
