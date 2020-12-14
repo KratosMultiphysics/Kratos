@@ -133,6 +133,69 @@ public:
         KRATOS_CATCH("");
     }
 
+    static void LocalRotationOperatorPure(
+		BoundedMatrix<double, 3, 3>& rRot,
+		const GeometryType::PointType& rThisPoint)
+    {
+        // Get the normal evaluated at the node
+        const array_1d<double, 3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+        double aux = rNormal[0] * rNormal[0] + rNormal[1] * rNormal[1] +
+                     rNormal[2] * rNormal[2];
+        aux = sqrt(aux);
+        rRot(0, 0) = rNormal[0] / aux;
+        rRot(0, 1) = rNormal[1] / aux;
+        rRot(0, 2) = rNormal[2] / aux;
+        // Define the new coordinate system, where the first vector is aligned with the normal
+
+        // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
+        array_1d<double, 3> rT1;
+        rT1(0) = 1.0;
+        rT1(1) = 0.0;
+        rT1(2) = 0.0;
+        double dot = rRot(0, 0); // this->Dot(rN,rT1);
+
+        // It is possible that the normal is aligned with (1,0,0), resulting in
+        // norm(rT1) = 0 If this is the case, repeat the procedure using (0,1,0)
+        if (fabs(dot) > 0.99) {
+            rT1(0) = 0.0;
+            rT1(1) = 1.0;
+            rT1(2) = 0.0;
+
+            dot = rRot(0, 1); // this->Dot(rN,rT1);
+        }
+
+        // calculate projection and normalize
+        rT1[0] -= dot * rRot(0, 0);
+        rT1[1] -= dot * rRot(0, 1);
+        rT1[2] -= dot * rRot(0, 2);
+        Normalize(rT1);
+        rRot(1, 0) = rT1[0];
+        rRot(1, 1) = rT1[1];
+        rRot(1, 2) = rT1[2];
+
+        // The third base component is choosen as N x T1, which is normalized by construction
+        rRot(2, 0) = rRot(0, 1) * rT1[2] - rRot(0, 2) * rT1[1];
+        rRot(2, 1) = rRot(0, 2) * rT1[0] - rRot(0, 0) * rT1[2];
+        rRot(2, 2) = rRot(0, 0) * rT1[1] - rRot(0, 1) * rT1[0];
+    }
+
+    static void LocalRotationOperatorPure(
+		BoundedMatrix<double, 2, 2>& rRot,
+		const GeometryType::PointType& rThisPoint)
+    {
+        // Get the normal evaluated at the node
+        const array_1d<double, 3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+        double aux = rNormal[0] * rNormal[0] + rNormal[1] * rNormal[1];
+        aux = sqrt(aux);
+
+        rRot(0, 0) = rNormal[0] / aux;
+        rRot(0, 1) = rNormal[1] / aux;
+        rRot(1, 0) = -rNormal[1] / aux;
+        rRot(1, 1) = rNormal[0] / aux;
+    }
+
     /**
      * @brief Calculates rotation nodal matrix shape sensitivities
      *
@@ -158,7 +221,7 @@ public:
 
         if (mDomainSize == 2) {
             BoundedMatrix<double, 2, 2> local_matrix;
-            this->CalculateRotationOperatorPureShapeSensitivities(
+            CalculateRotationOperatorPureShapeSensitivities(
                 local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
             if (rRotationMatrixShapeDerivative.size1() != 2 ||
                 rRotationMatrixShapeDerivative.size2() != 2) {
@@ -167,7 +230,7 @@ public:
             noalias(rRotationMatrixShapeDerivative) = local_matrix;
         } else if (mDomainSize == 3) {
             BoundedMatrix<double, 3, 3> local_matrix;
-            this->CalculateRotationOperatorPureShapeSensitivities(
+            CalculateRotationOperatorPureShapeSensitivities(
                 local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
             if (rRotationMatrixShapeDerivative.size1() != 3 ||
                 rRotationMatrixShapeDerivative.size2() != 3) {
@@ -199,11 +262,11 @@ public:
      * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
      * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
      */
-    virtual void CalculateRotationOperatorPureShapeSensitivities(
+    static void CalculateRotationOperatorPureShapeSensitivities(
         BoundedMatrix<double, 2, 2>& rOutput,
         const std::size_t DerivativeNodeIndex,
         const std::size_t DerivativeDirectionIndex,
-        const GeometryType::PointType& rThisPoint) const
+        const GeometryType::PointType& rThisPoint)
     {
         KRATOS_TRY
 
@@ -275,11 +338,11 @@ public:
      * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
      * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
      */
-    virtual void CalculateRotationOperatorPureShapeSensitivities(
+    static void CalculateRotationOperatorPureShapeSensitivities(
         BoundedMatrix<double, 3, 3>& rOutput,
         const std::size_t DerivativeNodeIndex,
         const std::size_t DerivativeDirectionIndex,
-        const GeometryType::PointType& rThisPoint) const
+        const GeometryType::PointType& rThisPoint)
     {
         KRATOS_TRY
 
@@ -515,7 +578,7 @@ public:
 					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
 					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-					this->Normalize(rN);
+					Normalize(rN);
 
 					for( unsigned int i = 0; i < j; ++i)// Skip term (i,i)
 					{
@@ -552,7 +615,7 @@ public:
 					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
 					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-					this->Normalize(rN);
+					Normalize(rN);
 
 					rLocalVector[j] = inner_prod(rN,VMesh);
 				}
@@ -902,7 +965,7 @@ protected:
 		rT1[0] -= dot*rRot(TSkip,TSkip);
 		rT1[1] -= dot*rRot(TSkip,TSkip+1);
 		rT1[2] -= dot*rRot(TSkip,TSkip+2);
-		this->Normalize(rT1);
+		Normalize(rT1);
 		rRot(TSkip+1,TSkip  ) = rT1[0];
 		rRot(TSkip+1,TSkip+1) = rT1[1];
 		rRot(TSkip+1,TSkip+2) = rT1[2];
@@ -911,72 +974,6 @@ protected:
 		rRot(TSkip+2,TSkip  ) = rRot(TSkip,TSkip+1)*rT1[2] - rRot(TSkip,TSkip+2)*rT1[1];
 		rRot(TSkip+2,TSkip+1) = rRot(TSkip,TSkip+2)*rT1[0] - rRot(TSkip,TSkip  )*rT1[2];
 		rRot(TSkip+2,TSkip+2) = rRot(TSkip,TSkip  )*rT1[1] - rRot(TSkip,TSkip+1)*rT1[0];
-	}
-
-
-    void LocalRotationOperatorPure(
-        BoundedMatrix<double,3,3>& rRot,
-        const GeometryType::PointType& rThisPoint) const
-	{
-
-		// Get the normal evaluated at the node
-		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
-
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
-		aux = sqrt(aux);
-		rRot(0,0) = rNormal[0]/aux;
-		rRot(0,1) = rNormal[1]/aux;
-		rRot(0,2) = rNormal[2]/aux;
-		// Define the new coordinate system, where the first vector is aligned with the normal
-
-		// To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
-		array_1d<double,3> rT1;
-		rT1(0) = 1.0;
-		rT1(1) = 0.0;
-		rT1(2) = 0.0;
-		double dot = rRot(0,0);//this->Dot(rN,rT1);
-
-		// It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
-		// If this is the case, repeat the procedure using (0,1,0)
-		if ( fabs(dot) > 0.99 )
-		{
-			rT1(0) = 0.0;
-			rT1(1) = 1.0;
-			rT1(2) = 0.0;
-
-			dot = rRot(0,1); //this->Dot(rN,rT1);
-		}
-
-		// calculate projection and normalize
-		rT1[0] -= dot*rRot(0,0);
-		rT1[1] -= dot*rRot(0,1);
-		rT1[2] -= dot*rRot(0,2);
-		this->Normalize(rT1);
-		rRot(1,0) = rT1[0];
-		rRot(1,1) = rT1[1];
-		rRot(1,2) = rT1[2];
-
-		// The third base component is choosen as N x T1, which is normalized by construction
-		rRot(2,0) = rRot(0,1)*rT1[2] - rRot(0,2)*rT1[1];
-		rRot(2,1) = rRot(0,2)*rT1[0] - rRot(0,0)*rT1[2];
-		rRot(2,2) = rRot(0,0)*rT1[1] - rRot(0,1)*rT1[0];
-	}
-
-    void LocalRotationOperatorPure(
-        BoundedMatrix<double,2,2>& rRot,
-        const GeometryType::PointType& rThisPoint) const
-	{
-		// Get the normal evaluated at the node
-		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
-
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
-		aux = sqrt(aux);
-
-		rRot(0,0) = rNormal[0]/aux;
-		rRot(0,1) = rNormal[1]/aux;
-		rRot(1,0) = -rNormal[1]/aux;
-		rRot(1,1) = rNormal[0]/aux;
-
 	}
 
 	bool IsSlip(const Node<3>& rNode) const
@@ -990,7 +987,7 @@ protected:
 	 * @return Original norm of the input vector
 	 */
 	template< class TVectorType >
-	double Normalize(TVectorType& rThis) const
+	static double Normalize(TVectorType& rThis)
 	{
 		double Norm = 0;
 		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
@@ -1073,7 +1070,7 @@ private:
 //             ThisRowType rN(rRot,0);
 //             for( unsigned int i = 0; i < 3; ++i)
 //                 rN[i] = rNormal[i];
-//             this->Normalize(rN);
+//             Normalize(rN);
 //
 //             // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
 //             ThisRowType rT1(rRot,1);
@@ -1096,7 +1093,7 @@ private:
 //
 //             // calculate projection and normalize
 //             rT1 -= dot * rN;
-//             this->Normalize(rT1);
+//             Normalize(rT1);
 //
 //             // The third base component is choosen as N x T1, which is normalized by construction
 //             ThisRowType rT2(rRot,2);
@@ -1115,7 +1112,7 @@ private:
 //
 //             rN[0] = rNormal[0];
 //             rN[1] = rNormal[1];
-//             this->Normalize(rN);
+//             Normalize(rN);
 //             rT[0] = -rN[1];
 //             rT[1] = rN[0];
 //         }
@@ -1134,19 +1131,19 @@ private:
 		return dot;
 	}
 
-    inline double VectorNormDerivative(
+    static inline double VectorNormDerivative(
         const double ValueNorm,
         const array_1d<double, 3>& rValue,
-        const array_1d<double, 3>& rValueDerivative) const
+        const array_1d<double, 3>& rValueDerivative)
     {
         return inner_prod(rValue, rValueDerivative) / ValueNorm;
     }
 
-    inline array_1d<double, 3> UnitVectorDerivative(
+    static inline array_1d<double, 3> UnitVectorDerivative(
         const double VectorNorm,
         const double VectorNormDerivative,
         const array_1d<double, 3>& rVector,
-        const array_1d<double, 3>& rVectorDerivative) const
+        const array_1d<double, 3>& rVectorDerivative)
     {
         return (rVectorDerivative * VectorNorm - rVector * VectorNormDerivative) /
                 std::pow(VectorNorm, 2);
