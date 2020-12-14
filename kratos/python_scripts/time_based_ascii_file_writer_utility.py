@@ -3,6 +3,7 @@ import KratosMultiphysics
 
 # Other imports
 from pathlib import Path
+from os import fsync
 
 class TimeBasedAsciiFileWriterUtility:
     """This utility handles a file to which results are to be written.
@@ -15,12 +16,25 @@ class TimeBasedAsciiFileWriterUtility:
         default_settings = KratosMultiphysics.Parameters('''{
             "file_name"  : "",
             "output_path": "",
-            "write_buffer_size" : -1
+            "write_buffer_size" : -1,
+            "force_flush_step" : -1
         }''')
-        # write_buffer_size: -1 means we use the system default
-        # write_buffer_size:  0 means no buffering is done. IMPORTANT : Only for binary output.
-        # write_buffer_size > 0 means value specified is the size of buffer
 
+        '''
+        Using: write_buffer_size ->
+            -1 means we use the system default
+            0 means no buffering is done. IMPORTANT : Only for binary output.
+            > 0 means value specified is the size of buffer
+
+            useful for an output based upon the buffered data size
+
+        Or: force_flush_step ->
+            forces a flush at every step multiple specified
+            an alternate to write_buffer_size
+            precedence is given to this manner if a positive integer is provided
+
+            useful for specific control of output based upon the steps
+        '''
         self.model_part = model_part
         has_initial_write_buffer_size = params.Has("write_buffer_size")
 
@@ -44,10 +58,23 @@ class TimeBasedAsciiFileWriterUtility:
             self.write_buffer_size = 1
         else:
             self.write_buffer_size = params["write_buffer_size"].GetInt()
-            if (self.write_buffer_size == 0):
+            if self.write_buffer_size == 0:
                 err_msg  = "Buffer size of 0 not possible for ASCII output. \n"
                 err_msg  += "\t\tPlease choose a number greater than 1 or set -1 for default size. \n"
                 raise Exception(err_msg)
+
+        self.force_flush_step = params["force_flush_step"].GetInt()
+        if self.force_flush_step  == 0:
+            err_msg  = "Force flush step of 0 not possible for ASCII output. \n"
+            err_msg  += "\t\tPlease choose a number greater than 1 or set -1 for default size. \n"
+            raise Exception(err_msg)
+        elif self.force_flush_step  > 0:
+            info_msg  = "Force flush step set to " + str(self.force_flush_step) + "\n"
+            info_msg += "for TimeBasedAsciiFileWriterUtility output file " + str(self.file_name) + "\n"
+            info_msg += "This overwrites the setting specified with \"write_buffer_size\". "
+            KratosMultiphysics.Logger.PrintInfo("TimeBasedAsciiFileWriterUtility", info_msg)
+            # initialize
+            self.flush_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.file = self.__InitializeOutputFile(file_header)
@@ -64,7 +91,13 @@ class TimeBasedAsciiFileWriterUtility:
                 self.file = self.__InitializeOutputFile(file_header)
 
     def __OpenOutputFile(self):
-        return open(str(self.file_name),"w", buffering=self.write_buffer_size)
+        if self.force_flush_step > 0 and ((self.model_part.ProcessInfo[KratosMultiphysics.STEP] - self.flush_step) == self.force_flush_step):
+            with open(str(self.file_name),"w") as f:
+                f.flush()
+                fsync() # might not be needed
+                self.flush_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+        else:
+            return open(str(self.file_name),"w", buffering=self.write_buffer_size)
 
     def __InitializeOutputFile(self, file_header):
         output_file = self.__OpenOutputFile()
