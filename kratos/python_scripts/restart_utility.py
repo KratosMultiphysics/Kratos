@@ -316,6 +316,4 @@ class RestartUtility(object):
 
         file_name_data_collector.RetrieveFileNameData( file_name_data, file_name )
 
-        print( file_name_data )
-
         return file_name_data
