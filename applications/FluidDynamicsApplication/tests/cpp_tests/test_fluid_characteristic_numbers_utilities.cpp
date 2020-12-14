@@ -139,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPecletNumber
     KRATOS_CHECK_NEAR(std::get<1>(peclet_numbers), 0.027777777777, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateConductivityElementPecletNumber, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalPecletNumber, FluidDynamicsApplicationFastSuite)
 {
     // Create the test element
     Model model;
@@ -173,6 +173,73 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousPecle
     // Check results
     const double tolerance = 1.0e-8;
     KRATOS_CHECK_NEAR(mu_peclet_number, 0.055555555555, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementFourierNumbers, FluidDynamicsApplicationFastSuite)
+{
+    // Set the current delta time to calculate the Fourier number
+    const double current_dt = 1.0e-1;
+
+    // Create the test element
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    TestFluidCharacteristicNumberElementSet(r_model_part);
+
+    // Calculate the element Peclet numbers
+    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    const auto fourier_numbers = FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, false>(
+        r_model_part.GetElement(1),
+        min_elem_function,
+        current_dt);
+
+    // Check results
+    const double tolerance = 1.0e-8;
+    KRATOS_CHECK_NEAR(std::get<0>(fourier_numbers), 3.75, tolerance);
+    KRATOS_CHECK_NEAR(std::get<1>(fourier_numbers), 7.5, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalFourierNumber, FluidDynamicsApplicationFastSuite)
+{
+    // Set the current delta time to calculate the Fourier number
+    const double current_dt = 1.0e-1;
+    
+    // Create the test element
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    TestFluidCharacteristicNumberElementSet(r_model_part);
+
+    // Calculate the element Peclet numbers
+    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    const double thermal_fourier_number = FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, false>(
+        r_model_part.GetElement(1),
+        min_elem_function,
+        current_dt);
+
+    // Check results
+    const double tolerance = 1.0e-8;
+    KRATOS_CHECK_NEAR(thermal_fourier_number, 7.5, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousFourierNumber, FluidDynamicsApplicationFastSuite)
+{
+    // Set the current delta time to calculate the Fourier number
+    const double current_dt = 1.0e-1;
+
+    // Create the test element
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    TestFluidCharacteristicNumberElementSet(r_model_part);
+
+    // Calculate the element Peclet numbers
+    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    const double viscous_fourier_number = FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, false>(
+        r_model_part.GetElement(1),
+        min_elem_function,
+        current_dt);
+
+    // Check results
+    const double tolerance = 1.0e-8;
+    KRATOS_CHECK_NEAR(viscous_fourier_number, 3.75, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementMachNumber, FluidDynamicsApplicationFastSuite)

@@ -175,6 +175,71 @@ namespace Kratos
         return k_Pe;
     }
 
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt)
+    {
+        // Calculate midpoint density
+        const double rho = AuxiliaryGetDensity<DensityIsNodal>(rElement);
+
+        // Calculate diffusive magnitudes
+        const auto diff_values = GetDiffusivityValues<ConsiderArtificialMagnitudes>(rElement);
+
+        // Calculate element average size
+        const double h = rElementSizeCalculator(rElement.GetGeometry());
+
+        // Calculate Fourier numbers
+        const double aux = Dt / rho / std::pow(h,2);
+        const double cp = rElement.GetProperties().GetValue(SPECIFIC_HEAT);
+        const double visc_Fo = aux * std::get<0>(diff_values);
+        const double thermal_Fo =  aux * std::get<1>(diff_values) / cp;
+        return std::make_tuple(visc_Fo, thermal_Fo);
+    }
+
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt)
+    {
+        // Calculate midpoint density
+        const double rho = AuxiliaryGetDensity<DensityIsNodal>(rElement);
+
+        // Calculate dynamic viscosity
+        const double mu = GetDynamicViscosityValue<ConsiderArtificialMagnitudes>(rElement);
+
+        // Calculate element average size
+        const double h = rElementSizeCalculator(rElement.GetGeometry());
+
+        // Calculate viscous Fourier number
+        const double visc_Fo = Dt * mu / rho / std::pow(h,2);
+        return visc_Fo;
+    }
+
+
+    template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
+    double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber(
+        const Element& rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt)
+    {
+        // Calculate midpoint density
+        const double rho = AuxiliaryGetDensity<DensityIsNodal>(rElement);
+
+        // Calculate diffusive magnitudes
+        const double k = GetConductivityValue<ConsiderArtificialMagnitudes>(rElement);
+
+        // Calculate element average size
+        const double h = rElementSizeCalculator(rElement.GetGeometry());
+
+        // Calculate thermal Fourier number
+        const double cp = rElement.GetProperties().GetValue(SPECIFIC_HEAT);
+        const double thermal_Fo =  Dt * k / rho / cp / std::pow(h,2);
+        return thermal_Fo;
+    }
+
     double FluidCharacteristicNumbersUtilities::CalculateElementMachNumber(const Element &rElement)
     {
         // Get midpoint values
@@ -372,5 +437,20 @@ template std::tuple<double,double> FluidCharacteristicNumbersUtilities::Calculat
 template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, false>(const Element&, const ElementSizeFunctionType&);
 template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<false, true>(const Element&, const ElementSizeFunctionType&);
 template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<false, false>(const Element&, const ElementSizeFunctionType&);
+
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, true>(const Element&, const ElementSizeFunctionType&, const double);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, false>(const Element&, const ElementSizeFunctionType&, const double);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<false, true>(const Element&, const ElementSizeFunctionType&, const double);
+template double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<false, false>(const Element&, const ElementSizeFunctionType&, const double);
+
+template double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, true>(const Element&, const ElementSizeFunctionType&, const double);
+template double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, false>(const Element&, const ElementSizeFunctionType&, const double);
+template double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<false, true>(const Element&, const ElementSizeFunctionType&, const double);
+template double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<false, false>(const Element&, const ElementSizeFunctionType&, const double);
+
+template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, true>(const Element&, const ElementSizeFunctionType&, const double);
+template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, false>(const Element&, const ElementSizeFunctionType&, const double);
+template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<false, true>(const Element&, const ElementSizeFunctionType&, const double);
+template std::tuple<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<false, false>(const Element&, const ElementSizeFunctionType&, const double);
 
 } // namespace Kratos.
