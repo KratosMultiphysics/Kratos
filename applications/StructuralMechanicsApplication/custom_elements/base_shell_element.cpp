@@ -198,9 +198,7 @@ void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         ShellCrossSection::Pointer p_ref_section;
 
-        if (r_props.Has(SHELL_CROSS_SECTION)) {
-            p_ref_section = r_props[SHELL_CROSS_SECTION];
-        } else if (ShellUtilities::IsOrthotropic(r_props)) {
+        if (ShellUtilities::IsOrthotropic(r_props)) {
             // make new instance of shell cross section
             p_ref_section = Kratos::make_shared<ShellCrossSection>();
 
@@ -426,22 +424,6 @@ void BaseShellElement::SetupOrientationAngles()
     KRATOS_ERROR << "You have called to the SetupOrientationAngles from the base class for shell elements" << std::endl;
 }
 
-void BaseShellElement::CheckVariables() const
-{
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_ORTHOTROPIC_LAYERS);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
-}
-
 void BaseShellElement::CheckDofs() const
 {
     // verify that the dofs exist
@@ -473,14 +455,7 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) c
 
     const auto& r_geom = GetGeometry(); // TODO check if this can be const
 
-    if (r_props.Has(SHELL_CROSS_SECTION)) { // if the user specified a cross section ...
-        const ShellCrossSection::Pointer& section = r_props[SHELL_CROSS_SECTION];
-        if (section == nullptr) {
-            KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << Id() << std::endl;
-        }
-
-        section->Check(r_props, r_geom, rCurrentProcessInfo);
-    } else if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
+    if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
         CheckSpecificProperties();
 
         const auto& r_props = GetProperties();
