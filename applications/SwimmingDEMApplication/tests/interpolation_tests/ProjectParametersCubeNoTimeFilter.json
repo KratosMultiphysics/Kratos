@@ -1,0 +1,357 @@
+{
+    "gravity_parameters"      : {
+        "modulus"   : 9.81,
+        "direction" : [0.0,0.0,-1.0]
+    },
+    "time_stepping"           : {
+        "automatic_time_step" : false,
+        "time_step"           : 1e-6
+    },
+    "output_interval"         : 1e-5,
+    "non_newtonian_fluid"     : {
+        "non_newtonian_option"       : false,
+        "power_law_k"                : 0.001002,
+        "power_law_n"                : 1.0,
+        "yield_stress"               : 0.0,
+        "regularization_coefficient" : 100.0,
+        "power_law_tol"              : 1e-6
+    },
+    "problem_data"            : {
+        "problem_name"  : "cube_single_particle",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.001
+    },
+    "do_print_results_option" : false,
+    "coupling"                : {
+        "coupling_level_type"    : 2,
+        "coupling_weighing_type" : 2,
+        "interaction_start_time" : 0.0,
+        "forward_coupling"       : {
+            "time_averaging_type" : 0
+        },
+        "backward_coupling"      : {
+            "meso_scale_length"                          : 0.2,
+            "shape_factor"                               : 0.5,
+            "filter_velocity_option"                     : false,
+            "apply_time_filter_to_fluid_fraction_option" : false,
+            "min_fluid_fraction"                         : 0.2,
+            "fluid_fraction_grad_type"                   : 0,
+            "calculate_diffusivity_option"               : false,
+            "viscosity_modification_type"                : 0
+        }
+    },
+    "custom_dem"              : {
+        "do_solve_dem"                     : false,
+        "do_search_neighbours"             : true,
+        "type_of_dem_inlet"                : "VelocityImposed",
+        "translational_integration_scheme" : "Hybrid_Bashforth"
+    },
+    "dem_nodal_results"       : {
+        "ANGULAR_VELOCITY"                  : false,
+        "BASSET_FORCE"                      : false,
+        "BUOYANCY"                          : false,
+        "CONTACT_FORCES"                    : false,
+        "DRAG_FORCE"                        : false,
+        "ELASTIC_FORCES"                    : false,
+        "FLUID_ACCEL_PROJECTED"             : false,
+        "FLUID_FRACTION_GRADIENT_PROJECTED" : false,
+        "FLUID_FRACTION_PROJECTED"          : false,
+        "FLUID_VEL_LAPL_PROJECTED"          : false,
+        "FLUID_VEL_LAPL_RATE_PROJECTED"     : false,
+        "FLUID_VEL_PROJECTED_RATE"          : false,
+        "FLUID_VEL_PROJECTED"               : true,
+        "FLUID_VISCOSITY_PROJECTED"         : false,
+        "HYDRODYNAMIC_FORCE"                : false,
+        "HYDRODYNAMIC_MOMENT"               : false,
+        "IMPACT_WEAR"                       : false,
+        "LIFT_FORCE"                        : false,
+        "NON_DIMENSIONAL_VOLUME_WEAR"       : false,
+        "PRESSURE_GRAD_PROJECTED"           : false,
+        "RADIUS"                            : true,
+        "REYNOLDS_NUMBER"                   : false,
+        "SLIP_VELOCITY"                     : false,
+        "TOTAL_FORCES"                      : true,
+        "VIRTUAL_MASS_FORCE"                : false
+    },
+    "fluid_nodal_results"     : {
+        "BODY_FORCE"              : false,
+        "DISPERSE_FRACTION"       : false,
+        "DISTANCE"                : false,
+        "FLUID_FRACTION_GRADIENT" : false,
+        "FLUID_FRACTION_RATE"     : false,
+        "FLUID_FRACTION"          : true,
+        "HYDRODYNAMIC_REACTION"   : false,
+        "MATERIAL_ACCELERATION"   : false,
+        "PARTICLE_VEL_FILTERED"   : true,
+        "PRESSURE_GRADIENT"       : false,
+        "PRESSURE"                : true,
+        "VELOCITY_GRADIENT"       : false,
+        "VELOCITY_LAPLACIAN_RATE" : false,
+        "VELOCITY_LAPLACIAN"      : false,
+        "VELOCITY"                : true,
+        "VISCOSITY"               : false,
+        "VORTICITY"               : false
+    },
+    "properties": [{
+        "model_part_name": "settling_particles",
+        "properties_id": 1,
+        "hydrodynamic_law_parameters": {
+            "name": "HydrodynamicInteractionLaw",
+            "buoyancy_parameters": {
+                "name":"ArchimedesBuoyancyLaw"
+            },
+            "inviscid_force_parameters": {
+                "name":"AutonHuntPrudhommeInviscidForceLaw",
+                "do_apply_faxen_corrections": false
+            },
+            "drag_parameters": {
+                "name":"StokesDragLaw"
+            },
+            "history_force_parameters": {
+                "name":"default",
+                "quadrature_order": 2,
+                "mae_parameters": {
+                    "do_use_mae": false,
+                    "m": 10,
+                    "window_time_interval": 0.1,
+                    "type":4
+                }
+            }
+        }
+    }],
+    "sdem_output_processes"   : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "FluidModelPart.fluid_computational_model_part",
+                "output_name"            : "cube_single_particle",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"               : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "MultipleFiles"
+                        },
+                        "file_label"                  : "time",
+                        "output_control_type"         : "time",
+                        "output_interval"             : 1.0,
+                        "body_output"                 : true,
+                        "node_output"                 : false,
+                        "skin_output"                 : false,
+                        "plane_output"                : [],
+                        "nodal_results"               : ["VELOCITY","PRESSURE"],
+                        "gauss_point_results"         : [],
+                        "nodal_nonhistorical_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                             : "FluidModelPart.fluid_computational_model_part",
+                "output_control_type"                         : "step",
+                "output_interval"                             : 1,
+                "file_format"                                 : "ascii",
+                "output_precision"                            : 7,
+                "output_sub_model_parts"                      : false,
+                "folder_name"                                 : "vtk_output",
+                "save_output_files_in_folder"                 : true,
+                "nodal_solution_step_data_variables"          : ["VELOCITY","PRESSURE"],
+                "nodal_data_value_variables"                  : [],
+                "element_data_value_variables"                : [],
+                "condition_data_value_variables"              : [],
+                "gauss_point_variables_extrapolated_to_nodes" : []
+            }
+        }]
+    },
+    "dem_parameters"          : {
+        "Dimension"                      : 3,
+        "PeriodicDomainOption"           : false,
+        "BoundingBoxOption"              : false,
+        "AutomaticBoundingBoxOption"     : false,
+        "BoundingBoxEnlargementFactor"   : 1.1,
+        "BoundingBoxStartTime"           : 0.0,
+        "BoundingBoxStopTime"            : 1000.0,
+        "BoundingBoxMaxX"                : 10,
+        "BoundingBoxMaxY"                : 10,
+        "BoundingBoxMaxZ"                : 10,
+        "BoundingBoxMinX"                : -10,
+        "BoundingBoxMinY"                : -10,
+        "BoundingBoxMinZ"                : -10,
+        "dem_inlet_option"               : false,
+        "GravityX"                       : 0.0,
+        "GravityY"                       : 0.0,
+        "GravityZ"                       : -9.81,
+        "RotationOption"                 : true,
+        "CleanIndentationsOption"        : false,
+        "solver_settings"                : {
+            "RemoveBallsInitiallyTouchingWalls" : false,
+            "strategy"                          : "swimming_sphere_strategy"
+        },
+        "VirtualMassCoefficient"         : 1.0,
+        "RollingFrictionOption"          : false,
+        "GlobalDamping"                  : 0.0,
+        "ContactMeshOption"              : false,
+        "OutputFileType"                 : "Binary",
+        "Multifile"                      : "multiple_files",
+        "ElementType"                    : "SphericPartDEMElement3D",
+        "TranslationalIntegrationScheme" : "Symplectic_Euler",
+        "RotationalIntegrationScheme"    : "Direct_Integration",
+        "MaxTimeStep"                    : 1e-6,
+        "FinalTime"                      : 1.0,
+        "NeighbourSearchFrequency"       : 50,
+        "GraphExportFreq"                : 0.001,
+        "VelTrapGraphExportFreq"         : 0.001,
+        "OutputTimeStep"                 : 0.01,
+        "PostBoundingBox"                : false,
+        "PostLocalContactForce"          : false,
+        "PostDisplacement"               : true,
+        "PostRadius"                     : true,
+        "PostVelocity"                   : true,
+        "PostAngularVelocity"            : false,
+        "PostElasticForces"              : false,
+        "PostContactForces"              : false,
+        "PostRigidElementForces"         : false,
+        "PostStressStrainOption"         : false,
+        "PostTangentialElasticForces"    : false,
+        "PostTotalForces"                : false,
+        "PostPressure"                   : false,
+        "PostShearStress"                : false,
+        "PostNonDimensionalVolumeWear"   : false,
+        "PostParticleMoment"             : false,
+        "PostEulerAngles"                : false,
+        "PostRollingResistanceMoment"    : false,
+        "problem_name"                   : "cube_single_particle"
+    },
+    "fluid_parameters"        : {
+        "problem_data"     : {
+            "problem_name"  : "cube_single_particle",
+            "parallel_type" : "OpenMP",
+            "echo_level"    : 0,
+            "start_time"    : 0.0,
+            "end_time"      : 0.001
+        },
+        "output_processes" : {
+            "gid_output" : [{
+                "python_module" : "gid_output_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "GiDOutputProcess",
+                "help"          : "This process writes postprocessing files for GiD",
+                "Parameters"    : {
+                    "model_part_name"        : "FluidModelPart.fluid_computational_model_part",
+                    "output_name"            : "cube_single_particle",
+                    "postprocess_parameters" : {
+                        "result_file_configuration" : {
+                            "gidpost_flags"               : {
+                                "GiDPostMode"           : "GiD_PostBinary",
+                                "WriteDeformedMeshFlag" : "WriteDeformed",
+                                "WriteConditionsFlag"   : "WriteConditions",
+                                "MultiFileFlag"         : "MultipleFiles"
+                            },
+                            "file_label"                  : "time",
+                            "output_control_type"         : "time",
+                            "output_interval"             : 1.0,
+                            "body_output"                 : true,
+                            "node_output"                 : false,
+                            "skin_output"                 : false,
+                            "plane_output"                : [],
+                            "nodal_results"               : ["VELOCITY","PRESSURE"],
+                            "gauss_point_results"         : [],
+                            "nodal_nonhistorical_results" : []
+                        },
+                        "point_data_configuration"  : []
+                    }
+                }
+            }],
+            "vtk_output" : [{
+                "python_module" : "vtk_output_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "VtkOutputProcess",
+                "help"          : "This process writes postprocessing files for Paraview",
+                "Parameters"    : {
+                    "model_part_name"                             : "FluidModelPart.fluid_computational_model_part",
+                    "output_control_type"                         : "step",
+                    "output_interval"                             : 1,
+                    "file_format"                                 : "ascii",
+                    "output_precision"                            : 7,
+                    "output_sub_model_parts"                      : false,
+                    "folder_name"                                 : "vtk_output",
+                    "save_output_files_in_folder"                 : true,
+                    "nodal_solution_step_data_variables"          : ["VELOCITY","PRESSURE"],
+                    "nodal_data_value_variables"                  : [],
+                    "element_data_value_variables"                : [],
+                    "condition_data_value_variables"              : [],
+                    "gauss_point_variables_extrapolated_to_nodes" : []
+                }
+            }]
+        },
+        "solver_settings"  : {
+            "model_part_name"             : "FluidModelPart",
+            "domain_size"                 : 3,
+            "solver_type"                 : "Monolithic",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "interpolation_tests/cube_single_particleFluid"
+            },
+            "material_import_settings"    : {
+                "materials_filename" : "interpolation_tests/FluidMaterials.json"
+            },
+            "echo_level"                  : 0,
+            "compute_reactions"           : false,
+            "maximum_iterations"          : 10,
+            "relative_velocity_tolerance" : 0.001,
+            "absolute_velocity_tolerance" : 1e-5,
+            "relative_pressure_tolerance" : 0.001,
+            "absolute_pressure_tolerance" : 1e-5,
+            "volume_model_part_name"      : "FluidParts_fluid",
+            "skin_parts"                  : ["NoSlip3D_walls"],
+            "no_skin_parts"               : [],
+            "time_scheme"                 : "bossak",
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 1e-5
+            },
+            "formulation"                 : {
+                "element_type"             : "vms",
+                "use_orthogonal_subscales" : false,
+                "dynamic_tau"              : 1.0
+            },
+            "reform_dofs_at_each_step"    : false
+        },
+        "processes"        : {
+            "initial_conditions_process_list"  : [],
+            "boundary_conditions_process_list" : [{
+                "python_module" : "apply_noslip_process",
+                "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+                "process_name"  : "ApplyNoSlipProcess",
+                "Parameters"    : {
+                    "model_part_name" : "FluidModelPart.NoSlip3D_walls"
+                }
+            }],
+            "gravity"                          : [{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "FluidModelPart.FluidParts_fluid",
+                    "variable_name"   : "BODY_FORCE",
+                    "modulus"         : 9.81,
+                    "constrained"     : false,
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            }],
+            "auxiliar_process_list"            : []
+        }
+    }
+}

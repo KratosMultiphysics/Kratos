@@ -14,6 +14,10 @@ def SetupModelPart(cls, mdpa_name, domain_size):
     cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = domain_size
     cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
     cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
+    cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
+    cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCES_VECTOR)
+    cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LOCAL_AXES_MATRIX)
     cls.mdpa_name = GetFilePath(mdpa_name)
     ReadModelPart(cls.mdpa_name, cls.model_part)
 

@@ -44,29 +44,21 @@ END CONDITION
 
 BOOK: Boundary_conditions
 
-#CONDITION: Slip_condition
-#CONDTYPE: over groups
-#CONDMESHTYPE: over face elements
-#GROUPALLOW: lines faces nodes
-#END CONDITION
+CONDITION: Slip_condition
+CONDTYPE: over groups
+CONDMESHTYPE: over face elements
+GROUPALLOW: lines faces nodes
+END CONDITION
 
 CONDITION: Water_height
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: lines faces nodes
-QUESTION: Water_height
+QUESTION: Value
 VALUE: 0.0
 HELP: Units in IS: m
 QUESTION: Fixed#CB#(true,false)
 VALUE: true
-HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
-DEPENDENCIES: (false,HIDE,Imposed_water_height,Constant)(true,RESTORE,Imposed_water_height,#CURRENT#)
-QUESTION: Imposed_water_height#CB#(Constant,Table_Interpolation)
-VALUE: Constant
-DEPENDENCIES: (Constant,HIDE,Water_Height_Table,#CURRENT#)(Table_Interpolation,RESTORE,Water_Height_Table,#CURRENT#)
-QUESTION: Water_Height_Table(Time,Value)
-VALUE: #N# 2 0.0 0.0
-HELP: If Pressure_Distribution is set to Uniform, Value means Pressure_Value. If Pressure_Distribution is Hydrostatic, Value means Reference_Coordinate.
 END CONDITION
 
 CONDITION: Imposed_flow_rate
@@ -84,19 +76,3 @@ VALUE: false
 QUESTION: Fixed_Y#CB#(true,false)
 VALUE: false
 END CONDITION
-
-
-#BOOK: Source_terms
-
-#CONDITION: Rain_load
-#CONDTYPE: over groups
-#CONDMESHTYPE: over body elements
-#GROUPALLOW: lines surfaces faces elements nodes
-#QUESTION: Rain_profile#CB#(Constant,Table_Interpolation)
-#VALUE: Constant
-#DEPENDENCIES: (Constant,RESTORE,Value,#CURRENT#)(Constant,HIDE,Table,#CURRENT#)(Table_Interpolation,HIDE,Value,#CURRENT#)(Table_Interpolation,RESTORE,Table,#CURRENT#)
-#QUESTION: Value
-#VALUE: 0.0
-#QUESTION: Table(Time,Value)
-#VALUE: #N# 2 0.0 0.0
-#END CONDITION

@@ -33,7 +33,7 @@ namespace Kratos
 
 ///@brief Base class for data containers used within FluidElement and derived types.
 template< size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime >
-class FluidElementData
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidElementData
 {
 public:
     ///@name Type Definitions

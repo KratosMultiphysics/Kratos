@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -22,8 +22,9 @@
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
-// #include "custom_strategies/hexahedra_newton_raphson_strategy.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "custom_strategies/strategies/explicit_solver_strategy.h"
+#include "custom_strategies/residualbased_DEM_coupled_newton_raphson_strategy.h"
 #include "custom_strategies/femdem_residual_criteria.h"
 
 //linear solvers
@@ -36,34 +37,35 @@ namespace Kratos
 
 namespace Python
 {
-	using namespace pybind11;
+    using namespace pybind11;
 
-	void  AddCustomStrategiesToPython(pybind11::module& m)
-	{
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-		typedef FemDemResidualCriteria< SparseSpaceType,  LocalSpaceType > FemDemResidualCriteriaType;
+    void  AddCustomStrategiesToPython(pybind11::module& m)
+    {
+        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+        typedef FemDemResidualCriteria< SparseSpaceType,  LocalSpaceType > FemDemResidualCriteriaType;
+        typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+        typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+        typedef BaseSolvingStrategyType::TBuilderAndSolverType BuilderAndSolverType;
+        typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
+        typedef ResidualBasedDEMCoupledNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedDEMCoupledNewtonRaphsonStrategy;
 
-		// Base types
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-		typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-		typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-		// typedef HexahedraNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HexahedraNewtonRaphsonStrategyType;
 
-		// class_< HexahedraNewtonRaphsonStrategyType,
-		// 		typename HexahedraNewtonRaphsonStrategyType::Pointer,
-		// 		BaseSolvingStrategyType  >  (m, "HexahedraNewtonRaphsonStrategy")
-		// 		.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
-		// 		;
-	
-		class_<FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >,
-			typename FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >::Pointer,
-			ConvergenceCriteriaType >
-			(m,"FemDemResidualCriteria")
-			.def(init< double, double>())
-			;
-	}
+        class_< ResidualBasedDEMCoupledNewtonRaphsonStrategy,
+                typename ResidualBasedDEMCoupledNewtonRaphsonStrategy::Pointer,
+                BaseSolvingStrategyType  >  (m, "ResidualBasedDEMCoupledNewtonRaphsonStrategy")
+                .def(init <ModelPart& , ExplicitSolverStrategy::Pointer,  BaseSchemeType::Pointer , ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer , int  , bool , bool , bool  >())
+                ;
+
+
+        class_<FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >,
+            typename FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >::Pointer,
+            ConvergenceCriteriaType >
+            (m,"FemDemResidualCriteria")
+            .def(init< double, double>())
+            ;
+    }
 
 }  // namespace Python.
 
