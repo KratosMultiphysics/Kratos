@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/point_moment_condition_3d.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
