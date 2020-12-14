@@ -228,9 +228,8 @@ void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         std::vector<array_1d<double, 3>> local_axes_1;
 		std::vector<array_1d<double, 3>> local_axes_2;
-        ProcessInfo tmp_process_info; // TODO refactor once Initialize gets ProcessInfo
-		this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , tmp_process_info);
-		this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , tmp_process_info);
+		this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , rCurrentProcessInfo);
+		this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , rCurrentProcessInfo);
 
         const array_1d<double, 3> prescribed_direcition = this->GetValue(LOCAL_MATERIAL_AXIS_1);
 
