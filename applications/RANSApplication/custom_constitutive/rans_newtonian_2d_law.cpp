@@ -66,7 +66,7 @@ int RansNewtonian2DLaw::Check(
 
     // Check viscosity value
     KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
-        << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info "
+        << "Incorrect or missing DYNAMIC_VISCOSITY provided in material properties "
            "for RansNewtonian2DLaw: "
         << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
