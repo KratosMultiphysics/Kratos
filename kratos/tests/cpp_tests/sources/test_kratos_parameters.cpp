@@ -415,24 +415,24 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSucceeds, KratosCoreFastSuit
     KRATOS_CHECK_DOUBLE_EQUAL(kp["level1"]["tmp"].GetDouble(), 5.0);  // not 2, since kp overwrites the defaults
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMissingParameters, KratosCoreFastSuite)
-// {
-//     // only missing parameters are added, no complaints if there already exist more than in the defaults
-//     Parameters kp = Parameters(GetJSONString());
-//     tmp = Parameters(incomplete_with_extra_parameter)
-//
-//     kp.AddMissingParameters(tmp)
-//
-//     KRATOS_CHECK_EQUAL(kp["new_default_obj"]["aaa"].GetString(), "string")
-//     KRATOS_CHECK_EQUAL(kp["string_value"].GetString(), "hello")
-//     KRATOS_CHECK_IS_FALSE(kp["level1"].Has("new_sublevel"))
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMissingParameters, KratosCoreFastSuite)
+{
+    // Only missing parameters are added, no complaints if there already exist more than in the defaults
+    Parameters kp = Parameters(GetJSONString());
+    Parameters tmp = Parameters(GetJSONStringIncompleteWithExtraParameter());
+
+    kp.AddMissingParameters(tmp);
+
+    KRATOS_CHECK_STRING_EQUAL(kp["new_default_obj"]["aaa"].GetString(), "string");
+    KRATOS_CHECK_STRING_EQUAL(kp["string_value"].GetString(), "hello");
+    KRATOS_CHECK_IS_FALSE(kp["level1"].Has("new_sublevel"));
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyAddMissingParameters, KratosCoreFastSuite)
 // {
 //     // only missing parameters are added, no complaints if there already exist more than in the defaults
 //     Parameters kp = Parameters(GetJSONString());
-//     tmp = Parameters(incomplete_with_extra_parameter)
+//     Parameters tmp = Parameters(GetJSONStringIncompleteWithExtraParameter());
 //
 //     kp.RecursivelyAddMissingParameters(tmp)
 //
