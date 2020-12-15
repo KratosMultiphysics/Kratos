@@ -33,6 +33,10 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         super().__init__(settings)
         self.__mappers = {}
 
+    def InitializeSolutionStep(self):
+        for mapper in self.__mappers.values():
+            mapper.UpdateInterface()
+
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         model_part_origin      = from_solver_data.GetModelPart()
         model_part_origin_name = from_solver_data.model_part_name

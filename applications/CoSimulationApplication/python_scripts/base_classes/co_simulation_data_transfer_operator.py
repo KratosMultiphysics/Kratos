@@ -11,6 +11,9 @@ class CoSimulationDataTransferOperator:
         self.echo_level = self.settings["echo_level"].GetInt()
         self.__checked_combinations = []
 
+    def InitializeSolutionStep(self):
+        pass
+
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         # 1. Check if specified transfer options are available
         self._CheckAvailabilityTransferOptions(transfer_options)
