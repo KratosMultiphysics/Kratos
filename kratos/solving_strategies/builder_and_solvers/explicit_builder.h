@@ -726,6 +726,7 @@ protected:
 
         // Loop the elements to get the lumped mass matrix
         LocalSystemVectorType elem_mass_vector;
+        std::vector<std::size_t> elem_equation_id;
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_process_info = rModelPart.GetProcessInfo();
         const int n_elems = static_cast<int>(r_elements_array.size());
@@ -738,22 +739,12 @@ protected:
 
             // Calculate the elemental lumped mass vector
             it_elem->CalculateLumpedMassVector(elem_mass_vector, r_process_info);
-            // Update value of NODAL_AREA
-            for (IndexType i_node = 0; i_node < r_geom.size(); ++i_node) {
-                r_geom[i_node].SetValue(NODAL_AREA,r_geom[i_node].GetValue(NODAL_AREA) + elem_mass_vector(i_node));
-            }
-        }
+            it_elem->EquationIdVector(elem_equation_id, r_process_info);
 
-#pragma omp parallel for
-        for (unsigned int i_dof = 0; i_dof < r_dofs_array.size(); ++i_dof) {
-            const auto it_dof = r_dofs_array.begin() + i_dof;
-            // Retrieve node id of dof
-            const auto node_id = it_dof->GetId();
-            // Retrieve nodal area of dof's node
-            const auto aux_nodal_area = rModelPart.GetNode(node_id).GetValue(NODAL_AREA);
-            // Set value in lumped mass vector
-            const SizeType eq_id = it_dof->EquationId();
-            (*mpLumpedMassVector)[eq_id] += aux_nodal_area;
+            // Update value of lumped mass vector
+            for (IndexType i_node = 0; i_node < r_geom.size(); ++i_node) {
+                (*mpLumpedMassVector)[elem_equation_id[i]] += elem_mass_vector(i);
+            }
         }
 
         // Set the lumped mass vector flag as true
