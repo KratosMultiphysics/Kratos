@@ -734,111 +734,114 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMethods, KratosCoreFastSuite)
 //             with self.assertRaises(RuntimeError):
 //                 tmp[key].GetMatrix()
 // }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMethods, KratosCoreFastSuite)
-// {
-//     // This method checks all the "GetXXX" Methods if they throw an error
-//     Parameters tmp = Parameters(R"({})");
-//
-//     std::string key = "int";
-//     tmp.AddInt(key, 10);
-//     KRATOS_CHECK_EQUAL(tmp[key].GetInt(),10);
-//
-//     key = "double";
-//     tmp.AddDouble(key, 2.0);
-//     KRATOS_CHECK_EQUAL(tmp[key].GetDouble(),2.0);
-//
-//     key = "bool";
-//     tmp.AddBool(key, true);
-//     KRATOS_CHECK_EQUAL(tmp[key].GetBool(),true);
-//
-//     key = "string"
-//     tmp.AddString(key, "hello");
-//     KRATOS_CHECK_EQUAL(tmp[key].GetString(),"hello");
-//
-//     key = "vector";
-//     Vector vector = ZeroVector(3);
-//     vector[0] = 5.2;
-//     vector[1] = -3.1;
-//     vector[2] = 4.33;
-//     tmp.AddVector(key, vector)
-//     V = tmp[key].GetVector()
-//     KRATOS_CHECK_DOUBLE_EQUAL(V[0],5.2);
-//     KRATOS_CHECK_DOUBLE_EQUAL(V[1],-3.1);
-//     KRATOS_CHECK_DOUBLE_EQUAL(V[2],4.33);
-//
-//     key = "matrix";
-//     Matrix matrix = ZeroMatrix(3,2);
-//     matrix[0,0] = 1.0:
-//     matrix[0,1] = 2.0;
-//     matrix[1,0] = 3.0:
-//     matrix[1,1] = 4.0;
-//     matrix[2,0] = 5.0;
-//     matrix[2,1] = 6.0;
-//     tmp.AddMatrix(key, matrix);
-//     auto& A = tmp[key].GetMatrix();
-//     KRATOS_CHECK_DOUBLE_EQUAL(A[0,0],1.0);
-//     KRATOS_CHECK_DOUBLE_EQUAL(A[0,1],2.0);
-//     KRATOS_CHECK_DOUBLE_EQUAL(A[1,0],3.0);
-//     KRATOS_CHECK_DOUBLE_EQUAL(A[1,1],4.0);
-//     KRATOS_CHECK_DOUBLE_EQUAL(A[2,0],5.0);
-//     KRATOS_CHECK_DOUBLE_EQUAL(A[2,1],6.0);
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
-// {
-//     // Read and check Vectors from a Parameters-Object
-//     Parameters tmp = Parameters(R"({
-//         "valid_vectors" : [ []
-//         ],
-//         "false_vectors" : [ [[]],
-//                             [[2,3],2],
-//                             [2,3,[2]],
-//                             [2,3,[]],
-//                             [{"key":3},2],
-//                             [2,3,{"key":3}],
-//                             [true,2],
-//                             [2,3,true],
-//                             [5,"string",2]
-//         ]
-//     })");
-//
-//     // Check the IsVector Method
-//     for i in range(tmp["valid_vectors"].size()):
-//         valid_vector = tmp["valid_vectors"][i]
-//         KRATOS_CHECK(valid_vector.IsVector())
-//
-//     for i in range(tmp["false_vectors"].size()):
-//         false_vector = tmp["false_vectors"][i]
-//         KRATOS_CHECK_IS_FALSE(false_vector.IsVector())
-//
-//     // Check the GetVector Method also on the valid Matrices
-//     for i in range(tmp["valid_vectors"].size()):
-//         valid_vector = tmp["valid_vectors"][i]
-//         valid_vector.GetVector()
-//
-//     // Check that the errors of the GetVector method are thrown correctly
-//     for i in range(tmp["false_vectors"].size()):
-//         false_vector = tmp["false_vectors"][i]
-//         with self.assertRaises(RuntimeError):
-//             false_vector.GetVector()
-//
-//     // Manually assign and check a Vector
-//     Vector vec = ZeroVector(3);
-//     vec[0] = 1.32;
-//     vec[1] = -2.22;
-//     vec[2] = 5.5;
-//
-//     tmp.AddEmptyValue("vector_value");
-//     tmp["vector_value"].SetVector(vec);
-//
-//     KRATOS_CHECK(tmp["vector_value"].IsVector());
-//
-//     auto V2 = tmp["vector_value"].GetVector();
-//     KRATOS_CHECK_DOUBLE_EQUAL(V2[0],1.32);
-//     KRATOS_CHECK_DOUBLE_EQUAL(V2[1],-2.22);
-//     KRATOS_CHECK_DOUBLE_EQUAL(V2[2],5.5);
-// }
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMethods, KratosCoreFastSuite)
+{
+    // This method checks all the "GetXXX" Methods if they throw an error
+    Parameters tmp = Parameters(R"({})");
+
+    std::string key = "int";
+    tmp.AddInt(key, 10);
+    KRATOS_CHECK_EQUAL(tmp[key].GetInt(),10);
+
+    key = "double";
+    tmp.AddDouble(key, 2.0);
+    KRATOS_CHECK_EQUAL(tmp[key].GetDouble(),2.0);
+
+    key = "bool";
+    tmp.AddBool(key, true);
+    KRATOS_CHECK_EQUAL(tmp[key].GetBool(),true);
+
+    key = "string";
+    tmp.AddString(key, "hello");
+    KRATOS_CHECK_EQUAL(tmp[key].GetString(),"hello");
+
+    key = "vector";
+    Vector vector = ZeroVector(3);
+    vector[0] = 5.2;
+    vector[1] = -3.1;
+    vector[2] = 4.33;
+    tmp.AddVector(key, vector);
+    const auto& V = tmp[key].GetVector();
+    KRATOS_CHECK_DOUBLE_EQUAL(V[0],5.2);
+    KRATOS_CHECK_DOUBLE_EQUAL(V[1],-3.1);
+    KRATOS_CHECK_DOUBLE_EQUAL(V[2],4.33);
+
+    key = "matrix";
+    Matrix matrix = ZeroMatrix(3,2);
+    matrix(0,0) = 1.0;
+    matrix(0,1) = 2.0;
+    matrix(1,0) = 3.0;
+    matrix(1,1) = 4.0;
+    matrix(2,0) = 5.0;
+    matrix(2,1) = 6.0;
+    tmp.AddMatrix(key, matrix);
+    const auto& A = tmp[key].GetMatrix();
+    KRATOS_CHECK_DOUBLE_EQUAL(A(0,0),1.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A(0,1),2.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A(1,0),3.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A(1,1),4.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A(2,0),5.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A(2,1),6.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
+{
+    // Read and check Vectors from a Parameters-Object
+    Parameters tmp = Parameters(R"({
+        "valid_vectors" : [ []
+        ],
+        "false_vectors" : [ [[]],
+                            [[2,3],2],
+                            [2,3,[2]],
+                            [2,3,[]],
+                            [{"key":3},2],
+                            [2,3,{"key":3}],
+                            [true,2],
+                            [2,3,true],
+                            [5,"string",2]
+        ]
+    })");
+
+    // Check the IsVector Method
+    for (std::size_t i = 0;  i < tmp["valid_vectors"].size(); ++i) {
+        const auto& valid_vector = tmp["valid_vectors"][i];
+        KRATOS_CHECK(valid_vector.IsVector());
+    }
+
+    for (std::size_t i = 0;  i < tmp["false_vectors"].size(); ++i) {
+        const auto& false_vector = tmp["false_vectors"][i];
+        KRATOS_CHECK_IS_FALSE(false_vector.IsVector());
+    }
+
+    // Check the GetVector Method also on the valid Matrices
+    for (std::size_t i = 0;  i < tmp["valid_vectors"].size(); ++i) {
+        const auto& valid_vector = tmp["valid_vectors"][i];
+        valid_vector.GetVector();
+    }
+
+    // Check that the errors of the GetVector method are thrown correctly
+    for (std::size_t i = 0;  i < tmp["false_vectors"].size(); ++i) {
+        const auto& false_vector = tmp["false_vectors"][i];
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(false_vector.GetVector(), "");
+    }
+
+    // Manually assign and check a Vector
+    Vector vec = ZeroVector(3);
+    vec[0] = 1.32;
+    vec[1] = -2.22;
+    vec[2] = 5.5;
+
+    tmp.AddEmptyValue("vector_value");
+    tmp["vector_value"].SetVector(vec);
+
+    KRATOS_CHECK(tmp["vector_value"].IsVector());
+
+    const auto V2 = tmp["vector_value"].GetVector();
+    KRATOS_CHECK_DOUBLE_EQUAL(V2[0],1.32);
+    KRATOS_CHECK_DOUBLE_EQUAL(V2[1],-2.22);
+    KRATOS_CHECK_DOUBLE_EQUAL(V2[2],5.5);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
 {
