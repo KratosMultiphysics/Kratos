@@ -371,7 +371,7 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
 template< class TElementData >
 void DVMSDEMCoupled<TElementData>::save(Serializer& rSerializer) const
 {
-    typedef QSVMS<TElementData> BaseElement;
+    typedef DVMS<TElementData> BaseElement;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
     rSerializer.save("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
@@ -380,7 +380,7 @@ void DVMSDEMCoupled<TElementData>::save(Serializer& rSerializer) const
 template< class TElementData >
 void DVMSDEMCoupled<TElementData>::load(Serializer& rSerializer)
 {
-    typedef QSVMS<TElementData> BaseElement;
+    typedef DVMS<TElementData> BaseElement;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
     rSerializer.load("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
