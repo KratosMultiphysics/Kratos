@@ -741,7 +741,7 @@ protected:
             it_elem->EquationIdVector(elem_equation_id, r_process_info);
 
             // Update value of lumped mass vector
-            for (IndexType i_node = 0; i_node < r_geom.size(); ++i_node) {
+            for (IndexType i = 0; i < r_geom.size(); ++i) {
                 (*mpLumpedMassVector)[elem_equation_id[i]] += elem_mass_vector(i);
             }
         }
