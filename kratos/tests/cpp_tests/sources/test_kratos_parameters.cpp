@@ -180,25 +180,25 @@ std::string GetJSONStringIncompleteWithExtraParameter()
 std::string GetJSONStringExpectedValidationOutput()
 {
     const std::string expected_validation_output = R"({
-        "bool_value": true,
-        "double_value": 2.0,
-        "int_value": 10,
-        "level1": {
-            "list_value": [
-                3,
-                "hi",
-                false
-            ],
-            "tmp": 5.0
-        },
-        "new_default_obj": {
-            "aaa": "string",
-            "bbb": false,
-            "ccc": 22
-        },
-        "new_default_value": -123.0,
-        "string_value": "hello"
-    })";
+    "bool_value": true,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": {
+        "list_value": [
+            3,
+            "hi",
+            false
+        ],
+        "tmp": 5.0
+    },
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
+})";
     return expected_validation_output;
 }
 
@@ -394,27 +394,27 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursiveValidation4Levels, KratosCore
     KRATOS_CHECK_IS_FALSE( kp_wrong_wariation.HasSameKeysAndTypeOfValuesAs(defaults_params) );
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSuccedsErroronFirstLevel, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(GetJSONStringWrongLevel2());
-//     Parameters defaults_params = Parameters(GetJSONStringDefaults());
-//
-//     // here no error shall be thrown since validation is only done on level0
-//     kp.ValidateAndAssignDefaults(defaults_params)
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSucceeds, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(GetJSONString());
-//     Parameters defaults_params = Parameters(GetJSONStringDefaults());
-//     defaults_params["level1"]["tmp"].SetDouble(2.0)  // this does not coincide with the value in kp, but is of the same type
-//
-//     kp.ValidateAndAssignDefaults(defaults_params)
-//     KRATOS_CHECK_EQUAL(kp.PrettyPrintJsonString(), expected_validation_output)
-//
-//     KRATOS_CHECK_EQUAL(kp["level1"]["tmp"].GetDouble(), 5.0)  // not 2, since kp overwrites the defaults
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSuccedsErroronFirstLevel, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONStringWrongLevel2());
+    Parameters defaults_params = Parameters(GetJSONStringDefaults());
+
+    // Here no error shall be thrown since validation is only done on level0
+    kp.ValidateAndAssignDefaults(defaults_params);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSucceeds, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONString());
+    Parameters defaults_params = Parameters(GetJSONStringDefaults());
+    defaults_params["level1"]["tmp"].SetDouble(2.0);  // this does not coincide with the value in kp, but is of the same type
+
+    kp.ValidateAndAssignDefaults(defaults_params);
+    KRATOS_CHECK_STRING_EQUAL(kp.PrettyPrintJsonString(), GetJSONStringExpectedValidationOutput());
+
+    KRATOS_CHECK_DOUBLE_EQUAL(kp["level1"]["tmp"].GetDouble(), 5.0);  // not 2, since kp overwrites the defaults
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMissingParameters, KratosCoreFastSuite)
 // {
 //     // only missing parameters are added, no complaints if there already exist more than in the defaults
