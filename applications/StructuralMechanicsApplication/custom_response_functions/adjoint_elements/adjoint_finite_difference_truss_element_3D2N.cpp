@@ -84,11 +84,6 @@ int AdjointFiniteDifferenceTrussElement<TPrimalElement>::Check(const ProcessInfo
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CheckVariables() const
-{
-}
-
-template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CheckDofs() const
 {
     const SizeType number_of_nodes = this->GetGeometry().size();
