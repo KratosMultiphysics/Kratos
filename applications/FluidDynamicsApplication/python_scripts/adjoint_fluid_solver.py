@@ -132,8 +132,11 @@ class AdjointFluidSolver(FluidSolver):
 
     def __CreateSensitivityBuilder(self):
         response_function = self.GetResponseFunction()
+        self.sensitivity_builder_scheme = KratosCFD.ResidualBasedSimpleSteadySensitivityBuilderScheme()
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.settings["sensitivity_settings"],
             self.main_model_part,
-            response_function)
+            response_function,
+            self.sensitivity_builder_scheme
+            )
         return sensitivity_builder

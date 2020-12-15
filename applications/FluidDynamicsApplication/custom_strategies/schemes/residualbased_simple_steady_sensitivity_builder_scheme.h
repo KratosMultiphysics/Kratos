@@ -503,20 +503,17 @@ private:
 
         // get adjoint solution vector
         rEntity.GetValuesVector(adjoint_vector);
+        const unsigned int residuals_size = adjoint_vector.size();
 
-        // calculate entity residual
-        rEntity.CalculateLocalSystem(aux_matrix, aux_vector, rProcessInfo);
-        rEntity.CalculateLocalVelocityContribution(aux_matrix, aux_vector, rProcessInfo);
-
-        KRATOS_ERROR_IF(adjoint_vector.size() != sensitivity_matrix.size2())
-            << "mAdjointVectors.size(): " << adjoint_vector.size()
+        KRATOS_ERROR_IF(residuals_size != sensitivity_matrix.size2())
+            << "mAdjointVectors.size(): " << residuals_size
             << " incompatible with sensitivity_matrix.size1(): "
             << sensitivity_matrix.size2() << ". Variable: " << rVariable << std::endl;
 
         GlobalPointersUnorderedMap<NodeType, int> gp_index_map;
         auto& r_geometry = rEntity.GetGeometry();
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        const unsigned int local_size = adjoint_vector.size() / number_of_nodes;
+        const unsigned int local_size = residuals_size / number_of_nodes;
 
         if (rGPSensitivityVector.size() != number_of_nodes) {
             rGPSensitivityVector.resize(number_of_nodes);
@@ -531,10 +528,12 @@ private:
         }
 
         // add relevant neighbour gps
+        bool found_slip = false;
         unsigned int local_index = number_of_nodes;
         for (unsigned int i = 0; i < number_of_nodes; ++i) {
             const auto& r_node = r_geometry[i];
             if (r_node.Is(SLIP)) {
+                found_slip = true;
                 for (auto neighbor_gp : r_node.GetValue(NEIGHBOUR_CONDITION_NODES).GetContainer()) {
                     const auto p_itr = gp_index_map.find(neighbor_gp);
                     if (p_itr == gp_index_map.end()) {
@@ -546,12 +545,26 @@ private:
         }
 
         // now properly resize the output matrix and vectors
-        if (rSensitivityVector.size() != local_index) {
-            rSensitivityVector.resize(local_index);
+        const unsigned int derivatives_size = local_index * mDomainSize;
+        if (rSensitivityVector.size() != derivatives_size) {
+            rSensitivityVector.resize(derivatives_size);
+        }
+
+        if (rotated_sensitivity_matrix.size1() != derivatives_size ||
+            rotated_sensitivity_matrix.size2() != residuals_size) {
+            rotated_sensitivity_matrix.resize(derivatives_size, residuals_size, false);
+        }
+        rotated_sensitivity_matrix.clear();
+
+        if (found_slip) {
+            // calculate entity residual.
+            // following methods will throw an error in old adjoint elements/conditions since
+            // they does not support SLIP condition based primal solutions
+            rEntity.CalculateLocalSystem(aux_matrix, aux_vector, rProcessInfo);
+            rEntity.CalculateLocalVelocityContribution(aux_matrix, aux_vector, rProcessInfo);
         }
 
         // add residual derivative contributions
-        rotated_sensitivity_matrix.clear();
         for (unsigned int a = 0; a < number_of_nodes; ++a) {
             const auto& r_node = r_geometry[a];
             if (r_node.Is(SLIP)) {
@@ -579,6 +592,10 @@ private:
             << rSensitivityVector.size() << ", PartialSensitivityVectorSize = "
             << objective_partial_sensitivity.size() << " ].\n";
 
+        // this assumes objective_partial_sensitivity also follows the same order of gps given by
+        // gp_index_map. This has to be done in this way because AdjointResponseFunction does not have
+        // an interface to pass a gp_vector.
+        // may be we can extend AdjointResponseFunction interface?
         for (unsigned int c = 0; c < objective_partial_sensitivity.size(); ++c) {
             rSensitivityVector[c] += objective_partial_sensitivity[c];
         }
