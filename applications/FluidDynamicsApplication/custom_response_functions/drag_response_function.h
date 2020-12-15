@@ -15,6 +15,8 @@
 
 // System includes
 #include <string>
+#include <vector>
+#include <unordered_map>
 
 // External includes
 
@@ -24,6 +26,8 @@
 #include "includes/ublas_interface.h"
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/variable_utils.h"
+#include "includes/global_pointer.h"
+#include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
 {
@@ -122,6 +126,22 @@ public:
             STRUCTURE, true,
             mrModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
 
+        const auto& r_communicator = mrModelPart.GetCommunicator();
+        const auto& r_nodes = mrModelPart.Nodes();
+        const int number_of_nodes = r_nodes.size();
+
+        // generate list of indices for which gps needs to be created.
+        std::vector<int> indices;
+        indices.resize(number_of_nodes);
+        IndexPartition<int>(number_of_nodes).for_each([&](const int Index) {
+            indices[Index] = (r_nodes.begin() + Index)->Id();
+        });
+
+        // This is required to get correct global pointers for ghost mesh nodes.
+        const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+        mGlobalPointerNodalMap = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(
+            r_nodes, indices, r_data_communicator);
+
         KRATOS_CATCH("");
     }
 
@@ -174,6 +194,30 @@ public:
         KRATOS_CATCH("");
     }
 
+    void CalculatePartialSensitivity(Element& rAdjointElement,
+                                     const Variable<array_1d<double, 3>>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     GlobalPointersVector<NodeType>& rGPSensitivityVector,
+                                     const ProcessInfo& rProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        CalculateDragContribution(
+            rSensitivityMatrix, rAdjointElement.GetGeometry().Points(), rSensitivityGradient);
+
+        const auto& r_geometry = rAdjointElement.GetGeometry();
+        if (rGPSensitivityVector.size() != r_geometry.PointsNumber()) {
+            rGPSensitivityVector.resize(r_geometry.PointsNumber());
+        }
+
+        for (unsigned int i = 0; r_geometry.PointsNumber(); ++i) {
+            rGPSensitivityVector(i) = mGlobalPointerNodalMap[r_geometry[i].Id()];
+        }
+
+        KRATOS_CATCH("");
+    }
+
     void CalculatePartialSensitivity(Condition& rAdjointCondition,
                                      const Variable<array_1d<double, 3>>& rVariable,
                                      const Matrix& rSensitivityMatrix,
@@ -184,6 +228,20 @@ public:
             rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
 
         rSensitivityGradient.clear();
+    }
+
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                     const Variable<array_1d<double, 3>>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     GlobalPointersVector<NodeType>& rGPSensitivityVector,
+                                     const ProcessInfo& rProcessInfo) override
+    {
+        if (rSensitivityGradient.size() != 0)
+            rSensitivityGradient.resize(0);
+
+        if (rGPSensitivityVector.size() != 0)
+            rGPSensitivityVector.resize(0);
     }
 
     double CalculateValue(ModelPart& rModelPart) override
@@ -217,6 +275,7 @@ private:
     ModelPart& mrModelPart;
     std::string mStructureModelPartName;
     array_1d<double, TDim> mDragDirection;
+    std::unordered_map<int, GlobalPointer<ModelPart::NodeType>> mGlobalPointerNodalMap;
 
     ///@}
     ///@name Private Operators
