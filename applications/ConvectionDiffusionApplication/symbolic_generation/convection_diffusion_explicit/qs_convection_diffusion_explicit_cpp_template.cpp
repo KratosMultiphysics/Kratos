@@ -214,6 +214,53 @@ void QSConvectionDiffusionExplicit<3,4>::CalculateMassMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+void QSConvectionDiffusionExplicit<2,3>::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    // Define local variables
+    const unsigned int local_size = 3;
+    const double one_third = 1.0 / 3.0;
+    // Initialize and calculate elemental lumped mass vector
+    if (rLumpedMassVector.size() != local_size) {
+        rLumpedMassVector.resize(local_size, false);
+    }
+    for (IndexType i = 0; i < local_size; ++i) {
+        rLumpedMassVector(i) = one_third;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+
+template<>
+void QSConvectionDiffusionExplicit<3,4>::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    // Define local variables
+    const unsigned int local_size = 4;
+    const double one_fourth = 1.0 / 4.0;
+    // Initialize and calculate elemental lumped mass vector
+    if (rLumpedMassVector.size() != local_size) {
+        rLumpedMassVector.resize(local_size, false);
+    }
+    for (IndexType i = 0; i < local_size; ++i) {
+        rLumpedMassVector(i) = one_fourth;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template< unsigned int TDim, unsigned int TNumNodes >
 void QSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
     const Variable<double>& rVariable,
