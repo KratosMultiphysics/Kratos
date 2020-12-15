@@ -9,25 +9,25 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = False
         self.shock_capturing = False
-        self._CustomizeSimulationSettings()
+        self._ExecuteSodTubeTest()
 
     def testSodShockTubeExplicitASGSShockCapturing(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = False
         self.shock_capturing = True
-        self._CustomizeSimulationSettings()
+        self._ExecuteSodTubeTest()
 
     def testSodShockTubeExplicitOSS(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = True
         self.shock_capturing = False
-        self._CustomizeSimulationSettings()
+        self._ExecuteSodTubeTest()
 
     def testSodShockTubeExplicitOSSShockCapturing(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = True
         self.shock_capturing = True
-        self._CustomizeSimulationSettings()
+        self._ExecuteSodTubeTest()
 
     def setUp(self):
         self.print_output = False
@@ -62,6 +62,12 @@ class SodShockTubeTest(KratosUnittest.TestCase):
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             KratosUtilities.DeleteFileIfExisting('sod_shock_tube_geom_coarse.time')
+
+    def _ExecuteSodTubeTest(self):
+        self.setUp()
+        self._CustomizeSimulationSettings()
+        self.runTest()
+        self.tearDown()
 
     def _CustomizeSimulationSettings(self):
         # Customize simulation settings
@@ -152,10 +158,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
 
 if __name__ == '__main__':
     test = SodShockTubeTest()
-    test.setUp()
     # test.testSodShockTubeExplicitASGS()
     test.testSodShockTubeExplicitASGSShockCapturing()
     # test.testSodShockTubeExplicitOSS()
     # test.testSodShockTubeExplicitOSSShockCapturing()
-    test.runTest()
-    test.tearDown()
