@@ -50,6 +50,8 @@ class SaveRestartProcess(KratosMultiphysics.Process):
         params.AddValue("input_filename", params["model_part_name"])
         params.RemoveValue("model_part_name")
 
+        params.AddValue("input_output_path",params["output_path"])
+        params.RemoveValue("output_path")
         self.restart_utility = RestartUtility(model_part, params)
 
         # already create the folder now to avoid problems on slow file-systems
