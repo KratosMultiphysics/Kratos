@@ -9,13 +9,13 @@ class CouetteFlowTest(KratosUnittest.TestCase):
         self.solver_type = "MonolithicStokes"
         self.element_type = "symbolic_stokes"
         self.time_scheme = "bdf2"
-        self._CustomizeSimulationSettings()
+        self._ExecuteCouetteFlowTest()
 
     def testCouetteFlow2DSymbolicNavierStokes(self):
         self.solver_type = "Monolithic"
         self.element_type = "symbolic"
         self.time_scheme = "bdf2"
-        self._CustomizeSimulationSettings()
+        self._ExecuteCouetteFlowTest()
 
     def setUp(self):
         self.print_output = False
@@ -50,6 +50,12 @@ class CouetteFlowTest(KratosUnittest.TestCase):
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             KratosUtilities.DeleteFileIfExisting('couette_flow_test.time')
+
+    def _ExecuteCouetteFlowTest(self):
+        self.setUp()
+        self._CustomizeSimulationSettings()
+        self.runTest()
+        self.tearDown()
 
     def _CustomizeSimulationSettings(self):
         # Customize simulation settings
@@ -134,8 +140,5 @@ class CouetteFlowTest(KratosUnittest.TestCase):
 
 if __name__ == '__main__':
     test = CouetteFlowTest()
-    test.setUp()
     # test.testCouetteFlow2DSymbolicStokes()
     test.testCouetteFlow2DSymbolicNavierStokes()
-    test.runTest()
-    test.tearDown()
