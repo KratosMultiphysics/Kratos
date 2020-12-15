@@ -11,7 +11,7 @@ class CouetteFlowTest(KratosUnittest.TestCase):
         self.time_scheme = "bdf2"
         self._CustomizeSimulationSettings()
 
-    def testCouetteFlow2DSymbolicNavierStokes(self):
+    def testCouetteFlow2DWeaklyCompressibleNavierStokes(self):
         self.solver_type = "Monolithic"
         self.element_type = "symbolic"
         self.time_scheme = "bdf2"
@@ -136,6 +136,6 @@ if __name__ == '__main__':
     test = CouetteFlowTest()
     test.setUp()
     # test.testCouetteFlow2DSymbolicStokes()
-    test.testCouetteFlow2DSymbolicNavierStokes()
+    test.testCouetteFlow2DWeaklyCompressibleNavierStokes()
     test.runTest()
     test.tearDown()

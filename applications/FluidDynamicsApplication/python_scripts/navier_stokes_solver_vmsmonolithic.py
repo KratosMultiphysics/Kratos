@@ -142,7 +142,7 @@ class StabilizedFormulation(object):
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "SymbolicNavierStokes"
+        self.element_name = "WeaklyCompressibleNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.element_integrates_in_time = True
 

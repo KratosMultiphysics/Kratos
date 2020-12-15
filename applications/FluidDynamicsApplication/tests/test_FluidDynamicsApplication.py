@@ -51,7 +51,7 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicStokes'))
-    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicNavierStokes'))
+    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DWeaklyCompressibleNavierStokes'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette2D'))

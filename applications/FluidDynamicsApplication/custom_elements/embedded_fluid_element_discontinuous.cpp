@@ -2,7 +2,7 @@
 
 #include "custom_elements/embedded_fluid_element_discontinuous.h"
 #include "custom_elements/qs_vms.h"
-#include "custom_elements/symbolic_navier_stokes.h"
+#include "custom_elements/weakly_compressible_navier_stokes.h"
 
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/embedded_discontinuous_data.h"
@@ -1155,8 +1155,8 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
 template class EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<2,3> > >;
 template class EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
 
-template class EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > >;
-template class EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
+template class EmbeddedFluidElementDiscontinuous< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > >;
+template class EmbeddedFluidElementDiscontinuous< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

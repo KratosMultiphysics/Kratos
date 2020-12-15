@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-    model_part.CreateNewElement("EmbeddedSymbolicNavierStokesDiscontinuous2D3N", 1, element_nodes, p_properties);
+    model_part.CreateNewElement("EmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N", 1, element_nodes, p_properties);
     model_part.CreateNewElement("EmbeddedQSVMSDiscontinuous2D3N", 2, element_nodes, p_properties);
 
     const auto& r_process_info = model_part.GetProcessInfo();
@@ -117,7 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     Matrix LHS = ZeroMatrix(9,9);
 
     std::vector< std::vector<double> > output_uncut(6);
-    output_uncut[0] = {-0.6361617846,8.819948812,-0.6557582459,67.57989341,174.5435981,0.1308775154,110.444523,215.3506723,0.3748807306}; // EmbeddedSymbolicNavierStokesDiscontinuous
+    output_uncut[0] = {-0.6361617846,8.819948812,-0.6557582459,67.57989341,174.5435981,0.1308775154,110.444523,215.3506723,0.3748807306}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
     output_uncut[1] = {-21.81650306,-40.75920676,-0.6557581669,54.90454836,132.1891487,0.1308774929,90.0369547,179.8200581,0.374880674}; // EmbeddedQSVMSDiscontinuous
     int counter = 0;
 
@@ -144,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector< std::vector<double> > output_cut(6);
-    output_cut[0] = {18.84223125,59.21540862,-0.4453265312,49.82664899,169.407093,0.3953265312,32.91666657,-23.57174638,-0.1}; // EmbeddedSymbolicNavierStokesDiscontinuous
+    output_cut[0] = {18.84223125,59.21540862,-0.4453265312,49.82664899,169.407093,0.3953265312,32.91666657,-23.57174638,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
     output_cut[1] = {3.777844188, 12.07497388, -0.4453264623, 42.19438001, 129.0905425, 0.3953264623, 32.91666657, -23.57174638, -0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
@@ -173,7 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector< std::vector<double> > output_slip_cut(6);
-    output_slip_cut[0] = {18.84227218,59.21545054,-0.4453265312,49.82660608,169.407051,0.3953265312,32.91666667,-23.57174638,-0.1}; // EmbeddedSymbolicNavierStokesDiscontinuous
+    output_slip_cut[0] = {18.84227218,59.21545054,-0.4453265312,49.82660608,169.407051,0.3953265312,32.91666667,-23.57174638,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
     output_slip_cut[1] = {3.777885122, 12.07501581, -0.4453264623, 42.1943371, 129.0905006, 0.3953264623, 32.91666667, -23.57174638, -0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 

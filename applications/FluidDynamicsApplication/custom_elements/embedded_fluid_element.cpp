@@ -2,7 +2,7 @@
 
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/qs_vms.h"
-#include "custom_elements/symbolic_navier_stokes.h"
+#include "custom_elements/weakly_compressible_navier_stokes.h"
 
 #include "custom_utilities/embedded_data.h"
 #include "utilities/element_size_calculator.h"
@@ -1095,8 +1095,8 @@ ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
 template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > >;
 template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
 
-template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > >;
-template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
+template class EmbeddedFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > >;
+template class EmbeddedFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

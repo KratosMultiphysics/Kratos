@@ -24,11 +24,11 @@ class EmbeddedFormulation(object):
             if element_type == "embedded_navier_stokes":
                 self._SetUpClassicEmbeddedNavierStokes(formulation_settings)
             elif element_type == "embedded_symbolic_navier_stokes":
-                self._SetUpEmbeddedSymbolicNavierStokes(formulation_settings)
+                self._SetUpEmbeddedWeaklyCompressibleNavierStokes(formulation_settings)
             elif element_type == "embedded_ausas_navier_stokes":
                 self._SetUpClassicEmbeddedAusasNavierStokes(formulation_settings)
             elif element_type == "embedded_symbolic_navier_stokes_discontinuous":
-                self._SetUpEmbeddedSymbolicNavierStokesDiscontinuous(formulation_settings)
+                self._SetUpEmbeddedWeaklyCompressibleNavierStokesDiscontinuous(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
 
@@ -58,7 +58,7 @@ class EmbeddedFormulation(object):
         if formulation_settings["is_slip"].GetBool():
             self.process_info_data[KratosCFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
 
-    def _SetUpEmbeddedSymbolicNavierStokes(self, formulation_settings):
+    def _SetUpEmbeddedWeaklyCompressibleNavierStokes(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "embedded_symbolic_navier_stokes",
             "is_slip": false,
@@ -69,7 +69,7 @@ class EmbeddedFormulation(object):
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "EmbeddedSymbolicNavierStokes"
+        self.element_name = "EmbeddedWeaklyCompressibleNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         self.element_integrates_in_time = True
@@ -99,7 +99,7 @@ class EmbeddedFormulation(object):
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
-    def _SetUpEmbeddedSymbolicNavierStokesDiscontinuous(self, formulation_settings):
+    def _SetUpEmbeddedWeaklyCompressibleNavierStokesDiscontinuous(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "embedded_symbolic_navier_stokes_discontinuous",
             "is_slip": true,
@@ -110,7 +110,7 @@ class EmbeddedFormulation(object):
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "EmbeddedSymbolicNavierStokesDiscontinuous"
+        self.element_name = "EmbeddedWeaklyCompressibleNavierStokesDiscontinuous"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         self.element_integrates_in_time = True

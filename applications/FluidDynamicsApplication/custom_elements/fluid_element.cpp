@@ -22,6 +22,7 @@
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -276,7 +277,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 template< class TElementData >
-void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
+void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -299,7 +300,7 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
 
 
 template< class TElementData >
-void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
+void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -322,7 +323,7 @@ void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
+void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -342,7 +343,7 @@ void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int 
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const 
+void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -886,8 +887,8 @@ template class FluidElement< SymbolicStokesData<3,4> >;
 template class FluidElement< SymbolicStokesData<3,6> >;
 template class FluidElement< SymbolicStokesData<3,8> >;
 
-template class FluidElement< SymbolicNavierStokesData<2,3> >;
-template class FluidElement< SymbolicNavierStokesData<3,4> >;
+template class FluidElement< WeaklyCompressibleNavierStokesData<2,3> >;
+template class FluidElement< WeaklyCompressibleNavierStokesData<3,4> >;
 
 template class FluidElement< QSVMSData<2,3> >;
 template class FluidElement< QSVMSData<3,4> >;
