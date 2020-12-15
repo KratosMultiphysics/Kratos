@@ -730,7 +730,6 @@ protected:
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_process_info = rModelPart.GetProcessInfo();
         const int n_elems = static_cast<int>(r_elements_array.size());
-        const auto &r_dofs_array = GetDofSet();
 
 #pragma omp for private(elem_mass_vector) schedule(guided, 512) nowait
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
