@@ -71,7 +71,6 @@ int AdjointFiniteDifferenceTrussElement<TPrimalElement>::Check(const ProcessInfo
     KRATOS_ERROR_IF(this->GetGeometry().WorkingSpaceDimension() != 3 || this->GetGeometry().size() != 2)
         << "The truss element works only in 3D and with 2 noded elements" << "" << std::endl;
 
-    this->CheckVariables();
     this->CheckDofs();
     this->CheckProperties(rCurrentProcessInfo);
 
@@ -87,12 +86,6 @@ int AdjointFiniteDifferenceTrussElement<TPrimalElement>::Check(const ProcessInfo
 template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CheckVariables() const
 {
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
 }
 
 template <class TPrimalElement>
