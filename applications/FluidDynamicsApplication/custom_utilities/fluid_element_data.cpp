@@ -62,9 +62,10 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::UpdateGeometry
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
-void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalData(
-    NodalScalarData& rData, const Variable<double>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
+    NodalScalarData &rData,
+    const Variable<double> &rVariable,
+    const Geometry<Node<3>> &rGeometry)
 {
     noalias(rData) = ZeroVector(TNumNodes);
     for (size_t i = 0; i < TNumNodes; i++) {
@@ -73,7 +74,8 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalD
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
-void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalData(NodalVectorData& rData,
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
+    NodalVectorData& rData,
     const Variable<array_1d<double, 3>>& rVariable,
     const Geometry<Node<3>>& rGeometry)
 {

@@ -113,15 +113,15 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
-    this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-	this->FillFromNodalData(Distance, DISTANCE, r_geometry);
-    this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
-    this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
-    this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromNodalData(NodalDensity, DENSITY, r_geometry);
-    this->FillFromNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
+	this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
+    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
+    this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
+    this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
     this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
     this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);

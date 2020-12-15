@@ -65,10 +65,10 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
-    this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
-    this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
-    this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
-    this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
+    this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromProperties(Density,DENSITY,r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(FICBeta,FIC_BETA,rProcessInfo);
