@@ -57,27 +57,27 @@ std::string GetJSONStringPrettyOut()
     return pretty_out;
 }
 
-// std::string GetJSONStringPrettyOutAfterChange()
-// {
-//     const std::string pretty_out_after_change = """{
-//         "bool_value": true,
-//         "double_value": 2.0,
-//         "int_value": 10,
-//         "level1": {
-//             "list_value": [
-//                 "changed",
-//                 "hi",
-//                 false
-//             ],
-//             "tmp": 5.0
-//         },
-//         "string_value": "hello"
-//     }""";
-//
-//     return pretty_out_after_change;
-// }
-//
-//     // here the level1 var is set to a double so that a validation error should be thrown
+std::string GetJSONStringPrettyOutAfterChange()
+{
+    const std::string pretty_out_after_change = R"({
+    "bool_value": true,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": {
+        "list_value": [
+            "changed",
+            "hi",
+            false
+        ],
+        "tmp": 5.0
+    },
+    "string_value": "hello"
+})";
+
+    return pretty_out_after_change;
+}
+
+// // here the level1 var is set to a double so that a validation error should be thrown
 // std::string GetJSONStringWrongType()
 // {
 //     const std::string wrong_type = """{
@@ -307,31 +307,34 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(kp.PrettyPrintJsonString(), GetJSONStringPrettyOut());
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
-// {
-//     // now change one item in the sublist
-//     subparams = self.kp["level1"]
-//
-//     my_list = subparams["list_value"]
-//
-//     for i in range(my_list.size()):
-//         if my_list[i].IsBool():
-//             KRATOS_CHECK_EQUAL(my_list[i].GetBool(), False)
-//
-//     // my_list = subparams["list_value"]
-//     subparams["list_value"][0].SetString("changed")
-//
-//     KRATOS_CHECK_EQUAL(
-//         self.kp.PrettyPrintJsonString(),
-//         pretty_out_after_change
-//     )
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
+{
+    // Now change one item in the sublist
+    Parameters kp = Parameters(GetJSONString());
+    Parameters subparams = kp["level1"];
+
+    Parameters my_list = subparams["list_value"];
+
+    for (auto& r_param : my_list) {
+        if (r_param.IsBool()) {
+            KRATOS_CHECK_IS_FALSE(r_param.GetBool())
+        }
+    }
+
+    // my_list = subparams["list_value"]
+    subparams["list_value"][0].SetString("changed");
+
+    KRATOS_CHECK_STRING_EQUAL(
+        kp.PrettyPrintJsonString(),
+        GetJSONStringPrettyOutAfterChange()
+    );
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersCopy, KratosCoreFastSuite)
 // {
 //     // try to make a copy
-//     original_out = self.kp.PrettyPrintJsonString()
-//     other_copy = self.kp.Clone()
+//     original_out = kp.PrettyPrintJsonString()
+//     other_copy = kp.Clone()
 //
 //     KRATOS_CHECK_EQUAL(
 //         other_copy.PrettyPrintJsonString(),
@@ -339,13 +342,13 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
 //     )
 //
 //     other_copy["int_value"].SetInt(-1)
-//     KRATOS_CHECK_EQUAL(self.kp["int_value"].GetInt(), 10);
+//     KRATOS_CHECK_EQUAL(kp["int_value"].GetInt(), 10);
 // }
 //
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetValue, KratosCoreFastSuite)
 // {
 //     Parameters kp = Parameters(json_string)
-//     Parameters kp1 = Parameters(pretty_out_after_change)
+//     Parameters kp1 = Parameters(GetJSONStringPrettyOutAfterChange())
 //
 //     kp["bool_value"] = kp1["level1"]
 //     kp["bool_value"].PrettyPrintJsonString()
@@ -356,7 +359,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
 // {
 //     // should check which errors are thrown!!
 //     with self.assertRaisesRegex(RuntimeError, "no_value"):
-//         self.kp["no_value"].GetInt()
+//         kp["no_value"].GetInt()
 // }
 //
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongTypes, KratosCoreFastSuite)
