@@ -737,49 +737,49 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
 //     // This method checks all the "GetXXX" Methods if they throw an error
 //     Parameters tmp = Parameters(R"({})");
 //
-//     key = "int"
-//     tmp.AddInt(key, 10)
-//     KRATOS_CHECK_EQUAL(tmp[key].GetInt(),10)
+//     std::string key = "int";
+//     tmp.AddInt(key, 10);
+//     KRATOS_CHECK_EQUAL(tmp[key].GetInt(),10);
 //
-//     key = "double"
-//     tmp.AddDouble(key, 2.0)
-//     KRATOS_CHECK_EQUAL(tmp[key].GetDouble(),2.0)
+//     key = "double";
+//     tmp.AddDouble(key, 2.0);
+//     KRATOS_CHECK_EQUAL(tmp[key].GetDouble(),2.0);
 //
-//     key = "bool"
-//     tmp.AddBool(key, True)
-//     KRATOS_CHECK_EQUAL(tmp[key].GetBool(),True)
+//     key = "bool";
+//     tmp.AddBool(key, true);
+//     KRATOS_CHECK_EQUAL(tmp[key].GetBool(),true);
 //
 //     key = "string"
-//     tmp.AddString(key, "hello")
-//     KRATOS_CHECK_EQUAL(tmp[key].GetString(),"hello")
+//     tmp.AddString(key, "hello");
+//     KRATOS_CHECK_EQUAL(tmp[key].GetString(),"hello");
 //
-//     key = "vector"
-//     vector = Vector(3)
-//     vector[0] = 5.2
-//     vector[1] = -3.1
-//     vector[2] = 4.33
+//     key = "vector";
+//     Vector vector = ZeroVector(3);
+//     vector[0] = 5.2;
+//     vector[1] = -3.1;
+//     vector[2] = 4.33;
 //     tmp.AddVector(key, vector)
 //     V = tmp[key].GetVector()
-//     KRATOS_CHECK_EQUAL(V[0],5.2)
-//     KRATOS_CHECK_EQUAL(V[1],-3.1)
-//     KRATOS_CHECK_EQUAL(V[2],4.33)
+//     KRATOS_CHECK_DOUBLE_EQUAL(V[0],5.2);
+//     KRATOS_CHECK_DOUBLE_EQUAL(V[1],-3.1);
+//     KRATOS_CHECK_DOUBLE_EQUAL(V[2],4.33);
 //
-//     key = "matrix"
-//     matrix = Matrix(3,2)
-//     matrix[0,0] = 1.0
-//     matrix[0,1] = 2.0
-//     matrix[1,0] = 3.0
-//     matrix[1,1] = 4.0
-//     matrix[2,0] = 5.0
-//     matrix[2,1] = 6.0
-//     tmp.AddMatrix(key, matrix)
-//     A = tmp[key].GetMatrix()
-//     KRATOS_CHECK_EQUAL(A[0,0],1.0)
-//     KRATOS_CHECK_EQUAL(A[0,1],2.0)
-//     KRATOS_CHECK_EQUAL(A[1,0],3.0)
-//     KRATOS_CHECK_EQUAL(A[1,1],4.0)
-//     KRATOS_CHECK_EQUAL(A[2,0],5.0)
-//     KRATOS_CHECK_EQUAL(A[2,1],6.0)
+//     key = "matrix";
+//     Matrix matrix = ZeroMatrix(3,2);
+//     matrix[0,0] = 1.0:
+//     matrix[0,1] = 2.0;
+//     matrix[1,0] = 3.0:
+//     matrix[1,1] = 4.0;
+//     matrix[2,0] = 5.0;
+//     matrix[2,1] = 6.0;
+//     tmp.AddMatrix(key, matrix);
+//     auto& A = tmp[key].GetMatrix();
+//     KRATOS_CHECK_DOUBLE_EQUAL(A[0,0],1.0);
+//     KRATOS_CHECK_DOUBLE_EQUAL(A[0,1],2.0);
+//     KRATOS_CHECK_DOUBLE_EQUAL(A[1,0],3.0);
+//     KRATOS_CHECK_DOUBLE_EQUAL(A[1,1],4.0);
+//     KRATOS_CHECK_DOUBLE_EQUAL(A[2,0],5.0);
+//     KRATOS_CHECK_DOUBLE_EQUAL(A[2,1],6.0);
 // }
 //
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
@@ -821,20 +821,20 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
 //             false_vector.GetVector()
 //
 //     // Manually assign and check a Vector
-//     vec = Vector(3)
-//     vec[0] = 1.32
-//     vec[1] = -2.22
-//     vec[2] = 5.5
+//     Vector vec = ZeroVector(3);
+//     vec[0] = 1.32;
+//     vec[1] = -2.22;
+//     vec[2] = 5.5;
 //
-//     tmp.AddEmptyValue("vector_value")
-//     tmp["vector_value"].SetVector(vec)
+//     tmp.AddEmptyValue("vector_value");
+//     tmp["vector_value"].SetVector(vec);
 //
-//     KRATOS_CHECK(tmp["vector_value"].IsVector())
+//     KRATOS_CHECK(tmp["vector_value"].IsVector());
 //
-//     V2 = tmp["vector_value"].GetVector()
-//     KRATOS_CHECK_EQUAL(V2[0],1.32)
-//     KRATOS_CHECK_EQUAL(V2[1],-2.22)
-//     KRATOS_CHECK_EQUAL(V2[2],5.5)
+//     auto V2 = tmp["vector_value"].GetVector();
+//     KRATOS_CHECK_DOUBLE_EQUAL(V2[0],1.32);
+//     KRATOS_CHECK_DOUBLE_EQUAL(V2[1],-2.22);
+//     KRATOS_CHECK_DOUBLE_EQUAL(V2[2],5.5);
 // }
 //
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
@@ -876,18 +876,18 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
 //             false_matrix.GetMatrix()
 //
 //     // Manually assign and check a Matrix
-//     mat = Matrix(3,2)
-//     mat[0,0] = 1.0
-//     mat[0,1] = 2.0
-//     mat[1,0] = 3.0
-//     mat[1,1] = 4.0
-//     mat[2,0] = 5.0
-//     mat[2,1] = 6.0
+//     Matrix mat = ZeroMatrix(3,2);
+//     mat[0,0] = 1.0;
+//     mat[0,1] = 2.0;
+//     mat[1,0] = 3.0;
+//     mat[1,1] = 4.0;
+//     mat[2,0] = 5.0;
+//     mat[2,1] = 6.0;
 //
 //     tmp.AddEmptyValue("matrix_value")
-//     tmp["matrix_value"].SetMatrix(mat)
+//     tmp["matrix_value"].SetMatrix(mat);
 //
-//     KRATOS_CHECK(tmp["matrix_value"].IsMatrix())
+//     KRATOS_CHECK(tmp["matrix_value"].IsMatrix());
 //
 //     A2 = tmp["matrix_value"].GetMatrix()
 //     KRATOS_CHECK_EQUAL(A2[0,0],1.0);
@@ -897,65 +897,68 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
 //     KRATOS_CHECK_EQUAL(A2[2,0],5.0);
 //     KRATOS_CHECK_EQUAL(A2[2,1],6.0);
 // }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersNullvsNullValidation, KratosCoreFastSuite)
-// {
-//     // Supplied settings
-//     Parameters null_custom = Parameters(R"({
-//         "parameter": null
-//     })");
-//
-//     // Default settings
-//     Parameters null_default = Parameters(R"({
-//         "parameter": null
-//     })");
-//
-//     // This should NOT raise, hence making the test to pass
-//     null_custom.ValidateAndAssignDefaults(null_default)
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersDoublevsNullValidation, KratosCoreFastSuite)
-// {
-//     // Supplied settings
-//     Parameters double_custom = Parameters(R"({
-//         "parameter": 0.0
-//     })");
-//
-//     // Default settings
-//     Parameters null_default = Parameters(R"({
-//         "parameter": null
-//     })");
-//
-//     with self.assertRaises(RuntimeError):
-//         double_custom.ValidateAndAssignDefaults(null_default)
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersGeStringArrayValid, KratosCoreFastSuite)
-// {
-//     Parameters tmp = Parameters(R"({
-//         "parameter": ["foo", "bar"]
-//     })");
-//     v = tmp["parameter"].GetStringArray()
-//     KRATOS_CHECK_EQUAL(len(v), 2);
-//     KRATOS_CHECK_EQUAL(v[0], "foo");
-//     KRATOS_CHECK_EQUAL(v[1], "bar");
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetStringArrayValid, KratosCoreFastSuite)
-// {
-//     Parameters initial = Parameters(R"({
-//         "parameter": ["foo", "bar"]
-//     })");
-//     string_array = initial["parameter"].GetStringArray();
-//
-//     Parameters new_param = Parameters();
-//     new_param.AddEmptyValue("new_parameter");
-//     new_param["new_parameter"].SetStringArray(string_array);
-//
-//     new_string_array = initial["parameter"].GetStringArray();
-//
-//     self.assertListEqual(new_string_array, string_array);
-// }
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersNullvsNullValidation, KratosCoreFastSuite)
+{
+    // Supplied settings
+    Parameters null_custom = Parameters(R"({
+        "parameter": null
+    })");
+
+    // Default settings
+    Parameters null_default = Parameters(R"({
+        "parameter": null
+    })");
+
+    // This should NOT raise, hence making the test to pass
+    null_custom.ValidateAndAssignDefaults(null_default);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersDoublevsNullValidation, KratosCoreFastSuite)
+{
+    // Supplied settings
+    Parameters double_custom = Parameters(R"({
+        "parameter": 0.0
+    })");
+
+    // Default settings
+    Parameters null_default = Parameters(R"({
+        "parameter": null
+    })");
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(double_custom.ValidateAndAssignDefaults(null_default), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGeStringArrayValid, KratosCoreFastSuite)
+{
+    Parameters tmp = Parameters(R"({
+        "parameter": ["foo", "bar"]
+    })");
+    auto v = tmp["parameter"].GetStringArray();
+    KRATOS_CHECK_EQUAL(v.size(), 2);
+    KRATOS_CHECK_EQUAL(v[0], "foo");
+    KRATOS_CHECK_EQUAL(v[1], "bar");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetStringArrayValid, KratosCoreFastSuite)
+{
+    Parameters initial = Parameters(R"({
+        "parameter": ["foo", "bar"]
+    })");
+    auto string_array = initial["parameter"].GetStringArray();
+
+    Parameters new_param = Parameters();
+    new_param.AddEmptyValue("new_parameter");
+    new_param["new_parameter"].SetStringArray(string_array);
+
+    auto new_string_array = initial["parameter"].GetStringArray();
+
+    int counter = 0;
+    for (auto& r_string : string_array) {
+        KRATOS_CHECK_STRING_EQUAL(new_string_array[counter], r_string);
+        ++counter;
+    }
+}
 
 }  // namespace Testing.
 }  // namespace Kratos.
