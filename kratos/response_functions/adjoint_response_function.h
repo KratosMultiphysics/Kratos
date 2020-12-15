@@ -19,11 +19,13 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/node.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
+#include "containers/global_pointers_vector.h"
 #include "containers/variable.h"
 
 
@@ -42,6 +44,8 @@ public:
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(AdjointResponseFunction);
+
+    using NodeType = Node<3>;
 
     ///@}
     ///@name Life Cycle
@@ -240,6 +244,86 @@ public:
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_ERROR << "Calling base class response function method.\n";
+    }
+
+    /// Calculate the partial sensitivity w.r.t. design variable.
+    /**
+     * @param[in]     rAdjointElement       the adjoint element.
+     * @param[in]     rVariable             the design variable.
+     * @param[in]     rSensitivityMatrix    the transposed gradient of the
+     *                                      element's residual w.r.t. design variable.
+     * @param[out]    rSensitivityGradient  the gradient of the response function.
+     * @param[out]    rGPSensitivityVector  the global pointer vector representing the order of values in rSensitivityGradient
+     * @param[in]     rProcessInfo          the current process info.
+     */
+    virtual void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             GlobalPointersVector<NodeType>& rGPSensitivityVector,
+                                             const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_ERROR << "Calling base class response function method.\n";
+    }
+
+    /// Calculate the partial sensitivity w.r.t. design variable.
+    /**
+     * @param[in]     rAdjointCondition     the adjoint condition.
+     * @param[in]     rVariable             the design variable.
+     * @param[in]     rSensitivityMatrix    the transposed gradient of the
+     *                                      condition's residual w.r.t. design variable.
+     * @param[out]    rSensitivityGradient  the gradient of the response function.
+     * @param[out]    rGPSensitivityVector  the global pointer vector representing the order of values in rSensitivityGradient
+     * @param[in]     rProcessInfo          the current process info.
+     */
+    virtual void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             GlobalPointersVector<NodeType>& rGPSensitivityVector,
+                                             const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_ERROR << "Calling base class response function method.\n";
+    }
+
+    /// Calculate the partial sensitivity w.r.t. design variable.
+    /**
+     * @param[in]     rAdjointElement       the adjoint element.
+     * @param[in]     rVariable             the design variable.
+     * @param[in]     rSensitivityMatrix    the transposed gradient of the
+     *                                      element's residual w.r.t. design variable.
+     * @param[out]    rSensitivityGradient  the gradient of the response function.
+     * @param[out]    rGPSensitivityVector  the global pointer vector representing the order of values in rSensitivityGradient
+     * @param[in]     rProcessInfo          the current process info.
+     */
+    virtual void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             GlobalPointersVector<NodeType>& rGPSensitivityVector,
+                                             const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_ERROR << "Calling base class response function method.\n";
+    }
+
+    /// Calculate the partial sensitivity w.r.t. design variable.
+    /**
+     * @param[in]     rAdjointCondition     the adjoint condition.
+     * @param[in]     rVariable             the design variable.
+     * @param[in]     rSensitivityMatrix    the transposed gradient of the
+     *                                      condition's residual w.r.t. design variable.
+     * @param[out]    rSensitivityGradient  the gradient of the response function.
+     * @param[out]    rGPSensitivityVector  the global pointer vector representing the order of values in rSensitivityGradient
+     * @param[in]     rProcessInfo          the current process info.
+     */
+    virtual void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             GlobalPointersVector<NodeType>& rGPSensitivityVector,
                                              const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
