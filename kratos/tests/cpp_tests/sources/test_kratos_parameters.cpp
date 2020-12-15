@@ -330,25 +330,26 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
     );
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersCopy, KratosCoreFastSuite)
-// {
-//     // try to make a copy
-//     original_out = kp.PrettyPrintJsonString()
-//     other_copy = kp.Clone()
-//
-//     KRATOS_CHECK_EQUAL(
-//         other_copy.PrettyPrintJsonString(),
-//         original_out
-//     )
-//
-//     other_copy["int_value"].SetInt(-1)
-//     KRATOS_CHECK_EQUAL(kp["int_value"].GetInt(), 10);
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersCopy, KratosCoreFastSuite)
+{
+    // Try to make a copy
+    Parameters kp = Parameters(GetJSONString());
+    auto original_out = kp.PrettyPrintJsonString();
+    auto other_copy = kp.Clone();
+
+    KRATOS_CHECK_STRING_EQUAL(
+        other_copy.PrettyPrintJsonString(),
+        original_out
+    );
+
+    other_copy["int_value"].SetInt(-1);
+    KRATOS_CHECK_EQUAL(kp["int_value"].GetInt(), 10);
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetValue, KratosCoreFastSuite)
 // {
-//     Parameters kp = Parameters(json_string)
-//     Parameters kp1 = Parameters(GetJSONStringPrettyOutAfterChange())
+//     Parameters kp = Parameters(GetJSONString());
+//     Parameters kp1 = Parameters(GetJSONStringPrettyOutAfterChange());
 //
 //     kp["bool_value"] = kp1["level1"]
 //     kp["bool_value"].PrettyPrintJsonString()
@@ -357,7 +358,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
 //
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersWrongParameters, KratosCoreFastSuite)
 // {
-//     // should check which errors are thrown!!
+//     // Should check which errors are thrown!!
 //     with self.assertRaisesRegex(RuntimeError, "no_value"):
 //         kp["no_value"].GetInt()
 // }
@@ -421,7 +422,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
 //
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSucceeds, KratosCoreFastSuite)
 // {
-//     Parameters kp = Parameters(json_string)
+//     Parameters kp = Parameters(GetJSONString());
 //     defaults_params = Parameters(defaults)
 //     defaults_params["level1"]["tmp"].SetDouble(2.0)  // this does not coincide with the value in kp, but is of the same type
 //
@@ -434,7 +435,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMissingParameters, KratosCoreFastSuite)
 // {
 //     // only missing parameters are added, no complaints if there already exist more than in the defaults
-//     Parameters kp = Parameters(json_string)
+//     Parameters kp = Parameters(GetJSONString());
 //     tmp = Parameters(incomplete_with_extra_parameter)
 //
 //     kp.AddMissingParameters(tmp)
@@ -447,7 +448,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyAddMissingParameters, KratosCoreFastSuite)
 // {
 //     // only missing parameters are added, no complaints if there already exist more than in the defaults
-//     Parameters kp = Parameters(json_string)
+//     Parameters kp = Parameters(GetJSONString());
 //     tmp = Parameters(incomplete_with_extra_parameter)
 //
 //     kp.RecursivelyAddMissingParameters(tmp)
@@ -516,7 +517,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
 //
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersIterators, KratosCoreFastSuite)
 // {
-//     Parameters kp = Parameters(json_string)
+//     Parameters kp = Parameters(GetJSONString());
 //
 //     //iteration by range
 //     nitems = 0
@@ -548,7 +549,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
 //
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersRemoveValue, KratosCoreFastSuite)
 // {
-//     Parameters kp = Parameters(json_string)
+//     Parameters kp = Parameters(GetJSONString());
 //     KRATOS_CHECK(kp.Has("int_value"))
 //     KRATOS_CHECK(kp.Has("level1"))
 //
