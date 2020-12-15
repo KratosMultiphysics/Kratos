@@ -231,6 +231,8 @@ void QSConvectionDiffusionExplicit<2,3>::CalculateLumpedMassVector(
     for (IndexType i = 0; i < local_size; ++i) {
         rLumpedMassVector(i) = one_third;
     }
+    // Assumption all the Gauss points have the same weight, so we multiply by the volume
+    rLumpedMassVector *= GetGeometry().Volume();
 
     KRATOS_CATCH("");
 }
@@ -254,6 +256,8 @@ void QSConvectionDiffusionExplicit<3,4>::CalculateLumpedMassVector(
     for (IndexType i = 0; i < local_size; ++i) {
         rLumpedMassVector(i) = one_fourth;
     }
+    // Assumption all the Gauss points have the same weight, so we multiply by the volume
+    rLumpedMassVector *= GetGeometry().Volume();
 
     KRATOS_CATCH("");
 }
