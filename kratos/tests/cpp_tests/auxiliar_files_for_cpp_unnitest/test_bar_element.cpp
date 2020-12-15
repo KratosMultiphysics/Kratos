@@ -344,13 +344,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        // Check that all required variables have been registered
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-        KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA)
-        KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS)
-
         KRATOS_ERROR_IF_NOT(GetProperties().Has(YOUNG_MODULUS)) << "YOUNG_MODULUS not defined" << std::endl;
         KRATOS_ERROR_IF_NOT(GetProperties().Has(NODAL_AREA)) << "NODAL_AREA not defined" << std::endl;
 

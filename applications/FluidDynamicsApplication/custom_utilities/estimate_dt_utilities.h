@@ -137,13 +137,6 @@ public:
      */
     double EstimateDt() const;
 
-    /**
-     * @brief Calculate each element's CFL for the current time step and provided model part
-     * The elemental CFL is stored in the CFL_NUMBER elemental variable
-     * To visualize in the post-process file, remember to print CFL_NUMBER as a Gauss point result
-     */
-    static void CalculateLocalCFL(ModelPart& rModelPart);
-
     ///@} // Operators
 
 private:
@@ -165,27 +158,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief Calulate element CFL number
-     * For the given element, this method calculates the CFL number
-     * @param rElement Element to calculate the CFL number
-     * @param rGeometryInfo Auxiliary geometry data container
-     * @param Dt Current time increment
-     * @return double The element CFL number
-     */
-    static double CalculateElementCFL(
-        const Element &rElement,
-        const ElementSizeFunctionType& rElementSizeCalculator,
-        const double Dt);
-
-    /**
-     * @brief Get the minimum element size calculation function
-     * This method checks the geometry of the provided element and returns the corresponding
-     * minimum element size calculation fucntion.
-     * @param rGeometry Geoemtry in which the element size is to be computed
-     * @return ElementSizeFunctionType Function to calculate the minimum element size
-     */
-    static ElementSizeFunctionType GetMinimumElementSizeFunction(const Geometry<Node<3>>& rGeometry);
     
     ///@} // Private Operations
 };

@@ -299,10 +299,6 @@ namespace Kratos
         int return_value = Condition::Check(rCurrentProcessInfo);
         KRATOS_ERROR_IF_NOT(mpPrimalCondition) << "Primal conditions pointer is nullptr!" << std::endl;
 
-        // verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-
         // Check dofs
         const GeometryType& r_geom = this->GetGeometry();
         for (IndexType i = 0; i < r_geom.size(); ++i) {
