@@ -57,41 +57,6 @@ RansNewtonian3DLaw::~RansNewtonian3DLaw()
 {
 }
 
-ConstitutiveLaw::SizeType RansNewtonian3DLaw::WorkingSpaceDimension()
-{
-    return 3;
-}
-
-ConstitutiveLaw::SizeType RansNewtonian3DLaw::GetStrainSize()
-{
-    return 6;
-}
-
-void RansNewtonian3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
-{
-    const Flags& options = rValues.GetOptions();
-    const Vector& r_strain_rate = rValues.GetStrainVector();
-    Vector& r_viscous_stress = rValues.GetStressVector();
-
-    const double mu = this->GetEffectiveViscosity(rValues);
-
-    const double trace = r_strain_rate[0] + r_strain_rate[1] + r_strain_rate[2];
-    const double volumetric_part =
-        trace / 3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
-
-    // computation of stress
-    r_viscous_stress[0] = 2.0 * mu * (r_strain_rate[0] - volumetric_part);
-    r_viscous_stress[1] = 2.0 * mu * (r_strain_rate[1] - volumetric_part);
-    r_viscous_stress[2] = 2.0 * mu * (r_strain_rate[2] - volumetric_part);
-    r_viscous_stress[3] = mu * r_strain_rate[3];
-    r_viscous_stress[4] = mu * r_strain_rate[4];
-    r_viscous_stress[5] = mu * r_strain_rate[5];
-
-    if (options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        this->NewtonianConstitutiveMatrix3D(mu, rValues.GetConstitutiveMatrix());
-    }
-}
-
 int RansNewtonian3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
@@ -143,12 +108,12 @@ double RansNewtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rP
 
 void RansNewtonian3DLaw::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, FluidConstitutiveLaw)
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
 }
 
 void RansNewtonian3DLaw::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, FluidConstitutiveLaw)
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
 }
 
 } // Namespace Kratos
