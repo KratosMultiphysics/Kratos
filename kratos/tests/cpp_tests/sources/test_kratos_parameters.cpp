@@ -41,19 +41,19 @@ std::string GetJSONString()
 std::string GetJSONStringPrettyOut()
 {
     const std::string pretty_out =  R"({
-        "bool_value": true,
-        "double_value": 2.0,
-        "int_value": 10,
-        "level1": {
-            "list_value": [
-                3,
-                "hi",
-                false
-            ],
-            "tmp": 5.0
-        },
-        "string_value": "hello"
-    })";
+    "bool_value": true,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": {
+        "list_value": [
+            3,
+            "hi",
+            false
+        ],
+        "tmp": 5.0
+    },
+    "string_value": "hello"
+})";
     return pretty_out;
 }
 
