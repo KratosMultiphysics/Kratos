@@ -135,6 +135,16 @@ protected:
 
     void FillFromHistoricalNodalData(NodalVectorData& rData, const Variable<array_1d<double,3>>& rVariable, const Geometry<Node<3>>& rGeometry, const unsigned int Step);
 
+    void FillFromNonHistoricalNodalData(
+        NodalScalarData& rData,
+        const Variable<double>& rVariable,
+        const Geometry<Node<3>>& rGeometry);
+
+    void FillFromNonHistoricalNodalData(
+        NodalVectorData& rData,
+        const Variable<array_1d<double,3>>& rVariable,
+        const Geometry<Node<3>>& rGeometry);
+
     void FillFromProcessInfo(double& rData, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo);
 
     void FillFromProcessInfo(int& rData, const Variable<int>& rVariable, const ProcessInfo& rProcessInfo);
