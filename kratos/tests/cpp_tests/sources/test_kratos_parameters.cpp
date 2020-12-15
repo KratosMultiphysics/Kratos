@@ -466,20 +466,18 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyValidateDefaults, KratosCor
     KRATOS_CHECK(kp.Has("level1"));
 }
 
-// def test_recursively_validate_defaults_fails(self):
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetStringArrayValid, KratosCoreFastSuite)
-// {
-//     // only parameters from defaults are validated, no new values are added
-//     Parameters kp = Parameters(GetJSONStringIncompleteWithExtraParameter());
-//     Parameters tmp = Parameters(GetJSONStringDefaults());
-//
-//     with self.assertRaises(RuntimeError):
-//         kp.RecursivelyValidateDefaults(tmp)
-//
-//     // sub_level
-//     KRATOS_CHECK_IS_FALSE(kp["level1"].Has("tmp"))
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyValidateDefaultsFail, KratosCoreFastSuite)
+{
+    // only parameters from defaults are validated, no new values are added
+    Parameters kp = Parameters(GetJSONStringIncompleteWithExtraParameter());
+    Parameters tmp = Parameters(GetJSONStringDefaults());
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(kp.RecursivelyValidateDefaults(tmp), "");
+
+    // Sub_level
+    KRATOS_CHECK_IS_FALSE(kp["level1"].Has("tmp"));
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddValue, KratosCoreFastSuite)
 // {
 //     Parameters kp = Parameters("{}")
