@@ -77,75 +77,73 @@ std::string GetJSONStringPrettyOutAfterChange()
     return pretty_out_after_change;
 }
 
-// // here the level1 var is set to a double so that a validation error should be thrown
-// std::string GetJSONStringWrongType()
-// {
-//     const std::string wrong_type = """{
-//         "bool_value": true,
-//         "double_value": 2.0,
-//         "int_value": 10,
-//         "level1": 0.0,
-//         "string_value": "hello"
-//     }""";
-//
-//     return wrong_type;
-// }
-//
-// // int value is badly spelt
-// std::string GetJSONStringWrongSpelling()
-// {
-//     const std::string wrong_spelling = """{
-//         "bool_value": true,
-//         "double_value": 2.0,
-//         "int_values": 10,
-//         "level1": 0.0,
-//         "string_value": "hello"
-//     }""";
-//
-//     return wrong_spelling;
-// }
-//
-// // wrong on the first level
-// // error shall be only detective by recursive validation
-// std::string GetJSONStringWrongLevel2()
-// {
-//     const std::string wrong_lev2 = """{
-//         "bool_value": true,
-//         "double_value": 2.0,
-//         "int_value": 10,
-//         "level1": { "a":0.0 },
-//         "string_value": "hello"
-//     }""";
-//     return wrong_lev2;
-// }
-//
-// std::string GetJSONStringDefaults()
-// {
-//     const std::string defaults = """
-//     {
-//         "bool_value": false,
-//         "double_value": 2.0,
-//         "int_value": 10,
-//         "level1": {
-//             "list_value": [
-//                 3,
-//                 "hi",
-//                 false
-//             ],
-//             "tmp": "here we expect a string"
-//         },
-//         "new_default_obj": {
-//             "aaa": "string",
-//             "bbb": false,
-//             "ccc": 22
-//         },
-//         "new_default_value": -123.0,
-//         "string_value": "hello"
-//     }
-//     """;
-//     return defaults;
-// }
-//
+// here the level1 var is set to a double so that a validation error should be thrown
+std::string GetJSONStringWrongType()
+{
+    const std::string wrong_type = R"({
+        "bool_value": true,
+        "double_value": 2.0,
+        "int_value": 10,
+        "level1": 0.0,
+        "string_value": "hello"
+    })";
+
+    return wrong_type;
+}
+
+// int value is badly spelt
+std::string GetJSONStringWrongSpelling()
+{
+    const std::string wrong_spelling = R"({
+        "bool_value": true,
+        "double_value": 2.0,
+        "int_values": 10,
+        "level1": 0.0,
+        "string_value": "hello"
+    })";
+
+    return wrong_spelling;
+}
+
+// wrong on the first level
+// error shall be only detective by recursive validation
+std::string GetJSONStringWrongLevel2()
+{
+    const std::string wrong_lev2 = R"({
+        "bool_value": true,
+        "double_value": 2.0,
+        "int_value": 10,
+        "level1": { "a":0.0 },
+        "string_value": "hello"
+    })";
+    return wrong_lev2;
+}
+
+std::string GetJSONStringDefaults()
+{
+    const std::string defaults = R"({
+        "bool_value": false,
+        "double_value": 2.0,
+        "int_value": 10,
+        "level1": {
+            "list_value": [
+                3,
+                "hi",
+                false
+            ],
+            "tmp": "here we expect a string"
+        },
+        "new_default_obj": {
+            "aaa": "string",
+            "bbb": false,
+            "ccc": 22
+        },
+        "new_default_value": -123.0,
+        "string_value": "hello"
+    })";
+    return defaults;
+}
+
 // std::string GetJSONStringIncomplete()
 // {
 //     const std::string incomplete = """
@@ -346,47 +344,35 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersCopy, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(kp["int_value"].GetInt(), 10);
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetValue, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(GetJSONString());
-//     Parameters kp1 = Parameters(GetJSONStringPrettyOutAfterChange());
-//
-//     kp["bool_value"] = kp1["level1"]
-//     kp["bool_value"].PrettyPrintJsonString()
-//     KRATOS_CHECK_EQUAL(kp["bool_value"].PrettyPrintJsonString(), kp1["level1"].PrettyPrintJsonString())
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersWrongParameters, KratosCoreFastSuite)
-// {
-//     // Should check which errors are thrown!!
-//     with self.assertRaisesRegex(RuntimeError, "no_value"):
-//         kp["no_value"].GetInt()
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongTypes, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(wrong_type)
-//     Parameters defaults_params = Parameters(defaults)
-//
-//     // should check which errors are thrown!!
-//     with self.assertRaises(RuntimeError):
-//         kp.ValidateAndAssignDefaults(defaults_params)
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongSpelling, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(wrong_spelling)
-//     Parameters defaults_params = Parameters(defaults)
-//
-//     // should check which errors are thrown!!
-//     with self.assertRaises(RuntimeError):
-//         kp.ValidateAndAssignDefaults(defaults_params)
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersWrongParameters, KratosCoreFastSuite)
+{
+    // Should check which errors are thrown!!
+    Parameters kp = Parameters(GetJSONString());
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(kp["no_value"].GetInt(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongTypes, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONStringWrongType());
+    Parameters defaults_params = Parameters(GetJSONStringDefaults());
+
+    // Should check which errors are thrown!!
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(kp.ValidateAndAssignDefaults(defaults_params), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongSpelling, KratosCoreFastSuite2)
+{
+    Parameters kp = Parameters(GetJSONStringWrongSpelling());
+    Parameters  defaults_params = Parameters(GetJSONStringDefaults());
+
+    // Should check which errors are thrown!!
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(kp.ValidateAndAssignDefaults(defaults_params), "");
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsErrorsOnFirstLevel, KratosCoreFastSuite)
 // {
 //     Parameters kp = Parameters(wrong_lev2)
-//     defaults_params = Parameters(defaults)
+//     Parameters defaults_params = Parameters(GetJSONStringDefaults());
 //
 //     // should check which errors are thrown!!
 //     with self.assertRaises(RuntimeError):
@@ -414,7 +400,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersCopy, KratosCoreFastSuite)
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSuccedsErroronFirstLevel, KratosCoreFastSuite)
 // {
 //     Parameters kp = Parameters(wrong_lev2)
-//     defaults_params = Parameters(defaults)
+//     Parameters defaults_params = Parameters(GetJSONStringDefaults());
 //
 //     // here no error shall be thrown since validation is only done on level0
 //     kp.ValidateAndAssignDefaults(defaults_params)
@@ -423,7 +409,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersCopy, KratosCoreFastSuite)
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSucceeds, KratosCoreFastSuite)
 // {
 //     Parameters kp = Parameters(GetJSONString());
-//     defaults_params = Parameters(defaults)
+//     Parameters defaults_params = Parameters(GetJSONStringDefaults());
 //     defaults_params["level1"]["tmp"].SetDouble(2.0)  // this does not coincide with the value in kp, but is of the same type
 //
 //     kp.ValidateAndAssignDefaults(defaults_params)
