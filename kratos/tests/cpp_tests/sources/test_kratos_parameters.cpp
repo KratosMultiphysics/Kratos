@@ -587,70 +587,73 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
     }
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMethods, KratosCoreFastSuite)
-// {
-//     // This method checks all the "GetXXX" Methods if they throw an error
-//     Parameters tmp = Parameters(R"({
-//         "int_value" : 10,
-//         "double_value": 2.0,
-//         "bool_value" : true,
-//         "string_value" : "hello",
-//         "vector_value" : [5.2,-3.1,4.33],
-//         "matrix_value" : [[1,2],[3,4],[5,6]]
-//     })"); // if you add more values to this, make sure to add the corresponding in the loop
-//
-//     for key in tmp.keys():
-//         val_type = key[:-6] // removing "_value"
-//
-//         // Int and Double are checked tgth bcs both internally call "IsNumber"
-//         if val_type == "int" or val_type == "double":
-//             if val_type == "int":
-//                 KRATOS_CHECK_EQUAL(tmp[key].GetInt(),10)
-//         else:
-//             with self.assertRaises(RuntimeError):
-//                 tmp[key].GetInt()
-//
-//         if val_type == "double" or val_type == "int":
-//             if val_type == "double":
-//                 KRATOS_CHECK_EQUAL(tmp[key].GetDouble(),2.0)
-//         else:
-//             with self.assertRaises(RuntimeError):
-//                 tmp[key].GetDouble()
-//
-//         if val_type == "bool":
-//             KRATOS_CHECK_EQUAL(tmp[key].GetBool(),True)
-//         else:
-//             with self.assertRaises(RuntimeError):
-//                 tmp[key].GetBool()
-//
-//         if val_type == "string":
-//             KRATOS_CHECK_EQUAL(tmp[key].GetString(),"hello")
-//         else:
-//             with self.assertRaises(RuntimeError):
-//                 tmp[key].GetString()
-//
-//         if val_type == "vector":
-//             V = tmp[key].GetVector()
-//             KRATOS_CHECK_EQUAL(V[0],5.2)
-//             KRATOS_CHECK_EQUAL(V[1],-3.1)
-//             KRATOS_CHECK_EQUAL(V[2],4.33)
-//         else:
-//             with self.assertRaises(RuntimeError):
-//                 tmp[key].GetVector()
-//
-//         if val_type == "matrix":
-//             A = tmp[key].GetMatrix()
-//             KRATOS_CHECK_EQUAL(A[0,0],1.0)
-//             KRATOS_CHECK_EQUAL(A[0,1],2.0)
-//             KRATOS_CHECK_EQUAL(A[1,0],3.0)
-//             KRATOS_CHECK_EQUAL(A[1,1],4.0)
-//             KRATOS_CHECK_EQUAL(A[2,0],5.0)
-//             KRATOS_CHECK_EQUAL(A[2,1],6.0)
-//         else:
-//             with self.assertRaises(RuntimeError):
-//                 tmp[key].GetMatrix()
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMethods, KratosCoreFastSuite)
+{
+    // This method checks all the "GetXXX" Methods if they throw an error
+    Parameters tmp = Parameters(R"({
+        "int_value" : 10,
+        "double_value": 2.0,
+        "bool_value" : true,
+        "string_value" : "hello",
+        "vector_value" : [5.2,-3.1,4.33],
+        "matrix_value" : [[1,2],[3,4],[5,6]]
+    })"); // if you add more values to this, make sure to add the corresponding in the loop
+
+    for(auto it=tmp.begin(); it!=tmp.end(); ++it) {
+        const std::string key = it.name();
+
+        // Int and Double are checked tgth bcs both internally call "IsNumber"
+        if (key.find("double") != std::string::npos || key.find("int") != std::string::npos) {
+            if (key.find("int") != std::string::npos) {
+                KRATOS_CHECK_EQUAL(tmp[key].GetInt(),10);
+            }
+        } else {
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(tmp[key].GetInt(), "");
+        }
+
+        if (key.find("double") != std::string::npos || key.find("int") != std::string::npos) {
+            if (key.find("double") != std::string::npos) {
+                KRATOS_CHECK_DOUBLE_EQUAL(tmp[key].GetDouble(),2.0);
+            }
+        } else {
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(tmp[key].GetDouble(), "");
+        }
+
+        if (key.find("bool") != std::string::npos) {
+            KRATOS_CHECK_EQUAL(tmp[key].GetBool(), true);
+        } else {
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(tmp[key].GetBool(), "");
+        }
+
+        if (key.find("string") != std::string::npos) {
+            KRATOS_CHECK_STRING_EQUAL(tmp[key].GetString(),"hello");
+        } else {
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(tmp[key].GetString(), "");
+        }
+
+        if (key.find("vector") != std::string::npos) {
+            const auto& V = tmp[key].GetVector();
+            KRATOS_CHECK_DOUBLE_EQUAL(V[0],5.2);
+            KRATOS_CHECK_DOUBLE_EQUAL(V[1],-3.1);
+            KRATOS_CHECK_DOUBLE_EQUAL(V[2],4.33);
+        } else {
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(tmp[key].GetVector(), "");
+        }
+
+        if (key.find("matrix") != std::string::npos) {
+            const auto& A = tmp[key].GetMatrix();
+            KRATOS_CHECK_DOUBLE_EQUAL(A(0,0), 1.0);
+            KRATOS_CHECK_DOUBLE_EQUAL(A(0,1), 2.0);
+            KRATOS_CHECK_DOUBLE_EQUAL(A(1,0), 3.0);
+            KRATOS_CHECK_DOUBLE_EQUAL(A(1,1), 4.0);
+            KRATOS_CHECK_DOUBLE_EQUAL(A(2,0), 5.0);
+            KRATOS_CHECK_DOUBLE_EQUAL(A(2,1), 6.0);
+        } else {
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(tmp[key].GetMatrix(), "");
+        }
+    }
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMethods KratosCoreFastSuite)
 // {
 //     // This method checks all the "GetXXX" Methods if they throw an error
@@ -671,7 +674,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
 //             if val_type == "int":
 //                 tmp[key].SetInt(10)
 //                 KRATOS_CHECK_EQUAL(tmp[key].GetInt(),10)
-//         else:
+//         } else {
 //             with self.assertRaises(RuntimeError):
 //                 tmp[key].GetInt()
 //
@@ -679,21 +682,21 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
 //             if val_type == "double":
 //                 tmp[key].SetDouble(2.0)
 //                 KRATOS_CHECK_EQUAL(tmp[key].GetDouble(),2.0)
-//         else:
+//         } else {
 //             with self.assertRaises(RuntimeError):
 //                 tmp[key].GetDouble()
 //
 //         if val_type == "bool":
 //             tmp[key].SetBool(True)
 //             KRATOS_CHECK_EQUAL(tmp[key].GetBool(),True)
-//         else:
+//         } else {
 //             with self.assertRaises(RuntimeError):
 //                 tmp[key].GetBool()
 //
 //         if val_type == "string":
 //             tmp[key].SetString("hello")
 //             KRATOS_CHECK_EQUAL(tmp[key].GetString(),"hello")
-//         else:
+//         } else {
 //             with self.assertRaises(RuntimeError):
 //                 tmp[key].GetString()
 //
@@ -707,7 +710,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
 //             KRATOS_CHECK_EQUAL(V[0],5.2)
 //             KRATOS_CHECK_EQUAL(V[1],-3.1)
 //             KRATOS_CHECK_EQUAL(V[2],4.33)
-//         else:
+//         } else {
 //             with self.assertRaises(RuntimeError):
 //                 tmp[key].GetVector()
 //
@@ -727,7 +730,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
 //             KRATOS_CHECK_EQUAL(A[1,1],4.0)
 //             KRATOS_CHECK_EQUAL(A[2,0],5.0)
 //             KRATOS_CHECK_EQUAL(A[2,1],6.0)
-//         else:
+//         } else {
 //             with self.assertRaises(RuntimeError):
 //                 tmp[key].GetMatrix()
 // }
