@@ -169,7 +169,6 @@ public:
                             GeometryType::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
-
     void Calculate(
         const Variable<double>& rVariable,
         double& rOutput,
@@ -191,13 +190,6 @@ public:
         const Variable<Matrix >& rVariable,
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
-
-    /// Set up the element.
-    /** Allocate the subscale velocity containers and let base class initialize the constitutive law */
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
-
-    /// Predict the value of the small scale velocity for the current iteration.
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -267,36 +259,11 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
-    void AddMassLHS(
-        TElementData& rData,
-        MatrixType& rMassMatrix) override;
-
     // Implementation details of DVMSDEMCoupled /////////////////////////////////////////
 
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
-
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
-
-    void CalculateStabilizationParameters(
-        const TElementData& rData,
-        const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo,
-        double &TauP) const;
-
-    void SubscaleVelocity(
-        const TElementData& rData,
-        array_1d<double,3>& rVelocitySubscale) const override;
-
-    void SubscalePressure(
-        const TElementData& rData,
-        double &rPressureSubscale) const override;
-
-    array_1d<double,3> FullConvectiveVelocity(
-        const TElementData& rData) const;
-
 
     ///@}
     ///@name Protected  Access
@@ -356,9 +323,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void UpdateSubscaleVelocityPrediction(
-        const TElementData& rData);
 
     ///@}
     ///@name Private  Access
