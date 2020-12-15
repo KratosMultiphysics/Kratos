@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//
+//                   Riccardo Rossi
 //
 
 // System includes
