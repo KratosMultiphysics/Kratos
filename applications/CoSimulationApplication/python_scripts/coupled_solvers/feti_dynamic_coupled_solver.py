@@ -119,8 +119,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
     def __AddNodalSolutionStepVariables(self):
         for solver_name, solver in self.solver_wrappers.items():
-            structure = solver.model.GetModelPart("Structure")
-            structure.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
+            solver_type = str(solver._ClassName())
+            if solver_type == "StructuralMechanicsWrapper":
+                structure = solver.model.GetModelPart("Structure")
+                structure.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
 
     def __InitializeFetiMethod(self):
         # Create vector of solver indices for convenience
@@ -133,6 +135,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # get mapper parameters
         self.mapper_parameters = self.data_transfer_operators_dict["mapper"].settings["mapper_settings"]
         mapper_type = self.mapper_parameters["mapper_type"].GetString()
+        if self.mapper_parameters.Has("use_initial_configuration") == False:
+            self.mapper_parameters.AddBool('use_initial_configuration', True)
+        print(self.mapper_parameters)
 
         # get mapper origin and destination modelparts
         origin_modelpart_name = self.mapper_parameters["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString()
@@ -241,11 +246,13 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         solver_type = str(self.solver_wrappers[solverName]._ClassName())
         if solver_type == "StructuralMechanicsWrapper":
             return self.solver_wrappers[solverName]._analysis_stage._GetSolver().get_mechanical_solution_strategy()
+        elif solver_type == "ParticleMechanicsWrapper":
+            return self.solver_wrappers[solverName]._analysis_stage._GetSolver()._GetSolutionStrategy()
         else:
             raise Exception("_GetSolverStrategy not implemented for solver wrapper = " + solver_type)
 
     def __CheckSolversCompatibility(self):
-        compatible_solver_wrappers = ['StructuralMechanicsWrapper']
+        compatible_solver_wrappers = ['StructuralMechanicsWrapper','ParticleMechanicsWrapper']
         for solver_name, solver in self.solver_wrappers.items():
             solver_type = str(solver._ClassName())
             if solver_type not in compatible_solver_wrappers:

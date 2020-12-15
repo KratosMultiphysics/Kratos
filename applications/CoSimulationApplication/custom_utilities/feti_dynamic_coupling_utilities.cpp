@@ -768,8 +768,23 @@ namespace Kratos
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::SetOriginAndDestinationDomainsWithInterfaceModelParts(
         ModelPart& rInterfaceOrigin, ModelPart& rInterFaceDestination)
     {
-        mpOriginDomain = &(rInterfaceOrigin.GetModel().GetModelPart("Structure"));
-        mpDestinationDomain = &(rInterFaceDestination.GetModel().GetModelPart("Structure"));
+        Model& rOriginModel = rInterfaceOrigin.GetModel();
+        if (rOriginModel.HasModelPart("Structure")) {
+            mpOriginDomain = &(rOriginModel.GetModelPart("Structure"));
+        }
+        else if (rOriginModel.HasModelPart("Background_Grid")) {
+            mpOriginDomain = &(rOriginModel.GetModelPart("Background_Grid"));
+        }
+        else KRATOS_ERROR << "Neither 'Structure' nor 'Background_Grid' in Origin model. Currently only FEM and MPM are supported.\n";
+
+        Model& rDestinationModel = rInterFaceDestination.GetModel();
+        if (rDestinationModel.HasModelPart("Structure")) {
+            mpDestinationDomain = &(rDestinationModel.GetModelPart("Structure"));
+        }
+        else if (rDestinationModel.HasModelPart("Background_Grid")) {
+            mpDestinationDomain = &(rDestinationModel.GetModelPart("Background_Grid"));
+        }
+        else KRATOS_ERROR << "Neither 'Structure' nor 'Background_Grid' in Destination model. Currently only FEM and MPM are supported.\n";
 
         // Check the timesteps and timestep ratio line up
         const double dt_origin = mpOriginDomain->GetProcessInfo().GetValue(DELTA_TIME);
