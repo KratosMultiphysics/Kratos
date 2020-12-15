@@ -150,16 +150,18 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        if (!mMapperSettings["use_initial_configuration"].GetBool()) {
+            const auto start = std::chrono::system_clock::now();
 
-        if (mMapperSettings["echo_level"].GetInt() > 0) KRATOS_INFO("CouplingGeometryMapper") << "Updating interface" << std::endl;
+            mpModeler->PrepareGeometryModel();
+            mMapperLocalSystemsProjector.clear();
+            mMapperLocalSystemsSlave.clear();
+            this->InitializeInterface();
 
-        mpModeler->PrepareGeometryModel();
-
-        mMapperLocalSystemsProjector.clear();
-        mMapperLocalSystemsSlave.clear();
-
-        this->InitializeInterface();
+            const auto end = std::chrono::system_clock::now();
+            const auto elasped_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            if (mMapperSettings["echo_level"].GetInt() > 0) KRATOS_INFO("CouplingGeometryMapper") << "Mapper update took " << elasped_time.count() << " ms\n";
+        }
     }
 
     void Map(
@@ -299,7 +301,7 @@ private:
 
     MapperUniquePointerType mpInverseMapper = nullptr;
 
-    MappingMatrixUniquePointerType mpMappingMatrix;
+    MappingMatrixUniquePointerType mpMappingMatrix = nullptr;
     MappingMatrixUniquePointerType mpMappingMatrixProjector;
     MappingMatrixUniquePointerType mpMappingMatrixSlave;
 

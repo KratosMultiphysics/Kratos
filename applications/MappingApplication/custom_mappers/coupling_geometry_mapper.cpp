@@ -188,7 +188,9 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // assemble projector interface mass matrix - interface_matrix_projector
     const std::size_t num_nodes_interface_slave = mpCouplingInterfaceSlave->NumberOfNodes();
     const std::size_t num_nodes_interface_master = mpCouplingInterfaceMaster->NumberOfNodes();
-    mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_slave, num_nodes_interface_master);
+    if (mpMappingMatrix == nullptr) {
+        mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_slave, num_nodes_interface_master);
+    }
 
     // TODO Philipp I am pretty sure we should separate the vector construction from the matrix construction, should be independent otherwise no clue what is happening
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
@@ -369,9 +371,12 @@ template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWithSolver(
     MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix)
 {
-    mpMappingMatrix = Kratos::make_unique<typename SparseSpaceType::MatrixType>(
-        rConsistentInterfaceMatrix.size1(),
-        rProjectedInterfaceMatrix.size2());
+    if (mpMappingMatrix->size1() != rConsistentInterfaceMatrix.size1() ||
+        mpMappingMatrix->size2() != rProjectedInterfaceMatrix.size2())
+    {
+        mpMappingMatrix->resize(rConsistentInterfaceMatrix.size1(), rProjectedInterfaceMatrix.size2(), false);
+    }
+    mpMappingMatrix->clear();
 
     const size_t n_rows = mpMappingMatrix->size1();
     Vector solution(n_rows);

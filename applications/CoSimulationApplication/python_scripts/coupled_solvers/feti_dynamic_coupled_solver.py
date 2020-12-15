@@ -41,8 +41,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
                 self._solver_delta_times[solver_name] = solver.AdvanceInTime(current_time)
                 advanced_time = min(advanced_time,self._solver_delta_times[solver_name])
 
-            self.is_initial_step = False
-
             # Initialize the FETI utilites
             self.__InitializeFetiMethod()
         else:
@@ -67,6 +65,11 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             return False
 
     def InitializeSolutionStep(self):
+        if not self.is_initial_step:
+            self.mapper.UpdateInterface()
+        else:
+            self.is_initial_step = False
+
         for solver_name, solver in self.solver_wrappers.items():
             if self.SolverSolvesAtThisTime(solver_name):
                 solver.InitializeSolutionStep()
@@ -159,6 +162,18 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.feti_coupling.SetMappingMatrix(self.mapper.GetMappingMatrix())
         else:
             raise Exception("Dynamic coupled solver currently only compatible with the coupling_geometry mapper.")
+
+        # Check consistency of mapper and solver settings
+        linear_mapper = self.mapper_parameters["use_initial_configuration"].GetBool()
+        if self.settings["is_linear"].GetBool():
+            # Linear solve must use mapper created from initial config
+            if linear_mapper == False:
+                raise Exception("Check CoSim parameters! If 'is_linear' = true, then mapper 'use_initial_configuration' must be true.")
+        else:
+            # Non-linear solve must use updated mapper
+            if linear_mapper == True:
+                raise Exception("Check CoSim parameters! If 'is_linear' = false, then mapper 'use_initial_configuration' must be false.")
+
 
         # The origin and destination interfaces from the mapper submitted above are both
         # stored within the origin modelpart. Now we submit the 'original' origin and destination

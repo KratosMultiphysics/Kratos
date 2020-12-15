@@ -133,6 +133,9 @@ namespace Kratos
 
     void StructureMpmModeler::UpdateGeometryModel()
     {
+        // The FEM coupling quad points naturally deform with the FEM domain and track the interface correctly.
+        // The MPM coupling quad points need to be updated with the FEM quad point locations.
+
         Model* p_model_mpm = (mIsOriginMpm) ? mpModelOrigin : mpModelDest;
         const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
 
