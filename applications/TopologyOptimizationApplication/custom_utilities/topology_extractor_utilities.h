@@ -19,7 +19,8 @@
 #include <algorithm>
 
 // External includes
-#include <pybind11/pybind11.h>
+#include <pybind11/pybind11.h>   
+#include <boost/numeric/ublas/storage.hpp>
 
 #include "../custom_elements/small_displacement_simp_element.hpp"
 // Project includes
@@ -94,7 +95,7 @@ public:
 	{
 		std::size_t operator()(const vector<int>& k) const
 		{
-			return boost::hash_range(k.begin(), k.end());
+			///return boost::hash_range(k.begin(), k.end()); UMBEDINGT VERBESSERN UND ERNEUERN!!!!##################################################
 		}
 	};
 

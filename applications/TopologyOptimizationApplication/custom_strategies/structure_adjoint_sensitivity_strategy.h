@@ -19,7 +19,7 @@
 #include <algorithm>
 
 // External includes
-#include <pybind11/pybind11.h>
+#include <pybind11/pybind11.h> 
 
 #include "../custom_elements/small_displacement_simp_element.hpp"
 // Project includes
@@ -70,7 +70,8 @@ public:
 	{}
 
 
-	virtual ~StructureAdjointSensitivityStrategy()
+	///virtual ~StructureAdjointSensitivityStrategy()
+	~StructureAdjointSensitivityStrategy()	override
 	{}
 
 	///@}

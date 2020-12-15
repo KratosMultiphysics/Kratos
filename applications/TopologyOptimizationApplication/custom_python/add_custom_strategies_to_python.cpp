@@ -62,13 +62,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 	// =============================================================================================================================================
 	// Strategy Classes
 	// =============================================================================================================================================
-
-	py::class_< StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, BaseSolvingStrategyType >
+///###############################################################################################auskommentiert
+	/* py::class_< StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, BaseSolvingStrategyType >
 	(m, "StructureAdjointSensitivityStrategy")
 	.def(py::init<ModelPart&, LinearSolverType::Pointer, int>())
 	.def("ComputeStrainEnergySensitivities",&StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeStrainEnergySensitivities)
 	.def("ComputeVolumeFractionSensitivities",&StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeVolumeFractionSensitivities)
-	;
+	; */
 
 	
 }

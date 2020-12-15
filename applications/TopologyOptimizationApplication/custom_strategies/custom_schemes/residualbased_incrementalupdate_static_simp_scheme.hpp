@@ -15,7 +15,7 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
+#include "boost/smart_ptr.hpp" ///Laut Issue von 14.12. soll das auskommentiert werden
 
 // Project includes
 #include "includes/define.h"
@@ -24,6 +24,7 @@
 #include "includes/variables.h"
 
 //#include "solid_mechanics_application.h"
+#include "structural_mechanics_application.h"
 #include "topology_optimization_application.h"
 
 // Application includes
@@ -96,7 +97,9 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {}
+    ~ResidualBasedIncrementalUpdateStaticSIMPScheme() override
+    {}
+    ///virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {} alte Version 14.12
 
 
     /*@} */
