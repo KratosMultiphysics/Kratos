@@ -144,147 +144,145 @@ std::string GetJSONStringDefaults()
     return defaults;
 }
 
-// std::string GetJSONStringIncomplete()
-// {
-//     const std::string incomplete = """
-//     {
-//         "level1": {
-//         },
-//         "new_default_obj": {
-//             "aaa": "string",
-//             "bbb": false,
-//             "ccc": 22
-//         },
-//         "new_default_value": -123.0,
-//         "string_value": "hello"
-//     }""";
-//     return incomplete;
-// }
-//
-// std::string GetJSONStringIncompleteWithExtraParameter()
-// {
-//     const std::string incomplete_with_extra_parameter = """
-//     {
-//         "level1": {
-//             "new_sublevel": "this should only be assigned in recursive"
-//         },
-//         "new_default_obj": {
-//             "aaa": "string",
-//             "bbb": false,
-//             "ccc": 22
-//         },
-//         "new_default_value": -123.0,
-//         "string_value": "hello"
-//     }""";
-//     return incomplete_with_extra_parameter;
-// }
-//
-// std::string GetJSONStringExpectedValidationOutput()
-// {
-//     const std::string expected_validation_output = """{
-//         "bool_value": true,
-//         "double_value": 2.0,
-//         "int_value": 10,
-//         "level1": {
-//             "list_value": [
-//                 3,
-//                 "hi",
-//                 false
-//             ],
-//             "tmp": 5.0
-//         },
-//         "new_default_obj": {
-//             "aaa": "string",
-//             "bbb": false,
-//             "ccc": 22
-//         },
-//         "new_default_value": -123.0,
-//         "string_value": "hello"
-//     }""";
-//     return expected_validation_output;
-// }
-//
-// std::string GetJSONStringFourLevels()
-// {
-//     const std::string four_levels = """{
-//         "bool_value": true,
-//         "double_value": 2.0,
-//         "int_value": 10,
-//         "level1": {
-//             "level2": {
-//                 "level3": {
-//                     "level4": {
-//                     }
-//                 }
-//             }
-//         },
-//         "string_value": "hello"
-//     }""";
-//     return four_levels;
-// }
-//
-// std::string GetJSONStringForLevelsVariation()
-// {
-//     const std::string four_levels_variation = """{
-//         "bool_value": true,
-//         "double_value": 2.0,
-//         "int_value": 10,
-//         "level1": {
-//             "a":11.0,
-//             "level2": {
-//                 "level3": {
-//                     "level4": {
-//                     }
-//                 }
-//             }
-//         },
-//         "string_value": "hello"
-//     }""";
-//     return four_levels_variation;
-// }
-//
-// std::string GetJSONStringForLevelsWrongVariation()
-// {
-//     const std::string four_levels_wrong_variation = """{
-//         "int_value": 10,
-//         "double_value": "hi",
-//         "bool_value": true,
-//         "string_value": "hello",
-//         "level1": {
-//             "a":11.0,
-//             "level2": {
-//                 "level3": {
-//                     "level4": {
-//                     }
-//                 }
-//             }
-//         }
-//     }""";
-//     return four_levels_wrong_variation;
-// }
-//
-// std::string GetJSONStringForLevelsDefaults()
-// {
-//     const std::string four_levels_defaults = """{
-//         "bool_value": true,
-//         "double_value": 2.0,
-//         "int_value": 10,
-//         "level1": {
-//             "a":1.0,
-//             "level2": {
-//                 "b":2.0,
-//                 "level3": {
-//                     "c":3.0,
-//                     "level4": {
-//                         "d":4.0
-//                     }
-//                 }
-//             }
-//         },
-//         "string_value": "hello"
-//     }""";
-//     return four_levels_defaults;
-// }
+std::string GetJSONStringIncomplete()
+{
+    const std::string incomplete = R"({
+        "level1": {
+        },
+        "new_default_obj": {
+            "aaa": "string",
+            "bbb": false,
+            "ccc": 22
+        },
+        "new_default_value": -123.0,
+        "string_value": "hello"
+    })";
+    return incomplete;
+}
+
+std::string GetJSONStringIncompleteWithExtraParameter()
+{
+    const std::string incomplete_with_extra_parameter = R"({
+        "level1": {
+            "new_sublevel": "this should only be assigned in recursive"
+        },
+        "new_default_obj": {
+            "aaa": "string",
+            "bbb": false,
+            "ccc": 22
+        },
+        "new_default_value": -123.0,
+        "string_value": "hello"
+    })";
+    return incomplete_with_extra_parameter;
+}
+
+std::string GetJSONStringExpectedValidationOutput()
+{
+    const std::string expected_validation_output = R"({
+        "bool_value": true,
+        "double_value": 2.0,
+        "int_value": 10,
+        "level1": {
+            "list_value": [
+                3,
+                "hi",
+                false
+            ],
+            "tmp": 5.0
+        },
+        "new_default_obj": {
+            "aaa": "string",
+            "bbb": false,
+            "ccc": 22
+        },
+        "new_default_value": -123.0,
+        "string_value": "hello"
+    })";
+    return expected_validation_output;
+}
+
+std::string GetJSONStringFourLevels()
+{
+    const std::string four_levels = R"({
+        "bool_value": true,
+        "double_value": 2.0,
+        "int_value": 10,
+        "level1": {
+            "level2": {
+                "level3": {
+                    "level4": {
+                    }
+                }
+            }
+        },
+        "string_value": "hello"
+    })";
+    return four_levels;
+}
+
+std::string GetJSONStringForLevelsVariation()
+{
+    const std::string four_levels_variation = R"({
+        "bool_value": true,
+        "double_value": 2.0,
+        "int_value": 10,
+        "level1": {
+            "a":11.0,
+            "level2": {
+                "level3": {
+                    "level4": {
+                    }
+                }
+            }
+        },
+        "string_value": "hello"
+    })";
+    return four_levels_variation;
+}
+
+std::string GetJSONStringForLevelsWrongVariation()
+{
+    const std::string four_levels_wrong_variation = R"({
+        "int_value": 10,
+        "double_value": "hi",
+        "bool_value": true,
+        "string_value": "hello",
+        "level1": {
+            "a":11.0,
+            "level2": {
+                "level3": {
+                    "level4": {
+                    }
+                }
+            }
+        }
+    })";
+    return four_levels_wrong_variation;
+}
+
+std::string GetJSONStringForLevelsDefaults()
+{
+    const std::string four_levels_defaults = R"({
+        "bool_value": true,
+        "double_value": 2.0,
+        "int_value": 10,
+        "level1": {
+            "a":1.0,
+            "level2": {
+                "b":2.0,
+                "level3": {
+                    "c":3.0,
+                    "level4": {
+                        "d":4.0
+                    }
+                }
+            }
+        },
+        "string_value": "hello"
+    })";
+    return four_levels_defaults;
+}
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
 {
@@ -360,7 +358,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongTypes, Kratos
     KRATOS_CHECK_EXCEPTION_IS_THROWN(kp.ValidateAndAssignDefaults(defaults_params), "");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongSpelling, KratosCoreFastSuite2)
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongSpelling, KratosCoreFastSuite)
 {
     Parameters kp = Parameters(GetJSONStringWrongSpelling());
     Parameters  defaults_params = Parameters(GetJSONStringDefaults());
@@ -369,37 +367,36 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsDueToWrongSpelling, Kra
     KRATOS_CHECK_EXCEPTION_IS_THROWN(kp.ValidateAndAssignDefaults(defaults_params), "");
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsErrorsOnFirstLevel, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(wrong_lev2)
-//     Parameters defaults_params = Parameters(GetJSONStringDefaults());
-//
-//     // should check which errors are thrown!!
-//     with self.assertRaises(RuntimeError):
-//         kp.RecursivelyValidateAndAssignDefaults(defaults_params)
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursiveValidation4Levels, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(four_levels)
-//     kp_variation = Parameters(four_levels_variation)
-//     kp_wrong_wariation = Parameters(four_levels_wrong_variation)
-//     defaults_params = Parameters(four_levels_defaults)
-//
-//     kp.RecursivelyValidateAndAssignDefaults(defaults_params)
-//     kp_variation.RecursivelyValidateAndAssignDefaults(defaults_params)
-//
-//     KRATOS_CHECK( kp.IsEquivalentTo(defaults_params) )
-//     KRATOS_CHECK_IS_FALSE( kp_variation.IsEquivalentTo(defaults_params) )
-//
-//     KRATOS_CHECK( kp.HasSameKeysAndTypeOfValuesAs(defaults_params) )
-//     KRATOS_CHECK( kp_variation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
-//     KRATOS_CHECK_IS_FALSE( kp_wrong_wariation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationFailsErrorsOnFirstLevel, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONStringWrongLevel2());
+    Parameters defaults_params = Parameters(GetJSONStringDefaults());
+
+    // Should check which errors are thrown!!
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(kp.RecursivelyValidateAndAssignDefaults(defaults_params), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursiveValidation4Levels, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONStringFourLevels());
+    Parameters kp_variation = Parameters(GetJSONStringForLevelsVariation());
+    Parameters kp_wrong_wariation = Parameters(GetJSONStringForLevelsWrongVariation());
+    Parameters defaults_params = Parameters(GetJSONStringForLevelsDefaults());
+
+    kp.RecursivelyValidateAndAssignDefaults(defaults_params);
+    kp_variation.RecursivelyValidateAndAssignDefaults(defaults_params);
+
+    KRATOS_CHECK( kp.IsEquivalentTo(defaults_params) );
+    KRATOS_CHECK_IS_FALSE( kp_variation.IsEquivalentTo(defaults_params) );
+
+    KRATOS_CHECK( kp.HasSameKeysAndTypeOfValuesAs(defaults_params) );
+    KRATOS_CHECK( kp_variation.HasSameKeysAndTypeOfValuesAs(defaults_params) );
+    KRATOS_CHECK_IS_FALSE( kp_wrong_wariation.HasSameKeysAndTypeOfValuesAs(defaults_params) );
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidationSuccedsErroronFirstLevel, KratosCoreFastSuite)
 // {
-//     Parameters kp = Parameters(wrong_lev2)
+//     Parameters kp = Parameters(GetJSONStringWrongLevel2());
 //     Parameters defaults_params = Parameters(GetJSONStringDefaults());
 //
 //     // here no error shall be thrown since validation is only done on level0
