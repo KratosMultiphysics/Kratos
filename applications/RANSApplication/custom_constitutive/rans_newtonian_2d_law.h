@@ -70,7 +70,7 @@ public:
     /**
      * Destructor.
      */
-    ~RansNewtonian2DLaw() override;
+    ~RansNewtonian2DLaw();
 
     /**
      * Operations needed by the base class:
