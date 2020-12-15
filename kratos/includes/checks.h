@@ -170,7 +170,11 @@ try {                                                                           
 
 // this macro is to be removed, as it is no longer required to check the keys of Variables (are now assigned at compiletime)
 #define KRATOS_CHECK_VARIABLE_KEY(TheVariable) \
+#if defined(_MSC_VER)
+    __pragma(message("\"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\"")); \
+#else
     _Pragma ("message( \"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\")"); \
+#endif
     TheVariable.Key(); // adding dummy usage to avoid unused variable warnings
 
 #define KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)                          \
