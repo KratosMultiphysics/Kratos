@@ -130,19 +130,19 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -244,17 +244,16 @@ protected:
         const bool CalculateResidualVectorFlag
     );
 
-    void BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
 
     virtual void SetupOrientationAngles();
 
-    void CheckVariables() const;
     void CheckDofs() const;
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
     void CheckSpecificProperties() const;

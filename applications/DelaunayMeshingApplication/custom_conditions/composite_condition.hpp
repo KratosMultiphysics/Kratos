@@ -218,22 +218,22 @@ public:
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
 
@@ -359,7 +359,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable,
-				 Variable<array_1d<double,3> >& rDestinationVariable,
+				 const Variable<array_1d<double,3> >& rDestinationVariable,
 				 const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -472,7 +472,7 @@ private:
     void InitializeChildren();
 
     //check problem type definition and if coincides return active true
-    bool IsActive(ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo);
+    bool IsActive(const Condition& rChildCondition, const ProcessInfo& rCurrentProcessInfo) const;
 
     //set specific data value to condition children
     template<class TVariableType> void SetValueToChildren(const TVariableType& rThisVariable){

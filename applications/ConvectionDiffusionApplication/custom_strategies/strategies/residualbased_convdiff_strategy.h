@@ -268,6 +268,7 @@ public:
         KRATOS_TRY;
 
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+        const ProcessInfo& rConstCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
@@ -287,7 +288,7 @@ public:
         for(ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin() ;
                 i != BaseType::GetModelPart().ElementsEnd() ; ++i)
         {
-            (i)->InitializeSolutionStep(rCurrentProcessInfo);
+            (i)->InitializeSolutionStep(rConstCurrentProcessInfo);
         }
 
         BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(rProjectionVariable);

@@ -49,7 +49,8 @@ Element::Pointer SymbolicNavierStokes<TElementData>::Create(IndexType NewId,Geom
 // Public Inquiry
 
 template <class TElementData>
-int SymbolicNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) {
+int SymbolicNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
+{
 
     KRATOS_TRY;
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);

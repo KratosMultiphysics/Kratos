@@ -26,13 +26,13 @@ class FEM_Solution(MainSolidFEM.Solution):
         KratosMultiphysics.Logger.Print(message, label="")
         KratosMultiphysics.Logger.Flush()
 #============================================================================================================================                    
-    def __init__(self, Model, path = ""):
+    def __init__(self, Model, path = "", DEMStrategy = None):
 
         #### TIME MONITORING START ####
         # Time control starts        
         self.KratosPrintInfo(timer.ctime())
         # Measure process time
-        self.t0p = timer.clock()
+        self.t0p = timer.process_time()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####
@@ -84,11 +84,22 @@ class FEM_Solution(MainSolidFEM.Solution):
         # Construct the solver (main setting methods are located in the solver_module)
         if self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemDynamicSolver":
             import KratosMultiphysics.FemToDemApplication.FemDemDynamicSolver as FemDemDynamicSolver
-            self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+            if DEMStrategy == None:
+                self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part,
+                                                               self.ProjectParameters["solver_settings"])
+            else:
+                self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part,
+                                                               self.ProjectParameters["solver_settings"],
+                                                               DEMStrategy)
         elif self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemStaticSolver":
             import KratosMultiphysics.FemToDemApplication.FemDemStaticSolver as FemDemStaticSolver
-            self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
-
+            if DEMStrategy == None:
+                self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part,
+                                                               self.ProjectParameters["solver_settings"])
+            else:
+                self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part,
+                                                               self.ProjectParameters["solver_settings"],
+                                                               DEMStrategy)
         #### Output settings start ####
         self.problem_path = os.getcwd()
         self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
@@ -272,7 +283,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 #============================================================================================================================
     def InitializeSolutionStep(self):
 
-        self.KratosPrintInfo("[STEP: " + str(self.step) + "  ///  TIME: " + str(self.time) +  "  ///  TIME_STEP: " + str(self.delta_time) + "]")
+        self.KratosPrintInfo("[STEP: " + str(self.step) + "  ///  TIME: " +  "{0:.4e}".format(self.time).rjust(11) +  "  ///  TIME_STEP: " + str(self.delta_time) + "]")
 
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
@@ -315,7 +326,7 @@ class FEM_Solution(MainSolidFEM.Solution):
         self.KratosPrintInfo(" ")
         #### END SOLUTION ####
         # Measure process time
-        tfp = timer.clock()
+        tfp = timer.process_time()
         # Measure wall time
         tfw = timer.time()
         KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
@@ -361,12 +372,12 @@ class FEM_Solution(MainSolidFEM.Solution):
     #============================================================================================================================    
     def StartTimeMeasuring(self):
         # Measure process time
-        time_ip = timer.clock()
+        time_ip = timer.process_time()
         return time_ip
     #============================================================================================================================
     def StopTimeMeasuring(self, time_ip, process, report):
         # Measure process time
-        time_fp = timer.clock()
+        time_fp = timer.process_time()
         if( report ):
             used_time = time_fp - time_ip
             print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
