@@ -839,67 +839,70 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMethods, KratosCoreFastSuite)
 //     KRATOS_CHECK_DOUBLE_EQUAL(V2[1],-2.22);
 //     KRATOS_CHECK_DOUBLE_EQUAL(V2[2],5.5);
 // }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
-// {
-//     // Read and check Matrices from a Parameters-Object
-//     Parameters tmp = Parameters(R"({
-//         "valid_matrices" : [ [[]],
-//                               [[],[]],
-//                               [[-9.81,8, 5.47]]
-//         ],
-//         "false_matrices" : [ [],
-//                               [[[]]],
-//                               [[3.3] , [1,2]],
-//                               [[2,1.5,3.3] , [3,{"key":3},2]],
-//                               [[2,1.5,3.3] , [5,false,2]],
-//                               [[2,1.5,3.3] , [[2,3],1,2]],
-//                               [[2,1.5,3.3] , ["string",2,9]]
-//         ]
-//     })");
-//
-//     // Check the IsMatrix Method
-//     for i in range(tmp["valid_matrices"].size()):
-//         valid_matrix = tmp["valid_matrices"][i]
-//         KRATOS_CHECK(valid_matrix.IsMatrix())
-//
-//     for i in range(tmp["false_matrices"].size()):
-//         false_matrix = tmp["false_matrices"][i]
-//         KRATOS_CHECK_IS_FALSE(false_matrix.IsMatrix())
-//
-//     // Check the GetMatrix Method also on the valid Matrices
-//     for i in range(tmp["valid_matrices"].size()):
-//         valid_matrix = tmp["valid_matrices"][i]
-//         valid_matrix.GetMatrix()
-//
-//     // Check that the errors of the GetMatrix method are thrown correctly
-//     for i in range(tmp["false_matrices"].size()):
-//         false_matrix = tmp["false_matrices"][i]
-//         with self.assertRaises(RuntimeError):
-//             false_matrix.GetMatrix()
-//
-//     // Manually assign and check a Matrix
-//     Matrix mat = ZeroMatrix(3,2);
-//     mat[0,0] = 1.0;
-//     mat[0,1] = 2.0;
-//     mat[1,0] = 3.0;
-//     mat[1,1] = 4.0;
-//     mat[2,0] = 5.0;
-//     mat[2,1] = 6.0;
-//
-//     tmp.AddEmptyValue("matrix_value")
-//     tmp["matrix_value"].SetMatrix(mat);
-//
-//     KRATOS_CHECK(tmp["matrix_value"].IsMatrix());
-//
-//     A2 = tmp["matrix_value"].GetMatrix()
-//     KRATOS_CHECK_EQUAL(A2[0,0],1.0);
-//     KRATOS_CHECK_EQUAL(A2[0,1],2.0);
-//     KRATOS_CHECK_EQUAL(A2[1,0],3.0);
-//     KRATOS_CHECK_EQUAL(A2[1,1],4.0);
-//     KRATOS_CHECK_EQUAL(A2[2,0],5.0);
-//     KRATOS_CHECK_EQUAL(A2[2,1],6.0);
-// }
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
+{
+    // Read and check Matrices from a Parameters-Object
+    Parameters tmp = Parameters(R"({
+        "valid_matrices" : [ [[]],
+                              [[],[]],
+                              [[-9.81,8, 5.47]]
+        ],
+        "false_matrices" : [ [],
+                              [[[]]],
+                              [[3.3] , [1,2]],
+                              [[2,1.5,3.3] , [3,{"key":3},2]],
+                              [[2,1.5,3.3] , [5,false,2]],
+                              [[2,1.5,3.3] , [[2,3],1,2]],
+                              [[2,1.5,3.3] , ["string",2,9]]
+        ]
+    })");
+
+    // Check the IsMatrix Method
+    for (std::size_t i = 0;  i < tmp["valid_matrices"].size(); ++i) {
+        const auto& valid_matrix = tmp["valid_matrices"][i];
+        KRATOS_CHECK(valid_matrix.IsMatrix());
+    }
+
+    for (std::size_t i = 0;  i < tmp["false_matrices"].size(); ++i) {
+        const auto& false_matrix = tmp["false_matrices"][i];
+        KRATOS_CHECK_IS_FALSE(false_matrix.IsMatrix());
+    }
+
+    // Check the GetMatrix Method also on the valid Matrices
+    for (std::size_t i = 0;  i < tmp["valid_matrices"].size(); ++i) {
+        const auto& valid_matrix = tmp["valid_matrices"][i];
+        valid_matrix.GetMatrix();
+    }
+
+    // Check that the errors of the GetMatrix method are thrown correctly
+    for (std::size_t i = 0;  i < tmp["false_matrices"].size(); ++i) {
+        const auto& false_matrix = tmp["false_matrices"][i];
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(false_matrix.GetMatrix(), "");
+    }
+
+    // Manually assign and check a Matrix
+    Matrix mat = ZeroMatrix(3,2);
+    mat(0,0) = 1.0;
+    mat(0,1) = 2.0;
+    mat(1,0) = 3.0;
+    mat(1,1) = 4.0;
+    mat(2,0) = 5.0;
+    mat(2,1) = 6.0;
+
+    tmp.AddEmptyValue("matrix_value");
+    tmp["matrix_value"].SetMatrix(mat);
+
+    KRATOS_CHECK(tmp["matrix_value"].IsMatrix());
+
+    const auto& A2 = tmp["matrix_value"].GetMatrix();
+    KRATOS_CHECK_DOUBLE_EQUAL(A2(0,0),1.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A2(0,1),2.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A2(1,0),3.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A2(1,1),4.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A2(2,0),5.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(A2(2,1),6.0);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersNullvsNullValidation, KratosCoreFastSuite)
 {
