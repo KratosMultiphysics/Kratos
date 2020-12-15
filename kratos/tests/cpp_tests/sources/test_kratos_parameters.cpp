@@ -478,115 +478,115 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyValidateDefaultsFail, Krato
     KRATOS_CHECK_IS_FALSE(kp["level1"].Has("tmp"));
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddValue, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters("{}")
-//     kp.AddEmptyValue("new_double").SetDouble(1.0)
-//
-//     KRATOS_CHECK(kp.Has("new_double"))
-//     KRATOS_CHECK_EQUAL(kp["new_double"].GetDouble(), 1.0)
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddEmptyArray, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters("{}")
-//     kp.AddEmptyArray("new_array")
-//
-//     KRATOS_CHECK(kp.Has("new_array"))
-//     KRATOS_CHECK_EQUAL(kp["new_array"].size(), 0)
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersIterators, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(GetJSONString());
-//
-//     //iteration by range
-//     nitems = 0
-//     for iterator in kp:
-//         nitems = nitems + 1
-//     KRATOS_CHECK_EQUAL(nitems, 5)
-//
-//     //iteration by items
-//     for key,value in kp.items():
-//         //print(value.PrettyPrintJsonString())
-//         KRATOS_CHECK_EQUAL(kp[key].PrettyPrintJsonString(), value.PrettyPrintJsonString())
-//         //print(key,value)
-//
-//     //testing values
-//     expected_values = ['true', '2.0', '10', '{"list_value":[3,"hi",false],"tmp":5.0}','"hello"']
-//     counter = 0
-//
-//     for value in kp.values():
-//         KRATOS_CHECK_EQUAL(value.WriteJsonString(), expected_values[counter])
-//         counter += 1
-//
-//     //testing values
-//     expected_keys = ['bool_value', 'double_value', 'int_value', 'level1', 'string_value']
-//     counter = 0
-//     for key in kp.keys():
-//         KRATOS_CHECK_EQUAL(key, expected_keys[counter])
-//         counter += 1
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersRemoveValue, KratosCoreFastSuite)
-// {
-//     Parameters kp = Parameters(GetJSONString());
-//     KRATOS_CHECK(kp.Has("int_value"))
-//     KRATOS_CHECK(kp.Has("level1"))
-//
-//     kp.RemoveValue("int_value")
-//     kp.RemoveValue("level1")
-//
-//     KRATOS_CHECK_IS_FALSE(kp.Has("int_value"))
-//     KRATOS_CHECK_IS_FALSE(kp.Has("level1"))
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
-// {
-//     // This method checks all the "IsXXX" Methods
-//     Parameters tmp = Parameters(R"({
-//         "int_value" : 10, /* This is comment to check that comments work */
-//         "double_value": 2.0, // This is comment too, but using another comment
-//         "bool_value" : true, // This is another comment being meta as realizing that all the possibilities are already check
-//         "string_value" : "hello",/* This is a nihilist comment about the futile existence of the previous comment as a metacomment */
-//         "vector_value" : [5,3,4],
-//         "matrix_value" : [[1,2],[3,6]]
-//     })"); // if you add more values to this, make sure to add the corresponding in the loop
-//
-//     for key in tmp.keys():
-//         val_type = key[:-6] // removing "_value"
-//
-//         if val_type == "int":
-//             KRATOS_CHECK(tmp[key].IsInt())
-//         else:
-//             KRATOS_CHECK_IS_FALSE(tmp[key].IsInt())
-//
-//         if val_type == "double":
-//             KRATOS_CHECK(tmp[key].IsDouble())
-//         else:
-//             KRATOS_CHECK_IS_FALSE(tmp[key].IsDouble())
-//
-//         if val_type == "bool":
-//             KRATOS_CHECK(tmp[key].IsBool())
-//         else:
-//             KRATOS_CHECK_IS_FALSE(tmp[key].IsBool())
-//
-//         if val_type == "string":
-//             KRATOS_CHECK(tmp[key].IsString())
-//         else:
-//             KRATOS_CHECK_IS_FALSE(tmp[key].IsString())
-//
-//         if val_type == "vector":
-//             KRATOS_CHECK(tmp[key].IsVector())
-//         else:
-//             KRATOS_CHECK_IS_FALSE(tmp[key].IsVector())
-//
-//         if val_type == "matrix":
-//             KRATOS_CHECK(tmp[key].IsMatrix())
-//         else:
-//             KRATOS_CHECK_IS_FALSE(tmp[key].IsMatrix())
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddValue, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(R"({})");
+    kp.AddEmptyValue("new_double").SetDouble(1.0);
+
+    KRATOS_CHECK(kp.Has("new_double"));
+    KRATOS_CHECK_EQUAL(kp["new_double"].GetDouble(), 1.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddEmptyArray, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(R"({})");
+    kp.AddEmptyArray("new_array");
+
+    KRATOS_CHECK(kp.Has("new_array"));
+    KRATOS_CHECK_EQUAL(kp["new_array"].size(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersRemoveValue, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONString());
+    KRATOS_CHECK(kp.Has("int_value"));
+    KRATOS_CHECK(kp.Has("level1"));
+
+    kp.RemoveValue("int_value");
+    kp.RemoveValue("level1");
+
+    KRATOS_CHECK_IS_FALSE(kp.Has("int_value"));
+    KRATOS_CHECK_IS_FALSE(kp.Has("level1"));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIterators, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONString());
+
+    // Iteration by range
+    int nitems = 0;
+    for(auto it=kp.begin(); it!=kp.end(); ++it) {
+        ++nitems;
+    }
+    KRATOS_CHECK_EQUAL(nitems, 5);
+
+    // Iteration by items
+    for(auto it=kp.begin(); it!=kp.end(); ++it) {
+        KRATOS_CHECK_STRING_EQUAL(kp[it.name()].PrettyPrintJsonString(), it->PrettyPrintJsonString());
+    }
+
+    // Testing values
+    std::vector<std::string> expected_keys ({"bool_value", "double_value", "int_value", "level1", "string_value"});
+    int counter = 0;
+    for(auto it=kp.begin(); it!=kp.end(); ++it) {
+        KRATOS_CHECK_STRING_EQUAL(it.name(), expected_keys[counter]);
+        ++counter;
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
+{
+    // This method checks all the "IsXXX" Methods
+    Parameters tmp = Parameters(R"({
+        "int_value" : 10, /* This is comment to check that comments work */
+        "double_value": 2.0, // This is comment too, but using another comment
+        "bool_value" : true, // This is another comment being meta as realizing that all the possibilities are already check
+        "string_value" : "hello",/* This is a nihilist comment about the futile existence of the previous comment as a metacomment */
+        "vector_value" : [5,3,4],
+        "matrix_value" : [[1,2],[3,6]]
+    })"); // if you add more values to this, make sure to add the corresponding in the loop
+
+    for(auto it=tmp.begin(); it!=tmp.end(); ++it) {
+        const std::string key = it.name();
+
+        if (key.find("int") != std::string::npos) {
+            KRATOS_CHECK(tmp[key].IsInt());
+        } else {
+            KRATOS_CHECK_IS_FALSE(tmp[key].IsInt());
+        }
+
+        if (key.find("double") != std::string::npos) {
+            KRATOS_CHECK(tmp[key].IsDouble());
+        } else {
+            KRATOS_CHECK_IS_FALSE(tmp[key].IsDouble());
+        }
+
+        if (key.find("bool") != std::string::npos) {
+            KRATOS_CHECK(tmp[key].IsBool());
+        } else {
+            KRATOS_CHECK_IS_FALSE(tmp[key].IsBool());
+        }
+
+        if (key.find("string") != std::string::npos) {
+            KRATOS_CHECK(tmp[key].IsString());
+        } else {
+            KRATOS_CHECK_IS_FALSE(tmp[key].IsString());
+        }
+
+        if (key.find("vector") != std::string::npos) {
+            KRATOS_CHECK(tmp[key].IsVector());
+        } else {
+            KRATOS_CHECK_IS_FALSE(tmp[key].IsVector());
+        }
+
+        if (key.find("matrix") != std::string::npos) {
+            KRATOS_CHECK(tmp[key].IsMatrix());
+        } else {
+            KRATOS_CHECK_IS_FALSE(tmp[key].IsMatrix());
+        }
+    }
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMethods, KratosCoreFastSuite)
 // {
 //     // This method checks all the "GetXXX" Methods if they throw an error
@@ -898,7 +898,6 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyValidateDefaultsFail, Krato
 //     KRATOS_CHECK_EQUAL(A2[2,1],6.0);
 // }
 //
-// def test_null_vs_null_validation(self):
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersNullvsNullValidation, KratosCoreFastSuite)
 // {
 //     // Supplied settings
@@ -957,7 +956,6 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyValidateDefaultsFail, Krato
 //
 //     self.assertListEqual(new_string_array, string_array);
 // }
-
 
 }  // namespace Testing.
 }  // namespace Kratos.
