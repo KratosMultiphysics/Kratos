@@ -171,7 +171,7 @@ try {                                                                           
 // this macro is to be removed, as it is no longer required to check the keys of Variables (are now assigned at compiletime)
 #if defined(_MSC_VER)
 #define KRATOS_CHECK_VARIABLE_KEY(TheVariable) \
-    __pragma(message("\"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\"")); \
+    __pragma(message("\"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\""));
 #else
 #define KRATOS_CHECK_VARIABLE_KEY(TheVariable) \
     _Pragma ("message( \"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\")"); \
