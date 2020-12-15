@@ -14,7 +14,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "custom_utilities/qsvms_dem_coupled_data.h"
+#include "custom_utilities/dvms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
@@ -67,7 +67,7 @@ Element::Pointer DVMSDEMCoupled<TElementData>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<DVMS>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<DVMSDEMCoupled>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -388,7 +388,7 @@ void DVMSDEMCoupled<TElementData>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> >;
-template class DVMSDEMCoupled< QSVMSDEMCoupledData<3,4> >;
+template class DVMSDEMCoupled< DVMSDEMCoupledData<2,3> >;
+template class DVMSDEMCoupled< DVMSDEMCoupledData<3,4> >;
 
 } // namespace Kratos

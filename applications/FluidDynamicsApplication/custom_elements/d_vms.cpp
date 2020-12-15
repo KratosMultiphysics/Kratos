@@ -15,6 +15,7 @@
 #include "includes/checks.h"
 
 #include "custom_utilities/qsvms_data.h"
+#include "custom_utilities/dvms_dem_coupled_data.h"
 //#include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
@@ -868,4 +869,6 @@ void DVMS<TElementData>::load(Serializer& rSerializer)
 template class DVMS< QSVMSData<2,3> >;
 template class DVMS< QSVMSData<3,4> >;
 
+template class DVMS< DVMSDEMCoupledData<2,3> >;
+template class DVMS< DVMSDEMCoupledData<3,4> >;
 } // namespace Kratos

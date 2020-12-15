@@ -40,6 +40,7 @@
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/qs_vms_dem_coupled.h"
 #include "custom_elements/d_vms.h"
+#include "custom_elements/d_vms_dem_coupled.h"
 #include "custom_elements/fic.h"
 #include "custom_elements/symbolic_stokes.h"
 #include "custom_elements/symbolic_navier_stokes.h"
@@ -79,6 +80,7 @@
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
+#include "custom_utilities/dvms_dem_coupled_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
@@ -272,6 +274,8 @@ private:
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
+    const DVMSDEMCoupled< DVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
+    const DVMSDEMCoupled< DVMSDEMCoupledData<3,4> > mDVMSDEMCoupled3D4N;
     const FIC< FICData<2,3> > mFIC2D3N;
     const FIC< FICData<2,4> > mFIC2D4N;
     const FIC< FICData<3,4> > mFIC3D4N;

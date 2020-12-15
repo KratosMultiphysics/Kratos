@@ -19,7 +19,7 @@
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
-#include "custom_elements/qs_vms.h"
+#include "custom_elements/qs_vms_dem_coupled.h"
 #include "custom_elements/d_vms.h"
 #include "fluid_dynamics_application_variables.h"
 
@@ -147,7 +147,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new DVMS element, created using given input
+     * Returns a pointer to a new DVMSDEMCoupled element, created using given input
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -159,7 +159,7 @@ public:
 
     /// Create a new element of this type using given geometry
     /**
-     * Returns a pointer to a new DVMS element, created using given input
+     * Returns a pointer to a new DVMSDEMCoupled element, created using given input
      * @param NewId the ID of the new element
      * @param pGeom a pointer to the geomerty to be used to create the element
      * @param pProperties the properties assigned to the new element
@@ -363,7 +363,7 @@ private:
 /// input stream function
 template< class TElementData >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 DVMS<TElementData>& rThis)
+                                 DVMSDEMCoupled<TElementData>& rThis)
 {
     return rIStream;
 }
@@ -371,7 +371,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const DVMS<TElementData>& rThis)
+                                 const DVMSDEMCoupled<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
