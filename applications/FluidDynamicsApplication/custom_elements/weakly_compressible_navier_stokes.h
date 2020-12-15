@@ -8,21 +8,29 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Ruben Zorrilla
-//  Co-authors:      Jordi Cotela
+//                   Jordi Cotela
 //
 
-#ifndef KRATOS_SYMBOLIC_NAVIER_STOKES_H
-#define KRATOS_SYMBOLIC_NAVIER_STOKES_H
+#ifndef KRATOS_WEAKLY_COMPRESSIBLE_NAVIER_STOKES_H
+#define KRATOS_WEAKLY_COMPRESSIBLE_NAVIER_STOKES_H
 
+// System includes
+
+
+// External indludes
+
+
+// Project includes
+#include "geometries/geometry.h"
+#include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "geometries/geometry.h"
 
-#include "includes/cfd_variables.h"
+// Application includes
 #include "custom_elements/fluid_element.h"
-#include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -50,14 +58,14 @@ namespace Kratos
 ///@{
 
 template< class TElementData >
-class SymbolicNavierStokes : public FluidElement<TElementData>
+class WeaklyCompressibleNavierStokes : public FluidElement<TElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SymbolicNavierStokes
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicNavierStokes);
+    /// Pointer definition of WeaklyCompressibleNavierStokes
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(WeaklyCompressibleNavierStokes);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -110,21 +118,25 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    SymbolicNavierStokes(IndexType NewId = 0);
+    WeaklyCompressibleNavierStokes(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    SymbolicNavierStokes(IndexType NewId, const NodesArrayType& ThisNodes);
+    WeaklyCompressibleNavierStokes(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    SymbolicNavierStokes(IndexType NewId, GeometryType::Pointer pGeometry);
+    WeaklyCompressibleNavierStokes(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -132,32 +144,40 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    SymbolicNavierStokes(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    WeaklyCompressibleNavierStokes(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        Properties::Pointer pProperties);
 
     /// Destructor.
-    virtual ~SymbolicNavierStokes();
+    virtual ~WeaklyCompressibleNavierStokes();
+
+    /// Copy constructor.
+    WeaklyCompressibleNavierStokes(WeaklyCompressibleNavierStokes const &rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    WeaklyCompressibleNavierStokes &operator=(WeaklyCompressibleNavierStokes const &rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new SymbolicNavierStokes element, created using given input.
+     * Returns a pointer to a new WeaklyCompressibleNavierStokes element, created using given input.
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            Properties::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        Properties::Pointer pProperties) const override;
 
     /// Create a new element of this type using given geometry
     /**
@@ -167,9 +187,10 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            Properties::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        Properties::Pointer pProperties) const override;
 
     ///@}
     ///@name Inquiry
@@ -189,9 +210,7 @@ public:
     void PrintInfo(std::ostream& rOStream) const override;
 
     ///@}
-
 protected:
-
     ///@name Protected member Variables
     ///@{
 
@@ -248,9 +267,7 @@ protected:
 
 
     ///@}
-
 private:
-
     ///@name Static Member Variables
     ///@{
 
@@ -292,16 +309,9 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    SymbolicNavierStokes& operator=(SymbolicNavierStokes const& rOther);
-
-    /// Copy constructor.
-    SymbolicNavierStokes(SymbolicNavierStokes const& rOther);
 
     ///@}
-
-
-}; // Class SymbolicNavierStokes
+}; // Class WeaklyCompressibleNavierStokes
 
 ///@}
 
@@ -313,19 +323,20 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
 template< class TElementData >
-inline std::istream& operator >>(std::istream& rIStream,
-                                 SymbolicNavierStokes<TElementData>& rThis)
+inline std::istream& operator >>(
+    std::istream& rIStream,
+    WeaklyCompressibleNavierStokes<TElementData>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template< class TElementData >
-inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const SymbolicNavierStokes<TElementData>& rThis)
+inline std::ostream& operator <<(
+    std::ostream& rOStream,
+    const WeaklyCompressibleNavierStokes<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -333,10 +344,10 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
     return rOStream;
 }
-///@}
 
+///@}
 ///@} // Fluid Dynamics Application group
 
 } // namespace Kratos.
 
-#endif // KRATOS_SYMBOLIC_NAVIER_STOKES_H
+#endif // KRATOS_WEAKLY_COMPRESSIBLE_NAVIER_STOKES_H
