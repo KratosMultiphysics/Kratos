@@ -428,50 +428,50 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMissingParameters, KratosCoreFastSu
     KRATOS_CHECK_IS_FALSE(kp["level1"].Has("new_sublevel"));
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyAddMissingParameters, KratosCoreFastSuite)
-// {
-//     // only missing parameters are added, no complaints if there already exist more than in the defaults
-//     Parameters kp = Parameters(GetJSONString());
-//     Parameters tmp = Parameters(GetJSONStringIncompleteWithExtraParameter());
-//
-//     kp.RecursivelyAddMissingParameters(tmp)
-//
-//     KRATOS_CHECK(kp["level1"].Has("new_sublevel"))
-//     KRATOS_CHECK_EQUAL(kp["level1"]["new_sublevel"].GetString(), "this should only be assigned in recursive")
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidateDefaults, KratosCoreFastSuite)
-// {
-//     // only parameters from defaults are validated, no new values are added
-//     Parameters kp = Parameters(incomplete_with_extra_parameter)
-//     tmp = Parameters(defaults)
-//
-//     kp.ValidateDefaults(tmp)
-//
-//     KRATOS_CHECK_IS_FALSE(kp.Has("bool_value"))
-//     KRATOS_CHECK_IS_FALSE(kp.Has("double_value"))
-//     KRATOS_CHECK(kp.Has("level1"))
-// }
-//
-// KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyValidateDefaults, KratosCoreFastSuite)
-// {
-//     // only parameters from defaults are validated, no new values are added
-//     Parameters kp = Parameters(incomplete)
-//     tmp = Parameters(defaults)
-//
-//     kp.RecursivelyValidateDefaults(tmp)
-//
-//     KRATOS_CHECK_IS_FALSE(kp.Has("bool_value"))
-//     KRATOS_CHECK_IS_FALSE(kp.Has("double_value"))
-//     KRATOS_CHECK(kp.Has("level1"))
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyAddMissingParameters, KratosCoreFastSuite)
+{
+    // Only missing parameters are added, no complaints if there already exist more than in the defaults
+    Parameters kp = Parameters(GetJSONString());
+    Parameters tmp = Parameters(GetJSONStringIncompleteWithExtraParameter());
+
+    kp.RecursivelyAddMissingParameters(tmp);
+
+    KRATOS_CHECK(kp["level1"].Has("new_sublevel"));
+    KRATOS_CHECK_STRING_EQUAL(kp["level1"]["new_sublevel"].GetString(), "this should only be assigned in recursive");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersValidateDefaults, KratosCoreFastSuite)
+{
+    // Only parameters from defaults are validated, no new values are added
+    Parameters kp = Parameters(GetJSONStringIncompleteWithExtraParameter());
+    Parameters tmp = Parameters(GetJSONStringDefaults());
+
+    kp.ValidateDefaults(tmp);
+
+    KRATOS_CHECK_IS_FALSE(kp.Has("bool_value"));
+    KRATOS_CHECK_IS_FALSE(kp.Has("double_value"));
+    KRATOS_CHECK(kp.Has("level1"));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersRecursivelyValidateDefaults, KratosCoreFastSuite)
+{
+    // Only parameters from defaults are validated, no new values are added
+    Parameters kp = Parameters(GetJSONStringIncomplete());
+    Parameters tmp = Parameters(GetJSONStringDefaults());
+
+    kp.RecursivelyValidateDefaults(tmp);
+
+    KRATOS_CHECK_IS_FALSE(kp.Has("bool_value"));
+    KRATOS_CHECK_IS_FALSE(kp.Has("double_value"));
+    KRATOS_CHECK(kp.Has("level1"));
+}
+
 // def test_recursively_validate_defaults_fails(self):
 // KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetStringArrayValid, KratosCoreFastSuite)
 // {
 //     // only parameters from defaults are validated, no new values are added
-//     Parameters kp = Parameters(incomplete_with_extra_parameter)
-//     tmp = Parameters(defaults)
+//     Parameters kp = Parameters(GetJSONStringIncompleteWithExtraParameter());
+//     Parameters tmp = Parameters(GetJSONStringDefaults());
 //
 //     with self.assertRaises(RuntimeError):
 //         kp.RecursivelyValidateDefaults(tmp)
