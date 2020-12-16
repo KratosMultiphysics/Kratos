@@ -86,8 +86,8 @@ public:
     ///@{
 
     // Constructor
-    explicit FluxCorrectedShallowWaterScheme(const std::size_t Order = 2)
-        : SWBaseType(Order)
+    explicit FluxCorrectedShallowWaterScheme(const std::size_t Order = 2, bool UpdateVelocities = false)
+        : SWBaseType(Order, UpdateVelocities)
     {}
 
     // Copy Constructor
@@ -127,10 +127,8 @@ public:
 
         // Initialization of non-historical variables
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
-            r_node.SetValue(POSITIVE_FLUX, 0.0);
-            r_node.SetValue(NEGATIVE_FLUX, 0.0);
-            r_node.SetValue(MAX_INCREMENT, 0.0);
-            r_node.SetValue(MIN_DECREMENT, 0.0);
+            r_node.SetValue(POSITIVE_FLUX, ZeroVector(2));
+            r_node.SetValue(NEGATIVE_FLUX, ZeroVector(2));
             r_node.SetValue(POSITIVE_RATIO, 0.0);
             r_node.SetValue(NEGATIVE_RATIO, 0.0);
         });
@@ -160,12 +158,10 @@ public:
         SWBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
-            r_node.GetValue(POSITIVE_FLUX) = 0.0;
-            r_node.GetValue(NEGATIVE_FLUX) = 0.0;
-            r_node.GetValue(MAX_INCREMENT) = 0.0;
-            r_node.GetValue(MIN_DECREMENT) = 0.0;
-            r_node.GetValue(POSITIVE_RATIO) = 0.0;
-            r_node.GetValue(NEGATIVE_RATIO) = 0.0;
+            r_node.GetValue(POSITIVE_FLUX) = ZeroVector(2);
+            r_node.GetValue(NEGATIVE_FLUX) = ZeroVector(2);
+            r_node.GetValue(POSITIVE_RATIO) = 1.0;
+            r_node.GetValue(NEGATIVE_RATIO) = 1.0;
         });
 
         const ProcessInfo& r_const_process_info = rModelPart.GetProcessInfo();
@@ -174,27 +170,7 @@ public:
         });
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
-            const auto& neigh_nodes = r_node.GetValue(NEIGHBOUR_NODES);
-            double u_i = r_node.FastGetSolutionStepValue(HEIGHT);
-            double& max_incr = r_node.GetValue(MAX_INCREMENT);
-            double& min_decr = r_node.GetValue(MIN_DECREMENT);
-            for (size_t j = 0; j < neigh_nodes.size(); ++j){
-                double delta_ij = neigh_nodes[j].FastGetSolutionStepValue(HEIGHT) - u_i;
-                max_incr = std::max(max_incr, delta_ij);
-                min_decr = std::min(min_decr, delta_ij);
-            }
-            double pos_flux = r_node.GetValue(POSITIVE_FLUX);
-            double neg_flux = r_node.GetValue(NEGATIVE_FLUX);
-            if (pos_flux > 0.0){
-                r_node.GetValue(POSITIVE_RATIO) = std::min(1.0, max_incr / pos_flux);
-            } else {
-                r_node.GetValue(POSITIVE_RATIO) = 1;
-            }
-            if (neg_flux < 0.0){
-                r_node.GetValue(NEGATIVE_RATIO) = std::min(1.0, min_decr / neg_flux);
-            } else {
-                r_node.GetValue(NEGATIVE_RATIO) = 1;
-            }
+            LimitAntiFluxes(r_node);
         });
     }
 
@@ -519,18 +495,68 @@ protected:
         auto aec = prod(mrD[t], mrUn0[t]) + prod(mMl[t] - mrMc[t], mrDotUn0[t]);
 
         auto r_geom = rEntity.GetGeometry();
-        const IndexType block_size = aec.size() / r_geom.size();
+        const IndexType block_size = 3;
         for (IndexType i = 0; i < r_geom.size(); ++i)
         {
-            const double flux = aec((i+1)*block_size -1);
-            if (flux > 0) {
-                r_geom[i].SetLock();
-                r_geom[i].GetValue(POSITIVE_FLUX) += flux;
-                r_geom[i].UnSetLock();
+            const IndexType i_block = block_size * i;
+            const double flux_h = aec(i_block + 2);
+            const auto h = r_geom[i].FastGetSolutionStepValue(HEIGHT);
+            const auto& v = r_geom[i].FastGetSolutionStepValue(VELOCITY);
+            array_1d<double,3> flux_q, flux_v;
+            flux_q[0] = aec(i_block);
+            flux_q[1] = aec(i_block + 1);
+            flux_q[2] = 0.0;
+            const double next_h = h + flux_h;
+            flux_v = flux_q / next_h - v * flux_h / next_h;
+            const double flux_p = inner_prod(flux_v, v); // projection onto the velocity
+            r_geom[i].SetLock();
+            if (flux_h > 0.0) { // setting the height flux
+                r_geom[i].GetValue(POSITIVE_FLUX)[0] += flux_h;
             } else {
-                r_geom[i].SetLock();
-                r_geom[i].GetValue(NEGATIVE_FLUX) += flux;
-                r_geom[i].UnSetLock();
+                r_geom[i].GetValue(NEGATIVE_FLUX)[0] += flux_h;
+            }
+            if (flux_p > 0.0) { // setting the velocity projected flux
+                r_geom[i].GetValue(POSITIVE_FLUX)[1] += flux_p;
+            } else {
+                r_geom[i].GetValue(NEGATIVE_FLUX)[1] += flux_p;
+            }
+            r_geom[i].UnSetLock();
+        }
+    }
+
+    void LimitAntiFluxes(NodeType& rNode)
+    {
+        const auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
+
+        // Getting the maximum increments for the height and the velocity
+        // The velocity is projected to convert it to a scalar
+        const double h_i = rNode.FastGetSolutionStepValue(HEIGHT);
+        const auto& v_i = rNode.FastGetSolutionStepValue(VELOCITY);
+        Vector max_incr = ZeroVector(2);
+        Vector min_decr = ZeroVector(2);
+        for (IndexType j = 0; j < neigh_nodes.size(); ++j) {
+            double delta_h_ij = neigh_nodes[j].FastGetSolutionStepValue(HEIGHT) - h_i;
+            const auto& delta_v_ij = neigh_nodes[j].FastGetSolutionStepValue(VELOCITY) - v_i;
+            max_incr[0] = std::max(max_incr[0], delta_h_ij);
+            min_decr[0] = std::min(min_decr[0], delta_h_ij);
+            double delta_p_ij = inner_prod(v_i, delta_v_ij);
+            max_incr[1] = std::max(max_incr[1], delta_p_ij);
+            min_decr[1] = std::min(min_decr[1], delta_p_ij);
+        }
+
+        // Setting the limiters
+        double& pos_ratio = rNode.GetValue(POSITIVE_RATIO); // the variable is initialized to 1.0
+        double& neg_ratio = rNode.GetValue(NEGATIVE_RATIO); // the variable is initialized to 1.0
+
+        for (IndexType limiter = 0; limiter < 2; ++limiter)
+        {
+            double pos_flux = rNode.GetValue(POSITIVE_FLUX)[limiter];
+            double neg_flux = rNode.GetValue(NEGATIVE_FLUX)[limiter];
+            if (pos_flux > 0.0) {
+                pos_ratio = std::min(pos_ratio, max_incr[limiter] / pos_flux);
+            }
+            if (neg_flux < 0.0) {
+                neg_ratio = std::min(neg_ratio, min_decr[limiter] / neg_flux);
             }
         }
     }
@@ -548,27 +574,11 @@ protected:
         // Construction of the element contribution of anti-fluxes
         auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);
 
-        // Checking the sign of the contribution
-        IndexType block_size = 3;
-        IndexType nodes = rU.size() / block_size;
-        double element_contribution = 0.0;
-        for (IndexType i = 0; i < nodes; ++i)
-        {
-            element_contribution += aec((i+1)*block_size -1);
-        }
-
-        // Getting the limiter
+        // Getting the most restrictive limiter
         double c = 1.0;
-        if (element_contribution > 0.0) {
-            for (auto& r_node : rEntity.GetGeometry())
-            {
-                c = std::min(c, r_node.GetValue(POSITIVE_RATIO));
-            }
-        } else {
-            for (auto& r_node : rEntity.GetGeometry())
-            {
-                c = std::min(c, r_node.GetValue(NEGATIVE_RATIO));
-            }   
+        for (auto& r_node : rEntity.GetGeometry())
+        {
+            c = std::min({c, r_node.GetValue(POSITIVE_RATIO), r_node.GetValue(NEGATIVE_RATIO)});
         }
 
         // Adding the limited anti-diffusion
@@ -589,27 +599,11 @@ protected:
         // Construction of the element contribution of anti-fluxes
         auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);
 
-        // Checking the sign of the contribution
-        IndexType block_size = 3;
-        IndexType nodes = rU.size() / block_size;
-        double element_contribution = 0.0;
-        for (IndexType i = 0; i < nodes; ++i)
-        {
-            element_contribution += aec((i+1)*block_size -1);
-        }
-
-        // Getting the limiter
+        // Getting the most restrictive limiter
         double c = 1.0;
-        if (element_contribution > 0.0) {
-            for (auto& r_node : rEntity.GetGeometry())
-            {
-                c = std::min(c, r_node.GetValue(POSITIVE_RATIO));
-            }
-        } else {
-            for (auto& r_node : rEntity.GetGeometry())
-            {
-                c = std::min(c, r_node.GetValue(NEGATIVE_RATIO));
-            }   
+        for (auto& r_node : rEntity.GetGeometry())
+        {
+            c = std::min({c, r_node.GetValue(POSITIVE_RATIO), r_node.GetValue(NEGATIVE_RATIO)});
         }
 
         // Adding the limited anti-diffusion

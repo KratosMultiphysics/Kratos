@@ -599,12 +599,10 @@ public:
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
-        KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 0)
-            << std::endl
-            << current_rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize
-            << std::endl
-            << current_rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl
-            << current_rank << " : free_offset = " << free_offset << std::endl;
+        KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 1)
+            << "\n    BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize
+            << "\n    mLocalSystemSize = " << mLocalSystemSize
+            << "\n    free_offset = " << free_offset << std::endl;
 
         // by Riccardo ... it may be wrong!
         mFirstMyId = free_offset - mLocalSystemSize;
