@@ -88,7 +88,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
                         },
                         "file_label"                  : "step",
                         "output_control_type"         : "step",
-                        "output_frequency"            : 1.0,
+                        "output_interval"             : 1.0,
                         "body_output"                 : true,
                         "node_output"                 : false,
                         "skin_output"                 : false,

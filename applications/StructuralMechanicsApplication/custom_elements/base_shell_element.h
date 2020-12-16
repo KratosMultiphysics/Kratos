@@ -254,7 +254,6 @@ protected:
 
     virtual void SetupOrientationAngles();
 
-    void CheckVariables() const;
     void CheckDofs() const;
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
     void CheckSpecificProperties() const;
