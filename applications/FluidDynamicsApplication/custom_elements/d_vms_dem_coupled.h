@@ -265,6 +265,17 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
+    void CalculateStabilizationParameters(
+        const TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        double &TauOne,
+        double &TauTwo,
+        double &TauP) const;
+
+    virtual void MassProjTerm(
+        const TElementData& rData,
+        double& rMassRHS) const;
+
     ///@}
     ///@name Protected  Access
     ///@{
