@@ -11,6 +11,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         KratosMultiphysics.Process.__init__(self)
 
+        #TODO: make the subfluid "model_part_name" parent automatic based on the global "model_part_name"
         # settings for inlet with interface between fluids and separate velocities
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -21,7 +22,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
                 "inlet_transition_radius": 0.05
             },
             "fluid_1_settings" : {
-                "model_part_name": "fluid_1_inlet",
+                "model_part_name": "FluidModelPart.AutomaticInlet3D_Inlet.fluid_1_inlet",
                 "variable_name": "VELOCITY",
                 "modulus": 0.1,
                 "constrained": true,
@@ -29,7 +30,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
                 "interval": [0.0,"End"]
             },
             "fluid_2_settings" : {
-                "model_part_name": "fluid_2_inlet",
+                "model_part_name": "FluidModelPart.AutomaticInlet3D_Inlet.fluid_2_inlet",
                 "variable_name": "VELOCITY",
                 "modulus": 0.0,
                 "constrained": true,
@@ -65,9 +66,10 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
             raise Exception("ApplyTwoFluidsInletProcess: A value (string) for the entry 'model_part_name' must be given in the parameters of the process.")
 
         # Check input data for only allowed value
-        if (settings["fluid_1_settings"]["model_part_name"].GetString() != "fluid_1_inlet"):
+        #TODO: make this automatic
+        if (settings["fluid_1_settings"]["model_part_name"].GetString() != "FluidModelPart.AutomaticInlet3D_Inlet.fluid_1_inlet"):
             raise Exception("Entry 'model_part_name' in 'fluid_1_settings' must be 'fluid_1_inlet'. Other settings are not admissible.")
-        elif (settings["fluid_2_settings"]["model_part_name"].GetString() != "fluid_2_inlet"):
+        elif (settings["fluid_2_settings"]["model_part_name"].GetString() != "FluidModelPart.AutomaticInlet3D_Inlet.fluid_2_inlet"):
             raise Exception("Entry 'model_part_name' in 'fluid_2_settings' must be 'fluid_2_inlet'. Other settings are not admissible.")
         elif (settings["fluid_1_settings"]["variable_name"].GetString() != "VELOCITY"):
             raise Exception("Inlet 'variable_name' in 'fluid_1_settings' is not VELOCITY. This is not admissible.")
