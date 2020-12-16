@@ -208,6 +208,16 @@ public:
         MatrixType &rMassMatrix,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+    /**
+     * This is called during the initialize of the builder
+     * to calculate the lumped mass vector
+     * @param rLumpedMassVector the elemental lumped mass vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
     // void Calculate(
     //     const Variable<double>& rVariable,
     //     double& Output,
