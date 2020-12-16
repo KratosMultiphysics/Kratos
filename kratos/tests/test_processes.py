@@ -1286,7 +1286,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "model_part_name"  : "Main",
                             "output_file_settings": {
                                 "file_name"   : "node_output",
-                                "folder_name" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
+                                "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
                             },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
