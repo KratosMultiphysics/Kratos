@@ -692,9 +692,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMethods, KratosCoreFastSuite)
             vector[2] = 4.33;
             tmp[key].SetVector(vector);
             const auto& V = tmp[key].GetVector();
-            KRATOS_CHECK_DOUBLE_EQUAL(V[0],5.2);
-            KRATOS_CHECK_DOUBLE_EQUAL(V[1],-3.1);
-            KRATOS_CHECK_DOUBLE_EQUAL(V[2],4.33);
+            KRATOS_CHECK_VECTOR_EQUAL(V,vector);
         } else {
             KRATOS_CHECK_EXCEPTION_IS_THROWN(tmp[key].GetVector(), "");
         }
@@ -709,12 +707,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMethods, KratosCoreFastSuite)
             matrix(2,1) = 6.0;
             tmp[key].SetMatrix(matrix);
             const auto& A = tmp[key].GetMatrix();
-            KRATOS_CHECK_DOUBLE_EQUAL(A(0,0),1.0);
-            KRATOS_CHECK_DOUBLE_EQUAL(A(0,1),2.0);
-            KRATOS_CHECK_DOUBLE_EQUAL(A(1,0),3.0);
-            KRATOS_CHECK_DOUBLE_EQUAL(A(1,1),4.0);
-            KRATOS_CHECK_DOUBLE_EQUAL(A(2,0),5.0);
-            KRATOS_CHECK_DOUBLE_EQUAL(A(2,1),6.0);
+            KRATOS_CHECK_MATRIX_EQUAL(A,matrix);
         } else {
             KRATOS_CHECK_EXCEPTION_IS_THROWN(tmp[key].GetMatrix(), "");
         }
@@ -749,9 +742,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMethods, KratosCoreFastSuite)
     vector[2] = 4.33;
     tmp.AddVector(key, vector);
     const auto& V = tmp[key].GetVector();
-    KRATOS_CHECK_DOUBLE_EQUAL(V[0],5.2);
-    KRATOS_CHECK_DOUBLE_EQUAL(V[1],-3.1);
-    KRATOS_CHECK_DOUBLE_EQUAL(V[2],4.33);
+    KRATOS_CHECK_VECTOR_EQUAL(V,vector);
 
     key = "matrix";
     Matrix matrix = ZeroMatrix(3,2);
@@ -763,12 +754,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMethods, KratosCoreFastSuite)
     matrix(2,1) = 6.0;
     tmp.AddMatrix(key, matrix);
     const auto& A = tmp[key].GetMatrix();
-    KRATOS_CHECK_DOUBLE_EQUAL(A(0,0),1.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A(0,1),2.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A(1,0),3.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A(1,1),4.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A(2,0),5.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A(2,1),6.0);
+    KRATOS_CHECK_MATRIX_EQUAL(A,matrix);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
@@ -824,9 +810,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
     KRATOS_CHECK(tmp["vector_value"].IsVector());
 
     const auto V2 = tmp["vector_value"].GetVector();
-    KRATOS_CHECK_DOUBLE_EQUAL(V2[0],1.32);
-    KRATOS_CHECK_DOUBLE_EQUAL(V2[1],-2.22);
-    KRATOS_CHECK_DOUBLE_EQUAL(V2[2],5.5);
+    KRATOS_CHECK_VECTOR_EQUAL(V2,vec);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
@@ -885,12 +869,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
     KRATOS_CHECK(tmp["matrix_value"].IsMatrix());
 
     const auto& A2 = tmp["matrix_value"].GetMatrix();
-    KRATOS_CHECK_DOUBLE_EQUAL(A2(0,0),1.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A2(0,1),2.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A2(1,0),3.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A2(1,1),4.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A2(2,0),5.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(A2(2,1),6.0);
+    KRATOS_CHECK_MATRIX_EQUAL(A2, mat);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersNullvsNullValidation, KratosCoreFastSuite)
