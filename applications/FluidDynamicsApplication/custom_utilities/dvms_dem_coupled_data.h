@@ -42,8 +42,8 @@ public:
 ///@name Type Definitions
 ///@{
 
-using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;
-using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
+using NodalScalarData = typename QSVMSData<TDim,TNumNodes, false>::NodalScalarData;
+using NodalVectorData = typename QSVMSData<TDim,TNumNodes, false>::NodalVectorData;
 
 ///@}
 ///@name Public Members
