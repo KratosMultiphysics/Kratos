@@ -223,13 +223,13 @@ void QSConvectionDiffusionExplicit<2,3>::CalculateLumpedMassVector(
 
     // Define local variables
     const unsigned int local_size = 3;
-    const double one_third_volume = GetGeometry().Volume() / 3.0;
+    const double one_third_area = GetGeometry().Area() / 3.0;
     // Initialize and calculate elemental lumped mass vector
     if (rLumpedMassVector.size() != local_size) {
         rLumpedMassVector.resize(local_size, false);
     }
     for (IndexType i = 0; i < local_size; ++i) {
-        rLumpedMassVector(i) = one_third_volume;
+        rLumpedMassVector(i) = one_third_area;
     }
 
     KRATOS_CATCH("");
