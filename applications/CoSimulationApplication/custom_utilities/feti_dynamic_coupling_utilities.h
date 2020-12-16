@@ -159,6 +159,11 @@ namespace Kratos
 
         void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const SolverIndex solverIndex);
 
+        const int GetEchoLevel()
+        {
+            return mParameters["echo_level"].GetInt();
+        }
+
         Variable< array_1d<double, 3> >& GetEquilibriumVariable();
 
     };  // namespace FetiDynamicCouplingUtilities.

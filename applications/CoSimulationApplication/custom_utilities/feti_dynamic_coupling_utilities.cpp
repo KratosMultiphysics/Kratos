@@ -155,10 +155,12 @@ namespace Kratos
             unbalanced_interface_free_kinematics.clear();
             CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics, true);
             const double equilibrium_norm = norm_2(unbalanced_interface_free_kinematics);
+            if (GetEchoLevel() > 0) KRATOS_INFO("FETI Utility") << "Equilibrium residual = " << equilibrium_norm << "\n";
             KRATOS_ERROR_IF(equilibrium_norm > 1e-12)
                 << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
-                << "Equilibrium norm = " << equilibrium_norm << "\nUnbalanced interface vel = \n"
-                << unbalanced_interface_free_kinematics << "\n";
+                << "Equilibrium norm = " << equilibrium_norm
+                << "\nUnbalanced interface vel = \n" << unbalanced_interface_free_kinematics
+                << "\nLagrange mults = \n" << lagrange_vector << "\n";
         }
 
         // 8 - Write nodal lagrange multipliers to interface
@@ -210,6 +212,21 @@ namespace Kratos
             rUnbalancedKinematics += mapped_interpolated_origin_kinematics;
         }
         else rUnbalancedKinematics += interpolated_origin_kinematics;
+
+        if (!IsEquilibriumCheck && GetEchoLevel() > 1) {
+            KRATOS_INFO("FETI Utility")
+                << "\n\tOrigin interface kinematics norm =\t" << norm_2(interpolated_origin_kinematics)
+                << "\n\tDest interface kinematics norm =\t" << norm_2(destination_kinematics) << "\n\n";
+        }
+
+        if (GetEchoLevel() > 3) {
+            const std::string my_label = (IsEquilibriumCheck)
+                ? "FETI Utility after correction"
+                : "FETI Utility before correction";
+            KRATOS_INFO(my_label)
+                << "\n\tOrigin interface kinematics =\t" << interpolated_origin_kinematics
+                << "\n\tDest interface kinematics =\t" << destination_kinematics << "\n\n";
+        }
 
         KRATOS_CATCH("")
 	}
