@@ -24,6 +24,8 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
                 self._SetUpQSVMSDEM(settings)
             if formulation == "MonolithicDEM":
                 self._SetUpVMSDEM(settings)
+            if formulation == "dvmsDEM":
+                self._SetUpDVMSDEM(settings)
 
     def _SetUpQSVMSDEM(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -54,6 +56,20 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         self.element_has_nodal_properties = True
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+        use_oss = settings["use_orthogonal_subscales"].GetBool()
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
+
+    def _SetUpDVMSDEM(self,settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "dvmsDEM",
+            "use_orthogonal_subscales": false,
+            "element_name": "DVMSDEMCoupled"
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = settings["element_name"].GetString()
+        self.condition_name = "NavierStokesWallCondition"
+
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
