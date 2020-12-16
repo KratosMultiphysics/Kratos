@@ -30,7 +30,7 @@ class RestartUtility(object):
             "restart_control_type"           : "time",
             "save_restart_files_in_folder"   : true,
             "set_mpi_communicator"           : true,
-            "number_of_restart_files"        : -1
+            "max_files_to_keep"              : -1
         }
         """)
 
