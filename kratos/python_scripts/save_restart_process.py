@@ -23,7 +23,7 @@ class SaveRestartProcess(KratosMultiphysics.Process):
             "restart_save_frequency"       : 0.0,
             "restart_control_type"         : "time",
             "save_restart_files_in_folder" : true,
-            "output_path"                  : ""
+            "output_path"                  : "",
             "number_of_restart_files"      : -1
         }""")
 
