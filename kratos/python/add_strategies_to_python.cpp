@@ -51,7 +51,6 @@
 
 // sensitivity builder schemes
 #include "solving_strategies/schemes/sensitivity_builder_scheme.h"
-#include "solving_strategies/schemes/residual_based_sensitivity_builder_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -677,24 +676,19 @@ namespace Kratos
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
                 ;
 
-            using BaseSensitivityBuilderScheme = SensitivityBuilderScheme;
-            py::class_<BaseSensitivityBuilderScheme, typename BaseSensitivityBuilderScheme::Pointer >
+            py::class_<SensitivityBuilderScheme, typename SensitivityBuilderScheme::Pointer>
             (m,"SensitivityBuilderScheme")
                 .def(py::init< >())
-                .def("Initialize", &BaseSensitivityBuilderScheme::Initialize)
-                .def("InitializeSolutionStep", &BaseSensitivityBuilderScheme::InitializeSolutionStep)
-                .def("FinalizeSolutionStep", &BaseSensitivityBuilderScheme::FinalizeSolutionStep)
-                .def("Finalize", &BaseSensitivityBuilderScheme::Finalize)
-                .def("Update", &BaseSensitivityBuilderScheme::Update)
-                .def("Clear", &BaseSensitivityBuilderScheme::Clear)
-                .def("Check", &BaseSensitivityBuilderScheme::Check)
-                .def("Info", &BaseSensitivityBuilderScheme::Info)
+                .def("Initialize", &SensitivityBuilderScheme::Initialize)
+                .def("InitializeSolutionStep", &SensitivityBuilderScheme::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &SensitivityBuilderScheme::FinalizeSolutionStep)
+                .def("Finalize", &SensitivityBuilderScheme::Finalize)
+                .def("Update", &SensitivityBuilderScheme::Update)
+                .def("Clear", &SensitivityBuilderScheme::Clear)
+                .def("Check", &SensitivityBuilderScheme::Check)
+                .def("Info", &SensitivityBuilderScheme::Info)
                 ;
 
-            py::class_<ResidualBasedSensitivityBuilderScheme, typename ResidualBasedSensitivityBuilderScheme::Pointer,  BaseSensitivityBuilderScheme>
-            (m,"ResidualBasedSensitivityBuilderScheme")
-                .def(py::init< >())
-                ;
         }
 
     } // namespace Python.

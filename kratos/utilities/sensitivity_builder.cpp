@@ -24,7 +24,7 @@
 #include "includes/parallel_environment.h"
 #include "includes/ublas_interface.h"
 #include "input_output/logger.h"
-#include "solving_strategies/schemes/residual_based_sensitivity_builder_scheme.h"
+#include "solving_strategies/schemes/sensitivity_builder_scheme.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/parallel_utilities.h"
@@ -462,7 +462,7 @@ SensitivityBuilder::SensitivityBuilder(
           Settings,
           rModelPart,
           pResponseFunction,
-          Kratos::make_unique<ResidualBasedSensitivityBuilderScheme>())
+          Kratos::make_unique<SensitivityBuilderScheme>())
 {
 }
 
@@ -534,7 +534,7 @@ void SensitivityBuilder::CalculateNodalSolutionStepSensitivities(
     using namespace sensitivity_builder_cpp;
 
     const auto& r_variables_list = GetVariableLists(rVariables);
-    ResidualBasedSensitivityBuilderScheme scheme;
+    SensitivityBuilderScheme scheme;
 
     scheme.Initialize(rModelPart, rModelPart, rResponseFunction);
 
@@ -571,7 +571,7 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
     using namespace sensitivity_builder_cpp;
 
     const auto& r_variables_list = GetVariableLists(rVariables);
-    ResidualBasedSensitivityBuilderScheme scheme;
+    SensitivityBuilderScheme scheme;
 
     CalculateNonHistoricalSensitivities(r_variables_list, rElements, rResponseFunction,
                                         scheme, rProcessInfo, ScalingFactor);
@@ -602,7 +602,7 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
     using namespace sensitivity_builder_cpp;
 
     const auto& r_variables_list = GetVariableLists(rVariables);
-    ResidualBasedSensitivityBuilderScheme scheme;
+    SensitivityBuilderScheme scheme;
 
     CalculateNonHistoricalSensitivities(r_variables_list, rConditions, rResponseFunction,
                                         scheme, rProcessInfo, ScalingFactor);
@@ -691,6 +691,7 @@ void SensitivityBuilder::Clear()
 
     ClearFlags();
     ClearSensitivities();
+    mpSensitivityBuilderScheme->Clear();
 
     KRATOS_CATCH("");
 }
