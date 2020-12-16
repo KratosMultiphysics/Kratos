@@ -366,7 +366,35 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ExecuteInitializeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionStep)
         .def("ExecuteFinalizeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep)
         ;
-
+    py::class_<BinBasedDEMHomogenizationMapper <2, SphericParticle> > (m, "BinBasedDEMHomogenizationMapper2D")
+        .def(py::init<Parameters&>())
+        .def("ImposeVelocityOnDEMFromFieldToAuxVelocity", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToAuxVelocity)
+        .def("InterpolateFromDEMMesh", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::InterpolateFromDEMMesh)
+        .def("HomogenizeFromDEMMesh", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::HomogenizeFromDEMMesh)
+        .def("ComputePostProcessResults", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::ComputePostProcessResults)
+        .def("AddDEMCouplingVariable", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddDEMCouplingVariable<double>)
+        .def("AddDEMCouplingVariable", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddDEMCouplingVariable<array_1d<double, 3>>)
+        .def("AddFluidCouplingVariable", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddFluidCouplingVariable<double>)
+        .def("AddFluidCouplingVariable", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddFluidCouplingVariable<array_1d<double, 3>>)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddDEMVariablesToImpose<double>)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddDEMVariablesToImpose<array_1d<double, 3>>)
+        ;
+    py::class_<BinBasedDEMHomogenizationMapper <3, SphericParticle> > (m, "BinBasedDEMHomogenizationMapper3D")
+	    .def(py::init<Parameters&>())
+	    .def("InterpolateVelocityOnAuxVelocity", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::InterpolateVelocityOnAuxVelocity)
+	    .def("ImposeVelocityOnDEMFromFieldToAuxVelocity", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::ImposeVelocityOnDEMFromFieldToAuxVelocity)
+	    .def("InterpolateFromDEMMesh", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::InterpolateFromDEMMesh)
+	    .def("HomogenizeFromDEMMesh", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::HomogenizeFromDEMMesh)
+	    .def("ComputePostProcessResults", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::ComputePostProcessResults)
+	    .def("AddDEMCouplingVariable", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::AddDEMCouplingVariable<double>)
+	    .def("AddDEMCouplingVariable", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::AddDEMCouplingVariable<array_1d<double, 3>>)
+	    .def("AddFluidCouplingVariable", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::AddFluidCouplingVariable<double>)
+	    .def("AddFluidCouplingVariable", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::AddFluidCouplingVariable<array_1d<double, 3>>)
+	    .def("AddDEMVariablesToImpose", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::AddDEMVariablesToImpose<double>)
+	    .def("AddDEMVariablesToImpose", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::AddDEMVariablesToImpose<array_1d<double, 3>>)
+	    .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::AddFluidVariableToBeTimeFiltered<double>)
+	    .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMHomogenizationMapper <3,SphericParticle> ::AddFluidVariableToBeTimeFiltered<array_1d<double, 3>>)
+	    ;
     }
 
 
