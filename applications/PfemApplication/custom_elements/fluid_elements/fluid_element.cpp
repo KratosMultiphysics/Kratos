@@ -187,7 +187,7 @@ void FluidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void FluidElement::GetValuesVector( Vector& rValues, int Step )
+void FluidElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     KRATOS_ERROR << " calling the default method GetValuesVector for a fluid element " << std::endl;
 }
@@ -196,7 +196,7 @@ void FluidElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_ERROR << " calling the default method GetFirstDerivativesVector for a fluid element " << std::endl;
 }
@@ -204,7 +204,7 @@ void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void FluidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void FluidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_ERROR << " calling the default method GetSecondDerivativesVector for a fluid element " << std::endl;
 }
@@ -532,7 +532,7 @@ void FluidElement::TransformElementData(ElementDataType& rVariables, const doubl
 //************************************************************************************
 //************************************************************************************
 
-unsigned int FluidElement::GetDofsSize()
+unsigned int FluidElement::GetDofsSize() const
 {
   KRATOS_ERROR << " calling the default method GetDofsSize for a fluid element " << std::endl;
 }
@@ -2389,7 +2389,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
 //************************************************************************************
 //************************************************************************************
 
-int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

@@ -142,7 +142,7 @@ void SmallDisplacementBeamElement3D2N::EquationIdVector(EquationIdVectorType& rR
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::GetValuesVector(Vector& rValues, int Step)
+void SmallDisplacementBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) const
 {
 
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -171,7 +171,7 @@ void SmallDisplacementBeamElement3D2N::GetValuesVector(Vector& rValues, int Step
 
 //************************************************************************************
 //************************************************************************************
-void SmallDisplacementBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void SmallDisplacementBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -201,7 +201,7 @@ void SmallDisplacementBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void SmallDisplacementBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 

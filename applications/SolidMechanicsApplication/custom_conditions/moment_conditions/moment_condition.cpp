@@ -83,7 +83,7 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  unsigned int MomentCondition::GetDofsSize()
+  unsigned int MomentCondition::GetDofsSize() const
   {
     KRATOS_TRY
 
@@ -170,7 +170,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetValuesVector(Vector& rValues, int Step)
+  void MomentCondition::GetValuesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -204,7 +204,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+  void MomentCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
   {
     KRATOS_TRY
 
@@ -238,7 +238,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+  void MomentCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
   {
     KRATOS_TRY
 
