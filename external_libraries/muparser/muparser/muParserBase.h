@@ -208,17 +208,17 @@ namespace mu
 
 		protected:
 
-			virtual char_type do_decimal_point() const
+			char_type do_decimal_point() const override
 			{
 				return m_cDecPoint;
 			}
 
-			virtual char_type do_thousands_sep() const
+			char_type do_thousands_sep() const override
 			{
 				return m_cThousandsSep;
 			}
 
-			virtual std::string do_grouping() const
+			std::string do_grouping() const override
 			{
 				// fix for issue 4: https://code.google.com/p/muparser/issues/detail?id=4
 				// courtesy of Jens Bartsch
