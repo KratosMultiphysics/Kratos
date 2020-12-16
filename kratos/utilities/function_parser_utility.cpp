@@ -14,7 +14,6 @@
 // System includes
 
 // External includes
-#include "exprtk/exprtk.hpp"
 
 // Project includes
 #include "includes/global_variables.h"
@@ -39,12 +38,8 @@ GenericFunctionUtility::GenericFunctionUtility(
     mNameSpace.insert(std::pair<std::string, double>("Z", 0.0));
     mNameSpace.insert(std::pair<std::string, double>("pi", Globals::Pi));
 
-    // Initialize exprtk classes
-    InitializeExprtk();
-
-    // Compiling expression
-    mpParser = new exprtk::parser<double>();
-    mpParser->compile(mFunctionBody, *mpExpression);
+    // Initialize parser classes
+    InitializeParser();
 
     // Here get the local system if it is provided
     if(LocalSystem.Has("origin")) {
@@ -82,8 +77,8 @@ GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOt
       mRotationMatrix(rOther.mRotationMatrix),
       mCenterCoordinates(rOther.mCenterCoordinates)
 {
-    // Initialize exprtk classes
-    InitializeExprtk();
+    // Initialize parser classes
+    InitializeParser();
 }
 
 /***********************************************************************************/
@@ -91,9 +86,6 @@ GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOt
 
 GenericFunctionUtility::~GenericFunctionUtility()
 {
-    delete mpSymbolTable; /// The symbol table of exprtk
-    delete mpExpression;  /// The expression of exprtk
-    delete mpParser;      /// The parser of exprtk
 }
 
 /***********************************************************************************/
@@ -151,13 +143,13 @@ double GenericFunctionUtility::CallFunction(
     mNameSpace["Z"] = Z;
     mNameSpace["t"] = t;
 
-    return mpExpression->value();
+    return mParser.Eval();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericFunctionUtility::InitializeExprtk()
+void GenericFunctionUtility::InitializeParser()
 {
     // Defining table
     double& x = mNameSpace["x"];
@@ -169,23 +161,16 @@ void GenericFunctionUtility::InitializeExprtk()
     double& Z = mNameSpace["Z"];
     double& pi = mNameSpace["pi"];
 
-    mpSymbolTable = new exprtk::symbol_table<double>();
-    mpSymbolTable->add_variable("x",x);
-    mpSymbolTable->add_variable("y",y);
-    mpSymbolTable->add_variable("z",z);
-    mpSymbolTable->add_variable("t",t);
-    mpSymbolTable->add_variable("X",X);
-    mpSymbolTable->add_variable("Y",Y);
-    mpSymbolTable->add_variable("Z",Z);
-    mpSymbolTable->add_variable("pi", pi);
+    mParser.DefineVar("x", &x);
+    mParser.DefineVar("y", &y);
+    mParser.DefineVar("z", &z);
+    mParser.DefineVar("t", &t);
+    mParser.DefineVar("X", &X);
+    mParser.DefineVar("Y", &Y);
+    mParser.DefineVar("Z", &Z);
+    mParser.DefineVar("pi", &pi);
 
-    // Creating expression
-    mpExpression = new exprtk::expression<double>();
-    mpExpression->register_symbol_table(*mpSymbolTable);
-
-    // Compiling expression
-    mpParser = new exprtk::parser<double>();
-    mpParser->compile(mFunctionBody, *mpExpression);
+    mParser.SetExpr(mFunctionBody);
 }
 
 } /// namespace Kratos

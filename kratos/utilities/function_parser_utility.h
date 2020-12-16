@@ -18,23 +18,11 @@
 #include <unordered_map>
 
 // External includes
+#include "muparser/muParser.h"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-
-// Forward declaration of exprtk
-namespace exprtk
-{
-    template<class TClass>
-    class symbol_table;
-
-    template<class TClass>
-    class expression;
-
-    template<class TClass>
-    class parser;
-};
 
 namespace Kratos
 {
@@ -195,9 +183,7 @@ private:
     ///@{
 
     std::unordered_map<std::string, double>  mNameSpace;   /// The variables considered on the function
-    exprtk::symbol_table<double>* mpSymbolTable = nullptr; /// The symbol table of exprtk
-    exprtk::expression<double>*   mpExpression = nullptr;  /// The expression of exprtk
-    exprtk::parser<double>*       mpParser = nullptr;      /// The parser of exprtk
+    mu::Parser mParser;                                    /// The function parser
     std::string mFunctionBody;                             /// The function body
 
     bool mDependsOnSpace = true;                 /// If it depends on space
@@ -210,9 +196,9 @@ private:
     ///@{
 
     /**
-     * @brief This method initializes the exprtk classes
+     * @brief This method initializes the parser classes
      */
-    void InitializeExprtk();
+    void InitializeParser();
 
     ///@}
 }; /// GenericFunctionUtility
