@@ -31,6 +31,7 @@
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
+#include "custom_utilities/fluid_characteristic_numbers_utilities.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
 #include "custom_utilities/fractional_step_settings.h"
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
@@ -64,24 +65,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // Estimate time step utilities
-    py::class_<EstimateDtUtility < 2 > >(m,"EstimateDtUtility2D")
+    py::class_<EstimateDtUtility>(m,"EstimateDtUtility")
         .def(py::init< ModelPart&, const double, const double, const double >())
         .def(py::init< ModelPart&, Parameters& >())
-        .def("SetCFL",&EstimateDtUtility < 2 > ::SetCFL)
-        .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMin)
-        .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMax)
-        .def("EstimateDt",&EstimateDtUtility < 2 > ::EstimateDt)
-        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility<2>::CalculateLocalCFL )
+        .def("SetCFL",&EstimateDtUtility::SetCFL)
+        .def("SetDtMax",&EstimateDtUtility::SetDtMin)
+        .def("SetDtMax",&EstimateDtUtility::SetDtMax)
+        .def("EstimateDt",&EstimateDtUtility::EstimateDt)
         ;
 
-    py::class_<EstimateDtUtility < 3 > >(m,"EstimateDtUtility3D")
-        .def(py::init< ModelPart&, const double, const double, const double >())
-        .def(py::init< ModelPart&, Parameters& >())
-        .def("SetCFL",&EstimateDtUtility < 3 > ::SetCFL)
-        .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMin)
-        .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMax)
-        .def("EstimateDt",&EstimateDtUtility < 3 > ::EstimateDt)
-        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility<3>::CalculateLocalCFL )
+    // Fluid characteristic numbers utilities
+    py::class_<FluidCharacteristicNumbersUtilities>(m,"FluidCharacteristicNumbersUtilities")
+        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &FluidCharacteristicNumbersUtilities::CalculateLocalCFL)
         ;
 
     // Periodic boundary conditions utilities

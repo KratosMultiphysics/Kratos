@@ -14,8 +14,8 @@ class VisualizationMeshProcess(KM.Process):
     def __init__(self, Model, settings):
         """ VisualizationMeshProcess.
 
-        This process provides several tools for post-procesing.
-        - Generation of an auxiliar model part for the topography visualization as a separate file.
+        This process provides several tools for post-processing.
+        - Generation of an auxiliary model part for the topography visualization as a separate file.
         - Setting the TOPOGRAPHY and FREE_SURFACE_ELEVATION into DISPLACEMENT_Z or Z-coordinate to view the mesh deformation.
         - Duplication of the properties to use them as a dry-wet flag.
         """
