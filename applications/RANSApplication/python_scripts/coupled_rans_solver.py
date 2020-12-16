@@ -9,6 +9,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import application specific modules
 from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
@@ -297,6 +298,13 @@ class CoupledRANSSolver(PythonSolver):
                 materials_filename)
             Kratos.ReadMaterialsUtility(material_settings,
                                                     self.model)
+            # add wall law properties
+            InitializeWallLawProperties(self.model)
+
+            # initialize constitutive laws
+            RansVariableUtilities.SetContainerConstitutiveLaws(self.main_model_part.Elements)
+            RansVariableUtilities.SetContainerConstitutiveLaws(self.main_model_part.Conditions)
+
             materials_imported = True
         else:
             materials_imported = False
