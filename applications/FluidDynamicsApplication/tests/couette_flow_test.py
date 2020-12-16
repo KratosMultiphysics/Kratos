@@ -9,13 +9,15 @@ class CouetteFlowTest(KratosUnittest.TestCase):
         self.solver_type = "MonolithicStokes"
         self.element_type = "symbolic_stokes"
         self.time_scheme = "bdf2"
-        self._ExecuteCouetteFlowTest()
+        self._CustomizeTestSettings()
+        self._RunCouetteFlowTest()
 
     def testCouetteFlow2DSymbolicNavierStokes(self):
         self.solver_type = "Monolithic"
         self.element_type = "symbolic"
         self.time_scheme = "bdf2"
-        self._ExecuteCouetteFlowTest()
+        self._CustomizeTestSettings()
+        self._RunCouetteFlowTest()
 
     def setUp(self):
         self.print_output = False
@@ -30,17 +32,7 @@ class CouetteFlowTest(KratosUnittest.TestCase):
             with open(settings_filename,'r') as parameter_file:
                 self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-    def runTest(self):
-        # If required, add the output process to the test settings
-        if self.print_output:
-            self._AddOutput()
-
-        # If required, add the reference values output process to the test settings
-        if self.print_reference_values:
-            self._AddReferenceValuesOutput()
-        else:
-            self._AddReferenceValuesCheck()
-
+    def _RunCouetteFlowTest(self):
         # Create the test simulation
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
@@ -51,17 +43,21 @@ class CouetteFlowTest(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             KratosUtilities.DeleteFileIfExisting('couette_flow_test.time')
 
-    def _ExecuteCouetteFlowTest(self):
-        self.setUp()
-        self._CustomizeSimulationSettings()
-        self.runTest()
-        self.tearDown()
-
-    def _CustomizeSimulationSettings(self):
+    def _CustomizeTestSettings(self):
         # Customize simulation settings
         self.parameters["solver_settings"]["solver_type"].SetString(self.solver_type)
         self.parameters["solver_settings"]["formulation"]["element_type"].SetString(self.element_type)
         self.parameters["solver_settings"]["time_scheme"].SetString(self.time_scheme)
+
+        # If required, add the output process to the test settings
+        if self.print_output:
+            self._AddOutput()
+
+        # If required, add the reference values output process to the test settings
+        if self.print_reference_values:
+            self._AddReferenceValuesOutput()
+        else:
+            self._AddReferenceValuesCheck()
 
     def _AddOutput(self):
         gid_output_settings = KratosMultiphysics.Parameters("""{
