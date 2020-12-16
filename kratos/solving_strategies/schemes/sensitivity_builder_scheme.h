@@ -84,7 +84,7 @@ public:
     }
 
     /// Destructor.
-    ~SensitivityBuilderScheme() = default;
+    virtual ~SensitivityBuilderScheme() = default;
 
     ///@}
     ///@name Operations
