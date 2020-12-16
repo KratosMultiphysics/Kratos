@@ -9,25 +9,29 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = False
         self.shock_capturing = False
-        self._ExecuteSodTubeTest()
+        self._CustomizeTestSettings()
+        self._RunSodShockTubeTest()
 
     def testSodShockTubeExplicitASGSShockCapturing(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = False
         self.shock_capturing = True
-        self._ExecuteSodTubeTest()
+        self._CustomizeTestSettings()
+        self._RunSodShockTubeTest()
 
     def testSodShockTubeExplicitOSS(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = True
         self.shock_capturing = False
-        self._ExecuteSodTubeTest()
+        self._CustomizeTestSettings()
+        self._RunSodShockTubeTest()
 
     def testSodShockTubeExplicitOSSShockCapturing(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = True
         self.shock_capturing = True
-        self._ExecuteSodTubeTest()
+        self._CustomizeTestSettings()
+        self._RunSodShockTubeTest()
 
     def setUp(self):
         self.print_output = False
@@ -42,7 +46,23 @@ class SodShockTubeTest(KratosUnittest.TestCase):
             with open(settings_filename,'r') as parameter_file:
                 self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-    def runTest(self):
+    def tearDown(self):
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            KratosUtilities.DeleteFileIfExisting('sod_shock_tube_geom_coarse.time')
+
+    def _RunSodShockTubeTest(self):
+        # Create the test simulation
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            self.model = KratosMultiphysics.Model()
+            simulation = FluidDynamicsAnalysis(self.model, self.parameters)
+            simulation.Run()
+
+    def _CustomizeTestSettings(self):
+        # Customize simulation settings
+        self.parameters["solver_settings"]["solver_type"].SetString(self.solver_type)
+        self.parameters["solver_settings"]["use_oss"].SetBool(self.use_oss)
+        self.parameters["solver_settings"]["shock_capturing"].SetBool(self.shock_capturing)
+
         # If required, add the output process to the test settings
         if self.print_output:
             self._AddOutput()
@@ -52,28 +72,6 @@ class SodShockTubeTest(KratosUnittest.TestCase):
             self._AddReferenceValuesOutput()
         else:
             self._AddReferenceValuesCheck()
-
-        # Create the test simulation
-        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
-            self.model = KratosMultiphysics.Model()
-            simulation = FluidDynamicsAnalysis(self.model, self.parameters)
-            simulation.Run()
-
-    def tearDown(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            KratosUtilities.DeleteFileIfExisting('sod_shock_tube_geom_coarse.time')
-
-    def _ExecuteSodTubeTest(self):
-        self.setUp()
-        self._CustomizeSimulationSettings()
-        self.runTest()
-        self.tearDown()
-
-    def _CustomizeSimulationSettings(self):
-        # Customize simulation settings
-        self.parameters["solver_settings"]["solver_type"].SetString(self.solver_type)
-        self.parameters["solver_settings"]["use_oss"].SetBool(self.use_oss)
-        self.parameters["solver_settings"]["shock_capturing"].SetBool(self.shock_capturing)
 
     def _AddOutput(self):
         gid_output_settings = KratosMultiphysics.Parameters("""{
@@ -157,7 +155,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
 
 if __name__ == '__main__':
-    test = SodShockTubeTest()
+    KratosUnittest.main()
     # test.testSodShockTubeExplicitASGS()
     test.testSodShockTubeExplicitASGSShockCapturing()
     # test.testSodShockTubeExplicitOSS()
