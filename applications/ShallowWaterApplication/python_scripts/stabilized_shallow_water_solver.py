@@ -44,8 +44,8 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.main_model_part.Nodes)
         KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.main_model_part.Elements)
         dry_height = self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)
-        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
         SW.ShallowWaterUtilities().ResetDryDomain(self.main_model_part, dry_height)
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
         SW.ComputeVelocityProcess(self.main_model_part, dry_height).Execute()
         self._CheckWaterLoss()
 

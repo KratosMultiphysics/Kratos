@@ -236,16 +236,12 @@ int TrussPlasticityConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
 
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_CHECK(rMaterialProperties.Has(DENSITY));
 
-    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS));
 
-    KRATOS_CHECK_VARIABLE_KEY(HARDENING_MODULUS_1D);
     KRATOS_CHECK(rMaterialProperties.Has(HARDENING_MODULUS_1D));
     return 0;
 }
