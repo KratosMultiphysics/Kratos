@@ -34,6 +34,7 @@
 #include "utilities/adjoint_extensions.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos {
@@ -494,28 +495,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize> local_matrix;
-        this->CalculateSensitivityMatrix(rSensitivityVariable, local_matrix, rCurrentProcessInfo);
+        this->AuxiliaryCalculateSensitivityMatrix(rSensitivityVariable, local_matrix, rCurrentProcessInfo);
         rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
         noalias(rOutput) = local_matrix;
     }
 
-    void CalculateSensitivityMatrix(
-        const Variable<array_1d<double, 3>>& rSensitivityVariable,
-        BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
 
-        if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput, rCurrentProcessInfo);
-            this->AddShapeGradientOfVMSMassTerm(rOutput, ACCELERATION, -1.0, rCurrentProcessInfo);
-        } else {
-            KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
-                         << " not supported." << std::endl;
-        }
-
-        KRATOS_CATCH("")
-    }
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
@@ -584,6 +569,24 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void AuxiliaryCalculateSensitivityMatrix(
+        const Variable<array_1d<double, 3>>& rSensitivityVariable,
+        BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        if (rSensitivityVariable == SHAPE_SENSITIVITY) {
+            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput, rCurrentProcessInfo);
+            this->AddShapeGradientOfVMSMassTerm(rOutput, ACCELERATION, -1.0, rCurrentProcessInfo);
+        } else {
+            KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
+                         << " not supported." << std::endl;
+        }
+
+        KRATOS_CATCH("")
+    }
+
     /// Calculate VMS-stabilized (lumped) mass matrix.
     void CalculateVMSMassMatrix(
         BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rMassMatrix,
@@ -601,17 +604,15 @@ protected:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
         // Density
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
+        double Density, Viscosity;
+        array_1d<double, 3> Velocity;
 
-        // Dynamic viscosity
-        double Viscosity;
-        this->EvaluateInPoint(Viscosity, VISCOSITY, N);
+        FluidCalculationUtilities::EvaluateInPoint(this->GetGeometry(), N,
+                std::tie(Density, DENSITY),
+                std::tie(Viscosity, VISCOSITY),
+                std::tie(Velocity, VELOCITY));
+
         Viscosity *= Density;
-
-        // u
-        array_1d<double, TDim> Velocity;
-        this->EvaluateInPoint(Velocity, VELOCITY, N);
 
         // u * Grad(N)
         array_1d<double, TNumNodes> DensityVelGradN;
@@ -692,17 +693,16 @@ protected:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
         // Density
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
+        double Density, Viscosity;
+        array_1d<double, TDim> Velocity, X;
 
-        // Dynamic viscosity
-        double Viscosity;
-        this->EvaluateInPoint(Viscosity, VISCOSITY, N);
+        FluidCalculationUtilities::EvaluateInPoint(this->GetGeometry(), N,
+                std::tie(Density, DENSITY),
+                std::tie(Viscosity, VISCOSITY),
+                std::tie(Velocity, VELOCITY),
+                std::tie(X, rVariable));
+
         Viscosity *= Density;
-
-        // u
-        array_1d<double, TDim> Velocity;
-        this->EvaluateInPoint(Velocity, VELOCITY, N);
 
         // u * Grad(N)
         array_1d<double, TNumNodes> DensityVelGradN;
@@ -741,10 +741,6 @@ protected:
                 }
             }
         }
-
-        // rVariable (x)
-        array_1d<double, TDim> X;
-        this->EvaluateInPoint(X, rVariable, N);
 
         // x * Grad(N)
         array_1d<double, TNumNodes> DensityXGradN;
@@ -810,17 +806,15 @@ protected:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
         // Density
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
-
-        // Dynamic viscosity
-        double Viscosity;
-        this->EvaluateInPoint(Viscosity, VISCOSITY, N);
-        Viscosity *= Density;
-
-        // u
+        double Density, Viscosity;
         array_1d<double, TDim> Velocity;
-        this->EvaluateInPoint(Velocity, VELOCITY, N);
+
+        FluidCalculationUtilities::EvaluateInPoint(this->GetGeometry(), N,
+                std::tie(Density, DENSITY),
+                std::tie(Viscosity, VISCOSITY),
+                std::tie(Velocity, VELOCITY));
+
+        Viscosity *= Density;
 
         // u * Grad(N)
         array_1d<double, TNumNodes> DensityVelGradN;
@@ -968,17 +962,17 @@ protected:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
         // Density
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
+        double Density, Viscosity;
+        array_1d<double, TDim> Velocity, BodyForce;
 
-        // Dynamic viscosity
-        double Viscosity;
-        this->EvaluateInPoint(Viscosity, VISCOSITY, N);
+        FluidCalculationUtilities::EvaluateInPoint(this->GetGeometry(), N,
+                std::tie(Density, DENSITY),
+                std::tie(Viscosity, VISCOSITY),
+                std::tie(Velocity, VELOCITY),
+                std::tie(BodyForce, BODY_FORCE));
+
         Viscosity *= Density;
-
-        // u
-        array_1d<double, TDim> Velocity;
-        this->EvaluateInPoint(Velocity, VELOCITY, N);
+        BodyForce *= Density;
 
         // u * Grad(N)
         array_1d<double, TNumNodes> DensityVelGradN;
@@ -1017,10 +1011,7 @@ protected:
         noalias(DN_DX_GradP) = prod(DN_DX, GradP);
 
         // Grad(N)^T * BodyForce
-        array_1d<double, TDim> BodyForce;
         array_1d<double, TNumNodes> DN_DX_BodyForce;
-        this->EvaluateInPoint(BodyForce, BODY_FORCE, N);
-        BodyForce *= Density;
         noalias(DN_DX_BodyForce) = prod(DN_DX, BodyForce);
 
         // Stabilization parameters TauOne, TauTwo
@@ -1193,17 +1184,17 @@ protected:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
         // Density
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
+        double Density, Viscosity;
+        array_1d<double, TDim> Velocity, BodyForce;
 
-        // Dynamic viscosity
-        double Viscosity;
-        this->EvaluateInPoint(Viscosity, VISCOSITY, N);
+        FluidCalculationUtilities::EvaluateInPoint(this->GetGeometry(), N,
+                std::tie(Density, DENSITY),
+                std::tie(Viscosity, VISCOSITY),
+                std::tie(Velocity, VELOCITY),
+                std::tie(BodyForce, BODY_FORCE));
+
+        BodyForce *= Density;
         Viscosity *= Density;
-
-        // u
-        array_1d<double, TDim> Velocity;
-        this->EvaluateInPoint(Velocity, VELOCITY, N);
 
         // u * Grad(N)
         array_1d<double, TNumNodes> DensityVelGradN;
@@ -1221,10 +1212,6 @@ protected:
         this->CalculateStabilizationParameters(TauOne, TauTwo, VelNorm, ElemSize, Density,
                                                Viscosity, rCurrentProcessInfo);
 
-        // External body force
-        array_1d<double, TDim> BodyForce;
-        this->EvaluateInPoint(BodyForce, BODY_FORCE, N);
-        BodyForce *= Density;
 
         array_1d<double, TFluidLocalSize> FluidValues;
 
@@ -1532,55 +1519,6 @@ protected:
         const double Density,
         const double Viscosity,
         const double DetJDeriv) const;
-
-    /**
-     * @brief Returns a scalar variable at this integration point.
-     *
-     * @param rResult the value of the scalar variable at this integration point
-     * @param rVariable the variable to be evaluated
-     * @param rShapeFunc array of shape function values at this integration point
-     */
-    void EvaluateInPoint(
-        double& rResult,
-        const Variable<double>& rVariable,
-        const array_1d<double, TNumNodes>& rShapeFunc,
-        const IndexType step = 0) const
-    {
-        const auto& r_geometry = this->GetGeometry();
-        rResult = rShapeFunc[0] * r_geometry[0].FastGetSolutionStepValue(rVariable, step);
-        for (IndexType i_node = 1; i_node < TNumNodes; ++i_node) {
-            rResult += rShapeFunc[i_node] *
-                       r_geometry[i_node].FastGetSolutionStepValue(rVariable, step);
-        }
-    }
-
-    /**
-     * @brief Returns a vector variable at this integration point.
-     *
-     * @param rResult the value of the vector variable at this integration point
-     * @param rVariable the variable to be evaluated
-     * @param rShapeFunc array of shape function values at this integration point
-     */
-    void EvaluateInPoint(
-        array_1d<double, TDim>& rResult,
-        const Variable<array_1d<double, 3>>& rVariable,
-        const array_1d<double, TNumNodes>& rN,
-        const IndexType step = 0) const
-    {
-        const auto& r_geometry = this->GetGeometry();
-        const auto& r_nodal_value =
-            r_geometry[0].FastGetSolutionStepValue(rVariable, step);
-        for (IndexType d = 0; d < TDim; ++d) {
-            rResult[d] = rN[0] * r_nodal_value[d];
-        }
-        for (IndexType i_node = 1; i_node < TNumNodes; ++i_node) {
-            const auto& r_nodal_value =
-                r_geometry[i_node].FastGetSolutionStepValue(rVariable, step);
-            for (IndexType d = 0; d < TDim; ++d) {
-                rResult[d] += rN[i_node] * r_nodal_value[d];
-            }
-        }
-    }
 
     /**
      * @brief Adds viscous contributions to adjoint system matrix.

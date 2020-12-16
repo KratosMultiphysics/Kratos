@@ -220,7 +220,6 @@ int UserProvidedLinearElasticLaw<TDim>::Check(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_CHECK_VARIABLE_KEY(ELASTICITY_TENSOR);
     return 0;
 }
 

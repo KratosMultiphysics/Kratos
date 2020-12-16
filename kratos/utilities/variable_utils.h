@@ -1544,7 +1544,6 @@ public:
         KRATOS_TRY
 
         // First we do a chek
-        KRATOS_CHECK_VARIABLE_KEY(rVar)
         if(rModelPart.NumberOfNodes() != 0)
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
 
@@ -1574,9 +1573,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CHECK_VARIABLE_KEY(rVar)
-        KRATOS_CHECK_VARIABLE_KEY(rReactionVar)
-
         if(rModelPart.NumberOfNodes() != 0) {
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: DoF Variable : " << rVar << "not included in the Soluttion step data ";
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rReactionVar)) << "ERROR:: Reaction Variable : " << rReactionVar << "not included in the Soluttion step data ";
@@ -1604,13 +1600,6 @@ public:
      * @return True if all the keys are correct
      */
     bool CheckVariableKeys();
-
-    /**
-     * @brief This method checks the dofs
-     * @param rModelPart reference to the model part that contains the objective element set
-     * @return True if all the DoFs are correct
-     */
-    bool CheckDofs(ModelPart& rModelPart);
 
     /**
      * @brief This method updates the current nodal coordinates back to the initial coordinates
@@ -1725,9 +1714,6 @@ private:
                 std::cout << var.first << var.second << std::endl;
             if (var.first != var.second->Name()) //name of registration does not correspond to the var name
                 std::cout << "Registration Name = " << var.first << " Variable Name = " << std::endl;
-
-            KRATOS_ERROR_IF((var.second)->Key() == 0) << (var.second)->Name() << " Key is 0." << std::endl \
-            << "Check that Kratos variables have been correctly registered and all required applications have been imported." << std::endl;
         }
 
         return true;
