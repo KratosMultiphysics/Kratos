@@ -418,21 +418,27 @@ namespace Kratos
         KRATOS_TRY
 
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const bool is_mpm = (pDomain->Name() == "Background_Grid") ? true : false;
 
-        KRATOS_ERROR_IF_NOT(rCorrection.size() == pDomain->NumberOfNodes() * dim)
-            << "AddCorrectionToDomain | Correction dof size does not match domain dofs\n"
-            << "Correction size = " << rCorrection.size() << "\n"
-            << "Domain dof size = " << pDomain->NumberOfNodes() * dim << "\n"
-            << "\n\n\nModel part:\n" << *pDomain << "\n";
+        if (!is_mpm) {
+            KRATOS_ERROR_IF_NOT(rCorrection.size() == pDomain->NumberOfNodes() * dim)
+                << "AddCorrectionToDomain | Correction dof size does not match domain dofs\n"
+                << "Correction size = " << rCorrection.size() << "\n"
+                << "Domain dof size = " << pDomain->NumberOfNodes() * dim << "\n"
+                << "\n\n\nModel part:\n" << *pDomain << "\n";
+        }
 
         if (IsImplicit)
         {
             block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
                 {
-                    IndexType equation_id = rNode.GetDof(DISPLACEMENT_X).EquationId();
-                    array_1d<double, 3>& r_nodal_quantity = rNode.FastGetSolutionStepValue(rVariable);
-                    for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
-                        r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                    if (!is_mpm || rNode.Is(ACTIVE))
+                    {
+                        IndexType equation_id = rNode.GetDof(DISPLACEMENT_X).EquationId();
+                        array_1d<double, 3>& r_nodal_quantity = rNode.FastGetSolutionStepValue(rVariable);
+                        for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                            r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                    }
                 }
             );
         }

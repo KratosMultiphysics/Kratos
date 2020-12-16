@@ -285,31 +285,34 @@ public:
         );
 
         // Do slow search of remaining quad points
-        Vector N;
-        array_1d<double, 3> local_coordinates;
-        Element::Pointer p_elem;
-        BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
-        SearchStructure.UpdateSearchDatabase();
-        typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
-        typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
-
-        for (size_t i = 0; i < bin_search_quad_geoms.size(); ++i)
+        if (bin_search_quad_geoms.size() > 0)
         {
-            array_1d<double, 3> coordinates = bin_search_quad_geoms[i]->GetGeometryPart(fem_index).Center();
-            bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin, 100, tolerance);
+            Vector N;
+            array_1d<double, 3> local_coordinates;
+            Element::Pointer p_elem;
+            BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
+            SearchStructure.UpdateSearchDatabase();
+            typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
+            typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-            if (is_found)
+            for (size_t i = 0; i < bin_search_quad_geoms.size(); ++i)
             {
-                GeometryType& r_found_geom = p_elem->GetGeometry();
-                r_found_geom.PointLocalCoordinates(local_coordinates, coordinates);
+                array_1d<double, 3> coordinates = bin_search_quad_geoms[i]->GetGeometryPart(fem_index).Center();
+                bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin, 100, tolerance);
 
-                CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
-                    bin_search_quad_geoms[i]->pGetGeometryPart(mpm_index),
-                    local_coordinates,
-                    bin_search_quad_geoms[i]->IntegrationPoints()[0].Weight(),
-                    r_found_geom);
+                if (is_found)
+                {
+                    GeometryType& r_found_geom = p_elem->GetGeometry();
+                    r_found_geom.PointLocalCoordinates(local_coordinates, coordinates);
+
+                    CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
+                        bin_search_quad_geoms[i]->pGetGeometryPart(mpm_index),
+                        local_coordinates,
+                        bin_search_quad_geoms[i]->IntegrationPoints()[0].Weight(),
+                        r_found_geom);
+                }
+                else KRATOS_ERROR << "Coupling quadrature point moved outside MPM background grid!";
             }
-            else KRATOS_ERROR << "Coupling quadrature point moved outside MPM background grid!";
         }
     }
 
