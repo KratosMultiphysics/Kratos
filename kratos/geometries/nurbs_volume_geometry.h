@@ -636,8 +636,8 @@ public:
         const SizeType working_space_dimension = this->WorkingSpaceDimension();
         const SizeType local_space_dimension = this->LocalSpaceDimension();
         const SizeType points_number = this->PointsNumber();
-        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
-            rResult.resize( working_space_dimension, local_space_dimension, false );
+
+        rResult = ZeroMatrix(working_space_dimension,local_space_dimension);
 
         Matrix shape_functions_gradients(points_number, local_space_dimension);
         ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
@@ -654,7 +654,6 @@ public:
         std::vector<int> cp_indices = shape_function_container.ControlPointIndices(number_cp_u, number_cp_v, number_cp_w);
         SizeType number_of_cp = shape_function_container.NumberOfNonzeroControlPoints();
 
-        rResult.clear();
         for (IndexType i = 0; i < number_of_cp; ++i ) {
             const array_1d<double, 3>& r_coordinates = (*this)[cp_indices[i]].Coordinates();
             for(IndexType k = 0; k< working_space_dimension; ++k) {
