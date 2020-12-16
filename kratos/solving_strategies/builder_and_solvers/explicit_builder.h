@@ -708,9 +708,10 @@ protected:
 
     /**
      * @brief Set the Up Lumped Mass Vector object
-     * This method sets up the lumped mass matrix used in the explicit update.
+     * This method sets up the lumped mass vector used in the explicit update.
      * Note that it requires that the equation ids. are already set and the
-     * implementation of the mass contributions to be done in the element level.
+     * implementation of the mass contributions to be done in the element level
+     * in the CalculateLumpedMassVector method.
      * @param rModelPart The model part to compute
      */
     virtual void SetUpLumpedMassVector(const ModelPart &rModelPart)
