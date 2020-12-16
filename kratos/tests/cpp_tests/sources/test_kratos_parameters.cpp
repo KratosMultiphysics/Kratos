@@ -25,7 +25,7 @@ namespace Testing {
 // input string with ugly formatting
 std::string GetJSONString()
 {
-    const std::string json_string = R"(
+    return R"(
     {
       "bool_value" : true, "double_value": 2.0, "int_value" : 10,
       "level1":
@@ -35,12 +35,11 @@ std::string GetJSONString()
       },
       "string_value" : "hello"
     })";
-    return json_string;
 }
 
 std::string GetJSONStringPrettyOut()
-{
-    const std::string pretty_out =  R"({
+{ 
+    return R"({
     "bool_value": true,
     "double_value": 2.0,
     "int_value": 10,
@@ -54,12 +53,11 @@ std::string GetJSONStringPrettyOut()
     },
     "string_value": "hello"
 })";
-    return pretty_out;
 }
 
 std::string GetJSONStringPrettyOutAfterChange()
 {
-    const std::string pretty_out_after_change = R"({
+    return R"({
     "bool_value": true,
     "double_value": 2.0,
     "int_value": 10,
@@ -73,55 +71,48 @@ std::string GetJSONStringPrettyOutAfterChange()
     },
     "string_value": "hello"
 })";
-
-    return pretty_out_after_change;
 }
 
 // here the level1 var is set to a double so that a validation error should be thrown
 std::string GetJSONStringWrongType()
 {
-    const std::string wrong_type = R"({
+    return R"({
         "bool_value": true,
         "double_value": 2.0,
         "int_value": 10,
         "level1": 0.0,
         "string_value": "hello"
     })";
-
-    return wrong_type;
 }
 
 // int value is badly spelt
 std::string GetJSONStringWrongSpelling()
 {
-    const std::string wrong_spelling = R"({
+    return R"({
         "bool_value": true,
         "double_value": 2.0,
         "int_values": 10,
         "level1": 0.0,
         "string_value": "hello"
     })";
-
-    return wrong_spelling;
 }
 
 // wrong on the first level
 // error shall be only detective by recursive validation
 std::string GetJSONStringWrongLevel2()
 {
-    const std::string wrong_lev2 = R"({
+    return R"({
         "bool_value": true,
         "double_value": 2.0,
         "int_value": 10,
         "level1": { "a":0.0 },
         "string_value": "hello"
     })";
-    return wrong_lev2;
 }
 
 std::string GetJSONStringDefaults()
 {
-    const std::string defaults = R"({
+    return R"({
         "bool_value": false,
         "double_value": 2.0,
         "int_value": 10,
@@ -141,12 +132,11 @@ std::string GetJSONStringDefaults()
         "new_default_value": -123.0,
         "string_value": "hello"
     })";
-    return defaults;
 }
 
 std::string GetJSONStringIncomplete()
 {
-    const std::string incomplete = R"({
+    return R"({
         "level1": {
         },
         "new_default_obj": {
@@ -157,12 +147,11 @@ std::string GetJSONStringIncomplete()
         "new_default_value": -123.0,
         "string_value": "hello"
     })";
-    return incomplete;
 }
 
 std::string GetJSONStringIncompleteWithExtraParameter()
 {
-    const std::string incomplete_with_extra_parameter = R"({
+    return R"({
         "level1": {
             "new_sublevel": "this should only be assigned in recursive"
         },
@@ -174,12 +163,11 @@ std::string GetJSONStringIncompleteWithExtraParameter()
         "new_default_value": -123.0,
         "string_value": "hello"
     })";
-    return incomplete_with_extra_parameter;
 }
 
 std::string GetJSONStringExpectedValidationOutput()
 {
-    const std::string expected_validation_output = R"({
+    return R"({
     "bool_value": true,
     "double_value": 2.0,
     "int_value": 10,
@@ -199,12 +187,11 @@ std::string GetJSONStringExpectedValidationOutput()
     "new_default_value": -123.0,
     "string_value": "hello"
 })";
-    return expected_validation_output;
 }
 
 std::string GetJSONStringFourLevels()
 {
-    const std::string four_levels = R"({
+    return R"({
         "bool_value": true,
         "double_value": 2.0,
         "int_value": 10,
@@ -218,12 +205,11 @@ std::string GetJSONStringFourLevels()
         },
         "string_value": "hello"
     })";
-    return four_levels;
 }
 
 std::string GetJSONStringForLevelsVariation()
 {
-    const std::string four_levels_variation = R"({
+    return R"({
         "bool_value": true,
         "double_value": 2.0,
         "int_value": 10,
@@ -238,12 +224,11 @@ std::string GetJSONStringForLevelsVariation()
         },
         "string_value": "hello"
     })";
-    return four_levels_variation;
 }
 
 std::string GetJSONStringForLevelsWrongVariation()
 {
-    const std::string four_levels_wrong_variation = R"({
+    return R"({
         "int_value": 10,
         "double_value": "hi",
         "bool_value": true,
@@ -258,12 +243,11 @@ std::string GetJSONStringForLevelsWrongVariation()
             }
         }
     })";
-    return four_levels_wrong_variation;
 }
 
 std::string GetJSONStringForLevelsDefaults()
 {
-    const std::string four_levels_defaults = R"({
+    return R"({
         "bool_value": true,
         "double_value": 2.0,
         "int_value": 10,
@@ -281,7 +265,6 @@ std::string GetJSONStringForLevelsDefaults()
         },
         "string_value": "hello"
     })";
-    return four_levels_defaults;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
