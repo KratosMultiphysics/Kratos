@@ -7,7 +7,7 @@
 #include "custom_utilities/embedded_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
-#include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
