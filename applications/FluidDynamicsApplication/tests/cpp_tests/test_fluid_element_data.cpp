@@ -33,7 +33,7 @@ public:
 
     void Initialize(
         const Element& rElement, const ProcessInfo& rProcessInfo) override {
-        this->FillFromNodalData(Velocity, VELOCITY, rElement.GetGeometry());
+        this->FillFromHistoricalNodalData(Velocity, VELOCITY, rElement.GetGeometry());
         this->FillFromHistoricalNodalData(
             Velocity_OldStep1, VELOCITY, rElement.GetGeometry(), 1);
     }
@@ -57,7 +57,7 @@ public:
 
     void Initialize(
         const Element& rElement, const ProcessInfo& rProcessInfo) override {
-        this->FillFromNodalData(Pressure, PRESSURE, rElement.GetGeometry());
+        this->FillFromHistoricalNodalData(Pressure, PRESSURE, rElement.GetGeometry());
         this->FillFromHistoricalNodalData(
             Pressure_OldStep1, PRESSURE, rElement.GetGeometry(), 1);
     }

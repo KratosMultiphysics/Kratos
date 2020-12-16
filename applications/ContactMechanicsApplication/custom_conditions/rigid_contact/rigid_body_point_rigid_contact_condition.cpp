@@ -125,11 +125,11 @@ void RigidBodyPointRigidContactCondition::EquationIdVector(EquationIdVectorType&
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointRigidContactCondition::GetValuesVector(Vector& rValues, int Step)
+void RigidBodyPointRigidContactCondition::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.GetValuesVector(rValues, Step);
 
 
@@ -139,11 +139,11 @@ void RigidBodyPointRigidContactCondition::GetValuesVector(Vector& rValues, int S
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void RigidBodyPointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.GetFirstDerivativesVector(rValues, Step);
 
     KRATOS_CATCH( "" )
@@ -153,11 +153,11 @@ void RigidBodyPointRigidContactCondition::GetFirstDerivativesVector( Vector& rVa
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void RigidBodyPointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.GetSecondDerivativesVector(rValues, Step);
 
     KRATOS_CATCH( "" )
