@@ -18,7 +18,7 @@
 #include <unordered_map>
 
 // External includes
-#include "muparser/muParser.h"
+#include "muparser/muparser/muParser.h"
 
 // Project includes
 #include "includes/define.h"
