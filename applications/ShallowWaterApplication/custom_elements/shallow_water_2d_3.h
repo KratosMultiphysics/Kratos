@@ -51,36 +51,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    struct ElementData
-    {
-        double dt_inv;
-        double lumped_mass_factor;
-        double stab_factor;
-        double shock_stab_factor;
-        double gravity;
-        double irregularity;
-
-        double height;
-        array_1d<double,3> flow_rate;
-        array_1d<double,3> velocity;
-        double velocity_div;
-        double manning2;
-        double wet_fraction;
-        double effective_height;
-
-        array_1d<double, 9> depth;
-        array_1d<double, 9> rain;
-        array_1d<double, 9> unknown;
-
-        bool is_monotonic_calculation;
-
-        void InitializeData(const ProcessInfo& rCurrentProcessInfo);
-        void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
-
-    protected:
-        void PhaseFunctions(double Height, double& rWetFraction, double& rEffectiveHeight);
-    };
-
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ShallowWater2D3
@@ -320,6 +290,30 @@ public:
 
 protected:
 
+    ///@name Protected type definitions
+    ///@{
+
+    struct ElementData
+    {
+        double dt_inv;
+        double stab_factor;
+        double shock_stab_factor;
+        double gravity;
+
+        double height;
+        array_1d<double,3> flow_rate;
+        array_1d<double,3> velocity;
+        double manning2;
+
+        array_1d<double,3> topography;
+        array_1d<double,3> rain;
+        array_1d<double,9> unknown;
+
+        void InitializeData(const ProcessInfo& rCurrentProcessInfo);
+        void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
+    };
+
+    ///@}
     ///@name Protected static Member Variables
     ///@{
 
@@ -353,14 +347,6 @@ protected:
         MatrixType& rLHS,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
-
-    /*
-     * This method is adding a matrix with positive diagonal and negative
-     * off diagonal terms. The sum of the rows and the columns is zero.
-     */
-    virtual void AddLowOrderDiffusion(
-        MatrixType& rLHS,
-        const ElementData& rData);
 
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
@@ -405,10 +391,10 @@ protected:
     void AlgebraicResidual(
         array_1d<double,3>& rFlowResidual,
         double& rHeightresidual,
+        BoundedMatrix<double,3,3> rFlowGrad,
+        array_1d<double,3> rHeightGrad,
         const ElementData& rData,
-        const double& rFlowDiv,
-        const array_1d<double,3> rHeightGrad,
-        const BoundedMatrix<double,3,3> rFlowGrad);
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void StreamLineTensor(
         BoundedMatrix<double,2,2>& rTensor,

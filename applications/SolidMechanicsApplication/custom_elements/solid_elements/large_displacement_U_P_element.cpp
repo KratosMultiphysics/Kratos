@@ -176,7 +176,7 @@ void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -208,7 +208,7 @@ void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -237,7 +237,7 @@ void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -270,7 +270,7 @@ void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, in
 //************************************************************************************
 //************************************************************************************
 
-LargeDisplacementUPElement::SizeType LargeDisplacementUPElement::GetDofsSize()
+LargeDisplacementUPElement::SizeType LargeDisplacementUPElement::GetDofsSize() const
 {
   KRATOS_TRY
 

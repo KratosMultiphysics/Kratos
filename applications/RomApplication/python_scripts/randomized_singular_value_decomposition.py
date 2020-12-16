@@ -1,37 +1,57 @@
-import scipy
-from scipy import linalg
 import numpy as np
 
 class RandomizedSingularValueDecomposition():
+    """
+    This class calculates the singular value decomposition of a matrix A (A = U@np.diag(S)@V.T + Error(truncation_tolerance)) using a randomized algorithm
+    Reference: Halko et al 2009. "Finding structure with randomness: Probabilistic algorithms for constructing approximate matrix decompositions"
+    """
 
+
+
+    """
+    Constructor setting up the parameters for calculation of the SVD
+        COMPUTE_U: whether to return the matrix of left singular vectors U
+        COMPUTE_V: whether to return the matrix of right singular vectors V
+        RELATIVE_SVD: If true, the truncation_tolerance is multiplied by the norm of the original matrix
+                    If false, the truncation_tolerance is taken as an absolute error tolerance
+        USE_RANDOMIZATION: If false, the standard svd algorith of numpy is followed
+    """
     def __init__(self, COMPUTE_U=True, COMPUTE_V=True, RELATIVE_SVD=True, USE_RANDOMIZATION=True):
         self.COMPUTE_U = COMPUTE_U
         self.COMPUTE_V = COMPUTE_V
         self.RELATIVE_SVD = RELATIVE_SVD
         self.USE_RANDOMIZATION = USE_RANDOMIZATION
 
-    def Calculate(self, A, e0 = 0):
-        Rsup = min(np.shape( A))
+
+
+    """
+    Method for calculating the SVD
+    input:  A: numpy array containing the matrix to decompose
+            truncation_tolerance: this parameter is employed (as is or multiplied by the norm of A, depending on self.RELATIVE_SVD) to truncate the approximation
+    output: U: numpy array containing the matrix of left singular vectors
+            S: numpy array containing the matrix of singular values
+            V: numpy array containing the matrix of right singular vectors
+            eSVD : estimation of the error of the approximation
+    """
+    def Calculate(self, A, truncation_tolerance = 0):
         if self.USE_RANDOMIZATION == False:
             Q='full'
         else:
             Q, B, eORTH, a = self._RandomizedOrthogonalization(A)  #Randomized orthogonalization (machine precision parameter = mu)
-            if type(Q) != str:
-                Rsup = np.shape(Q)[1]
         if len(Q)==0:
             U=S=V=np.array([])
             eSVD=0
         else:
-            if type(Q) == str:
+            if isinstance(Q,str):
                 #A appears to be full rank
-                U,S,V,eSVD = self._SingularValueDecompostionTruncated( A, e0)
+                U,S,V,eSVD = self._SingularValueDecompostionTruncated( A, truncation_tolerance)
             else:
-                if self.RELATIVE_SVD==1 and e0>0:
-                    e0 = e0*a
-                if e0 > eORTH:
-                    e=np.sqrt(e0**2 - eORTH**2)
+                if self.RELATIVE_SVD==1 and truncation_tolerance>0:
+                    truncation_tolerance = truncation_tolerance*a
+                if truncation_tolerance > eORTH:
+                    e=np.sqrt(truncation_tolerance**2 - eORTH**2)
                 else:
-                    e=e0
+                    e=truncation_tolerance
                 self.RELATIVE_SVD = 0
                 self.SVD_MaxSize = max(np.shape(A))
                 U,S,V,eSVDb = self._SingularValueDecompostionTruncated(B, e )
@@ -40,12 +60,24 @@ class RandomizedSingularValueDecomposition():
 
         return U,S,V,eSVD
 
+
+
+    """
+    Method for obtaining an othonormal basis for the range of the matrix to decompose (stage A, from reference Halko et al 2009 )
+    input:  C: numpy array containing the matrix from which the orthonornal basis will be obtained
+            mu: machine precision parameter, if not specified it is estimated
+            R: estimation for the rank of C, if not specified it is estimated
+    output: Q: numpy array containing the orthonormal basis such that norm(C - Q@Q.T@C) <= mu
+            B: numpy array Q.T@C
+            nC: numpy array estimation of the orthogonalization error
+            c : norm of C
+    """
     def _RandomizedOrthogonalization(self, C , mu=0, R=0):
 
         M,N=np.shape(C) # C has dimensions M by N
-        c = nC = scipy.linalg.norm(C, 'fro')  # Norm of the initial residual
+        c = nC = np.linalg.norm(C, 'fro')  # Norm of the initial residual
         if mu==0:
-            mu = max(M,N)*np.finfo(float).eps*nC/2  # Machine presicion parameter
+            mu = max(M,N)*np.finfo(float).eps*nC/2  # Machine precision parameter
 
         dRmax = np.ceil(0.25*(min(M,N)))
         dRmin = min(1,min(M,N))
@@ -70,8 +102,8 @@ class RandomizedSingularValueDecomposition():
             nOmega = np.sqrt(np.prod(np.shape(C)))
             factorRED = 10
             self.SVD_MaxSize = max(M,N)/factorRED
-            Qi, _ = linalg.qr((C @ Omega)/nOmega, mode='economic') #Using QR to obtain the orthogonal basis
-            #Qi,_,_,_ = self._SingularValueDecompostionTruncated((C @ Omega)/nOmega) #Using trunctated svd to obtain the orthogonal basis (not suitable for the sparse implementation)
+            Qi, _ = np.linalg.qr((C @ Omega)/nOmega, mode='reduced') #Using QR to obtain the orthogonal basis
+            #Qi,_,_,_ = self._SingularValueDecompostionTruncated((C @ Omega)/nOmega) #Using trunctated svd to obtain the orthogonal basis
 
             if len(Qi)==0:
                 break
@@ -79,8 +111,8 @@ class RandomizedSingularValueDecomposition():
             if len(Q) != 0:
                 print('reorthogonalizing')
                 self.SVD_MaxSize = max(np.shape(Qi))
-                Qi, _ = linalg.qr(Qi - Q @(Q.T @ Qi), mode='economic')  #QR for re-orthogonalization
-                #Qi,_,_,_= self._SingularValueDecompostionTruncated(Qi - Q @(Q.T @ Qi))       #svdt for re-orthogonalization (not suitable for the sparse implementation)
+                Qi, _ = np.linalg.qr(Qi - Q @(Q.T @ Qi), mode='reduced')  #QR for re-orthogonalization
+                #Qi,_,_,_= self._SingularValueDecompostionTruncated(Qi - Q @(Q.T @ Qi))       #svdt for re-orthogonalization
 
             #Compute Residual
             Bi = Qi.T @ C
@@ -93,7 +125,7 @@ class RandomizedSingularValueDecomposition():
             else:
                 Q = np.c_[Q,Qi]
                 B = np.r_[B,Bi]
-            nC = scipy.linalg.norm(C, 'fro')  #Norm of the residual
+            nC = np.linalg.norm(C, 'fro')  #Norm of the residual
             print('iter = ',i,' nC = ',nC,' dR = ',dR,' R = ', np.shape(Q)[1])
 
             R_new=np.shape(Q)[1]
@@ -118,6 +150,16 @@ class RandomizedSingularValueDecomposition():
 
         return Q, B, nC, c
 
+
+    """
+    Method for calculating a truncated version of numpy's svd
+    input:  B: numpy array containing a matrix to decompose
+            epsilon: truncation tolerance for the svd
+    output: U: numpy array containing the matrix of left singular vectors. If self.COMPUTE_U=False ==> U = np.nan
+            S: numpy array containing the matrix of singular values
+            V: numpy array containing the matrix of right singular vectors. If self.COMPUTE_V=False ==> V = np.nan
+            eSVD : estimation of the error of the approximation
+    """
     def _SingularValueDecompostionTruncated(self, B, epsilon = 0):
 
         M,N=np.shape(B)
@@ -131,23 +173,23 @@ class RandomizedSingularValueDecomposition():
 
         if M>=N:
             if CalcU==True and CalcV==True:
-                U, s, V = linalg.svd(B, full_matrices=False) #U --> M xN, V --> N x N
+                U, s, V = np.linalg.svd(B, full_matrices=False) #U --> M xN, V --> N x N
                 V = V.T
             elif CalcU==True and CalcV==False:
-                U, s, _ = linalg.svd(B, full_matrices=False) #U --> M xN, V --> N x N
+                U, s, _ = np.linalg.svd(B, full_matrices=False) #U --> M xN, V --> N x N
             else:
-                _, s, _ = linalg.svd(B, full_matrices=False)
+                _, s, _ = np.linalg.svd(B, full_matrices=False)
 
         else:
             # If N>M it proves more efficient to perform the SVD of B^T
             if CalcU==True and CalcV==True:
-                V, s, U = linalg.svd(B.T, full_matrices=False) #U --> M x M, V --> Nx M
+                V, s, U = np.linalg.svd(B.T, full_matrices=False) #U --> M x M, V --> Nx M
                 U = U.T
             elif CalcU==True and CalcV==False:
-                _, s, U = linalg.svd(B.T, full_matrices=False) #U --> M x M, V --> Nx M
+                _, s, U = np.linalg.svd(B.T, full_matrices=False) #U --> M x M, V --> Nx M
                 U = U.T
             else:
-                _, s, _ = linalg.svd(B.T, full_matrices=False)
+                _, s, _ = np.linalg.svd(B.T, full_matrices=False)
 
         tol = dimMATRIX*np.finfo(float).eps*max(s)/2
         R = np.sum(s > tol)  # Definition of numerical rank
@@ -173,27 +215,8 @@ class RandomizedSingularValueDecomposition():
 
 
         if CalcU==True and CalcV==True:
-            return U[:, :K], s[:K], V[:K, :], eSVD
+            return U[:, :K], s[:K], V[:, :K], eSVD
         elif CalcU==True and CalcV==False:
             return U[:, :K], s[:K], np.nan , eSVD
         else:
             return np.nan, s[:K], np.nan , eSVD
-
-
-
-
-if __name__ == "__main__":
-
-    # #load a test SnapshotMatrix
-
-    # RSVDT_Object = RandomizedSingularValueDecomposition()
-    # U,S,V,error = RSVDT_Object.Calculate(SnapshotMatrix, 1e-6)
-    # APPROX_SnapshotMatrix = U@np.diag(S)@V
-
-    # u,s,v = np.linalg.svd(SnapshotMatrix,full_matrices=False)
-    # approx_SnapshotMatrix = u@np.diag(s)@v.T
-
-    # print(f"\n\n\n Norm of the difference in implementations: { np.linalg.norm(APPROX_SnapshotMatrix-approx_SnapshotMatrix)}\n\n\n")
-    # print(f"error accroding to RSVDT = {error}")
-    pass
-

@@ -13,15 +13,37 @@ except ImportError as e:
 
 
 class EmpiricalCubatureMethod(ElementSelectionStrategy):
+    """
+    This class selects a subset of elements and corresponding positive weights necessary for the construction of a hyper-reduced order model
+    Reference: Hernandez 2020. "A multiscale method for periodic structures using domain decomposition and ECM-hyperreduction"
+    """
 
-    def __init__(self, ECM_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False):
+
+    """
+    Constructor setting up the parameters for the Element Selection Strategy
+        ECM_tolerance: approximation tolerance for the element selection algorithm
+        SVD_tolerance: approximation tolerance for the singular value decomposition of the ResidualSnapshots matrix
+        Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
+        Take_into_account_singular_values: whether to multiply the matrix of singular values by the matrix of left singular vectors. If false, convergence is easier
+        Plotting: whether to plot the error evolution of the element selection algorithm
+    """
+    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
         super().__init__()
         self.ECM_tolerance = ECM_tolerance
+        self.SVD_tolerance = SVD_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
-        self.RSVDT_Object = RandomizedSingularValueDecomposition()
         self.Take_into_account_singular_values = Take_into_account_singular_values
+        self.Plotting = Plotting
 
+
+
+    """
+    Method for setting up the element selection
+    input:  ResidualSnapshots: numpy array containing the matrix of residuals projected onto a basis
+            OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
+            ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
+    """
     def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
         super().SetUp()
         self.ModelPartName = ModelPartName
@@ -30,7 +52,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
         self.W = np.ones(np.shape(u)[0])
         if self.Take_into_account_singular_values == True:
-            G = u[...,:] * np.ones(len(s))
+            G = u*s
             G = G.T
             G = np.vstack([ G , np.ones( np.shape(G)[1] )]  )
             b = G @ self.W
@@ -45,6 +67,9 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self.G = G
         self.ExactNorm = np.linalg.norm(bEXACT)
 
+    """
+    Method performing calculations required before launching the Calculate method
+    """
     def Initialize(self):
         super().Initialize()
         self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
@@ -64,6 +89,10 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self.nerrorACTUAL = self.nerror
 
 
+
+    """
+    Method launching the element selection algorithm to find a set of elements: self.z, and wiegths: self.w
+    """
     def Calculate(self):
         super().Calculate()
 
@@ -130,13 +159,18 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
         print(f'Total number of iterations = {k}')
 
-        if missing_matplotlib == False:
+        if missing_matplotlib == False and self.Plotting == True:
             plt.plot(NPOINTS[0], ERROR_GLO[0])
             plt.title('Element Selection Error Evolution')
             plt.xlabel('Number of elements')
             plt.ylabel('Error %')
             plt.show()
 
+
+
+    """
+    Method for the quick update of weights (self.w), whenever a negative weight is found
+    """
     def _UpdateWeightsInverse(self, A,Aast,a,xold):
         c = np.dot(A.T, a)
         d = np.dot(Aast, c).reshape(-1, 1)
@@ -151,6 +185,11 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         x = np.vstack([(xold - d * v), v])
         return Bast, x
 
+
+
+    """
+    Method for the quick update of weights (self.w), whenever a negative weight is found
+    """
     def _MultiUpdateInverseHermitian(self, invH, neg_indexes):
         neg_indexes = np.sort(neg_indexes)
         for i in range(np.size(neg_indexes)):
@@ -158,6 +197,11 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             invH = self._UpdateInverseHermitian(invH, neg_index)
         return invH
 
+
+
+    """
+    Method for the quick update of weights (self.w), whenever a negative weight is found
+    """
     def _UpdateInverseHermitian(self, invH, neg_index):
         if neg_index == np.shape(invH)[1]:
             aux = (invH[0:-1, -1] * invH[-1, 0:-1]) / invH(-1, -1)
@@ -168,6 +212,14 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             invH_new = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1, 0:-1]) / aux2[-1, -1]
         return invH_new
 
+
+
+    """
+    Method calculating the singular value decomposition of the ResidualSnapshots matrix
+    input:  ResidualSnapshots: numpy array containing a matrix of residuals projected onto a basis
+    output: u: numpy array containing the matrix of left singular vectors
+            s: numpy array containing the matrix of singular values
+    """
     def _ObtainBasis(self,ResidualSnapshots):
         ### Building the Snapshot matrix ####
         for i in range (len(ResidualSnapshots)):
@@ -176,9 +228,14 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             else:
                 SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
         ### Taking the SVD ###  (randomized and truncated here)
-        u,s,_,_ = self.RSVDT_Object.Calculate(SnapshotMatrix, 1e-4)
+        u,s,_,_ = RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix, self.SVD_tolerance)
         return u, s
 
+
+
+    """
+    Method to write a json file containing the selected elements and corresponding weights
+    """
     def WriteSelectedElements(self):
         w = np.squeeze(self.w)
         ### Saving Elements and conditions
@@ -205,14 +262,16 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self._CreateHyperReducedModelPart()
 
 
+
+    """
+    Method to create an mdpa file containing the selected elements and the skin
+    """
     def _CreateHyperReducedModelPart(self):
         current_model = KratosMultiphysics.Model()
         computing_model_part = current_model.CreateModelPart("main")
         model_part_io = KratosMultiphysics.ModelPartIO(self.ModelPartName)
         model_part_io.ReadModelPart(computing_model_part)
         hyper_reduced_model_part_help =   current_model.CreateModelPart("Helping")
-
-
 
         with open('ElementsAndWeights.json') as f:
             HR_data = json.load(f)
@@ -229,6 +288,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         # Building the COMPUTE_HROM submodel part
         hyper_reduced_model_part = HROM_Model_Part.CreateSubModelPart("COMPUTE_HROM")
 
+        # TODO implement the hyper-reduced model part creation in C++
         with open('ElementsAndWeights.json') as f:
             HR_data = json.load(f)
             for originalSubmodelpart in computing_model_part.SubModelParts:
@@ -267,8 +327,3 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         KratosMultiphysics.ModelPartIO("Hyper_Reduced_Model_Part", KratosMultiphysics.IO.WRITE| KratosMultiphysics.IO.MESH_ONLY ).WriteModelPart(HROM_Model_Part)
         print('\nHyper_Reduced_Model_Part.mdpa created!\n')
         KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("Hyper_Reduced_Model_Part.time")
-
-if __name__=='__main__':
-
-    ECM_object = EmpiricalCubatureMethod()
-

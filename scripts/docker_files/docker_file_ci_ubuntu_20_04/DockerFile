@@ -41,6 +41,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         libtrilinos-tpetra-dev \
         libtrilinos-kokkos-dev \
         libtrilinos-kokkos-kernels-dev \
+        libtrilinos-shylu-dev \
         openmpi-bin \
         python3-dev \
         python3-h5py \
