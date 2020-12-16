@@ -223,16 +223,14 @@ void QSConvectionDiffusionExplicit<2,3>::CalculateLumpedMassVector(
 
     // Define local variables
     const unsigned int local_size = 3;
-    const double one_third = 1.0 / 3.0;
+    const double one_third_area = GetGeometry().Area() / 3.0;
     // Initialize and calculate elemental lumped mass vector
     if (rLumpedMassVector.size() != local_size) {
         rLumpedMassVector.resize(local_size, false);
     }
     for (IndexType i = 0; i < local_size; ++i) {
-        rLumpedMassVector(i) = one_third;
+        rLumpedMassVector(i) = one_third_area;
     }
-    // Assumption all the Gauss points have the same weight, so we multiply by the volume
-    rLumpedMassVector *= GetGeometry().Volume();
 
     KRATOS_CATCH("");
 }
@@ -248,16 +246,14 @@ void QSConvectionDiffusionExplicit<3,4>::CalculateLumpedMassVector(
 
     // Define local variables
     const unsigned int local_size = 4;
-    const double one_fourth = 1.0 / 4.0;
+    const double one_fourth_volume = GetGeometry().Volume() / 4.0;
     // Initialize and calculate elemental lumped mass vector
     if (rLumpedMassVector.size() != local_size) {
         rLumpedMassVector.resize(local_size, false);
     }
     for (IndexType i = 0; i < local_size; ++i) {
-        rLumpedMassVector(i) = one_fourth;
+        rLumpedMassVector(i) = one_fourth_volume;
     }
-    // Assumption all the Gauss points have the same weight, so we multiply by the volume
-    rLumpedMassVector *= GetGeometry().Volume();
 
     KRATOS_CATCH("");
 }
