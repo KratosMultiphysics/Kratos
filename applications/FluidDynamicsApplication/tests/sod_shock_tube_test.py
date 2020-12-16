@@ -156,7 +156,8 @@ class SodShockTubeTest(KratosUnittest.TestCase):
 
 if __name__ == '__main__':
     KratosUnittest.main()
+    # test = SodShockTubeTest()
     # test.testSodShockTubeExplicitASGS()
-    test.testSodShockTubeExplicitASGSShockCapturing()
+    # test.testSodShockTubeExplicitASGSShockCapturing()
     # test.testSodShockTubeExplicitOSS()
     # test.testSodShockTubeExplicitOSSShockCapturing()
