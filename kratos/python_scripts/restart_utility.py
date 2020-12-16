@@ -16,8 +16,8 @@ class RestartUtility(object):
     in the main-script
     """
     def __init__(self, model_part, settings):
-        # number_of_restart_files    : max number of restart files to keep
-        #                             - negative value keeps all restart files (default)
+        # max_files_to_keep    : max number of restart files to keep
+        #                       - negative value keeps all restart files (default)
         default_settings = KratosMultiphysics.Parameters("""
         {
             "input_filename"                 : "",
@@ -96,7 +96,11 @@ class RestartUtility(object):
         self.next_output = self.restart_save_frequency # Schedule the first output to avoid printing in first step
 
         self.save_restart_files_in_folder   = settings["save_restart_files_in_folder"].GetBool()
-        self.number_of_restart_files        = settings["number_of_restart_files"].GetInt()
+        self.max_files_to_keep              = settings["max_files_to_keep"].GetInt()
+        if (self.max_files_to_keep < -1) or (self.max_files_to_keep == 0):
+            err_msg += 'Specifier for \'max_files_to_keep\' with value ' + str(self.max_files_to_keep) +' invalid\n'
+            err_msg += 'Use -1 or any non-negative values'
+            raise Exception(err_msg)
 
         # Check if restarted, and initialize the list of restart is true
         self.restart_files = {}
@@ -223,8 +227,8 @@ class RestartUtility(object):
 
     def ClearObsoleteRestartFiles(self):
         """Delete restart files that are no longer needed."""
-        if self.number_of_restart_files > -1:               # <-- number of restart files is limited
-            number_of_obsolete_files = len(self.restart_files) - self.number_of_restart_files
+        if self.max_files_to_keep > -1:
+            number_of_obsolete_files = len(self.restart_files) - self.max_files_to_keep
             for _ in range(number_of_obsolete_files):
 
                 # Get oldest restart file set
