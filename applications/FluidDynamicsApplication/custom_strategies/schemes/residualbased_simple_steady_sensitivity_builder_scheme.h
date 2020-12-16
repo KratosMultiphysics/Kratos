@@ -18,20 +18,17 @@
 // External includes
 
 // Project includes
+#include "containers/global_pointers_unordered_map.h"
 #include "containers/global_pointers_vector.h"
 #include "includes/define.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/model_part.h"
-#include "includes/parallel_environment.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "response_functions/adjoint_response_function.h"
 #include "solving_strategies/schemes/sensitivity_builder_scheme.h"
-#include "utilities/global_pointer_utilities.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/parallel_utilities.h"
 #include "utilities/sensitivity_builder.h"
-#include "containers/global_pointers_unordered_map.h"
 
 namespace Kratos
 {
@@ -60,7 +57,7 @@ public:
 
     /// Constructor.
     ResidualBasedSimpleSteadySensitivityBuilderScheme()
-        : mRank(ParallelEnvironment::GetDefaultDataCommunicator().Rank())
+        : SensitivityBuilderScheme()
     {
         // Allocate auxiliary memory.
         // This needs to be done in the constructor because, this scheme
@@ -69,9 +66,6 @@ public:
         // can not call ResidualBasedSimpleSteadySensitivityBuilderScheme::Initialize
         // method.
         const int number_of_threads = OpenMPUtils::GetNumThreads();
-        mSensitivityMatrices.resize(number_of_threads);
-        mAdjointVectors.resize(number_of_threads);
-        mPartialSensitivity.resize(number_of_threads);
         mAuxVectors.resize(number_of_threads);
         mAuxMatrices.resize(number_of_threads);
         mRotatedSensitivityMatrices.resize(number_of_threads);
@@ -93,9 +87,6 @@ public:
 
         BaseType::Initialize(rModelPart, rSensitivityModelPart, rResponseFunction);
 
-        const auto& r_communicator = rModelPart.GetCommunicator();
-        const auto& r_nodes = rModelPart.Nodes();
-        const int number_of_nodes = r_nodes.size();
         mDomainSize = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
         // assign domain size specific methods
@@ -114,21 +105,9 @@ public:
                          << " ].\n";
         }
 
-        // generate list of indices for which gps needs to be created.
-        std::vector<int> indices;
-        indices.resize(number_of_nodes);
-        IndexPartition<int>(number_of_nodes).for_each([&](const int Index) {
-            indices[Index] = (r_nodes.begin() + Index)->Id();
-        });
-
-        // This is required to get correct global pointers for ghost mesh nodes.
-        const auto& r_data_communicator = r_communicator.GetDataCommunicator();
-        mGlobalPointerNodalMap = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(
-            r_nodes, indices, r_data_communicator);
-
         // Find nodal neighbors for conditions
         FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> neighbor_process(
-            r_data_communicator, rModelPart, NEIGHBOUR_CONDITION_NODES);
+            rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart, NEIGHBOUR_CONDITION_NODES);
         neighbor_process.Execute();
         const auto& neighbour_node_ids_map = neighbor_process.GetNeighbourIds(rModelPart.Nodes());
 
@@ -387,10 +366,9 @@ public:
     void Clear() override
     {
         BaseType::Clear();
-
-        mSensitivityMatrices.clear();
-        mAdjointVectors.clear();
-        mPartialSensitivity.clear();
+        mAuxVectors.clear();
+        mAuxMatrices.clear();
+        mRotatedSensitivityMatrices.clear();
     }
 
     ///@}
@@ -409,9 +387,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<Matrix> mSensitivityMatrices;
-    std::vector<Vector> mAdjointVectors;
-    std::vector<Vector> mPartialSensitivity;
     std::vector<Matrix> mAuxMatrices;
     std::vector<Vector> mAuxVectors;
     std::vector<Matrix> mRotatedSensitivityMatrices;
@@ -427,8 +402,6 @@ private:
     void (ResidualBasedSimpleSteadySensitivityBuilderScheme::*mAddNodalResidualDerivativeToMatrix)(
         Matrix&, const Matrix&, const unsigned int);
 
-    std::unordered_map<int, GlobalPointer<ModelPart::NodeType>> mGlobalPointerNodalMap;
-    const int mRank;
     int mDomainSize;
 
     ///@}
@@ -522,7 +495,7 @@ private:
         // add geometry gps
         for (unsigned int i = 0; i < number_of_nodes; ++i) {
             const auto& r_node = r_geometry[i];
-            auto& r_gp = mGlobalPointerNodalMap[r_node.Id()];
+            auto& r_gp = this->mGlobalPointerNodalMap[r_node.Id()];
             rGPSensitivityVector(i) = r_gp;
             gp_index_map[r_gp] = i;
         }

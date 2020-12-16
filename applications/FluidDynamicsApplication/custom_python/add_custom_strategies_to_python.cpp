@@ -40,7 +40,6 @@
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
 
 // sensitivity builder schemes
-#include "solving_strategies/schemes/residual_based_sensitivity_builder_scheme.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_sensitivity_builder_scheme.h"
 
 //linear solvers
