@@ -489,18 +489,29 @@ namespace Kratos
         KRATOS_TRY
 
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        ModelPart& r_slave_modelpart = (mLagrangeDefinedOn == SolverIndex::Destination)
+        ModelPart& r_slave_interface_modelpart = (mLagrangeDefinedOn == SolverIndex::Destination)
             ? mrDestinationInterfaceModelPart
             : mrOriginInterfaceModelPart;
 
-        KRATOS_ERROR_IF_NOT(r_slave_modelpart.NumberOfNodes() * dim == rLagrange.size())
-            << "Trying to set Lagrange Multiplier results on the wrong domain!\n";
+        ModelPart& r_slave_modelpart = (mLagrangeDefinedOn == SolverIndex::Destination)
+            ? *mpDestinationDomain
+            : *mpOriginDomain;
 
-        block_for_each(r_slave_modelpart.Nodes(), [&](Node<3>& rNode)
+        KRATOS_ERROR_IF_NOT(r_slave_modelpart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER))
+            << "The following slave model part does not have VECTOR_LAGRANGE_MULTIPLIER added to the nodal solution step variables\n" << r_slave_modelpart << std::endl;
+
+        KRATOS_ERROR_IF_NOT(r_slave_interface_modelpart.NumberOfNodes() * dim == rLagrange.size())
+            << "Lagrange multiplier size and interface size do noth match!\n"
+            << "Lagrange mults = \n" << rLagrange
+            << "Interface modelpart = \n" << r_slave_interface_modelpart << std::endl;
+
+        block_for_each(r_slave_interface_modelpart.Nodes(), [&](Node<3>& r_interface_node)
             {
-                IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
+                IndexType interface_node_id = r_interface_node.Id();
+                IndexType interface_id = r_interface_node.GetValue(INTERFACE_EQUATION_ID);
 
-                array_1d<double, 3>& lagrange = rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                Node<3>& r_node = r_slave_modelpart.GetNode(interface_node_id);
+                array_1d<double, 3>& lagrange = r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                 lagrange.clear();
                 for (size_t dof = 0; dof < dim; dof++)
                 {
@@ -822,15 +833,15 @@ namespace Kratos
 
         // Check if the Lagrangian multipliers are defined on the origin or destination
         // Lagrange mults are always defined on slave.
-        if (mpMappingMatrix->size1() == mrDestinationInterfaceModelPart.NumberOfNodes()) {
-            // Forward mapping is from origin (master) to dest (slave).
-            // Slave = destination. Lagrange mults defined on destination.
-            mLagrangeDefinedOn = SolverIndex::Destination;
-        }
-        else if (mpMappingMatrix->size1() == mrOriginInterfaceModelPart.NumberOfNodes()) {
+        if (mpMappingMatrix->size1() == mrOriginInterfaceModelPart.NumberOfNodes()) {
             // Forward mapping is from dest (master) to origin (slave).
             // Slave = origin. Lagrange mults defined on origin.
             mLagrangeDefinedOn = SolverIndex::Origin;
+        }
+        else if (mpMappingMatrix->size1() == mrDestinationInterfaceModelPart.NumberOfNodes()) {
+            // Forward mapping is from origin (master) to dest (slave).
+            // Slave = destination. Lagrange mults defined on destination.
+            mLagrangeDefinedOn = SolverIndex::Destination;
         }
         else KRATOS_ERROR << "Mapping matrix dimensions do not match either origin or destination interfaces!"
             << "\nOrigin interface = \n" << mrOriginInterfaceModelPart

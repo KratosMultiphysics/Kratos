@@ -65,14 +65,14 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             return False
 
     def InitializeSolutionStep(self):
+        for solver_name, solver in self.solver_wrappers.items():
+            if self.SolverSolvesAtThisTime(solver_name):
+                solver.InitializeSolutionStep()
+
         if not self.is_initial_step:
             self.mapper.UpdateInterface()
         else:
             self.is_initial_step = False
-
-        for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(solver_name):
-                solver.InitializeSolutionStep()
 
         for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
             if self.__CouplingOpActsNow(coupling_op_name):
