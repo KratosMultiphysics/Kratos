@@ -241,6 +241,5 @@ void KratosRANSApplication::Register()
     // registering constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian2DLaw", mRansNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian3DLaw", mRansNewtonian3DLaw);
-
 }
 } // namespace Kratos.
