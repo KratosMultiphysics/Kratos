@@ -95,7 +95,7 @@ ConstitutiveLaw::Pointer ConstitutiveLaw::Create(Kratos::Parameters NewParameter
  * @return a Pointer to the new constitutive law
  */
 ConstitutiveLaw::Pointer ConstitutiveLaw::Create(
-    Kratos::Parameters NewParameters, 
+    Kratos::Parameters NewParameters,
     const Properties& rProperties
     ) const
 {
