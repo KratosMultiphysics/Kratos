@@ -135,6 +135,4 @@ class CouetteFlowTest(KratosUnittest.TestCase):
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
 
 if __name__ == '__main__':
-    UnitTest.main()
-    # test.testCouetteFlow2DSymbolicStokes()
-    test.testCouetteFlow2DSymbolicNavierStokes()
+    KratosUnittest.main()
