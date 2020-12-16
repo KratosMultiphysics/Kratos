@@ -254,7 +254,7 @@ class TestRestart(KratosUnittest.TestCase):
                 "model_part_name"        : "MainRestart",
                 "restart_save_frequency" : 2,
                 "restart_control_type"   : "step",
-                "number_of_restart_files": 20
+                "max_files_to_keep": 20
             }
         }""")
         number_of_restart_files                         = 20
