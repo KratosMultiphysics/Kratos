@@ -50,9 +50,10 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.AddNodalSolutionStepVariable(DIVPROJ);
 
     // Process info creation
-    double delta_time = 0.1;
+    const double delta_time = 0.1;
+    const double sound_velocity = 1.0e+3;
     model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
-    model_part.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
+    model_part.GetProcessInfo().SetValue(SOUND_VELOCITY, sound_velocity);
     model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
     Vector bdf_coefs(3);
     bdf_coefs[0] = 3.0/(2.0*delta_time);
@@ -61,8 +62,9 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
     // Set the element properties
+    const double rho = 1000.0;
     Properties::Pointer p_properties = model_part.CreateNewProperties(0);
-    p_properties->SetValue(DENSITY, 1000.0);
+    p_properties->SetValue(DENSITY, rho);
     p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
     ConstitutiveLaw::Pointer pConsLaw(new Newtonian2DLaw());
     p_properties->SetValue(CONSTITUTIVE_LAW, pConsLaw);
@@ -99,6 +101,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     Element::Pointer p_element = model_part.pGetElement(1);
 
     for(unsigned int i=0; i<3; i++){
+        p_element->GetGeometry()[i].SetValue(SOUND_VELOCITY, sound_velocity); // Required for the weakly compressible instance
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(DENSITY) = rho; // Required for the nodal-based density instances
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -144,8 +148,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector< std::vector<double> > output_cut(6);
-    output_cut[0] = {18.84223125,59.21540862,-0.4453265312,49.82664899,169.407093,0.3953265312,32.91666657,-23.57174638,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
-    output_cut[1] = {3.777844188, 12.07497388, -0.4453264623, 42.19438001, 129.0905425, 0.3953264623, 32.91666657, -23.57174638, -0.1}; // EmbeddedQSVMSDiscontinuous
+    output_cut[0] = {18.84223125,59.27055831,-0.4453265312,49.82664899,169.3316095,0.3953265312,32.91666657,-24.94122968,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_cut[1] = {3.777844188,12.13012358,-0.4453264623,42.19438001,129.015059,0.3953264623,32.91666657,-24.94122968,-0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test cut element
@@ -173,8 +177,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector< std::vector<double> > output_slip_cut(6);
-    output_slip_cut[0] = {18.84227218,59.21545054,-0.4453265312,49.82660608,169.407051,0.3953265312,32.91666667,-23.57174638,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
-    output_slip_cut[1] = {3.777885122, 12.07501581, -0.4453264623, 42.1943371, 129.0905006, 0.3953264623, 32.91666667, -23.57174638, -0.1}; // EmbeddedQSVMSDiscontinuous
+    output_slip_cut[0] = {18.84227218,59.27060024,-0.4453265312,49.82660608,169.3315676,0.3953265312,32.91666667,-24.94122968,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_slip_cut[1] = {3.777885122,12.1301655,-0.4453264623,42.1943371,129.0150171,0.3953264623,32.91666667,-24.94122968,-0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test slip cut element
