@@ -39,7 +39,6 @@ ModelPart& RansKOmegaSSTK2D3NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
@@ -85,7 +84,6 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
