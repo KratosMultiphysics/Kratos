@@ -68,6 +68,13 @@ void KElementData<TDim>::Calculate(
     double& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    rOutput = CalculateEffectiveViscosity(rCurrentProcessInfo);
+}
+
+template <unsigned int TDim>
+double KElementData<TDim>::CalculateEffectiveViscosity(
+    const ProcessInfo& rCurrentProcessInfo)
+{
     KRATOS_TRY
 
     using namespace RansCalculationUtilities;
@@ -90,7 +97,7 @@ void KElementData<TDim>::Calculate(
     const double a1 =  rCurrentProcessInfo[TURBULENCE_RANS_A1];
     const double beta_star = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
-    rOutput = 0.0;
+    double nu_t = 0.0;
 
     for (int g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -118,11 +125,11 @@ void KElementData<TDim>::Calculate(
 
         const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
 
-        rOutput += KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(
+        nu_t += KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(
             tke, omega, t, f_2, a1);
     }
 
-    rOutput /= num_gauss_points;
+    return nu_t / num_gauss_points;
 
     KRATOS_CATCH("");
 }
