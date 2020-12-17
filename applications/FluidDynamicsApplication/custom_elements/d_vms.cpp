@@ -15,6 +15,7 @@
 #include "includes/checks.h"
 
 #include "custom_utilities/qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 //#include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
@@ -655,7 +656,7 @@ void DVMS<TElementData>::CalculateStabilizationParameters(
     TauTwo = viscosity + density * mTauC2 * velocity_norm * h / mTauC1;
 
     // Auxiliary coefficient StaticTauOne*TauTwo/Dt that appears on the pressure subscale model
-    TauP = density * h*h / (mTauC1*rData.DeltaTime);
+    TauP = 0 *density * h*h / (mTauC1*rData.DeltaTime);
 }
 
 template< class TElementData >
@@ -867,4 +868,8 @@ void DVMS<TElementData>::load(Serializer& rSerializer)
 
 template class DVMS< QSVMSData<2,3> >;
 template class DVMS< QSVMSData<3,4> >;
+
+template class DVMS< QSVMSDEMCoupledData<2,3> >;
+template class DVMS< QSVMSDEMCoupledData<3,4> >;
+
 } // namespace Kratos
