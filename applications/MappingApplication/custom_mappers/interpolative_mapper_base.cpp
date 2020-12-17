@@ -254,8 +254,5 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 template class InterpolativeMapperBase< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-template class InterpolativeMapperBase< MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType >;
-#endif
 
 }  // namespace Kratos.
