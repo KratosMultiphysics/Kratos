@@ -30,6 +30,9 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/sensitivity_builder.h"
 
+// Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -587,35 +590,32 @@ private:
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = rResidualDerivatives.size1() / TDim;
-
         using coordinate_transformation_utils = CoordinateTransformationUtils<Matrix, Vector, double>;
 
         // get the residual relevant for rNode
         BoundedVector<double, TDim> residual, residual_derivative, aux_vector;
-        GetSubVector<TDim>(residual, rResiduals, NodeStartIndex);
+        FluidCalculationUtilities::GetSubVector<TDim>(residual, rResiduals, NodeStartIndex);
 
         // get the rotation matrix relevant for rNode
         BoundedMatrix<double, TDim, TDim> rotation_matrix;
         coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
 
         // add rotated residual derivative contributions
-        for (unsigned int c = 0; c < number_of_nodes; ++c) {
-            for (unsigned int k = 0; k < TDim; ++k) {
-                const unsigned int derivative_position = c * TDim + k;
-                // get the residual derivative relevant for node
-                GetSubVector<TDim>(residual_derivative, row(rResidualDerivatives, derivative_position), NodeStartIndex);
+        for (unsigned int c = 0; c < rResidualDerivatives.size1(); ++c) {
+            // get the residual derivative relevant for node
+            FluidCalculationUtilities::GetSubVector<TDim>(
+                residual_derivative, row(rResidualDerivatives, c), NodeStartIndex);
 
-                // rotate residual derivative
-                noalias(aux_vector) = prod(rotation_matrix, residual_derivative);
+            // rotate residual derivative
+            noalias(aux_vector) = prod(rotation_matrix, residual_derivative);
 
-                // add rotated residual derivative to local matrix
-                AddSubVectorToMatrix<TDim>(rOutput, aux_vector, derivative_position, NodeStartIndex);
+            // add rotated residual derivative to local matrix
+            FluidCalculationUtilities::AddSubVectorToMatrix<TDim>(
+                rOutput, aux_vector, c, NodeStartIndex);
 
-                // add continuity equation derivatives
-                rOutput(derivative_position, NodeStartIndex + TDim) +=
-                    rResidualDerivatives(derivative_position, NodeStartIndex + TDim);
-            }
+            // add continuity equation derivatives
+            rOutput(c, NodeStartIndex + TDim) +=
+                rResidualDerivatives(c, NodeStartIndex + TDim);
         }
 
         // first add rotation matrix derivative contributions w.r.t. rNode
@@ -625,7 +625,7 @@ private:
                 rotation_matrix_derivative, 0, k, rNode);
 
             noalias(aux_vector) = prod(rotation_matrix_derivative, residual);
-            AddSubVectorToMatrix<TDim>(rOutput, aux_vector, NodeStartIndex + k, NodeStartIndex);
+            FluidCalculationUtilities::AddSubVectorToMatrix<TDim>(rOutput, aux_vector, NodeStartIndex + k, NodeStartIndex);
         }
 
         // add rotation matrix derivative contributions w.r.t. rNode neighbors
@@ -638,7 +638,7 @@ private:
                     rotation_matrix_derivative, b + 1, k, rNode);
 
                 noalias(aux_vector) = prod(rotation_matrix_derivative, residual);
-                AddSubVectorToMatrix<TDim>(
+                FluidCalculationUtilities::AddSubVectorToMatrix<TDim>(
                     rOutput, aux_vector, derivative_node_index + k, NodeStartIndex);
             }
         }
@@ -654,69 +654,12 @@ private:
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = rResidualDerivatives.size1() / TDim;
-
-        // add rotated residual derivative contributions
-        for (unsigned int c = 0; c < number_of_nodes; ++c) {
-            for (unsigned int k = 0; k < TDim; ++k) {
-                const unsigned int derivative_index = c * TDim + k;
-                for (unsigned int i = 0; i < TDim; ++i) {
-                    const unsigned int equation_index = NodeStartIndex + i;
-                    rOutput(derivative_index, equation_index) +=
-                        rResidualDerivatives(derivative_index, equation_index);
-                }
-                rOutput(derivative_index, NodeStartIndex + TDim) +=
-                    rResidualDerivatives(derivative_index, NodeStartIndex + TDim);
+        // add non-rotated residual derivative contributions
+        for (unsigned int c = 0; c < rResidualDerivatives.size1(); ++c) {
+            for (unsigned int i = 0; i < TDim + 1; ++i) {
+                rOutput(c, NodeStartIndex + i) +=
+                    rResidualDerivatives(c, NodeStartIndex + i);
             }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-
-    template <unsigned int TSize>
-    void GetSubVector(
-        BoundedVector<double, TSize>& rOutput,
-        const Vector& rInput,
-        const IndexType Position)
-    {
-        KRATOS_TRY
-
-        KRATOS_DEBUG_ERROR_IF(rInput.size() < Position + TSize)
-            << "rInput size is not enough for sub vector retireval. [ "
-               "rInput.size() = "
-            << rInput.size() << ", Requested Position = " << Position
-            << ", Requested vector size = " << TSize << " ].\n";
-
-        for (IndexType i = 0; i < TSize; ++i) {
-            rOutput[i] = rInput[Position + i];
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    template<unsigned int TSize>
-    void AddSubVectorToMatrix(
-        Matrix& rOutput,
-        const BoundedVector<double, TSize>& rInput,
-        const unsigned int RowIndex,
-        const unsigned int ColumnIndex)
-    {
-        KRATOS_TRY
-
-        KRATOS_DEBUG_ERROR_IF(RowIndex >= rOutput.size1())
-            << "RowIndex is larger than or equal to rOutput number of rows. [ "
-               "rOutput.size1() = "
-            << rOutput.size1() << ", RowIndex = " << RowIndex << " ].\n";
-
-        KRATOS_DEBUG_ERROR_IF(ColumnIndex + TSize > rOutput.size2())
-            << "rOutput matrix does not have sufficient number of columns [ "
-               "rOutput.size2() = "
-            << rOutput.size2() << ", ColumnIndex = " << ColumnIndex
-            << ", TSize = " << TSize << " ].\n";
-
-        for (unsigned int i = 0; i < TSize; ++i) {
-            rOutput(RowIndex, ColumnIndex + i) += rInput[i];
         }
 
         KRATOS_CATCH("");

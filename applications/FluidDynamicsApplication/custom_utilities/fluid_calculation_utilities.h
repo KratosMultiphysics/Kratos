@@ -145,6 +145,79 @@ public:
             rGeometry, rShapeFunction, 0, rValueVariablePairs...);
     }
 
+    /**
+     * @brief Get a sub vector from a vector
+     *
+     * This method returns a sub vector from a vector with size
+     * TSize, starting from Position index.
+     *
+     * @tparam TSize            Size of the output vector
+     * @param rOutput           Output vector
+     * @param rInput            Input vector
+     * @param Position          Starting index in input vector
+     */
+    template <unsigned int TSize>
+    static void GetSubVector(
+        BoundedVector<double, TSize>& rOutput,
+        const Vector& rInput,
+        const IndexType Position)
+    {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(rInput.size() < Position + TSize)
+            << "rInput size is not enough for sub vector retireval. [ "
+               "rInput.size() = "
+            << rInput.size() << ", Requested Position = " << Position
+            << ", Requested vector size = " << TSize << " ].\n";
+
+        for (IndexType i = 0; i < TSize; ++i) {
+            rOutput[i] = rInput[Position + i];
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Adds values of a vector to a given matrix
+     *
+     * This method adds values of a vector to a matrix where
+     * matrix row is given by RowIndex, and matrix column starting
+     * index is given by ColumnIndex. The vector values are added along
+     * the row of the given matrix.
+     *
+     * @tparam TSize                Input vector size
+     * @param rOutput               Output matrix
+     * @param rInput                Input vector
+     * @param RowIndex              Row index
+     * @param ColumnIndex           Column index
+     */
+    template<unsigned int TSize>
+    static void AddSubVectorToMatrix(
+        Matrix& rOutput,
+        const BoundedVector<double, TSize>& rInput,
+        const unsigned int RowIndex,
+        const unsigned int ColumnIndex)
+    {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(RowIndex >= rOutput.size1())
+            << "RowIndex is larger than or equal to rOutput number of rows. [ "
+               "rOutput.size1() = "
+            << rOutput.size1() << ", RowIndex = " << RowIndex << " ].\n";
+
+        KRATOS_DEBUG_ERROR_IF(ColumnIndex + TSize > rOutput.size2())
+            << "rOutput matrix does not have sufficient number of columns [ "
+               "rOutput.size2() = "
+            << rOutput.size2() << ", ColumnIndex = " << ColumnIndex
+            << ", TSize = " << TSize << " ].\n";
+
+        for (unsigned int i = 0; i < TSize; ++i) {
+            rOutput(RowIndex, ColumnIndex + i) += rInput[i];
+        }
+
+        KRATOS_CATCH("");
+    }
+
     ///@}
 
 private:
