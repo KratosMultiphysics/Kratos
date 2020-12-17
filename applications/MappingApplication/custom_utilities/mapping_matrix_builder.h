@@ -42,7 +42,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-template<bool IsDistributed>
+template<bool TIsDistributed>
 class KRATOS_API(MAPPING_APPLICATION) MappingMatrixBuilder
 {
 public:
@@ -52,14 +52,14 @@ public:
     /// Pointer definition of MappingMatrixBuilder
     KRATOS_CLASS_POINTER_DEFINITION(MappingMatrixBuilder);
 
-    using GraphType = typename std::conditional<IsDistributed, DistributedSparseGraph<std::size_t>, SparseGraph<>>::type;
+    using GraphType = typename std::conditional<TIsDistributed, DistributedSparseGraph<std::size_t>, SparseGraph<>>::type;
 
-    using MappingMatrixType = typename std::conditional<IsDistributed,
+    using MappingMatrixType = typename std::conditional<TIsDistributed,
         DistributedCsrMatrix<>,
         CsrMatrix<>>::type;
     using MappingMatrixPointerType = Kratos::unique_ptr<MappingMatrixType>;
 
-    using InterfaceVectorType = typename std::conditional<IsDistributed,
+    using InterfaceVectorType = typename std::conditional<TIsDistributed,
         DistributedSystemVector<>,
         SystemVector<>>::type;
     using InterfaceVectorPointerType = Kratos::unique_ptr<InterfaceVectorType>;

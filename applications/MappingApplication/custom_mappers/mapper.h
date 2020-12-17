@@ -25,6 +25,8 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/flags.h"
+#include "containers/csr_matrix.h"
+#include "containers/distributed_csr_matrix.h"
 
 
 namespace Kratos
@@ -50,9 +52,11 @@ public:
     /// Pointer definition of Mapper
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
-    typedef Kratos::unique_ptr<Mapper> MapperUniquePointerType;
+    using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
 
-    typedef typename TSparseSpace::MatrixType TMappingMatrixType;
+    using MappingMatrixType = typename std::conditional<TIsDistributed,
+        DistributedCsrMatrix<>,
+        CsrMatrix<>>::type;
 
     ///@}
     ///@name Life Cycle
@@ -156,7 +160,7 @@ public:
      * @brief This method returns the mapping-matrix
      * @return Reference to the mapping-matrix
      */
-    virtual TMappingMatrixType& GetMappingMatrix()
+    virtual MappingMatrixType& GetMappingMatrix()
     {
         KRATOS_ERROR << "This mapper doesn't implement \"GetMappingMatrix\"!" << std::endl;
     }
