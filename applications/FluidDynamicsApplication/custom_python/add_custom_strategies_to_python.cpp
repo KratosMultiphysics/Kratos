@@ -39,6 +39,8 @@
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
 
+#include "custom_strategies/schemes/simple_steady_slip_adjoint_scheme.h"
+
 // sensitivity builder schemes
 #include "custom_strategies/schemes/simple_steady_slip_sensitivity_builder_scheme.h"
 
@@ -121,6 +123,13 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         BaseSchemeType>(m, "BDF2TurbulentScheme")
     .def(py::init<>())                 // default constructor
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
+    ;
+
+    py::class_<
+        SimpleSteadySlipAdjointScheme<SparseSpaceType, LocalSpaceType>,
+        typename SimpleSteadySlipAdjointScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "SimpleSteadySlipAdjointScheme")
+    .def(py::init<AdjointResponseFunction::Pointer>())
     ;
 
     py::class_<SimpleSteadySlipSensitivityBuilderScheme,
