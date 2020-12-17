@@ -125,7 +125,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def setUp(self):
         self.check_tolerance = 1e-6
         self.print_output = False
-        self.print_reference_values = True
+        self.print_reference_values = False
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
