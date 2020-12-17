@@ -110,7 +110,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 self.settings["scheme_settings"],
                 response_function)
         elif scheme_type == "steady":
-            scheme = KratosCFD.SimpleSteadySlipAdjointScheme(response_function)
+            scheme = KratosCFD.SimpleSteadyAdjointScheme(response_function)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme

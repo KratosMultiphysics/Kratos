@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_SIMPLE_STEADY_SLIP_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED)
-#define KRATOS_SIMPLE_STEADY_SLIP_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED
+#if !defined(KRATOS_SIMPLE_STEADY_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED)
+#define KRATOS_SIMPLE_STEADY_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED
 
 // System includes
 
@@ -26,6 +26,7 @@
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "response_functions/adjoint_response_function.h"
 #include "solving_strategies/schemes/sensitivity_builder_scheme.h"
+#include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/sensitivity_builder.h"
@@ -38,13 +39,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class SimpleSteadySlipSensitivityBuilderScheme : public SensitivityBuilderScheme
+class SimpleSteadySensitivityBuilderScheme : public SensitivityBuilderScheme
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(SimpleSteadySlipSensitivityBuilderScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(SimpleSteadySensitivityBuilderScheme);
 
     using BaseType = SensitivityBuilderScheme;
 
@@ -59,14 +60,14 @@ public:
     ///@{
 
     /// Constructor.
-    SimpleSteadySlipSensitivityBuilderScheme()
+    SimpleSteadySensitivityBuilderScheme()
         : SensitivityBuilderScheme()
     {
         // Allocate auxiliary memory.
         // This needs to be done in the constructor because, this scheme
         // is used to calculate sensitivities w.r.t. element quantities
         // and in there we don't usually pass the model part. Hence, we
-        // can not call SimpleSteadySlipSensitivityBuilderScheme::Initialize
+        // can not call SimpleSteadySensitivityBuilderScheme::Initialize
         // method.
         const int number_of_threads = OpenMPUtils::GetNumThreads();
         mAuxVectors.resize(number_of_threads);
@@ -75,7 +76,7 @@ public:
     }
 
     /// Destructor.
-    ~SimpleSteadySlipSensitivityBuilderScheme() = default;
+    ~SimpleSteadySensitivityBuilderScheme() = default;
 
     ///@}
     ///@name Operations
@@ -95,14 +96,14 @@ public:
         // assign domain size specific methods
         if (mDomainSize == 2) {
             this->mAddNodalRotatedResidualDerivativeToMatrix =
-                &SimpleSteadySlipSensitivityBuilderScheme::AddNodalRotatedResidualDerivativeToMatrix<2>;
+                &SimpleSteadySensitivityBuilderScheme::AddNodalRotatedResidualDerivativeToMatrix<2>;
             this->mAddNodalResidualDerivativeToMatrix =
-                &SimpleSteadySlipSensitivityBuilderScheme::AddNodalResidualDerivativeToMatrix<2>;
+                &SimpleSteadySensitivityBuilderScheme::AddNodalResidualDerivativeToMatrix<2>;
         } else if (mDomainSize == 3) {
             this->mAddNodalRotatedResidualDerivativeToMatrix =
-                &SimpleSteadySlipSensitivityBuilderScheme::AddNodalRotatedResidualDerivativeToMatrix<3>;
+                &SimpleSteadySensitivityBuilderScheme::AddNodalRotatedResidualDerivativeToMatrix<3>;
             this->mAddNodalResidualDerivativeToMatrix =
-                &SimpleSteadySlipSensitivityBuilderScheme::AddNodalResidualDerivativeToMatrix<3>;
+                &SimpleSteadySensitivityBuilderScheme::AddNodalResidualDerivativeToMatrix<3>;
         } else {
             KRATOS_ERROR << "Unsupported domain size [ mDomainSize = " << mDomainSize
                          << " ].\n";
@@ -381,7 +382,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "SimpleSteadySlipSensitivityBuilderScheme";
+        return "SimpleSteadySensitivityBuilderScheme";
     }
 
     ///@}
@@ -394,7 +395,7 @@ private:
     std::vector<Vector> mAuxVectors;
     std::vector<Matrix> mRotatedSensitivityMatrices;
 
-    void (SimpleSteadySlipSensitivityBuilderScheme::*mAddNodalRotatedResidualDerivativeToMatrix)(
+    void (SimpleSteadySensitivityBuilderScheme::*mAddNodalRotatedResidualDerivativeToMatrix)(
         Matrix&,
         const Matrix&,
         const Vector&,
@@ -402,7 +403,7 @@ private:
         const GlobalPointersUnorderedMap<NodeType, int>&,
         const NodeType&);
 
-    void (SimpleSteadySlipSensitivityBuilderScheme::*mAddNodalResidualDerivativeToMatrix)(
+    void (SimpleSteadySensitivityBuilderScheme::*mAddNodalResidualDerivativeToMatrix)(
         Matrix&, const Matrix&, const unsigned int);
 
     int mDomainSize;
@@ -667,10 +668,10 @@ private:
 
     ///@}
 
-}; /* Class SimpleSteadySlipSensitivityBuilderScheme */
+}; /* Class SimpleSteadySensitivityBuilderScheme */
 
 ///@}
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_SIMPLE_STEADY_SLIP_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED defined */
+#endif /* KRATOS_SIMPLE_STEADY_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED defined */

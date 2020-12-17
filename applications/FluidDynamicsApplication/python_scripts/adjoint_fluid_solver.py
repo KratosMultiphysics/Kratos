@@ -132,7 +132,7 @@ class AdjointFluidSolver(FluidSolver):
 
     def __CreateSensitivityBuilder(self):
         response_function = self.GetResponseFunction()
-        self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySlipSensitivityBuilderScheme()
+        self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme()
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.settings["sensitivity_settings"],
             self.main_model_part,

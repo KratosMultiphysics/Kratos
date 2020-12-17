@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_SIMPLE_STEADY_SLIP_ADJOINT_SCHEME_H_INCLUDED)
-#define KRATOS_SIMPLE_STEADY_SLIP_ADJOINT_SCHEME_H_INCLUDED
+#if !defined(KRATOS_SIMPLE_STEADY_ADJOINT_SCHEME_H_INCLUDED)
+#define KRATOS_SIMPLE_STEADY_ADJOINT_SCHEME_H_INCLUDED
 
 // System includes
 #include <vector>
@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
+#include "utilities/coordinate_transformation_utilities.h"
 
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"
@@ -43,13 +44,13 @@ namespace Kratos
  * \f$\partial_{\mathbf{w}}J^{T}\f$ is returned by ResponseFunction::CalculateFirstDerivativesGradient.
  */
 template <class TSparseSpace, class TDenseSpace>
-class SimpleSteadySlipAdjointScheme : public ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>
+class SimpleSteadyAdjointScheme : public ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(SimpleSteadySlipAdjointScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(SimpleSteadyAdjointScheme);
 
     using BaseType = ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>;
 
@@ -66,7 +67,7 @@ public:
     ///@{
 
     /// Constructor.
-    explicit SimpleSteadySlipAdjointScheme(
+    explicit SimpleSteadyAdjointScheme(
         AdjointResponseFunction::Pointer pResponseFunction)
         : ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>(pResponseFunction)
     {
@@ -75,7 +76,7 @@ public:
     }
 
     /// Destructor.
-    ~SimpleSteadySlipAdjointScheme() override
+    ~SimpleSteadyAdjointScheme() override
     {
     }
 
@@ -92,14 +93,14 @@ public:
         // assign domain size specific methods
         if (domain_size == 2) {
             this->mAddNodalRotatedResidualDerivativeToMatrix =
-                &SimpleSteadySlipAdjointScheme::AddNodalRotatedResidualDerivativeToMatrix<2>;
+                &SimpleSteadyAdjointScheme::AddNodalRotatedResidualDerivativeToMatrix<2>;
             this->mAddNodalResidualDerivativeToMatrix =
-                &SimpleSteadySlipAdjointScheme::AddNodalResidualDerivativeToMatrix<2>;
+                &SimpleSteadyAdjointScheme::AddNodalResidualDerivativeToMatrix<2>;
         } else if (domain_size == 3) {
             this->mAddNodalRotatedResidualDerivativeToMatrix =
-                &SimpleSteadySlipAdjointScheme::AddNodalRotatedResidualDerivativeToMatrix<3>;
+                &SimpleSteadyAdjointScheme::AddNodalRotatedResidualDerivativeToMatrix<3>;
             this->mAddNodalResidualDerivativeToMatrix =
-                &SimpleSteadySlipAdjointScheme::AddNodalResidualDerivativeToMatrix<3>;
+                &SimpleSteadyAdjointScheme::AddNodalResidualDerivativeToMatrix<3>;
         } else {
             KRATOS_ERROR << "Unsupported domain size [ domain_size = " << domain_size
                          << " ].\n";
@@ -174,13 +175,13 @@ private:
 
     std::vector<Matrix> mAuxMatrices;
 
-    void (SimpleSteadySlipAdjointScheme::*mAddNodalRotatedResidualDerivativeToMatrix)(
+    void (SimpleSteadyAdjointScheme::*mAddNodalRotatedResidualDerivativeToMatrix)(
         Matrix&,
         const Matrix&,
         const IndexType,
         const NodeType&);
 
-    void (SimpleSteadySlipAdjointScheme::*mAddNodalResidualDerivativeToMatrix)(
+    void (SimpleSteadyAdjointScheme::*mAddNodalResidualDerivativeToMatrix)(
         Matrix&, const Matrix&, const IndexType);
 
 
@@ -321,7 +322,7 @@ private:
 
     ///@}
 
-}; /* Class SimpleSteadySlipAdjointScheme */
+}; /* Class SimpleSteadyAdjointScheme */
 
 ///@}
 
@@ -332,4 +333,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_SIMPLE_STEADY_SLIP_ADJOINT_SCHEME_H_INCLUDED defined */
+#endif /* KRATOS_SIMPLE_STEADY_ADJOINT_SCHEME_H_INCLUDED defined */

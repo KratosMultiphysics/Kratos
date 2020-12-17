@@ -39,10 +39,11 @@
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
 
-#include "custom_strategies/schemes/simple_steady_slip_adjoint_scheme.h"
+// adjoint schemes
+#include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
 
 // sensitivity builder schemes
-#include "custom_strategies/schemes/simple_steady_slip_sensitivity_builder_scheme.h"
+#include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -125,17 +126,16 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
 
-    py::class_<
-        SimpleSteadySlipAdjointScheme<SparseSpaceType, LocalSpaceType>,
-        typename SimpleSteadySlipAdjointScheme<SparseSpaceType, LocalSpaceType>::Pointer,
-        BaseSchemeType>(m, "SimpleSteadySlipAdjointScheme")
-    .def(py::init<AdjointResponseFunction::Pointer>())
-    ;
+    py::class_<SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>,
+               typename SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>::Pointer, BaseSchemeType>
+        (m, "SimpleSteadyAdjointScheme")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+        ;
 
-    py::class_<SimpleSteadySlipSensitivityBuilderScheme,
-               typename SimpleSteadySlipSensitivityBuilderScheme::Pointer, SensitivityBuilderScheme>(
-        m, "SimpleSteadySlipSensitivityBuilderScheme")
-        .def(py::init());
+    py::class_<SimpleSteadySensitivityBuilderScheme, typename SimpleSteadySensitivityBuilderScheme::Pointer, SensitivityBuilderScheme>
+        (m, "SimpleSteadySensitivityBuilderScheme")
+        .def(py::init())
+        ;
 }
 
 } // namespace Python.
