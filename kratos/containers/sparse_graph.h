@@ -294,21 +294,21 @@ public:
     ///@}
     ///@name Access
     ///@{
-    class const_iterator_adaptor : public std::iterator<
+    class const_iterator : public std::iterator<
         std::forward_iterator_tag,
         typename GraphType::value_type
         >
 	{
 		const_row_iterator map_iterator;
 	public:
-		const_iterator_adaptor(const_row_iterator it) :map_iterator(it) {}
-		const_iterator_adaptor(const const_iterator_adaptor& it)
+		const_iterator(const_row_iterator it) :map_iterator(it) {}
+		const_iterator(const const_iterator& it)
             : map_iterator(it.map_iterator) {}
-		const_iterator_adaptor& operator++() { map_iterator++; return *this; }
-		const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
-		bool operator==(const const_iterator_adaptor& rhs) const
+		const_iterator& operator++() { map_iterator++; return *this; }
+		const_iterator operator++(int) { const_iterator tmp(*this); operator++(); return tmp; }
+		bool operator==(const const_iterator& rhs) const
             { return map_iterator == rhs.map_iterator; }
-		bool operator!=(const const_iterator_adaptor& rhs) const
+		bool operator!=(const const_iterator& rhs) const
             { return map_iterator != rhs.map_iterator; }
         //TODO: is it correct that the two following operators are the same?
 		const typename GraphType::mapped_type& operator*() const { return (map_iterator->second); }
@@ -320,13 +320,13 @@ public:
         }
 	};
 
-    const_iterator_adaptor begin() const
+    const_iterator begin() const
     {
-        return const_iterator_adaptor( mGraph.begin() );
+        return const_iterator( mGraph.begin() );
     }
-    const_iterator_adaptor end() const
+    const_iterator end() const
     {
-        return const_iterator_adaptor( mGraph.end() );
+        return const_iterator( mGraph.end() );
     }
 
 
