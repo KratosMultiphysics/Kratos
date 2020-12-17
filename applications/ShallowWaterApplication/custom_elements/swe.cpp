@@ -32,17 +32,6 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo) co
     int err = Element::Check(rCurrentProcessInfo);
     if(err != 0) return err;
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(MOMENTUM)
-    KRATOS_CHECK_VARIABLE_KEY(FREE_SURFACE_ELEVATION)
-    KRATOS_CHECK_VARIABLE_KEY(TOPOGRAPHY)
-    KRATOS_CHECK_VARIABLE_KEY(RAIN)
-    KRATOS_CHECK_VARIABLE_KEY(MANNING)
-    KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
-    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
-    KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
-    KRATOS_CHECK_VARIABLE_KEY(WATER_HEIGHT_UNIT_CONVERTER)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( size_t i = 0; i < TNumNodes; i++ )
     {
