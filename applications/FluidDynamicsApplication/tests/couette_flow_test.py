@@ -14,7 +14,7 @@ class CouetteFlowTest(KratosUnittest.TestCase):
 
     def testCouetteFlow2DWeaklyCompressibleNavierStokes(self):
         self.solver_type = "Monolithic"
-        self.element_type = "symbolic"
+        self.element_type = "weakly_compressible"
         self.time_scheme = "bdf2"
         self._CustomizeTestSettings()
         self._RunCouetteFlowTest()
