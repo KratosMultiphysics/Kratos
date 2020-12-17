@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
+
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"
 
@@ -77,10 +78,6 @@ public:
     ~SimpleSteadySlipAdjointScheme() override
     {
     }
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
@@ -171,36 +168,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -216,14 +183,6 @@ private:
     void (SimpleSteadySlipAdjointScheme::*mAddNodalResidualDerivativeToMatrix)(
         Matrix&, const Matrix&, const IndexType);
 
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     ///@}
     ///@name Private Operations
