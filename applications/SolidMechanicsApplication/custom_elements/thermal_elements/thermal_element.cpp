@@ -124,7 +124,7 @@ void ThermalElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInf
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void ThermalElement::GetValuesVector( Vector& rValues, int Step )
+void ThermalElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes;
@@ -140,7 +140,7 @@ void ThermalElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void ThermalElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void ThermalElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes;
@@ -156,7 +156,7 @@ void ThermalElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes;

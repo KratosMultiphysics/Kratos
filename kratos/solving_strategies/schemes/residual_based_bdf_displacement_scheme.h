@@ -332,12 +332,6 @@ public:
         const int err = BDFBaseType::Check(rModelPart);
         if(err!=0) return err;
 
-        // Check for variables keys
-        // Verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-
         // Check that variables are correctly allocated
         for(auto& rnode : rModelPart.Nodes()) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)

@@ -249,9 +249,15 @@ namespace Kratos
             }
         }
 
+        if (domain_dofs == 0){
+            const std::string domain = (solverIndex == SolverIndex::Origin) ? "Origin" : "Destination";
+            KRATOS_ERROR << "Zero domain DOFs in " << domain
+                << ". Please check newmark properties in the cosim params align with individual solver time schemes.\n";
+        }
+
         DenseMatrixType temp(rInterfaceMP.NumberOfNodes() * dim, domain_dofs, 0.0);
 
-        block_for_each(rInterfaceMP.Nodes(), [&](Node<3>& rNode)
+        block_for_each(rInterfaceMP.Nodes(), [&](const Node<3>& rNode)
             {
                 IndexType interface_equation_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 IndexType domain_equation_id = (is_implicit)

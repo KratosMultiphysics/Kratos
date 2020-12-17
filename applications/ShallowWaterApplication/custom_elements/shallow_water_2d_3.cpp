@@ -33,19 +33,6 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(MOMENTUM)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(HEIGHT)
-    KRATOS_CHECK_VARIABLE_KEY(BATHYMETRY)
-    KRATOS_CHECK_VARIABLE_KEY(RAIN)
-    KRATOS_CHECK_VARIABLE_KEY(MANNING)
-    KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
-    KRATOS_CHECK_VARIABLE_KEY(ATMOSPHERIC_PRESSURE)
-    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
-    KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
-    KRATOS_CHECK_VARIABLE_KEY(SHOCK_STABILIZATION_FACTOR)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& node : this->GetGeometry())
     {
