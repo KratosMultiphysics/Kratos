@@ -264,7 +264,7 @@ protected:
     constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
 
     ///@}
-    ///@name Member Variables
+    ///@name Protected member Variables
     ///@{
 
     // Velocity subscale history, stored at integration points
@@ -275,10 +275,6 @@ protected:
     std::vector< double > mSubscaleIterationError;
     std::vector< unsigned int > mSubscaleIterationCount;
     #endif
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
 
 
     ///@}
@@ -329,7 +325,6 @@ protected:
 
     void UpdateSubscaleVelocityPrediction(
         const TElementData& rData);
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -351,6 +346,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     ///@}
     ///@name Serialization
@@ -370,7 +368,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
