@@ -91,8 +91,8 @@ private:
 //      master  =   interface destination
 //      slave   =   interface origin
 
-template<class TSparseSpace, class TDenseSpace>
-class CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
+template<bool TIsDistributed>
+class CouplingGeometryMapper : public Mapper<TIsDistributed>
 {
 public:
 
@@ -104,7 +104,7 @@ public:
     /// Pointer definition of CouplingGeometryMapper
     KRATOS_CLASS_POINTER_DEFINITION(CouplingGeometryMapper);
 
-    typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
+    typedef Mapper<TIsDistributed> BaseType;
 
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;

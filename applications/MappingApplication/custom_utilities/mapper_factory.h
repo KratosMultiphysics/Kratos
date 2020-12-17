@@ -61,8 +61,8 @@ public:
     ///@name Operations
     ///@{
 
-    template<class TSparseSpace, class TDenseSpace>
-    static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
+    template<bool TIsDistributed>
+    static typename Mapper<TIsDistributed>::Pointer CreateMapper(
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
         Parameters MapperSettings)
@@ -70,13 +70,13 @@ public:
         ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
         ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
 
-        KRATOS_ERROR_IF(!TSparseSpace::IsDistributed() && (r_interface_model_part_origin.IsDistributed() || r_interface_model_part_destination.IsDistributed())) << "Trying to construct a non-MPI Mapper with a distributed ModelPart. Please use \"CreateMPIMapper\" instead!" << std::endl;
+        KRATOS_ERROR_IF(!TIsDistributed && (r_interface_model_part_origin.IsDistributed() || r_interface_model_part_destination.IsDistributed())) << "Trying to construct a non-MPI Mapper with a distributed ModelPart. Please use \"CreateMPIMapper\" instead!" << std::endl;
 
-        KRATOS_ERROR_IF(TSparseSpace::IsDistributed() && !r_interface_model_part_origin.IsDistributed() && !r_interface_model_part_destination.IsDistributed()) << "Trying to construct a MPI Mapper without a distributed ModelPart. Please use \"CreateMapper\" instead!" << std::endl;
+        KRATOS_ERROR_IF(TIsDistributed && !r_interface_model_part_origin.IsDistributed() && !r_interface_model_part_destination.IsDistributed()) << "Trying to construct a MPI Mapper without a distributed ModelPart. Please use \"CreateMapper\" instead!" << std::endl;
 
         const std::string mapper_name = MapperSettings["mapper_type"].GetString();
 
-        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        const auto& mapper_list = GetRegisteredMappersList<TIsDistributed>();
 
         if (mapper_list.find(mapper_name) != mapper_list.end()) {
             // Removing Parameters that are not needed by the Mapper
@@ -101,25 +101,25 @@ public:
         }
     }
 
-    template<class TSparseSpace, class TDenseSpace>
+    template<bool TIsDistributed>
     static void Register(const std::string& rMapperName,
-                  typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
+                  typename Mapper<TIsDistributed>::Pointer pMapperPrototype)
     {
-        GetRegisteredMappersList<TSparseSpace, TDenseSpace>().insert(
+        GetRegisteredMappersList<TIsDistributed>().insert(
             std::make_pair(rMapperName, pMapperPrototype));
     }
 
-    template<class TSparseSpace, class TDenseSpace>
+    template<bool TIsDistributed>
     static bool HasMapper(const std::string& rMapperName)
     {
-        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        const auto& mapper_list = GetRegisteredMappersList<TIsDistributed>();
         return mapper_list.find(rMapperName) != mapper_list.end();
     }
 
-    template<class TSparseSpace, class TDenseSpace>
+    template<bool TIsDistributed>
     static std::vector<std::string> GetRegisteredMapperNames()
     {
-        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        const auto& mapper_list = GetRegisteredMappersList<TIsDistributed>();
 
         std::vector<std::string> mapper_names;
 
@@ -164,9 +164,8 @@ private:
                                              Parameters InterfaceParameters,
                                              const std::string& InterfaceSide);
 
-    template<class TSparseSpace, class TDenseSpace>
-    static std::unordered_map<std::string, typename Mapper<TSparseSpace,
-        TDenseSpace>::Pointer>& GetRegisteredMappersList();
+    template<bool TIsDistributed>
+    static std::unordered_map<std::string, typename Mapper<TIsDistributed>::Pointer>& GetRegisteredMappersList();
 
     ///@}
 

@@ -38,8 +38,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<class TSparseSpace, class TDenseSpace>
-class KRATOS_API(MAPPING_APPLICATION) InterpolativeMapperBase : public Mapper<TSparseSpace, TDenseSpace>
+template<bool TIsDistributed>
+class KRATOS_API(MAPPING_APPLICATION) InterpolativeMapperBase : public Mapper<TIsDistributed>
 {
 public:
     ///@name Type Definitions
@@ -48,7 +48,7 @@ public:
     /// Pointer definition of InterpolativeMapperBase
     KRATOS_CLASS_POINTER_DEFINITION(InterpolativeMapperBase);
 
-    typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
+    typedef Mapper<TIsDistributed> BaseType;
 
     typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
     typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
@@ -59,10 +59,10 @@ public:
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename std::conditional<TSparseSpace::IsDistributed(), DistributedCsrMatrix<>, CsrMatrix<>>::type TMappingMatrixType; // hack until usage of spaces is removed
+    typedef typename std::conditional<TIsDistributed, DistributedCsrMatrix<>, CsrMatrix<>>::type TMappingMatrixType; // hack until usage of spaces is removed
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
 
-    typedef typename std::conditional<TSparseSpace::IsDistributed(), DistributedSystemVector<>, SystemVector<>>::type TInterfaceVectorType; // hack until usage of spaces is removed
+    typedef typename std::conditional<TIsDistributed, DistributedSystemVector<>, SystemVector<>>::type TInterfaceVectorType; // hack until usage of spaces is removed
 
     using InterfaceVectorContainerType = InterfaceVecContainer<TInterfaceVectorType>;
     using InterfaceVectorContainerPointerType = Kratos::unique_ptr<InterfaceVectorContainerType>;
