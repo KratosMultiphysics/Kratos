@@ -28,6 +28,8 @@
 #include "containers/csr_matrix.h"
 #include "containers/distributed_csr_matrix.h"
 
+#include "custom_utilities/mapper_typedefs.h" // for backward compatibility
+
 
 namespace Kratos
 {
@@ -54,9 +56,11 @@ public:
 
     using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
 
-    using MappingMatrixType = typename std::conditional<TIsDistributed,
-        DistributedCsrMatrix<>,
-        CsrMatrix<>>::type;
+    // using MappingMatrixType = typename std::conditional<TIsDistributed,
+    //     DistributedCsrMatrix<>,
+    //     CsrMatrix<>>::type;
+
+    typedef typename MapperDefinitions::SparseSpaceType::MatrixType MappingMatrixType; // for backward compatibility
 
     ///@}
     ///@name Life Cycle

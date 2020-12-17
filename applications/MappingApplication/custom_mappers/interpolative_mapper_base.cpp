@@ -75,12 +75,12 @@ void InterpolativeMapperBase<TIsDistributed>::BuildMappingMatrix(Kratos::Flags M
     const int echo_level = mMapperSettings["echo_level"].GetInt();
 
     MappingMatrixBuilder<TIsDistributed> matrix_builder(echo_level);
-    matrix_builder.BuildMappingMatrix(
-        mMapperLocalSystems,
-        mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->pGetVector(),
-        mpInterfaceVectorContainerDestination->pGetVector()
-    );
+    // matrix_builder.BuildMappingMatrix(
+    //     mMapperLocalSystems,
+    //     mpMappingMatrix,
+    //     mpInterfaceVectorContainerOrigin->pGetVector(),
+    //     mpInterfaceVectorContainerDestination->pGetVector()
+    // );
 
     // MappingMatrixUtilities::BuildMappingMatrix<TIsDistributed>(
     //     mpMappingMatrix,
@@ -102,8 +102,7 @@ void InterpolativeMapperBase<TIsDistributed>::BuildMappingMatrix(Kratos::Flags M
 }
 
 template<>
-void InterpolativeMapperBase<MapperDefinitions::SparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::InitializeInterfaceCommunicator()
+void InterpolativeMapperBase<false>::InitializeInterfaceCommunicator()
 {
     mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicator>(mrModelPartOrigin,
                                                                         mMapperLocalSystems,
@@ -112,8 +111,7 @@ void InterpolativeMapperBase<MapperDefinitions::SparseSpaceType,
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 template<>
-void InterpolativeMapperBase<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::InitializeInterfaceCommunicator()
+void InterpolativeMapperBase<true>::InitializeInterfaceCommunicator()
 {
     mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicatorMPI>(mrModelPartOrigin,
                                                                            mMapperLocalSystems,
@@ -253,6 +251,7 @@ void InterpolativeMapperBase<TIsDistributed>::PrintPairingInfo(const int EchoLev
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class InterpolativeMapperBase< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class InterpolativeMapperBase< false >;
+template class InterpolativeMapperBase< true >;
 
 }  // namespace Kratos.
