@@ -59,10 +59,10 @@ public:
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename std::conditional<TIsDistributed, DistributedCsrMatrix<>, CsrMatrix<>>::type TMappingMatrixType; // hack until usage of spaces is removed
+    typedef typename std::conditional<TIsDistributed, DistributedCsrMatrix<>, CsrMatrix<>>::type TMappingMatrixType;
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
 
-    typedef typename std::conditional<TIsDistributed, DistributedSystemVector<>, SystemVector<>>::type TInterfaceVectorType; // hack until usage of spaces is removed
+    typedef typename std::conditional<TIsDistributed, DistributedSystemVector<>, SystemVector<>>::type TInterfaceVectorType;
 
     using InterfaceVectorContainerType = InterfaceVecContainer<TInterfaceVectorType>;
     using InterfaceVectorContainerPointerType = Kratos::unique_ptr<InterfaceVectorContainerType>;
