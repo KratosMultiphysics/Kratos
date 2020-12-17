@@ -26,9 +26,7 @@ The Mapping Application contains the core developments in mapping data between n
 - Mapping operations (see [here](#customizing-the-behavior-of-the-mapping-with-flags))
 
 ### Dependencies
-The serial / shared memory parallel compilation of the Mapping Application doesn't have any dependencies (except the `KratosCore`).
-
-The distributed compilation of the Mapping Application depends on the [Trilinos library](https://trilinos.github.io/). Also most of the MPI-solvers in Kratos depend on Trilinos, see the [Trilinos Application](../TrilinosApplication).
+The MappingApplication depends only on the KratosCore. In for MPI-compilation it also depends on the `KratosMPICore`
 
 ### Mapping in CoSimulation
 The Mapping Application can be used for mapping within the [CoSimulation Application](../CoSimulationApplication). This can be done by using the  [KratosMappingDataTransferOperator](../CoSimulationApplication/python_scripts/data_transfer_operators/kratos_mapping.py).
