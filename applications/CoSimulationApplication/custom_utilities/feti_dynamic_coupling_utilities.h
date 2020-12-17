@@ -78,6 +78,9 @@ namespace Kratos
 
         void EquilibrateDomains();
 
+        void DeformMPMGrid(ModelPart& rGridMP, const array_1d<double, 3> interfaceCentroid,
+            const array_1d<double, 3> interfaceDisplacement, const double radTotalDef, const double radNoDef);
+
     private:
         ModelPart& mrOriginInterfaceModelPart;
         ModelPart& mrDestinationInterfaceModelPart;

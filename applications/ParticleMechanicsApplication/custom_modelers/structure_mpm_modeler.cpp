@@ -160,7 +160,10 @@ namespace Kratos
 
         ModelPart& mpm_background_grid_model_part = p_model_mpm->GetModelPart("Background_Grid");
 
-        UpdateMpmQuadraturePointGeometries<3,
+        //UpdateMpmQuadraturePointGeometries<3,
+        //    typename ModelPart::ConditionsContainerType>(
+        //        coupling_model_part.Conditions(), mpm_background_grid_model_part);
+        UpdateMpmQuadraturePointGeometriesWithFilter<3,
             typename ModelPart::ConditionsContainerType>(
                 coupling_model_part.Conditions(), mpm_background_grid_model_part);
 

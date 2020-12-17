@@ -48,6 +48,8 @@ namespace Python{
                 &FetiDynamicCouplingUtilitiesType::SetMappingMatrix)
             .def("SetLinearSolver",
                 &FetiDynamicCouplingUtilitiesType::SetLinearSolver)
+            .def("DeformMPMGrid",
+                &FetiDynamicCouplingUtilitiesType::DeformMPMGrid)
             ;
 
         pybind11::enum_< FetiSolverIndexType>(m, "FetiSolverIndexType")

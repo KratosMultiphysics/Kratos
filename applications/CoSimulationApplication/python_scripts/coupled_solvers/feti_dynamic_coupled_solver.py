@@ -9,6 +9,8 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 # Other imports
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 
+import numpy as np
+
 def Create(settings, models, solver_name):
     return FetiDynamicCoupledSolver(settings, models, solver_name)
 
@@ -87,6 +89,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         for solver_name, solver in self.solver_wrappers.items():
             if self.SolverSolvesAtThisTime(solver_name):
                 solver.FinalizeSolutionStep()
+                solver_type = str(solver._ClassName())
+                if solver_type == "ParticleMechanicsWrapper":
+                    self.__DeformBackgroundGrid(solver)
+
 
         for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
             if self.__CouplingOpActsNow(coupling_op_name):
@@ -170,14 +176,14 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         # Check consistency of mapper and solver settings
         linear_mapper = self.mapper_parameters["use_initial_configuration"].GetBool()
-        if self.settings["is_linear"].GetBool():
-            # Linear solve must use mapper created from initial config
-            if linear_mapper == False:
-                raise Exception("Check CoSim parameters! If 'is_linear' = true, then mapper 'use_initial_configuration' must be true.")
-        else:
-            # Non-linear solve must use updated mapper
-            if linear_mapper == True:
-                raise Exception("Check CoSim parameters! If 'is_linear' = false, then mapper 'use_initial_configuration' must be false.")
+        #if self.settings["is_linear"].GetBool():
+        #    # Linear solve must use mapper created from initial config
+        #    if linear_mapper == False:
+        #        raise Exception("Check CoSim parameters! If 'is_linear' = true, then mapper 'use_initial_configuration' must be true.")
+        #else:
+        #    # Non-linear solve must use updated mapper
+        #    if linear_mapper == True:
+        #        raise Exception("Check CoSim parameters! If 'is_linear' = false, then mapper 'use_initial_configuration' must be false.")
 
 
         # The origin and destination interfaces from the mapper submitted above are both
@@ -275,6 +281,34 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         else:
             return True #only restrict coupling operations for outputs
 
+    def __DeformBackgroundGrid(self, solver):
+        print("\n\n ================== DEFORMING MPM BACKGROUND GRID ======================== \n\n")
+        grid_mp = solver.model.GetModelPart("Background_Grid")
+        grid_interface_mp = solver.model.GetModelPart("coupling_nodes")
+
+        # compute interface centroid and average displacement
+        print("computing interface averages")
+        interface_centroid = np.array([0.0,0.0,0.0])
+        interface_disp = np.array([0.0,0.0,0.0])
+        interface_counter = 0
+        for interface_node in grid_interface_mp.Nodes:
+            interface_counter += 1
+            pos = np.array([interface_node.X, interface_node.Y, interface_node.Z])
+            interface_centroid += pos
+            disp = interface_node.GetSolutionStepValue(KM.DISPLACEMENT)
+            interface_disp += disp
+        interface_centroid /= interface_counter
+        interface_disp /= interface_counter
+        interface_centroid = interface_centroid.tolist()
+        interface_disp = interface_disp.tolist()
+
+        # Now apply deformation to the mpm grid
+        radius_of_full_deformation = self.settings["deform_mpm_grid_settings"]["radius_of_full_deformation"].GetDouble()
+        radius_of_zero_deformation = self.settings["deform_mpm_grid_settings"]["radius_of_zero_deformation"].GetDouble()
+        self.feti_coupling.DeformMPMGrid(grid_mp,interface_centroid,interface_disp,
+                                         radius_of_full_deformation,radius_of_zero_deformation)
+
+
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
@@ -285,6 +319,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "equilibrium_variable" : "VELOCITY",
             "is_disable_coupling" : false,
             "is_linear" : false,
+            "deform_mpm_grid_settings" : {
+                "radius_of_full_deformation" : 1e9,
+                "radius_of_zero_deformation" : 1e10
+                },
             "linear_solver_settings" : {}
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())

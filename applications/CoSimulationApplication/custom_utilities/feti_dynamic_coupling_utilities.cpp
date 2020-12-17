@@ -892,6 +892,60 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+
+    template<class TSparseSpace, class TDenseSpace>
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DeformMPMGrid(ModelPart& rGridMP, const array_1d<double, 3> interfaceCentroid,
+        const array_1d<double, 3> interfaceDisplacement, const double radTotalDef, const double radNoDef)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(radTotalDef >= radNoDef) << "Total deformation radius must be smaller than zero deformation radius\n";
+        const double interface_disp_norm = norm_2(interfaceDisplacement);
+
+        block_for_each(rGridMP.Nodes(), [&](Node<3>& rNode)
+            {
+                array_1d<double, 3>& r_coords = rNode.Coordinates();
+                bool is_deform = false;
+                double distance;
+                if (rNode.Has(INTERFACE_EQUATION_ID))
+                {
+                    is_deform = true; // always fully deform interface nodes
+                    distance = 0.0;
+                }
+                else if (std::abs(r_coords[0] - interfaceCentroid[0]) <= radNoDef)
+                {
+                    if (std::abs(r_coords[1] - interfaceCentroid[1]) <= radNoDef)
+                    {
+                        distance = norm_2(interfaceCentroid - r_coords);
+                        if (distance < radNoDef)
+                        {
+                            is_deform = true;
+                        }
+                    }
+                }
+
+                if (is_deform)
+                {
+                    array_1d<double, 3> r_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                    if (norm_2(r_disp) / interface_disp_norm < 0.5) r_disp = interfaceDisplacement;
+
+                    if (distance > radTotalDef)
+                    {
+                        const double deformation_fraction = 1.0 - (distance - radTotalDef) / (radNoDef - radTotalDef);
+                        r_disp *= deformation_fraction;
+                    }
+                    r_coords += r_disp;
+                    rNode.X0() += r_disp[0];
+                    rNode.Y0() += r_disp[1];
+                    rNode.Z0() += r_disp[2];
+                }
+
+            }
+        );
+
+        KRATOS_CATCH("")
+    }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 template class FetiDynamicCouplingUtilities< UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>, UblasSpace<double, Matrix, Vector> >;
