@@ -32,10 +32,9 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     ModelPart& model_part = model.CreateModelPart("Main",3);
 
     // Variables addition
+    model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(REACTION);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
-    model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -148,8 +147,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector< std::vector<double> > output_cut(6);
-    output_cut[0] = {18.84223125,59.27055831,-0.4453265312,49.82664899,169.3316095,0.3953265312,32.91666657,-24.94122968,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
-    output_cut[1] = {3.777844188,12.13012358,-0.4453264623,42.19438001,129.015059,0.3953264623,32.91666657,-24.94122968,-0.1}; // EmbeddedQSVMSDiscontinuous
+    output_cut[0] = {18.84223125,59.39337635,-0.4453265312,49.82664899,169.5161544,0.3953265312,32.91666657,-24.94122968,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_cut[1] = {3.777844188,12.25294162,-0.4453264623,42.19438001,129.199604,0.3953264623,32.91666657,-24.94122968,-0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test cut element
@@ -177,8 +176,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector< std::vector<double> > output_slip_cut(6);
-    output_slip_cut[0] = {18.84227218,59.27060024,-0.4453265312,49.82660608,169.3315676,0.3953265312,32.91666667,-24.94122968,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
-    output_slip_cut[1] = {3.777885122,12.1301655,-0.4453264623,42.1943371,129.0150171,0.3953264623,32.91666667,-24.94122968,-0.1}; // EmbeddedQSVMSDiscontinuous
+    output_slip_cut[0] = {18.84227218,59.39341828,-0.4453265312,49.82660608,169.5161125,0.3953265312,32.91666667,-24.94122968,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_slip_cut[1] = {3.777885122,12.25298355,-0.4453264623,42.1943371,129.199562,0.3953264623,32.91666667,-24.94122968,-0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test slip cut element

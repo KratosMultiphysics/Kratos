@@ -683,7 +683,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     const auto& r_geom = this->GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
-    array_1d<double,3> gauss_pt_v = rN(0) * row(rData.Velocity, 0);
+    array_1d<double,Dim> gauss_pt_v = rN(0) * row(rData.Velocity, 0);
     for (unsigned int i_node = 1;  i_node < n_nodes; ++i_node) {
         gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
         noalias(gauss_pt_v) += rN(i_node) * row(rData.Velocity, i_node);
@@ -800,7 +800,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
     const auto& r_geom = this->GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
-    array_1d<double,3> gauss_pt_v = rN(0) * row(rData.Velocity, 0);
+    array_1d<double,Dim> gauss_pt_v = rN(0) * row(rData.Velocity, 0);
     for (unsigned int i_node = 1;  i_node < n_nodes; ++i_node) {
         gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
         noalias(gauss_pt_v) += rN(i_node) * row(rData.Velocity, i_node);
