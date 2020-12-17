@@ -5,7 +5,6 @@ FILE(GLOB_RECURSE MUPARSER_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/muparser/*.cpp")
 
 # Compile library
 ADD_LIBRARY(muparser STATIC ${MUPARSER_SOURCES})
-TARGET_LINK_LIBRARIES(muparser m)
 
 # In case of using Cotire
 IF(USE_COTIRE MATCHES ON)
