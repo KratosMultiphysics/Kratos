@@ -38,7 +38,7 @@ namespace Kratos
 /** This is the base class for every mapper. This is the equivalent to a Kratos-SolvingStrategy.
  * It provides the basic interface for the mapping operations
 */
-template<class TSparseSpace, class TDenseSpace>
+template<bool TIsDistributed>
 class Mapper
 {
 public:
@@ -204,7 +204,7 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
         rOStream << "Mapper working in: ";
-        if (TSparseSpace::IsDistributed()){
+        if (TIsDistributed){
             rOStream << "MPI";
         } else {
             rOStream << "OpenMP";
@@ -214,10 +214,10 @@ public:
 }; // Class Mapper
 
 /// output stream function
-template<class TSparseSpace, class TDenseSpace>
+template<bool TIsDistributed>
 inline std::ostream & operator << (
     std::ostream& rOStream,
-    const Mapper<TSparseSpace, TDenseSpace>& rThis)
+    const Mapper<TIsDistributed>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << ":" << std::endl;
