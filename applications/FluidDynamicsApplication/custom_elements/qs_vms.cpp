@@ -17,7 +17,6 @@
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
-#include "custom_utilities/dvms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/fluid_element_time_integration_detail.h"
 
@@ -797,8 +796,6 @@ template class QSVMS< QSVMSDEMCoupledData<2,3> >;
 template class QSVMS< QSVMSDEMCoupledData<3,4> >;
 
 template class QSVMS< QSVMSDEMCoupledData<2,4> >;
-template class QSVMS< QSVMSDEMCoupledData<3,8> >;
+template class QSVMS< QSVMSDEMCoupledData<3F,8> >;
 
-template class QSVMS< DVMSDEMCoupledData<2,3> >;
-template class QSVMS< DVMSDEMCoupledData<3,4> >;
 } // namespace Kratos
