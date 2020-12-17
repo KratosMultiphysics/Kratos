@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RESIDUAL_BASED_SIMPLE_STEADY_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED)
-#define KRATOS_RESIDUAL_BASED_SIMPLE_STEADY_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED
+#if !defined(KRATOS_SIMPLE_STEADY_SLIP_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED)
+#define KRATOS_SIMPLE_STEADY_SLIP_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED
 
 // System includes
 
@@ -35,13 +35,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class ResidualBasedSimpleSteadySensitivityBuilderScheme : public SensitivityBuilderScheme
+class SimpleSteadySlipSensitivityBuilderScheme : public SensitivityBuilderScheme
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedSimpleSteadySensitivityBuilderScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(SimpleSteadySlipSensitivityBuilderScheme);
 
     using BaseType = SensitivityBuilderScheme;
 
@@ -56,14 +56,14 @@ public:
     ///@{
 
     /// Constructor.
-    ResidualBasedSimpleSteadySensitivityBuilderScheme()
+    SimpleSteadySlipSensitivityBuilderScheme()
         : SensitivityBuilderScheme()
     {
         // Allocate auxiliary memory.
         // This needs to be done in the constructor because, this scheme
         // is used to calculate sensitivities w.r.t. element quantities
         // and in there we don't usually pass the model part. Hence, we
-        // can not call ResidualBasedSimpleSteadySensitivityBuilderScheme::Initialize
+        // can not call SimpleSteadySlipSensitivityBuilderScheme::Initialize
         // method.
         const int number_of_threads = OpenMPUtils::GetNumThreads();
         mAuxVectors.resize(number_of_threads);
@@ -72,7 +72,7 @@ public:
     }
 
     /// Destructor.
-    ~ResidualBasedSimpleSteadySensitivityBuilderScheme() = default;
+    ~SimpleSteadySlipSensitivityBuilderScheme() = default;
 
     ///@}
     ///@name Operations
@@ -92,14 +92,14 @@ public:
         // assign domain size specific methods
         if (mDomainSize == 2) {
             this->mAddNodalRotatedResidualDerivativeToMatrix =
-                &ResidualBasedSimpleSteadySensitivityBuilderScheme::AddNodalRotatedResidualDerivativeToMatrix<2>;
+                &SimpleSteadySlipSensitivityBuilderScheme::AddNodalRotatedResidualDerivativeToMatrix<2>;
             this->mAddNodalResidualDerivativeToMatrix =
-                &ResidualBasedSimpleSteadySensitivityBuilderScheme::AddNodalResidualDerivativeToMatrix<2>;
+                &SimpleSteadySlipSensitivityBuilderScheme::AddNodalResidualDerivativeToMatrix<2>;
         } else if (mDomainSize == 3) {
             this->mAddNodalRotatedResidualDerivativeToMatrix =
-                &ResidualBasedSimpleSteadySensitivityBuilderScheme::AddNodalRotatedResidualDerivativeToMatrix<3>;
+                &SimpleSteadySlipSensitivityBuilderScheme::AddNodalRotatedResidualDerivativeToMatrix<3>;
             this->mAddNodalResidualDerivativeToMatrix =
-                &ResidualBasedSimpleSteadySensitivityBuilderScheme::AddNodalResidualDerivativeToMatrix<3>;
+                &SimpleSteadySlipSensitivityBuilderScheme::AddNodalResidualDerivativeToMatrix<3>;
         } else {
             KRATOS_ERROR << "Unsupported domain size [ mDomainSize = " << mDomainSize
                          << " ].\n";
@@ -378,7 +378,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ResidualBasedSimpleSteadySensitivityBuilderScheme";
+        return "SimpleSteadySlipSensitivityBuilderScheme";
     }
 
     ///@}
@@ -391,7 +391,7 @@ private:
     std::vector<Vector> mAuxVectors;
     std::vector<Matrix> mRotatedSensitivityMatrices;
 
-    void (ResidualBasedSimpleSteadySensitivityBuilderScheme::*mAddNodalRotatedResidualDerivativeToMatrix)(
+    void (SimpleSteadySlipSensitivityBuilderScheme::*mAddNodalRotatedResidualDerivativeToMatrix)(
         Matrix&,
         const Matrix&,
         const Vector&,
@@ -399,7 +399,7 @@ private:
         const GlobalPointersUnorderedMap<NodeType, int>&,
         const NodeType&);
 
-    void (ResidualBasedSimpleSteadySensitivityBuilderScheme::*mAddNodalResidualDerivativeToMatrix)(
+    void (SimpleSteadySlipSensitivityBuilderScheme::*mAddNodalResidualDerivativeToMatrix)(
         Matrix&, const Matrix&, const unsigned int);
 
     int mDomainSize;
@@ -724,10 +724,10 @@ private:
 
     ///@}
 
-}; /* Class ResidualBasedSimpleSteadySensitivityBuilderScheme */
+}; /* Class SimpleSteadySlipSensitivityBuilderScheme */
 
 ///@}
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_RESIDUAL_BASED_SIMPLE_STEADY_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED defined */
+#endif /* KRATOS_SIMPLE_STEADY_SLIP_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED defined */

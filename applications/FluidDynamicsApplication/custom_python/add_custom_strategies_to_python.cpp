@@ -40,7 +40,7 @@
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
 
 // sensitivity builder schemes
-#include "custom_strategies/schemes/residualbased_simple_steady_sensitivity_builder_scheme.h"
+#include "custom_strategies/schemes/simple_steady_slip_sensitivity_builder_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -123,9 +123,9 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
 
-    py::class_<ResidualBasedSimpleSteadySensitivityBuilderScheme,
-               typename ResidualBasedSimpleSteadySensitivityBuilderScheme::Pointer, SensitivityBuilderScheme>(
-        m, "ResidualBasedSimpleSteadySensitivityBuilderScheme")
+    py::class_<SimpleSteadySlipSensitivityBuilderScheme,
+               typename SimpleSteadySlipSensitivityBuilderScheme::Pointer, SensitivityBuilderScheme>(
+        m, "SimpleSteadySlipSensitivityBuilderScheme")
         .def(py::init());
 }
 
