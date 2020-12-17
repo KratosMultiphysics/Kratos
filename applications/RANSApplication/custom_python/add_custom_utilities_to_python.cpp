@@ -50,8 +50,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CopyNodalSolutionStepVariablesList", &RansVariableUtilities::CopyNodalSolutionStepVariablesList)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<double>)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>)
-        .def("SetContainerConstitutiveLaws", &RansVariableUtilities::SetContainerConstitutiveLaws<ModelPart::ConditionsContainerType>)
-        .def("SetContainerConstitutiveLaws", &RansVariableUtilities::SetContainerConstitutiveLaws<ModelPart::ElementsContainerType>)
+        .def("SetContainerConstitutiveLaws", &RansVariableUtilities::SetContainerConstitutiveLaws)
         ;
 
     m.def_submodule("RansCalculationUtilities")

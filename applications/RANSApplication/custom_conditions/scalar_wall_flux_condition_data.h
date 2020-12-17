@@ -44,7 +44,7 @@ public:
         const ProcessInfo& rProcessInfo)
         : mrGeometry(rGeometry),
           mrProperties(rProperties),
-          mrConstitutiveLaw(*rGeometry.GetValue(CONSTITUTIVE_LAW))
+          mrConstitutiveLaw(*rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW))
     {
         mConstitutiveLawParameters =
             ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);

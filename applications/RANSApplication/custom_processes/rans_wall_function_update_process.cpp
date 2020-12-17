@@ -119,7 +119,7 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
     block_for_each(r_conditions, [&](ModelPart::ConditionType& rCondition) {
         const auto& r_geometry = rCondition.GetGeometry();
         const auto& r_properties = rCondition.GetProperties();
-        auto constitutive_law = rCondition.GetValue(CONSTITUTIVE_LAW);
+        auto constitutive_law = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW);
 
         Vector gauss_weights;
         Matrix shape_functions;

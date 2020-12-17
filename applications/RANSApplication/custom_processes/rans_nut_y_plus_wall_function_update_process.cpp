@@ -114,7 +114,7 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
     block_for_each(r_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
         auto& r_geometry = rCondition.GetGeometry();
         const auto& r_properties = rCondition.GetProperties();
-        auto constitutive_law = rCondition.GetValue(CONSTITUTIVE_LAW);
+        auto constitutive_law = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW);
 
         const double y_plus = std::max(rCondition.GetValue(RANS_Y_PLUS), y_plus_limit);
 

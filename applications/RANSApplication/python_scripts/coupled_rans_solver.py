@@ -303,7 +303,6 @@ class CoupledRANSSolver(PythonSolver):
 
             # initialize constitutive laws
             RansVariableUtilities.SetContainerConstitutiveLaws(self.main_model_part.Elements)
-            RansVariableUtilities.SetContainerConstitutiveLaws(self.main_model_part.Conditions)
 
             materials_imported = True
         else:

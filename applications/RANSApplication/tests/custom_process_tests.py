@@ -37,6 +37,12 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.ProcessInfo.SetValue(Kratos.STEP, 1)
 
         ReadModelPart("BackwardFacingStepTest/backward_facing_step", cls.model_part)
+        CheckAndPrepareModelProcess(cls.model_part,
+                                    Kratos.Parameters("""{
+            "volume_model_part_name": "Parts_fluid",
+            "skin_parts" : ["AutomaticInlet2D_inlet", "Outlet2D_outlet", "Slip2D"],
+            "assign_neighbour_elements_to_conditions": true
+        }""")).Execute()
 
         # Add constitutive laws and material properties from json file to model parts.
         material_settings = Kratos.Parameters(
@@ -48,7 +54,6 @@ class CustomProcessTest(UnitTest.TestCase):
 
         Kratos.ReadMaterialsUtility(material_settings, cls.model)
         KratosRANS.RansVariableUtilities.SetContainerConstitutiveLaws(cls.model_part.Elements)
-        KratosRANS.RansVariableUtilities.SetContainerConstitutiveLaws(cls.model_part.Conditions)
 
     def setUp(self):
         # reinitialize variables for each test
@@ -514,12 +519,6 @@ class CustomProcessTest(UnitTest.TestCase):
         CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
         # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-        CheckAndPrepareModelProcess(self.model_part,
-                                    Kratos.Parameters("""{
-            "volume_model_part_name": "Parts_fluid",
-            "skin_parts" : ["AutomaticInlet2D_inlet", "Outlet2D_outlet", "Slip2D"],
-            "assign_neighbour_elements_to_conditions": true
-        }""")).Execute()
         CalculateNormalsOnConditions(self.model_part)
 
         factory = KratosProcessFactory(self.model)

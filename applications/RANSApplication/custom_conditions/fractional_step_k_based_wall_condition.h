@@ -546,7 +546,7 @@ protected:
             array_1d<double, 3> wall_velocity;
 
             ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_properties, rCurrentProcessInfo);
-            auto p_constitutive_law = this->GetValue(CONSTITUTIVE_LAW);
+            auto p_constitutive_law = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW);
 
             for (size_t g = 0; g < num_gauss_points; ++g)
             {

@@ -304,16 +304,15 @@ std::tuple<double, double> CalculateTransientVariableConvergence(
     KRATOS_CATCH("");
 }
 
-template <class TContainerType>
-void SetContainerConstitutiveLaws(TContainerType& rContainer)
+void SetContainerConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
 {
     KRATOS_TRY
 
-    block_for_each(rContainer, [](typename TContainerType::value_type& rEntity){
-        if (!rEntity.Has(CONSTITUTIVE_LAW)) {
-            const auto& r_properties = rEntity.GetProperties();
+    block_for_each(rElements, [](ModelPart::ElementType& rElement){
+        if (!rElement.Has(CONSTITUTIVE_LAW)) {
+            const auto& r_properties = rElement.GetProperties();
             KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-                << "In initialization of entity " << rEntity.Info()
+                << "In initialization of entity " << rElement.Info()
                 << ": No CONSTITUTIVE_LAW defined for property "
                 << r_properties.Id() << "." << std::endl;
 
@@ -329,13 +328,13 @@ void SetContainerConstitutiveLaws(TContainerType& rContainer)
             auto p_constitutive_law =
                 KratosComponents<ConstitutiveLaw>::Get(rans_cl_name.substr(4)).Clone();
 
-            const auto& r_geometry = rEntity.GetGeometry();
+            const auto& r_geometry = rElement.GetGeometry();
             const auto& r_shape_functions =
                 r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
             p_constitutive_law->InitializeMaterial(r_properties, r_geometry,
                                                 row(r_shape_functions, 0));
 
-            rEntity.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+            rElement.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
         }
     });
 
@@ -355,12 +354,6 @@ template KRATOS_API(RANS_APPLICATION) std::tuple<double, double> CalculateTransi
 template KRATOS_API(RANS_APPLICATION)
     std::tuple<double, double> CalculateTransientVariableConvergence<array_1d<double, 3>>(
         const ModelPart&, const Variable<array_1d<double, 3>>&);
-
-template KRATOS_API(RANS_APPLICATION)
-    void SetContainerConstitutiveLaws<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType&);
-
-template KRATOS_API(RANS_APPLICATION)
-    void SetContainerConstitutiveLaws<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType&);
 
 } // namespace RansVariableUtilities
 

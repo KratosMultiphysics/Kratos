@@ -18,6 +18,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
@@ -117,15 +118,15 @@ ModelPart& CreateTestModelPart(
     using nid_list = std::vector<ModelPart::IndexType>;
 
     r_model_part.CreateNewElement(rElementName, 1, nid_list{3, 2, 1}, p_elem_prop);
+    auto& r_element = r_model_part.Elements().front();
 
-    r_model_part.CreateNewCondition(rConditionName, 1, nid_list{1, 2}, p_elem_prop);
-    r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_elem_prop);
-    r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_elem_prop);
+    r_model_part.CreateNewCondition(rConditionName, 1, nid_list{1, 2}, p_elem_prop)->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
+    r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_elem_prop)->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
+    r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_elem_prop)->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
 
     RansVariableUtilities::SetContainerConstitutiveLaws(r_model_part.Elements());
-    RansVariableUtilities::SetContainerConstitutiveLaws(r_model_part.Conditions());
 
-    r_model_part.Elements().front().Check(r_model_part.GetProcessInfo());
+    r_element.Check(r_model_part.GetProcessInfo());
     r_model_part.Conditions().front().Check(r_model_part.GetProcessInfo());
 
     return r_model_part;
