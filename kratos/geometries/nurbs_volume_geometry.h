@@ -154,17 +154,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator doesn't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     NurbsVolumeGeometry& operator=(const NurbsVolumeGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -177,17 +167,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator doesn't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator for geometries with different point type
     template<class TOtherContainerPointType>
     NurbsVolumeGeometry& operator=(
         NurbsVolumeGeometry<TOtherContainerPointType> const & rOther)
@@ -714,7 +694,7 @@ public:
 
             shape_function_container.ComputeBSplineShapeFunctionValues(
                 mKnotsU, mKnotsV, mKnotsW, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
-            
+
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
@@ -777,7 +757,7 @@ public:
 
         shape_function_container.ComputeBSplineShapeFunctionValues(
             mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
-        
+
 
         noalias(rResult) = ZeroVector(3);
         for (IndexType u = 0; u <= PolynomialDegreeU(); ++u) {
@@ -819,7 +799,7 @@ public:
 
         shape_function_container.ComputeBSplineShapeFunctionValues(
             mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
-        
+
 
         if (rGlobalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
             rGlobalSpaceDerivatives.resize(shape_function_container.NumberOfShapeFunctionRows());
@@ -875,7 +855,7 @@ public:
 
         shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
             rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        
+
 
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
@@ -907,7 +887,7 @@ public:
 
         shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
             rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        
+
 
         if (rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints()
             && rResult.size2() != 3)
