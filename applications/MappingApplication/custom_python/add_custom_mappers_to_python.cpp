@@ -35,7 +35,7 @@ namespace Python {
 
 // Wrapper functions for taking a default argument for the flags
 template<class TSparseSpace, class TDenseSpace>
-inline void UpdateInterfaceWithoutArgs(Mapper<TSparseSpace, TDenseSpace>& dummy)
+inline void UpdateInterfaceWithoutArgs(Mapper<TIsDistributed>& dummy)
 {
     Kratos::Flags dummy_flags = Kratos::Flags();
     double dummy_search_radius = -1.0f;
@@ -43,14 +43,14 @@ inline void UpdateInterfaceWithoutArgs(Mapper<TSparseSpace, TDenseSpace>& dummy)
 }
 
 template<class TSparseSpace, class TDenseSpace>
-inline void UpdateInterfaceWithOptions(Mapper<TSparseSpace, TDenseSpace>& dummy, Kratos::Flags options)
+inline void UpdateInterfaceWithOptions(Mapper<TIsDistributed>& dummy, Kratos::Flags options)
 {
     double dummy_search_radius = -1.0f;
     dummy.UpdateInterface(options, dummy_search_radius);
 }
 
 template<class TSparseSpace, class TDenseSpace>
-inline void UpdateInterfaceWithSearchRadius(Mapper<TSparseSpace, TDenseSpace>& dummy, double search_radius)
+inline void UpdateInterfaceWithSearchRadius(Mapper<TIsDistributed>& dummy, double search_radius)
 {
     Kratos::Flags dummy_flags = Kratos::Flags();
     dummy.UpdateInterface(dummy_flags, search_radius);
@@ -58,7 +58,7 @@ inline void UpdateInterfaceWithSearchRadius(Mapper<TSparseSpace, TDenseSpace>& d
 
 
 template<class TSparseSpace, class TDenseSpace>
-inline void MapWithoutOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
+inline void MapWithoutOptionsScalar(Mapper<TIsDistributed>& dummy,
          const Variable<double>& origin_variable,
          const Variable<double>& destination_variable)
 {
@@ -67,7 +67,7 @@ inline void MapWithoutOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
 }
 
 template<class TSparseSpace, class TDenseSpace>
-inline void MapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
+inline void MapWithoutOptionsVector(Mapper<TIsDistributed>& dummy,
          const Variable< array_1d<double, 3> >& origin_variable,
          const Variable< array_1d<double, 3> >& destination_variable)
 {
@@ -76,7 +76,7 @@ inline void MapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
 }
 
 template<class TSparseSpace, class TDenseSpace>
-inline void InverseMapWithoutOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
+inline void InverseMapWithoutOptionsScalar(Mapper<TIsDistributed>& dummy,
                 const Variable<double>& origin_variable,
                 const Variable<double>& destination_variable)
 {
@@ -85,7 +85,7 @@ inline void InverseMapWithoutOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& du
 }
 
 template<class TSparseSpace, class TDenseSpace>
-inline void InverseMapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
+inline void InverseMapWithoutOptionsVector(Mapper<TIsDistributed>& dummy,
                 const Variable< array_1d<double, 3> >& origin_variable,
                 const Variable< array_1d<double, 3> >& destination_variable)
 {
@@ -95,7 +95,7 @@ inline void InverseMapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& du
 
 
 template<class TSparseSpace, class TDenseSpace>
-inline void MapWithOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
+inline void MapWithOptionsScalar(Mapper<TIsDistributed>& dummy,
          const Variable<double>& origin_variable,
          const Variable<double>& destination_variable,
          Kratos::Flags MappingOptions)
@@ -104,7 +104,7 @@ inline void MapWithOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
 }
 
 template<class TSparseSpace, class TDenseSpace>
-inline void MapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
+inline void MapWithOptionsVector(Mapper<TIsDistributed>& dummy,
          const Variable< array_1d<double, 3> >& origin_variable,
          const Variable< array_1d<double, 3> >& destination_variable,
          Kratos::Flags MappingOptions)
@@ -113,7 +113,7 @@ inline void MapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
 }
 
 template<class TSparseSpace, class TDenseSpace>
-inline void InverseMapWithOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
+inline void InverseMapWithOptionsScalar(Mapper<TIsDistributed>& dummy,
                 const Variable<double>& origin_variable,
                 const Variable<double>& destination_variable,
                 Kratos::Flags MappingOptions)
@@ -122,7 +122,7 @@ inline void InverseMapWithOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy
 }
 
 template<class TSparseSpace, class TDenseSpace>
-inline void InverseMapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
+inline void InverseMapWithOptionsVector(Mapper<TIsDistributed>& dummy,
                 const Variable< array_1d<double, 3> >& origin_variable,
                 const Variable< array_1d<double, 3> >& destination_variable,
                 Kratos::Flags MappingOptions)
@@ -131,28 +131,28 @@ inline void InverseMapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy
 }
 
 
-template<class TSparseSpace, class TDenseSpace>
+template<bool TIsDistributed>
 void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
 {
-    typedef Mapper<TSparseSpace, TDenseSpace> MapperType;
+    typedef Mapper<TIsDistributed> MapperType;
     namespace py = pybind11;
     // Exposing the base class of the Mappers to Python, but without constructor
     const auto mapper
         = py::class_< MapperType, typename MapperType::Pointer >(m, rName.c_str())
-            .def("UpdateInterface",     UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
-            .def("UpdateInterface",     UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)
-            .def("UpdateInterface",     UpdateInterfaceWithSearchRadius<TSparseSpace, TDenseSpace>)
+            .def("UpdateInterface",     UpdateInterfaceWithoutArgs<TIsDistributed>)
+            .def("UpdateInterface",     UpdateInterfaceWithOptions<TIsDistributed>)
+            .def("UpdateInterface",     UpdateInterfaceWithSearchRadius<TIsDistributed>)
             .def("UpdateInterface",     &MapperType::UpdateInterface) // with options & search-radius
 
-            .def("Map",                 MapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("Map",                 MapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
-            .def("Map",                 MapWithOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("Map",                 MapWithOptionsVector<TSparseSpace, TDenseSpace>)
+            .def("Map",                 MapWithoutOptionsScalar<TIsDistributed>)
+            .def("Map",                 MapWithoutOptionsVector<TIsDistributed>)
+            .def("Map",                 MapWithOptionsScalar<TIsDistributed>)
+            .def("Map",                 MapWithOptionsVector<TIsDistributed>)
 
-            .def("InverseMap",          InverseMapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("InverseMap",          InverseMapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
-            .def("InverseMap",          InverseMapWithOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("InverseMap",          InverseMapWithOptionsVector<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",          InverseMapWithoutOptionsScalar<TIsDistributed>)
+            .def("InverseMap",          InverseMapWithoutOptionsVector<TIsDistributed>)
+            .def("InverseMap",          InverseMapWithOptionsScalar<TIsDistributed>)
+            .def("InverseMap",          InverseMapWithOptionsVector<TIsDistributed>)
 
             .def("GetMappingMatrix",    &MapperType::GetMappingMatrix, py::return_value_policy::reference_internal)
             .def("GetInterfaceModelPartOrigin", &MapperType::GetInterfaceModelPartOrigin, py::return_value_policy::reference_internal)
@@ -178,21 +178,21 @@ void  AddCustomMappersToPython(pybind11::module& m)
 
     typedef MapperDefinitions::DenseSpaceType DenseSpaceType;
     typedef MapperDefinitions::SparseSpaceType SparseSpaceType;
-    ExposeMapperToPython<SparseSpaceType, DenseSpaceType>(m, "Mapper");
+    ExposeMapperToPython<False>(m, "Mapper");
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     typedef MapperDefinitions::MPISparseSpaceType MPISparseSpaceType;
-    ExposeMapperToPython<MPISparseSpaceType, DenseSpaceType>(m, "MPIMapper");
+    ExposeMapperToPython<True>(m, "MPIMapper");
 #endif
 
     // Exposing the MapperFactory
     py::class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper<SparseSpaceType, DenseSpaceType>)
-        .def_static("HasMapper", &MapperFactory::HasMapper<SparseSpaceType, DenseSpaceType>)
-        .def_static("GetRegisteredMapperNames", &MapperFactory::GetRegisteredMapperNames<SparseSpaceType, DenseSpaceType>)
+        .def_static("CreateMapper", &MapperFactory::CreateMapper<False>)
+        .def_static("HasMapper", &MapperFactory::HasMapper<False>)
+        .def_static("GetRegisteredMapperNames", &MapperFactory::GetRegisteredMapperNames<False>)
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<MPISparseSpaceType, DenseSpaceType>)
-        .def_static("HasMPIMapper", &MapperFactory::HasMapper<MPISparseSpaceType, DenseSpaceType>)
-        .def_static("GetRegisteredMPIMapperNames", &MapperFactory::GetRegisteredMapperNames<MPISparseSpaceType, DenseSpaceType>)
+        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<True>)
+        .def_static("HasMPIMapper", &MapperFactory::HasMapper<True>)
+        .def_static("GetRegisteredMPIMapperNames", &MapperFactory::GetRegisteredMapperNames<True>)
 #endif
     ;
 }
