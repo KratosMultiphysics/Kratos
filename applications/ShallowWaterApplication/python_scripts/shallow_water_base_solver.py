@@ -56,13 +56,11 @@ class ShallowWaterBaseSolver(PythonSolver):
         # Definition of the variables
         gravity = self.settings["gravity"].GetDouble()
         dry_height = self.settings["dry_height_threshold"].GetDouble()
-        stabilization_factor = self.settings["stabilization_factor"].GetDouble()
 
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_HEIGHT, dry_height)
-        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, stabilization_factor)
 
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             ## Replace default elements and conditions
@@ -144,7 +142,6 @@ class ShallowWaterBaseSolver(PythonSolver):
                 "input_filename"           : "unknown_name"
             },
             "echo_level"               : 0,
-            "stabilization_factor"     : 0.005,
             "dry_height_threshold"     : 1e-3,
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,

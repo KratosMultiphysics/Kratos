@@ -261,25 +261,10 @@ int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInf
 
     const GeometryType& r_geom = this->GetGeometry();
 
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-
-    if(mHasRotationDofs)
-    {
-        KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-    }
-
     // TODO generic way of doing these checks without checking the dofs..
 
     // Check dofs
-    for (IndexType i = 0; i < r_geom.size(); ++i)
-    {
+    for (IndexType i = 0; i < r_geom.size(); ++i) {
         const auto& r_node = r_geom[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
@@ -289,8 +274,7 @@ int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInf
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
 
-        if(mHasRotationDofs)
-        {
+        if(mHasRotationDofs) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);

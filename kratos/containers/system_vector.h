@@ -52,7 +52,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Provides a SystemVector which implements FEM assemble capabilities
+/// Provides a SystemVector which implements FEM assemble capabilities, as well as some vector operations
 template<class TDataType=double, class TIndexType=std::size_t>
 class SystemVector
 {
@@ -159,14 +159,14 @@ public:
         });
     }
 
-    void operator*=(const TDataType& multiplier_factor)
+    void operator*=(const TDataType multiplier_factor)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] *= multiplier_factor;
         });
     }
 
-    void operator/=(const TDataType& divide_factor)
+    void operator/=(const TDataType divide_factor)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] /= divide_factor;

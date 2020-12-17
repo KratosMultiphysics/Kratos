@@ -35,6 +35,8 @@
 #include "utilities/dof_updater.h"
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
+#include "containers/distributed_csr_matrix.h"
+
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
@@ -54,7 +56,7 @@ class KratosSpace;
 typedef std::size_t IndexType;
 
 template <class TDataType>
-using TKratosSmpSparseSpace = KratosSpace<TDataType, CsrMatrix<TDataType,IndexType> , SystemVector<TDataType,IndexType>>;
+using TKratosSmpSparseSpace = KratosSpace<TDataType, CsrMatrix<TDataType,IndexType>, SystemVector<TDataType,IndexType>>;
 
 template <class TDataType>
 using TKratosSmpDenseSpace  =  KratosSpace<TDataType, DenseMatrix<TDataType>, DenseVector<TDataType>>;
@@ -159,26 +161,28 @@ public:
     }
 
     /// rXi = rMij
-	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
-	template<typename TColumnType>
-	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
-	{
-		if (rX.size() != rM.size1())
-			rX.resize(rM.size1(), false);
+    // This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+    template<typename TColumnType>
+    static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+    {
+        if (rX.size() != rM.size1())
+            rX.resize(rM.size1(), false);
 
-		for (IndexType i = 0; i < rM.size1(); i++) {
-			rX[i] = rM(i, j);
-		}
-	}
+        for (IndexType i = 0; i < rM.size1(); i++)
+        {
+            rX[i] = rM(i, j);
+        }
+    }
 
-	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
-	template<typename TColumnType>
-	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
-	{
-		for (IndexType i = 0; i < rM.size1(); i++) {
-			rM(i,j) = rX[i];
-		}
-	}
+    // This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+    template<typename TColumnType>
+    static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+    {
+        for (IndexType i = 0; i < rM.size1(); i++)
+        {
+            rM(i,j) = rX[i];
+        }
+    }
 
 
     /// rY = rX
@@ -214,13 +218,16 @@ public:
         return norm_frobenius(rA);
     }
 
-    static TDataType TwoNorm(const CsrMatrix<TDataType> & rA) // Frobenious norm
+    //TODO: should use implementation of Norm Frobenius in CSR matrix, but it does not compile
+    static TDataType TwoNorm(const CsrMatrix<TDataType>& rA) // Frobenious norm
     {
-        TDataType sum2 = IndexPartition<IndexType>(rA.value_data().size())
-            .for_each<SumReduction<TDataType>>( [&](IndexType i){
-                return std::pow(rA.value_data()[i],2);
-            });
-        return std::sqrt(sum2);
+        return rA.NormFrobenius();
+    }
+
+    //TODO: should use implementation of NormFrobenius within DistributedCsrMatrix once available
+    static TDataType TwoNorm(const DistributedCsrMatrix<TDataType>& rA) // Frobenious norm
+    {
+        return rA.NormFrobenius();
     }
 
     /**
@@ -231,27 +238,30 @@ public:
     static TDataType JacobiNorm(const Matrix& rA)
     {
         TDataType aux_sum = IndexPartition<IndexType>(rA.size1())
-            .for_each<SumReduction<TDataType>>( [&](IndexType i){
-                TDataType row_sum = TDataType();
-                for (IndexType j=0; j<rA.size2(); ++j)
-                    if (i != j) 
-                        row_sum += std::abs(rA(i,j));
-                return row_sum;
-            });
+                            .for_each<SumReduction<TDataType>>( [&](IndexType i)
+        {
+            TDataType row_sum = TDataType();
+            for (IndexType j=0; j<rA.size2(); ++j)
+                if (i != j)
+                    row_sum += std::abs(rA(i,j));
+            return row_sum;
+        });
         return aux_sum;
     }
 
     static TDataType JacobiNorm(const CsrMatrix<TDataType>& rA)
     {
         TDataType aux_sum = TDataType();
-        IndexPartition<IndexType>(rA.size1()).for_each( [&](IndexType i){
+        IndexPartition<IndexType>(rA.size1()).for_each( [&](IndexType i)
+        {
             IndexType row_begin = rA.index1_data()[i];
             IndexType row_end   = rA.index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k){
+            for(IndexType k = row_begin; k < row_end; ++k)
+            {
                 IndexType col = rA.index2_data()[k];
                 if(i != col)
                     AtomicAdd(aux_sum, std::abs(rA.value_data()[k]));
-            }  
+            }
         });
         return aux_sum;
     }
@@ -271,39 +281,24 @@ public:
     static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
     {
         // rY = rA^t * rX
-		rA.TransposeSpMV(rY,rX);
-    } 
-
-    static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
-    {
-        typename MatrixType::iterator1 a_iterator = A.begin1();
-        std::advance(a_iterator, i);
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-        return ( std::distance(a_iterator.begin(), a_iterator.end()));
-#else
-        return ( std::distance(begin(a_iterator, boost::numeric::ublas::iterator1_tag()),
-                               end(a_iterator, boost::numeric::ublas::iterator1_tag())));
-#endif
+        rA.TransposeSpMV(rY,rX);
     }
 
-    static inline void GraphNeighbors(IndexType i, TMatrixType& A, std::vector<IndexType>& neighbors)
+    static inline SizeType GraphDegree(IndexType i, const CsrMatrix<TDataType>& rA)
+    {
+        return rA.index1_data()[i+1] - rA.index1_data()[i];
+    }
+
+    //this function is only implemented for the non-distributed case
+    static inline void GraphNeighbors(IndexType i,
+                                      const CsrMatrix<TDataType>& rA,
+                                      std::vector<IndexType>& neighbors)
     {
         neighbors.clear();
-        typename MatrixType::iterator1 a_iterator = A.begin1();
-        std::advance(a_iterator, i);
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-        for (typename MatrixType::iterator2 row_iterator = a_iterator.begin();
-                row_iterator != a_iterator.end(); ++row_iterator)
-        {
-#else
-        for (typename MatrixType::iterator2 row_iterator = begin(a_iterator,
-                boost::numeric::ublas::iterator1_tag());
-                row_iterator != end(a_iterator,
-                                    boost::numeric::ublas::iterator1_tag()); ++row_iterator)
-        {
-#endif
-            neighbors.push_back(row_iterator.index2());
-        }
+        IndexType row_begin = rA.index1_data()[i];
+        IndexType row_end = rA.index1_data()[i+1];
+        for(IndexType j=row_begin; j<row_end; ++j)
+            neighbors.push_back(rA.index1_data()[j]);
     }
 
 
@@ -312,12 +307,7 @@ public:
 
     static void InplaceMult(VectorType& rX, const double A)
     {
-
-        if (A == 1.00){ //do nothing 
-        }
-        else{
-            rX *= A;
-        }
+        rX *= A;
     }
 
     //********************************************************************
@@ -327,18 +317,8 @@ public:
 
     static void Assign(VectorType& rX, const double A, const VectorType& rY)
     {
-        if (A == 1.00)
-            rX = rY;
-        else if (A == -1.00)
-        {
-            InplaceMult(rX,-1);
-        }
-        else
-        {
-            rX = rY;
-            rX *= A;
-        }
-
+        rX = rY;
+        rX *= A;
     }
 
     //********************************************************************
@@ -348,12 +328,7 @@ public:
 
     static void UnaliasedAdd(VectorType& rX, const double A, const VectorType& rY)
     {
-        if (A == 1.00)
-            rX += rY;
-        else if (A == -1.00)
-            rX -= rY;
-        else
-            rX.Add(A,rY);
+        rX.Add(A,rY);
     }
 
     //********************************************************************
@@ -625,10 +600,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosSpace & operator=(KratosSpace const& rOther);
+    KratosSpace & operator=(KratosSpace const& rOther){};
 
     /// Copy constructor.
-    KratosSpace(KratosSpace const& rOther);
+    KratosSpace(KratosSpace const& rOther){};
 
 
     ///@}

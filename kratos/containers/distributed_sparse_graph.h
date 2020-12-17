@@ -64,14 +64,14 @@ namespace Kratos
  * sparse matrix formats (particularly CSR)
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
-template< class TIndexType >
-class DistributedSparseGraph //: public SparseGraph
+template< class TIndexType=std::size_t >
+class DistributedSparseGraph 
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType; //note that this could be different from the one in the basetype
-    typedef int MpiIndexType; 
+    typedef TIndexType IndexType;
+    typedef int MpiIndexType;
     typedef SparseContiguousRowGraph<IndexType> LocalGraphType; //using a map since we need it ordered
     typedef SparseGraph<IndexType> NonLocalGraphType; //using a map since we need it ordered
 
@@ -82,25 +82,25 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// constructor.
     DistributedSparseGraph(const IndexType LocalSize,
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
-    : 
+    :
       mrComm(rComm),
       mLocalGraph(LocalSize)
     {
         mNonLocalGraphs.resize(mrComm.Size(),false);
-        mNonLocalLocks.resize(mrComm.Size(),false);
+        mNonLocalLocks.resize(mrComm.Size());
 
         mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm,LocalSize);
     }
 
-    
+
     /// Destructor.
     virtual ~DistributedSparseGraph(){}
 
     inline const DataCommunicator& GetComm() const
-    { 
+    {
         return mrComm;
     }
 
@@ -109,14 +109,14 @@ public:
         return *mpRowNumbering;
     }
 
-    inline IndexType TotalSize() const{ //TODO discuss if this shall be called simply "Size"
-        return mpRowNumbering->TotalSize(); 
+    inline IndexType Size() const{ 
+        return mpRowNumbering->Size();
     }
 
     inline IndexType LocalSize() const{
-        return mpRowNumbering->LocalSize(); 
+        return mpRowNumbering->LocalSize();
     }
-    
+
     bool Has(const IndexType GlobalI, const IndexType GlobalJ) const
     {
         return mLocalGraph.Has(GetRowNumbering().LocalId(GlobalI),GlobalJ);
@@ -127,7 +127,7 @@ public:
     {
         rMaxJ = 0;
         rMinJ = 0;
-        for(IndexType local_i = 0; local_i<mLocalGraph.Size();++local_i) 
+        for(IndexType local_i = 0; local_i<mLocalGraph.Size();++local_i)
         {
             for(auto J : mLocalGraph[local_i] ) //J here is the global index
             {
@@ -143,8 +143,8 @@ public:
         ComputeLocalMinMaxColumnIndex(MinJ,MaxJ);
         return GetComm().MaxAll(MaxJ);
     }
-    
- 
+
+
     ///@}
     ///@name Operators
     ///@{
@@ -156,7 +156,7 @@ public:
     void Clear()
     {
         mLocalGraph.Clear();
-        //mNonLocalGraphs.clear();
+        mNonLocalGraphs.clear();
     }
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
@@ -229,17 +229,9 @@ public:
         }
     }
 
-    void AddEntries(DistributedSparseGraph& rOtherGraph)
-    {
-        //TODO
-    }
-
-    // void AddEntries(const SparseGraph& rOtherGraph)
+    // void AddEntries(DistributedSparseGraph& rOtherGraph)
     // {
-    //     for(auto it = rOtherGraph.begin(); it!=rOtherGraph.end(); ++it)
-    //     {
-    //         AddEntries(it.GetRowIndex(), *it);
-    //     }
+    //     //TODO
     // }
 
     void Finalize()
@@ -258,13 +250,20 @@ public:
             if(color >= 0) //-1 would imply no communication
             {
                 //TODO: this can be made nonblocking
-                const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
+                
+                //using serialization
+                //const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
+                // for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
+                // {
+                //     auto I = row_it.GetRowIndex();
+                //     mLocalGraph.AddEntries(I,*row_it);
+                // }
 
-                for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
-                {
-                    auto I = row_it.GetRowIndex();
-                    mLocalGraph.AddEntries(I,*row_it);
-                }
+                //using native calls
+                auto send_single_vector_repr = mNonLocalGraphs[color].ExportSingleVectorRepresentation();
+                const auto recv_single_vector_repr = mrComm.SendRecv(send_single_vector_repr, color, color);
+                mLocalGraph.AddFromSingleVectorRepresentation(recv_single_vector_repr);
+
             }
         }
 
@@ -369,11 +368,11 @@ private:
     ///@name Member Variables
     ///@{
     typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering = nullptr;
-    DataCommunicator& mrComm;
+    const DataCommunicator& mrComm;
 
     LocalGraphType mLocalGraph;
     DenseVector<NonLocalGraphType> mNonLocalGraphs;
-    DenseVector<LockObject> mNonLocalLocks;
+    std::vector<LockObject> mNonLocalLocks;
 
     ///@}
     ///@name Private Operators

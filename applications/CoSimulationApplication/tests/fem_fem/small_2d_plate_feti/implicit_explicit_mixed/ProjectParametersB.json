@@ -1,0 +1,66 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "fem_fem_test_domainB",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "time_integration_method"         : "explicit",
+		"scheme_type"                     : "central_differences",
+        "move_mesh_flag" : false,
+        "compute_reactions": true,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "fem_fem/small_2d_plate_feti/fem_fem_test_domainB"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "fem_fem/small_2d_plate_feti/StructuralMaterials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.05
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "rotation_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.LineLoad2D_right_edge",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 1.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [],
+        "print_output_process" : [{
+            "python_module"   : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
+                "output_file_name" : "fem_fem/small_2d_plate_feti/implicit_explicit_mixed/implicit_explicit_mixed_domainB_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : 0.1
+            }
+        }]
+    }
+}

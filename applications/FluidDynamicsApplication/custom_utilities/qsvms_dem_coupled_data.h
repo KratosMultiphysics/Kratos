@@ -51,6 +51,7 @@ using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalV
 
 NodalScalarData FluidFraction;
 NodalScalarData FluidFractionRate;
+NodalScalarData MassSource;
 
 NodalVectorData FluidFractionGradient;
 NodalVectorData Acceleration;
@@ -69,11 +70,12 @@ void Initialize(
     // Base class Initialize manages constitutive law parameters
     QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(rElement,rProcessInfo);
     const auto& r_geometry = rElement.GetGeometry();
-    this->FillFromNodalData(FluidFraction, FLUID_FRACTION, r_geometry);
-    this->FillFromNodalData(FluidFractionRate, FLUID_FRACTION_RATE, r_geometry);
-    this->FillFromNodalData(FluidFractionGradient, FLUID_FRACTION_GRADIENT, r_geometry);
-    this->FillFromNodalData(Acceleration, ACCELERATION, r_geometry);
-    this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
+    this->FillFromHistoricalNodalData(FluidFraction, FLUID_FRACTION, r_geometry);
+    this->FillFromHistoricalNodalData(FluidFractionRate, FLUID_FRACTION_RATE, r_geometry);
+    this->FillFromHistoricalNodalData(FluidFractionGradient, FLUID_FRACTION_GRADIENT, r_geometry);
+    this->FillFromHistoricalNodalData(MassSource, MASS_SOURCE, r_geometry);
+    this->FillFromHistoricalNodalData(Acceleration, ACCELERATION, r_geometry);
+    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
 
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 }

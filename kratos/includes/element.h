@@ -333,12 +333,6 @@ public:
             values.resize(0, false);
         }
     }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetValuesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetValuesVector(values, Step);
-    }
 
     /**
      * Getting method to obtain the time derivative of variable which defines the degrees of freedom
@@ -349,12 +343,6 @@ public:
             values.resize(0, false);
         }
     }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetFirstDerivativesVector(values, Step);
-    }
 
     /**
      * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
@@ -364,12 +352,6 @@ public:
         if (values.size() != 0) {
             values.resize(0, false);
         }
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetSecondDerivativesVector(values, Step);
     }
 
     /**
@@ -816,7 +798,7 @@ public:
     /**
      * ELEMENTS inherited from this class must implement this methods
      * if they need to add dynamic element contributions
-     * CalculateMassMatrix and CalculateDampingMatrix methods are: OPTIONAL
+     * CalculateMassMatrix, CalculateDampingMatrix and CalculateLumpedMassVector methods are: OPTIONAL
      */
 
     /**
@@ -841,7 +823,6 @@ public:
       rMassMatrix.resize(0, 0, false);
     }
 
-
     /**
      * this is called during the assembling process in order
      * to calculate the elemental damping matrix
@@ -864,6 +845,20 @@ public:
       rDampingMatrix.resize(0, 0, false);
     }
 
+    /**
+     * this is called during the initialize of the builder
+     * to calculate the lumped mass vector
+     * @param rLumpedMassVector the elemental lumped mass vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo) const
+        {
+            KRATOS_TRY;
+            KRATOS_ERROR << "Calling the CalculateLumpedMassVector() method of the base element. The method must be implemented in the derived element.";
+            KRATOS_CATCH("");
+        }
 
 
     /**

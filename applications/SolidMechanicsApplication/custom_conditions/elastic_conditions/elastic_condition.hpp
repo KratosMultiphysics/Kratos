@@ -145,7 +145,7 @@ protected:
     /**
      * Check dof for a vector variable
      */
-    bool HasVariableDof(VariableVectorType& rVariable) override
+    bool HasVariableDof(VariableVectorType& rVariable) const override
     {
       if(rVariable == ROTATION)
         return false;

@@ -40,6 +40,10 @@ class backward_coupling_single_particle_no_time_filter(BackwardCouplingTF.TestFa
      file_name = "backward_coupling_tests/cube_single_particle"
      file_parameters = "backward_coupling_tests/ProjectParametersCubeNoTimeFilter.json"
 
+class backward_coupling_two_balls_periodic_no_time_filter(BackwardCouplingTF.TestFactory):
+     file_name = "backward_coupling_tests/cube_two_balls_periodic"
+     file_parameters = "backward_coupling_tests/ProjectParametersCubeTwoBallsPeriodic.json"
+
 if candelier_imports_available:
      class candelier_no_history_test(CandelierTF.TestFactory):
           file_name = "candelier_tests/candelier"
