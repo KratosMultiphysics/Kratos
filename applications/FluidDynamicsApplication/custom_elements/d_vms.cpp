@@ -656,7 +656,7 @@ void DVMS<TElementData>::CalculateStabilizationParameters(
     TauTwo = viscosity + density * mTauC2 * velocity_norm * h / mTauC1;
 
     // Auxiliary coefficient StaticTauOne*TauTwo/Dt that appears on the pressure subscale model
-    TauP = 0 *density * h*h / (mTauC1*rData.DeltaTime);
+    TauP = density * h*h / (mTauC1*rData.DeltaTime);
 }
 
 template< class TElementData >

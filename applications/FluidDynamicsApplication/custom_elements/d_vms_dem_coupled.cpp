@@ -435,6 +435,33 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
     }
 }
 
+template< class TElementData >
+void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
+    const TElementData& rData,
+    const array_1d<double,3> &Velocity,
+    double &TauOne,
+    double &TauTwo,
+    double &TauP) const
+{
+    const double h = rData.ElementSize;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
+    constexpr double mTauC1 = DVMS<TElementData>::mTauC1;
+    constexpr double mTauC2 = DVMS<TElementData>::mTauC2;
+
+    double velocity_norm = Velocity[0]*Velocity[0];
+    for (unsigned int d = 1; d < Dim; d++)
+        velocity_norm += Velocity[d]*Velocity[d];
+    velocity_norm = std::sqrt(velocity_norm);
+
+    double inv_tau = mTauC1 * viscosity / (h*h) + density * ( 1.0/rData.DeltaTime + mTauC2 * velocity_norm / h );
+    TauOne = 1.0/inv_tau;
+    TauTwo = viscosity + density * mTauC2 * velocity_norm * h / mTauC1;
+
+    // Auxiliary coefficient StaticTauOne*TauTwo/Dt that appears on the pressure subscale model
+    TauP = 0.0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
