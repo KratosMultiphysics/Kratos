@@ -25,6 +25,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -117,28 +118,36 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
         const size_t block_size = TDim + 1;
 
-        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
-        const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
-        const double inv_kappa = 1.0 / kappa;
-        const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
-        const double y_plus_limit = rCurrentProcessInfo[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
-
         const double eps = std::numeric_limits<double>::epsilon();
+        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+
+        const PropertiesType& r_properties = this->GetProperties();
+        const double rho = r_properties.GetValue(DENSITY);
+        const double kappa = r_properties.GetValue(WALL_VON_KARMAN);
+        const double beta = r_properties.GetValue(WALL_SMOOTHNESS_BETA);
+        const double y_plus_limit = r_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
+        const double inv_kappa = 1.0 / kappa;
 
         double condition_y_plus{0.0};
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
 
-        double tke, rho, nu;
+        double tke, nu;
         array_1d<double, 3> wall_velocity;
+
+        ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_properties, rCurrentProcessInfo);
+        auto p_constitutive_law = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW);
 
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
 
-            EvaluateInPoint(r_geometry, gauss_shape_functions,
-                            std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                            std::tie(rho, DENSITY),
-                            std::tie(nu, KINEMATIC_VISCOSITY),
-                            std::tie(wall_velocity, VELOCITY));
+            cl_parameters.SetShapeFunctionsValues(gauss_shape_functions);
+            p_constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+            nu /= rho;
+
+            FluidCalculationUtilities::EvaluateInPoint(
+                r_geometry, gauss_shape_functions,
+                std::tie(tke, TURBULENT_KINETIC_ENERGY),
+                std::tie(wall_velocity, VELOCITY));
 
             const double wall_velocity_magnitude = norm_2(wall_velocity);
 
@@ -184,13 +193,13 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 template <unsigned int TDim, unsigned int TNumNodes>
 void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
 }
 
 // template instantiations
