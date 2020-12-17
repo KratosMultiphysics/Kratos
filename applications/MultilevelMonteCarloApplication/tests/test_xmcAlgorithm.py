@@ -35,7 +35,7 @@ class TestXMCAlgorithm(unittest.TestCase):
                 parameters = json.load(parameter_file)
             # add path of the problem folder to python path
             problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-            sys.path.append(os.path.join("poisson_square_2d_xmc"))
+            sys.path.append(os.path.join("poisson_square_2d"))
             # SampleGenerator
             samplerInputDictionary = parameters["samplerInputDictionary"]
             samplerInputDictionary["randomGeneratorInputDictionary"] = parameters[
@@ -160,7 +160,7 @@ class TestXMCAlgorithm(unittest.TestCase):
                 parameters = json.load(parameter_file)
             # add path of the problem folder to python path
             problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-            sys.path.append(os.path.join("poisson_square_2d_xmc"))
+            sys.path.append(os.path.join("poisson_square_2d"))
             # SampleGenerator
             samplerInputDictionary = parameters["samplerInputDictionary"]
             samplerInputDictionary["randomGeneratorInputDictionary"] = parameters[
