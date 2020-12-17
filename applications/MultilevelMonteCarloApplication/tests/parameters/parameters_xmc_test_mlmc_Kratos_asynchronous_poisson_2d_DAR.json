@@ -27,7 +27,7 @@
         "indexValue": null,
         "qoiEstimator": ["xmc.momentEstimator.MomentEstimator"],
         "sampler": "xmc.sampleGenerator.SampleGenerator",
-        "eventGroupSize": 2
+        "eventGroupSize": 5
     },
     "monteCarloSamplerInputDictionary": {
         "assemblersForError": [[1,2]],
@@ -47,9 +47,9 @@
 "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
     },
     "combinedEstimatorInputDictionary": {
-        "indexSetDimension": 1,
+        "indexSetDimension": 0,
         "order": 1,
-        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updateCombinedPowerSums.updatePowerSumsOrder2Dimension1",
+        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0",
         "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
 "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
     },
@@ -63,14 +63,14 @@
         "solverWrapperIndices": null
     },
     "solverWrapperInputDictionary": {
-        "adaptiveRefinementJumpToFinestLevel": true,
-        "asynchronous": false,
+        "adaptiveRefinementJumpToFinestLevel": false,
+        "asynchronous": true,
         "fakeRandomVariable": [0.25],
         "index": [],
         "mappingOutputQuantities": false,
-        "numberContributionsPerInstance": 2,
-        "numberMomentEstimator": 2,
-        "numberCombinedMomentEstimator": 2,
+        "numberContributionsPerInstance": 1,
+        "numberMomentEstimator": 1,
+        "numberCombinedMomentEstimator": 0,
         "numberMultiMomentEstimator": 0,
         "numberMultiCombinedMomentEstimator": 0,
         "parameters": null,
@@ -78,9 +78,9 @@
         "problemId": "poisson_2d",
         "projectParametersPath": "../xmc/classDefs_solverWrapper/problemDefs_KratosMultiphysics/poisson_2d/problem_settings/parameters_finer.json",
         "refinementParametersPath": "../xmc/classDefs_solverWrapper/problemDefs_KratosMultiphysics/poisson_2d/problem_settings/parameters_refinement.json",
-        "refinementStrategy": "stochastic_adaptive_refinement",
-        "outputBatchSize" : 4,
-        "taskAllAtOnce": false
+        "refinementStrategy": "deterministic_adaptive_refinement",
+        "outputBatchSize" : 1,
+        "taskAllAtOnce": true
     },
     "monoCriteriaInpuctDictionary" :{
         "statisticalError": {
