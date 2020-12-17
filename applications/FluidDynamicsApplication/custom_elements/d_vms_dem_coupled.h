@@ -191,9 +191,25 @@ public:
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
+
+    /// Update the values of tracked small scale quantities.
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /// Predict the value of the small scale velocity for the current iteration.
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
+
+    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
+                                     std::vector<array_1d<double, 3>>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
+                                     std::vector<double>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
     void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
                                      std::vector<array_1d<double, 6>>& rValues,
@@ -237,11 +253,9 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
@@ -265,16 +279,9 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    void CalculateStabilizationParameters(
-        const TElementData& rData,
-        const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo,
-        double &TauP) const;
-
     virtual void MassProjTerm(
         const TElementData& rData,
-        double& rMassRHS) const;
+        double& rMassRHS) const override;
 
     ///@}
     ///@name Protected  Access
@@ -296,25 +303,6 @@ private:
 
     ///@name Static Member Variables
     ///@{
-
-    constexpr static double mTauC1 = 8.0;
-    constexpr static double mTauC2 = 2.0;
-    constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
-    constexpr static double mSubscalePredictionResidualTolerance = 1e-14;
-    constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    // Velocity subscale history, stored at integration points
-    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
-
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    std::vector< double > mSubscaleIterationError;
-    std::vector< unsigned int > mSubscaleIterationCount;
-    #endif
 
     ///@}
     ///@name Serialization

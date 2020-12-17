@@ -10,12 +10,16 @@
 //  Main authors:    Joaquin Gonzalez-Usua
 //
 
-#include "d_vms_dem_coupled.h"
+// Project includes
 #include "includes/cfd_variables.h"
+#include "includes/dem_variables.h"
 #include "includes/checks.h"
 
+// Aplication includes
+#include "d_vms_dem_coupled.h"
 #include "custom_utilities/dvms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -25,32 +29,24 @@ namespace Kratos
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId):
-    DVMS<TElementData>(NewId),
-    mPredictedSubscaleVelocity(),
-    mOldSubscaleVelocity()
+    DVMS<TElementData>(NewId)
 {}
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, const NodesArrayType& ThisNodes):
-    DVMS<TElementData>(NewId,ThisNodes),
-    mPredictedSubscaleVelocity(),
-    mOldSubscaleVelocity()
+    DVMS<TElementData>(NewId,ThisNodes)
 {}
 
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry):
-    DVMS<TElementData>(NewId,pGeometry),
-    mPredictedSubscaleVelocity(),
-    mOldSubscaleVelocity()
+    DVMS<TElementData>(NewId,pGeometry)
 {}
 
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
-    DVMS<TElementData>(NewId,pGeometry,pProperties),
-    mPredictedSubscaleVelocity(),
-    mOldSubscaleVelocity()
+    DVMS<TElementData>(NewId,pGeometry,pProperties)
 {}
 
 
@@ -109,6 +105,24 @@ void DVMSDEMCoupled<TElementData>::Calculate(
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo) {}
 
+template <class TElementData>
+void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Base class does things with constitutive law here.
+    DVMS<TElementData>::Initialize(rCurrentProcessInfo);
+}
+
+template <class TElementData>
+void DVMSDEMCoupled<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    DVMS<TElementData>::FinalizeSolutionStep(rCurrentProcessInfo);
+}
+
+template <class TElementData>
+void DVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    DVMS<TElementData>::InitializeNonLinearIteration(rCurrentProcessInfo);
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
@@ -128,6 +142,24 @@ int DVMSDEMCoupled<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class TElementData >
+void DVMSDEMCoupled<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 3 > > const& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
+{
+    DVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+}
+
+template< class TElementData >
+void DVMSDEMCoupled<TElementData>::GetValueOnIntegrationPoints(
+    Variable<double> const& rVariable,
+    std::vector<double>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
+{
+    DVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+}
 
 template <class TElementData>
 void DVMSDEMCoupled<TElementData>::GetValueOnIntegrationPoints(
@@ -200,7 +232,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two,tau_p);
 
     const double dt = rData.DeltaTime;
-
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
     // small scale velocity contributions (subscale tracking)
     array_1d<double,Dim> OldUssTerm = (density/dt) * mOldSubscaleVelocity[rData.IntegrationPointIndex]; // rho * u_ss^{n-1}/dt
 
@@ -409,37 +441,13 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
 
 // Implementation details
 
-template< class TElementData >
-void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
-    const TElementData& rData,
-    const array_1d<double,3> &Velocity,
-    double &TauOne,
-    double &TauTwo,
-    double &TauP) const
-{
-    const double h = rData.ElementSize;
-    const double density = this->GetAtCoordinate(rData.Density,rData.N);
-    const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
-
-    double velocity_norm = Velocity[0]*Velocity[0];
-    for (unsigned int d = 1; d < Dim; d++)
-        velocity_norm += Velocity[d]*Velocity[d];
-    velocity_norm = std::sqrt(velocity_norm);
-
-    double inv_tau = mTauC1 * viscosity / (h*h) + density * ( 1.0/rData.DeltaTime + mTauC2 * velocity_norm / h );
-    TauOne = 1.0/inv_tau;
-    TauTwo = viscosity + density * mTauC2 * velocity_norm * h / mTauC1;
-
-    // Auxiliary coefficient StaticTauOne*TauTwo/Dt that appears on the pressure subscale model
-    TauP = 0.0;
-}
-
 // serializer
 
 template< class TElementData >
 void DVMSDEMCoupled<TElementData>::save(Serializer& rSerializer) const
 {
     typedef DVMS<TElementData> BaseElement;
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
     rSerializer.save("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
@@ -449,6 +457,7 @@ template< class TElementData >
 void DVMSDEMCoupled<TElementData>::load(Serializer& rSerializer)
 {
     typedef DVMS<TElementData> BaseElement;
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
     rSerializer.load("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
