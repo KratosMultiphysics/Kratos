@@ -302,8 +302,7 @@ class CoupledRANSSolver(PythonSolver):
             InitializeWallLawProperties(self.model)
 
             # initialize constitutive laws
-            RansVariableUtilities.SetContainerConstitutiveLaws(self.main_model_part.Elements)
-            RansVariableUtilities.SetContainerConstitutiveLaws(self.main_model_part.Conditions)
+            RansVariableUtilities.SetElementConstitutiveLaws(self.main_model_part.Elements)
 
             materials_imported = True
         else:
