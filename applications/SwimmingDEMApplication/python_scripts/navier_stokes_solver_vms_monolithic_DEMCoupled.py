@@ -35,7 +35,9 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = settings["element_name"].GetString()
+        #TODO: THE QS-VMS ELEMENT DOES NOT REQUIRE NODAL PROPERTIES. WHY WAS THIS ACTIVE?
         self.element_has_nodal_properties = True
+        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -52,6 +54,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
+        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -152,3 +155,5 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
+        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list 
+        self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
