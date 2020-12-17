@@ -17,6 +17,7 @@ from KratosMultiphysics.ShapeOptimizationApplication.analyzer_empty import Empty
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
+import copy
 
 # ==============================================================================
 def CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer):
@@ -262,7 +263,7 @@ class AnalyzerWithDependencies(Analyzer):
                     vector[2] *= weight
 
                 if combined_gradient is None:
-                    combined_gradient = gradient
+                    combined_gradient = copy.deepcopy(gradient)
                 else:
                     # Perform nodal sum
                     for key_a, vector_a in combined_gradient.items():
