@@ -61,7 +61,7 @@ void MappingMatrixBuilder<IsDistributed>::BuildMappingMatrix(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 template class MappingMatrixBuilder< false >; // non-distributed version
-// template class MappingMatrixBuilder< true >; // distributed version
+template class MappingMatrixBuilder< true >; // distributed version
 
 }  // namespace Kratos.
 

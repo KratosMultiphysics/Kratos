@@ -52,7 +52,7 @@ public:
     /// Pointer definition of MappingMatrixBuilder
     KRATOS_CLASS_POINTER_DEFINITION(MappingMatrixBuilder);
 
-    using GraphType = typename std::conditional<TIsDistributed, DistributedSparseGraph<std::size_t>, SparseGraph<>>::type;
+    using GraphType = typename std::conditional<TIsDistributed, DistributedSparseGraph<std::size_t>, SparseContiguousRowGraph<>>::type;
 
     using MappingMatrixType = typename std::conditional<TIsDistributed,
         DistributedCsrMatrix<>,
