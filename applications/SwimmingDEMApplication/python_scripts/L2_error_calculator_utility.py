@@ -16,9 +16,11 @@ class L2ErrorCalculatorUtility:
         self.model_part = model
 
         self.u_characteristic = parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
+
         for element in self.model_part.Elements:
             rho = element.Properties.GetValue(KratosMultiphysics.DENSITY)
             break
+
         self.p_characteristic = (1/2)*rho*self.u_characteristic**2
 
         self.model = KratosMultiphysics.Model()
