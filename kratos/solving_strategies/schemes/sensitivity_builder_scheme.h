@@ -92,7 +92,7 @@ public:
 
     virtual int Check(
         const ModelPart& rModelPart,
-        ModelPart& rSensitivityModelPart) const
+        const ModelPart& rSensitivityModelPart) const
     {
         return 0;
     }
