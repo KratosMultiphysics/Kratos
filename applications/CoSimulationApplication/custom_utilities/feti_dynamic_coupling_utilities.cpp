@@ -246,6 +246,7 @@ namespace Kratos
         const double projector_entry = (solverIndex == SolverIndex::Origin) ? 1.0 : -1.0;
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
+        const SolverPhysics solver_physics = (solverIndex == SolverIndex::Origin) ? mOriginPhysics : mDestinationPhysics;
 
         SizeType domain_dofs = 0;
         if (is_implicit)
@@ -260,7 +261,9 @@ namespace Kratos
             ModelPart& rDomain = (solverIndex == SolverIndex::Origin) ? *mpOriginDomain : *mpDestinationDomain;
             for (auto& rNode : rDomain.Nodes())
             {
-                const double nodal_mass = rNode.GetValue(NODAL_MASS);
+                double nodal_mass = (solver_physics == SolverPhysics::FEM)
+                    ? rNode.GetValue(NODAL_MASS)
+                    : rNode.FastGetSolutionStepValue(NODAL_MASS);
                 if (nodal_mass > numerical_limit)
                 {
                     rNode.SetValue(EXPLICIT_EQUATION_ID, domain_dofs);
@@ -492,7 +495,9 @@ namespace Kratos
                 {
                     if (rNode.Has(EXPLICIT_EQUATION_ID))
                     {
-                        const double nodal_mass = rNode.GetValue(NODAL_MASS);
+                        double nodal_mass = (!is_mpm)
+                            ? rNode.GetValue(NODAL_MASS)
+                            : rNode.FastGetSolutionStepValue(NODAL_MASS);
                         if (nodal_mass > numerical_limit)
                         {
                             IndexType equation_id = rNode.GetValue(EXPLICIT_EQUATION_ID);
@@ -707,6 +712,7 @@ namespace Kratos
 
         const SizeType interface_dofs = rProjector.size1();
         const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const SolverPhysics solver_physics = (solverIndex == SolverIndex::Origin) ? mOriginPhysics : mDestinationPhysics;
 
         DenseMatrixType result(rUnitResponse.size1(), rUnitResponse.size2(), 0.0);
 
@@ -714,7 +720,9 @@ namespace Kratos
             {
                 for (auto& rNode : rDomain.Nodes())
                 {
-                    const double nodal_mass = rNode.GetValue(NODAL_MASS);
+                    double nodal_mass = (solver_physics == SolverPhysics::FEM)
+                        ? rNode.GetValue(NODAL_MASS)
+                        : rNode.FastGetSolutionStepValue(NODAL_MASS);
                     if (nodal_mass > numerical_limit)
                     {
                         IndexType domain_id = rNode.GetValue(EXPLICIT_EQUATION_ID);
