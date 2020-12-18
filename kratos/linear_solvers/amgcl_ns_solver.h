@@ -196,7 +196,8 @@ public:
         return is_solved;
     }
 
-    bool scalar_solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) const {
+    std::tuple<size_t, double> scalar_solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) const
+    {
         typedef amgcl::backend::builtin<double> sBackend;
         typedef amgcl::backend::builtin<float> pBackend;
 
@@ -227,7 +228,8 @@ public:
     }
 
     template <int UBlockSize>
-    bool block_solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) const {
+    std::tuple<size_t, double> block_solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) const
+    {
         typedef amgcl::static_matrix<float,UBlockSize,UBlockSize> fblock;
 
         typedef amgcl::backend::builtin<double> sBackend;
