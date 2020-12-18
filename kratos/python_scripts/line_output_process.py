@@ -34,7 +34,8 @@ class LineOutputProcess(KratosMultiphysics.Process):
             "search_configuration" : "initial",
             "search_tolerance"  : 1e-6,
             "print_format"      : "",
-            "output_file_settings": {}
+            "output_file_settings": {},
+            "forced_flush_step_frequency" : -1
         }''')
 
         params.ValidateAndAssignDefaults(default_settings)

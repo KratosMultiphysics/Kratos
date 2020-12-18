@@ -35,7 +35,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "search_configuration" : "initial",
             "search_tolerance"     : 1e-6,
             "print_format"         : "",
-            "output_file_settings" : {}
+            "output_file_settings" : {},
+            "forced_flush_step_frequency" : -1
         }''')
 
         self.model = model
@@ -64,6 +65,13 @@ class PointOutputProcess(KratosMultiphysics.Process):
             self.search_configuration = KratosMultiphysics.Configuration.Current
         else:
             raise Exception( "Invalid configuration: {configuration} (Expecting 'Initial' or 'Current')".format( configuration=self.params["search_configuration"].GetString()) )
+
+        self.forced_flush_step_frequency = self.params["forced_flush_step_frequency"].GetInt()
+        # If write_buffer_size is set to default, change it for a large number
+        # so the forced_flush_step_frequency governs the flush.
+        if self.params["output_file_settings"].Has("write_buffer_size"):
+            if self.params["output_file_settings"]["write_buffer_size"].GetInt() < 0 and self.forced_flush_step_frequency > 0:
+                self.params["output_file_settings"]["write_buffer_size"].SetInt(10)
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
@@ -116,6 +124,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
         if self.interval.IsInInterval(time):
             # zip works with the shortes list, which is what we want here
@@ -135,6 +144,9 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
                 out += "\n"
                 f.write(out)
+
+                if self.forced_flush_step_frequency > 0 and step % self.forced_flush_step_frequency == 0:
+                    f.flush()
 
     def ExecuteFinalize(self):
         for f in self.output_file:
