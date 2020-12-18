@@ -199,7 +199,7 @@ public:
         amgcl::make_solver<
             amgcl::preconditioner::schur_pressure_correction<USolver, PSolver>,
             amgcl::runtime::solver::wrapper<SolverBackend>
-            > solve(*amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mprm);
+            > solve(*A, mprm);
 
         size_t iters;
         double resid;
