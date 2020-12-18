@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "utilities/coordinate_transformation_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"
@@ -107,6 +108,16 @@ public:
         }
 
         BaseType::Initialize(rModelPart);
+
+        // fixing first dof of velocity on slip nodes because when system of equations
+        // are rotated according to nodal normal, first dof becomes velocity in the
+        // nodal normal direction which is fixed by matrix construction in the
+        // primal scheme
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            if (rNode.Is(SLIP)) {
+                rNode.Fix(ADJOINT_FLUID_VECTOR_1_X);
+            }
+        });
 
         KRATOS_CATCH("");
     }
