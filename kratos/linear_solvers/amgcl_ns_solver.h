@@ -30,24 +30,18 @@
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
 
-#include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include <amgcl/preconditioner/runtime.hpp>
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
-#include <amgcl/adapter/block_matrix.hpp>
-#include <amgcl/make_block_solver.hpp>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
 #include <amgcl/make_solver.hpp>
-#include <amgcl/amg.hpp>
-#include <amgcl/coarsening/runtime.hpp>
-#include <amgcl/relaxation/runtime.hpp>
+#include <amgcl/make_block_solver.hpp>
 #include <amgcl/solver/runtime.hpp>
-#include <amgcl/relaxation/as_preconditioner.hpp>
 #include <amgcl/preconditioner/schur_pressure_correction.hpp>
+#include <amgcl/preconditioner/runtime.hpp>
 
 namespace Kratos
 {
@@ -153,30 +147,6 @@ public:
         mprm.put("precond.pmask", static_cast<void*>(&mp[0]));
         mprm.put("precond.pmask_size", mp.size());
 
-        typedef amgcl::backend::builtin<double> SolverBackend;
-        typedef amgcl::backend::builtin<amgcl::static_matrix<float,3,3>> uBackend;
-        typedef amgcl::backend::builtin<float> pBackend;
-
-        typedef amgcl::make_block_solver<
-            amgcl::runtime::preconditioner<uBackend>,
-            amgcl::runtime::solver::wrapper<uBackend>
-            > USolver;
-
-        typedef amgcl::make_solver<
-            amgcl::runtime::preconditioner<pBackend>,
-            amgcl::runtime::solver::wrapper<pBackend>
-            > PSolver;
-
-        // typedef amgcl::make_solver<
-        //     amgcl::runtime::preconditioner<Backend>,
-        //     amgcl::runtime::solver::wrapper<Backend>
-        //     > USolver;
-
-        // typedef amgcl::make_solver<
-        //     amgcl::runtime::preconditioner<Backend>,
-        //     amgcl::runtime::solver::wrapper<Backend>
-        //     > PSolver;
-
         if(mVerbosity > 1)
             write_json(std::cout, mprm);
 
@@ -191,21 +161,26 @@ public:
             matrix_market_vectname << "b" << ".mm.rhs";
             TSparseSpaceType::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rB);
 
-            KRATOS_THROW_ERROR(std::logic_error, "verobsity = 4 prints the matrix and exits","")
+            KRATOS_THROW_ERROR(std::logic_error, "verbosity = 4 prints the matrix and exits","")
         }
-
-
-        auto pA = amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin());
-        amgcl::make_solver<
-            amgcl::preconditioner::schur_pressure_correction<USolver, PSolver>,
-            amgcl::runtime::solver::wrapper<SolverBackend>
-            > solve(*pA, mprm);
 
         size_t iters;
         double resid;
-        std::tie(iters, resid) = solve(*pA, rB, rX);
 
-        KRATOS_WARNING_IF("AMGCL NS Linear Solver", mTol < resid)<<"Non converged linear solution. "<< resid  << std::endl;
+        switch (mndof)
+        {
+            case 3:
+                std::tie(iters, resid) = block_solve<2>(rA, rX, rB);
+                break;
+            case 4:
+                std::tie(iters, resid) = block_solve<3>(rA, rX, rB);
+                break;
+            default:
+                std::tie(iters, resid) = scalar_solve(rA, rX, rB);
+        }
+
+        KRATOS_WARNING_IF("AMGCL NS Linear Solver", mTol < resid)
+            << "Non converged linear solution. " << resid << std::endl;
 
         if(mVerbosity > 1)
         {
@@ -219,6 +194,70 @@ public:
             is_solved = false;
 
         return is_solved;
+    }
+
+    bool scalar_solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) const {
+        typedef amgcl::backend::builtin<double> sBackend;
+        typedef amgcl::backend::builtin<float> pBackend;
+
+        typedef amgcl::make_solver<
+            amgcl::runtime::preconditioner<pBackend>,
+            amgcl::runtime::solver::wrapper<pBackend>
+            > USolver;
+
+        typedef amgcl::make_solver<
+            amgcl::runtime::preconditioner<pBackend>,
+            amgcl::runtime::solver::wrapper<pBackend>
+            > PSolver;
+
+        typedef amgcl::make_solver<
+            amgcl::preconditioner::schur_pressure_correction<USolver, PSolver>,
+            amgcl::runtime::solver::wrapper<sBackend>
+            > Solver;
+
+        auto pA = amgcl::adapter::zero_copy(
+                rA.size1(),
+                rA.index1_data().begin(),
+                rA.index2_data().begin(),
+                rA.value_data().begin()
+                );
+
+        Solver solve(*pA, mprm);
+        return solve(*pA, rB, rX);
+    }
+
+    template <int UBlockSize>
+    bool block_solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) const {
+        typedef amgcl::static_matrix<float,UBlockSize,UBlockSize> fblock;
+
+        typedef amgcl::backend::builtin<double> sBackend;
+        typedef amgcl::backend::builtin<fblock> uBackend;
+        typedef amgcl::backend::builtin<float>  pBackend;
+
+        typedef amgcl::make_block_solver<
+            amgcl::runtime::preconditioner<uBackend>,
+            amgcl::runtime::solver::wrapper<uBackend>
+            > USolver;
+
+        typedef amgcl::make_solver<
+            amgcl::runtime::preconditioner<pBackend>,
+            amgcl::runtime::solver::wrapper<pBackend>
+            > PSolver;
+
+        typedef amgcl::make_solver<
+            amgcl::preconditioner::schur_pressure_correction<USolver, PSolver>,
+            amgcl::runtime::solver::wrapper<sBackend>
+            > Solver;
+
+        auto pA = amgcl::adapter::zero_copy(
+                rA.size1(),
+                rA.index1_data().begin(),
+                rA.index2_data().begin(),
+                rA.value_data().begin()
+                );
+
+        Solver solve(*pA, mprm);
+        return solve(*pA, rB, rX);
     }
 
     /**
