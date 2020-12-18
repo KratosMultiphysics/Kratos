@@ -45,6 +45,8 @@ class CoSimulationSolverWrapper:
         self.echo_level = self.settings["echo_level"].GetInt()
         self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
 
+        self.data_comm = self.__GetDataCommunicator()
+
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
 
@@ -52,41 +54,70 @@ class CoSimulationSolverWrapper:
         raise Exception('Trying to get SolverWrapper "{}" of "{}" which is not a coupled solver!'.format(solver_name, self.name))
 
     def Initialize(self):
-        if self.__HasIO():
+        if self.__HasIO() and self.data_comm.IsDefinedOnThisRank():
             self.__GetIO().Initialize()
 
     def InitializeCouplingInterfaceData(self):
-        # Initializing of the CouplingInterfaceData can only be done after the meshes are read
-        # and all ModelParts are created
-        for data in self.data_dict.values():
-            data.Initialize()
+        if self.data_comm.IsDefinedOnThisRank():
+            # Initializing of the CouplingInterfaceData can only be done after the meshes are read
+            # and all ModelParts are created
+            for data in self.data_dict.values():
+                data.Initialize()
 
     def Finalize(self):
         if self.__HasIO():
             self.__GetIO().Finalize()
 
     def AdvanceInTime(self, current_time):
+        if self.data_comm.IsDefinedOnThisRank():
+            self._AdvanceInTimeImpl(current_time)
+
+    def Predict(self):
+        if self.data_comm.IsDefinedOnThisRank():
+            self._PredictImpl()
+
+    def InitializeSolutionStep(self):
+        if self.data_comm.IsDefinedOnThisRank():
+            self._InitializeSolutionStepImpl()
+
+    def FinalizeSolutionStep(self):
+        if self.data_comm.IsDefinedOnThisRank():
+            self._FinalizeSolutionStepImpl()
+
+    def OutputSolutionStep(self):
+        if self.data_comm.IsDefinedOnThisRank():
+            self._OutputSolutionStepImpl()
+
+    def SolveSolutionStep(self):
+        if self.data_comm.IsDefinedOnThisRank():
+            self._SolveSolutionStepImpl()
+
+
+    def _AdvanceInTimeImpl(self, current_time):
         # in case a solver does not provide time information (e.g. external or steady solvers),
         # then this solver should return "0.0" here
         raise Exception('"AdvanceInTime" must be implemented in the derived class!')
 
-    def Predict(self):
+    def _PredictImpl(self):
         pass
 
-    def InitializeSolutionStep(self):
+    def _InitializeSolutionStepImpl(self):
         pass
 
-    def FinalizeSolutionStep(self):
+    def _FinalizeSolutionStepImpl(self):
         pass
 
-    def OutputSolutionStep(self):
+    def _OutputSolutionStepImpl(self):
         pass
 
-    def SolveSolutionStep(self):
+    def _SolveSolutionStepImpl(self):
         pass
 
 
     def CreateIO(self, io_echo_level):
+        if self.data_comm.IsNullOnThisRank():
+            return
+
         if self.__HasIO():
             raise Exception('IO for solver "{}" is already created!'.format(self.name))
 
@@ -98,38 +129,60 @@ class CoSimulationSolverWrapper:
         self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self._GetIOType())
 
     def ImportCouplingInterface(self, interface_config):
+        if self.data_comm.IsNullOnThisRank():
+            return
+
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
         self.__GetIO().ImportCouplingInterface(interface_config)
 
     def ExportCouplingInterface(self, interface_config):
+        if self.data_comm.IsNullOnThisRank():
+            return
+
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
         self.__GetIO().ExportCouplingInterface(interface_config)
 
     def ImportData(self, data_config):
+        if self.data_comm.IsNullOnThisRank():
+            return
+
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
         self.__GetIO().ImportData(data_config)
 
     def ExportData(self, data_config):
+        if self.data_comm.IsNullOnThisRank():
+            return
+
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
         self.__GetIO().ExportData(data_config)
 
 
     def GetInterfaceData(self, data_name):
+        if self.data_comm.IsNullOnThisRank():
+            raise Exception('Solver "{}" does not exist on this rank!'.format(self.name))
         try:
             return self.data_dict[data_name]
         except KeyError:
             raise Exception('Requested data field "{}" does not exist for solver "{}"'.format(data_name, self.name))
 
     def PrintInfo(self):
+        if self.data_comm.IsDefinedOnThisRank():
+            self._PrintInfoImpl()
+
+    def _PrintInfoImpl(self):
         '''This function can be filled if desired, e.g. to print settings at higher echo-levels
         '''
         pass
 
     def Check(self):
+        if self.data_comm.IsDefinedOnThisRank():
+            self._CheckImpl()
+
+    def _CheckImpl(self):
         cs_tools.cs_print_warning("CoSimulationSolverWrapper", "your solver does not implement Check!!!")
 
     @classmethod
@@ -148,12 +201,36 @@ class CoSimulationSolverWrapper:
     def __HasIO(self):
         return self.__io is not None
 
+    def __GetDataCommunicator(self):
+        if not KM.IsDistributedRun():
+            return KM.ParallelEnvironment.GetDataCommunicator("Serial")
+        else:
+            data_comm_settings = self.settings["data_communicator_settings"]
+            data_comm_name = data_comm_settings["name"].GetString()
+            # This requires the creation of SubCommunicators, which are not yet fully supported in Kratos Solvers
+            if data_comm_name not in ["Serial", "World"]:
+                raise Exception('Currently only "Serial" and "World" is supported as data communicator')
+
+            return KM.ParallelEnvironment.GetDataCommunicator(data_comm_name)
+
     @classmethod
     def _GetDefaultParameters(cls):
-        return KM.Parameters("""{
-            "type"                    : "",
-            "solver_wrapper_settings" : {},
-            "io_settings"             : {},
-            "data"                    : {},
-            "echo_level"              : 0
+        default_parameters = KM.Parameters("""{
+            "type"                       : "",
+            "solver_wrapper_settings"    : {},
+            "io_settings"                : {},
+            "data"                       : {},
+            "echo_level"                 : 0
         }""")
+
+        if KM.IsDistributedRun():
+            data_comm_defaults = KM.Parameters("""{
+                "name" : "World",
+                "size" : 0
+            }""")
+            # get size of the default comm
+            default_data_comm = KM.ParallelEnvironment.GetDataCommunicator(data_comm_defaults["name"].GetString())
+            data_comm_defaults["size"].SetInt(default_data_comm.Size())
+            default_parameters.AddValue("data_communicator_settings", data_comm_defaults)
+
+        return default_parameters
