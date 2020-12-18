@@ -198,7 +198,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             # to solver
             to_solver_data = to_solver.GetInterfaceData(to_data_name)
 
-            self.__SynchronizeData(i_data, from_solver, from_solver_data, to_solver, to_solver_data)
+            self.__SynchronizeData(i_data, from_solver_data, to_solver_data)
 
         if self.echo_level > 2:
             cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Input for solver "{}"'.format(colors.blue(solver_name)))
@@ -227,12 +227,12 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             to_solver = self.solver_wrappers[to_solver_name]
             to_solver_data = to_solver.GetInterfaceData(to_solver_data_name)
 
-            self.__SynchronizeData(i_data, from_solver, from_solver_data, to_solver, to_solver_data)
+            self.__SynchronizeData(i_data, from_solver_data, to_solver_data)
 
         if self.echo_level > 2:
             cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Output for solver "{}"'.format(colors.blue(solver_name)))
 
-    def __SynchronizeData(self, i_data, from_solver, from_solver_data, to_solver, to_solver_data):
+    def __SynchronizeData(self, i_data, from_solver_data, to_solver_data):
             # check if data-exchange is specified for current time
             if not KM.IntervalUtility(i_data).IsInInterval(self.time):
                 if self.echo_level > 2:
