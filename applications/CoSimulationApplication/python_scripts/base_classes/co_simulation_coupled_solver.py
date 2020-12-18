@@ -302,7 +302,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         for i_solver_settings in range(self.settings["coupling_sequence"].size()):
             solver_settings = self.settings["coupling_sequence"][i_solver_settings]
             solver_name = solver_settings["name"].GetString()
-            solvers_map[solver_name] = solvers[solver_name]
+            solver = solvers[solver_name]
+            if solver.data_communicator.IsDefinedOnThisRank():
+                solvers_map[solver_name] = solvers[solver_name]
 
         for solver_name in self.settings["solvers"].keys():
             if solver_name not in solvers_map:
