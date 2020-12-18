@@ -43,7 +43,7 @@ class CoSimulationConvergenceAccelerator:
         cs_tools.cs_print_info("Convergence Accelerator", colors.bold(self._ClassName()))
 
     def Check(self):
-        print("ConvAcc does not yet implement Check")
+        cs_tools.cs_print_warning("Convergence Accelerator", "The convergence accelerators do not yet implement Check!")
 
     def UpdateSolution(self, residual, iteration_guess):
         # TODO this should update the solution in place, otherwise not compatible with the conv-acc in the FSI-App
