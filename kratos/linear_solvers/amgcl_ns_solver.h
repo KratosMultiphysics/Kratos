@@ -195,6 +195,7 @@ public:
         }
 
 
+        auto A = amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin());
         amgcl::make_solver<
             amgcl::preconditioner::schur_pressure_correction<USolver, PSolver>,
             amgcl::runtime::solver::wrapper<SolverBackend>
