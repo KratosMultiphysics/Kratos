@@ -203,7 +203,7 @@ public:
 
         size_t iters;
         double resid;
-        std::tie(iters, resid) = solve(rB, rX);
+        std::tie(iters, resid) = solve(*A, rB, rX);
 
         KRATOS_WARNING_IF("AMGCL NS Linear Solver", mTol < resid)<<"Non converged linear solution. "<< resid  << std::endl;
 
