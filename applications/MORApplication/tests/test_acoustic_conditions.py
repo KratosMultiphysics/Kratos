@@ -65,5 +65,32 @@ class TestAcousticConditions(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[0], 1.263628102251608)
         self.assertAlmostEqual(rhs[1], 0.245394337342979)
 
+    def test_acoustic_load_condition_2d1n(self):
+        # parameters
+        load = 2.41e-3
+        freq = 12
+
+        # create model
+        model = KratosMultiphysics.Model()
+        mp = model.CreateModelPart("domain")
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        mp.AddNodalSolutionStepVariable(MOR.ACOUSTIC_LOAD)
+
+        # create nodes
+        n1 = mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.GetProperties()[1].SetValue(MOR.ACOUSTIC_LOAD, load)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, mp)
+        mp.ProcessInfo[MOR.FREQUENCY] = freq
+        cond = mp.CreateNewCondition("AcousticLoadCondition2D1N", 1, [1], mp.GetProperties()[1])
+
+        # compute condition
+        lhs = KratosMultiphysics.Matrix(0,0)
+        rhs = KratosMultiphysics.Vector(0)
+        cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+
+        # assert
+        self.assertAlmostEqual(rhs[0], load*freq**2)
+
 if __name__ == '__main__':
     KratosUnittest.main()

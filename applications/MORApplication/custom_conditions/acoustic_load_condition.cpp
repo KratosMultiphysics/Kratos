@@ -244,16 +244,20 @@ void AcousticLoadCondition::CalculateRightHandSide(
         load[i] *= frequency2;
     }
 
-    for( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+    if( number_of_nodes == 1 ) {
+        rRightHandSideVector[0] += load[0];
+    } else {
+        for( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
 
-        const double detJ = r_geometry.DeterminantOfJacobian( integration_points[point_number] );
-        const double integration_weight =
-            GetIntegrationWeight(integration_points, point_number, detJ);
+            const double detJ = r_geometry.DeterminantOfJacobian( integration_points[point_number] );
+            const double integration_weight =
+                GetIntegrationWeight(integration_points, point_number, detJ);
 
-        const Vector& rN = row(Ncontainer,point_number);
+            const Vector& rN = row(Ncontainer,point_number);
 
-        for( IndexType i=0; i<number_of_nodes; ++i ) {
-            rRightHandSideVector[i] += integration_weight * rN[i] * load[i];
+            for( IndexType i=0; i<number_of_nodes; ++i ) {
+                rRightHandSideVector[i] += integration_weight * rN[i] * load[i];
+            }
         }
     }
 
