@@ -38,6 +38,22 @@ def __ModuleInitDetail():
             import KratosMultiphysics.mpi
             mpi.InitializeMPIParallelRun()
             using_mpi = True
+
+            def CustomExceptionHook(exc_type, exc_value, exc_traceback):
+                """custom exception hook that also prints the source rank where the exception was thrown"""
+                if issubclass(exc_type, KeyboardInterrupt):
+                    # call the default excepthook saved at __excepthook__
+                    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+                    return
+
+                from KratosMultiphysics import DataCommunicator
+                default_data_comm = DataCommunicator.GetDefault()
+
+                exc_value = exc_type("(on rank {}): {}".format(DataCommunicator.GetDefault().Rank(), exc_value))
+                sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+            sys.excepthook = CustomExceptionHook
+
         else:
             if mpi_requested:
                 msg = [
