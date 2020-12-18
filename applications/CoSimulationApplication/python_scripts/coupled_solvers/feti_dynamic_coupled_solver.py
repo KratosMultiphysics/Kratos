@@ -176,15 +176,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         # Check consistency of mapper and solver settings
         linear_mapper = self.mapper_parameters["use_initial_configuration"].GetBool()
-        #if self.settings["is_linear"].GetBool():
-        #    # Linear solve must use mapper created from initial config
-        #    if linear_mapper == False:
-        #        raise Exception("Check CoSim parameters! If 'is_linear' = true, then mapper 'use_initial_configuration' must be true.")
-        #else:
-        #    # Non-linear solve must use updated mapper
-        #    if linear_mapper == True:
-        #        raise Exception("Check CoSim parameters! If 'is_linear' = false, then mapper 'use_initial_configuration' must be false.")
-
 
         # The origin and destination interfaces from the mapper submitted above are both
         # stored within the origin modelpart. Now we submit the 'original' origin and destination
@@ -300,7 +291,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "destination_newmark_gamma" : -1.0,
             "equilibrium_variable" : "VELOCITY",
             "is_disable_coupling" : false,
-            "is_linear" : false,
+            "configuration_settings" : {
+                "origin_use_initial_configuration" : false,
+                "destination_use_initial_configuration" : false
+                },
             "deform_mpm_grid_settings" : {
                 "radius_of_full_deformation" : 1e9,
                 "radius_of_zero_deformation" : 1e10

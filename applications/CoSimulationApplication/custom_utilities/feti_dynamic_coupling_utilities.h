@@ -103,6 +103,9 @@ namespace Kratos
         SparseMatrixType mCondensationMatrix;
         SparseMatrixType mUnitResponseDestination;
         SparseMatrixType mProjectorDestination;
+
+        bool mIsLinearOrigin = false;
+        bool mIsLinearDestination = false;
         bool mIsLinearSetupComplete = false;
 
         EquilibriumVariable mEquilibriumVariable = EquilibriumVariable::Velocity;
@@ -112,7 +115,6 @@ namespace Kratos
         bool mIsImplicitOrigin;
         bool mIsImplicitDestination;
         const Parameters mParameters;
-        bool mIsLinear = false;
         SolverIndex mLagrangeDefinedOn = SolverIndex::Destination;
 
         IndexType mSubTimestepIndex = 1;

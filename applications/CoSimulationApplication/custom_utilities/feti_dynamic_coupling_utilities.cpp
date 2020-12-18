@@ -70,7 +70,8 @@ namespace Kratos
         mIsImplicitDestination = (destination_beta > numerical_limit) ? true : false;
         mTimestepRatio = timestep_ratio;
 
-        mIsLinear = mParameters["is_linear"].GetBool();
+        mIsLinearOrigin = mParameters["configuration_settings"]["origin_use_initial_configuration"].GetBool();
+        mIsLinearDestination = mParameters["configuration_settings"]["destination_use_initial_configuration"].GetBool();
 
         mSubTimestepIndex = 1;
     }
@@ -113,25 +114,27 @@ namespace Kratos
         DenseVectorType unbalanced_interface_free_kinematics(lagrange_interface_dofs,0.0);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
 
-        if (!mIsLinear || !mIsLinearSetupComplete)
+        // 2 - Construct projection matrices
+        // 3 - Determine domain response to unit loads
+        if (!mIsLinearOrigin || !mIsLinearSetupComplete) {
+            if (mSubTimestepIndex == 1) {
+                ComposeProjector(mProjectorOrigin, solver_index);
+                DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, solver_index);
+            }
+        }
+        if (!mIsLinearDestination || !mIsLinearSetupComplete)
         {
-            // 2 - Construct projection matrices
-            if (mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, solver_index);
             solver_index = SolverIndex::Destination;
             ComposeProjector(mProjectorDestination, solver_index);
-
-            // 3 - Determine domain response to unit loads
-            solver_index = SolverIndex::Origin;
-            if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, solver_index);
-
-            solver_index = SolverIndex::Destination;
             DetermineDomainUnitAccelerationResponse(mpKDestination, mProjectorDestination, mUnitResponseDestination, solver_index);
+        }
 
-            // 4 - Calculate condensation matrix
+        // 4 - Calculate condensation matrix
+        if (!mIsLinearOrigin || !mIsLinearDestination || !mIsLinearSetupComplete)
+        {
             CalculateCondensationMatrix(mCondensationMatrix, mUnitResponseOrigin,
                 mUnitResponseDestination, mProjectorOrigin, mProjectorDestination);
-
-            if (mIsLinear) mIsLinearSetupComplete = true;
+            mIsLinearSetupComplete = true;
         }
 
         // 5 - Calculate lagrange mults
