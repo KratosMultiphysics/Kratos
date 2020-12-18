@@ -40,7 +40,7 @@ def __ModuleInitDetail():
             using_mpi = True
 
             def CustomExceptionHook(exc_type, exc_value, exc_traceback):
-                """custom exception hook that also prints the source rank where the exception was thrown."""
+                """Custom exception hook that also prints the source rank where the exception was thrown."""
                 if issubclass(exc_type, KeyboardInterrupt):
                     # call the default excepthook saved at __excepthook__
                     sys.__excepthook__(exc_type, exc_value, exc_traceback)
