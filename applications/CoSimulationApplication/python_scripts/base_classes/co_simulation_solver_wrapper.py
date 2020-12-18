@@ -6,6 +6,7 @@ import KratosMultiphysics.CoSimulationApplication.factories.io_factory as io_fac
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.utilities.serial_data_communicator import SerialDataCommunicator
 
 def Create(settings, name):
     raise Exception('"CoSimulationSolverWrapper" is a baseclass and cannot be used directly!')
@@ -119,6 +120,8 @@ class CoSimulationSolverWrapper:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
         self.__GetIO().ExportData(data_config)
 
+    def IsDefinedOnThisRank(self):
+        return self.data_communicator.IsDefinedOnThisRank()
 
     def GetInterfaceData(self, data_name):
         try:
@@ -160,7 +163,10 @@ class CoSimulationSolverWrapper:
             if data_comm_name not in ["Serial", "World"]:
                 raise Exception('Currently only "Serial" and "World" is supported as data communicator')
 
-            return KM.ParallelEnvironment.GetDataCommunicator(data_comm_name)
+            if data_comm_name == "Serial":
+                return SerialDataCommunicator()
+            else:
+                return KM.ParallelEnvironment.GetDataCommunicator(data_comm_name)
 
     @classmethod
     def _GetDefaultParameters(cls):

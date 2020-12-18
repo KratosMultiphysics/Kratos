@@ -6,6 +6,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities.serial_data_communicator import SerialDataCommunicator
 from importlib import import_module
 
 def Create(settings, model, solver_name):
@@ -27,6 +28,11 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
         # this creates the AnalysisStage, creates the MainModelParts and allocates the historial Variables on the MainModelParts:
         self._analysis_stage = self.__GetAnalysisStage()
+
+        parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+        if parallel_type == "OpenMP":
+            # probably better to somehow override "__GetDataCommunicator"
+            self.data_communicator = SerialDataCommunicator()
 
     def Initialize(self):
         self._analysis_stage.Initialize() # this reades the Meshes
