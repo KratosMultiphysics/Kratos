@@ -178,30 +178,31 @@ void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::
     WeaklyCompressibleNavierStokesData<2,3>& rData,
     MatrixType& rLHS)
 {
-    const auto& rho = rData.Density;
+    const array_1d<double,3>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const auto& c = rData.SoundVelocity;
+    const array_1d<double,3>& c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const Matrix& C = rData.C;
+    const BoundedMatrix<double,3,3>& C = rData.C;
 
     // Get shape function values
-    const auto& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const array_1d<double,3>& N = rData.N;
+    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    //TODO: Optimize this to directly add to the rLeftHandSideMatrix
     auto& lhs = rData.lhs;
 
     //substitute_lhs_2D3N
@@ -215,30 +216,31 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     WeaklyCompressibleNavierStokesData<3,4>& rData,
     MatrixType& rLHS)
 {
-    const auto& rho = rData.Density;
+    const array_1d<double,4>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const auto& c = rData.SoundVelocity;
+    const array_1d<double,4>& c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const Matrix& C = rData.C;
+    const BoundedMatrix<double,6,6>& C = rData.C;
 
     // Get shape function values
-    const auto& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    //TODO: Optimize this to directly add to the rLeftHandSideMatrix
     auto& lhs = rData.lhs;
 
     //substitute_lhs_3D4N
@@ -252,11 +254,11 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
     WeaklyCompressibleNavierStokesData<2,3>& rData,
     VectorType& rRHS)
 {
-    const auto& rho = rData.Density;
+    const array_1d<double,3>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const auto& c = rData.SoundVelocity;
+    const array_1d<double,3>& c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -265,25 +267,26 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto& v = rData.Velocity;
-    const auto& vn = rData.Velocity_OldStep1;
-    const auto& vnn = rData.Velocity_OldStep2;
-    const auto& vmesh = rData.MeshVelocity;
-    const auto& vconv = v - vmesh;
-    const auto& f = rData.BodyForce;
-    const auto& p = rData.Pressure;
-    const auto& pn = rData.Pressure_OldStep1;
-    const auto& pnn = rData.Pressure_OldStep2;
-    const auto& stress = rData.ShearStress;
+    const BoundedMatrix<double,2,3>& v = rData.Velocity;
+    const BoundedMatrix<double,2,3>& vn = rData.Velocity_OldStep1;
+    const BoundedMatrix<double,2,3>& vnn = rData.Velocity_OldStep2;
+    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> vconv = v - vmesh;
+    const BoundedMatrix<double,2,3>& f = rData.BodyForce;
+    const array_1d<double,3>& p = rData.Pressure;
+    const array_1d<double,3>& pn = rData.Pressure_OldStep1;
+    const array_1d<double,3>& pnn = rData.Pressure_OldStep2;
+    const array_1d<double,3>& stress = rData.ShearStress;
 
     // Get shape function values
-    const auto& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const array_1d<double,3>& N = rData.N;
+    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    //TODO: Optimize this to directly add to the rRightHandSideVector
     auto& rhs = rData.rhs;
 
     //substitute_rhs_2D3N
@@ -296,11 +299,11 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     WeaklyCompressibleNavierStokesData<3,4>& rData,
     VectorType& rRHS)
 {
-    const auto& rho = rData.Density;
+    const array_1d<double,4>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const auto& c = rData.SoundVelocity;
+    const array_1d<double,4>& c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -309,25 +312,26 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto& v = rData.Velocity;
-    const auto& vn = rData.Velocity_OldStep1;
-    const auto& vnn = rData.Velocity_OldStep2;
-    const auto& vmesh = rData.MeshVelocity;
-    const auto& vconv = v - vmesh;
-    const auto& f = rData.BodyForce;
-    const auto& p = rData.Pressure;
-    const auto& pn = rData.Pressure_OldStep1;
-    const auto& pnn = rData.Pressure_OldStep2;
-    const auto& stress = rData.ShearStress;
+    const BoundedMatrix<double,3,4>& v = rData.Velocity;
+    const BoundedMatrix<double,3,4>& vn = rData.Velocity_OldStep1;
+    const BoundedMatrix<double,3,4>& vnn = rData.Velocity_OldStep2;
+    const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv = v - vmesh;
+    const BoundedMatrix<double,3,4>& f = rData.BodyForce;
+    const array_1d<double,4>& p = rData.Pressure;
+    const array_1d<double,4>& pn = rData.Pressure_OldStep1;
+    const array_1d<double,4>& pnn = rData.Pressure_OldStep2;
+    const array_1d<double,6>& stress = rData.ShearStress;
 
     // Get shape function values
-    const auto& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    //TODO: Optimize this to directly add to the rRightHandSideVector
     auto& rhs = rData.rhs;
 
     //substitute_rhs_3D4N
