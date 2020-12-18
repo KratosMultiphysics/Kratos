@@ -130,13 +130,7 @@ class CoSimulationSolverWrapper:
         pass
 
     def Check(self):
-        print("!!!WARNING!!! your solver does not implement Check!!!")
-
-    def IsDistributed(self):
-        '''Returns whether this solver is executed distributed Aka MPI-parallel
-        '''
-        # TODO check if this method is necessary!
-        return False
+        cs_tools.cs_print_warning("CoSimulationSolverWrapper", "your solver does not implement Check!!!")
 
     @classmethod
     def _ClassName(cls):
