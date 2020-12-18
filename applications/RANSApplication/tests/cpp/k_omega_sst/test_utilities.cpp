@@ -48,10 +48,15 @@ ModelPart& RansKOmegaSSTK2D3NSetUp(
         rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     };
 
+    const auto set_properties = [](Properties& rProperties) {
+        rProperties.SetValue(DENSITY, 1.0);
+        rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
+    };
+
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
-        rModel, rElementName, "LineCondition2D2N", add_variables_function,
+        rModel, rElementName, "LineCondition2D2N", add_variables_function, set_properties,
         TURBULENT_KINETIC_ENERGY, 1);
 
     // set nodal historical variables
@@ -63,8 +68,6 @@ ModelPart& RansKOmegaSSTK2D3NSetUp(
         r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
     RandomFillNodalHistoricalVariable(r_model_part, DISTANCE, 1.0, 6.0);
-
-    VariableUtils().SetVariable(KINEMATIC_VISCOSITY, 1e-2, r_model_part.Nodes());
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
@@ -91,10 +94,16 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
         rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     };
 
+    const auto set_properties = [](Properties& rProperties) {
+        rProperties.SetValue(DENSITY, 1.0);
+        rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
+        rProperties.SetValue(WALL_VON_KARMAN, 5.2);
+    };
+
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
-        rModel, rElementName, "LineCondition2D2N", add_variables_function,
+        rModel, rElementName, "LineCondition2D2N", add_variables_function, set_properties,
         TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1);
 
     // set nodal historical variables
@@ -108,8 +117,6 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
     RandomFillNodalHistoricalVariable(r_model_part, DISTANCE, 1.0, 6.0);
 
-    VariableUtils().SetVariable(KINEMATIC_VISCOSITY, 1e-2, r_model_part.Nodes());
-
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
     r_process_info.SetValue(TURBULENCE_RANS_BETA_1, 3.1);
@@ -117,7 +124,6 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
     r_process_info.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1, 1.1);
     r_process_info.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2, 2.1);
     r_process_info.SetValue(TURBULENCE_RANS_C_MU, 0.4);
-    r_process_info.SetValue(WALL_VON_KARMAN, 5.2);
 
     return r_model_part;
 }

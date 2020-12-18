@@ -44,6 +44,14 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     };
 
+    const auto set_properties = [](Properties& rProperties) {
+        rProperties.SetValue(DENSITY, 2.0);
+        rProperties.SetValue(DYNAMIC_VISCOSITY, 2e-2);
+        rProperties.SetValue(WALL_VON_KARMAN, 3.1);
+        rProperties.SetValue(WALL_SMOOTHNESS_BETA, 4.2);
+        rProperties.SetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, 12.0);
+    };
+
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateTestModelPart(
@@ -54,6 +62,7 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
             rNode.AddDof(VELOCITY_Z).SetEquationId(rNode.Id() * 4 + 2);
             rNode.AddDof(PRESSURE).SetEquationId(rNode.Id() * 4 + 3);
         },
+        set_properties,
         1);
 
     // set nodal historical variables
