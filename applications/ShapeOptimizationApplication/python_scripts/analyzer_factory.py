@@ -247,7 +247,7 @@ class AnalyzerWithDependencies(Analyzer):
 
     # --------------------------------------------------------------------------
     def __ComputeCombinedGradientsRecursively(self, dependencies, communicator):
-        combined_gradient = None
+        combined_gradient = {}
 
         for response_id, weight, sub_dependencies, _ in dependencies:
             if communicator.isRequestingGradientOf(response_id):
@@ -262,15 +262,16 @@ class AnalyzerWithDependencies(Analyzer):
                     vector[1] *= weight
                     vector[2] *= weight
 
-                if combined_gradient is None:
-                    combined_gradient = copy.deepcopy(gradient)
-                else:
-                    # Perform nodal sum
-                    for key_a, vector_a in combined_gradient.items():
-                        vector_b = gradient[key_a]
-                        vector_a[0] += vector_b[0]
-                        vector_a[1] += vector_b[1]
-                        vector_a[2] += vector_b[2]
+                if not combined_gradient:
+                    # initialize combined gradient with zeros
+                    combined_gradient = {key: [0.0, 0.0, 0.0] for key in gradient.keys()}
+
+                # Perform nodal sum
+                for key_a, vector_a in combined_gradient.items():
+                    vector_b = gradient[key_a]
+                    vector_a[0] += vector_b[0]
+                    vector_a[1] += vector_b[1]
+                    vector_a[2] += vector_b[2]
 
         return combined_gradient
 

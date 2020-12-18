@@ -18,12 +18,15 @@
 
 // Project includes
 #include "containers/model.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
+#include "includes/cfd_variables.h"
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/rans_variable_utilities.h"
 
 // Include base h
 #include "test_utilities.h"
@@ -94,6 +97,7 @@ ModelPart& CreateTestModelPart(
     const std::string& rConditionName,
     const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
     const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
+    const std::function<void(Properties&)>& rSetProperties,
     const int BufferSize)
 {
     auto& r_model_part = rModel.CreateModelPart("test", BufferSize);
@@ -108,16 +112,21 @@ ModelPart& CreateTestModelPart(
     }
 
     Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
+    rSetProperties(*p_elem_prop);
 
     using nid_list = std::vector<ModelPart::IndexType>;
 
     r_model_part.CreateNewElement(rElementName, 1, nid_list{3, 2, 1}, p_elem_prop);
+    auto& r_element = r_model_part.Elements().front();
 
-    r_model_part.CreateNewCondition(rConditionName, 1, nid_list{1, 2}, p_elem_prop);
-    r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_elem_prop);
-    r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_elem_prop);
+    r_model_part.CreateNewCondition(rConditionName, 1, nid_list{1, 2}, p_elem_prop)->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
+    r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_elem_prop)->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
+    r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_elem_prop)->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
 
-    r_model_part.Elements().front().Check(r_model_part.GetProcessInfo());
+    RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
+
+    r_element.Check(r_model_part.GetProcessInfo());
     r_model_part.Conditions().front().Check(r_model_part.GetProcessInfo());
 
     return r_model_part;
@@ -127,7 +136,8 @@ ModelPart& CreateScalarVariableTestModelPart(
     Model& rModel,
     const std::string& rElementName,
     const std::string& rConditionName,
-    const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
+    const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,\
+    const std::function<void(Properties&)>& rSetProperties,
     const Variable<double>& rDofVariable,
     const int BufferSize,
     const bool DoInitializeElements,
@@ -138,6 +148,7 @@ ModelPart& CreateScalarVariableTestModelPart(
         [&rDofVariable](ModelPart::NodeType& rNode) {
             rNode.AddDof(rDofVariable).SetEquationId(rNode.Id());
         },
+        rSetProperties,
         BufferSize);
 
     if (DoInitializeElements) {
