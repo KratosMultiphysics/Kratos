@@ -198,7 +198,6 @@ public:
         noalias(S_matrix) = (1.0/(static_cast<double>(TDim)+1.0))*(Ml_matrix-Mc_matrix);
 
         double nu_e = 0.0;
-        //double nu_e_vector = 0.0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             for (unsigned int j = 0; j < TNumNodes; j++)

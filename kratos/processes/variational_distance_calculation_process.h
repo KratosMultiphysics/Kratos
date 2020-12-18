@@ -27,7 +27,7 @@
 #include "includes/define.h"
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
-#include "elements/distance_calculation_element_simplex.h"
+#include "elements/distance_calculation_element_simplex_modified.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/process.h"
 #include "modeler/connectivity_preserve_modeler.h"
@@ -233,16 +233,16 @@ public:
             it_node->SetValue(DISTANCE, d);
 
             if(d == 0){
-                d = 1.0e-15;
+                //d = 1.0e-15;
                 fix_flag = -1.0;
                 it_node->Fix(DISTANCE);
-            } else {
+            } /* else {
                 if(d > 0.0){
                     d = 1.0e15; // Set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
                 } else {
                     d = -1.0e15;
                 }
-            }
+            } */
         }
 
         const int nelem = static_cast<int>(r_distance_model_part.NumberOfElements());
@@ -322,7 +322,7 @@ public:
 
         // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
-        #pragma omp parallel for
+        /* #pragma omp parallel for
         for(int i_node = 0; i_node < nnodes; ++i_node){
             auto it_node = r_distance_model_part.NodesBegin() + i_node;
             if(!it_node->IsFixed(DISTANCE)){
@@ -333,7 +333,7 @@ public:
                     d = min_dist;
                 }
             }
-        }
+        } */
 
         mpSolvingStrategy->Solve();
 
@@ -483,7 +483,7 @@ protected:
         // Generate
         ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
-        Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
+        Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplexModified<TDim> >();
 
         r_distance_model_part.GetNodalSolutionStepVariablesList() = rBaseModelPart.GetNodalSolutionStepVariablesList();
 
@@ -503,6 +503,8 @@ protected:
         }
 
         rBaseModelPart.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
+
+        //r_distance_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
 
         mDistancePartIsInitialized = true;
 

@@ -300,8 +300,8 @@ public:
             // ****************************************************************************************
             // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
             // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
-            const double epsilon = 1.0e-6;
-            const double power = 3;
+            const double epsilon = 1.0e-15;
+            const double power = 4;
 
             #pragma omp parallel for
             for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
