@@ -50,6 +50,7 @@ namespace Kratos
 
         enum class SolverIndex { Origin, Destination };
         enum class EquilibriumVariable { Displacement, Velocity, Acceleration};
+        enum class SolverPhysics { FEM, MPM};
 
         FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin, ModelPart & rInterFaceDestination,
             const Parameters JsonParameters);
@@ -109,6 +110,8 @@ namespace Kratos
         bool mIsLinearSetupComplete = false;
 
         EquilibriumVariable mEquilibriumVariable = EquilibriumVariable::Velocity;
+        SolverPhysics mOriginPhysics = SolverPhysics::FEM;
+        SolverPhysics mDestinationPhysics = SolverPhysics::FEM;
 
         LinearSolverSharedPointerType mpSolver = nullptr;
 

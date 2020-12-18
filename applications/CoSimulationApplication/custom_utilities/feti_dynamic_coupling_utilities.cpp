@@ -60,11 +60,11 @@ namespace Kratos
         KRATOS_ERROR_IF(destination_gamma < 0.0 || destination_gamma > 1.0) << "'destination_gamma' has invalid value. It must be between 0 and 1.\n";
         KRATOS_ERROR_IF(timestep_ratio < 0.0 || std::abs(timestep_ratio - double(int(timestep_ratio))) > numerical_limit) << "'timestep_ratio' has invalid value. It must be a positive integer.\n";
 
-        // Limit only to implicit average acceleration or explicit central difference
+        // Limit only to implicit average acceleration, explicit central difference or forward euler
         KRATOS_ERROR_IF(origin_beta != 0.0 && origin_beta != 0.25) << "origin_beta must be 0.0 or 0.25";
         KRATOS_ERROR_IF(destination_beta != 0.0 && destination_beta != 0.25) << "destination_beta must be 0.0 or 0.25";
-        KRATOS_ERROR_IF(origin_gamma != 0.5) << "origin_gamma must be 0.5";
-        KRATOS_ERROR_IF(destination_gamma != 0.5) << "destination_gamma must be 0.5";
+        KRATOS_ERROR_IF(origin_gamma != 0.5 && origin_gamma == 1.0) << "origin_gamma must be 1.0 or 0.5";
+        KRATOS_ERROR_IF(destination_gamma != 0.5 && destination_gamma != 1.0) << "destination_gamma must be 1.0 or 0.5";
 
         mIsImplicitOrigin = (origin_beta > numerical_limit) ? true : false;
         mIsImplicitDestination = (destination_beta > numerical_limit) ? true : false;
@@ -386,6 +386,7 @@ namespace Kratos
             : mParameters["destination_newmark_gamma"].GetDouble();
         const double dt = pDomainModelPart->GetProcessInfo().GetValue(DELTA_TIME);
         const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
+        SolverPhysics physics = (solverIndex == SolverIndex::Origin) ? mOriginPhysics : mDestinationPhysics;
 
         // Apply acceleration correction
         DenseVectorType accel_corrections(rUnitResponse.size1(),0.0);
@@ -405,25 +406,48 @@ namespace Kratos
             // deltaVelocity = 0.5 * dt * accel_correction
             // deltaDisplacement = dt * dt * gamma * gamma * accel_correction
 
+            KRATOS_ERROR_IF_NOT(gamma == 0.5) << "The following FEM implicit domain must have a nermark_gamma of 0.5: " << pDomainModelPart->Name() << std::endl;
+
             accel_corrections *= (gamma * dt);
             AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
         }
         else
         {
-            // FEM central difference correction:
-            // gamma = 0.5
-            // beta = 0.0
-            // deltaAccel = accel_correction
-            // deltaVelocity = 0.5 * dt * accel_correction
-            // deltaVelocityMiddle = dt * accel_correction
-            // deltaDisplacement = dt * dt * accel_correction
+            if (physics == SolverPhysics::FEM)
+            {
+                // FEM central difference correction:
+                // gamma = 0.5
+                // beta = 0.0
+                // deltaAccel = accel_correction
+                // deltaVelocity = 0.5 * dt * accel_correction
+                // deltaVelocityMiddle = dt * accel_correction
+                // deltaDisplacement = dt * dt * accel_correction
 
-            accel_corrections *= 2.0;
-            AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
+                KRATOS_ERROR_IF_NOT(gamma == 0.5) << "The following FEM explicit domain must have a nermark_gamma of 0.5: " << pDomainModelPart->Name() << std::endl;
 
-            // Apply displacement correction
-            accel_corrections *= dt;
-            AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
+                accel_corrections *= 2.0;
+                AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
+
+                // Apply displacement correction
+                accel_corrections *= dt;
+                AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
+            }
+            else if (physics == SolverPhysics::MPM)
+            {
+                // MPM forward euler correction:
+                // gamma = 1.0
+                // beta = 0.0
+                // deltaAccel = accel_correction
+                // deltaVelocity = dt * accel_correction
+                // deltaDisplacement = dt * dt * accel_correction
+
+                KRATOS_ERROR_IF_NOT(gamma == 1.0) << "The following MPM explicit domain must have a nermark_gamma of 1.0: " << pDomainModelPart->Name() << std::endl;
+
+                // Apply displacement correction
+                accel_corrections *= dt;
+                AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
+            }
+            else KRATOS_ERROR << "Invalid physics specified for model part " << pDomainModelPart->Name() << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -805,21 +829,33 @@ namespace Kratos
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::SetOriginAndDestinationDomainsWithInterfaceModelParts(
         ModelPart& rInterfaceOrigin, ModelPart& rInterFaceDestination)
     {
+        // Check the newmark parameters align with the solvers
+        const double origin_gamma = mParameters["origin_newmark_gamma"].GetDouble();
+        const double dest_gamma = mParameters["destination_newmark_gamma"].GetDouble();
+
         Model& rOriginModel = rInterfaceOrigin.GetModel();
         if (rOriginModel.HasModelPart("Structure")) {
             mpOriginDomain = &(rOriginModel.GetModelPart("Structure"));
+            mOriginPhysics = SolverPhysics::FEM;
+            KRATOS_ERROR_IF(origin_gamma != 0.5) << "Origin FEM domain must have a newmark_gamma of 0.5\n";
         }
         else if (rOriginModel.HasModelPart("Background_Grid")) {
             mpOriginDomain = &(rOriginModel.GetModelPart("Background_Grid"));
+            mOriginPhysics = SolverPhysics::MPM;
+            KRATOS_ERROR_IF(origin_gamma != 0.5 && origin_gamma != 1.0) << "Origin MPM domain must have a newmark_gamma of 1.0 or 0.5\n";
         }
         else KRATOS_ERROR << "Neither 'Structure' nor 'Background_Grid' in Origin model. Currently only FEM and MPM are supported.\n";
 
         Model& rDestinationModel = rInterFaceDestination.GetModel();
         if (rDestinationModel.HasModelPart("Structure")) {
             mpDestinationDomain = &(rDestinationModel.GetModelPart("Structure"));
+            mDestinationPhysics = SolverPhysics::FEM;
+            KRATOS_ERROR_IF(dest_gamma != 0.5) << "Destination FEM domain must have a newmark_gamma of 0.5\n";
         }
         else if (rDestinationModel.HasModelPart("Background_Grid")) {
             mpDestinationDomain = &(rDestinationModel.GetModelPart("Background_Grid"));
+            mDestinationPhysics = SolverPhysics::MPM;
+            KRATOS_ERROR_IF(dest_gamma != 0.5 && dest_gamma != 1.0) << "Destination MPM domain must have a newmark_gamma of 1.0 or 0.5\n";
         }
         else KRATOS_ERROR << "Neither 'Structure' nor 'Background_Grid' in Destination model. Currently only FEM and MPM are supported.\n";
 
@@ -833,6 +869,7 @@ namespace Kratos
             << "\nActual ratio = " << actual_timestep_ratio
             << "\n\tOrigin timestep = " << dt_origin
             << "\n\tDestination timestep = " << dt_destination << std::endl;
+
 
         // Check if the Lagrangian multipliers are defined on the origin or destination
         // Lagrange mults are always defined on slave.
@@ -902,7 +939,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        if (GetEchoLevel() > 0) KRATOS_INFO("FETI Utility") << "Deforming MPM Grid\n";
+        if (GetEchoLevel() == 1) KRATOS_INFO("FETI Utility") << "Deforming MPM Grid\n";
+
+        auto start = std::chrono::system_clock::now();
 
         const bool is_apply_rigid_rotation = true;
         KRATOS_ERROR_IF(radTotalDef >= radNoDef) << "Total deformation radius must be smaller than zero deformation radius\n";
@@ -947,7 +986,7 @@ namespace Kratos
         const double tan_theta = std::abs((mInterfaceSlopeOld - interface_slope_new) / (1 + mInterfaceSlopeOld * interface_slope_new));
         double theta = std::atan(tan_theta); // assumes CCW rotation, that interface_slope_new > mInterfaceSlopeOld
         if (mInterfaceSlopeOld > interface_slope_new) theta *= -1.0;
-        if (std::abs(theta) > 0.524) KRATOS_INFO("FETI Utility") << "MPM grid rotations exceed 30 degrees!\n";
+        if (std::abs(theta) > 0.524) KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed 30 degrees!\n";
         mInterfaceSlopeOld = interface_slope_new;
 
         block_for_each(rGridMP.Nodes(), [&](Node<3>& rNode)
@@ -986,6 +1025,10 @@ namespace Kratos
                 }
             }
         );
+
+        auto end = std::chrono::system_clock::now();
+        auto elasped_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        if (GetEchoLevel() > 1) KRATOS_INFO("FETI Utility") << "Deforming MPM Grid took " << elasped_time.count() << "ms\n";
 
         KRATOS_CATCH("")
     }
