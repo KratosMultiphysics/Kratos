@@ -34,12 +34,10 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         self.__mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        model_part_origin      = from_solver_data.GetModelPart()
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
         identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
 
-        model_part_destination      = to_solver_data.GetModelPart()
         model_part_destination_name = to_solver_data.model_part_name
         variable_destination        = to_solver_data.variable
         identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
@@ -55,6 +53,9 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         elif inverse_identifier_tuple in self.__mappers:
             self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
         else:
+            model_part_origin           = from_solver_data.GetModelPart()
+            model_part_destination      = to_solver_data.GetModelPart()
+
             if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
                 mapper_create_fct = python_mapper_factory.CreateMPIMapper
             else:
