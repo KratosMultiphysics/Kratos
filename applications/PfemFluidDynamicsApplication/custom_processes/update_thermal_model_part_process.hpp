@@ -158,11 +158,8 @@ class UpdateThermalModelPartProcess : public Process {
         rComputingModelPart.AddElements(ids, 0);
     }
 
-    void UpdateConditions() const {
-
-      Properties::Pointer p_property = rDestinationModelPart.GetParentModelPart().pGetProperties(0);
-      unsigned int condition_id = 0;
-
+    void UpdateConditions() const
+    {
       // Remove conditions from thermal submodel parts
       for (ModelPart::SubModelPartIterator i_mp = rOriginModelPart.SubModelPartsBegin(); i_mp != rOriginModelPart.SubModelPartsEnd(); i_mp++) {
         if (i_mp->NumberOfConditions() && rDestinationModelPart.HasSubModelPart(i_mp->Name())) {
@@ -171,14 +168,17 @@ class UpdateThermalModelPartProcess : public Process {
           destination_part.RemoveConditionsFromAllLevels(TO_ERASE);
         }
       }
+      unsigned int condition_id = 0;
 
-      // Re-create conditions based on updated conditions of fluid model part
-      for (ModelPart::SubModelPartIterator i_mp = rOriginModelPart.SubModelPartsBegin(); i_mp != rOriginModelPart.SubModelPartsEnd(); i_mp++) {
+      // Re-create conditions based on updated conditions of fluid model part (free surface or not)
+      for (ModelPart::SubModelPartIterator i_mp = rOriginModelPart.SubModelPartsBegin(); i_mp != rOriginModelPart.SubModelPartsEnd(); i_mp++)
+      {
         if (i_mp->NumberOfConditions() && rDestinationModelPart.HasSubModelPart(i_mp->Name())) {
           ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_mp->Name());
 
-          // Loop over each condition of submodel part
-          for (auto i_cond(i_mp->ConditionsBegin()); i_cond != i_mp->ConditionsEnd(); ++i_cond) {
+          // Loop over each condition of fluid submodel part
+          for (auto i_cond(i_mp->ConditionsBegin()); i_cond != i_mp->ConditionsEnd(); ++i_cond)
+          {
             // Get condition nodes
             Geometry<Node<3>>& r_geometry = i_cond->GetGeometry();
             Condition::NodesArrayType cond_nodes;
@@ -186,23 +186,20 @@ class UpdateThermalModelPartProcess : public Process {
             for (int i = 0; i < r_geometry.size(); i++)
               cond_nodes.push_back(r_geometry(i));
 
+            // Property to be used in the creation of condition
+            Properties::Pointer p_property = i_cond->pGetProperties();
+
+            // Condition type according to domain size
+            std::string condition_type;
+            if      (rDomainSize == 2) condition_type = "ThermalFace2D2N";
+            else if (rDomainSize == 3) condition_type = "ThermalFace3D3N";
+            const Condition& r_reference_condition = KratosComponents<Condition>::Get(condition_type);
+
             // Create and store thermal face condition
-            if (rDomainSize == 2) {
-              const Condition& r_reference_condition = KratosComponents<Condition>::Get("ThermalFace2D2N");
-              Condition::Pointer p_condition = r_reference_condition.Create(++condition_id, cond_nodes, p_property);
-              p_condition->SetProperties(i_cond->pGetProperties());
-              destination_part.Conditions().push_back(p_condition);
-              rDestinationModelPart.Conditions().push_back(p_condition);
-              rComputingModelPart.Conditions().push_back(p_condition);
-            }
-            else if (rDomainSize == 3) {
-              const Condition& r_reference_condition = KratosComponents<Condition>::Get("ThermalFace3D3N");
-              Condition::Pointer p_condition = r_reference_condition.Create(++condition_id, cond_nodes, p_property);
-              p_condition->SetProperties(i_cond->pGetProperties());
-              destination_part.Conditions().push_back(p_condition);
-              rDestinationModelPart.Conditions().push_back(p_condition);
-              rComputingModelPart.Conditions().push_back(p_condition);
-            }
+            Condition::Pointer p_condition = r_reference_condition.Create(++condition_id, cond_nodes, p_property);
+            destination_part.Conditions().push_back(p_condition);
+            rDestinationModelPart.Conditions().push_back(p_condition);
+            rComputingModelPart.Conditions().push_back(p_condition);
           }
         }
       }
