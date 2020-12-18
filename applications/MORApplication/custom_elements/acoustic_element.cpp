@@ -288,7 +288,6 @@ void AcousticElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
     const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(ThisIntegrationMethod);
     IndexType NumGauss = integration_points.size();
     const Matrix& NContainer = geom.ShapeFunctionsValues(ThisIntegrationMethod);
-    //const double freq2 =  std::pow(rCurrentProcessInfo[FREQUENCY], 2);
     if( rMassMatrix.size1() != number_of_nodes || rMassMatrix.size2() != number_of_nodes )
     {
         rMassMatrix.resize(number_of_nodes, number_of_nodes, false);

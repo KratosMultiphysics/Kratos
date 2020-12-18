@@ -155,7 +155,7 @@ void AcousticPMLElement::GetDofList(DofsVectorType& rElementalDofList, ProcessIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AcousticPMLElement::ComplexJacobian( ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod)
+void AcousticPMLElement::ComplexJacobian( ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& geom = GetGeometry();
     const SizeType working_space_dimension = geom.WorkingSpaceDimension();
@@ -168,9 +168,13 @@ void AcousticPMLElement::ComplexJacobian( ComplexMatrix& rResult, IndexType Inte
 
     rResult.clear();
     const SizeType points_number = geom.PointsNumber();
+    double m = rCurrentProcessInfo[PARAMETER_EXPONENT];
+    double alpha = rCurrentProcessInfo[PARAMETER_SPATIAL];
+
     for (IndexType j = 0; j < points_number; ++j ) {
         const array_1d<double, 3>& r_coordinates = geom[j].Coordinates();
-        array_1d<double, 3> r_imag = geom[j].GetValue(PML_IMAG_DISTANCE);
+        double absorbtion_factor = std::pow(geom[j].GetValue(IMAG_DISTANCE), m) * alpha / (m * geom[j].GetValue(LOCAL_PML_WIDTH));
+        array_1d<double, 3> r_imag = geom[j].GetValue(ABSORBTION_VECTOR) * absorbtion_factor / rCurrentProcessInfo[FREQUENCY];
         for(IndexType k = 0; k< working_space_dimension; ++k) {
             const std::complex<double> value(r_coordinates[k], r_imag[k]);
             KRATOS_WATCH(value);
@@ -229,7 +233,7 @@ void AcousticPMLElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
     // {
     //     ComplexMatrix Jac (working_space_dimension, local_space_dimension);
     //     ComplexMatrix Jinv (working_space_dimension, local_space_dimension);
-    //     ComplexJacobian(Jac, point_number, ThisIntegrationMethod);
+    //     ComplexJacobian(Jac, point_number, ThisIntegrationMethod, rCurrentProcessInfo);
     //     MathUtils<std::complex<double>>::InvertMatrix(Jac, Jinv, DetJ);
     //     double weight = integration_points[point_number].Weight();
     //     ComplexMatrix DN_DX = prod( DN_DE[point_number], Jinv);
@@ -293,7 +297,7 @@ void AcousticPMLElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInf
     for (IndexType g = 0; g < NumGauss; g++)
     {
         ComplexMatrix Jac (working_space_dimension, local_space_dimension);
-        ComplexJacobian(Jac, g, ThisIntegrationMethod);
+        ComplexJacobian(Jac, g, ThisIntegrationMethod, rCurrentProcessInfo);
         std::complex<double> DetJ;
         if (local_space_dimension == 3)
         {
@@ -327,7 +331,7 @@ void AcousticPMLElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInf
         }
     }
     
-    else if (rCurrentProcessInfo[BUILD_LEVEL] == 121)
+    else if (rCurrentProcessInfo[BUILD_LEVEL] == 211)
     {
         for (IndexType i =0; i < number_of_nodes; i++)
         {
@@ -407,7 +411,7 @@ void AcousticPMLElement::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorTyp
             {
                 ComplexMatrix Jac (working_space_dimension, local_space_dimension);
                 ComplexMatrix Jinv (working_space_dimension, local_space_dimension);
-                ComplexJacobian(Jac, point_number, ThisIntegrationMethod);
+                ComplexJacobian(Jac, point_number, ThisIntegrationMethod, rCurrentProcessInfo);
                 MathUtils<std::complex<double>>::InvertMatrix(Jac, Jinv, DetJ);
                 double weight = integration_points[point_number].Weight();
                 ComplexMatrix DN_DX = prod( DN_DE[point_number], Jinv);
@@ -428,7 +432,7 @@ void AcousticPMLElement::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorTyp
                 }
             }
             // imaginary part
-            else if (rCurrentProcessInfo[BUILD_LEVEL] == 111)
+            else if (rCurrentProcessInfo[BUILD_LEVEL] == 11)
             {
                 for (IndexType i =0; i < number_of_nodes; i++)
                 {

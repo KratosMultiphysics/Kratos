@@ -90,7 +90,11 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
             GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
 
             const Vector grad = prod(trans(DN_DX), values);
+            KRATOS_WATCH(grad)
+            KRATOS_WATCH(values)
+
             const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
+
 
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 array_1d<double, 3>& r_gradient = GetGradient(r_geometry, i_node);
@@ -103,9 +107,15 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
 
                 #pragma omp atomic
                 vol += N[i_node] * gauss_point_volume;
+
             }
         }
+
+
+
     }
+
+    
 
     PonderateGradient();
 
@@ -113,6 +123,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
 }
 
 /***********************************************************************************/
+
 /***********************************************************************************/
 
 template<>

@@ -23,6 +23,8 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "utilities/variable_utils.h"
+
 
 
 namespace Kratos
@@ -190,6 +192,9 @@ public:
 
         ModelPart::NodesContainerType& rInterfaceNodes = mrModelPartInterface.Nodes();
         ModelPart::NodesContainerType& rBoundaryNodes = mrModelPartBoundary.Nodes();
+        VariableUtils().SetFlag(BOUNDARY, true, rBoundaryNodes);
+
+
 
         #pragma omp parallel for
         for ( ModelPart::NodesContainerType::iterator it_node = rInterfaceNodes.begin();
@@ -207,6 +212,7 @@ public:
             it_node->SetValue(PRESCRIBED_POTENTIAL, 1);         // the value used for the rhs
             it_node->GetSolutionStepValue(PRESSURE, 0) = 1;     // to have a consistent result
             it_node->Fix(PRESSURE);                             // dof must be fixed
+            
         }
 
 
@@ -220,13 +226,13 @@ public:
 
 
         typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> GradientType;
-        GradientType process = GradientType(mrModelPartPML, PRESSURE, PML_IMAG_DISTANCE, NODAL_AREA, false);
+        GradientType process = GradientType(mrModelPartPML, PRESSURE, ABSORBTION_VECTOR, NODAL_AREA, false);
         process.Execute();
 
         // normalize gradients
         #pragma omp parallel for
         for( auto& it_node : mrModelPartPML.Nodes() ) {
-            array_1d<double, 3>& grad = it_node.GetValue(PML_IMAG_DISTANCE);
+            array_1d<double, 3>& grad = it_node.GetValue(ABSORBTION_VECTOR);
             const double norm = norm_2( grad );
             if( std::abs(norm) > std::numeric_limits<double>::epsilon() ) {
                 std::for_each( grad.begin(), grad.end(), [norm] (double &a) {a /= norm;});
@@ -237,15 +243,15 @@ public:
         #pragma omp parallel for
         for( auto& it_elem : mrModelPartPML.Elements() ) {
             for( auto& it_node : it_elem.GetGeometry() ) {
-                array_1d<double, 3> grad = it_node.GetValue(PML_IMAG_DISTANCE);
+                array_1d<double, 3> grad = it_node.GetValue(ABSORBTION_VECTOR);
                 double norm = norm_2( grad );
                 if( std::abs(norm) < std::numeric_limits<double>::epsilon() ) {
                     for( auto& it_elem_node : it_elem.GetGeometry() ) {
-                        grad += it_elem_node.GetValue(PML_IMAG_DISTANCE);
+                        grad += it_elem_node.GetValue(ABSORBTION_VECTOR);
                     }
                     norm = norm_2( grad );
                     std::for_each( grad.begin(), grad.end(), [norm] (double &a) {a /= norm;});
-                    it_node.SetValue(PML_IMAG_DISTANCE, grad);
+                    it_node.SetValue(ABSORBTION_VECTOR, grad);
                 }
             }
         }
@@ -258,12 +264,69 @@ public:
             it_node.GetSolutionStepValue(PRESSURE, 0) = 0;
         }
 
-        // for ( ModelPart::NodesContainerType::iterator it_node = rPMLNodes.begin(); it_node != rPMLNodes.end() ; ++it_node)
-        // {
-        //     std::cout<<" PML direction "<< it_node->GetValue(PML_IMAG_DISTANCE) <<std::endl;
-        // }
+
+        // compute local pml width at boundary nodes
+        for( auto& boundary_node : mrModelPartBoundary.Nodes() ) {
+                
+                double min_width = 10e7;
+                double x_b = boundary_node.X();
+                double y_b = boundary_node.Y();
+                double z_b = boundary_node.Z();
+
+                for( auto& interface_node : mrModelPartInterface.Nodes() ) {
+                    double x_i = interface_node.X();
+                    double y_i = interface_node.Y();
+                    double z_i = interface_node.Z();
+                    double width = std::sqrt(std::pow(x_b - x_i, 2) + std::pow(y_b - y_i, 2) + std::pow(z_b - z_i, 2));
+                    if (width < min_width) {
+                        min_width = width;
+                    }
+
+                }
+            boundary_node.SetValue(LOCAL_PML_WIDTH, min_width);
+        }
+   
+        // compute distance of node to interface, set local pml width of nodes
+        for( auto& pml_node : mrModelPartPML.Nodes() ) {
+            double x = pml_node.X();
+            double y = pml_node.Y();
+            double z = pml_node.Z();
+            double min_dist_i = 10e7;
+            double min_dist_b = 10e7;
+            double width;
+
+            for( auto& boundary_node : mrModelPartBoundary.Nodes() ) {
+                double x_b = boundary_node.X();
+                double y_b = boundary_node.Y();
+                double z_b = boundary_node.Z();
+                double dist = std::sqrt(std::pow(x - x_b, 2) + std::pow(y - y_b, 2) + std::pow(z - z_b, 2));
+                if (dist < min_dist_b) {
+                    min_dist_b = dist;
+                    width = boundary_node.GetValue(LOCAL_PML_WIDTH);
+                }
+            }
+
+            for( auto& interface_node : mrModelPartInterface.Nodes() ) {
+                
+                double x_i = interface_node.X();
+                double y_i = interface_node.Y();
+                double z_i = interface_node.Z();
+
+                double dist = std::sqrt(std::pow(x - x_i, 2) + std::pow(y - y_i, 2) + std::pow(z - z_i, 2));
+                if (dist < min_dist_i) {
+                    min_dist_i = dist;
+                }
+                
+
+            }
+
+            pml_node.SetValue(IMAG_DISTANCE, min_dist_i);
+            if( !pml_node.Is(BOUNDARY) ){
+                pml_node.SetValue(LOCAL_PML_WIDTH, width);
+            }
 
 
+        }
 
 
 

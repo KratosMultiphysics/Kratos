@@ -422,13 +422,13 @@ class FrequencyResponseAnalysisStrategy
                 {
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpKi, tmp_RHS, tmp_RHS,
                                                                     BaseType::GetModelPart());
-                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 111;
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 11;
                     p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_Ki, tmp);
                     DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_Ki, tmp, fixed_dofs, 0.0);
 
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMi, tmp_RHS, tmp_RHS,
                                                                     BaseType::GetModelPart());
-                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 121;
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 211;
                     p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_Mi, tmp);
                     DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_Mi, tmp, fixed_dofs, 0.0);
                 }

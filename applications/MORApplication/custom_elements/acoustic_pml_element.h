@@ -279,7 +279,7 @@ protected:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void ComplexJacobian(ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod);
+    void ComplexJacobian(ComplexMatrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag);
 
