@@ -1,6 +1,6 @@
 # Import XMC methods
-from xmc.tools import dynamicImport
-from xmc.tools import instantiateObject
+from xmc.tools import dynamicImport, instantiateObject
+from xmc.methodDefs_sampleGenerator import qoiProcessor
 
 
 class SampleGenerator:
@@ -12,7 +12,7 @@ class SampleGenerator:
         # Attributes
         self.randomGenerator = instantiateObject(
             keywordArgs.get("randomGenerator"),
-            **keywordArgs.get("randomGeneratorInputDictionary")
+            **keywordArgs.get("randomGeneratorInputDictionary"),
         )
         self.qoiProcessor = dynamicImport(
             keywordArgs.get("qoiProcessor", "xmc.tools.returnInput")
@@ -25,7 +25,7 @@ class SampleGenerator:
             self.solvers.append(
                 instantiateObject(
                     keywordArgs.get("solverWrapper"),
-                    **keywordArgs.get("solverWrapperInputDictionary")
+                    **keywordArgs.get("solverWrapperInputDictionary"),
                 )
             )
 

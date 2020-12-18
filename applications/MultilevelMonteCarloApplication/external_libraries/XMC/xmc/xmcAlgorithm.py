@@ -2,9 +2,8 @@ import pickle
 import pathlib as pl
 
 # XMC imports
-from xmc.tools import dynamicImport
-from xmc.tools import splitOneListIntoTwo
-
+from xmc.tools import dynamicImport, splitOneListIntoTwo
+from xmc.methodDefs_xmcAlgorithm import checkInitialisation, updateTolerance
 from xmc.distributedEnvironmentFramework import get_value_from_remote
 
 
