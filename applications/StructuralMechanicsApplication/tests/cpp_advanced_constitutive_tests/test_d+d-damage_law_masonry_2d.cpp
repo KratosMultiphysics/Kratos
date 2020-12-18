@@ -132,7 +132,6 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
 
     test_masonry2d_stress = cl_parameters.GetStressVector();
-    KRATOS_WATCH(test_masonry2d_stress);
 
     // Check the results
     KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.01e6);
