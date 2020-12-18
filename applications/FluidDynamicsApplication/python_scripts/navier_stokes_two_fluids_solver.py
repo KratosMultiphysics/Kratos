@@ -450,7 +450,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def _CreateDistanceReinitializationProcess(self):
         # Construct the variational distance calculation process
         if (self._reinitialization_type == "variational"):
-            maximum_iterations = 2 #TODO: Make this user-definable
+            maximum_iterations = 10 #TODO: Make this user-definable
             linear_solver = self._GetLinearSolver()
             computing_model_part = self.GetComputingModelPart()
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
