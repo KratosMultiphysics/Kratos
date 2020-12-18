@@ -19,13 +19,14 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
         # 2. Perform check (only if it has not been done before in this combination)
-        identifier_from_solver_data = from_solver_data.solver_name + "." + from_solver_data.model_part_name
-        identifier_to_solver_data   = to_solver_data.solver_name   + "." + to_solver_data.model_part_name
+        if from_solver_data and to_solver_data:
+            identifier_from_solver_data = from_solver_data.solver_name + "." + from_solver_data.model_part_name
+            identifier_to_solver_data   = to_solver_data.solver_name   + "." + to_solver_data.model_part_name
 
-        identifier_tuple = (identifier_from_solver_data, identifier_to_solver_data)
-        if not identifier_tuple in self.__checked_combinations:
-            self.__checked_combinations.append(identifier_tuple)
-            self._Check(from_solver_data, to_solver_data)
+            identifier_tuple = (identifier_from_solver_data, identifier_to_solver_data)
+            if not identifier_tuple in self.__checked_combinations:
+                self.__checked_combinations.append(identifier_tuple)
+                self._Check(from_solver_data, to_solver_data)
 
         # 3. Perform data transfer
         self._ExecuteTransferData(from_solver_data, to_solver_data, transfer_options)
