@@ -78,8 +78,7 @@ namespace Kratos
 
         void EquilibrateDomains();
 
-        void DeformMPMGrid(ModelPart& rGridMP, const array_1d<double, 3> interfaceCentroid,
-            const array_1d<double, 3> interfaceDisplacement, const double radTotalDef, const double radNoDef);
+        void DeformMPMGrid(ModelPart& rGridMP, ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef);
 
     private:
         ModelPart& mrOriginInterfaceModelPart;
@@ -121,6 +120,9 @@ namespace Kratos
 
         const bool mIsCheckEquilibrium = true; // normally true
 
+        double mInterfaceSlopeOld = 0;
+        bool mOldSlopeComputed = false;
+
         void CalculateUnbalancedInterfaceFreeKinematics(DenseVectorType& rUnbalancedKinematics, const bool IsEquilibriumCheck = false);
 
         void GetInterfaceQuantity(ModelPart& rInterface, const Variable< array_1d<double, 3> >& rVariable,
@@ -161,6 +163,50 @@ namespace Kratos
         void ApplyMappingMatrixToProjector(SparseMatrixType& rProjector, const SizeType DOFs);
 
         void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const SolverIndex solverIndex);
+
+        const double GetLinearRegressionSlope(const ModelPart& rInterface)
+        {
+            // Ref https://stackoverflow.com/questions/5083465/fast-efficient-least-squares-fit-algorithm-in-c
+
+            double sum_x = 0.0;
+            double sum_x2 = 0.0;
+            double sum_y = 0.0;
+            double sum_xy = 0.0;
+
+            for (const auto& rNode: rInterface.Nodes())
+            {
+                sum_x += rNode.X();
+                sum_x2 += rNode.X()* rNode.X();
+                sum_y += rNode.Y();
+                sum_xy += rNode.X()* rNode.Y();
+            }
+
+            double denom = rInterface.NumberOfNodes() * sum_x2 - sum_x * sum_x;
+            if (std::abs(denom) < numerical_limit) return 1e12;
+
+            double slope = (rInterface.NumberOfNodes() * sum_xy - sum_x * sum_y) / denom;
+
+            return slope;
+        }
+
+        void RotateNodeAboutPoint(Node<3>& rNode, array_1d<double, 3>& rPivot, double Theta)
+        {
+            // ref: https://stackoverflow.com/questions/2259476/rotating-a-point-about-another-point-2d
+
+            double s = std::sin(Theta);
+            double c = std::cos(Theta);
+
+            array_1d<double, 3>& r_coords = rNode.Coordinates();
+            r_coords -= rPivot;
+            double x_new = rNode.X() * c - rNode.Y() * s;
+            double y_new = rNode.X() * s + rNode.Y() * c;
+
+            r_coords[0] = x_new + rPivot[0];
+            r_coords[1] = y_new + rPivot[1];
+
+            rNode.X0() = r_coords[0];
+            rNode.Y0() = r_coords[1];
+        }
 
         const int GetEchoLevel()
         {

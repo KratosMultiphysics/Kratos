@@ -894,52 +894,93 @@ namespace Kratos
     }
 
     template<class TSparseSpace, class TDenseSpace>
-    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DeformMPMGrid(ModelPart& rGridMP, const array_1d<double, 3> interfaceCentroid,
-        const array_1d<double, 3> interfaceDisplacement, const double radTotalDef, const double radNoDef)
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DeformMPMGrid(ModelPart& rGridMP,
+        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef)
     {
         KRATOS_TRY
 
+        if (GetEchoLevel() > 0) KRATOS_INFO("FETI Utility") << "Deforming MPM Grid\n";
+
+        const bool is_apply_rigid_rotation = true;
         KRATOS_ERROR_IF(radTotalDef >= radNoDef) << "Total deformation radius must be smaller than zero deformation radius\n";
-        const double interface_disp_norm = norm_2(interfaceDisplacement);
+
+        // Determine interface centroid, average displacement and rotation
+        if (!mOldSlopeComputed) {
+            mInterfaceSlopeOld = GetLinearRegressionSlope(rGridInterfaceMP);
+            mOldSlopeComputed = true;
+        }
+
+        array_1d<double, 3> interface_centroid = ZeroVector(3);
+        array_1d<double, 3> interface_average_displacement = ZeroVector(3);
+        for (auto& rNode : rGridInterfaceMP.Nodes())
+        {
+            array_1d<double, 3>& r_coords = rNode.Coordinates();
+            array_1d<double, 3>& r_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            interface_centroid += r_coords;
+            interface_average_displacement += r_disp;
+
+            // Fully deform the interface MP
+            r_coords += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            rNode.X0() += r_disp[0];
+            rNode.Y0() += r_disp[1];
+            rNode.Z0() += r_disp[2];
+        }
+
+        interface_centroid /= rGridInterfaceMP.NumberOfNodes();
+        interface_average_displacement /= rGridInterfaceMP.NumberOfNodes();
+        const double interface_disp_norm = norm_2(interface_average_displacement);
+
+        double interface_slope_new = 0.0;
+        interface_slope_new = GetLinearRegressionSlope(rGridInterfaceMP);
+
+        // Compute angle between undeformed and deformed interface
+        if (std::abs(mInterfaceSlopeOld) > 1e10) {
+            if (mInterfaceSlopeOld * interface_slope_new < 0.0) mInterfaceSlopeOld *= -1.0;
+        }
+        else if (std::abs(interface_slope_new) > 1e10) {
+            if (mInterfaceSlopeOld * interface_slope_new < 0.0) interface_slope_new *= -1.0;
+        }
+
+        const double tan_theta = std::abs((mInterfaceSlopeOld - interface_slope_new) / (1 + mInterfaceSlopeOld * interface_slope_new));
+        double theta = std::atan(tan_theta); // assumes CCW rotation, that interface_slope_new > mInterfaceSlopeOld
+        if (mInterfaceSlopeOld > interface_slope_new) theta *= -1.0;
+        if (std::abs(theta) > 0.524) KRATOS_INFO("FETI Utility") << "MPM grid rotations exceed 30 degrees!\n";
+        mInterfaceSlopeOld = interface_slope_new;
 
         block_for_each(rGridMP.Nodes(), [&](Node<3>& rNode)
             {
-                array_1d<double, 3>& r_coords = rNode.Coordinates();
-                bool is_deform = false;
-                double distance;
-                if (rNode.Has(INTERFACE_EQUATION_ID))
+                if (!rNode.Has(INTERFACE_EQUATION_ID)) // interface nodes already fully deformed
                 {
-                    is_deform = true; // always fully deform interface nodes
-                    distance = 0.0;
-                }
-                else if (std::abs(r_coords[0] - interfaceCentroid[0]) <= radNoDef)
-                {
-                    if (std::abs(r_coords[1] - interfaceCentroid[1]) <= radNoDef)
+                    array_1d<double, 3>& r_coords = rNode.Coordinates();
+                    double distance;
+                    if (std::abs(r_coords[0] - interface_centroid[0]) <= radNoDef)
                     {
-                        distance = norm_2(interfaceCentroid - r_coords);
-                        if (distance < radNoDef)
+                        if (std::abs(r_coords[1] - interface_centroid[1]) <= radNoDef)
                         {
-                            is_deform = true;
+                            distance = norm_2(interface_centroid - r_coords);
+                            if (distance < radNoDef)
+                            {
+                                array_1d<double, 3> r_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                                if (norm_2(r_disp) / interface_disp_norm < 0.75) r_disp = interface_average_displacement;
+                                double rotation_angle = theta;
+
+                                if (distance > radTotalDef)
+                                {
+                                    const double deformation_fraction = 1.0 - (distance - radTotalDef) / (radNoDef - radTotalDef);
+                                    r_disp *= deformation_fraction;
+                                    rotation_angle *= deformation_fraction;
+                                }
+
+                                RotateNodeAboutPoint(rNode, interface_centroid, rotation_angle);
+
+                                r_coords += r_disp;
+                                rNode.X0() += r_disp[0];
+                                rNode.Y0() += r_disp[1];
+                                rNode.Z0() += r_disp[2];
+                            }
                         }
                     }
                 }
-
-                if (is_deform)
-                {
-                    array_1d<double, 3> r_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-                    if (norm_2(r_disp) / interface_disp_norm < 0.5) r_disp = interfaceDisplacement;
-
-                    if (distance > radTotalDef)
-                    {
-                        const double deformation_fraction = 1.0 - (distance - radTotalDef) / (radNoDef - radTotalDef);
-                        r_disp *= deformation_fraction;
-                    }
-                    r_coords += r_disp;
-                    rNode.X0() += r_disp[0];
-                    rNode.Y0() += r_disp[1];
-                    rNode.Z0() += r_disp[2];
-                }
-
             }
         );
 

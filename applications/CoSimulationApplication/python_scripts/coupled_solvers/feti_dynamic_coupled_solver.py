@@ -282,31 +282,13 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             return True #only restrict coupling operations for outputs
 
     def __DeformBackgroundGrid(self, solver):
-        print("\n\n ================== DEFORMING MPM BACKGROUND GRID ======================== \n\n")
         grid_mp = solver.model.GetModelPart("Background_Grid")
         grid_interface_mp = solver.model.GetModelPart("coupling_nodes")
-
-        # compute interface centroid and average displacement
-        print("computing interface averages")
-        interface_centroid = np.array([0.0,0.0,0.0])
-        interface_disp = np.array([0.0,0.0,0.0])
-        interface_counter = 0
-        for interface_node in grid_interface_mp.Nodes:
-            interface_counter += 1
-            pos = np.array([interface_node.X, interface_node.Y, interface_node.Z])
-            interface_centroid += pos
-            disp = interface_node.GetSolutionStepValue(KM.DISPLACEMENT)
-            interface_disp += disp
-        interface_centroid /= interface_counter
-        interface_disp /= interface_counter
-        interface_centroid = interface_centroid.tolist()
-        interface_disp = interface_disp.tolist()
 
         # Now apply deformation to the mpm grid
         radius_of_full_deformation = self.settings["deform_mpm_grid_settings"]["radius_of_full_deformation"].GetDouble()
         radius_of_zero_deformation = self.settings["deform_mpm_grid_settings"]["radius_of_zero_deformation"].GetDouble()
-        self.feti_coupling.DeformMPMGrid(grid_mp,interface_centroid,interface_disp,
-                                         radius_of_full_deformation,radius_of_zero_deformation)
+        self.feti_coupling.DeformMPMGrid(grid_mp,grid_interface_mp, radius_of_full_deformation,radius_of_zero_deformation)
 
 
     @classmethod
