@@ -176,7 +176,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         raise Exception(err_msg)
 
     def _SynchronizeInputData(self, solver_name):
-        to_solver = self.solver_wrappers[solver_name]
         data_list = self.coupling_sequence[solver_name]["input_data_list"]
         if self.echo_level > 2:
             cs_tools.cs_print_info(self._ClassName(), 'Start Synchronizing Input for solver "{}"'.format(colors.blue(solver_name)))
@@ -192,11 +191,10 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                 cs_tools.cs_print_info("  Data", '"{}" | from solver: "{}": "{}"'.format(colors.magenta(to_data_name), colors.blue(from_solver_name), colors.magenta(from_solver_data_name)))
 
             # from solver
-            from_solver = self.solver_wrappers[from_solver_name]
-            from_solver_data = from_solver.GetInterfaceData(from_solver_data_name)
+            from_solver_data = self.__GetInterfaceDataFromSolver(from_solver_name, from_solver_data_name)
 
             # to solver
-            to_solver_data = to_solver.GetInterfaceData(to_data_name)
+            to_solver_data = self.__GetInterfaceDataFromSolver(solver_name, to_data_name)
 
             self.__SynchronizeData(i_data, from_solver_data, to_solver_data)
 
@@ -204,7 +202,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Input for solver "{}"'.format(colors.blue(solver_name)))
 
     def _SynchronizeOutputData(self, solver_name):
-        from_solver = self.solver_wrappers[solver_name]
         data_list = self.coupling_sequence[solver_name]["output_data_list"]
         if self.echo_level > 2:
             cs_tools.cs_print_info(self._ClassName(), 'Start Synchronizing Output for solver "{}"'.format(colors.blue(solver_name)))
@@ -221,11 +218,10 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                 cs_tools.cs_print_info("  Data", '"{}" | to solver: "{}": "{}"'.format(colors.magenta(from_data_name), colors.blue(to_solver_name), colors.magenta(to_solver_data_name)))
 
             # from solver
-            from_solver_data = from_solver.GetInterfaceData(from_data_name)
+            from_solver_data = self.__GetInterfaceDataFromSolver(solver_name, from_data_name)
 
             # to solver
-            to_solver = self.solver_wrappers[to_solver_name]
-            to_solver_data = to_solver.GetInterfaceData(to_solver_data_name)
+            to_solver_data = self.__GetInterfaceDataFromSolver(to_solver_name, to_solver_data_name)
 
             self.__SynchronizeData(i_data, from_solver_data, to_solver_data)
 
@@ -247,6 +243,13 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_data["data_transfer_operator_options"])
 
             self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
+
+    def __GetInterfaceDataFromSolver(self, solver_name, interface_data_name):
+        solver = self.solver_wrappers.get(solver_name)
+        if solver is None: # this solver does not exist on this rank
+            return None
+        else:
+            return solver.GetInterfaceData(interface_data_name)
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
