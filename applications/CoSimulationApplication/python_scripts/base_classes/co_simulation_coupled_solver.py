@@ -13,6 +13,19 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 # Other imports
 from collections import OrderedDict
 
+
+class UndefinedSolver:
+    def __init__(self, name):
+        self.name = name
+
+    def IsDefinedOnThisRank(self):
+        return False
+
+    def AdvanceInTime(*args): return 0.0
+
+    def __getattr__(self, attr):
+        return lambda *args : None
+
 class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     """Baseclass for the coupled solvers used for CoSimulation
     Performs basic operations that are common among coupled solvers:
@@ -246,12 +259,11 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
 
     def __GetInterfaceDataFromSolver(self, solver_name, interface_data_name):
-        solver = self.solver_wrappers.get(solver_name)
-        if solver is None: # this solver does not exist on this rank
-            return None
-        else:
+        solver = self.solver_wrappers[solver_name]
+        if solver.IsDefinedOnThisRank(): # this solver does exist on this rank
             return solver.GetInterfaceData(interface_data_name)
-
+        else:
+            return None
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
         try:
@@ -309,6 +321,8 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solver = solvers[solver_name]
             if solver.data_communicator.IsDefinedOnThisRank():
                 solvers_map[solver_name] = solvers[solver_name]
+            else:
+                solvers_map[solver_name] = UndefinedSolver(solver_name)
 
         for solver_name in self.settings["solvers"].keys():
             if solver_name not in solvers_map:
