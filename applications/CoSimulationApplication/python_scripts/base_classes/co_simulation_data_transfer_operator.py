@@ -1,7 +1,10 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-class CoSimulationDataTransferOperator:
+# Other imports
+from abc import ABCMeta, abstractmethod
+
+class CoSimulationDataTransferOperator(metaclass=ABCMeta):
     """Baseclass for the data transfer operators used for CoSimulation
     It transfers data from one interface to another. This can e.g. be mapping or a copy of values.
     """
@@ -27,8 +30,8 @@ class CoSimulationDataTransferOperator:
         # 3. Perform data transfer
         self._ExecuteTransferData(from_solver_data, to_solver_data, transfer_options)
 
-    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        raise NotImplementedError("This function has to be implemented in the derived class!")
+    @abstractmethod
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options): pass
 
     def _Check(self, from_solver_data, to_solver_data):
         # this can be implemented in derived classes if necessary
