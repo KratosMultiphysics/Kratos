@@ -110,6 +110,7 @@ class StabilizedFormulation(object):
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "dvms",
+            "dynamic_tau": 0.0,
             "use_orthogonal_subscales": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
@@ -117,6 +118,7 @@ class StabilizedFormulation(object):
         self.element_name = "DVMS"
         self.condition_name = "NavierStokesWallCondition"
 
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
