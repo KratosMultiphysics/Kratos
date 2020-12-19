@@ -219,7 +219,7 @@ class RestartUtility(object):
                 # Check if this step has entries already,
                 # and add the file to the list of tracked files
                 if step_id in restart_files:
-                    restart_files[step_id].append( file_name_data.GetName() )
+                    restart_files[step_id].append( file_name_data.GetFileName() )
                 else:
                     restart_files[step_id] = [ file_name_data.GetFileName() ]
 
@@ -295,14 +295,6 @@ class RestartUtility(object):
         pretty_time = "{0:.12g}".format(time)
         pretty_time = float(pretty_time)
         return pretty_time
-
-    def __IsRestartFile(self, file_name):
-        """Check whether the input file name is appropriate for a restart file."""
-        if file_name.endswith('.rest') and self.raw_file_name in os.path.basename(file_name):
-            # additional checks might have to be performed here if multiple simulations
-            # save their restart files in the same directory.
-            return True
-        return False
 
     def __ExtractFileLabel(self, file_name):
         """
