@@ -115,7 +115,7 @@ void AcousticElement::EquationIdVector(EquationIdVectorType& rResult,
     SizeType num_nodes = GetGeometry().PointsNumber();
 
     if(rResult.size() != num_nodes)
-        rResult.resize(num_nodes,false);	
+        rResult.resize(num_nodes,false);
 
     for (SizeType i_node = 0; i_node < num_nodes; i_node++)
         rResult[i_node] = GetGeometry()[i_node].GetDof(PRESSURE).EquationId();
@@ -132,7 +132,7 @@ void AcousticElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo&
   //  std::cout << "hello?\n";
 
     if(rElementalDofList.size() != num_nodes)
-        rElementalDofList.resize(num_nodes);	
+        rElementalDofList.resize(num_nodes);
 
     for (SizeType i_node = 0; i_node < num_nodes; i_node++)
         rElementalDofList[i_node] = GetGeometry()[i_node].pGetDof(PRESSURE);
@@ -251,13 +251,14 @@ void AcousticElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
         Vector DetJ;
 
         DN_DX = geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ, ThisIntegrationMethod);
+        const double rho = GetProperties()[DENSITY];
 
 
         // KRATOS_WATCH(integration_points.size())
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
         {
-            double int_weight = integration_points[point_number].Weight() * DetJ(point_number);           
-            noalias( rLeftHandSideMatrix ) += int_weight * prod( DN_DX[point_number], trans(DN_DX[point_number]));
+            double int_weight = integration_points[point_number].Weight() * DetJ(point_number);
+            noalias( rLeftHandSideMatrix ) += int_weight/rho * prod( DN_DX[point_number], trans(DN_DX[point_number]));
 
         }
 
@@ -267,8 +268,8 @@ void AcousticElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 
 
 
-        Matrix J0;
-        GeometryUtils::JacobianOnInitialConfiguration(geom, geom.IntegrationPoints(ThisIntegrationMethod)[2], J0);
+        // Matrix J0;
+        // GeometryUtils::JacobianOnInitialConfiguration(geom, geom.IntegrationPoints(ThisIntegrationMethod)[2], J0);
         // double detJ0;
         // MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
         // const Matrix& rDN_De =
@@ -276,7 +277,7 @@ void AcousticElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
         // GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
         // return detJ0;
 }
-		
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -293,21 +294,21 @@ void AcousticElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
         rMassMatrix.resize(number_of_nodes, number_of_nodes, false);
     }
     noalias(rMassMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
- 
-    const double p = GetProperties()[DENSITY];
+
+    // const double p = GetProperties()[DENSITY];
     const double G = GetProperties()[BULK_MODULUS];
 
     for (IndexType i = 0; i < number_of_nodes; i++)
     {
         for (IndexType j = 0; j < number_of_nodes; j++)
-        { 
+        {
             for (IndexType g = 0; g < NumGauss; g++)
                 {
                     double DetJ = geom.DeterminantOfJacobian(g, ThisIntegrationMethod);
                     double GaussWeight = DetJ * integration_points[g].Weight();
-                    rMassMatrix(i,j) += NContainer(g, i) * NContainer(g, j) * GaussWeight * (p/G);
+                    rMassMatrix(i,j) += NContainer(g, i) * NContainer(g, j) * GaussWeight * (1/G);
                 }
-        }        
+        }
     }
 
 }
@@ -330,7 +331,7 @@ void AcousticElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, Process
 
 void AcousticElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
- 	
+
     const GeometryType& geom = GetGeometry();
     const SizeType number_of_nodes = geom.PointsNumber();
     // Resizing as needed the RHS
@@ -340,8 +341,8 @@ void AcousticElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 
         rRightHandSideVector = ZeroVector( number_of_nodes ); //resetting RHS
     // }
-		
-		
+
+
 }
 
 

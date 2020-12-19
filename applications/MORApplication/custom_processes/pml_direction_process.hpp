@@ -123,7 +123,7 @@ public:
 
         // Set build level
 
-        mrModelPartPML.GetProcessInfo()[BUILD_LEVEL] = 401;
+        mrModelPartPML.GetProcessInfo()[BUILD_LEVEL] = 301;
 
         // Generate a linear strategy
         typename SchemeType::Pointer pScheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -212,7 +212,7 @@ public:
             it_node->SetValue(PRESCRIBED_POTENTIAL, 1);         // the value used for the rhs
             it_node->GetSolutionStepValue(PRESSURE, 0) = 1;     // to have a consistent result
             it_node->Fix(PRESSURE);                             // dof must be fixed
-            
+
         }
 
 
@@ -267,7 +267,7 @@ public:
 
         // compute local pml width at boundary nodes
         for( auto& boundary_node : mrModelPartBoundary.Nodes() ) {
-                
+
                 double min_width = 10e7;
                 double x_b = boundary_node.X();
                 double y_b = boundary_node.Y();
@@ -285,7 +285,7 @@ public:
                 }
             boundary_node.SetValue(LOCAL_PML_WIDTH, min_width);
         }
-   
+
         // compute distance of node to interface, set local pml width of nodes
         for( auto& pml_node : mrModelPartPML.Nodes() ) {
             double x = pml_node.X();
@@ -307,7 +307,7 @@ public:
             }
 
             for( auto& interface_node : mrModelPartInterface.Nodes() ) {
-                
+
                 double x_i = interface_node.X();
                 double y_i = interface_node.Y();
                 double z_i = interface_node.Z();
@@ -316,7 +316,7 @@ public:
                 if (dist < min_dist_i) {
                     min_dist_i = dist;
                 }
-                
+
 
             }
 
