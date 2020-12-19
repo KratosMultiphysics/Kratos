@@ -523,10 +523,10 @@ public:
      * @return a Pointer to the new constitutive law
      */
     virtual Pointer Create(
-        Kratos::Parameters NewParameters, 
+        Kratos::Parameters NewParameters,
         const Properties& rProperties
         ) const;
-    
+
     /**
      * @return The working space dimension of the current constitutive law
      * @note This function HAS TO BE IMPLEMENTED by any derived class
@@ -825,68 +825,6 @@ public:
                                     const Vector& rShapeFunctionsValues);
 
     /**
-     * to be called at the beginning of each solution step
-     * (e.g. from Element::InitializeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use InitializeMaterialResponse instead\"")
-    virtual void InitializeSolutionStep(const Properties& rMaterialProperties,
-                                        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                                        const Vector& rShapeFunctionsValues,
-                                        const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use FinalizeMaterialResponse instead\"")
-    virtual void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                                      const GeometryType& rElementGeometry,
-                                      const Vector& rShapeFunctionsValues,
-                                      const ProcessInfo& rCurrentProcessInfo);
-
-
-
-    /**
-     * to be called at the beginning of each step iteration
-     * (e.g. from Element::InitializeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - There is no equivalent for this\"")
-    virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
-					      const GeometryType& rElementGeometry,
-					      const Vector& rShapeFunctionsValues,
-					      const ProcessInfo& rCurrentProcessInfo);
-
-
-
-    /**
-     * to be called at the end of each step iteration
-     * (e.g. from Element::FinalizeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - There is no equivalent for this\"")
-    virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-					    const GeometryType& rElementGeometry,
-					    const Vector& rShapeFunctionsValues,
-					    const ProcessInfo& rCurrentProcessInfo);
-
-
-
-    /**
      * Computes the material response in terms of stresses and constitutive tensor
      * @see Parameters
      * @see StressMeasure
@@ -1164,100 +1102,6 @@ public:
     virtual int Check(const Properties& rMaterialProperties,
                       const GeometryType& rElementGeometry,
                       const ProcessInfo& rCurrentProcessInfo);
-
-
-
-    //*** OUTDATED METHODS: ***//
-
-
-    /**
-     * Computes the material response in terms of stresses and algorithmic tangent
-     * @param StrainVector the current strains (total strains, input)
-     * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear strain measure is used)
-     * @param StressVector the computed stresses (output)
-     * @param algorithmicTangent the material tangent matrix (output)
-     * @param rCurrentProcessInfo current ProcessInfo instance
-     * @param rMaterialProperties the material's Properties object
-     * @param rElementGeometry the element's geometry
-     * @param rShapeFunctionsValues the shape functions values in the current integration pointer
-     * @param CalculateStresses flag whether or not to compute the stress response
-     * @param CalculateTangent flag to determine if to compute the material tangent
-     * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
-     * @param SaveInternalVariables flag whether or not to store internal (history) variables
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use version with ConstitutiveLaw::Parameters instead \"")
-    virtual void CalculateMaterialResponse(const Vector& StrainVector,
-                                           const Matrix& DeformationGradient,
-                                           Vector& StressVector,
-                                           Matrix& AlgorithmicTangent,
-                                           const ProcessInfo& rCurrentProcessInfo,
-                                           const Properties& rMaterialProperties,
-                                           const GeometryType& rElementGeometry,
-                                           const Vector& rShapeFunctionsValues,
-                                           bool CalculateStresses = true,
-                                           int CalculateTangent = true,
-                                           bool SaveInternalVariables = true);
-
-
-    /**
-     * Computes the volumetric part of the material response in terms of stresses and algorithmic tangent
-     * @param StrainVector the current strains (total strains, input)
-     * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
-     * @param StressVector the computed stresses (output)
-     * @param algorithmicTangent the material tangent matrix (output)
-     * @param rCurrentProcessInfo current ProcessInfo instance
-     * @param rMaterialProperties the material's Properties object
-     * @param rElementGeometry the element's geometry
-     * @param rShapeFunctionsValues the shape functions values in the current integration pointer
-     * @param CalculateStresses flag whether or not to compute the stress response
-     * @param CalculateTangent flag to determine if to compute the material tangent
-     * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
-     * @param SaveInternalVariables flag whether or not to store internal (history) variables
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - use CalculateMaterialResponse instead\"")
-    virtual void CalculateVolumetricResponse(const double VolumetricStrain,
-					     const Matrix& DeformationGradient,
-					     double& VolumetricStress,
-					     double& AlgorithmicBulk,
-					     const ProcessInfo& rCurrentProcessInfo,
-					     const Properties& rMaterialProperties,
-					     const GeometryType& rElementGeometry,
-					     const Vector& rShapeFunctionsValues,
-					     bool CalculateStresses,
-					     int CalculateTangent,
-					     bool SaveInternalVariables);
-
-    /**
-     * Computes the deviatoric part of the material response in terms of stresses and algorithmic tangent
-     * @param StrainVector the current strains (total strains, input)
-     * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
-     * @param StressVector the computed stresses (output)
-     * @param algorithmicTangent the material tangent matrix (output)
-     * @param rCurrentProcessInfo current ProcessInfo instance
-     * @param rMaterialProperties the material's Properties object
-     * @param rElementGeometry the element's geometry
-     * @param rShapeFunctionsValues the shape functions values in the current integration pointer
-     * @param CalculateStresses flag whether or not to compute the stress response
-     * @param CalculateTangent flag to determine if to compute the material tangent
-     * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
-     * @param SaveInternalVariables flag whether or not to store internal (history) variables
-
-
-     * TODO: add proper definition for algorithmic tangent
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
-    virtual void CalculateDeviatoricResponse(const Vector& StrainVector,
-					     const Matrix& DeformationGradient,
-					     Vector& StressVector,
-					     Matrix& AlgorithmicTangent,
-					     const ProcessInfo& rCurrentProcessInfo,
-					     const Properties& rMaterialProperties,
-					     const GeometryType& rElementGeometry,
-					     const Vector& rShapeFunctionsValues,
-					     bool CalculateStresses = true,
-					     int CalculateTangent = true,
-					     bool SaveInternalVariables = true);
-
 
     // VM
 
