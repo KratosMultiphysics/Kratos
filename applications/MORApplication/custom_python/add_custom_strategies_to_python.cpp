@@ -218,10 +218,20 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //*************************FREQUENCY RESPONSE*************************
     //********************************************************************
 
+    typedef FrequencyDependentSettings<SparseSpaceType> FrequencyDependentSettingsType;
+    py::class_<FrequencyDependentSettingsType>(m, "FrequencyDependentMaterialSettings")
+        .def(py::init<ModelPart&, int>())
+        .def_readwrite("build_level", &FrequencyDependentSettingsType::build_level)
+        .def_readwrite("model_part", &FrequencyDependentSettingsType::model_part)
+        .def_readwrite("factor", &FrequencyDependentSettingsType::factor)
+        ;
+
     py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, bool, bool >())
         .def("GetBuilderAndSolver", &FrequencyResponseAnalysisStrategyType::GetBuilderAndSolver)
+        .def("SetFrequencyDependentMaterial", & FrequencyResponseAnalysisStrategyType::SetFrequencyDependentMaterial)
         .def("EchoInfo", &FrequencyResponseAnalysisStrategyType::EchoInfo)
+        .def("MaterialSettingsInfo", &FrequencyResponseAnalysisStrategyType::MaterialSettingsInfo)
         ;
 
     //********************************************************************
