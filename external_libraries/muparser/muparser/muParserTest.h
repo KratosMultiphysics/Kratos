@@ -53,7 +53,7 @@ namespace mu
 		class API_EXPORT_CXX ParserTester final
 		{
 		private:
-			EXTERN_MUPARSER_HELPER_DLL_IMPORT static int c_iCount;
+			static int c_iCount;
 
 			static value_type f0() { return 42; };
 
