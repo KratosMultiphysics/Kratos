@@ -28,6 +28,7 @@ class AdjointFluidSolver(FluidSolver):
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
         self.GetResponseFunction().InitializeSolutionStep()
+        self.GetSensitivityBuilder().InitializeSolutionStep()
 
     def Predict(self):
         self._GetSolutionStrategy().Predict()
@@ -40,6 +41,7 @@ class AdjointFluidSolver(FluidSolver):
         self.GetResponseFunction().FinalizeSolutionStep()
 
         self.GetSensitivityBuilder().UpdateSensitivities()
+        self.GetSensitivityBuilder().FinalizeSolutionStep()
 
     def Check(self):
         self._GetSolutionStrategy().Check()
