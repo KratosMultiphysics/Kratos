@@ -21,7 +21,7 @@ class RestartUtility(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "input_filename"                 : "",
-            "input_output_path"                    : "",
+            "input_output_path"              : "",
             "echo_level"                     : 0,
             "serializer_trace"               : "no_trace",
             "restart_load_file_label"        : "",
