@@ -1061,6 +1061,12 @@ public:
     {
     }
 
+    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                         std::vector<array_1d<double, 6 > >& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
                          std::vector<Vector>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
