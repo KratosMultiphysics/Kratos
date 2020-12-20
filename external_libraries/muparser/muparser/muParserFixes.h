@@ -55,7 +55,18 @@
 	#endif
 #endif
 
-/* 
+#if defined _WIN32 || defined __CYGWIN__
+	#define EXTERN_MUPARSER_HELPER_DLL_IMPORT extern MUPARSER_HELPER_DLL_IMPORT
+	#define EXTERN_MUPARSER_HELPER_DLL_EXPORT extern MUPARSER_HELPER_DLL_EXPORT
+	#define EXTERN_MUPARSER_HELPER_DLL_LOCAL extern MUPARSER_HELPER_DLL_LOCAL
+#else
+      #define EXTERN_MUPARSER_HELPER_DLL_IMPORT
+      #define EXTERN_MUPARSER_HELPER_DLL_EXPORT
+      #define EXTERN_MUPARSER_HELPER_DLL_LOCAL
+#endif
+
+
+/*
 	Now we use the generic helper definitions above to define API_EXPORT_CXX and MUPARSER_LOCAL.
 	API_EXPORT_CXX is used for the public API symbols. It either DLL imports or DLL exports (or does nothing for static build)
 	MUPARSER_LOCAL is used for non-api symbols.
@@ -86,5 +97,3 @@
 
 
 #endif // include guard
-
-

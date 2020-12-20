@@ -40,6 +40,7 @@
 
 //--- Parser includes --------------------------------------------------------------------------
 #include "muParserDef.h"
+#include "muParserFixes.h"
 #include "muParserTokenReader.h"
 #include "muParserBytecode.h"
 #include "muParserError.h"
@@ -92,7 +93,7 @@ namespace mu
 		typedef ParserToken<value_type, string_type> token_type;
 
 		/** \brief Maximum number of threads spawned by OpenMP when using the bulk mode. */
-		static const int s_MaxNumOpenMPThreads;
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static const int s_MaxNumOpenMPThreads;
 
 	public:
 
@@ -188,10 +189,10 @@ namespace mu
 
 		virtual void OnDetectVar(string_type* pExpr, int& nStart, int& nEnd);
 
-		static const char_type* c_DefaultOprt[];
-		static std::locale s_locale;  ///< The locale used by the parser
-		static bool g_DbgDumpCmdCode;
-		static bool g_DbgDumpStack;
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static const char_type* c_DefaultOprt[];
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static std::locale s_locale;  ///< The locale used by the parser
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static bool g_DbgDumpCmdCode;
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static bool g_DbgDumpStack;
 
 		/** \brief A facet class used to change decimal and thousands separator. */
 		template<class TChar>
@@ -223,7 +224,7 @@ namespace mu
 				// fix for issue 4: https://code.google.com/p/muparser/issues/detail?id=4
 				// courtesy of Jens Bartsch
 				// original code:
-				//        return std::string(1, (char)m_nGroup); 
+				//        return std::string(1, (char)m_nGroup);
 				// new code:
 				return std::string(1, (char)(m_cThousandsSep > 0 ? m_nGroup : CHAR_MAX));
 			}
