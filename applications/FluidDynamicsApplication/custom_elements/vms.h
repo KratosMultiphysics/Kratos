@@ -971,9 +971,14 @@ protected:
 
         AdvVelNorm = sqrt(AdvVelNorm);
 
-        double InvTau = Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 2.0*AdvVelNorm / ElemSize ) + 4.0*Viscosity/ (ElemSize * ElemSize);
+        double InvTau = Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / this->GetDeltaTime(rCurrentProcessInfo) + 2.0*AdvVelNorm / ElemSize ) + 4.0*Viscosity/ (ElemSize * ElemSize);
         TauOne = 1.0 / InvTau;
         TauTwo = Viscosity + 0.5 * Density * ElemSize * AdvVelNorm;
+    }
+
+    virtual double GetDeltaTime(const ProcessInfo& rProcessInfo) const
+    {
+        return rProcessInfo[DELTA_TIME];
     }
 
     /// Calculate momentum stabilization parameter (without time term).
