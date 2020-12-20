@@ -109,20 +109,38 @@ public:
                          << " ].\n";
         }
 
-        // Find nodal neighbors for conditions
-        FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> neighbor_process(
-            rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart, NEIGHBOUR_CONDITION_NODES);
-        neighbor_process.Execute();
-        const auto& neighbour_node_ids_map = neighbor_process.GetNeighbourIds(rModelPart.Nodes());
+        KRATOS_CATCH("");
+    }
 
-        // Compute condition NORMAL derivatives and store them in conditions
-        NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(
-            rModelPart.Conditions(), mDomainSize);
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        ModelPart& rSensitivityModelPart,
+        AdjointResponseFunction& rResponseFunction) override
+    {
+        KRATOS_TRY
 
-        // Assign condition normal derivatives to corresponding nodes
-        SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>(
-            rModelPart, mDomainSize, NORMAL_SHAPE_DERIVATIVE,
-            neighbour_node_ids_map, 1.0 / mDomainSize, SLIP);
+        if (!mIsInitialized) {
+            mIsInitialized = true;
+
+            // Find nodal neighbors for conditions
+            FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> neighbor_process(
+                rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart,
+                NEIGHBOUR_CONDITION_NODES);
+            neighbor_process.Execute();
+            const auto& neighbour_node_ids_map =
+                neighbor_process.GetNeighbourIds(rModelPart.Nodes());
+
+            // Compute condition NORMAL derivatives and store them in conditions
+            NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(
+                rModelPart.Conditions(), mDomainSize);
+
+            KRATOS_WATCH(rModelPart.Name());
+
+            // Assign condition normal derivatives to corresponding nodes
+            SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>(
+                rModelPart, mDomainSize, NORMAL_SHAPE_DERIVATIVE,
+                neighbour_node_ids_map, 1.0 / mDomainSize, SLIP);
+        }
 
         KRATOS_CATCH("");
     }
@@ -391,6 +409,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    bool mIsInitialized = false;
     std::vector<Matrix> mAuxMatrices;
     std::vector<Vector> mAuxVectors;
     std::vector<Matrix> mRotatedSensitivityMatrices;
@@ -475,106 +494,112 @@ private:
         auto& aux_matrix = mAuxMatrices[k];
         auto& rotated_sensitivity_matrix = mRotatedSensitivityMatrices[k];
 
-        // calculate entity residual derivatives
-        rEntity.CalculateSensitivityMatrix(rVariable, sensitivity_matrix, rProcessInfo);
-
         // get adjoint solution vector
         rEntity.GetValuesVector(adjoint_vector);
         const unsigned int residuals_size = adjoint_vector.size();
 
-        KRATOS_ERROR_IF(residuals_size != sensitivity_matrix.size2())
-            << "mAdjointVectors.size(): " << residuals_size
-            << " incompatible with sensitivity_matrix.size1(): "
-            << sensitivity_matrix.size2() << ". Variable: " << rVariable << std::endl;
+        if (residuals_size != 0) {
+            // calculate entity residual derivatives
+            rEntity.CalculateSensitivityMatrix(rVariable, sensitivity_matrix, rProcessInfo);
 
-        GlobalPointersUnorderedMap<NodeType, int> gp_index_map;
-        auto& r_geometry = rEntity.GetGeometry();
-        const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        const unsigned int local_size = residuals_size / number_of_nodes;
+            KRATOS_ERROR_IF(residuals_size != sensitivity_matrix.size2())
+                << "mAdjointVectors.size(): " << residuals_size
+                << " incompatible with sensitivity_matrix.size1(): "
+                << sensitivity_matrix.size2() << ". Variable: " << rVariable
+                << std::endl;
 
-        if (rGPSensitivityVector.size() != number_of_nodes) {
-            rGPSensitivityVector.resize(number_of_nodes);
-        }
+            GlobalPointersUnorderedMap<NodeType, int> gp_index_map;
+            auto& r_geometry = rEntity.GetGeometry();
+            const unsigned int number_of_nodes = r_geometry.PointsNumber();
+            const unsigned int local_size = residuals_size / number_of_nodes;
 
-        // add geometry gps
-        for (unsigned int i = 0; i < number_of_nodes; ++i) {
-            const auto& r_node = r_geometry[i];
-            auto& r_gp = this->mGlobalPointerNodalMap[r_node.Id()];
-            rGPSensitivityVector(i) = r_gp;
-            gp_index_map[r_gp] = i;
-        }
+            if (rGPSensitivityVector.size() != number_of_nodes) {
+                rGPSensitivityVector.resize(number_of_nodes);
+            }
 
-        // add relevant neighbour gps
-        bool found_slip = false;
-        unsigned int local_index = number_of_nodes;
-        for (unsigned int i = 0; i < number_of_nodes; ++i) {
-            const auto& r_node = r_geometry[i];
-            if (r_node.Is(SLIP)) {
-                found_slip = true;
-                for (auto neighbor_gp : r_node.GetValue(NEIGHBOUR_CONDITION_NODES).GetContainer()) {
-                    const auto p_itr = gp_index_map.find(neighbor_gp);
-                    if (p_itr == gp_index_map.end()) {
-                        rGPSensitivityVector.push_back(neighbor_gp);
-                        gp_index_map[neighbor_gp] = local_index++;
+            // add geometry gps
+            for (unsigned int i = 0; i < number_of_nodes; ++i) {
+                const auto& r_node = r_geometry[i];
+                auto& r_gp = this->mGlobalPointerNodalMap[r_node.Id()];
+                rGPSensitivityVector(i) = r_gp;
+                gp_index_map[r_gp] = i;
+            }
+
+            // add relevant neighbour gps
+            bool found_slip = false;
+            unsigned int local_index = number_of_nodes;
+            for (unsigned int i = 0; i < number_of_nodes; ++i) {
+                const auto& r_node = r_geometry[i];
+                if (r_node.Is(SLIP)) {
+                    found_slip = true;
+                    for (auto neighbor_gp :
+                         r_node.GetValue(NEIGHBOUR_CONDITION_NODES).GetContainer()) {
+                        const auto p_itr = gp_index_map.find(neighbor_gp);
+                        if (p_itr == gp_index_map.end()) {
+                            rGPSensitivityVector.push_back(neighbor_gp);
+                            gp_index_map[neighbor_gp] = local_index++;
+                        }
                     }
                 }
             }
-        }
 
-        // now properly resize the output matrix and vectors
-        const unsigned int derivatives_size = local_index * mDomainSize;
-        if (rSensitivityVector.size() != derivatives_size) {
-            rSensitivityVector.resize(derivatives_size);
-        }
-
-        if (rotated_sensitivity_matrix.size1() != derivatives_size ||
-            rotated_sensitivity_matrix.size2() != residuals_size) {
-            rotated_sensitivity_matrix.resize(derivatives_size, residuals_size, false);
-        }
-        rotated_sensitivity_matrix.clear();
-
-        if (found_slip) {
-            // calculate entity residual.
-            // following methods will throw an error in old adjoint elements/conditions since
-            // they does not support SLIP condition based primal solutions
-            rEntity.CalculateLocalSystem(aux_matrix, aux_vector, rProcessInfo);
-            rEntity.CalculateLocalVelocityContribution(aux_matrix, aux_vector, rProcessInfo);
-        }
-
-        // add residual derivative contributions
-        for (unsigned int a = 0; a < number_of_nodes; ++a) {
-            const auto& r_node = r_geometry[a];
-            if (r_node.Is(SLIP)) {
-                (this->*(this->mAddNodalRotatedResidualDerivativeToMatrix))(
-                    rotated_sensitivity_matrix, sensitivity_matrix, aux_vector,
-                    a * local_size, gp_index_map, r_node);
-            } else {
-                (this->*(this->mAddNodalResidualDerivativeToMatrix))(
-                    rotated_sensitivity_matrix, sensitivity_matrix, a * local_size);
+            // now properly resize the output matrix and vectors
+            const unsigned int derivatives_size = local_index * mDomainSize;
+            if (rSensitivityVector.size() != derivatives_size) {
+                rSensitivityVector.resize(derivatives_size);
             }
-        }
 
-        // calculate sensitivity vector contributions
-        noalias(rSensitivityVector) = prod(rotated_sensitivity_matrix, adjoint_vector);
+            if (rotated_sensitivity_matrix.size1() != derivatives_size ||
+                rotated_sensitivity_matrix.size2() != residuals_size) {
+                rotated_sensitivity_matrix.resize(derivatives_size, residuals_size, false);
+            }
+            rotated_sensitivity_matrix.clear();
 
-        // add objective derivative contributions
-        auto& objective_partial_sensitivity = mPartialSensitivity[k];
-        rResponseFunction.CalculatePartialSensitivity(
-            rEntity, rVariable, sensitivity_matrix, objective_partial_sensitivity, rProcessInfo);
+            if (found_slip) {
+                // calculate entity residual.
+                // following methods will throw an error in old adjoint elements/conditions since
+                // they does not support SLIP condition based primal solutions
+                rEntity.CalculateLocalSystem(aux_matrix, aux_vector, rProcessInfo);
+                rEntity.CalculateLocalVelocityContribution(aux_matrix, aux_vector, rProcessInfo);
+            }
 
-        KRATOS_DEBUG_ERROR_IF(objective_partial_sensitivity.size() >
-                              rSensitivityVector.size())
-            << "rSensitivityVector does not have sufficient rows to add "
-               "objective partial sensitivity. [ rSensitivityVector.size() = "
-            << rSensitivityVector.size() << ", PartialSensitivityVectorSize = "
-            << objective_partial_sensitivity.size() << " ].\n";
+            // add residual derivative contributions
+            for (unsigned int a = 0; a < number_of_nodes; ++a) {
+                const auto& r_node = r_geometry[a];
+                if (r_node.Is(SLIP)) {
+                    (this->*(this->mAddNodalRotatedResidualDerivativeToMatrix))(
+                        rotated_sensitivity_matrix, sensitivity_matrix,
+                        aux_vector, a * local_size, gp_index_map, r_node);
+                } else {
+                    (this->*(this->mAddNodalResidualDerivativeToMatrix))(
+                        rotated_sensitivity_matrix, sensitivity_matrix, a * local_size);
+                }
+            }
 
-        // this assumes objective_partial_sensitivity also follows the same order of gps given by
-        // gp_index_map. This has to be done in this way because AdjointResponseFunction does not have
-        // an interface to pass a gp_vector.
-        // may be we can extend AdjointResponseFunction interface?
-        for (unsigned int c = 0; c < objective_partial_sensitivity.size(); ++c) {
-            rSensitivityVector[c] += objective_partial_sensitivity[c];
+            // calculate sensitivity vector contributions
+            noalias(rSensitivityVector) = prod(rotated_sensitivity_matrix, adjoint_vector);
+
+            // add objective derivative contributions
+            auto& objective_partial_sensitivity = mPartialSensitivity[k];
+            rResponseFunction.CalculatePartialSensitivity(
+                rEntity, rVariable, rotated_sensitivity_matrix,
+                objective_partial_sensitivity, rProcessInfo);
+
+            KRATOS_DEBUG_ERROR_IF(objective_partial_sensitivity.size() >
+                                  rSensitivityVector.size())
+                << "rSensitivityVector does not have sufficient rows to add "
+                   "objective partial sensitivity. [ rSensitivityVector.size() "
+                   "= "
+                << rSensitivityVector.size() << ", PartialSensitivityVectorSize = "
+                << objective_partial_sensitivity.size() << " ].\n";
+
+            // this assumes objective_partial_sensitivity also follows the same order of gps given by
+            // gp_index_map. This has to be done in this way because AdjointResponseFunction does not have
+            // an interface to pass a gp_vector.
+            // may be we can extend AdjointResponseFunction interface?
+            for (unsigned int c = 0; c < objective_partial_sensitivity.size(); ++c) {
+                rSensitivityVector[c] += objective_partial_sensitivity[c];
+            }
         }
 
         KRATOS_CATCH("");

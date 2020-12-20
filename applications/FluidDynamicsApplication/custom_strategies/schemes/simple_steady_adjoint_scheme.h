@@ -116,6 +116,7 @@ public:
         block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
             if (rNode.Is(SLIP)) {
                 rNode.Fix(ADJOINT_FLUID_VECTOR_1_X);
+                rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_X) = 0.0;
             }
         });
 
@@ -262,7 +263,7 @@ private:
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
         this->mpResponseFunction->CalculateFirstDerivativesGradient(
-            rEntity, aux_matrix, rRHS_Contribution, rCurrentProcessInfo);
+            rEntity, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
