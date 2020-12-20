@@ -109,11 +109,29 @@ public:
                        SensitivityBuilderScheme::Pointer pSensitivityBuilderScheme);
 
     ///@}
-    ///@name Operators
+    ///@name Operations
     ///@{
 
+    void Initialize();
+
+    void InitializeSolutionStep();
+
+    void UpdateSensitivities();
+
+    void FinalizeSolutionStep();
+
+    void Finalize();
+
+    void Clear();
+
+    /// Clear the flags which are indicating the membership of a node, element or condition in the sensitivity model part
+    void ClearFlags();
+
+    /// Clear sensitivities in historical and non-historical database
+    void ClearSensitivities();
+
     ///@}
-    ///@name Operations
+    ///@name static Operations
     ///@{
 
     static void CalculateNodalSolutionStepSensitivities(
@@ -197,18 +215,6 @@ public:
         const Flags& rFlag,
         const bool CheckValue = true);
 
-    void Initialize();
-
-    void UpdateSensitivities();
-
-    void Clear();
-
-    /// Clear the flags which are indicating the membership of a node, element or condition in the sensitivity model part
-    void ClearFlags();
-
-    /// Clear sensitivities in historical and non-historical database
-    void ClearSensitivities();
-
     ///@}
 
 private:
@@ -226,10 +232,6 @@ private:
 
     std::string mBuildMode = "static";
     bool mNodalSolutionStepSensitivityCalculationIsThreadSafe = false;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     ///@}
     ///@name Private Operations
