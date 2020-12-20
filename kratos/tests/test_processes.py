@@ -1264,7 +1264,7 @@ class TestProcesses(KratosUnittest.TestCase):
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
-    def test_point_output_process_initial_config_node(self):
+    def test_point_output_process_node(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -1273,7 +1273,8 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_initial_config_output_ref.dat")
+        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_initial_config_output_ref.dat")
+        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_current_config_output_ref.dat")
 
         # Here we also test if the output to folder(s) (and subfolder(s)) works
         settings = KratosMultiphysics.Parameters("""{
@@ -1293,42 +1294,6 @@ class TestProcesses(KratosUnittest.TestCase):
                             "search_configuration"    : "initial"
                         }
                     },{
-                        "python_module"  : "compare_two_files_check_process",
-                        "kratos_module"  : "KratosMultiphysics",
-                        "process_name"   : "CompareTwoFilesCheckProcess",
-                        "Parameters"            : {
-                            "reference_file_name"   : "",
-                            "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/node_initial_config_output.dat",
-                            "comparison_type"       : "dat_file"
-                        }
-                    } ]
-        }""")
-
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
-
-        end_time = 5.0
-        delta_time = 0.15
-
-        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
-
-        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
-
-        kratos_utils.DeleteDirectoryIfExisting("test_parent_folder")
-
-    def test_point_output_process_current_config_node(self):
-        current_model = KratosMultiphysics.Model()
-        model_part = current_model.CreateModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
-        model_part_io.ReadModelPart(model_part)
-
-        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_current_config_output_ref.dat")
-
-        # Here we also test if the output to folder(s) (and subfolder(s)) works
-        settings = KratosMultiphysics.Parameters("""{
-                "process_list" : [ {
                         "python_module"  : "point_output_process",
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "PointOutputProcess",
@@ -1349,13 +1314,23 @@ class TestProcesses(KratosUnittest.TestCase):
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
                             "reference_file_name"   : "",
+                            "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/node_initial_config_output.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
                             "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/node_current_config_output.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
 
         end_time = 5.0
         delta_time = 0.15
@@ -1537,7 +1512,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "position"         : [0.5, 0.25, 0.0],
                         "model_part_name"  : "Main",
                         "output_file_settings": {
-                            "file_name"   : "point_output_rest"
+                            "file_name"   : "point_output_rest",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "node"
@@ -1548,7 +1524,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "point_output_rest.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/point_output_rest.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ]
@@ -1558,20 +1534,24 @@ class TestProcesses(KratosUnittest.TestCase):
 
         # From this file we copy some lines into a new file , which will be used as basis for the restart
         ref_file_name = settings["process_list"][1]["Parameters"]["reference_file_name"].GetString()
-        ref_file_name = os.path.abspath(ref_file_name) # making it work independent of OS
 
         # here we create a dat file from a "previous run"
-        out_file_name = settings["process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()
+        out_file_name = GetFilePath('/'.join([settings["process_list"][0]["Parameters"]["output_file_settings"]["output_path"].GetString(),
+            settings["process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()]))
         out_file_name += ".dat"
 
         with open(ref_file_name, 'r') as ref_file, open(out_file_name, 'w') as out_file:
             for line in ref_file:
                 out_file.write(line)
-                if line.startswith("3.15"): # the previous run "stopped" at T=3.1
+                if line.startswith("3.16"): # the previous run "stopped" at T=3.149
                     break
 
         model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 2.1 # the new run "starts" at T=2.1
+
+        for node in model_part.Nodes:
+            node.X = node.X + 0.05
+            node.Y = node.Y - 0.05
 
         end_time = 5.0
         delta_time = 0.15
@@ -1599,7 +1579,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "position"         : [0.5, 0.25, 0.0],
                         "model_part_name"  : "Main",
                         "output_file_settings": {
-                            "file_name"   : "point_output_restart_time_not_found"
+                            "file_name"   : "point_output_restart_time_not_found",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "node"
@@ -1610,7 +1591,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "point_output_restart_time_not_found.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/point_output_restart_time_not_found.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ]
@@ -1620,20 +1601,24 @@ class TestProcesses(KratosUnittest.TestCase):
 
         # From this file we copy some lines into a new file , which will be used as basis for the restart
         ref_file_name = settings["process_list"][1]["Parameters"]["reference_file_name"].GetString()
-        ref_file_name = os.path.abspath(ref_file_name) # making it work independent of OS
 
         # here we create a dat file from a "previous run"
-        out_file_name = settings["process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()
+        out_file_name = GetFilePath('/'.join([settings["process_list"][0]["Parameters"]["output_file_settings"]["output_path"].GetString(),
+            settings["process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()]))
         out_file_name += ".dat"
 
         with open(ref_file_name, 'r') as ref_file, open(out_file_name, 'w') as out_file:
             for line in ref_file:
                 out_file.write(line)
-                if line.startswith("3.15"): # the previous run "stopped" at T=3.1
+                if line.startswith("3.29"): # the previous run "stopped" at T=3.149
                     break
 
         model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 2.15 # the new run "starts" at T=2.15, wich will not match any value
+
+        for node in model_part.Nodes:
+            node.X = node.X + 0.05
+            node.Y = node.Y - 0.05
 
         end_time = 5.0
         delta_time = 0.15
@@ -1649,9 +1634,6 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        # Delete the file in case it is leftover from a previous test
-        kratos_utils.DeleteFileIfExisting("node_output_failed_restart.dat")
-
         reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_failed_restart_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
@@ -1663,7 +1645,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "position"         : [0.5, 0.25, 0.0],
                         "model_part_name"  : "Main",
                         "output_file_settings": {
-                            "file_name"   : "node_output_failed_restart"
+                            "file_name"   : "node_output_failed_restart",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "node"
@@ -1674,7 +1657,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "node_output_failed_restart.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/node_output_failed_restart.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ]
@@ -1684,6 +1667,10 @@ class TestProcesses(KratosUnittest.TestCase):
 
         end_time = 5.0
         delta_time = 0.15
+
+        for node in model_part.Nodes:
+            node.X = node.X + 0.05
+            node.Y = node.Y - 0.05
 
         # "fake" a restart
         model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
@@ -1715,7 +1702,8 @@ class TestProcesses(KratosUnittest.TestCase):
                                                 [1.0,  0.0, 0.0]],
                         "model_part_name"  : "Main",
                         "output_file_settings": {
-                            "file_name" : "node_output"
+                            "file_name" : "node_output",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "node"
@@ -1726,7 +1714,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "node_output_1.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/node_output_1.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ,{
@@ -1735,7 +1723,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "node_output_2.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/node_output_2.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ,{
@@ -1744,7 +1732,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "node_output_3.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/node_output_3.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ]
@@ -1784,7 +1772,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "end_point"         : [0.9,  0.5, 0.0],
                         "model_part_name"  : "Main",
                         "output_file_settings": {
-                            "file_name" : "line_output"
+                            "file_name" : "line_output",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
                     }
@@ -1794,7 +1783,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "line_output_1.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/line_output_1.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ,{
@@ -1803,7 +1792,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "line_output_2.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/line_output_2.dat",
                         "comparison_type"       : "dat_file"
                     }
                 }, {
@@ -1812,7 +1801,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "line_output_3.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/line_output_3.dat",
                         "comparison_type"       : "dat_file"
                     }
                 }]
@@ -1855,7 +1844,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "model_part_name"      : "Main",
                         "interval"             : [0.0, "End"],
                         "output_file_settings" : {
-                            "file_name" : "csv_points_output"
+                            "file_name" : "csv_points_output",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
                     }
@@ -1865,7 +1855,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "csv_points_output_1.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/csv_points_output_1.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ,{
@@ -1874,7 +1864,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "csv_points_output_2.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/csv_points_output_2.dat",
                         "comparison_type"       : "dat_file"
                     }
                 }, {
@@ -1883,7 +1873,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "csv_points_output_3.dat",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/csv_points_output_3.dat",
                         "comparison_type"       : "dat_file"
                     }
                 }]
