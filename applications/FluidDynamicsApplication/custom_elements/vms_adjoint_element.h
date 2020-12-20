@@ -34,6 +34,7 @@
 #include "utilities/adjoint_extensions.h"
 
 // Application includes
+#include "custom_elements/vms.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 
@@ -51,7 +52,7 @@ namespace Kratos {
  * @see VMS monolithic fluid element
  */
 template< unsigned int TDim >
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public Element
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public VMS<TDim>
 {
     class ThisExtensions : public AdjointExtensions
     {
@@ -151,6 +152,8 @@ public:
 
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
 
+    typedef VMS<TDim> BaseType;
+
     typedef Element::IndexType IndexType;
 
     typedef Element::SizeType SizeType;
@@ -187,14 +190,14 @@ public:
     ///@{
 
     VMSAdjointElement(IndexType NewId = 0)
-        : Element(NewId)
+        : BaseType(NewId)
     {
     }
 
     VMSAdjointElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+        : BaseType(NewId, pGeometry)
     {
     }
 
@@ -202,7 +205,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
@@ -359,18 +362,6 @@ public:
         }
     }
 
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "this function is not implemented.";
-
-        KRATOS_CATCH("")
-    }
-
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -380,17 +371,6 @@ public:
             rLeftHandSideMatrix.resize(TFluidLocalSize, TFluidLocalSize, false);
 
         rLeftHandSideMatrix.clear();
-    }
-
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "this function is not implemented.";
-
-        KRATOS_CATCH("")
     }
 
     /**
@@ -457,28 +437,6 @@ public:
     {
         this->CalculateVMSMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
         rLeftHandSideMatrix = -trans(rLeftHandSideMatrix); // transpose
-    }
-
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rProcessInfo) override
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "this function is not implemented.";
-
-        KRATOS_CATCH("")
-    }
-
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rProcessInfo) override
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "this function is not implemented.";
-
-        KRATOS_CATCH("")
     }
 
     /**
@@ -568,6 +526,11 @@ protected:
 
     ///@name Protected Operations
     ///@{
+
+    double GetDeltaTime(const ProcessInfo& rProcessInfo) const override
+    {
+        return rProcessInfo[DELTA_TIME] * -1.0;
+    }
 
     void AuxiliaryCalculateSensitivityMatrix(
         const Variable<array_1d<double, 3>>& rSensitivityVariable,
