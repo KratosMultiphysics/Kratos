@@ -93,7 +93,7 @@ namespace mu
 		typedef ParserToken<value_type, string_type> token_type;
 
 		/** \brief Maximum number of threads spawned by OpenMP when using the bulk mode. */
-		MUPARSER_HELPER_DLL_IMPORT static const int s_MaxNumOpenMPThreads;
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static const int s_MaxNumOpenMPThreads;
 
 	public:
 
@@ -189,10 +189,10 @@ namespace mu
 
 		virtual void OnDetectVar(string_type* pExpr, int& nStart, int& nEnd);
 
-		MUPARSER_HELPER_DLL_IMPORT static const char_type* c_DefaultOprt[];
-		MUPARSER_HELPER_DLL_IMPORT static std::locale s_locale;  ///< The locale used by the parser
-		MUPARSER_HELPER_DLL_IMPORT static bool g_DbgDumpCmdCode;
-		MUPARSER_HELPER_DLL_IMPORT static bool g_DbgDumpStack;
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static const char_type* c_DefaultOprt[];
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static std::locale s_locale;  ///< The locale used by the parser
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static bool g_DbgDumpCmdCode;
+		EXTERN_MUPARSER_HELPER_DLL_IMPORT static bool g_DbgDumpStack;
 
 		/** \brief A facet class used to change decimal and thousands separator. */
 		template<class TChar>
