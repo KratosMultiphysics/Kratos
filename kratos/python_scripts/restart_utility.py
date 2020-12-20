@@ -256,7 +256,7 @@ class RestartUtility(object):
         pass
 
     def _GetFileNamePattern( self ):
-        """Return the pattern of flags in the file name for FileNameDataCollector"""
+        """Return the pattern of flags in the file name for FileNameDataCollector."""
         file_name_pattern = "<model_part_name>"
         if self.restart_control_type_is_time:
             file_name_pattern += "_<time>"
