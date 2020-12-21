@@ -23,6 +23,7 @@ from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestCo
 from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
 from test_axis_projection import TestAxisProjection as TTestAxisProjection
 from test_distribute_load_on_surface_process import TestDistributeLoadOnSurfaceProcess as TTestDistributeLoadOnSurfaceProcess
+from test_perturb_geometry_utility import TestPerturbGeometryUtility as TTestPerturbGeometryUtility
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
@@ -138,6 +139,8 @@ from structural_mechanics_test_factory import MembraneOrthotropicDiagonalTests a
 from structural_mechanics_test_factory import MembraneOrthotropicHorizontalTests as TMembraneOrthotropicHorizontalTests
 from structural_mechanics_test_factory import MembranePreStressHorizontalTests as TMembranePreStressHorizontalTests
 from structural_mechanics_test_factory import MembranePreStressDiagonalTests as TMembranePreStressDiagonalTests
+from structural_mechanics_test_factory import MembraneMultiLinearIsotropicPlaneStressTests as TMembraneMultiLinearIsotropicPlaneStressTests
+
 # 2Node Element tests
 from structural_mechanics_test_factory import Simple3D2NTrussTest as T3D2NTrussTest
 from structural_mechanics_test_factory import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
@@ -340,6 +343,8 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
     # Element damping test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
+    # Perturb geometry process test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryUtility]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -470,6 +475,7 @@ def AssembleTestSuites():
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
     validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
+    validationSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution')) # TODO should be in nightSuite but is too slow
     # Pendulus tests with Solid Elements
     validationSuite.addTest(TPendulusTLTest('test_execution'))
     validationSuite.addTest(TPendulusULTest('test_execution'))
@@ -525,7 +531,7 @@ def AssembleTestSuites():
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
+    # run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")

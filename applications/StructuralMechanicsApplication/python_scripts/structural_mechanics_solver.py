@@ -8,11 +8,10 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.python_solver import PythonSolver
 
 # Other imports
-from KratosMultiphysics.StructuralMechanicsApplication import check_and_prepare_model_process_structural
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics import auxiliary_solver_utilities
-import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics import kratos_utilities
 
 # Other imports
 from importlib import import_module
@@ -44,29 +43,36 @@ class MechanicalSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
-        settings_have_smps_for_comp_mp = custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list")
+        old_unused_settings = [
+            "use_computing_model_part",
+            "computing_model_part_name",
+            "problem_domain_sub_model_part_list",
+            "processes_sub_model_part_list"
+        ]
 
-        if settings_have_smps_for_comp_mp:
-            kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "problem_domain_sub_model_part_list" and "processes_sub_model_part_list" is deprecated, please remove it from your "solver_settings"')
+        for old_setting in old_unused_settings:
+            if custom_settings.Has(old_setting):
+                KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", 'Settings contain no longer used setting, please remove it: "{}"'.format(old_setting))
+                custom_settings.RemoveValue(old_setting)
+
+
+        settings_have_use_block_builder = custom_settings.Has("block_builder")
+
+        if settings_have_use_block_builder:
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
+            if not custom_settings.Has("builder_and_solver_settings"):
+                custom_settings.AddEmptyValue("builder_and_solver_settings")
+
+            custom_settings["builder_and_solver_settings"].AddValue("use_block_builder", custom_settings["block_builder"])
+            custom_settings.RemoveValue("block_builder")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(MechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
 
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
-
-        # for explicitly constructing the computing modelpart as a submodelpart of the mainmodelpart
-        self.use_computing_model_part = custom_settings["use_computing_model_part"].GetBool()
-        if not self.use_computing_model_part and settings_have_smps_for_comp_mp:
-            raise Exception('"problem_domain_sub_model_part_list" and "processes_sub_model_part_list" can only be specified when NOT using a ComputingModelPart! It is recommended Not to use a ComputingModelPart, then the entire Modelpart is used for the computation. At some point always the entire Modelpart will be used!')
-
-        # Only needed during the transition of removing the ComputingModelPart
-        if self.settings["problem_domain_sub_model_part_list"].size() == 0:
-            self.settings["problem_domain_sub_model_part_list"].Append(model_part_name)
-        if self.settings["processes_sub_model_part_list"].size() == 0:
-            self.settings["processes_sub_model_part_list"].Append(model_part_name)
 
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model[model_part_name]
@@ -86,7 +92,7 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type" : "mechanical_solver",
             "model_part_name" : "",
@@ -98,8 +104,6 @@ class MechanicalSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "computing_model_part_name" : "computing_domain",
-            "use_computing_model_part" : true,
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -112,10 +116,10 @@ class MechanicalSolver(PythonSolver):
             "line_search": false,
             "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
-            "block_builder" : true,
             "builder_and_solver_settings" : {
-                "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
-                "silent_warnings"                    : false
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings" : { }
             },
             "clear_storage": false,
             "move_mesh_flag": true,
@@ -127,14 +131,20 @@ class MechanicalSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings": { },
-            "problem_domain_sub_model_part_list": [],
-            "processes_sub_model_part_list": [],
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []
         }""")
-        this_defaults.AddMissingParameters(super(MechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        super().ValidateSettings()
+
+        # Validate some subparameters
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
@@ -260,12 +270,7 @@ class MechanicalSolver(PythonSolver):
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
-        if self.use_computing_model_part:
-            if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
-                raise Exception("The ComputingModelPart was not created yet!")
-            return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
-        else:
-            return self.main_model_part
+        return self.main_model_part
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -341,18 +346,7 @@ class MechanicalSolver(PythonSolver):
     #### Private functions ####
 
     def _execute_after_reading(self):
-        """Prepare computing model part and import constitutive laws. """
-        if self.use_computing_model_part:
-            # construct the computing-modelpart
-            # Auxiliary parameters object for the CheckAndPepareModelProcess
-            params = KratosMultiphysics.Parameters("{}")
-            params.AddValue("model_part_name",self.settings["model_part_name"])
-            params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-            params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-            params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-            # Assign mesh entities from domain and process sub model parts to the computing model part.
-            check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
-
+        """Import constitutive laws."""
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
@@ -435,9 +429,12 @@ class MechanicalSolver(PythonSolver):
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            bs_params = self.settings["builder_and_solver_settings"]
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+            bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+            if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)

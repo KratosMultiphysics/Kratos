@@ -1,0 +1,20 @@
+{
+    "properties": [
+        {
+            "model_part_name": "FluidModelPart",
+            "properties_id": 2,
+            "Material": {
+                "constitutive_law" : {
+                    "name" : "RansNewtonian2DLaw"
+                },
+                "Variables": {
+                    "DENSITY": 1.0,
+                    "DYNAMIC_VISCOSITY": 100.0,
+                    "WALL_VON_KARMAN": 0.41,
+                    "WALL_SMOOTHNESS_BETA": 5.2
+                },
+                "Tables": {}
+            }
+        }
+    ]
+}

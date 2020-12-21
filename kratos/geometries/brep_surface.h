@@ -201,6 +201,35 @@ public:
     }
 
     ///@}
+    ///@name Point Access
+    ///@{
+
+    PointType& operator[](const SizeType& i) override
+    {
+        return (*mpNurbsSurface)[i];
+    }
+
+    PointType const& operator[](const SizeType& i) const override
+    {
+        return (*mpNurbsSurface)[i];
+    }
+
+    typename PointType::Pointer& operator()(const SizeType& i) override
+    {
+        return (*mpNurbsSurface)(i);
+    }
+
+    const typename PointType::Pointer& operator()(const SizeType& i) const override
+    {
+        return (*mpNurbsSurface)(i);
+    }
+
+    SizeType size() const override
+    {
+        return mpNurbsSurface->size();
+    }
+
+    ///@}
     ///@name Access to Geometry Parts
     ///@{
 
@@ -285,6 +314,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs surface
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
@@ -295,6 +334,12 @@ public:
     bool IsTrimmed() const
     {
         return mIsTrimmed;
+    }
+
+    /// Returns number of points of NurbsSurface.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpNurbsSurface->PointsNumberInDirection(DirectionIndex);
     }
 
     ///@}
@@ -353,6 +398,10 @@ public:
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
     }
 
     ///@}

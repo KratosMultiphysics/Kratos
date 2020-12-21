@@ -2,17 +2,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosShallowWaterApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## define application core sources (pure C++ parts)
 set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shallow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rv_swe.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cv_swe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/swe.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conserved_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shallow_water_2d_3.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monotonic_element_2d_3n.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nothing_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/post_process_utilities.cpp

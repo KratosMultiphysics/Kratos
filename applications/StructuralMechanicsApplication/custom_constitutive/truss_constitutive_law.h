@@ -133,7 +133,7 @@ public:
 
     //this functions calculates the current stress based on an element given (set)
     //strain
-    double CalculateStressElastic(ConstitutiveLaw::Parameters& rParameterValues) const;
+    double CalculateStressElastic(ConstitutiveLaw::Parameters& rParameterValues);
 
 protected:
 

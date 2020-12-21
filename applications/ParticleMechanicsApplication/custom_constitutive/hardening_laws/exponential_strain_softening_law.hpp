@@ -48,7 +48,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ExponentialStrainSofteningLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ExponentialStrainSofteningLaw
         : public ParticleHardeningLaw
 {
 public:

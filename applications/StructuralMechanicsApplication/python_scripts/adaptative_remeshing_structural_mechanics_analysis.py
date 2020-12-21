@@ -39,11 +39,11 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         if project_parameters.Has("processes"):
             if project_parameters["processes"].Has("recursive_remeshing_process"):
                 self.process_remesh = True
-        super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).Initialize()
+        super().Initialize()
         computing_model_part = self._GetSolver().GetComputingModelPart()
         if not self.process_remesh:
             convergence_criteria = self._GetSolver().get_convergence_criterion()
@@ -154,7 +154,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(AdaptativeRemeshingStructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]

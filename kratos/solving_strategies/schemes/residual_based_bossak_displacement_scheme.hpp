@@ -102,17 +102,16 @@ public:
      * @param ThisParameters The parameters containing the configuration
      */
     explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
-        : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3,
-                                                ThisParameters.Has("newmark_beta") ? ThisParameters["newmark_beta"].GetDouble() : 0.25)
+        : ImplicitBaseType()
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"          : "ResidualBasedBossakDisplacementScheme",
-            "damp_factor_m" : -0.3,
-            "newmark_beta"  : 0.25
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // For pure Newmark Scheme
+        mNewmark.gamma = 0.5;
+
+        AuxiliarInitializeBossak();
     }
 
     /**
@@ -140,16 +139,7 @@ public:
         mNewmark.beta = NewmarkBeta;
         mNewmark.gamma = 0.5;
 
-        CalculateBossakCoefficients();
-
-        // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
-
-        mVector.v.resize(num_threads);
-        mVector.a.resize(num_threads);
-        mVector.ap.resize(num_threads);
-
-        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mBossak.alpha << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
+        AuxiliarInitializeBossak();
     }
 
     /**
@@ -432,12 +422,6 @@ public:
         const int err = ImplicitBaseType::Check(rModelPart);
         if(err != 0) return err;
 
-        // Check for variables keys
-        // Verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-
         // Check that variables are correctly allocated
         for (const auto& rnode : rModelPart.Nodes()) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
@@ -478,6 +462,25 @@ public:
     void Clear() override
     {
         this->mpDofUpdater->Clear();
+    }
+
+        /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"          : "bossak_scheme",
+            "damp_factor_m" : -0.3,
+            "newmark_beta"  : 0.25
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = ImplicitBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
     }
 
     /**
@@ -654,12 +657,14 @@ protected:
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
+        const auto& r_const_elem_ref = rElement;
         // Adding inertia contribution
         if (M.size1() != 0) {
-            rElement.GetSecondDerivativesVector(mVector.a[this_thread], 0);
+
+            r_const_elem_ref.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
-            rElement.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            r_const_elem_ref.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
             noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
@@ -667,8 +672,7 @@ protected:
 
         // Adding damping contribution
         if (D.size1() != 0) {
-            rElement.GetFirstDerivativesVector(mVector.v[this_thread], 0);
-
+            r_const_elem_ref.GetFirstDerivativesVector(mVector.v[this_thread], 0);
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
     }
@@ -690,13 +694,14 @@ protected:
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const auto& r_const_cond_ref = rCondition;
 
         // Adding inertia contribution
         if (M.size1() != 0) {
-            rCondition.GetSecondDerivativesVector(mVector.a[this_thread], 0);
+            r_const_cond_ref.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
-            rCondition.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            r_const_cond_ref.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
             noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
@@ -705,10 +710,21 @@ protected:
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0) {
-            rCondition.GetFirstDerivativesVector(mVector.v[this_thread], 0);
+            r_const_cond_ref.GetFirstDerivativesVector(mVector.v[this_thread], 0);
 
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        ImplicitBaseType::AssignSettings(ThisParameters);
+        mBossak.alpha = ThisParameters["damp_factor_m"].GetDouble();
+        mNewmark.beta = ThisParameters["newmark_beta"].GetDouble();
     }
 
     ///@}
@@ -739,6 +755,24 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method does an auziliar initialization of some member variables of the class
+     */
+    void AuxiliarInitializeBossak()
+    {
+        // Initialize Bossak coefficients
+        CalculateBossakCoefficients();
+
+        // Allocate auxiliary memory
+        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+
+        mVector.v.resize(num_threads);
+        mVector.a.resize(num_threads);
+        mVector.ap.resize(num_threads);
+
+        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mBossak.alpha << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
+    }
 
     ///@}
     ///@name Private  Access

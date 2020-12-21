@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -16,7 +14,7 @@ def CreateSolver(model, custom_settings):
 
 class MeshSolverStructuralSimilarity(MeshSolverBase):
     def __init__(self, model, custom_settings):
-        super(MeshSolverStructuralSimilarity, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverStructuralSimilarity]:: Construction finished")
 
     def _create_mesh_motion_solving_strategy(self):

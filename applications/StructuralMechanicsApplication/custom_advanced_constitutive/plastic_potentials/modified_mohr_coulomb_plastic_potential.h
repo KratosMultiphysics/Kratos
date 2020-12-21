@@ -183,11 +183,6 @@ class ModifiedMohrCoulombPlasticPotential
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        KRATOS_CHECK_VARIABLE_KEY(DILATANCY_ANGLE);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
-
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DILATANCY_ANGLE)) << "DILATANCY_ANGLE is not a defined value" << std::endl;
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;

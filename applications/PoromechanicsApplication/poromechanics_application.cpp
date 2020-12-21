@@ -181,8 +181,6 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive3DLaw",mExponentialCohesive3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive2DLaw",mExponentialCohesive2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimplifiedBilinear3DLaw",mSimplifiedBilinear3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimplifiedBilinear2DLaw",mSimplifiedBilinear2DLaw);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticSolid3DLaw", mLinearElastic3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainSolid2DLaw", mLinearElasticPlaneStrain2DLaw);
@@ -268,9 +266,6 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_DAMAGE )
 
     KRATOS_REGISTER_VARIABLE( SHEAR_FRACTURE_ENERGY )
-
-    KRATOS_REGISTER_VARIABLE( MAX_COMPRESSIVE_STRESS )
-    KRATOS_REGISTER_VARIABLE( MAX_TENSILE_STRESS )
 }
 
 }// namespace Kratos.

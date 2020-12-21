@@ -199,9 +199,9 @@ public:
     )
     {
         KRATOS_TRY
-	
+
 	//KRATOS_WATCH("ENTERED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
-	mActiveNodes.clear(); 
+	mActiveNodes.clear();
         mActiveNodes.reserve(r_model_part.Nodes().size() );
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
@@ -409,8 +409,6 @@ public:
             //assemble the elemental contribution
             AssembleLHS(A,LHS_Contribution,EquationId);
             AssembleRHS(b,RHS_Contribution,EquationId);
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
         }
         LHS_Contribution.resize(0,0,false);
 
@@ -477,17 +475,12 @@ public:
 
                 		}
                 */
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
 
                 //					#pragma omp critical
                 //					{
                 //						//assemble the elemental contribution
                 //						AssembleLHS(A,LHS_Contribution,EquationId);
                 //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
                 //					}
             }
         }
@@ -925,17 +918,12 @@ public:
 
                 		}
                 */
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
 
                 //					#pragma omp critical
                 //					{
                 //						//assemble the elemental contribution
                 //						AssembleLHS(A,LHS_Contribution,EquationId);
                 //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
                 //					}
             }
         }

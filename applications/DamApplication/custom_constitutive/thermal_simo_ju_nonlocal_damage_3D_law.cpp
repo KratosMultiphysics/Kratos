@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2017 $
@@ -12,7 +12,7 @@ namespace Kratos
 {
 
 //Default Constructor
-ThermalSimoJuNonlocalDamage3DLaw::ThermalSimoJuNonlocalDamage3DLaw() : ThermalNonlocalDamage3DLaw() 
+ThermalSimoJuNonlocalDamage3DLaw::ThermalSimoJuNonlocalDamage3DLaw() : ThermalNonlocalDamage3DLaw()
 {
     mpHardeningLaw   = HardeningLaw::Pointer( new ExponentialDamageHardeningLaw() );
     mpYieldCriterion = YieldCriterion::Pointer( new SimoJuYieldCriterion(mpHardeningLaw) );
@@ -37,9 +37,9 @@ ThermalSimoJuNonlocalDamage3DLaw::~ThermalSimoJuNonlocalDamage3DLaw() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalSimoJuNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int ThermalSimoJuNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 {
-    int ierr = ThermalNonlocalDamage3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
+    int ierr = ThermalNonlocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
     if(DAMAGE_THRESHOLD.Key() == 0 || rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || rMaterialProperties[DAMAGE_THRESHOLD] <= 0.0)
@@ -63,7 +63,7 @@ ConstitutiveLaw::Pointer ThermalSimoJuNonlocalDamage3DLaw::Clone() const
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void ThermalSimoJuNonlocalDamage3DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry )
-{   
+{
     //rCharacteristicSize is the diameter of a sphere with the same volume as the element
     rCharacteristicSize = pow((6.0*DomainGeometry.Volume()/Globals::Pi),0.33333333333333);
 }

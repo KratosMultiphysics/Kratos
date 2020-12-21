@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -11,7 +9,7 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 from importlib import import_module
 
 
-class OpenMPThreadManager(object):
+class OpenMPThreadManager:
     def __init__(self, num_threads=None):
         self.num_threads = num_threads
         if self.num_threads:
@@ -28,15 +26,15 @@ class OpenMPThreadManager(object):
             KM.OpenMPUtils().SetNumThreads(self.num_threads_orig)
 
 
-def Create(settings, solver_name):
-    return KratosBaseWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return KratosBaseWrapper(settings, model, solver_name)
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):
     """This class serves as basis for the kratos-wrappers
     It uses the AnalysisStage as black-box interface to Kratos
     """
-    def __init__(self, settings, solver_name):
-        super(KratosBaseWrapper, self).__init__(settings, solver_name)
+    def __init__(self, settings, model, solver_name):
+        super().__init__(settings, model, solver_name)
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):
@@ -58,10 +56,10 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def Initialize(self):
         with self.thread_manager:
             self._analysis_stage.Initialize() # this reades the Meshes
-        super(KratosBaseWrapper, self).Initialize()
+        super().Initialize()
 
     def Finalize(self):
-        super(KratosBaseWrapper, self).Finalize()
+        super().Finalize()
         with self.thread_manager:
             self._analysis_stage.Finalize()
 
@@ -82,7 +80,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def SolveSolutionStep(self):
         with self.thread_manager:
             self._analysis_stage._GetSolver().SolveSolutionStep()
-        super(KratosBaseWrapper, self).SolveSolutionStep()
+        super().SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         with self.thread_manager:

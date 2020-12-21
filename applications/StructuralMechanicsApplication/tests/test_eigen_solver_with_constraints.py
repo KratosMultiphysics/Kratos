@@ -15,7 +15,7 @@ The test checks if the two solutions are the same, which should be the case if e
 
 class StructuralMechanicsAnalysisWithConstraints(StructuralMechanicsAnalysis):
     def ModifyInitialGeometry(self):
-        super(StructuralMechanicsAnalysisWithConstraints, self).ModifyInitialGeometry()
+        super().ModifyInitialGeometry()
 
         model_part = self.model["Structure"]
         num_nodes = model_part.NumberOfNodes()
@@ -68,7 +68,6 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
                 "time_stepping"            : {
                     "time_step" : 1.1
                 },
-                "use_computing_model_part" : false,
                 "rotation_dofs"            : true,
                 "block_builder"            : true
             }

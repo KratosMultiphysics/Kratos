@@ -100,14 +100,11 @@ public:
      * @param ThisParameters Parameters with the integration order
      */
     explicit ResidualBasedBDFDisplacementScheme(Parameters ThisParameters)
-        : ResidualBasedBDFDisplacementScheme(ThisParameters.Has("integration_order") ? static_cast<std::size_t>(ThisParameters["integration_order"].GetInt()) : 2)
+        : BDFBaseType()
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {   "name"              : "ResidualBasedBDFDisplacementScheme",
-            "integration_order" : 2
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -335,12 +332,6 @@ public:
         const int err = BDFBaseType::Check(rModelPart);
         if(err!=0) return err;
 
-        // Check for variables keys
-        // Verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-
         // Check that variables are correctly allocated
         for(auto& rnode : rModelPart.Nodes()) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
@@ -355,6 +346,24 @@ public:
         KRATOS_CATCH( "" );
 
         return 0;
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "bdf_displacement_scheme",
+            "integration_order"  : 2
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BDFBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
     }
 
     /**

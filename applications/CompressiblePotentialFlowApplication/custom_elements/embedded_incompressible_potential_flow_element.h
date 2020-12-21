@@ -113,9 +113,9 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
     /// Turn back information as a string.
     std::string Info() const override;
 
@@ -134,11 +134,11 @@ private:
 
     void CalculateEmbeddedLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              const ProcessInfo& rCurrentProcessInfo);
 
     void AddPotentialGradientStabilizationTerm(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              const ProcessInfo& rCurrentProcessInfo);
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;

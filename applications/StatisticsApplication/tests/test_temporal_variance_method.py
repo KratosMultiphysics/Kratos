@@ -16,7 +16,7 @@ class TemporalVarianceMethodHelperClass(
         temporal_statistics_test_case.TemporalStatisticsTestCase):
     def RunTemporalStatisticsTest(self, norm_type, container_name):
 
-        settings = TemporalVarianceMethodHelperClass.__GetDefaultSettings(
+        settings = TemporalVarianceMethodHelperClass.__GetDefaultParameters(
             norm_type, container_name)
         input_method = TemporalVarianceMethodHelperClass.GetInputMethod(
             container_name)
@@ -133,7 +133,7 @@ class TemporalVarianceMethodHelperClass(
         return result_mean, result_variance
 
     @staticmethod
-    def __GetDefaultSettings(norm_type, container_name):
+    def __GetDefaultParameters(norm_type, container_name):
         settings_str = r'''
         [
             {

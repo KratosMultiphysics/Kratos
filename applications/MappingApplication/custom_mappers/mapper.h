@@ -154,9 +154,35 @@ public:
 
     /**
      * @brief This method returns the mapping-matrix
-     * @return The mapping-matrix
+     * @return Reference to the mapping-matrix
      */
-    virtual TMappingMatrixType* pGetMappingMatrix() = 0;
+    virtual TMappingMatrixType& GetMappingMatrix()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetMappingMatrix\"!" << std::endl;
+    }
+
+    virtual ModelPart& GetInterfaceModelPartOrigin()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPartOrigin\"!" << std::endl;
+    }
+
+    virtual ModelPart& GetInterfaceModelPartDestination()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPartDestination\"!" << std::endl;
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+    * @brief Quering for mesh conformity
+    * returns 1 if all the nodes are conform and 0 otherwise
+    */
+    virtual int AreMeshesConforming() const
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"AreMeshesConforming\"!" << std::endl;
+    };
 
     ///@}
     ///@name Input and output

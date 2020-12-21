@@ -1,9 +1,9 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import time as timer
 import os
 import KratosMultiphysics as Kratos
 from Kratos import Logger
+from  KratosMultiphysics.deprecation_management import DeprecationManager
+
 import KratosMultiphysics.DEMApplication as Dem
 Logger.Print("Running under OpenMP........", label="DEM")
 import KratosMultiphysics.StructuralMechanicsApplication as Structural
@@ -30,14 +30,14 @@ class SPAlgorithm(Algorithm):
         # Test number 3: Blind test specimen
 
         self.post_process_step_count = 0
-        self.post_process_frequency = self.sp_parameters["post_process_tool"]["output_frequency"].GetInt()
+        self.post_process_frequency = self.sp_parameters["post_process_tool"]["output_interval"].GetInt()
         self.use_post_process_tool = self.sp_parameters["post_process_tool"]["use_post_process_tool"].GetBool()
         if not self.use_post_process_tool:
             self.post_process_frequency = 0
         self.post_process_write_count = self.post_process_frequency
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         """This function returns the default-settings used by this class
         """
         return Kratos.Parameters("""{
@@ -49,7 +49,7 @@ class SPAlgorithm(Algorithm):
             },
             "post_process_tool":{
                 "use_post_process_tool": false,
-                "output_frequency": 0
+                "output_interval": 0
             },
             "multiaxial_control_module_fem_dem_generalized_2d_utility" : {
                 "Parameters"    : {
@@ -66,10 +66,25 @@ class SPAlgorithm(Algorithm):
             }
         }""")
 
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
+        if settings.Has('post_process_tool'):
+            sub_settings_where_var_is = settings['post_process_tool']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
+
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        default_settings = self.GetDefaultSettings()
+        default_settings = self.GetDefaultParameters()
+        self.TranslateLegacyVariablesAccordingToCurrentStandard(self.sp_parameters)
         self.sp_parameters.ValidateAndAssignDefaults(default_settings)
 
     def Initialize(self):
@@ -133,7 +148,8 @@ class SPAlgorithm(Algorithm):
                 max_prop_id = prop.Id
         props = Kratos.Properties(max_prop_id + 1)
         # NOTE: this should be more general
-        props[Dem.FRICTION] = 0.2
+        props[Dem.STATIC_FRICTION] = 0.2
+        props[Dem.DYNAMIC_FRICTION] = 0.2
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
         props[Dem.SEVERITY_OF_WEAR] = 0.001

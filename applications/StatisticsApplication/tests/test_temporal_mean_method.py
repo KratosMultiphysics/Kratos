@@ -16,7 +16,7 @@ class TemporalMeanMethodHelperClass(
         temporal_statistics_test_case.TemporalStatisticsTestCase):
     def RunTemporalStatisticsTest(self, norm_type, container_name):
 
-        settings = TemporalMeanMethodHelperClass.__GetDefaultSettings(
+        settings = TemporalMeanMethodHelperClass.__GetDefaultParameters(
             norm_type, container_name)
         input_method = TemporalMeanMethodHelperClass.GetInputMethod(
             container_name)
@@ -98,7 +98,7 @@ class TemporalMeanMethodHelperClass(
         return result
 
     @staticmethod
-    def __GetDefaultSettings(norm_type, container_name):
+    def __GetDefaultParameters(norm_type, container_name):
         settings_str = r'''
         [
             {

@@ -1,9 +1,6 @@
 import xmc.tools as tools
 
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from xmc.distributedEnvironmentFramework import *
 
 #TODO When MomentEstimator is updated to specs, one level of nesting will have to be added above solver level: each element of sampleGroup is to be a list of sample components; as of now, it is just a single component.
 
@@ -24,10 +21,12 @@ def updatePartialQoiEstimators_Task(estimators, samples):
     for iEst,_ in enumerate(estimators):
         # Get subset of samples for component iEst
         # as array expected by update methud: (event, solver).
-        # Example: if samples[event][solver] = [q_0_solver, ..., q_N_solver]
-        # then sampleSubset[event] = [q_iEst_0, ..., q_iEst_numberOfSolvers].
-        sampleSubset = [[perSolver[iEst] for perSolver in perEvent]
-                        for perEvent in samples]
+        # Example:
+        # samples[event][solver] = [q_0_solver, ..., q_N_solver]
+        # then
+        # sampleSubset[event] = [q_iEst_0, ..., q_iEst_numberOfSolvers]
+        # Observe the type of each sample (float or list) depends on the chosen moment estimator
+        sampleSubset = [[perSolver[iEst] for perSolver in perEvent] for perEvent in samples]
         # Pass to update method
         estimators[iEst].update(sampleSubset)
 

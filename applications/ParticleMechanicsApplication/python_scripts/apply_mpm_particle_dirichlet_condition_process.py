@@ -20,22 +20,36 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
-                "direction"                 : [0.0, 0.0, 0.0],
+                "value"                     : [0.0, "0*t", 0.0],
+                "interval"                  : [0.0, 1e30],
                 "option"                    : "",
                 "local_axes"                : {}
             }  """ )
 
+         # Assign this here since it will change the "interval" prior to validation
+        self.interval = KratosMultiphysics.IntervalUtility(settings)
+
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part_name = settings["model_part_name"].GetString()
+        self.model = Model
         self.particles_per_condition = settings["particles_per_condition"].GetInt()
         self.imposition_type = settings["imposition_type"].GetString()
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
 
+        """
+        Set boundary_condition_type:
+        1. penalty
+        2. lagrange (WIP)
+        3. fixdof (WIP)
+        """
+
         # set type of boundary
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
+            self.boundary_condition_type = 1
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
             err_msg += "Available option is: \"penalty\"."
@@ -69,9 +83,21 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             err_msg += "Available options are: " + ", ".join(variable_name_list)
             raise Exception(err_msg)
 
+        self.value_is_numeric = [False, False, False]
+        self.value = KratosMultiphysics.Vector(3)
+        self.aux_function = ["0.0","0.0","0.0"]
+        self.name = ["0.0","0.0","0.0"]
+        # Loop over components X, Y and Z
+        for i, variable in enumerate(["_X", "_Y", "_Z"]):
+            self.name[i] = settings["variable_name"].GetString() + variable
+            if settings["value"][i].IsNumber():
+                self.value_is_numeric[i] = True
+                self.value[i] = settings["value"][i].GetDouble()
+            else:
+                self.function_string = settings["value"][i].GetString()
+                self.aux_function[i] = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
+
         self.modulus = settings["modulus"].GetDouble()
-        self.vector_direction = settings["direction"].GetVector()
-        self.vector = self.modulus * self.vector_direction
 
         # Compute the normal on the nodes of interest
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -90,9 +116,53 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
-                condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
-                condition.SetValue(self.variable, self.vector)
+                condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
+
+                ### Set necessary essential BC variables
+                if self.boundary_condition_type==1:
+                    condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
             err_msg += 'or assigned negative values. \nPlease assign: "particles_per_condition" > 0 or = 0 (for automatic value)!\n'
             raise Exception(err_msg)
+
+    def ExecuteBeforeSolutionLoop(self):
+        """ This method is executed in before initialize the solution step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        # Get updated model_part
+        if (self.model_part_name.startswith('Background_Grid.')):
+            self.model_part_name = self.model_part_name.replace('Background_Grid.','')
+        mpm_material_model_part_name = "MPM_Material." + self.model_part_name
+        self.model_part = self.model[mpm_material_model_part_name]
+        self.ExecuteInitializeSolutionStep()
+
+    def ExecuteInitializeSolutionStep(self):
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        
+        for mpc in self.model_part.Conditions:
+            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+
+            if self.interval.IsInInterval(current_time):
+
+                self.step_is_active = True
+                
+                # Loop over components X, Y and Z
+                for i in range(3):
+                    self.variable = self.name[i]
+                    if  not self.value_is_numeric[i]:
+                        if self.aux_function[i].DependsOnSpace() == False: #depends on time only
+                            self.value[i] = self.aux_function[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
+                        else: #most general case - space varying function (possibly also time varying)
+                            self.value[i] = self.aux_function[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0)
+                            
+                        
+                mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)

@@ -208,7 +208,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             raise Exception("Provided mesh movement \'" + mesh_movement + "\'. Available options are \'implicit\' and \'explicit\'.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -234,6 +234,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "time_order": 2,
             "time_scheme": "bdf2",
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "consider_periodic_conditions": false,
             "relative_velocity_tolerance": 1e-3,
@@ -266,14 +267,14 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             }
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesEmbeddedMonolithicSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesEmbeddedMonolithicSolver, cls).GetDefaultParameters())
         return default_settings
 
     def ValidateSettings(self):
         """Overriding python_solver ValidateSettings to validate the fm_ale_settings
         """
         super(NavierStokesEmbeddedMonolithicSolver, self).ValidateSettings()
-        self.settings["fm_ale_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["fm_ale_settings"])
+        self.settings["fm_ale_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["fm_ale_settings"])
         if self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0:
             mesh_movement = self.settings["fm_ale_settings"]["mesh_movement"].GetString()
             self.settings["fm_ale_settings"]["fm_ale_solver_settings"].ValidateAndAssignDefaults(self._get_fm_ale_solver_default_settings(mesh_movement))

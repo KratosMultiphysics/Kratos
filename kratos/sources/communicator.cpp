@@ -133,6 +133,22 @@ void Communicator::SetNumberOfColors(SizeType NewNumberOfColors)
     }
 }
 
+void Communicator::AddColors(SizeType NumberOfAddedColors)
+{
+    if (NumberOfAddedColors < 1)
+        return;
+
+    mNumberOfColors += NumberOfAddedColors;
+    MeshType mesh;
+
+    for (IndexType i = 0; i < NumberOfAddedColors; i++)
+    {
+        mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    }
+}
+
 Communicator::NeighbourIndicesContainerType& Communicator::NeighbourIndices()
 {
     return mNeighbourIndices;

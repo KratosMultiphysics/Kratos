@@ -11,10 +11,12 @@ class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
         self.element_name = None
-        self.condition_name = "MonolithicWallCondition"
         self.element_integrates_in_time = False
         self.element_has_nodal_properties = False
         self.process_data = {}
+
+        #TODO: Keep this until the MonolithicWallCondition is removed to ensure backwards compatibility in solvers with no defined condition_name
+        self.condition_name = "MonolithicWallCondition"
 
         if settings.Has("element_type"):
             formulation = settings["element_type"].GetString()
@@ -58,6 +60,7 @@ class StabilizedFormulation(object):
         else:
             self.non_newtonian_option = False
             self.element_name = 'VMS'
+        self.condition_name = "MonolithicWallCondition"
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -91,6 +94,7 @@ class StabilizedFormulation(object):
         else:
             self.element_name = "TimeIntegratedQSVMS"
             self.element_integrates_in_time = True
+        self.condition_name = "NavierStokesWallCondition"
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -99,12 +103,15 @@ class StabilizedFormulation(object):
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "dvms",
+            "dynamic_tau": 0.0,
             "use_orthogonal_subscales": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "DVMS"
+        self.condition_name = "NavierStokesWallCondition"
 
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
@@ -113,7 +120,8 @@ class StabilizedFormulation(object):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "fic",
             "beta": 0.8,
-            "adjust_beta_dynamically": false
+            "adjust_beta_dynamically": false,
+            "dynamic_tau": 0.0
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -122,9 +130,11 @@ class StabilizedFormulation(object):
             KratosMultiphysics.Logger.PrintWarning("NavierStokesSolverVMSMonolithic","FIC with dynamic beta not yet implemented, using provided beta as a constant value")
         else:
             self.element_name = "FIC"
+        self.condition_name = "NavierStokesWallCondition"
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = 0
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
 
     def _SetUpSymbolic(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -147,7 +157,7 @@ def CreateSolver(model, custom_settings):
 class NavierStokesSolverMonolithic(FluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -170,6 +180,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": true,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
@@ -180,7 +191,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
-            "assign_neighbour_elements_to_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,
@@ -198,7 +209,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultParameters())
         return default_settings
 
     def _BackwardsCompatibilityHelper(self,settings):
@@ -248,25 +259,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
         custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
-        self.formulation = StabilizedFormulation(self.settings["formulation"])
-        self.element_name = self.formulation.element_name
-        self.condition_name = self.formulation.condition_name
-        self.element_integrates_in_time = self.formulation.element_integrates_in_time
-        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
+        # Set up the auxiliary class with the formulation settings
+        self._SetFormulation()
 
-        scheme_type = self.settings["time_scheme"].GetString()
-        if scheme_type == "bossak":
-            self.min_buffer_size = 2
-        elif scheme_type == "bdf2":
-            self.min_buffer_size = 3
-        elif scheme_type == "steady":
-            self.min_buffer_size = 1
-            self._SetUpSteadySimulation()
-        else:
-            msg  = "Unknown time_scheme option found in project parameters:\n"
-            msg += "\"" + scheme_type + "\"\n"
-            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
-            raise Exception(msg)
+        # Update the default buffer size according to the selected time scheme
+        self._SetTimeSchemeBufferSize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverMonolithic finished.")
 
@@ -320,6 +317,28 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
             self._GetSolutionStrategy().InitializeSolutionStep()
+
+    def _SetFormulation(self):
+        self.formulation = StabilizedFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
+        self.element_integrates_in_time = self.formulation.element_integrates_in_time
+        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
+
+    def _SetTimeSchemeBufferSize(self):
+        scheme_type = self.settings["time_scheme"].GetString()
+        if scheme_type == "bossak":
+            self.min_buffer_size = 2
+        elif scheme_type == "bdf2":
+            self.min_buffer_size = 3
+        elif scheme_type == "steady":
+            self.min_buffer_size = 1
+            self._SetUpSteadySimulation()
+        else:
+            msg  = "Unknown time_scheme option found in project parameters:\n"
+            msg += "\"" + scheme_type + "\"\n"
+            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
+            raise Exception(msg)
 
     def _SetUpSteadySimulation(self):
         '''Overwrite time stepping parameters so that they do not interfere with steady state simulations.'''
