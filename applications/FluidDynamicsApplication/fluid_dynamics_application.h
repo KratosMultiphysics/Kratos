@@ -96,6 +96,9 @@
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
+// Adjoint fluid conditions
+#include "custom_conditions/adjoint_fluid_condition.h"
+
 
 namespace Kratos
 {
@@ -415,6 +418,11 @@ private:
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
     const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
     const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
+
+    /// Adjoint fluid conditions
+    const AdjointFluidCondition<2, 2> mAdjointFluidCondition2D2N;
+    const AdjointFluidCondition<3, 3> mAdjointFluidCondition3D3N;
+    const AdjointFluidCondition<3, 4> mAdjointFluidCondition3D4N;
 
     ///@}
     ///@name Private Operators
