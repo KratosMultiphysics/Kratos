@@ -339,6 +339,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
             double DPhi = rData.DN_DX(i,d) * (tau_two + tau_p ) * (mass_source - fluid_fraction_rate - MassProj);
 
             // Dynamic term in pressure subscale div(vh) * h^2/(c1*dt) * (-div(uh^n) )
+            // This term comes from mass equation: div(uh^n+1 + uh^n) = 0. It can be neglected
             rLocalRHS[row+d] -= rData.Weight * rData.DN_DX(i,d) * tau_p * OldResidual;
 
             rLocalRHS[row+d] += rData.Weight * (VF - VI + AF - DPhi);
@@ -459,6 +460,8 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     TauTwo = viscosity + density * mTauC2 * velocity_norm * h / mTauC1;
 
     // Auxiliary coefficient StaticTauOne*TauTwo/Dt that appears on the pressure subscale model
+    // This coefficient comes from mass equation: div(u^n+1 + u^n) = 0 setting to 0 is to consider
+    // div(u^n+1) = 0
     TauP = 0.0;
 }
 
@@ -494,5 +497,8 @@ void DVMSDEMCoupled<TElementData>::load(Serializer& rSerializer)
 
 template class DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> >;
 template class DVMSDEMCoupled< QSVMSDEMCoupledData<3,4> >;
+
+template class DVMSDEMCoupled< QSVMSDEMCoupledData<2,4> >;
+template class DVMSDEMCoupled< QSVMSDEMCoupledData<3,8> >;
 
 } // namespace Kratos

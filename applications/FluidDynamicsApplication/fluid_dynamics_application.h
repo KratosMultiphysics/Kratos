@@ -275,6 +275,8 @@ private:
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mDVMSDEMCoupled3D4N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mDVMSDEMCoupled2D4N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mDVMSDEMCoupled3D8N;
     const FIC< FICData<2,3> > mFIC2D3N;
     const FIC< FICData<2,4> > mFIC2D4N;
     const FIC< FICData<3,4> > mFIC3D4N;
