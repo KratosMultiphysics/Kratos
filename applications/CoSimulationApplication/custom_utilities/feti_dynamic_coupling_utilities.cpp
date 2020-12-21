@@ -985,7 +985,7 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DeformMPMGrid(ModelPart& rGridMP,
-        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef, const bool rotateGrid)
+        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef, bool rotateGrid)
     {
         KRATOS_TRY
 
@@ -1025,20 +1025,18 @@ namespace Kratos
         if (rotateGrid) interface_slope_new = GetLinearRegressionSlope(rGridInterfaceMP);
 
         // Compute angle between undeformed and deformed interface
-        if (std::abs(mInterfaceSlopeOld) > 1e10) {
-            if (mInterfaceSlopeOld * interface_slope_new < 0.0) mInterfaceSlopeOld *= -1.0;
-        }
-        else if (std::abs(interface_slope_new) > 1e10) {
-            if (mInterfaceSlopeOld * interface_slope_new < 0.0) interface_slope_new *= -1.0;
+        if (mInterfaceSlopeOld > 1e10 || interface_slope_new > 1e10) {
+            rotateGrid = false;
         }
 
-        const double tan_theta = std::abs((mInterfaceSlopeOld - interface_slope_new) / (1 + mInterfaceSlopeOld * interface_slope_new));
+        const double tan_theta = std::abs((mInterfaceSlopeOld - interface_slope_new) / (1.0 + mInterfaceSlopeOld * interface_slope_new));
         double theta = std::atan(tan_theta); // assumes CCW rotation, that interface_slope_new > mInterfaceSlopeOld
         if (mInterfaceSlopeOld > interface_slope_new) theta *= -1.0;
-        if (std::abs(theta/2.0/3.14*360) > 2.0) // 0.174
+        if (std::abs(theta/2.0/3.14*360.0) > 10.0) // 0.174
         {
             KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed 10 degrees!\n";
         }
+
         mInterfaceSlopeOld = interface_slope_new;
 
         block_for_each(rGridMP.Nodes(), [&](Node<3>& rNode)
