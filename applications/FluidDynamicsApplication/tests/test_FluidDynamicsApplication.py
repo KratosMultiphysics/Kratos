@@ -65,10 +65,6 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationEmbedded2D'))
     smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationSymbolic2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
-    smallSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
-    smallSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
-    smallSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
-    smallSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
@@ -110,6 +106,10 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
