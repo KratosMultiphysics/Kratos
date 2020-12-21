@@ -9,7 +9,8 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 from importlib import import_module
 
 
-class OpenMPThreadManager:
+class ThreadManager:
+    """Class for setting and ressting the number of threads a context should use."""
     def __init__(self, num_threads=None):
         self.num_threads = num_threads
         if self.num_threads:
@@ -17,7 +18,7 @@ class OpenMPThreadManager:
 
     def __enter__(self):
         if self.num_threads:
-            KM.OpenMPUtils().SetNumThreads(self.num_threads)
+            KM.OpenMPUtils().SetNumThreads(min(self.num_threads, self.num_threads_orig))
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.num_threads:
@@ -44,11 +45,11 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         # this creates the AnalysisStage, creates the MainModelParts and allocates the historial Variables on the MainModelParts:
         self._analysis_stage = self.__GetAnalysisStage()
 
-        if self.settings["solver_wrapper_settings"].Has("omp_num_threads"):
-            omp_num_threads = self.settings["solver_wrapper_settings"]["omp_num_threads"].GetInt()
-            self.thread_manager = OpenMPThreadManager(omp_num_threads)
+        if self.settings["solver_wrapper_settings"].Has("num_threads"):
+            omp_num_threads = self.settings["solver_wrapper_settings"]["num_threads"].GetInt()
+            self.thread_manager = ThreadManager(omp_num_threads)
         else:
-            self.thread_manager = OpenMPThreadManager()
+            self.thread_manager = ThreadManager()
 
 
     def Initialize(self):
