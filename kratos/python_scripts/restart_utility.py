@@ -196,8 +196,6 @@ class RestartUtility:
         if restart_path.is_dir():
 
             file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, os.path.join(self.__GetFolderPathSave(), self._GetFileNamePattern()), {})
-            # barrier is necessaryto avoid having some ranks deleting files while other ranks still detect them in the same directory
-            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
             for file_name_data in file_name_data_collector.GetFileNameDataList():
                 # Get step id
@@ -207,6 +205,9 @@ class RestartUtility:
                     step_id = file_name_data.GetStep()
 
                 restart_files[step_id] = file_name_data.GetFileName()
+
+            # barrier is necessary to avoid having some ranks deleting files while other ranks still detect them in the same directory
+            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         return restart_files
 
