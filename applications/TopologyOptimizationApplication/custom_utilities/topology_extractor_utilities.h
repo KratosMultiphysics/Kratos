@@ -28,6 +28,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
+#include "includes/key_hash.h"
 
 // Application includes
 #include "topology_optimization_application.h"
@@ -95,7 +96,7 @@ public:
 	{
 		std::size_t operator()(const vector<int>& k) const
 		{
-			///return boost::hash_range(k.begin(), k.end()); UMBEDINGT VERBESSERN UND ERNEUERN!!!!##################################################
+			return HashRange(k.begin(), k.end());
 		}
 	};
 
