@@ -288,7 +288,7 @@ protected:
 
     virtual void MassProjTerm(
         const TElementData& rData,
-        double& rMassRHS) const;
+        double& rMassRHS) const override;
 
     ///@}
     ///@name Protected  Access

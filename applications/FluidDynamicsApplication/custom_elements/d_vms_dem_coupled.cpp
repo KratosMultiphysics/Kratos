@@ -130,13 +130,6 @@ template< class TElementData >
 int DVMSDEMCoupled<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     int out = DVMS<TElementData>::Check(rCurrentProcessInfo);
-    KRATOS_ERROR_IF_NOT(out == 0)
-        << "Error in base class Check for Element " << this->Info() << std::endl
-        << "Error code is " << out << std::endl;
-
-    // Output variables (for Calculate() functions)
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
 
     return out;
 }

@@ -63,6 +63,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "dvmsDEM",
             "use_orthogonal_subscales": false,
+            "dynamic_tau": 0.0,
             "element_name": "DVMSDEMCoupled"
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
