@@ -17,12 +17,10 @@ class OpenMPThreadManager:
 
     def __enter__(self):
         if self.num_threads:
-            # print("  >> setting num threads to:", self.num_threads)
             KM.OpenMPUtils().SetNumThreads(self.num_threads)
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.num_threads:
-            # print("  >> re-setting num threads to:", self.num_threads_orig)
             KM.OpenMPUtils().SetNumThreads(self.num_threads_orig)
 
 
