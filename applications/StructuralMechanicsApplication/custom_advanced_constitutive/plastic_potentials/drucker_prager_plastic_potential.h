@@ -140,8 +140,6 @@ class DruckerPragerPlasticPotential
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        KRATOS_CHECK_VARIABLE_KEY(DILATANCY_ANGLE);
-
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DILATANCY_ANGLE)) << "DILATANCY_ANGLE is not a defined value" << std::endl;
 
         return 0;
