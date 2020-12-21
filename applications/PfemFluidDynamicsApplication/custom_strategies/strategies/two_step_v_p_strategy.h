@@ -271,6 +271,9 @@ namespace Kratos
         }
         if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
         {
+          //this->ComputeErrorL2Norm();
+          //this->ComputeErrorL2NormCasePoiseuille();
+        this->ComputeAndWriteVolumeAndVelocityInSampleDomain();
           this->UpdateStressStrain();
         }
 
@@ -906,6 +909,182 @@ namespace Kratos
 
       return ConvergedContinuity;
     }
+
+  void ComputeAndWriteVolumeAndVelocityInSampleDomain()
+  {
+    ModelPart &rModelPart = BaseType::GetModelPart();
+    ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    const double currentTime = rCurrentProcessInfo[TIME];
+
+    long double boxMinX = 0;
+    long double boxMinY = 636;
+    long double boxMinZ = 725;
+    long double boxMaxX = 1500;
+    long double boxMaxY = 709;
+    long double boxMaxZ = 3000;
+
+    double totalVolume = 0;
+    double totalVelocityX = 0;
+    double totalVelocityY = 0;
+    double totalVelocityNorm = 0;
+    // double nodeInBox = 0.0;
+    double overtoppingElements = 0.0;
+
+    double maxOvertoppingWave = 0;
+
+    double maxTsunamiWaveA = 0;
+    double maxTsunamiWaveB = 0;
+    double maxTsunamiWaveC = 0;
+
+    for (ModelPart::ElementsContainerType::iterator itElem = rModelPart.ElementsBegin(); itElem != rModelPart.ElementsEnd(); ++itElem)
+    {
+
+      Element::GeometryType &geometry = itElem->GetGeometry();
+      long double bariPosX = 0;
+      long double bariPosY = 0;
+      long double bariPosZ = 0;
+      double elementalDensity = 2400;
+      double elementalVelocityX = 0;
+      double elementalVelocityY = 0;
+      double elementalVelocityNorm = 0;
+      for (unsigned int i = 0; i < geometry.size(); i++)
+      {
+        const long double nodalPosX = geometry(i)->X();
+        const long double nodalPosY = geometry(i)->Y();
+        const long double nodalPosZ = geometry(i)->Z();
+        bariPosX += nodalPosX * 0.25;
+        bariPosY += nodalPosY * 0.25;
+        bariPosZ += nodalPosZ * 0.25;
+
+        const array_1d<double, 3> Vel = geometry(i)->FastGetSolutionStepValue(VELOCITY);
+        double NormV = 0;
+        for (unsigned int d = 0; d < 3; ++d)
+        {
+          NormV += Vel[d] * Vel[d];
+        }
+        elementalVelocityX += Vel[0] * 0.25;
+        elementalVelocityY += Vel[1] * 0.25;
+        elementalVelocityNorm += sqrt(NormV) * 0.25;
+
+        double density = geometry(i)->FastGetSolutionStepValue(DENSITY);
+        if (density < elementalDensity && geometry(i)->IsNot(RIGID))
+        {
+          elementalDensity = density;
+        }
+      }
+
+      if (bariPosX > boxMinX && bariPosY > boxMinY && bariPosZ > boxMinZ && bariPosX < boxMaxX && bariPosY < boxMaxY && bariPosZ < boxMaxZ && elementalDensity < 1200 && elementalDensity > 900)
+      {
+        overtoppingElements += 1.0;
+        totalVolume += geometry.Volume();
+        totalVelocityX += elementalVelocityX;
+        totalVelocityY += elementalVelocityY;
+        totalVelocityNorm += elementalVelocityNorm;
+      }
+    }
+
+    for (ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+    {
+      double density = itNode->FastGetSolutionStepValue(DENSITY);
+      if (itNode->X() > boxMinX && itNode->Y() > boxMinY && itNode->Z() > boxMinZ && itNode->X() < boxMaxX && itNode->Y() < boxMaxY && itNode->Z() < boxMaxZ &&
+          density < 1200 && itNode->IsNot(RIGID))
+      {
+        // nodeInBox += 1.0;
+        // const array_1d<double, 3> Vel = itNode->FastGetSolutionStepValue(VELOCITY);
+        // double NormV = 0;
+        // for (unsigned int d = 0; d < 3; ++d)
+        // {
+        //   NormV += Vel[d] * Vel[d];
+        // }
+        // totalVelocityY += fabs(Vel[1]);
+        // totalVelocityNorm += sqrt(NormV);
+
+        if (itNode->Z() > maxOvertoppingWave)
+        {
+          maxOvertoppingWave = itNode->Z();
+        }
+      }
+
+      if (itNode->Y() > 2940 && itNode->Y() < 2960 && density < 1200 && itNode->IsNot(RIGID))
+      {
+        if (itNode->Z() > maxTsunamiWaveA)
+        {
+          maxTsunamiWaveA = itNode->Z();
+        }
+      }
+
+      if (itNode->Y() > 3240 && itNode->Y() < 3260 && density < 1200 && itNode->IsNot(RIGID))
+      {
+        if (itNode->Z() > maxTsunamiWaveB)
+        {
+          maxTsunamiWaveB = itNode->Z();
+        }
+      }
+
+      if (itNode->Y() > 3540 && itNode->Y() < 3560 && density < 1200 && itNode->IsNot(RIGID))
+      {
+        if (itNode->Z() > maxTsunamiWaveC)
+        {
+          maxTsunamiWaveC = itNode->Z();
+        }
+      }
+    }
+
+    // if (nodeInBox < 0.5)
+    // {
+    //   nodeInBox = 1.0;
+    // }
+    // double meanVelocityY = totalVelocityY / nodeInBox;
+    // double meanVelocityNorm = totalVelocityNorm / nodeInBox;
+
+    if (overtoppingElements < 0.5)
+    {
+      overtoppingElements = 1.0;
+    }
+    double meanVelocityX = totalVelocityX / overtoppingElements;
+    double meanVelocityY = totalVelocityY / overtoppingElements;
+    double meanVelocityNorm = totalVelocityNorm / overtoppingElements;
+
+    std::ofstream myfileVolume;
+    myfileVolume.open("VolumeInBoxFile.txt", std::ios::app);
+    myfileVolume << currentTime << "\t" << totalVolume << "\n";
+    myfileVolume.close();
+
+    std::ofstream myfileVelocityX;
+    myfileVelocityX.open("VelocityXInBoxFile.txt", std::ios::app);
+    myfileVelocityX << currentTime << "\t" << meanVelocityX << "\n";
+    myfileVelocityX.close();
+
+    std::ofstream myfileVelocityY;
+    myfileVelocityY.open("VelocityYInBoxFile.txt", std::ios::app);
+    myfileVelocityY << currentTime << "\t" << meanVelocityY << "\n";
+    myfileVelocityY.close();
+
+    std::ofstream myfileVelocityNorm;
+    myfileVelocityNorm.open("VelocityNormInBoxFile.txt", std::ios::app);
+    myfileVelocityNorm << currentTime << "\t" << meanVelocityNorm << "\n";
+    myfileVelocityNorm.close();
+
+    std::ofstream myfileOverToppingWave;
+    myfileOverToppingWave.open("OverToppingWaveFile.txt", std::ios::app);
+    myfileOverToppingWave << currentTime << "\t" << maxOvertoppingWave << "\n";
+    myfileOverToppingWave.close();
+
+    std::ofstream myfileTsunamiWaveAt2950;
+    myfileTsunamiWaveAt2950.open("TsunamiWaveAt2950File.txt", std::ios::app);
+    myfileTsunamiWaveAt2950 << currentTime << "\t" << maxTsunamiWaveA << "\n";
+    myfileTsunamiWaveAt2950.close();
+
+    std::ofstream myfileTsunamiWaveAt3250;
+    myfileTsunamiWaveAt3250.open("TsunamiWaveAt3250File.txt", std::ios::app);
+    myfileTsunamiWaveAt3250 << currentTime << "\t" << maxTsunamiWaveB << "\n";
+    myfileTsunamiWaveAt3250.close();
+
+    std::ofstream myfileTsunamiWaveAt3550;
+    myfileTsunamiWaveAt3550.open("TsunamiWaveAt3550File.txt", std::ios::app);
+    myfileTsunamiWaveAt3550 << currentTime << "\t" << maxTsunamiWaveC << "\n";
+    myfileTsunamiWaveAt3550.close();
+  }
 
     void ComputeErrorL2Norm()
     {

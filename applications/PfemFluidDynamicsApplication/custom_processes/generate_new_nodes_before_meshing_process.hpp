@@ -287,6 +287,19 @@ namespace Kratos
 				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
 			}
 
+			if (currentTime < 2.0 * timeInterval)
+			{
+				unsigned int nnodes = 80000;
+				std::vector<array_1d<double, 3>> VajontNewPositions;
+				std::vector<array_1d<unsigned int, 4>> VajontNodesIDToInterpolate;
+				std::vector<Node<3>::DofsContainerType> VajontNewDofs;
+				VajontNewPositions.resize(nnodes);
+				VajontNodesIDToInterpolate.resize(nnodes);
+				VajontNewDofs.resize(nnodes);
+				CreateNewLayerOfNodesForVajontCase(VajontNewPositions, VajontNodesIDToInterpolate, VajontNewDofs);
+				AddNodesForVajontCase(VajontNewPositions, VajontNodesIDToInterpolate, VajontNewDofs);
+			}
+
 			mrRemesh.InputInitializedFlag = false;
 
 			if (mEchoLevel > 1)
@@ -965,7 +978,7 @@ namespace Kratos
 			unsigned int freesurfaceNodes = 0;
 			unsigned int inletNodes = 0;
 			bool toEraseNodeFound = false;
-
+			bool notAddInVajontLobe = false;
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
@@ -1006,6 +1019,10 @@ namespace Kratos
 				penalization = 0.95;
 			}
 
+			if (notAddInVajontLobe == true)
+			{
+				penalization = 0;
+			}
 			// if(freesurfaceNodes>2){
 			//   penalization=0.6;
 			// }
@@ -1854,6 +1871,182 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
+		void CreateNewLayerOfNodesForVajontCase(std::vector<array_1d<double, 3>> &NewPositions,
+												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+												std::vector<Node<3>::DofsContainerType> &NewDofs)
+		{
+			std::cout << "  CreateNewLayerOfNodesForVajontCase" << std::endl;
+			unsigned int maxIdInitial = MesherUtilities::GetMaxNodeId(mrModelPart);
+			unsigned int addedNodes = 0;
+			unsigned int counter = 0;
+			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
+			{
+				counter++;
+				double nodeDensity = in->FastGetSolutionStepValue(DENSITY);
+				double posY = in->Y();
+				double posX = in->X();
+				double posZ = in->Z();
+
+				// /////////////settings for water level at 700m//////
+				if (counter < maxIdInitial && posZ > 688 &&
+					((nodeDensity > 999 && nodeDensity < 1001 && in->Is(FLUID) && in->IsNot(RIGID) && in->Is(FREE_SURFACE) && in->IsNot(TO_ERASE) && in->IsNot(NEW_ENTITY)) ||
+					 (in->Is(RIGID) && in->Is(FREE_SURFACE) && posY > 4199 && posX < 941 && posX > 259)))
+				{
+					unsigned int masterNodeId = in->Id();
+					posZ = 700;
+					if (posX < 800)
+					{
+						NewPositions[addedNodes][0] = posX + 0.75 + 0.000001 * masterNodeId;
+					}
+					else
+					{
+						NewPositions[addedNodes][0] = posX - 0.75 - 0.000001 * masterNodeId;
+					}
+					if (posY < 2000)
+					{
+						NewPositions[addedNodes][1] = posY + 0.75 + 0.000001 * masterNodeId;
+					}
+					else
+					{
+						NewPositions[addedNodes][1] = posY - 0.75 - 0.000001 * masterNodeId;
+					}
+					if (posY > 4199)
+					{
+						NewPositions[addedNodes][1] = posY;
+					}
+					NewPositions[addedNodes][2] = posZ;
+					NodesIDToInterpolate[addedNodes][0] = masterNodeId;
+					NodesIDToInterpolate[addedNodes][1] = masterNodeId;
+					NodesIDToInterpolate[addedNodes][2] = masterNodeId;
+					CopyDofs(in->GetDofs(), NewDofs[addedNodes]);
+					in->Reset(FREE_SURFACE);
+					addedNodes++;
+				}
+				// /////////////settings for water level at 700m//////
+
+				//////////////////  ADD THIS TO CHANGE WATER LEVEL IN VAJONT CASE, OTHERWISE LET IT HIDDEN /////////////////////
+				// double newFreeSurfaceLevel = 675;
+				// double alertLevel = newFreeSurfaceLevel - 15;
+				// if (counter < maxIdInitial && posZ > alertLevel &&
+				// 	((nodeDensity > 999 && nodeDensity < 1001 && in->Is(FLUID) && in->IsNot(RIGID) && in->IsNot(TO_ERASE) && in->IsNot(NEW_ENTITY))))
+				// {
+				// 	unsigned int masterNodeId = in->Id();
+				// 	if (posX < 800)
+				// 	{
+				// 		NewPositions[addedNodes][0] = posX + 0.75 + 0.000001*masterNodeId;
+				// 	}
+				// 	else
+				// 	{
+				// 		NewPositions[addedNodes][0] = posX - 0.75 - 0.000001*masterNodeId;
+				// 	}
+				// 	if (posY < 2000)
+				// 	{
+				// 		NewPositions[addedNodes][1] = posY + 0.75 + 0.000001*masterNodeId;
+				// 	}
+				// 	else
+				// 	{
+				// 		NewPositions[addedNodes][1] = posY - 0.75 - 0.000001*masterNodeId;
+				// 	}
+				// 	if (posY > 4199)
+				// 	{
+				// 		NewPositions[addedNodes][1] = posY;
+				// 	}
+				// 	NewPositions[addedNodes][2] = newFreeSurfaceLevel;
+				// 	NodesIDToInterpolate[addedNodes][0] = masterNodeId;
+				// 	NodesIDToInterpolate[addedNodes][1] = masterNodeId;
+				// 	NodesIDToInterpolate[addedNodes][2] = masterNodeId;
+				// 	CopyDofs(in->GetDofs(), NewDofs[addedNodes]);
+				// 	in->Reset(FREE_SURFACE);
+				// 	addedNodes++;
+				// }
+				//////////////////  ADD THIS TO CHANGE WATER LEVEL IN VAJONT CASE, OTHERWISE LET IT HIDDEN /////////////////////
+			}
+			NewPositions.resize(addedNodes);
+			NodesIDToInterpolate.resize(addedNodes);
+			NewDofs.resize(addedNodes);
+
+			std::cout << "  ADDED NODES: " << addedNodes << std::endl;
+		}
+
+
+		void
+		AddNodesForVajontCase(std::vector<array_1d<double, 3>> &NewPositions,
+							  std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+							  std::vector<Node<3>::DofsContainerType> &NewDofs)
+		{
+			std::cout << "  AddNodesForVajontCase" << std::endl;
+			unsigned int maxIdInitial = MesherUtilities::GetMaxNodeId(mrModelPart) + 1;
+			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
+			std::vector<Node<3>::Pointer> list_of_new_nodes;
+
+			for (unsigned int nn = 0; nn < NewPositions.size(); nn++)
+			{
+
+				unsigned int id = maxIdInitial + nn;
+				double x = NewPositions[nn][0];
+				double y = NewPositions[nn][1];
+				double z = NewPositions[nn][2];
+
+				Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id, x, y, z);
+				pnode->Set(NEW_ENTITY); //not boundary
+				list_of_new_nodes.push_back(pnode);
+				if (mrRemesh.InputInitializedFlag)
+				{
+					mrRemesh.NodalPreIds.push_back(pnode->Id());
+					pnode->SetId(id);
+				}
+
+				// //giving model part variables list to the node
+				pnode->SetSolutionStepVariablesList(&VariablesList);
+
+				// //set buffer size
+				pnode->SetBufferSize(mrModelPart.GetBufferSize());
+
+				// Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
+				Node<3>::DofsContainerType &reference_dofs = NewDofs[nn];
+
+				for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+				{
+					Node<3>::DofType &rDof = **iii;
+					pnode->pAddDof(rDof);
+				}
+				// std::cout << id << " added node; newNodePosition [" << NewPositions[nn][0] << " " << NewPositions[nn][1] << " " << NewPositions[nn][2] << "]\t";
+
+				Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]);
+				Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]);
+				InterpolateFromTwoNodes(pnode, SlaveNode1, SlaveNode2, VariablesList);
+				if (SlaveNode1->Is(RIGID) || SlaveNode1->Is(SOLID))
+				{
+					TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
+				}
+				else
+				{ //it assigns the material properties of the second node (not rigid) to the master node. It avoids smoothing of material parameters
+					TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
+				}
+
+				//set the coordinates to the original value
+				const array_1d<double, 3> ZeroNormal(3, 0.0);
+				for (std::vector<Node<3>::Pointer>::iterator it = list_of_new_nodes.begin(); it != list_of_new_nodes.end(); it++)
+				{
+					const array_1d<double, 3> &displacement = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
+					(*it)->X0() = (*it)->X() - displacement[0];
+					(*it)->Y0() = (*it)->Y() - displacement[1];
+					(*it)->Z0() = (*it)->Z() - displacement[2];
+
+					(*it)->Set(FLUID);
+					// (*it)->Set(ACTIVE);
+					(*it)->Set(FREE_SURFACE);
+					(*it)->Reset(TO_ERASE);
+					if ((*it)->Y0() > 4199 && (*it)->X0() < 941 && (*it)->X0() > 259)
+					{
+						(*it)->Set(RIGID);
+						(*it)->Fix(VELOCITY_X);
+						(*it)->Fix(VELOCITY_Y);
+						(*it)->Fix(VELOCITY_Z);
+					}
+				}
+			}
+		}
 		void CreateAndAddNewNodesInCornerWall(std::vector<array_1d<double, 3>> &NewPositions,
 											  std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 											  std::vector<Node<3>::DofsContainerType> &NewDofs,
@@ -2037,7 +2230,10 @@ namespace Kratos
 				(*it)->Set(FLUID);
 				(*it)->Set(ACTIVE);
 				(*it)->Reset(TO_ERASE);
-
+				(*it)->Free(VELOCITY_X);
+				(*it)->Free(VELOCITY_Y);
+				(*it)->Free(VELOCITY_Z);
+				(*it)->Free(PRESSURE);
 				mrModelPart.Nodes().push_back(*(it));
 			}
 

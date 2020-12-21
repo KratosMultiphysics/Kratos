@@ -148,6 +148,17 @@ namespace Kratos
 					// double  MeanRadius=0;
 					any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed);
 				}
+
+				// //////////////////  ADD THIS TO CHANGE WATER LEVEL IN VAJONT CASE, OTHERWISE LET IT HIDDEN /////////////////////
+				// const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+				// double currentTime = rCurrentProcessInfo[TIME];
+				// double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+				// if (currentTime < 2.0 * timeInterval)
+				// {
+				//  	any_node_removed_on_distance = RemoveNodesForVajontCase(inside_nodes_removed, boundary_nodes_removed);
+				// }
+				// //////////////////  ADD THIS TO CHANGE WATER LEVEL IN VAJONT CASE, OTHERWISE LET IT HIDDEN /////////////////////
+
 				// REMOVE ON DISTANCE
 				////////////////////////////////////////////////////////////
 
@@ -156,6 +167,24 @@ namespace Kratos
 
 				if (any_node_removed || mrRemesh.UseBoundingBox == true)
 					this->CleanRemovedNodes(mrModelPart);
+			}
+
+			bool fixEastLobeVajont = false;
+			bool fixWestLobeVajont = false;
+
+			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+			double currentTime = rCurrentProcessInfo[TIME];
+			double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+			if (currentTime < 2.0 * timeInterval)
+			{
+				if (fixEastLobeVajont == true)
+				{
+					FixEastLobeInVajontCase();
+				}
+				if (fixWestLobeVajont == true)
+				{
+					FixWestLobeInVajontCase();
+				}
 			}
 
 			// number of removed nodes:
@@ -291,63 +320,46 @@ namespace Kratos
 		//**************************************************************************
 		//**************************************************************************
 
-		// bool RemoveNodesOnError(int &error_removed_nodes)
-		// {
-		// 	KRATOS_TRY
+		void FixEastLobeInVajontCase()
+		{
+			KRATOS_TRY
+			std::cout << "FixEastLobeInVajontCase() " << std::endl;
+			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
+			{
+				double density = in->FastGetSolutionStepValue(DENSITY);
+				double posYtoFix = 1760 - 0.43269 * (in->X() - 1034);
+				if (((in->Y() > 1580 && in->X() > 1450) || (in->Y() > posYtoFix && in->X() <= 1450)) && density > 1200)
+				{
+					in->Fix(VELOCITY_X);
+					in->Fix(VELOCITY_Y);
+					in->Fix(VELOCITY_Z);
+					// in->Fix(PRESSURE);
+				}
+			}
 
-		// 	//***SIZES :::: parameters do define the tolerance in mesh size:
-		// 	double size_for_criterion_error = 2.0 * mrRemesh.Refine->CriticalRadius; //compared with mean node radius
+			KRATOS_CATCH(" ")
+		}
 
-		// 	bool any_node_removed = false;
+		void FixWestLobeInVajontCase()
+		{
+			KRATOS_TRY
+			std::cout << "FixWestLobeInVajontCase() " << std::endl;
+			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
+			{
+				double density = in->FastGetSolutionStepValue(DENSITY);
+				double posYtoFix = 1760 - 0.43269 * (in->X() - 1034);
+				if (((in->Y() < 1580 && in->X() > 1450) || (in->Y() < posYtoFix && in->X() <= 1450)) && density > 1200)
+				{
+					in->Fix(VELOCITY_X);
+					in->Fix(VELOCITY_Y);
+					in->Fix(VELOCITY_Z);
+					// in->Fix(PRESSURE);
+				}
+			}
 
-		// 	MeshErrorCalculationUtilities MeshErrorDistribution;
-		// 	MeshErrorDistribution.SetEchoLevel(mEchoLevel);
+			KRATOS_CATCH(" ")
+		}
 
-		// 	std::vector<double> NodalError;
-		// 	std::vector<int> nodes_ids;
-
-		// 	MeshErrorDistribution.NodalErrorCalculation(mrModelPart, NodalError, nodes_ids, mrRemesh.Refine->GetErrorVariable());
-
-		// 	for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
-		// 	{
-
-		// 		NodeWeakPtrVectorType &rN = in->GetValue(NEIGHBOUR_NODES);
-		// 		int erased_nodes = 0;
-		// 		for (unsigned int i = 0; i < rN.size(); i++)
-		// 		{
-		// 			if (rN[i].Is(TO_ERASE))
-		// 				erased_nodes += 1;
-		// 		}
-
-		// 		if (in->IsNot(BOUNDARY) && in->IsNot(STRUCTURE) && erased_nodes < 1)
-		// 		{
-		// 			double &MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
-		// 			MeanError = NodalError[nodes_ids[in->Id()]];
-
-		// 			ElementWeakPtrVectorType &neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
-		// 			double mean_node_radius = 0;
-		// 			for (ElementWeakPtrVectorType::iterator ne = neighb_elems.begin(); ne != neighb_elems.end(); ne++)
-		// 			{
-		// 				mean_node_radius += mMesherUtilities.CalculateElementRadius((ne)->GetGeometry()); //Triangle 2D, Tetrahedron 3D
-		// 																								  //mean_node_radius+= mMesherUtilities.CalculateTriangleRadius((ne)->GetGeometry());
-		// 																								  //mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius((ne)->GetGeometry());
-		// 			}
-
-		// 			mean_node_radius /= double(neighb_elems.size());
-
-		// 			if (NodalError[nodes_ids[in->Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
-		// 			{
-		// 				in->Set(TO_ERASE);
-		// 				any_node_removed = true;
-		// 				error_removed_nodes++;
-		// 			}
-		// 		}
-		// 	}
-
-		// 	return any_node_removed;
-
-		// 	KRATOS_CATCH(" ")
-		// }
 
 		bool RemoveNodesOnDistance(int &inside_nodes_removed, int &boundary_nodes_removed)
 		{
