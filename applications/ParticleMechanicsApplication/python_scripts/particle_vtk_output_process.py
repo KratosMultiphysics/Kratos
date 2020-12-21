@@ -220,7 +220,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.Process):
         return np.asarray(self.temp_results[:,index], order = 'C')
 
     def _write_vtk(self):
-        particles_filename = self.problem_name + str(self.printed_step_count)
+        particles_filename = self.problem_name + str(self.step_count)
         path = os.path.join(self.vtk_post_path_directory, particles_filename)
         hl.pointsToVTK(path, self.coords_X, self.coords_Y, self.coords_Z, self.result_dict)
 
