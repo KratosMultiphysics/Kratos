@@ -268,8 +268,11 @@ private:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        r_const_entity_ref.GetFirstDerivativesVector(this->mAdjointValues[thread_id]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, this->mAdjointValues[thread_id]);
+        if (this->mAdjointValues[thread_id].size() != 0) {
+            r_const_entity_ref.GetFirstDerivativesVector(this->mAdjointValues[thread_id]);
+            noalias(rRHS_Contribution) -=
+                prod(rLHS_Contribution, this->mAdjointValues[thread_id]);
+        }
 
         KRATOS_CATCH("");
     }
