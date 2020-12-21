@@ -34,6 +34,12 @@ class CouplingOutput(CoSimulationCouplingOperation):
             raise Exception(err_msg)
 
         self.step = 0 # this should come from self.process_info
+        self.output_control = settings["output_parameters"]["output_control_type"].GetString()
+        self.output_interval = settings["output_parameters"]["output_interval"].GetDouble()
+        if self.output_control != 'step':
+            raise Exception('Only step output interval currently implemented for CoSim coupling output')
+
+        self.next_output = 0.0
         # TODO check if restarted. If not delete the folder => check self.process_info
         self.output = KM.VtkOutput(self.model[model_part_name], self.settings["output_parameters"]) # currently hardcoded to vtk
 
@@ -43,24 +49,36 @@ class CouplingOutput(CoSimulationCouplingOperation):
 
         if self.execution_point == "initialize_solution_step":
             output_file_name = self.base_output_file_name + str(self.step)
-            self.output.PrintOutput(output_file_name)
+            self.PrintOutput(output_file_name)
 
     def FinalizeSolutionStep(self):
         if self.execution_point == "finalize_solution_step":
             output_file_name = self.base_output_file_name + str(self.step)
-            self.output.PrintOutput(output_file_name)
+            self.PrintOutput(output_file_name)
 
     def InitializeCouplingIteration(self):
         self.coupling_iteration += 1
 
         if self.execution_point == "initialize_coupling_iteration":
             output_file_name = self.base_output_file_name + "{}_{}".format(self.step, self.coupling_iteration)
-            self.output.PrintOutput(output_file_name)
+            self.PrintOutput(output_file_name)
 
     def FinalizeCouplingIteration(self):
         if self.execution_point == "finalize_coupling_iteration":
             output_file_name = self.base_output_file_name + "{}_{}".format(self.step, self.coupling_iteration)
+            self.PrintOutput(output_file_name)
+
+    def PrintOutput(self,output_file_name):
+        if self.IsOutputStep():
             self.output.PrintOutput(output_file_name)
+
+            # schedule next output
+            if self.output_interval > 0.0: # Note: if == 0, we'll just always print
+                while self.next_output <= self.step:
+                    self.next_output += self.output_interval
+
+    def IsOutputStep(self):
+        return ( self.step >= self.next_output )
 
 
     @classmethod
@@ -69,7 +87,10 @@ class CouplingOutput(CoSimulationCouplingOperation):
             "solver"            : "UNSPECIFIED",
             "execution_point"   : "UNSPECIFIED",
             "output_format"     : "vtk",
-            "output_parameters" : { }
+            "output_parameters" : {
+                "model_part_name" : "UNSPECIFIED",
+                "output_control_type" : "step",
+                "output_interval" : 0}
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
