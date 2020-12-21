@@ -79,7 +79,7 @@ namespace Kratos
 
         void EquilibrateDomains();
 
-        void DeformMPMGrid(ModelPart& rGridMP, ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef);
+        void DeformMPMGrid(ModelPart& rGridMP, ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef, const bool rotateGrid);
 
     private:
         ModelPart& mrOriginInterfaceModelPart;
@@ -216,6 +216,43 @@ namespace Kratos
         const int GetEchoLevel()
         {
             return mParameters["echo_level"].GetInt();
+        }
+
+        void CalculateExplicitMPMGridKinematics(ModelPart& rModelPart, SolverIndex solverIndex)
+        {
+            // Called at the start of equilibrate domains, after mpm solve solution step
+            const bool is_implicit = (solverIndex == SolverIndex::Destination) ? mIsImplicitDestination : mIsImplicitOrigin;
+            const SolverPhysics solver = (solverIndex == SolverIndex::Destination) ? mDestinationPhysics : mOriginPhysics;
+
+            if (solver == SolverPhysics::MPM && !is_implicit)
+            {
+                const double dt = (solverIndex == SolverIndex::Origin) ? mpOriginDomain->GetProcessInfo()[DELTA_TIME]
+                    : mpDestinationDomain->GetProcessInfo()[DELTA_TIME];
+                const SizeType nDOFs = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+                for (Node<3>&rNode : rModelPart.Nodes())
+                {
+                    // Write nodal velocities
+                    if (rNode.Is(ACTIVE))
+                    {
+                        const double nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
+                        array_1d<double, 3 >& nodal_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+                        nodal_velocity.clear();
+                        array_1d<double, 3 >& nodal_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                        nodal_disp.clear();
+                        if (nodal_mass > numerical_limit)
+                        {
+                            array_1d<double, 3 >& nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+
+                            for (size_t i = 0; i < nDOFs; ++i)
+                            {
+                                nodal_velocity[i] = nodal_momentum[i] / nodal_mass;
+                                nodal_disp[i] = nodal_velocity[i] * dt;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         Variable< array_1d<double, 3> >& GetEquilibriumVariable();

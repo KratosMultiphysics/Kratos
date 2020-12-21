@@ -110,6 +110,12 @@ namespace Kratos
 
         SolverIndex solver_index = SolverIndex::Origin;
 
+        if (mSubTimestepIndex == 1) CalculateExplicitMPMGridKinematics(*mpOriginDomain, solver_index);
+        solver_index = SolverIndex::Destination;
+        CalculateExplicitMPMGridKinematics(*mpDestinationDomain, solver_index);
+
+        solver_index = SolverIndex::Origin;
+
         // 1 - calculate unbalanced interface free kinematics
         DenseVectorType unbalanced_interface_free_kinematics(lagrange_interface_dofs,0.0);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
@@ -138,7 +144,7 @@ namespace Kratos
         }
 
         // 5 - Calculate lagrange mults
-        DenseVectorType lagrange_vector(lagrange_interface_dofs,0.0);
+        DenseVectorType lagrange_vector(lagrange_interface_dofs, 0.0);
         if (norm_2(unbalanced_interface_free_kinematics) > numerical_limit)
         {
             DetermineLagrangianMultipliers(lagrange_vector, mCondensationMatrix, unbalanced_interface_free_kinematics);
@@ -458,7 +464,12 @@ namespace Kratos
 
                 // Apply nodal momenta (velocity) correction
                 accel_corrections *= dt;
+                AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections, is_implicit);
                 AddCorrectionToDomain(pDomainModelPart, NODAL_MOMENTUM, accel_corrections, is_implicit); // mass is applied within the function
+
+                // Apply displacement correction
+                accel_corrections *= dt;
+                AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
             }
             else KRATOS_ERROR << "Invalid physics specified for model part " << pDomainModelPart->Name() << std::endl;
         }
@@ -527,7 +538,9 @@ namespace Kratos
                 {
                     if (rNode.Has(EXPLICIT_EQUATION_ID))
                     {
-                        double nodal_mass = rNode.GetValue(NODAL_MASS);
+                        double nodal_mass = (is_mpm)
+                            ? rNode.FastGetSolutionStepValue(NODAL_MASS)
+                            : rNode.GetValue(NODAL_MASS);
                         if (nodal_mass > numerical_limit)
                         {
                             IndexType equation_id = rNode.GetValue(EXPLICIT_EQUATION_ID);
@@ -633,7 +646,6 @@ namespace Kratos
             << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The interface nodes do not have an interface equation ID.\n"
             << "This is created by the mapper.\n";
 
-        // Fill up container
         block_for_each(rInterface.Nodes(), [&](Node<3>& rNode)
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
@@ -973,7 +985,7 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DeformMPMGrid(ModelPart& rGridMP,
-        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef)
+        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef, const bool rotateGrid)
     {
         KRATOS_TRY
 
@@ -981,11 +993,10 @@ namespace Kratos
 
         auto start = std::chrono::system_clock::now();
 
-        const bool is_apply_rigid_rotation = true;
         KRATOS_ERROR_IF(radTotalDef >= radNoDef) << "Total deformation radius must be smaller than zero deformation radius\n";
 
         // Determine interface centroid, average displacement and rotation
-        if (!mOldSlopeComputed) {
+        if (!mOldSlopeComputed && rotateGrid) {
             mInterfaceSlopeOld = GetLinearRegressionSlope(rGridInterfaceMP);
             mOldSlopeComputed = true;
         }
@@ -1011,7 +1022,7 @@ namespace Kratos
         const double interface_disp_norm = norm_2(interface_average_displacement);
 
         double interface_slope_new = 0.0;
-        interface_slope_new = GetLinearRegressionSlope(rGridInterfaceMP);
+        if (rotateGrid) interface_slope_new = GetLinearRegressionSlope(rGridInterfaceMP);
 
         // Compute angle between undeformed and deformed interface
         if (std::abs(mInterfaceSlopeOld) > 1e10) {
@@ -1024,7 +1035,10 @@ namespace Kratos
         const double tan_theta = std::abs((mInterfaceSlopeOld - interface_slope_new) / (1 + mInterfaceSlopeOld * interface_slope_new));
         double theta = std::atan(tan_theta); // assumes CCW rotation, that interface_slope_new > mInterfaceSlopeOld
         if (mInterfaceSlopeOld > interface_slope_new) theta *= -1.0;
-        if (std::abs(theta) > 0.524) KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed 30 degrees!\n";
+        if (std::abs(theta/2.0/3.14*360) > 2.0) // 0.174
+        {
+            KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed 10 degrees!\n";
+        }
         mInterfaceSlopeOld = interface_slope_new;
 
         block_for_each(rGridMP.Nodes(), [&](Node<3>& rNode)
@@ -1051,7 +1065,7 @@ namespace Kratos
                                     rotation_angle *= deformation_fraction;
                                 }
 
-                                RotateNodeAboutPoint(rNode, interface_centroid, rotation_angle);
+                                if (rotateGrid) RotateNodeAboutPoint(rNode, interface_centroid, rotation_angle);
 
                                 r_coords += r_disp;
                                 rNode.X0() += r_disp[0];
@@ -1063,6 +1077,7 @@ namespace Kratos
                 }
             }
         );
+
 
         auto end = std::chrono::system_clock::now();
         auto elasped_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

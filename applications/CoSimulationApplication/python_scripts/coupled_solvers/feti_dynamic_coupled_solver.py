@@ -279,7 +279,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # Now apply deformation to the mpm grid
         radius_of_full_deformation = self.settings["deform_mpm_grid_settings"]["radius_of_full_deformation"].GetDouble()
         radius_of_zero_deformation = self.settings["deform_mpm_grid_settings"]["radius_of_zero_deformation"].GetDouble()
-        self.feti_coupling.DeformMPMGrid(grid_mp,grid_interface_mp, radius_of_full_deformation,radius_of_zero_deformation)
+        rotate_grid = self.settings["deform_mpm_grid_settings"]["rotate_grid"].GetBool()
+        self.feti_coupling.DeformMPMGrid(grid_mp,grid_interface_mp, radius_of_full_deformation,radius_of_zero_deformation, rotate_grid)
 
 
     @classmethod
@@ -297,7 +298,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
                 },
             "deform_mpm_grid_settings" : {
                 "radius_of_full_deformation" : 1e9,
-                "radius_of_zero_deformation" : 1e10
+                "radius_of_zero_deformation" : 1e10,
+                "rotate_grid" : false
                 },
             "linear_solver_settings" : {}
         }""")
