@@ -92,11 +92,11 @@ GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemD
 {
     // DO NOT ADD DOFS HERE!!!
     if (mThresholds.size() != NumberOfEdges)
-        mThresholds.resize(NumberOfEdges);
+        mThresholds.resize(NumberOfEdges, false);
     noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
     if (mDamages.size() != NumberOfEdges)
-        mDamages.resize(NumberOfEdges);
+        mDamages.resize(NumberOfEdges, false);
     noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 
@@ -108,11 +108,11 @@ GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemD
 {
     //DO NOT ADD DOFS HERE!!!
     if (mThresholds.size() != NumberOfEdges)
-        mThresholds.resize(NumberOfEdges);
+        mThresholds.resize(NumberOfEdges, false);
     noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
     if (mDamages.size() != NumberOfEdges)
-        mDamages.resize(NumberOfEdges);
+        mDamages.resize(NumberOfEdges, false);
     noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 
@@ -173,7 +173,7 @@ Element::Pointer GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Clone(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if (this->GetValue(RECOMPUTE_NEIGHBOURS)) {
@@ -189,7 +189,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeSolutionSte
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIteration(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY
@@ -353,7 +353,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo 
+    const ProcessInfo& rCurrentProcessInfo 
     )
 {
     KRATOS_TRY;
@@ -1168,37 +1168,37 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeInternalVar
 /***********************************************************************************/
 
 template<>
-void GenericTotalLagrangianFemDemElement<3,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+void GenericTotalLagrangianFemDemElement<3,0>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo)
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
 template<>
-void GenericTotalLagrangianFemDemElement<3,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+void GenericTotalLagrangianFemDemElement<3,1>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo)
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
 template<>
-void GenericTotalLagrangianFemDemElement<3,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+void GenericTotalLagrangianFemDemElement<3,2>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo)
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
 template<>
-void GenericTotalLagrangianFemDemElement<3,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+void GenericTotalLagrangianFemDemElement<3,3>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo)
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
 template<>
-void GenericTotalLagrangianFemDemElement<3,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+void GenericTotalLagrangianFemDemElement<3,4>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo)
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
 template<>
-void GenericTotalLagrangianFemDemElement<3,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+void GenericTotalLagrangianFemDemElement<3,5>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo)
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
 template<>
-void GenericTotalLagrangianFemDemElement<3,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+void GenericTotalLagrangianFemDemElement<3,6>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo)
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
@@ -1208,25 +1208,25 @@ void GenericTotalLagrangianFemDemElement<3,6>::ComputeEdgeNeighbours(ProcessInfo
 /***********************************************************************************/
 
 template<>
-void GenericTotalLagrangianFemDemElement<2,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+void GenericTotalLagrangianFemDemElement<2,0>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo) {}
 template<> 
-void GenericTotalLagrangianFemDemElement<2,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+void GenericTotalLagrangianFemDemElement<2,1>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo) {}
 template<> 
-void GenericTotalLagrangianFemDemElement<2,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+void GenericTotalLagrangianFemDemElement<2,2>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo) {}
 template<> 
-void GenericTotalLagrangianFemDemElement<2,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+void GenericTotalLagrangianFemDemElement<2,3>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo) {}
 template<> 
-void GenericTotalLagrangianFemDemElement<2,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+void GenericTotalLagrangianFemDemElement<2,4>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo) {}
 template<> 
-void GenericTotalLagrangianFemDemElement<2,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+void GenericTotalLagrangianFemDemElement<2,5>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo) {}
 template<> 
-void GenericTotalLagrangianFemDemElement<2,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+void GenericTotalLagrangianFemDemElement<2,6>::ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo) {}
 
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     std::vector<std::vector<Element*>> edge_neighbours_container;

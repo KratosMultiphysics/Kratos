@@ -54,6 +54,23 @@ namespace Kratos {
 namespace Python {
 
 /**
+ * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
+ */   
+pybind11::list GetSortedListOfFileNameDataHelper(
+    std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList,
+    const std::vector<std::string> & rSortingFlagsOrder
+    )
+{
+    FileNameDataCollector::SortListOfFileNameData(rFileNameDataList, rSortingFlagsOrder);
+    pybind11::list result;
+    for (unsigned int j = 0; j < rFileNameDataList.size(); j++)
+    {
+        result.append(rFileNameDataList[j]);
+    }
+    return result;
+}
+
+/**
  * @brief Sets the current table utility on the process info
  * @param rCurrentProcessInfo The process info
  */
@@ -152,6 +169,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::string&, Parameters>())
         .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
         .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
+        .def("FunctionBody", &PythonGenericFunctionUtility::FunctionBody)
         .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
         .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
         ;
@@ -528,11 +546,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RetrieveFileNameData", &FileNameDataCollector::RetrieveFileNameData)
         .def("GetFileNameDataList", &FileNameDataCollector::GetFileNameDataList)
         .def_static("ExtractFileNamePattern", &FileNameDataCollector::ExtractFileNamePattern)
-        .def_static("GetSortedListOfFileNameData",
-            [](std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList, const std::vector<std::string>& rSortingFlagsOrder) {
-                FileNameDataCollector::SortListOfFileNameData(rFileNameDataList, rSortingFlagsOrder);
-                return rFileNameDataList;
-            })
+        .def_static("GetSortedListOfFileNameData", &GetSortedListOfFileNameDataHelper)
         ;
 
     // add FileNameData holder

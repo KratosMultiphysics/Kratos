@@ -154,17 +154,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator doesn't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     NurbsVolumeGeometry& operator=(const NurbsVolumeGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -177,17 +167,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator doesn't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator for geometries with different point type
     template<class TOtherContainerPointType>
     NurbsVolumeGeometry& operator=(
         NurbsVolumeGeometry<TOtherContainerPointType> const & rOther)
@@ -636,8 +616,8 @@ public:
         const SizeType working_space_dimension = this->WorkingSpaceDimension();
         const SizeType local_space_dimension = this->LocalSpaceDimension();
         const SizeType points_number = this->PointsNumber();
-        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
-            rResult.resize( working_space_dimension, local_space_dimension, false );
+
+        rResult = ZeroMatrix(working_space_dimension,local_space_dimension);
 
         Matrix shape_functions_gradients(points_number, local_space_dimension);
         ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
@@ -654,7 +634,6 @@ public:
         std::vector<int> cp_indices = shape_function_container.ControlPointIndices(number_cp_u, number_cp_v, number_cp_w);
         SizeType number_of_cp = shape_function_container.NumberOfNonzeroControlPoints();
 
-        rResult.clear();
         for (IndexType i = 0; i < number_of_cp; ++i ) {
             const array_1d<double, 3>& r_coordinates = (*this)[cp_indices[i]].Coordinates();
             for(IndexType k = 0; k< working_space_dimension; ++k) {
@@ -715,7 +694,7 @@ public:
 
             shape_function_container.ComputeBSplineShapeFunctionValues(
                 mKnotsU, mKnotsV, mKnotsW, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
-            
+
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
@@ -778,7 +757,7 @@ public:
 
         shape_function_container.ComputeBSplineShapeFunctionValues(
             mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
-        
+
 
         noalias(rResult) = ZeroVector(3);
         for (IndexType u = 0; u <= PolynomialDegreeU(); ++u) {
@@ -820,7 +799,7 @@ public:
 
         shape_function_container.ComputeBSplineShapeFunctionValues(
             mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
-        
+
 
         if (rGlobalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
             rGlobalSpaceDerivatives.resize(shape_function_container.NumberOfShapeFunctionRows());
@@ -876,7 +855,7 @@ public:
 
         shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
             rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        
+
 
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
@@ -908,7 +887,7 @@ public:
 
         shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, mKnotsW,
             rCoordinates[0], rCoordinates[1], rCoordinates[2]);
-        
+
 
         if (rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints()
             && rResult.size2() != 3)

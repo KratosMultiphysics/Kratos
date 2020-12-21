@@ -77,7 +77,7 @@ size_t NumNegativeNodes;
  * @brief Discontinuous embedded formulation data container initialization
  * This method initializes the discontinuous embedded formulation data container. This implies to intialize
  * the base formulation data container as well as to get the elemental distances from the elemental variable
- * ELEMENTAL_DISTANCES (note that this requires the ELEMENTAL_DISTANCES to be set before this operation). 
+ * ELEMENTAL_DISTANCES (note that this requires the ELEMENTAL_DISTANCES to be set before this operation).
  * @param rElement reference to the element that owns the data container
  * @param rProcessInfo reference to the current ProcessInfo container
  */
@@ -96,7 +96,7 @@ void Initialize(
  * @brief Fills the boundary condition data fields
  * This method needs to be called in cut elements. It fills the data structure fields related to the boundary
  * condition imposition (slip length and penalty coefficient) by retrieving their value from the ProcessInfo.
- * @param rProcessInfo 
+ * @param rProcessInfo
  */
 void InitializeBoundaryConditionData(const ProcessInfo& rProcessInfo)
 {
@@ -106,9 +106,9 @@ void InitializeBoundaryConditionData(const ProcessInfo& rProcessInfo)
 
 /**
  * @brief Discontinous embedded formulation data container check
- * Simple discontinuous embedded formulation data container check. The base formulation data container is 
+ * Simple discontinuous embedded formulation data container check. The base formulation data container is
  * checked as well. Returns 0 if the check process succeeds.
- * @param rElement reference to the element that owns the data container 
+ * @param rElement reference to the element that owns the data container
  * @param rProcessInfo reference to the current ProcessInfo container
  * @return int returns 0 if the check process succeeds
  */
@@ -116,10 +116,6 @@ static int Check(
     const Element& rElement,
     const ProcessInfo& rProcessInfo)
 {
-    KRATOS_CHECK_VARIABLE_KEY(SLIP_LENGTH);
-    KRATOS_CHECK_VARIABLE_KEY(PENALTY_COEFFICIENT);
-    KRATOS_CHECK_VARIABLE_KEY(ELEMENTAL_DISTANCES);
-
     int out = TFluidData::Check(rElement,rProcessInfo);
     return out;
 }
