@@ -22,6 +22,7 @@
 #include "containers/model.h"
 #include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -78,6 +79,12 @@ VtkOutput::VtkOutput(
     const int num_conditions = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
 
     KRATOS_WARNING_IF("VtkOutput", num_elements > 0 && num_conditions > 0) << r_data_comm << "Modelpart \"" << rModelPart.Name() << "\" has both elements and conditions.\nGiving precedence to elements and writing only elements!" << std::endl;
+
+    const std::string timing_output_file_name("VTK_TIMING_" + std::to_string(rModelPart.GetCommunicator().MyPID()));
+
+    std::ofstream timing_output_file;
+    timing_output_file.open(timing_output_file_name, std::ios::out | std::ios::trunc);
+    timing_output_file.close();
 }
 
 /***********************************************************************************/
@@ -95,6 +102,7 @@ void VtkOutput::PrepareGaussPointResults()
 
 void VtkOutput::PrintOutput(const std::string& rOutputFilename)
 {
+    BuiltinTimer timer;
     // For Gauss point results
     PrepareGaussPointResults();
 
@@ -120,6 +128,16 @@ void VtkOutput::PrintOutput(const std::string& rOutputFilename)
             }
         }
     }
+
+    const std::string timing_output_file_name("VTK_TIMING_" + std::to_string(mrModelPart.GetCommunicator().MyPID()));
+
+    std::ofstream timing_output_file;
+    timing_output_file.open(timing_output_file_name, std::ios::out |std::ios::app);
+    timing_output_file << mrModelPart.GetProcessInfo()[STEP];
+    timing_output_file << "\t";
+    timing_output_file << timer.ElapsedSeconds();
+    timing_output_file << "\n";
+    timing_output_file.close();
 }
 
 /***********************************************************************************/
