@@ -16,10 +16,10 @@
             "echo_level": 0,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "poisson_square_2d_xmc/problem_settings/square_finer_2d"
+                "input_filename": "poisson_square_2d/problem_settings/square_finer_2d"
             },
             "material_import_settings"           : {
-                "materials_filename" : "poisson_square_2d_xmc/problem_settings/materials_poisson_square_2d.json"
+                "materials_filename" : "poisson_square_2d/problem_settings/materials_poisson_square_2d.json"
             },
             "time_stepping" : {
                 "time_step": 1.1
