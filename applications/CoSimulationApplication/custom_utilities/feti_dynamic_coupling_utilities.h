@@ -230,28 +230,29 @@ namespace Kratos
                     : mpDestinationDomain->GetProcessInfo()[DELTA_TIME];
                 const SizeType nDOFs = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-                for (Node<3>&rNode : rModelPart.Nodes())
-                {
-                    // Write nodal velocities
-                    if (rNode.Is(ACTIVE))
+                block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode)
                     {
-                        const double nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
-                        array_1d<double, 3 >& nodal_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
-                        nodal_velocity.clear();
-                        array_1d<double, 3 >& nodal_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-                        nodal_disp.clear();
-                        if (nodal_mass > numerical_limit)
+                        // Write nodal velocities
+                        if (rNode.Is(ACTIVE))
                         {
-                            array_1d<double, 3 >& nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
-
-                            for (size_t i = 0; i < nDOFs; ++i)
+                            const double nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
+                            array_1d<double, 3 >& nodal_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+                            nodal_velocity.clear();
+                            array_1d<double, 3 >& nodal_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                            nodal_disp.clear();
+                            if (nodal_mass > numerical_limit)
                             {
-                                nodal_velocity[i] = nodal_momentum[i] / nodal_mass;
-                                nodal_disp[i] = nodal_velocity[i] * dt;
+                                array_1d<double, 3 >& nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+
+                                for (size_t i = 0; i < nDOFs; ++i)
+                                {
+                                    nodal_velocity[i] = nodal_momentum[i] / nodal_mass;
+                                    nodal_disp[i] = nodal_velocity[i] * dt;
+                                }
                             }
                         }
                     }
-                }
+                );
             }
         }
 
