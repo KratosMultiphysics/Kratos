@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -7,7 +5,7 @@ import KratosMultiphysics
 import os
 from pathlib import Path
 
-class RestartUtility(object):
+class RestartUtility:
     """
     This class collects the common functionalities needed for
     saving / loading restart files.
@@ -105,7 +103,7 @@ class RestartUtility(object):
         # Check if restarted, and initialize the list of restart is true
         self.restart_files = {}
         if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self.restart_files = self.GetRestartFiles()
+            self.restart_files = self._GetRestartFiles()
 
 
     #### Public functions ####
@@ -177,12 +175,12 @@ class RestartUtility(object):
         # Add current file to the stored dictionary
         label = self._GetFileLabelSave(control_label).split('_')[-1]
         if label in self.restart_files:
-            self.restart_files[label].append( file_name + ".rest" )
+            self.restart_files[label].append(file_name + ".rest")
         else:
-            self.restart_files[label] = [ file_name + ".rest" ]
+            self.restart_files[label] = [file_name + ".rest"]
 
         # Cleanup
-        self.ClearObsoleteRestartFiles()
+        self._ClearObsoleteRestartFiles()
 
     def IsRestartOutputStep(self):
         """
@@ -200,13 +198,15 @@ class RestartUtility(object):
                 os.makedirs(folder_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-    def GetRestartFiles(self):
+    #### Protected functions ####
+
+    def _GetRestartFiles(self):
         """Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart files for each step."""
         restart_path    = Path( self.__GetFolderPathSave() )
         restart_files   = {}
         if restart_path.is_dir():
 
-            file_name_data_collector = KratosMultiphysics.FileNameDataCollector( self.model_part, self._GetFileNamePattern(), {} )
+            file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, self._GetFileNamePattern(), {})
             file_name_data_list = file_name_data_collector.GetFileNameDataList()
 
             for file_name_data in file_name_data_list:
@@ -219,31 +219,28 @@ class RestartUtility(object):
                 # Check if this step has entries already,
                 # and add the file to the list of tracked files
                 if step_id in restart_files:
-                    restart_files[step_id].append( file_name_data.GetFileName() )
+                    restart_files[step_id].append(file_name_data.GetFileName())
                 else:
-                    restart_files[step_id] = [ file_name_data.GetFileName() ]
+                    restart_files[step_id] = [file_name_data.GetFileName()]
 
         return restart_files
 
-    def ClearObsoleteRestartFiles(self):
+    def _ClearObsoleteRestartFiles(self):
         """Delete restart files that are no longer needed."""
         if self.max_files_to_keep > -1:
             number_of_obsolete_files = len(self.restart_files) - self.max_files_to_keep
             for _ in range(number_of_obsolete_files):
 
                 # Get oldest restart file set
-                oldest_step_id, oldest_file_set = min( self.restart_files.items(), key=lambda item: float(item[0]) )
+                oldest_step_id, oldest_file_set = min(self.restart_files.items(), key=lambda item: float(item[0]))
 
                 # Try to delete every file in the set
                 for file_name in oldest_file_set:
-                    file_path = os.path.join( self.__GetFolderPathSave(), file_name )
-                    KratosMultiphysics.kratos_utilities.DeleteFileIfExisting( file_path )
+                    file_path = os.path.join(self.__GetFolderPathSave(), file_name)
+                    KratosMultiphysics.kratos_utilities.DeleteFileIfExisting(file_path)
 
                 # Update stored dictionary
                 del self.restart_files[oldest_step_id]
-
-
-    #### Protected functions ####
 
     def _GetFileLabelLoad(self):
         return self.input_file_label
@@ -263,7 +260,7 @@ class RestartUtility(object):
         else:
             file_name_pattern += "_<step>"
         file_name_pattern += ".rest"
-        return os.path.join( self.__GetFolderPathLoad(), file_name_pattern )
+        return os.path.join(self.__GetFolderPathLoad(), file_name_pattern)
 
     #### Private functions ####
 
@@ -307,14 +304,13 @@ class RestartUtility(object):
         """
 
         # Get file name string (without path)
-        file_name = str( Path(file_name).name )
+        file_name = str(Path(file_name).name)
 
         # Extract labels from the file name
-        file_name_data_collector = KratosMultiphysics.FileNameDataCollector( self.model_part,
-                                                                             self._GetFileNamePattern(),
-                                                                             {} )
+        file_name_data_collector = KratosMultiphysics.FileNameDataCollector(
+            self.model_part, self._GetFileNamePattern(), {})
         file_name_data = KratosMultiphysics.FileNameDataCollector.FileNameData()
 
-        file_name_data_collector.RetrieveFileNameData( file_name_data, file_name )
+        file_name_data_collector.RetrieveFileNameData(file_name_data, file_name)
 
         return file_name_data
