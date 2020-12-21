@@ -139,18 +139,21 @@ namespace Kratos
 
         // 5 - Calculate lagrange mults
         DenseVectorType lagrange_vector(lagrange_interface_dofs,0.0);
-        DetermineLagrangianMultipliers(lagrange_vector, mCondensationMatrix, unbalanced_interface_free_kinematics);
-        if (mParameters["is_disable_coupling"].GetBool()) lagrange_vector.clear();
-        if (mParameters["is_disable_coupling"].GetBool()) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
+        if (norm_2(unbalanced_interface_free_kinematics) > numerical_limit)
+        {
+            DetermineLagrangianMultipliers(lagrange_vector, mCondensationMatrix, unbalanced_interface_free_kinematics);
+            if (mParameters["is_disable_coupling"].GetBool()) lagrange_vector.clear();
+            if (mParameters["is_disable_coupling"].GetBool()) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
 
-        // 6 - Apply correction quantities
-        if (mSubTimestepIndex == mTimestepRatio) {
-            SetOriginInitialKinematics(); // the final free kinematics of A is the initial free kinematics of A for the next timestep
-            solver_index = SolverIndex::Origin;
-            ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, solver_index);
+            // 6 - Apply correction quantities
+            if (mSubTimestepIndex == mTimestepRatio) {
+                SetOriginInitialKinematics(); // the final free kinematics of A is the initial free kinematics of A for the next timestep
+                solver_index = SolverIndex::Origin;
+                ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, solver_index);
+            }
+            solver_index = SolverIndex::Destination;
+            ApplyCorrectionQuantities(lagrange_vector, mUnitResponseDestination, solver_index);
         }
-        solver_index = SolverIndex::Destination;
-        ApplyCorrectionQuantities(lagrange_vector, mUnitResponseDestination, solver_index);
 
         // 7 - Optional check of equilibrium
         if (mIsCheckEquilibrium && !mParameters["is_disable_coupling"].GetBool() && mSubTimestepIndex == mTimestepRatio)
