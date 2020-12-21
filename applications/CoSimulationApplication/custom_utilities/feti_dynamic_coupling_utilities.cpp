@@ -394,14 +394,9 @@ namespace Kratos
         const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
         SolverPhysics physics = (solverIndex == SolverIndex::Origin) ? mOriginPhysics : mDestinationPhysics;
 
-        // Apply acceleration correction
+        // Determine link accelerations
         DenseVectorType accel_corrections(rUnitResponse.size1(),0.0);
         TSparseSpace::Mult(rUnitResponse, rLagrangeVec, accel_corrections);
-        AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
-
-        // Apply velocity correction
-        accel_corrections *= (gamma * dt);
-        AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections, is_implicit);
 
         if (is_implicit)
         {
@@ -413,6 +408,11 @@ namespace Kratos
             // deltaDisplacement = dt * dt * gamma * gamma * accel_correction
 
             KRATOS_ERROR_IF_NOT(gamma == 0.5) << "The following FEM implicit domain must have a nermark_gamma of 0.5: " << pDomainModelPart->Name() << std::endl;
+
+            AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
+
+            accel_corrections *= (gamma * dt);
+            AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections, is_implicit);
 
             accel_corrections *= (gamma * dt);
             AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
@@ -431,6 +431,11 @@ namespace Kratos
 
                 KRATOS_ERROR_IF_NOT(gamma == 0.5) << "The following FEM explicit domain must have a nermark_gamma of 0.5: " << pDomainModelPart->Name() << std::endl;
 
+                AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
+
+                accel_corrections *= (gamma * dt);
+                AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections, is_implicit);
+
                 accel_corrections *= 2.0;
                 AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
 
@@ -443,15 +448,17 @@ namespace Kratos
                 // MPM forward euler correction:
                 // gamma = 1.0
                 // beta = 0.0
-                // deltaAccel = accel_correction
-                // deltaVelocity = dt * accel_correction
-                // deltaDisplacement = dt * dt * accel_correction
+                // deltaNodalForce = nodalMass*accel_correction
+                // deltaNodalMomenta = dt * deltaNodalForce
 
-                KRATOS_ERROR_IF_NOT(gamma == 1.0) << "The following MPM explicit domain must have a nermark_gamma of 1.0: " << pDomainModelPart->Name() << std::endl;
+                KRATOS_ERROR_IF_NOT(gamma == 1.0) << "The following MPM explicit domain must have a newmark_gamma of 1.0: " << pDomainModelPart->Name() << std::endl;
 
-                // Apply displacement correction
+                // Apply nodal force (acceleration) correction
+                AddCorrectionToDomain(pDomainModelPart, FORCE_RESIDUAL, accel_corrections, is_implicit); // mass is applied within the function
+
+                // Apply nodal momenta (velocity) correction
                 accel_corrections *= dt;
-                AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
+                AddCorrectionToDomain(pDomainModelPart, NODAL_MOMENTUM, accel_corrections, is_implicit); // mass is applied within the function
             }
             else KRATOS_ERROR << "Invalid physics specified for model part " << pDomainModelPart->Name() << std::endl;
         }
@@ -492,15 +499,35 @@ namespace Kratos
                 }
             );
         }
-        else
+        else if (rVariable == FORCE_RESIDUAL || rVariable == NODAL_MOMENTUM)
         {
+            // MPM explicit correction
             block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
                 {
                     if (rNode.Has(EXPLICIT_EQUATION_ID))
                     {
-                        double nodal_mass = (!is_mpm)
-                            ? rNode.GetValue(NODAL_MASS)
-                            : rNode.FastGetSolutionStepValue(NODAL_MASS);
+                        double nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
+                        if (nodal_mass > numerical_limit)
+                        {
+                            IndexType equation_id = rNode.GetValue(EXPLICIT_EQUATION_ID);
+                            array_1d<double, 3>& r_nodal_quantity = rNode.FastGetSolutionStepValue(rVariable);
+                            for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                            {
+                                r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim]* nodal_mass;
+                            }
+                        }
+                    }
+                }
+            );
+        }
+        else
+        {
+            // FEM explicit correction
+            block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
+                {
+                    if (rNode.Has(EXPLICIT_EQUATION_ID))
+                    {
+                        double nodal_mass = rNode.GetValue(NODAL_MASS);
                         if (nodal_mass > numerical_limit)
                         {
                             IndexType equation_id = rNode.GetValue(EXPLICIT_EQUATION_ID);
