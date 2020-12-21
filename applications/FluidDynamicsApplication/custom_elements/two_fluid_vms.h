@@ -185,7 +185,7 @@ public:
      * expected to contain values for DYNAMIC_TAU and DELTA_TIME
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int local_size = (TDim+1)*(TDim+1);
         Matrix tmp(local_size,local_size);
@@ -200,7 +200,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::logic_error,"MassMatrix function shall not be called when using this type of element","");
     }
@@ -212,7 +212,7 @@ public:
     /// on the cut elements
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override
+                                          const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -631,7 +631,7 @@ KRATOS_WATCH(Ngauss);  */
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
         // Perform basic element checks

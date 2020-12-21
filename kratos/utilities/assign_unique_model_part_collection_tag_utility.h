@@ -87,6 +87,10 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     /// Auxiliary map
     typedef std::unordered_map<IndexType,std::set<IndexType>> IndexIndexSetMapType;
 
+    /// Auxiliary map
+    typedef std::unordered_map<std::set<IndexType>, IndexType, KeyHasherRange<std::set<IndexType>>, KeyComparorRange<std::set<IndexType>> >  IndexSetIndexMapType;
+
+
     /// Pointer definition of AssignUniqueModelPartCollectionTagUtility
     KRATOS_CLASS_POINTER_DEFINITION( AssignUniqueModelPartCollectionTagUtility );
 
@@ -169,6 +173,15 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
      * @brief This method can be used to debug complex model parts directly on python
      */
     void DebugAssignUniqueModelPartCollectionTag();
+
+
+    /**
+     * @brief This method returns the model part combinations as colors, expressed as integers, and the collection
+     * of all model part names strings combinations. Required to run in MPI.
+     */
+    void SetParallelModelPartAndSubModelPartCollectionsAndCombinations(IndexStringMapType& rCollections,
+                                            IndexSetIndexMapType& rCombinations,
+                                            IndexType& rTag);
 
     ///@}
     ///@name Access
