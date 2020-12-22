@@ -150,6 +150,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalize(self):
         for f in self.output_file:
+            f.flush()
             f.close()
 
     def __SearchPoint(self):
