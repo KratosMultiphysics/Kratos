@@ -74,11 +74,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
 
-        self.formulation = navier_stokes_solver_vmsmonolithic.StabilizedFormulation(self.settings["formulation"])
-        self.element_name = self.formulation.element_name
-        self.condition_name = self.formulation.condition_name
-        self.element_integrates_in_time = self.formulation.element_integrates_in_time
-        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
+        # Set up the auxiliary class with the formulation settings
+        self._SetFormulation()
 
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":

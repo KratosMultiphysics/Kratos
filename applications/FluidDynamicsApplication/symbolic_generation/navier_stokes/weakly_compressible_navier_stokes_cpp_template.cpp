@@ -1,5 +1,5 @@
-#include "symbolic_navier_stokes.h"
-#include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "weakly_compressible_navier_stokes.h"
+#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 namespace Kratos
 {
@@ -8,58 +8,58 @@ namespace Kratos
 // Life cycle
 
 template <class TElementData>
-SymbolicNavierStokes<TElementData>::SymbolicNavierStokes(IndexType NewId)
+WeaklyCompressibleNavierStokes<TElementData>::WeaklyCompressibleNavierStokes(IndexType NewId)
     : FluidElement<TElementData>(NewId) {}
 
 template <class TElementData>
-SymbolicNavierStokes<TElementData>::SymbolicNavierStokes(
+WeaklyCompressibleNavierStokes<TElementData>::WeaklyCompressibleNavierStokes(
     IndexType NewId,
     const NodesArrayType& ThisNodes)
     : FluidElement<TElementData>(NewId, ThisNodes) {}
 
 template <class TElementData>
-SymbolicNavierStokes<TElementData>::SymbolicNavierStokes(
+WeaklyCompressibleNavierStokes<TElementData>::WeaklyCompressibleNavierStokes(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : FluidElement<TElementData>(NewId, pGeometry) {}
 
 template <class TElementData>
-SymbolicNavierStokes<TElementData>::SymbolicNavierStokes(
+WeaklyCompressibleNavierStokes<TElementData>::WeaklyCompressibleNavierStokes(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
     : FluidElement<TElementData>(NewId, pGeometry, pProperties) {}
 
 template <class TElementData>
-SymbolicNavierStokes<TElementData>::~SymbolicNavierStokes() {}
+WeaklyCompressibleNavierStokes<TElementData>::~WeaklyCompressibleNavierStokes() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
 template< class TElementData >
-Element::Pointer SymbolicNavierStokes<TElementData>::Create(
+Element::Pointer WeaklyCompressibleNavierStokes<TElementData>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SymbolicNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<WeaklyCompressibleNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TElementData >
-Element::Pointer SymbolicNavierStokes<TElementData>::Create(
+Element::Pointer WeaklyCompressibleNavierStokes<TElementData>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SymbolicNavierStokes>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<WeaklyCompressibleNavierStokes>(NewId, pGeom, pProperties);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
 template <class TElementData>
-int SymbolicNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int WeaklyCompressibleNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
@@ -76,15 +76,15 @@ int SymbolicNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcess
 // Public I/O
 
 template <class TElementData>
-std::string SymbolicNavierStokes<TElementData>::Info() const
+std::string WeaklyCompressibleNavierStokes<TElementData>::Info() const
 {
     std::stringstream buffer;
-    buffer << "SymbolicNavierStokes" << Dim << "D" << NumNodes << "N #" << this->Id();
+    buffer << "WeaklyCompressibleNavierStokes" << Dim << "D" << NumNodes << "N #" << this->Id();
     return buffer.str();
 }
 
 template <class TElementData>
-void SymbolicNavierStokes<TElementData>::PrintInfo(std::ostream& rOStream) const
+void WeaklyCompressibleNavierStokes<TElementData>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << this->Info() << std::endl;
 
@@ -98,7 +98,7 @@ void SymbolicNavierStokes<TElementData>::PrintInfo(std::ostream& rOStream) const
 // Protected operations
 
 template <class TElementData>
-void SymbolicNavierStokes<TElementData>::AddTimeIntegratedSystem(
+void WeaklyCompressibleNavierStokes<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData,
     MatrixType& rLHS,
     VectorType& rRHS)
@@ -108,7 +108,7 @@ void SymbolicNavierStokes<TElementData>::AddTimeIntegratedSystem(
 }
 
 template <class TElementData>
-void SymbolicNavierStokes<TElementData>::AddTimeIntegratedLHS(
+void WeaklyCompressibleNavierStokes<TElementData>::AddTimeIntegratedLHS(
     TElementData& rData,
     MatrixType& rLHS)
 {
@@ -116,7 +116,7 @@ void SymbolicNavierStokes<TElementData>::AddTimeIntegratedLHS(
 }
 
 template <class TElementData>
-void SymbolicNavierStokes<TElementData>::AddTimeIntegratedRHS(
+void WeaklyCompressibleNavierStokes<TElementData>::AddTimeIntegratedRHS(
     TElementData& rData,
     VectorType& rRHS)
 {
@@ -124,7 +124,7 @@ void SymbolicNavierStokes<TElementData>::AddTimeIntegratedRHS(
 }
 
 template <class TElementData>
-void SymbolicNavierStokes<TElementData>::AddBoundaryTraction(
+void WeaklyCompressibleNavierStokes<TElementData>::AddBoundaryTraction(
     TElementData& rData,
     const Vector& rUnitNormal,
     MatrixType& rLHS,
@@ -174,34 +174,35 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryTraction(
 }
 
 template <>
-void SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<2,3>& rData,
+void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::ComputeGaussPointLHSContribution(
+    WeaklyCompressibleNavierStokesData<2,3>& rData,
     MatrixType& rLHS)
 {
-    const double rho = rData.Density;
+    const array_1d<double,3>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const double c = rData.SoundVelocity;
+    const array_1d<double,3>& c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const Matrix& C = rData.C;
+    const BoundedMatrix<double,3,3>& C = rData.C;
 
     // Get shape function values
-    const auto& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const array_1d<double,3>& N = rData.N;
+    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    //TODO: Optimize this to directly add to the rLeftHandSideMatrix
     auto& lhs = rData.lhs;
 
     //substitute_lhs_2D3N
@@ -211,34 +212,35 @@ void SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >::ComputeGaussPointLHS
 }
 
 template <>
-void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<3,4>& rData,
+void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
+    WeaklyCompressibleNavierStokesData<3,4>& rData,
     MatrixType& rLHS)
 {
-    const double rho = rData.Density;
+    const array_1d<double,4>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const double c = rData.SoundVelocity;
+    const array_1d<double,4>& c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const Matrix& C = rData.C;
+    const BoundedMatrix<double,6,6>& C = rData.C;
 
     // Get shape function values
-    const auto& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    //TODO: Optimize this to directly add to the rLeftHandSideMatrix
     auto& lhs = rData.lhs;
 
     //substitute_lhs_3D4N
@@ -248,15 +250,15 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSCo
 }
 
 template <>
-void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<2,3>& rData,
+void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
+    WeaklyCompressibleNavierStokesData<2,3>& rData,
     VectorType& rRHS)
 {
-    const double rho = rData.Density;
+    const array_1d<double,3>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const double c = rData.SoundVelocity;
+    const array_1d<double,3>& c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -265,25 +267,26 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSCo
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto& v = rData.Velocity;
-    const auto& vn = rData.Velocity_OldStep1;
-    const auto& vnn = rData.Velocity_OldStep2;
-    const auto& vmesh = rData.MeshVelocity;
-    const auto& vconv = v - vmesh;
-    const auto& f = rData.BodyForce;
-    const auto& p = rData.Pressure;
-    const auto& pn = rData.Pressure_OldStep1;
-    const auto& pnn = rData.Pressure_OldStep2;
-    const auto& stress = rData.ShearStress;
+    const BoundedMatrix<double,2,3>& v = rData.Velocity;
+    const BoundedMatrix<double,2,3>& vn = rData.Velocity_OldStep1;
+    const BoundedMatrix<double,2,3>& vnn = rData.Velocity_OldStep2;
+    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> vconv = v - vmesh;
+    const BoundedMatrix<double,2,3>& f = rData.BodyForce;
+    const array_1d<double,3>& p = rData.Pressure;
+    const array_1d<double,3>& pn = rData.Pressure_OldStep1;
+    const array_1d<double,3>& pnn = rData.Pressure_OldStep2;
+    const array_1d<double,3>& stress = rData.ShearStress;
 
     // Get shape function values
-    const auto& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const array_1d<double,3>& N = rData.N;
+    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    //TODO: Optimize this to directly add to the rRightHandSideVector
     auto& rhs = rData.rhs;
 
     //substitute_rhs_2D3N
@@ -292,15 +295,15 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSCo
 }
 
 template <>
-void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<3,4>& rData,
+void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
+    WeaklyCompressibleNavierStokesData<3,4>& rData,
     VectorType& rRHS)
 {
-    const double rho = rData.Density;
+    const array_1d<double,4>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const double c = rData.SoundVelocity;
+    const array_1d<double,4>& c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -309,25 +312,26 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSCo
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto& v = rData.Velocity;
-    const auto& vn = rData.Velocity_OldStep1;
-    const auto& vnn = rData.Velocity_OldStep2;
-    const auto& vmesh = rData.MeshVelocity;
-    const auto& vconv = v - vmesh;
-    const auto& f = rData.BodyForce;
-    const auto& p = rData.Pressure;
-    const auto& pn = rData.Pressure_OldStep1;
-    const auto& pnn = rData.Pressure_OldStep2;
-    const auto& stress = rData.ShearStress;
+    const BoundedMatrix<double,3,4>& v = rData.Velocity;
+    const BoundedMatrix<double,3,4>& vn = rData.Velocity_OldStep1;
+    const BoundedMatrix<double,3,4>& vnn = rData.Velocity_OldStep2;
+    const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv = v - vmesh;
+    const BoundedMatrix<double,3,4>& f = rData.BodyForce;
+    const array_1d<double,4>& p = rData.Pressure;
+    const array_1d<double,4>& pn = rData.Pressure_OldStep1;
+    const array_1d<double,4>& pnn = rData.Pressure_OldStep2;
+    const array_1d<double,6>& stress = rData.ShearStress;
 
     // Get shape function values
-    const auto& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    //TODO: Optimize this to directly add to the rRightHandSideVector
     auto& rhs = rData.rhs;
 
     //substitute_rhs_3D4N
@@ -339,7 +343,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSCo
 // Private serialization
 
 template< class TElementData >
-void SymbolicNavierStokes<TElementData>::save(Serializer& rSerializer) const
+void WeaklyCompressibleNavierStokes<TElementData>::save(Serializer& rSerializer) const
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
@@ -347,7 +351,7 @@ void SymbolicNavierStokes<TElementData>::save(Serializer& rSerializer) const
 
 
 template< class TElementData >
-void SymbolicNavierStokes<TElementData>::load(Serializer& rSerializer)
+void WeaklyCompressibleNavierStokes<TElementData>::load(Serializer& rSerializer)
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
@@ -356,7 +360,7 @@ void SymbolicNavierStokes<TElementData>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >;
-template class SymbolicNavierStokes< SymbolicNavierStokesData<3,4> >;
+template class WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >;
+template class WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> >;
 
 }

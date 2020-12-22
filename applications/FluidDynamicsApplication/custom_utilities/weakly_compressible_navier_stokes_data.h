@@ -8,11 +8,12 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
+//                   Ruben Zorrilla
 //
 
 
-#if !defined(KRATOS_SYMBOLIC_NAVIER_STOKES_DATA_H)
-#define KRATOS_SYMBOLIC_NAVIER_STOKES_DATA_H
+#if !defined(KRATOS_WEAKLY_COMPRESSIBLE_NAVIER_STOKES_DATA_H)
+#define KRATOS_WEAKLY_COMPRESSIBLE_NAVIER_STOKES_DATA_H
 
 #include "includes/constitutive_law.h"
 
@@ -29,7 +30,7 @@ namespace Kratos {
 ///@{
 
 template< size_t TDim, size_t TNumNodes >
-class SymbolicNavierStokesData : public FluidElementData<TDim,TNumNodes, true>
+class WeaklyCompressibleNavierStokesData : public FluidElementData<TDim,TNumNodes, true>
 {
 public:
 
@@ -54,10 +55,10 @@ NodalVectorData BodyForce;
 NodalScalarData Pressure;
 NodalScalarData Pressure_OldStep1;
 NodalScalarData Pressure_OldStep2;
+NodalScalarData Density;
+NodalScalarData SoundVelocity;
 
-double Density;
 double DynamicViscosity;
-double SoundVelocity;  // (needed if artificial compressibility is considered)
 double DeltaTime;      // Time increment
 double DynamicTau;     // Dynamic tau considered in ASGS stabilization coefficients
 
@@ -88,11 +89,11 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromHistoricalNodalData(Density,DENSITY,r_geometry);
     this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
     this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
-    this->FillFromProperties(Density,DENSITY,r_properties);
-    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
-    this->FillFromProcessInfo(SoundVelocity,SOUND_VELOCITY,rProcessInfo);
+    this->FillFromNonHistoricalNodalData(SoundVelocity, SOUND_VELOCITY, r_geometry);
+    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties); //TODO: This needs to be retrieved from the EffectiveViscosity of the constitutive law
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
 
