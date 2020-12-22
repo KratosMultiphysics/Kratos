@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -131,16 +131,25 @@ std::shared_ptr<Matrix> tentative_prolongation(
 
     AMGCL_TIC("tentative");
     if (nullspace.cols > 0) {
+        ptrdiff_t nba = naggr / block_size;
+
         // Sort fine points by aggregate number.
         // Put points not belonging to any aggregate to the end of the list.
         std::vector<ptrdiff_t> order(n);
         for(size_t i = 0; i < n; ++i) order[i] = i;
         std::stable_sort(order.begin(), order.end(), detail::skip_negative(aggr, block_size));
+        std::vector<ptrdiff_t> aggr_ptr(nba + 1, 0);
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+            ptrdiff_t a = aggr[order[i]];
+            if (a < 0) break;
+            ++aggr_ptr[a / block_size + 1];
+        }
+        std::partial_sum(aggr_ptr.begin(), aggr_ptr.end(), aggr_ptr.begin());
 
         // Precompute the shape of the prolongation operator.
         // Each row contains exactly nullspace.cols non-zero entries.
         // Rows that do not belong to any aggregate are empty.
-        P->set_size(n, nullspace.cols * naggr / block_size);
+        P->set_size(n, nullspace.cols * nba);
         P->ptr[0] = 0;
 
 #pragma omp parallel for
@@ -153,38 +162,43 @@ std::shared_ptr<Matrix> tentative_prolongation(
         // Compute the tentative prolongation operator and null-space vectors
         // for the coarser level.
         std::vector<double> Bnew;
-        Bnew.reserve(naggr * nullspace.cols * nullspace.cols / block_size);
+        Bnew.resize(nba * nullspace.cols * nullspace.cols);
 
-        size_t offset = 0;
+#pragma omp parallel
+        {
+            amgcl::detail::QR<double> qr;
+            std::vector<double> Bpart;
 
-        amgcl::detail::QR<double> qr;
-        std::vector<double> Bpart;
-        for(ptrdiff_t i = 0, nb = naggr / block_size; i < nb; ++i) {
-            size_t d = 0;
-            for(size_t j = offset; j < n && aggr[order[j]] / block_size == i; ++j, ++d);
-            Bpart.resize(d * nullspace.cols);
+#pragma omp for
+            for(ptrdiff_t i = 0; i < nba; ++i) {
+                auto aggr_beg = aggr_ptr[i];
+                auto aggr_end = aggr_ptr[i+1];
+                auto d = aggr_end - aggr_beg;
 
-            for(size_t j = offset, jj = 0; jj < d; ++j, ++jj) {
-                ptrdiff_t ib = nullspace.cols * order[j];
-                for(int k = 0; k < nullspace.cols; ++k)
-                    Bpart[jj + d * k] = nullspace.B[ib + k];
-            }
+                Bpart.resize(d * nullspace.cols);
 
-            qr.factorize(d, nullspace.cols, &Bpart[0], amgcl::detail::col_major);
+                for(ptrdiff_t j = aggr_beg, jj = 0; j < aggr_end; ++j, ++jj) {
+                    ptrdiff_t ib = nullspace.cols * order[j];
+                    for(int k = 0; k < nullspace.cols; ++k)
+                        Bpart[jj + d * k] = nullspace.B[ib + k];
+                }
 
-            for(int ii = 0; ii < nullspace.cols; ++ii)
-                for(int jj = 0; jj < nullspace.cols; ++jj)
-                    Bnew.push_back( qr.R(ii,jj) );
+                qr.factorize(d, nullspace.cols, &Bpart[0], amgcl::detail::col_major);
 
-            for(size_t ii = 0; ii < d; ++ii, ++offset) {
-                ptrdiff_t  *c = &P->col[P->ptr[order[offset]]];
-                value_type *v = &P->val[P->ptr[order[offset]]];
+                for(int ii = 0, kk = 0; ii < nullspace.cols; ++ii)
+                    for(int jj = 0; jj < nullspace.cols; ++jj, ++kk)
+                        Bnew[i * nullspace.cols * nullspace.cols + kk] = qr.R(ii,jj);
 
-                for(int jj = 0; jj < nullspace.cols; ++jj) {
-                    c[jj] = i * nullspace.cols + jj;
-                    // TODO: this is just a workaround to make non-scalar value
-                    // types compile. Most probably this won't actually work.
-                    v[jj] = qr.Q(ii,jj) * math::identity<value_type>();
+                for(ptrdiff_t j = aggr_beg, ii = 0; j < aggr_end; ++j, ++ii) {
+                    ptrdiff_t  *c = &P->col[P->ptr[order[j]]];
+                    value_type *v = &P->val[P->ptr[order[j]]];
+
+                    for(int jj = 0; jj < nullspace.cols; ++jj) {
+                        c[jj] = i * nullspace.cols + jj;
+                        // TODO: this is just a workaround to make non-scalar value
+                        // types compile. Most probably this won't actually work.
+                        v[jj] = qr.Q(ii,jj) * math::identity<value_type>();
+                    }
                 }
             }
         }
