@@ -1,6 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics import IsDistributedRun
 
 # Other imports
 import os
@@ -204,14 +203,14 @@ class RestartUtility:
                 else:
                     step_id = file_name_data.GetStep()
 
-                self._UpdateRestartFilesList(restart_files, step_id, file_name_data)
+                self._UpdateRestartFilesMap(restart_files, step_id, file_name_data)
 
             # barrier is necessary to avoid having some ranks deleting files while other ranks still detect them in the same directory
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         return restart_files
 
-    def _UpdateRestartFilesList(self, restart_files_map, step_id, file_name_data):
+    def _UpdateRestartFilesMap(self, restart_files_map, step_id, file_name_data):
         restart_files_map[step_id] = file_name_data.GetFileName()
 
     def _ClearObsoleteRestartFiles(self):
