@@ -449,12 +449,6 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (dimension != msDimension ||number_of_nodes != msNumberOfNodes) {
         KRATOS_ERROR << "The truss element works only in 3D and with 2 noded elements" << std::endl;
     }
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {

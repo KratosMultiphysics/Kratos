@@ -240,12 +240,6 @@ class GenericCompressionConstitutiveLawIntegratorDplusDminusDamage
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
-        KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-        KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
-
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "MAXIMUM_STRESS is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;

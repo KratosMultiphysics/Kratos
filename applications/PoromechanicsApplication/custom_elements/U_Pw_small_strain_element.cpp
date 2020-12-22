@@ -34,7 +34,7 @@ Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId, 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -709,7 +709,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         }
         const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
         const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-        const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+        const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
 
         //Create constitutive law parameters:
         Vector StrainVector(VoigtSize);
@@ -985,7 +985,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVa
     rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
     rVariables.FluidDensity = Prop[DENSITY_WATER];
     rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    rVariables.BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     PoroElementUtilities::CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix,Prop);
 

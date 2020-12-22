@@ -66,8 +66,7 @@
         "absolute_pressure_tolerance"  : 1e-5,
         "linear_solver_settings"       : {
             "solver_type"         : "amgcl_ns",
-            "verbosity"           : 0,
-            "coarse_enough"       : 500
+            "verbosity"           : 0
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
@@ -164,7 +163,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_test_probe1.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest"
+                    "output_path": "AdjointVMSSensitivity2DTest"
                 },
                 "output_variables" : [
                     "VELOCITY_X",
@@ -181,7 +180,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_test_probe2.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest"
+                    "output_path": "AdjointVMSSensitivity2DTest"
                 },
                 "output_variables" : [
                     "VELOCITY_X",

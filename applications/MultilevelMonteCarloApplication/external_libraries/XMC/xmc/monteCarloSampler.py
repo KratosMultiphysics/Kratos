@@ -2,6 +2,7 @@
 from xmc.tools import dynamicImport
 from xmc.tools import splitOneListIntoTwo
 from xmc.tools import mergeTwoListsIntoOne
+from xmc.methodDefs_monteCarloSampler import asynchronousUpdateGlobalEstimators
 import xmc.methodDefs_monteCarloSampler.asynchronousUpdateGlobalEstimators as mda
 
 # External libraries
@@ -343,9 +344,10 @@ class MonteCarloSampler:
 
         newIndices, newSamples = splitOneListIntoTwo(newHierarchy)
         if self.batchIndices is None:  # iterationCounter = 0
-            # serialze Kratos object sinto monteCarloIndex indeces instances
-            # requirements: KratosSolverWrapper as SolverWrapper and concurrent_adaptive_refinement as refinement_strategy
-            self.indices[0].sampler.solvers[0].serialize()
+            # serialze Kratos objects into monteCarloIndex indeces instances
+            # requirements: KratosSolverWrapper as SolverWrapper
+            for lev in range (0,len(self.indices)):
+                self.indices[lev].sampler.solvers[0].serialize()
             # prepare batch indices and booleans
             self.batchIndices = [[] for _ in range(self.numberBatches)]
             self.batchesLaunched = [False for _ in range(self.numberBatches)]
@@ -375,22 +377,22 @@ class MonteCarloSampler:
         """
         Method passing serialized Kratos Model and Kratos Parameters and other KratosSolverWrapper members to new batches. Passing them, we avoid serializing for each batch, and we do only once for the first batch.
         """
-
+        # we pass solver = 0 since solver = 1 is the coarser
         # model
         self.batchIndices[batch][index].sampler.solvers[solver].pickled_model = (
-            self.indices[0].sampler.solvers[0].pickled_model
+            self.indices[index].sampler.solvers[0].pickled_model
         )
         self.batchIndices[batch][index].sampler.solvers[solver].serialized_model = (
-            self.indices[0].sampler.solvers[0].serialized_model
+            self.indices[index].sampler.solvers[0].serialized_model
         )
         # project parameters
         self.batchIndices[batch][index].sampler.solvers[solver].pickled_project_parameters = (
-            self.indices[0].sampler.solvers[0].pickled_project_parameters
+            self.indices[index].sampler.solvers[0].pickled_project_parameters
         )
         self.batchIndices[batch][index].sampler.solvers[
             solver
         ].serialized_project_parameters = (
-            self.indices[0].sampler.solvers[0].serialized_project_parameters
+            self.indices[index].sampler.solvers[0].serialized_project_parameters
         )
         # custom metric refinement parameters
         self.batchIndices[batch][index].sampler.solvers[

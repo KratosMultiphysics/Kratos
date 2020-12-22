@@ -28,6 +28,10 @@ class TestSetTopographyProcess(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "set_topography_process"
 
+class TestNodesOutputProcess(ShallowWaterTestFactory):
+    execution_directory = "processes_tests"
+    execution_file = "nodes_output_process"
+
 class TestVisualizationMeshProcess(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "visualization_mesh_process"

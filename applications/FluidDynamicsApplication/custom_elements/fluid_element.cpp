@@ -20,9 +20,13 @@
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
+<<<<<<< HEAD
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/new_symbolic_navier_stokes_data.h"
+=======
+>>>>>>> origin/master
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -277,7 +281,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 template< class TElementData >
-void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
+void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -300,28 +304,30 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
 
 
 template< class TElementData >
-void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
+void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
-     if (rElementalDofList.size() != LocalSize)
+    if (rElementalDofList.size() != LocalSize)
          rElementalDofList.resize(LocalSize);
 
-     unsigned int LocalIndex = 0;
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
-     for (unsigned int i = 0; i < NumNodes; ++i)
-     {
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X);
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y);
-         if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z);
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE);
-     }
+    unsigned int LocalIndex = 0;
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X,xpos);
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y,xpos+1);
+        if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z,xpos+2);
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE,ppos);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
+void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -341,7 +347,7 @@ void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int 
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const 
+void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -885,8 +891,8 @@ template class FluidElement< SymbolicStokesData<3,4> >;
 template class FluidElement< SymbolicStokesData<3,6> >;
 template class FluidElement< SymbolicStokesData<3,8> >;
 
-template class FluidElement< SymbolicNavierStokesData<2,3> >;
-template class FluidElement< SymbolicNavierStokesData<3,4> >;
+template class FluidElement< WeaklyCompressibleNavierStokesData<2,3> >;
+template class FluidElement< WeaklyCompressibleNavierStokesData<3,4> >;
 
 template class FluidElement< NewSymbolicNavierStokesData<2,3> >;
 template class FluidElement< NewSymbolicNavierStokesData<3,4> >;

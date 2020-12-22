@@ -59,7 +59,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
     const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-    const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
     FICVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     for(unsigned int i=0; i<TNumNodes; i++)
     {
@@ -121,7 +121,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
     const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-    const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
     FICVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     for(unsigned int i=0; i<TNumNodes; i++)
     {
