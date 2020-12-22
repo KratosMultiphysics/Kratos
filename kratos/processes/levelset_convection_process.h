@@ -328,6 +328,7 @@ public:
                 mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
             }
 
+            //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
             #pragma omp parallel for
             for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                 auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
