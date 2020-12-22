@@ -41,3 +41,7 @@ class DistributedRestartUtility(RestartUtility):
             file_name_pattern += "_<step>"
         file_name_pattern += ".rest"
         return file_name_pattern
+
+    def _UpdateRestartFilesList(self, restart_files_map, step_id, file_name_data):
+        if (self.rank == file_name_data.GetRank()):
+            restart_files_map[step_id] = file_name_data.GetFileName()
