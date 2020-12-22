@@ -160,7 +160,7 @@ namespace Kratos
         ElementSizeFunctionType minimum_h_func = FluidCharacteristicNumbersUtilities::GetMinimumElementSizeFunction(r_geom);
 
         // Set the function to calculate the Fourier numbers
-        std::function<std::tuple<double,double>(const Element&, const ElementSizeFunctionType&, const double)> fourier_numbers_function;
+        std::function<std::pair<double,double>(const Element&, const ElementSizeFunctionType&, const double)> fourier_numbers_function;
         if (mConsiderArtificialDiffusion) {
             if (mNodalDensityFormulation) {
                 fourier_numbers_function = FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true,true>;
