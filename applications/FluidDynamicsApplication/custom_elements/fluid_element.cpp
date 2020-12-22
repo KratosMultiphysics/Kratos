@@ -384,9 +384,6 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) co
         << "Something is wrong with the elemental data of Element "
         << this->Info() << std::endl;
 
-    // Extra variables used in computing projections
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
     const GeometryType& r_geometry = this->GetGeometry();
 
     for(unsigned int i=0; i<NumNodes; ++i)
