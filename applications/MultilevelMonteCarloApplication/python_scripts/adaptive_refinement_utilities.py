@@ -4,7 +4,7 @@ import numpy as np
 # Import Kratos
 import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable, IsMPIAvailable()
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable, IsMPIAvailable
 if KratosMultiphysics.IsDistributedRun():
     if not IsMPIAvailable():
         raise Exception("[MultilevelMonteCarloApplication]: KratosMultiphysics MPI core is not available, but it is required since runnning with MPI.")
@@ -102,20 +102,30 @@ class AdaptiveRefinement(object):
                     raise Exception("[MultilevelMonteCarloApplication]: ExaquteSandboxApplication cannot be imported, but it is necessary to perform adaptive refinement for problems type monolithic.")
 
             # create the remeshing process and execute it
-            if domain_size == 2:
-                if(hasattr(MeshingApplication,"MmgProcess2D")):
-                    MmgProcess = KratosMultiphysics.MeshingApplication.MmgProcess2D(model_coarse.GetModelPart(model_part_name),remesh_param)
+            if KratosMultiphysics.IsDistributedRun():
+                if domain_size == 3:
+                    if(hasattr(KratosMultiphysics.MeshingApplication,"ParMmgProcess3D")):
+                        MmgProcess = KratosMultiphysics.MeshingApplication.ParMmgProcess3D(model_coarse.GetModelPart(model_part_name),remesh_param)
+                    else:
+                        raise Exception("[MultilevelMonteCarloApplication]: ParMmgProcess3D atrribute not found within MeshingApplcation. It is required to perform remeshing.")
                 else:
-                    raise Exception("[MultilevelMonteCarloApplication]: MmgProcess2D atrribute not found within MeshingApplcation. It is required to perform remeshing.")
-            elif domain_size == 3:
-                if(hasattr(MeshingApplication,"MmgProcess3D")):
-                    MmgProcess = KratosMultiphysics.MeshingApplication.MmgProcess3D(model_coarse.GetModelPart(model_part_name),remesh_param)
-                else:
-                    raise Exception("[MultilevelMonteCarloApplication]: MmgProcess3D atrribute not found within MeshingApplcation. It is required to perform remeshing.")
+                    err_msg = "Domain size is {}. Supported value is 3.\n".format(domain_size)
+                    raise Exception(err_msg)
             else:
-                err_msg = "Domain size is {}. Supported values are 2 and 3.\n".format(domain_size)
-            raise Exception(err_msg)
-            MmgProcess.Execute()
+                if domain_size == 2:
+                    if(hasattr(KratosMultiphysics.MeshingApplication,"MmgProcess2D")):
+                        MmgProcess = KratosMultiphysics.MeshingApplication.MmgProcess2D(model_coarse.GetModelPart(model_part_name),remesh_param)
+                    else:
+                        raise Exception("[MultilevelMonteCarloApplication]: MmgProcess2D atrribute not found within MeshingApplcation. It is required to perform remeshing.")
+                elif domain_size == 3:
+                    if(hasattr(KratosMultiphysics.MeshingApplication,"MmgProcess3D")):
+                        MmgProcess = KratosMultiphysics.MeshingApplication.MmgProcess3D(model_coarse.GetModelPart(model_part_name),remesh_param)
+                    else:
+                        raise Exception("[MultilevelMonteCarloApplication]: MmgProcess3D atrribute not found within MeshingApplcation. It is required to perform remeshing.")
+                else:
+                    err_msg = "Domain size is {}. Supported values are 2 and 3.\n".format(domain_size)
+                    raise Exception(err_msg)
+                MmgProcess.Execute()
 
             # reset variables if needed
             model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME , 0.0)
