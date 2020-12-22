@@ -214,48 +214,19 @@ void QSConvectionDiffusionExplicit<3,4>::CalculateMassMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void QSConvectionDiffusionExplicit<2,3>::CalculateLumpedMassVector(
+template< unsigned int TDim, unsigned int TNumNodes >
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLumpedMassVector(
     VectorType& rLumpedMassVector,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_TRY;
-
-    // Define local variables
-    const unsigned int local_size = 3;
-    const double one_third_area = GetGeometry().Area() / 3.0;
-    // Initialize and calculate elemental lumped mass vector
-    if (rLumpedMassVector.size() != local_size) {
-        rLumpedMassVector.resize(local_size, false);
-    }
-    for (IndexType i = 0; i < local_size; ++i) {
-        rLumpedMassVector(i) = one_third_area;
+    // Initialize the lumped mass vector
+    if (rLumpedMassVector.size() != TNumNodes) {
+        rLumpedMassVector.resize(TNumNodes, false);
     }
 
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-
-template<>
-void QSConvectionDiffusionExplicit<3,4>::CalculateLumpedMassVector(
-    VectorType& rLumpedMassVector,
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY;
-
-    // Define local variables
-    const unsigned int local_size = 4;
-    const double one_fourth_volume = GetGeometry().Volume() / 4.0;
-    // Initialize and calculate elemental lumped mass vector
-    if (rLumpedMassVector.size() != local_size) {
-        rLumpedMassVector.resize(local_size, false);
-    }
-    for (IndexType i = 0; i < local_size; ++i) {
-        rLumpedMassVector(i) = one_fourth_volume;
-    }
-
-    KRATOS_CATCH("");
+    // Fill the lumped mass vector
+    const double nodal_mass = GetGeometry().DomainSize() / TNumNodes;
+    std::fill(rLumpedMassVector.begin(),rLumpedMassVector.end(),nodal_mass);
 }
 
 /***********************************************************************************/
