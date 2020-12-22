@@ -220,9 +220,8 @@ void QSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLumpedMassVector(
     const ProcessInfo& rCurrentProcessInfo) const
 {
     // Initialize the lumped mass vector
-    constexpr IndexType size = TNumNodes;
-    if (rLumpedMassVector.size() != BlockSize) {
-        rLumpedMassVector.resize(size, false);
+    if (rLumpedMassVector.size() != TNumNodes) {
+        rLumpedMassVector.resize(TNumNodes, false);
     }
 
     // Fill the lumped mass vector
