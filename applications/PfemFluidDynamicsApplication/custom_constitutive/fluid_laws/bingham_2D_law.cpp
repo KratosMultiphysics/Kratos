@@ -70,7 +70,7 @@ namespace Kratos
             std::sqrt(2.0 * r_strain_vector[0] * r_strain_vector[0] + 2.0 * r_strain_vector[1] * r_strain_vector[1] +
                       4.0 * r_strain_vector[2] * r_strain_vector[2]);
 
-        // Ensuring that the case of equivalent_strain_rate = 0 is not problematic
+        // Ensuring that the case of equivalent_strain_rate = 0 is not problematic.
         const double tolerance = 1e-8;
         if (equivalent_strain_rate < tolerance)
         {
