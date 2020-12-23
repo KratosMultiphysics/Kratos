@@ -791,7 +791,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
 
-    if ( rVariable == CAUCHY_STRESS_TENSOR )
+    if ( rVariable == EFFECTIVE_STRESS_TENSOR )
     {
         std::vector<Vector> StressVector;
 
