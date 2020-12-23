@@ -24,7 +24,7 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
         self.problem_type = "manufactured_solution" # Available problem types: "manufactured_solution" "analytical_solution"
         self.analytical_solution_type = "sinusoidal_transient_field" # Available fields: "nonlinear_transient_field" "sinusoidal_transient_field" "nonlinear_stationary_field"
 
-        self.work_folder = "ManufacturedSolutionTest"
+        self.work_folder = "manufactured_solution_test"
         self.settings = "ManufacturedSolutionTestParameters.json"
 
         self.meshes_list = ["manufactured_solution_ref0",
