@@ -146,6 +146,7 @@ public:
         
         mprm.put("precond.pmask", static_cast<void*>(&mp[0]));
         mprm.put("precond.pmask_size", mp.size());
+        mprm.put("solver.verbose", mVerbosity > 1);
 
         if(mVerbosity > 1)
             write_json(std::cout, mprm);
