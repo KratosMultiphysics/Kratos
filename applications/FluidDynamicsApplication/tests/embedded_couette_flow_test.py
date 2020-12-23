@@ -89,7 +89,7 @@ class EmbeddedCouetteTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
                 node.Fix(KratosMultiphysics.VELOCITY_Z)
 
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
-class EmbeddedCouetteTest(KratosUnittest.TestCase):
+class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
 
     # Continuous level set 2D tests
     def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2D(self):
@@ -102,7 +102,7 @@ class EmbeddedCouetteTest(KratosUnittest.TestCase):
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteTest()
+        self._RunEmbeddedCouetteFlowTest()
 
     def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2DSlip(self):
         self.distance = 0.25
@@ -114,7 +114,7 @@ class EmbeddedCouetteTest(KratosUnittest.TestCase):
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteTest()
+        self._RunEmbeddedCouetteFlowTest()
 
     # Continuous level set 3D tests
     def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3D(self):
@@ -127,7 +127,7 @@ class EmbeddedCouetteTest(KratosUnittest.TestCase):
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteTest()
+        self._RunEmbeddedCouetteFlowTest()
 
     def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3DSlip(self):
         self.distance = 0.25
@@ -139,7 +139,7 @@ class EmbeddedCouetteTest(KratosUnittest.TestCase):
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteTest()
+        self._RunEmbeddedCouetteFlowTest()
 
     # Discontinuous level set tests
     def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D(self):
@@ -154,7 +154,7 @@ class EmbeddedCouetteTest(KratosUnittest.TestCase):
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteTest()
+        self._RunEmbeddedCouetteFlowTest()
 
     def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D(self):
         self.distance = 0.25
@@ -168,16 +168,16 @@ class EmbeddedCouetteTest(KratosUnittest.TestCase):
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteTest()
+        self._RunEmbeddedCouetteFlowTest()
 
     def setUp(self):
-        self.print_output = True
+        self.print_output = False
         self.check_tolerance = 1.0e-6
         self.check_relative_tolerance = 1.0e-8
-        self.print_reference_values = True
+        self.print_reference_values = False
         self.work_folder = "embedded_couette_flow_test"
         
-    def _RunEmbeddedCouetteTest(self):
+    def _RunEmbeddedCouetteFlowTest(self):
         # Create the test simulation
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
@@ -292,7 +292,7 @@ class EmbeddedCouetteTest(KratosUnittest.TestCase):
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
 
 if __name__ == '__main__':
-    test = EmbeddedCouetteTest()
+    test = EmbeddedCouetteFlowTest()
     test.setUp()
     test.testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2D()
     # test.testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2DSlip()
