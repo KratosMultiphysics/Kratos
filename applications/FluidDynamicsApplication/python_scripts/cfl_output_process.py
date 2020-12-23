@@ -171,4 +171,4 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         return [y_mean, y_std, x_max, how_many, how_many1]
 
     def _EvaluateCFL(self):
-        KratosCFD.EstimateDtUtility.CalculateLocalCFL(self.model_part)
+        KratosCFD.FluidCharacteristicNumbersUtilities.CalculateLocalCFL(self.model_part)

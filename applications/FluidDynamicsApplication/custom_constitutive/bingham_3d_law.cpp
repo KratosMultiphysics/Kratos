@@ -217,17 +217,11 @@ std::string Bingham3DLaw::Info() const {
 //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 //************************************************************************************
 
-
-
 int Bingham3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
-    KRATOS_CHECK_VARIABLE_KEY(REGULARIZATION_COEFFICIENT);
-
     if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 ) {
         KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Bingham3DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
     }

@@ -892,10 +892,14 @@ private:
     ///@{
 
     /**
-     * @brief This method computes directly the lumped mass vector
-     * @param rMassMatrix The lumped mass vector
+     * @brief This is called during the initialize of the builder to calculate the lumped mass vector
+     * @param rLumpedMassVector the elemental lumped mass vector
+     * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLumpedMassVector(VectorType& rMassVector) const;
+    void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief This method computes directly the lumped mass matrix

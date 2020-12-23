@@ -1031,9 +1031,6 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(VOLUMETRIC_STRAIN)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const auto& r_geometry = this->GetGeometry();
     for ( IndexType i = 0; i < r_geometry.size(); i++ ) {

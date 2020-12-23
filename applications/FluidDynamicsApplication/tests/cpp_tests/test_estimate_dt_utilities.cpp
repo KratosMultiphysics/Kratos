@@ -34,8 +34,13 @@ void TestEstimateDtUtilitiesInitializeModelPart(
     const double DeltaTime)
 {
 
+    rModelPart.AddNodalSolutionStepVariable(DENSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
+    p_properties->SetValue(DENSITY, 0.1);
+    p_properties->SetValue(CONDUCTIVITY, 2.0);
+    p_properties->SetValue(SPECIFIC_HEAT, 1.0);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -52,6 +57,9 @@ void TestEstimateDtUtilitiesInitializeModelPart(
 
     // Set nodal data
     for (auto& rNode : rModelPart.Nodes()) {
+        rNode.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, rNode.Id());
+        rNode.SetValue(ARTIFICIAL_CONDUCTIVITY, 2.0 * rNode.Id());
+        rNode.FastGetSolutionStepValue(DENSITY) = rNode.Id() / 10.0;
         rNode.FastGetSolutionStepValue(VELOCITY_X) = rNode.Id() * rNode.X();
         rNode.FastGetSolutionStepValue(VELOCITY_Y) = rNode.Id() * rNode.Y();
     }
@@ -80,28 +88,69 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDt, FluidDynamicsApplicatio
     const double obtained_dt = estimate_dt_utility.EstimateDt();
 
     // Check results
-    const double expected_dt = 0.126211;
     const double tolerance = 2.0e-6;
+    const double expected_dt = 0.126211;
     KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesCalculateLocalCFL, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDtCompressibleFlow, FluidDynamicsApplicationFastSuite)
 {
-    // Set the current delta time to calculate the CFL number
-    const double current_dt = 1.0e-1;
+    // Set an extremely large current delta time to obtain a large CFL number
+    const double current_dt = 1.0;
 
     // Create the test model part
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
     Internals::TestEstimateDtUtilitiesInitializeModelPart(r_model_part, current_dt);
 
-    // Calculate the CFL number for each element
-    EstimateDtUtility::CalculateLocalCFL(r_model_part);
+    // Estimate the delta time
+    Parameters estimate_dt_settings = Parameters(R"({
+        "automatic_time_step"           : true,
+        "CFL_number"                    : 1.0,
+        "Viscous_Fourier_number"        : 1.0,
+        "Thermal_Fourier_number"        : 1.0,
+        "minimum_delta_time"            : 1e-4,
+        "maximum_delta_time"            : 1e+1,
+        "consider_artificial_diffusion" : true,
+        "nodal_density_formulation"     : true
+    })");
+    const auto estimate_dt_utility = EstimateDtUtility(r_model_part, estimate_dt_settings);
+    const double obtained_dt = estimate_dt_utility.EstimateDt();
 
     // Check results
-    const double tolerance = 2.0e-6;
-    KRATOS_CHECK_NEAR(r_model_part.GetElement(1).GetValue(CFL_NUMBER), 0.186339, tolerance);
-    KRATOS_CHECK_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 0.792324, tolerance);
+    const double tolerance = 1.0e-6;
+    const double expected_dt = 0.0075;
+    KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDtThermal, FluidDynamicsApplicationFastSuite)
+{
+    // Set an extremely large current delta time to obtain a large CFL number
+    const double current_dt = 1.0;
+
+    // Create the test model part
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    Internals::TestEstimateDtUtilitiesInitializeModelPart(r_model_part, current_dt);
+
+    // Estimate the delta time
+    Parameters estimate_dt_settings = Parameters(R"({
+        "automatic_time_step"           : true,
+        "CFL_number"                    : 1.0,
+        "Viscous_Fourier_number"        : 0.0,
+        "Thermal_Fourier_number"        : 1.0,
+        "minimum_delta_time"            : 1e-4,
+        "maximum_delta_time"            : 1e+1,
+        "consider_artificial_diffusion" : false,
+        "nodal_density_formulation"     : false
+    })");
+    const auto estimate_dt_utility = EstimateDtUtility(r_model_part, estimate_dt_settings);
+    const double obtained_dt = estimate_dt_utility.EstimateDt();
+
+    // Check results
+    const double tolerance = 1.0e-6;
+    const double expected_dt = 0.01;
+    KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
 }
 
 }
