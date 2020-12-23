@@ -213,11 +213,6 @@ int HerschelBulkley3DLaw::Check(const Properties& rMaterialProperties,
                               const GeometryType& rElementGeometry,
                               const ProcessInfo& rCurrentProcessInfo)
 {    
-    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
-    KRATOS_CHECK_VARIABLE_KEY(REGULARIZATION_COEFFICIENT);
-    KRATOS_CHECK_VARIABLE_KEY(POWER_LAW_K);
-    KRATOS_CHECK_VARIABLE_KEY(POWER_LAW_N);
-
     if( rMaterialProperties[YIELD_STRESS] <= 0.00 ) {
         KRATOS_ERROR << "Incorrect or missing YIELD_STRESS provided in process info for HerschelBulkley3DLaw: " << rMaterialProperties[YIELD_STRESS] << std::endl;
     }
