@@ -87,14 +87,12 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidElementTest('testCavityDOSS'))
     nightSuite.addTest(FluidElementTest('testTimeIntegratedQSVMS'))
     nightSuite.addTest(FluidElementTest('testSymbolic'))
-    nightSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
-    nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
@@ -112,7 +110,9 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
+    validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
+    validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
 
 
     # Create a test suite that contains all the tests:
