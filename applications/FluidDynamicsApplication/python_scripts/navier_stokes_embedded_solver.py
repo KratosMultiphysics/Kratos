@@ -35,7 +35,7 @@ class EmbeddedFormulation(object):
             elif element_type == "embedded_ausas_navier_stokes":
                 self._SetUpClassicEmbeddedAusasNavierStokes(formulation_settings)
             elif element_type == "embedded_symbolic_navier_stokes_discontinuous":
-                warn_msg  = 'Provided \'element_name\' is \'embedded_symbolic_navier_stokes_discontinuous\'. This is has been renamed to \'embedded_weakly_compressible_navier_stokes_discontinuous\'. Use this instead.'
+                warn_msg  = 'Provided \'element_name\' is \'embedded_symbolic_navier_stokes_discontinuous\'. This has been renamed to \'embedded_weakly_compressible_navier_stokes_discontinuous\'. Use this instead.'
                 KratosMultiphysics.Logger.PrintWarning(warn_msg)
                 self._SetUpEmbeddedWeaklyCompressibleNavierStokesDiscontinuous(formulation_settings)
             elif element_type == "embedded_weakly_compressible_navier_stokes_discontinuous":
