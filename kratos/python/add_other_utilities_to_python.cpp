@@ -490,8 +490,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
         .def(py::init<>())
-        .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-        .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
+        .def_static("SetNumThreads", &ParallelUtilities::SetNumThreads)
+        .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
         .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         ;
@@ -500,7 +500,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<ParallelUtilities >(m,"ParallelUtilities")
         .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
         ;
-
 
     // EntitiesUtilities
     auto entities_utilities = m.def_submodule("EntitiesUtilities");

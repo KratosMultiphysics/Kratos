@@ -16,11 +16,12 @@
 #include <stdio.h>
 #include <vector>
 #include <iostream>
-#ifdef _OPENMP
+#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #else
 #include <ctime>
 #endif
+#include "parallel_utilities.h"
 
 namespace Kratos
 {
@@ -60,13 +61,9 @@ public:
      @return Maximum number of OpenMP threads that will be used in
      parallel regions.
      */
-    static inline int GetNumThreads()
+    static inline KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") int GetNumThreads()
     {
-#ifdef _OPENMP
-        return omp_get_max_threads();
-#else
-        return 1;
-#endif
+        return ParallelUtilities::GetNumThreads();
     }
 
     /// Wrapper for omp_get_num_threads().
@@ -211,23 +208,9 @@ public:
      that values greater than the environment variable OMP_NUM_THREADS
      will be ignored.
      */
-    static inline void SetNumThreads(int NumThreads = 1)
+    static inline KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") void SetNumThreads(int NumThreads = 1)
     {
-#ifdef _OPENMP
-
-      int procs    = omp_get_num_procs();
-      if( procs < NumThreads ){
-	std::cout<<" WARNING: Maximimun number of threads is EXCEEDED "<<std::endl;
-	/* Set thread number */
-	omp_set_num_threads(procs);
-	std::cout<<" Number of Threads Set To : "<<procs<<std::endl;
-      }
-      else{
-	/* Set thread number */
-	omp_set_num_threads(NumThreads);
-      }
-
-#endif
+        ParallelUtilities::SetNumThreads(NumThreads);
     }
 
     /**
