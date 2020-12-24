@@ -147,8 +147,6 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static bool mIsDistributedRun;
 
-    static int mNumThreads;
-
     ///@}
     ///@name Member Variables
     ///@{
