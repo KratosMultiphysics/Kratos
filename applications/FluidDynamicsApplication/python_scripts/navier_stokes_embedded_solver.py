@@ -27,7 +27,7 @@ class EmbeddedFormulation(object):
             if element_type == "embedded_navier_stokes":
                 self._SetUpClassicEmbeddedNavierStokes(formulation_settings)
             elif element_type == "embedded_symbolic_navier_stokes":
-                warn_msg  = 'Provided \'element_name\' is \'embedded_symbolic_navier_stokes\'. This is has been renamed to \'embedded_weakly_compressible_navier_stokes\'. Use this instead.'
+                warn_msg  = 'Provided \'element_name\' is \'embedded_symbolic_navier_stokes\'. This has been renamed to \'embedded_weakly_compressible_navier_stokes\'. Use this instead.'
                 KratosMultiphysics.Logger.PrintWarning(warn_msg)
                 self._SetUpEmbeddedWeaklyCompressibleNavierStokes(formulation_settings)
             elif element_type == "embedded_weakly_compressible_navier_stokes":
