@@ -18,7 +18,7 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 #include "DEM_application_variables.h"
 #include "includes/variables.h"
 
@@ -38,7 +38,7 @@ class TransferNodalForcesToFem : public Process
   typedef std::size_t IndexType;
 
   // Constructor
-  TransferNodalForcesToFem(ModelPart& rModelPart, ModelPart& rDemModelPart);
+  TransferNodalForcesToFem(ModelPart& rModelPart, const bool DampenSolution = false);
 
   // Destructor
   ~TransferNodalForcesToFem() override = default;
@@ -51,7 +51,7 @@ protected:
 
   // Member Variables
   ModelPart& mrModelPart;
-  ModelPart& mrDEMModelPart;
+  bool mDampenSolution = false;
 
 };  // Class
 

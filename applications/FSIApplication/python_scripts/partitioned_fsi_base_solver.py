@@ -29,8 +29,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
         # Call the base Python solver constructor
         # Note that default settings in GetDefaultParameters() are validated in here
-        self._validate_settings_in_baseclass = True
-        super(PartitionedFSIBaseSolver,self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
         # Auxiliar variables
         self.parallel_type = self.settings["parallel_type"].GetString()
@@ -73,17 +72,18 @@ class PartitionedFSIBaseSolver(PythonSolver):
             mesh_solver_settings.AddEmptyValue("model_import_settings").AddEmptyValue("input_type").SetString("use_input_model_part")
 
         # Check that the ALE and the fluid have the sime time scheme
-        fluid_time_scheme =  fluid_solver_settings["time_scheme"].GetString()
-        if mesh_solver_settings.Has("mesh_velocity_calculation"):
-            if mesh_solver_settings["mesh_velocity_calculation"].Has("time_scheme"):
-                if not fluid_time_scheme == mesh_solver_settings["mesh_velocity_calculation"]["time_scheme"].GetString():
-                    err_msg = 'Fluid and mesh solver require to use the same time scheme ("time_scheme") for consistency!\n'
-                    raise Exception(err_msg)
+        if fluid_solver_settings.Has("time_scheme"):
+            fluid_time_scheme =  fluid_solver_settings["time_scheme"].GetString()
+            if mesh_solver_settings.Has("mesh_velocity_calculation"):
+                if mesh_solver_settings["mesh_velocity_calculation"].Has("time_scheme"):
+                    if not fluid_time_scheme == mesh_solver_settings["mesh_velocity_calculation"]["time_scheme"].GetString():
+                        err_msg = 'Fluid and mesh solver require to use the same time scheme ("time_scheme") for consistency!\n'
+                        raise Exception(err_msg)
+                else:
+                    mesh_solver_settings["mesh_velocity_calculation"].AddValue("time_scheme", fluid_solver_settings["time_scheme"])
             else:
+                mesh_solver_settings.AddEmptyValue("mesh_velocity_calculation")
                 mesh_solver_settings["mesh_velocity_calculation"].AddValue("time_scheme", fluid_solver_settings["time_scheme"])
-        else:
-            mesh_solver_settings.AddEmptyValue("mesh_velocity_calculation")
-            mesh_solver_settings["mesh_velocity_calculation"].AddValue("time_scheme", fluid_solver_settings["time_scheme"])
 
         # Check domain size
         fluid_domain_size = fluid_solver_settings["domain_size"].GetInt()
@@ -108,8 +108,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
-        """This function returns the default-settings used by this class
-        """
+
+        # Note that only the coupling settings are validated
+        # The subdomain solver settings will be validated while instantiating these
         this_defaults = KratosMultiphysics.Parameters("""{
             "echo_level": 0,
             "parallel_type": "OpenMP",
@@ -121,10 +122,34 @@ class PartitionedFSIBaseSolver(PythonSolver):
             "mesh_solver_settings":{
             },
             "coupling_settings":{
+                "coupling_strategy_settings": {
+                    "solver_type": "MVQN",
+                    "w_0": 0.825
+                },
+                "mapper_settings": [{
+                    "fluid_interface_submodelpart_name": "",
+                    "mapper_face": "unique",
+                    "structure_interface_submodelpart_name": ""
+                }],
+                "nl_max_it": 25,
+                "nl_tol": 1e-8,
+                "solve_mesh_at_each_iteration": true,
+                "fluid_interfaces_list": [],
+                "structure_interfaces_list": []
             }
         }""")
-        this_defaults.AddMissingParameters(super(PartitionedFSIBaseSolver, cls).GetDefaultParameters())
+
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
+
+    def ValidateSettings(self):
+        default_settings = self.GetDefaultParameters()
+
+        ## Base class settings validation
+        super().ValidateSettings()
+
+        ## Validate coupling settings
+        self.settings["coupling_settings"].ValidateAndAssignDefaults(default_settings["coupling_settings"])
 
     def GetMinimumBufferSize(self):
         # Get structure buffer size

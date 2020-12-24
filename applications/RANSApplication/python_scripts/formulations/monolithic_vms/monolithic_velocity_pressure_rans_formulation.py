@@ -14,7 +14,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBloc
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 
 class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -62,7 +62,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         self.SetMaxCouplingIterations(1)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Construction of formulation finished.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
 
     def AddVariables(self):
         base_model_part = self.GetBaseModelPart()
@@ -88,7 +88,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         base_model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
     def AddDofs(self):
         base_model_part = self.GetBaseModelPart()
@@ -97,14 +97,16 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Z, Kratos.REACTION_Z, base_model_part)
         Kratos.VariableUtils().AddDof(Kratos.PRESSURE, Kratos.REACTION_WATER_PRESSURE, base_model_part)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added dofs.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added dofs.")
 
     def PrepareModelPart(self):
         self.monolithic_model_part = CreateRansFormulationModelPart(
-            self,
+            self.GetComputingModelPart(),
+            self.__class__.__name__,
+            self.GetDomainSize(),
             "VMS",
             self.condition_name)
-        Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Created formulation model part.")
 
     def Initialize(self):
         model_part = self.GetBaseModelPart()
@@ -116,7 +118,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         settings = self.GetParameters()
 
         if (self.IsPeriodic()):
-            if (self.domain_size == 2):
+            if (self.GetDomainSize() == 2):
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
             else:
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
@@ -124,30 +126,34 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                                          self.monolithic_model_part,
                                          periodic_variables_list)
 
-        conv_criteria = GetKratosObjectType("MixedGenericCriteria")(
+        conv_criteria_type = GetKratosObjectPrototype("MixedGenericCriteria")
+        conv_criteria = conv_criteria_type(
             [(Kratos.VELOCITY, settings["relative_velocity_tolerance"].GetDouble(), settings["absolute_velocity_tolerance"].GetDouble()),
              (Kratos.PRESSURE, settings["relative_pressure_tolerance"].GetDouble(), settings["absolute_pressure_tolerance"].GetDouble())])
 
         if self.is_steady_simulation:
-            scheme = GetKratosObjectType("ResidualBasedSimpleSteadyScheme")(
+            scheme_type = GetKratosObjectPrototype("ResidualBasedSimpleSteadyScheme")
+            scheme = scheme_type(
                 settings["velocity_relaxation"].GetDouble(),
                 settings["pressure_relaxation"].GetDouble(),
-                self.domain_size)
+                self.GetDomainSize())
         else:
-            scheme = GetKratosObjectType("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")(
+            scheme_type = GetKratosObjectPrototype("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
+            scheme = scheme_type(
                 bossak_alpha,
                 settings["move_mesh_strategy"].GetInt(),
-                self.domain_size)
+                self.GetDomainSize())
 
-        linear_solver = GetKratosObjectType("LinearSolverFactory")(
-            settings["linear_solver_settings"])
+        linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
+        linear_solver = linear_solver_factory(settings["linear_solver_settings"])
 
         builder_and_solver = CreateBlockBuilderAndSolver(
             linear_solver,
             self.IsPeriodic(),
             self.GetCommunicator())
 
-        self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
+        solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
+        self.solver = solver_type(
             self.monolithic_model_part,
             scheme,
             conv_criteria,
@@ -164,25 +170,21 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         process_info.SetValue(Kratos.OSS_SWITCH, settings["oss_switch"].GetInt())
 
         super().Initialize()
-        self.solver.Initialize()
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Solver initialization finished.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
-
-    def Finalize(self):
-        self.solver.Clear()
-        super().Finalize()
 
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
+                self.ExecuteBeforeCouplingSolveStep()
                 self.solver.Predict()
                 _ = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
-                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
                 return True
 
         return False
@@ -190,20 +192,10 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def InitializeSolutionStep(self):
         if (self.IsBufferInitialized()):
             super().InitializeSolutionStep()
-            self.solver.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         if (self.IsBufferInitialized()):
-            self.solver.FinalizeSolutionStep()
             super().FinalizeSolutionStep()
-
-    def Check(self):
-        super().Check()
-        self.solver.Check()
-
-    def Clear(self):
-        self.solver.Clear()
-        super().Clear()
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
@@ -259,5 +251,3 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def GetStrategy(self):
         return self.solver
 
-    def GetModelPart(self):
-        return self.monolithic_model_part

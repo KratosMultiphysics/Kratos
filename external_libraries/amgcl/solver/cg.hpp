@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,8 @@ THE SOFTWARE.
  */
 
 #include <tuple>
+#include <iostream>
+
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
 #include <amgcl/util.hpp>
@@ -87,24 +89,36 @@ class cg {
             /// Target absolute residual error.
             scalar_type abstol;
 
+            /// Ignore the trivial solution x=0 when rhs is zero.
+            //** Useful for searching for the null-space vectors of the system */
+            bool ns_search;
+
+            /// Verbose output (show iterations and error)
+            bool verbose;
+
             params()
                 : maxiter(100), tol(1e-8),
-                  abstol(std::numeric_limits<scalar_type>::min())
+                  abstol(std::numeric_limits<scalar_type>::min()),
+                  ns_search(false), verbose(false)
             {}
 
 #ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
                   AMGCL_PARAMS_IMPORT_VALUE(p, tol),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
+                  AMGCL_PARAMS_IMPORT_VALUE(p, abstol),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, ns_search),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, verbose)
             {
-                check_params(p, {"maxiter", "tol", "abstol"});
+                check_params(p, {"maxiter", "tol", "abstol", "ns_search", "verbose"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, maxiter);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, ns_search);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, verbose);
             }
 #endif
         };
@@ -142,17 +156,24 @@ class cg {
             static const coef_type one  = math::identity<coef_type>();
             static const coef_type zero = math::zero<coef_type>();
 
-            backend::residual(rhs, A, x, *r);
+            ios_saver ss(std::cout);
+
             scalar_type norm_rhs = norm(rhs);
             if (norm_rhs < amgcl::detail::eps<scalar_type>(1)) {
-                backend::clear(x);
-                return std::make_tuple(0, norm_rhs);
+                if (prm.ns_search) {
+                    norm_rhs = math::identity<scalar_type>();
+                } else {
+                    backend::clear(x);
+                    return std::make_tuple(0, norm_rhs);
+                }
             }
 
-            scalar_type eps  = std::max(prm.tol * norm_rhs, prm.abstol);
+            scalar_type eps = std::max(prm.tol * norm_rhs, prm.abstol);
 
             coef_type rho1 = 2 * eps * one;
             coef_type rho2 = zero;
+
+            backend::residual(rhs, A, x, *r);
             scalar_type res_norm = norm(*r);
 
             size_t iter = 0;
@@ -175,6 +196,8 @@ class cg {
                 backend::axpby(-alpha, *q, one, *r);
 
                 res_norm = norm(*r);
+                if (prm.verbose && iter % 5 == 0)
+                    std::cout << iter << "\t" << std::scientific << res_norm / norm_rhs << std::endl;
             }
 
             return std::make_tuple(iter, res_norm / norm_rhs);

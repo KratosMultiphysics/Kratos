@@ -457,15 +457,6 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) co
 {
     KRATOS_TRY
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_DISPLACEMENT_STIFFNESS)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_DAMPING_RATIO)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
         const Node<3>& rnode = this->GetGeometry()[i];

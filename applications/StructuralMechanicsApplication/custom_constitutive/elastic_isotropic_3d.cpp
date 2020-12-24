@@ -282,10 +282,8 @@ int ElasticIsotropic3D::Check(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] < 0.0) << "YOUNG_MODULUS is negative." << std::endl;
 
-    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     const double tolerance = 1.0e-12;
     const double nu_upper_bound = 0.5;
     const double nu_lower_bound = -1.0;
@@ -293,7 +291,6 @@ int ElasticIsotropic3D::Check(
     KRATOS_ERROR_IF((nu_upper_bound - nu) < tolerance) << "POISSON_RATIO is above the upper bound 0.5." << std::endl;
     KRATOS_ERROR_IF((nu - nu_lower_bound) < tolerance) << "POISSON_RATIO is below the lower bound -1.0." << std::endl;
 
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is negative." << std::endl;
 
     return 0;

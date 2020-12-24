@@ -6,9 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_f
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
-
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+@UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class EmbeddedCouetteTest(UnitTest.TestCase):
 
     # Embedded element tests
@@ -112,19 +110,17 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
         self.ExecuteEmbeddedCouetteTest()
 
     def ExecuteEmbeddedCouetteTest(self):
-        with UnitTest.WorkFolderScope(self.work_folder, __file__):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            if (self.slip_flag):
-                self.setUpSlipInitialCondition()
-                self.setUpSlipBoundaryConditions()
-            else:
-                self.setUpNoSlipInitialCondition()
-                self.setUpNoSlipBoundaryConditions()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.setUpProblem()
+        self.setUpDistanceField()
+        if (self.slip_flag):
+            self.setUpSlipInitialCondition()
+            self.setUpSlipBoundaryConditions()
+        else:
+            self.setUpNoSlipInitialCondition()
+            self.setUpNoSlipBoundaryConditions()
+        self.runTest()
+        self.tearDown()
+        self.checkResults()
 
     def setUp(self):
         self.check_tolerance = 1e-6
@@ -361,13 +357,18 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test = EmbeddedCouetteTest()
     test.setUp()
-    test.distance = 0.25
-    test.slip_flag = True
-    test.print_output = True
-    test.print_reference_values = True
-    test.work_folder = "EmbeddedCouette2DTest"
-    test.reference_file = "reference_couette_embedded_slip_2D"
-    test.settings = "EmbeddedCouette2DTestParameters.json"
+    # test.testEmbeddedCouette2D()
+    # test.testEmbeddedCouette3D()
+    # test.testEmbeddedSlipCouette2D()
+    # test.testEmbeddedSlipCouette3D()
+    # test.testEmbeddedAusasCouette2D()
+    # test.testEmbeddedAusasCouette3D()
+    test.testEmbeddedDevelopmentCouette2D()
+    # test.testEmbeddedDevelopmentCouette3D()
+    # test.testEmbeddedSlipDevelopmentCouette2D()
+    # test.testEmbeddedSlipDevelopmentCouette3D()
+    # test.testEmbeddedAusasDevelopmentCouette2D()
+    # test.testEmbeddedAusasDevelopmentCouette3D()
     test.setUpProblem()
     test.setUpDistanceField()
     if (test.slip_flag):

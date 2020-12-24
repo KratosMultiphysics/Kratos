@@ -1,17 +1,17 @@
-# XMC imports
-from xmc.tools import instantiateObject, summation_Task
-
 # Import external libraries
 import itertools as it
 from math import ceil
 import numpy as np
 import warnings
 
+# XMC imports
+from xmc.tools import instantiateObject, summation_Task
+from xmc.methodDefs_monteCarloIndex import updateEstimators
+from xmc.distributedEnvironmentFramework import *
 import xmc.methodDefs_monteCarloIndex.updateEstimators as mdu
 
-from xmc.distributedEnvironmentFramework import *
 
-class MonteCarloIndex():
+class MonteCarloIndex:
     """
     This is a generic class for an index of an MXMC method. It handles sample
     generation and index-specific estimators.
@@ -19,58 +19,58 @@ class MonteCarloIndex():
 
     # TODO - this constructor should change based on the json file I/O mechanism
     # that will get set up at a future date
-    def __init__(self,**keywordArgs):
+    def __init__(self, **keywordArgs):
         # Attributes
-        self.indexValue = keywordArgs.get('indexValue')
+        self.indexValue = keywordArgs.get("indexValue")
         self.costEstimator = instantiateObject(
-            keywordArgs.get('costEstimator'),
-            **keywordArgs.get('costEstimatorInputDictionary'))
+            keywordArgs.get("costEstimator"), **keywordArgs.get("costEstimatorInputDictionary")
+        )
         # TODO 'qoiEstimator' should be renamed
         self.qoiEstimator = []
         # qoi estimators
-        qoi_estimator_module = keywordArgs.get('qoiEstimator')
-        qoi_estimator_module_args = keywordArgs.get('qoiEstimatorInputDictionary')
+        qoi_estimator_module = keywordArgs.get("qoiEstimator")
+        qoi_estimator_module_args = keywordArgs.get("qoiEstimatorInputDictionary")
         for i in range(len(qoi_estimator_module)):
-            self.qoiEstimator.append(instantiateObject(
-                qoi_estimator_module[i],**qoi_estimator_module_args[i]))
+            self.qoiEstimator.append(
+                instantiateObject(qoi_estimator_module[i], **qoi_estimator_module_args[i])
+            )
 
         # combined estimators
         # TODO to be removed (see issue #23)
-        combined_estimator_module = keywordArgs.get('combinedEstimator',None)
-        combined_estimator_module_args = keywordArgs.get('combinedEstimatorInputDictionary')
+        combined_estimator_module = keywordArgs.get("combinedEstimator", None)
+        combined_estimator_module_args = keywordArgs.get("combinedEstimatorInputDictionary")
         if combined_estimator_module is not None:
-            warnings.warn(('combinedEstimator and combinedEstimatorInputDictionary are '
-                           'deprecated. Use qoiEstimator and qoiEstimatorInputDictionary '
-                           'instead. Retro-compatibility is ensured only until 2020-08.'),
-                          FutureWarning)
+            warnings.warn(
+                (
+                    "combinedEstimator and combinedEstimatorInputDictionary are "
+                    "deprecated. Use qoiEstimator and qoiEstimatorInputDictionary "
+                    "instead. Retro-compatibility is ensured only until 2021-06."
+                ),
+                FutureWarning,
+            )
             for i in range(len(combined_estimator_module)):
                 self.qoiEstimator.append(
-                    instantiateObject(combined_estimator_module[i],
-                                      **combined_estimator_module_args[i]))
+                    instantiateObject(
+                        combined_estimator_module[i], **combined_estimator_module_args[i]
+                    )
+                )
 
-        sampler_input_dict = keywordArgs.get('samplerInputDictionary')
-        sampler_input_dict['solverWrapperIndices'] = self.solverIndices()
-        self.sampler = instantiateObject(keywordArgs.get('sampler'),**sampler_input_dict)
+        sampler_input_dict = keywordArgs.get("samplerInputDictionary")
+        sampler_input_dict["solverWrapperIndices"] = self.solverIndices()
+        self.sampler = instantiateObject(keywordArgs.get("sampler"), **sampler_input_dict)
         # TODO remove. Samples must be stored in self.data.
-        self.samples = keywordArgs.get('samples',None)
-        self.areSamplesStored = keywordArgs.get('areSamplesStored',False)
-        self.areSamplesRecycled = keywordArgs.get('areSamplesRecycled',True)
-        self.eventGroupSize = keywordArgs.get('eventGroupSize',None)
-        # TODO To be removed after scripts have been updated.
-        # Deprecated, left for compatibility.
-        deprecatedGroupSize = keywordArgs.get('estimatorBatchSize',None)
-        if self.eventGroupSize is None and deprecatedGroupSize is not None:
-            self.eventGroupSize = deprecatedGroupSize
-            warnings.warn(('estimatorBatchSize is deprecated. Use eventGroupSize instead.'
-                           'Retro-compatibility is ensured only until 2020-08.'),
-                           FutureWarning)
-
+        self.samples = keywordArgs.get("samples", None)
+        self.areSamplesStored = keywordArgs.get("areSamplesStored", False)
+        self.areSamplesRecycled = keywordArgs.get("areSamplesRecycled", True)
+        self.eventGroupSize = keywordArgs.get("eventGroupSize", None)
 
     def sampleNumber(self):
         if self.areSamplesStored:
             return len(self.samples)
         else:
-            return self.qoiEstimator[0].sampleNumber() # necessary for minimizing synchronization points
+            return self.qoiEstimator[
+                0
+            ].sampleNumber()  # necessary for minimizing synchronization points
 
     # TODO - potentially better name here
     def indexwiseContribution(self, qoiEstimatorCoordinate, qoiEstimatorValueArguements):
@@ -107,17 +107,20 @@ class MonteCarloIndex():
         """
 
         diff_tuple = []
-        hypercube_vertices = 2**self.indexSetDimension()
+        hypercube_vertices = 2 ** self.indexSetDimension()
         for _ in range(self.indexSetDimension()):
-            diff_tuple.append([0,1])
+            diff_tuple.append([0, 1])
         diff_list = list(it.product(*diff_tuple))
         for i in range(len(diff_list)):
             diff_list[i] = list(diff_list[i])
 
-        main_index = [self.indexValue]*hypercube_vertices
-        return [[main_index[i][j]-diff_list[i][j] for j in range(self.indexSetDimension())] for i in range(hypercube_vertices)]
+        main_index = [self.indexValue] * hypercube_vertices
+        return [
+            [main_index[i][j] - diff_list[i][j] for j in range(self.indexSetDimension())]
+            for i in range(hypercube_vertices)
+        ]
 
-    def _addSamples(self,newSamples):
+    def _addSamples(self, newSamples):
         """
         Add newsamples to stored samples. This is an internal method with no check on whether sample storage is enabled; be careful when using it.
         """
@@ -125,7 +128,7 @@ class MonteCarloIndex():
         # TODO replace self.samples with self.data
         self.samples.append(newSamples)
 
-    def update(self,newIndexAndSampleNumbers):
+    def update(self, newIndexAndSampleNumbers):
         """
         Update the Monte Carlo index to a new number of samples. First,
         decide the number of new samples to be generated, then generate
@@ -137,7 +140,7 @@ class MonteCarloIndex():
         # TODO Minimum number of new samples hard coded here to 6, since
         # program not planned for moment > 4 estimation. Accept/infer this
         # value later based on max(qoiEstimator[i].order)
-        if(self.areSamplesRecycled is True):
+        if self.areSamplesRecycled is True:
             number_new_samples = max(5, newIndexAndSampleNumbers[1] - self.sampleNumber())
         else:
             number_new_samples = newIndexAndSampleNumbers[1]
@@ -185,14 +188,13 @@ class MonteCarloIndex():
         #      == [future, future] if parallel
         # (s: solver, o: output); idem for solver S_i2.
 
-
         ### Estimator update
 
         # Get the multi-indices to the subsets of estimators, samples and times
         # that will be used to update the estimators
         indexEst, indexSamp, indexTime = self._updateSubsets(number_new_samples)
         # Iterator over the 'solver' dimension of the sample and time arrays
-        #TODO Idea: include this in multi-indices returned by _updateSubsets?
+        # TODO Idea: include this in multi-indices returned by _updateSubsets?
         solverRg = range(self.numberOfSolvers())
 
         ## Case: solver outputs are not split
@@ -200,7 +202,7 @@ class MonteCarloIndex():
         if not self.areSamplesSplit():
             # Iterate over subsets of estimators
             # For the moment, we actually iterate over estimators (subsets are singletons)
-            for g,iE in enumerate(indexEst):
+            for g, iE in enumerate(indexEst):
                 # Update for self.qoiEstimators
                 # Iterate over subsets of events
                 for indexS in indexSamp[g]:
@@ -208,33 +210,32 @@ class MonteCarloIndex():
                     # TODO When MomentEstimator is updated to specs, one level of nesting will
                     # have to be added above solver level: each element of sampleGroup is to
                     # be a list of sample components; as of now, it is just a single component.
-                    sampleGroup = [[samples[i][j][k] for j in solverRg] for i,k in indexS]
+                    sampleGroup = [[samples[i][j][k] for j in solverRg] for i, k in indexS]
                     # Update estimator with sample subset
                     self.qoiEstimator[iE].update(sampleGroup)
 
-                # Update self.costEstimator
-                # Iterate over subsets of events
-                for indexT in indexTime:
-                    # Assemble subset of samples
-                    # in bidimensional array expected by MomentEstimator.update
-                    # TODO There must be a better way to handle this
-                    timeGroup = [[summation_Task(*times[i])] for i in indexT]
-                    # Update estimator with sample subset
-                    self.costEstimator.update(timeGroup)
+            # Update self.costEstimator
+            # Iterate over subsets of events
+            for indexT in indexTime:
+                # Assemble subset of samples
+                # in bidimensional array expected by MomentEstimator.update
+                # TODO There must be a better way to handle this
+                timeGroup = [[summation_Task(*times[i])] for i in indexT]
+                # Update estimator with sample subset
+                self.costEstimator.update(timeGroup)
 
-            return # What follows is executed only if self.areSamplesSplit()
+            return  # What follows is executed only if self.areSamplesSplit()
 
         ## Case: solver outputs are split
-
         # Iterate over splits of solver outputs
-        for g,iE in enumerate(indexEst):
+        for g, iE in enumerate(indexEst):
             # Assemble subset of estimators for current split
             estimatorGroup = [self.qoiEstimator[ie] for ie in iE]
             # Update for self.qoiEstimators
             # Iterate over subsets of events
             for indexS in indexSamp[g]:
                 # Assemble subset of samples
-                sampleGroup = [[samples[i][j][k] for j in solverRg] for i,k in indexS]
+                sampleGroup = [[samples[i][j][k] for j in solverRg] for i, k in indexS]
                 # Update subset of estimators
                 mdu.updatePartialQoiEstimators_Task(estimatorGroup, sampleGroup)
                 # Delete future objects no longer needed
@@ -258,8 +259,7 @@ class MonteCarloIndex():
             # delete future objects no longer needed
             delete_object(*it.chain.from_iterable(timeGroup))
 
-
-    def _updateSubsets(self, numberOfSamples : int):
+    def _updateSubsets(self, numberOfSamples: int):
         """
         Returns the multi-indices of the subsets – of estimators, samples and times – used for update.
 
@@ -308,7 +308,7 @@ class MonteCarloIndex():
         We define iE and iS as previously: gE = E_iE and gS = S_iS.
         """
 
-        #TODO Idea: make multi-indices nested tuples instead of nested lists?
+        # TODO Idea: make multi-indices nested tuples instead of nested lists?
 
         eventGpSz = self.eventGroupSize
         if eventGpSz is None:
@@ -320,8 +320,8 @@ class MonteCarloIndex():
             splitSz = self.sampleSplitSizes()
             # Estimator subset
             # Split the list of estimator the same way as solver outputs
-            s = np.cumsum([0,*splitSz]) # indices at which solver outputs are split
-            estimatorSubset = [list(range(s[i],s[i+1])) for i,_ in enumerate(s[:-1])]
+            s = np.cumsum([0, *splitSz])  # indices at which solver outputs are split
+            estimatorSubset = [list(range(s[i], s[i + 1])) for i, _ in enumerate(s[:-1])]
             # Iterator for third dimension of sample array: split, here.
             splitRg = range(len(splitSz))
         else:
@@ -331,28 +331,29 @@ class MonteCarloIndex():
             splitRg = range(self.sampleDimension())
 
         # Sample and time subsets
-        numberOfEventGroups = ceil(numberOfSamples/eventGpSz)
+        numberOfEventGroups = ceil(numberOfSamples / eventGpSz)
         # List event indices delimiting the groups for update
         # The min makes sure the number of event is not exceeded
         # (i.e. last group may be smaller than the others)
-        eventGroups = [min(i*eventGpSz, numberOfSamples) for i in range(numberOfEventGroups+1)]
+        eventGroups = [
+            min(i * eventGpSz, numberOfSamples) for i in range(numberOfEventGroups + 1)
+        ]
         # Initialise empty nested lists for multi-indices
         sampleSubset = [[[] for _ in range(numberOfEventGroups)] for _ in splitRg]
         timeSubset = [[] for _ in range(numberOfEventGroups)]
         for b in range(numberOfEventGroups):
             # Range of event indices for current subset
-            eventRg = range(eventGroups[b], min(eventGroups[b+1],numberOfSamples))
+            eventRg = range(eventGroups[b], min(eventGroups[b + 1], numberOfSamples))
             # Iterate over estimator subsets
             for k in splitRg:
                 # For estimator subset (k,b),
                 # store event index and third-dimension (split or component) index
-                sampleSubset[k][b] = [(i,k) for i in eventRg]
+                sampleSubset[k][b] = [(i, k) for i in eventRg]
             # For time, we know the estimator and the component,
             # just store event indices
             timeSubset[b] = list(eventRg)
 
         return estimatorSubset, sampleSubset, timeSubset
-
 
     def numberOfSolvers(self):
         """

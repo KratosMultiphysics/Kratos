@@ -170,8 +170,8 @@ public:
     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
     * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -180,8 +180,8 @@ public:
     */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
     * This functions calculates both the RHS and the LHS
@@ -246,6 +246,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED  defined
 
 

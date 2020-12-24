@@ -23,6 +23,7 @@ from embedded_velocity_inlet_emulation_test import EmbeddedVelocityInletEmulatio
 from fluid_element_test import FluidElementTest
 from manufactured_solution_test import ManufacturedSolutionTest
 from navier_stokes_wall_condition_test import NavierStokesWallConditionTest
+from sod_shock_tube_test import SodShockTubeTest
 from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
 from adjoint_vms_element_2d import AdjointVMSElement2D
@@ -31,6 +32,7 @@ from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 from cfl_output_process_test import CFLOutputProcessTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
+from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -49,7 +51,7 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicStokes'))
-    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicNavierStokes'))
+    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DWeaklyCompressibleNavierStokes'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette2D'))
@@ -103,6 +105,11 @@ def AssembleTestSuites():
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
+    nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))

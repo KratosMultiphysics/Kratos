@@ -19,7 +19,7 @@ namespace Kratos
   typedef array_1d<double, 3>                                                                      VectorType;
   typedef Variable<VectorType>                                                             VariableVectorType;
   typedef Variable<double>                                                                 VariableScalarType;
-  typedef VariableComponent<VectorComponentAdaptor<VectorType>>                         VariableComponentType;
+  typedef Variable<double>                                                              VariableComponentType;
 
   typedef TimeIntegrationMethodsContainer<VariableVectorType, double>      VectorTimeIntegrationContainerType;
   typedef VectorTimeIntegrationContainerType::Pointer               VectorTimeIntegrationContainerPointerType;

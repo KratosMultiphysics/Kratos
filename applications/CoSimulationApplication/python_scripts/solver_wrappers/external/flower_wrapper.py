@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
 
 def Create(settings, model, solver_name):
     return FLOWerWrapper(settings, model, solver_name)
@@ -24,8 +24,8 @@ class FLOWerWrapper(CoSimulationSolverWrapper):
 
         self.settings["solver_wrapper_settings"].ValidateAndAssignDefaults(settings_defaults)
 
-        cs_tools.CreateMainModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
-        cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
+        model_part_utilities.CreateMainModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
+        model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
     def Initialize(self):
         super().Initialize()
@@ -50,10 +50,6 @@ class FLOWerWrapper(CoSimulationSolverWrapper):
 
     def AdvanceInTime(self, current_time):
         return 0.0 # TODO find a better solution here... maybe get time from solver through IO
-
-    def PrintInfo(self):
-        cs_tools.cs_print_info(self._ClassName(), "printing info...")
-        ## TODO print additional stuff with higher echo-level
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()

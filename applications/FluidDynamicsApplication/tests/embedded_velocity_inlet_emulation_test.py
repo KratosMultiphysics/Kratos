@@ -1,14 +1,13 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 import sys
 import KratosMultiphysics.KratosUnittest as UnitTest
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+@UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
     def testEmbeddedVelocityInletEmulationSymbolic2D(self):
         self.print_output = False

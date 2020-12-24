@@ -91,19 +91,17 @@ void FIC<TElementData>::Calculate(const Variable<Matrix>& rVariable,
 // Inquiry
 
 template< class TElementData >
-int FIC<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int FIC<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
+    const auto& r_geom = this->GetGeometry();
     for(unsigned int i=0; i<NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        const auto& rNode = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
     }
 

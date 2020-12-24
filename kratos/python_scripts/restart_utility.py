@@ -1,12 +1,11 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Other imports
 import os
+from pathlib import Path
 
-class RestartUtility(object):
+class RestartUtility:
     """
     This class collects the common functionalities needed for
     saving / loading restart files.
@@ -15,10 +14,12 @@ class RestartUtility(object):
     in the main-script
     """
     def __init__(self, model_part, settings):
+        # max_files_to_keep    : max number of restart files to keep
+        #                       - negative value keeps all restart files (default)
         default_settings = KratosMultiphysics.Parameters("""
         {
             "input_filename"                 : "",
-            "io_foldername"                  : "",
+            "input_output_path"              : "",
             "echo_level"                     : 0,
             "serializer_trace"               : "no_trace",
             "restart_load_file_label"        : "",
@@ -26,7 +27,8 @@ class RestartUtility(object):
             "restart_save_frequency"         : 0.0,
             "restart_control_type"           : "time",
             "save_restart_files_in_folder"   : true,
-            "set_mpi_communicator"           : true
+            "set_mpi_communicator"           : true,
+            "max_files_to_keep"              : -1
         }
         """)
 
@@ -35,6 +37,11 @@ class RestartUtility(object):
             "trace_error":        KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR,  # ascii
             "trace_all":          KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL     # ascii
         }
+
+        if settings.Has("io_foldername"):
+            settings.AddValue("input_output_path",settings["io_foldername"])
+            settings.RemoveValue("io_foldername")
+            KratosMultiphysics.Logger.PrintWarning('RestartUtility', '"io_foldername" key is deprecated. Use "input_output_path" instead.')
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -45,16 +52,16 @@ class RestartUtility(object):
         self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
         self.raw_path = os.path.join(os.getcwd(), self.raw_path)
 
-        if settings["io_foldername"].GetString() == '':
-            self.io_foldername = self.raw_file_name + "__restart_files"
-            info_msg  = 'No entry found for "io_foldername"\n'
-            info_msg += 'Using the default "' + self.io_foldername + '"'
+        if settings["input_output_path"].GetString() == '':
+            self.input_output_path = self.raw_file_name + "__restart_files"
+            info_msg  = 'No entry found for "input_output_path"\n'
+            info_msg += 'Using the default "' + self.input_output_path + '"'
             KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
 
         else:
-            self.io_foldername = settings["io_foldername"].GetString()
-            info_msg  = 'Found entry found for "io_foldername"\n'
-            info_msg += 'Using the user-defined value "' + self.io_foldername + '"'
+            self.input_output_path = settings["input_output_path"].GetString()
+            info_msg  = 'Found entry found for "input_output_path"\n'
+            info_msg += 'Using the user-defined value "' + self.input_output_path + '"'
             KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
 
         serializer_trace = settings["serializer_trace"].GetString()
@@ -86,7 +93,13 @@ class RestartUtility(object):
 
         self.next_output = self.restart_save_frequency # Schedule the first output to avoid printing in first step
 
-        self.save_restart_files_in_folder = settings["save_restart_files_in_folder"].GetBool()
+        self.save_restart_files_in_folder   = settings["save_restart_files_in_folder"].GetBool()
+        self.max_files_to_keep              = settings["max_files_to_keep"].GetInt()
+        if (self.max_files_to_keep < -1) or (self.max_files_to_keep == 0):
+            err_msg += 'Specifier for \'max_files_to_keep\' with value ' + str(self.max_files_to_keep) +' invalid\n'
+            err_msg += 'Use -1 or any non-negative values'
+            raise Exception(err_msg)
+
 
     #### Public functions ####
 
@@ -154,6 +167,10 @@ class RestartUtility(object):
             while self.next_output <= control_label:
                 self.next_output += self.restart_save_frequency
 
+
+        # Cleanup
+        self._ClearObsoleteRestartFiles()
+
     def IsRestartOutputStep(self):
         """
         This function checks and returns whether a restart file should be written in this time-step
@@ -170,8 +187,44 @@ class RestartUtility(object):
                 os.makedirs(folder_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-
     #### Protected functions ####
+
+    def _GetRestartFiles(self):
+        """Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart files for each step."""
+        restart_path    = Path(self.__GetFolderPathSave())
+        restart_files   = {}
+        if restart_path.is_dir():
+            file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, os.path.join(self.__GetFolderPathSave(), self._GetFileNamePattern()), {})
+
+            for file_name_data in file_name_data_collector.GetFileNameDataList():
+                # Get step id
+                if self.restart_control_type_is_time:
+                    step_id = file_name_data.GetTime()
+                else:
+                    step_id = file_name_data.GetStep()
+
+                self._UpdateRestartFilesMap(restart_files, step_id, file_name_data)
+
+            # barrier is necessary to avoid having some ranks deleting files while other ranks still detect them in the same directory
+            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+
+        return restart_files
+
+    def _UpdateRestartFilesMap(self, restart_files_map, step_id, file_name_data):
+        restart_files_map[step_id] = file_name_data.GetFileName()
+
+    def _ClearObsoleteRestartFiles(self):
+        """Delete restart files that are no longer needed."""
+        if self.max_files_to_keep > -1:
+            self.restart_files = self._GetRestartFiles()
+
+            number_of_obsolete_files = len(self.restart_files) - self.max_files_to_keep
+            restart_file_keys = sorted(self.restart_files)
+
+            for i in range(number_of_obsolete_files):
+                i_key = restart_file_keys[i]
+                file_path = os.path.join(self.__GetFolderPathSave(), self.restart_files[i_key])
+                KratosMultiphysics.kratos_utilities.DeleteFileIfExisting(file_path)
 
     def _GetFileLabelLoad(self):
         return self.input_file_label
@@ -183,17 +236,27 @@ class RestartUtility(object):
         """This function creates the communicators in MPI/trilinos"""
         pass
 
+    def _GetFileNamePattern(self):
+        """Return the pattern of flags in the file name for FileNameDataCollector."""
+        file_name_pattern = "<model_part_name>"
+        if self.restart_control_type_is_time:
+            file_name_pattern += "_<time>"
+        else:
+            file_name_pattern += "_<step>"
+        file_name_pattern += ".rest"
+        return file_name_pattern
+
     #### Private functions ####
 
     def __GetFolderPathLoad(self):
         if self.load_restart_files_from_folder:
-            return os.path.join(self.raw_path, self.io_foldername)
+            return os.path.join(self.raw_path, self.input_output_path)
         else:
             return self.raw_path
 
     def __GetFolderPathSave(self):
         if self.save_restart_files_in_folder:
-            return os.path.join(self.raw_path, self.io_foldername)
+            return os.path.join(self.raw_path, self.input_output_path)
         else:
             return self.raw_path
 
