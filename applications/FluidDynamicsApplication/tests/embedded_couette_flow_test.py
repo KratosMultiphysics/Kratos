@@ -292,12 +292,4 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
 
 if __name__ == '__main__':
-    test = EmbeddedCouetteFlowTest()
-    test.setUp()
-    test.testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2D()
-    # test.testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2DSlip()
-    # test.testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3D()
-    # test.testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3DSlip()
-    # test.testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D()
-    # test.testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D()
-    test.tearDown()
+    KratosUnittest.main()
