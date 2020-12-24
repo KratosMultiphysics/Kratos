@@ -43,7 +43,7 @@
 #include "utilities/activation_utilities.h"
 #include "utilities/sensitivity_builder.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/parallel_helpers.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
@@ -56,7 +56,7 @@ namespace Python {
 
 /**
  * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
- */   
+ */
 pybind11::list GetSortedListOfFileNameDataHelper(
     std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList,
     const std::vector<std::string> & rSortingFlagsOrder
@@ -496,9 +496,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         ;
 
-    // ParallelHelpers
-    py::class_<ParallelHelpers >(m,"ParallelHelpers")
-        .def_static("GetNumThreads", &ParallelHelpers::GetNumThreads)
+    // ParallelUtilities
+    py::class_<ParallelUtilities >(m,"ParallelUtilities")
+        .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
         ;
 
 

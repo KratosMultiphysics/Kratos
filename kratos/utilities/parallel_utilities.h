@@ -39,6 +39,31 @@ namespace Kratos
 {
 ///@addtogroup KratosCore
 
+/// Short class definition.
+/** Detail class definition.
+*/
+class KRATOS_API(KRATOS_CORE) ParallelUtilities
+{
+public:
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    ParallelUtilities() = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    static int GetNumThreads();
+
+    static void SetNumThreads(const int NumThreads);
+
+    ///@}
+
+}; // Class ParallelUtilities
+
+
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
@@ -55,14 +80,14 @@ template<
 class BlockPartition
 {
 public:
-
+Helpers
     /** @param it_begin - iterator pointing at the beginning of the container
      *  @param it_end - iterator pointing to the end of the container
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
-                   int Nchunks = ParallelHelpers::GetNumThreads())
+                   int Nchunks = ParallelUtilities::GetNumThreads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
@@ -86,7 +111,7 @@ public:
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
     BlockPartition(TContainerType& rData,
-                   int Nchunks = ParallelHelpers::GetNumThreads())
+                   int Nchunks = ParallelUtilities::GetNumThreads())
         : BlockPartition(rData.begin(), rData.end(), Nchunks)
     {}
 
@@ -246,7 +271,7 @@ public:
  *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
  */
     IndexPartition(TIndexType Size,
-                   int Nchunks = ParallelHelpers::GetNumThreads())
+                   int Nchunks = ParallelUtilities::GetNumThreads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
