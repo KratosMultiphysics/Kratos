@@ -32,7 +32,6 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "utilities/reduction_utilities.h"
-#include "utilities/parallel_helpers.h"
 
 
 namespace Kratos
