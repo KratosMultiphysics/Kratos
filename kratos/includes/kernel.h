@@ -102,7 +102,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /** The keys of Variables are not sequencial anymore, so this method will be deprecated
     */
     void Initialize();
-    
+
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.
     /** This method gives the application the list of all variables, elements and condition which is registered
         by kratos and all other added applications.
@@ -114,10 +114,6 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     bool IsImported(std::string ApplicationName) const;
 
     static bool IsDistributedRun();
-
-    static int GetNumThreads();
-
-    static void SetNumThreads(const int NumThreads);
 
     ///@}
     ///@name Input and output
