@@ -119,28 +119,28 @@ public:
     {
         KRATOS_TRY
 
-        if (!mIsInitialized) {
-            mIsInitialized = true;
+        if (!mIsNodalNormalShapeDerivativesComputed) {
+            mIsNodalNormalShapeDerivativesComputed = true;
 
-            // Find nodal neighbors for conditions
-            FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> neighbor_process(
-                rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart,
-                NEIGHBOUR_CONDITION_NODES);
-            neighbor_process.Execute();
-            const auto& neighbour_node_ids_map =
-                neighbor_process.GetNeighbourIds(rModelPart.Nodes());
+            // // Find nodal neighbors for conditions
+            // FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> neighbor_process(
+            //     rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart,
+            //     NEIGHBOUR_CONDITION_NODES);
+            // neighbor_process.Execute();
+            // const auto& neighbour_node_ids_map =
+            //     neighbor_process.GetNeighbourIds(rModelPart.Nodes());
 
-            // Compute condition NORMAL derivatives and store them in conditions
-            NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(
-                rModelPart.Conditions(), mDomainSize);
+            // // Compute condition NORMAL derivatives and store them in conditions
+            // NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(
+            //     rModelPart.Conditions(), mDomainSize);
 
-            KRATOS_WATCH(rModelPart.Name());
-
-            // Assign condition normal derivatives to corresponding nodes
-            SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>(
-                rModelPart, mDomainSize, NORMAL_SHAPE_DERIVATIVE,
-                neighbour_node_ids_map, 1.0 / mDomainSize, SLIP);
+            // // Assign condition normal derivatives to corresponding nodes
+            // SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>(
+            //     rModelPart, mDomainSize, NORMAL_SHAPE_DERIVATIVE,
+            //     neighbour_node_ids_map, 1.0 / mDomainSize, SLIP);
         }
+
+        BaseType::InitializeSolutionStep(rModelPart, rSensitivityModelPart, rResponseFunction);
 
         KRATOS_CATCH("");
     }
@@ -409,7 +409,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mIsInitialized = false;
+    bool mIsNodalNormalShapeDerivativesComputed = false;
     std::vector<Matrix> mAuxMatrices;
     std::vector<Vector> mAuxVectors;
     std::vector<Matrix> mRotatedSensitivityMatrices;
@@ -525,23 +525,23 @@ private:
                 gp_index_map[r_gp] = i;
             }
 
-            // add relevant neighbour gps
-            bool found_slip = false;
+            // // add relevant neighbour gps
+            // bool found_slip = false;
             unsigned int local_index = number_of_nodes;
-            for (unsigned int i = 0; i < number_of_nodes; ++i) {
-                const auto& r_node = r_geometry[i];
-                if (r_node.Is(SLIP)) {
-                    found_slip = true;
-                    for (auto neighbor_gp :
-                         r_node.GetValue(NEIGHBOUR_CONDITION_NODES).GetContainer()) {
-                        const auto p_itr = gp_index_map.find(neighbor_gp);
-                        if (p_itr == gp_index_map.end()) {
-                            rGPSensitivityVector.push_back(neighbor_gp);
-                            gp_index_map[neighbor_gp] = local_index++;
-                        }
-                    }
-                }
-            }
+            // for (unsigned int i = 0; i < number_of_nodes; ++i) {
+            //     const auto& r_node = r_geometry[i];
+            //     if (r_node.Is(SLIP)) {
+            //         found_slip = true;
+            //         for (auto neighbor_gp :
+            //              r_node.GetValue(NEIGHBOUR_CONDITION_NODES).GetContainer()) {
+            //             const auto p_itr = gp_index_map.find(neighbor_gp);
+            //             if (p_itr == gp_index_map.end()) {
+            //                 rGPSensitivityVector.push_back(neighbor_gp);
+            //                 gp_index_map[neighbor_gp] = local_index++;
+            //             }
+            //         }
+            //     }
+            // }
 
             // now properly resize the output matrix and vectors
             const unsigned int derivatives_size = local_index * mDomainSize;
@@ -555,25 +555,25 @@ private:
             }
             rotated_sensitivity_matrix.clear();
 
-            if (found_slip) {
-                // calculate entity residual.
-                // following methods will throw an error in old adjoint elements/conditions since
-                // they does not support SLIP condition based primal solutions
-                rEntity.CalculateLocalSystem(aux_matrix, aux_vector, rProcessInfo);
-                rEntity.CalculateLocalVelocityContribution(aux_matrix, aux_vector, rProcessInfo);
-            }
+            // if (found_slip) {
+            //     // calculate entity residual.
+            //     // following methods will throw an error in old adjoint elements/conditions since
+            //     // they does not support SLIP condition based primal solutions
+            //     rEntity.CalculateLocalSystem(aux_matrix, aux_vector, rProcessInfo);
+            //     rEntity.CalculateLocalVelocityContribution(aux_matrix, aux_vector, rProcessInfo);
+            // }
 
             // add residual derivative contributions
             for (unsigned int a = 0; a < number_of_nodes; ++a) {
                 const auto& r_node = r_geometry[a];
-                if (r_node.Is(SLIP)) {
+                // if (r_node.Is(SLIP)) {
                     (this->*(this->mAddNodalRotatedResidualDerivativeToMatrix))(
                         rotated_sensitivity_matrix, sensitivity_matrix,
                         aux_vector, a * local_size, gp_index_map, r_node);
-                } else {
-                    (this->*(this->mAddNodalResidualDerivativeToMatrix))(
-                        rotated_sensitivity_matrix, sensitivity_matrix, a * local_size);
-                }
+                // } else {
+                //     (this->*(this->mAddNodalResidualDerivativeToMatrix))(
+                //         rotated_sensitivity_matrix, sensitivity_matrix, a * local_size);
+                // }
             }
 
             // calculate sensitivity vector contributions
@@ -618,56 +618,62 @@ private:
 
         using coordinate_transformation_utils = CoordinateTransformationUtils<Matrix, Vector, double>;
 
-        // get the residual relevant for rNode
+        // // get the residual relevant for rNode
         BoundedVector<double, TDim> residual, residual_derivative, aux_vector;
-        FluidCalculationUtilities::GetSubVector<TDim>(residual, rResiduals, NodeStartIndex);
+        // FluidCalculationUtilities::GetSubVector<TDim>(residual, rResiduals, NodeStartIndex);
 
         // get the rotation matrix relevant for rNode
         BoundedMatrix<double, TDim, TDim> rotation_matrix;
-        coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
+        if (rNode.Is(SLIP)) {
+            coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
+        } else {
+            noalias(rotation_matrix) = IdentityMatrix(TDim);
+        }
 
         // add rotated residual derivative contributions
         for (unsigned int c = 0; c < rResidualDerivatives.size1(); ++c) {
             // get the residual derivative relevant for node
-            FluidCalculationUtilities::GetSubVector<TDim>(
+            FluidCalculationUtilities::ReadSubVector<TDim>(
                 residual_derivative, row(rResidualDerivatives, c), NodeStartIndex);
 
             // rotate residual derivative
             noalias(aux_vector) = prod(rotation_matrix, residual_derivative);
 
             // add rotated residual derivative to local matrix
-            FluidCalculationUtilities::AddSubVectorToMatrix<TDim>(
+            FluidCalculationUtilities::WriteSubVector<TDim>(
                 rOutput, aux_vector, c, NodeStartIndex);
 
             // add continuity equation derivatives
-            rOutput(c, NodeStartIndex + TDim) +=
+            rOutput(c, NodeStartIndex + TDim) =
                 rResidualDerivatives(c, NodeStartIndex + TDim);
         }
 
-        // first add rotation matrix derivative contributions w.r.t. rNode
-        BoundedMatrix<double, TDim, TDim> rotation_matrix_derivative;
-        for (unsigned int k = 0; k < TDim; ++k) {
-            coordinate_transformation_utils::CalculateRotationOperatorPureShapeSensitivities(
-                rotation_matrix_derivative, 0, k, rNode);
+        // // add damping matrix rotation derivatives
 
-            noalias(aux_vector) = prod(rotation_matrix_derivative, residual);
-            FluidCalculationUtilities::AddSubVectorToMatrix<TDim>(rOutput, aux_vector, NodeStartIndex + k, NodeStartIndex);
-        }
+        // // first add rotation matrix derivative contributions w.r.t. rNode
+        // BoundedMatrix<double, TDim, TDim> rotation_matrix_derivative;
+        // for (unsigned int k = 0; k < TDim; ++k) {
+        //     coordinate_transformation_utils::CalculateRotationOperatorPureShapeSensitivities(
+        //         rotation_matrix_derivative, 0, k, rNode);
 
-        // add rotation matrix derivative contributions w.r.t. rNode neighbors
-        const auto& r_neighbor_gps = rNode.GetValue(NEIGHBOUR_CONDITION_NODES);
-        for (unsigned int b = 0; b < r_neighbor_gps.size(); ++b) {
-            const int derivative_node_index =
-                rDerivativesMap.find(r_neighbor_gps(b))->second * TDim;
-            for (unsigned int k = 0; k < TDim; ++k) {
-                coordinate_transformation_utils::CalculateRotationOperatorPureShapeSensitivities(
-                    rotation_matrix_derivative, b + 1, k, rNode);
+        //     noalias(aux_vector) = prod(rotation_matrix_derivative, residual);
+        //     FluidCalculationUtilities::AddSubVectorToMatrix<TDim>(rOutput, aux_vector, NodeStartIndex + k, NodeStartIndex);
+        // }
 
-                noalias(aux_vector) = prod(rotation_matrix_derivative, residual);
-                FluidCalculationUtilities::AddSubVectorToMatrix<TDim>(
-                    rOutput, aux_vector, derivative_node_index + k, NodeStartIndex);
-            }
-        }
+        // // add rotation matrix derivative contributions w.r.t. rNode neighbors
+        // const auto& r_neighbor_gps = rNode.GetValue(NEIGHBOUR_CONDITION_NODES);
+        // for (unsigned int b = 0; b < r_neighbor_gps.size(); ++b) {
+        //     const int derivative_node_index =
+        //         rDerivativesMap.find(r_neighbor_gps(b))->second * TDim;
+        //     for (unsigned int k = 0; k < TDim; ++k) {
+        //         coordinate_transformation_utils::CalculateRotationOperatorPureShapeSensitivities(
+        //             rotation_matrix_derivative, b + 1, k, rNode);
+
+        //         noalias(aux_vector) = prod(rotation_matrix_derivative, residual);
+        //         FluidCalculationUtilities::AddSubVectorToMatrix<TDim>(
+        //             rOutput, aux_vector, derivative_node_index + k, NodeStartIndex);
+        //     }
+        // }
 
         KRATOS_CATCH("");
     }

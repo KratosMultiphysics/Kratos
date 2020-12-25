@@ -157,7 +157,7 @@ public:
      * @param Position          Starting index in input vector
      */
     template <unsigned int TSize>
-    static void GetSubVector(
+    static void ReadSubVector(
         BoundedVector<double, TSize>& rOutput,
         const Vector& rInput,
         const IndexType Position)
@@ -192,7 +192,7 @@ public:
      * @param ColumnIndex           Column index
      */
     template<unsigned int TSize>
-    static void AddSubVectorToMatrix(
+    static void WriteSubVector(
         Matrix& rOutput,
         const BoundedVector<double, TSize>& rInput,
         const unsigned int RowIndex,
@@ -212,7 +212,7 @@ public:
             << ", TSize = " << TSize << " ].\n";
 
         for (unsigned int i = 0; i < TSize; ++i) {
-            rOutput(RowIndex, ColumnIndex + i) += rInput[i];
+            rOutput(RowIndex, ColumnIndex + i) = rInput[i];
         }
 
         KRATOS_CATCH("");

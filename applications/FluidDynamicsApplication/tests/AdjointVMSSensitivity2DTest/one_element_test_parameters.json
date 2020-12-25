@@ -2,8 +2,8 @@
     "problem_data" : {
         "problem_name"    : "one_element",
         "start_time"      : 0.0,
-        "end_time"        : 3.0,
-        "nsteps"          : 3,
+        "end_time"        : 1.0,
+        "nsteps"          : 1,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
@@ -47,10 +47,10 @@
         "consider_periodic_conditions"  : false,
         "compute_reactions"             : false,
         "reform_dofs_at_each_step"      : false,
-        "relative_velocity_tolerance"   : 0.001,
-        "absolute_velocity_tolerance"   : 1e-5,
-        "relative_pressure_tolerance"   : 0.001,
-        "absolute_pressure_tolerance"   : 1e-5,
+        "relative_velocity_tolerance"   : 1e-7,
+        "absolute_velocity_tolerance"   : 1e-9,
+        "relative_pressure_tolerance"   : 1e-7,
+        "absolute_pressure_tolerance"   : 1e-9,
         "model_part_name"               : "MainModelPart",
         "volume_model_part_name"        : "Parts_Fluid",
         "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
@@ -70,6 +70,9 @@
             "automatic_time_step" : false,
             "time_step"           : 1.0
         },
+        "time_scheme"                 : "steady",
+        "velocity_relaxation"         : 0.9,
+        "pressure_relaxation"         : 0.9,
         "formulation" : {
             "element_type"             : "vms",
             "use_orthogonal_subscales" : false,
@@ -118,7 +121,7 @@
         "gravity" : [],
         "auxiliar_process_list" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "single_mesh_primal_output_process",
+            "python_module" : "single_mesh_temporal_output_process",
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {
@@ -127,7 +130,7 @@
                     "file_access_mode" : "truncate"
                 },
                 "nodal_solution_step_data_settings" : {
-                    "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+                    "list_of_variables": ["VELOCITY", "PRESSURE"]
                 }
             }
         },{
