@@ -38,8 +38,9 @@ namespace Kratos
 {
 ///@addtogroup KratosCore
 
-/// Short class definition.
-/** Detail class definition.
+/// Shared memory parallelism related helper class
+/** Provides access to functionalities for shared memory parallelism
+ * such as the number of threads in usa.
 */
 class KRATOS_API(KRATOS_CORE) ParallelUtilities
 {
@@ -54,18 +55,40 @@ public:
     ///@name Operations
     ///@{
 
+    /** @brief Returns the current number of threads
+     * @return number of threads
+     */
     static int GetNumThreads();
 
+    /** @brief Sets the current number of threads
+     * @param NumThreads - the number of threads to be used
+     */
     static void SetNumThreads(const int NumThreads);
 
+    /** @brief Returns the number of processors available to this device
+     * This can include the multiple threads per processing unit
+     * @return number of processors
+     */
     static int GetNumProcs();
 
     ///@}
 
 private:
-    static int msNumThreads;
+    ///@name Static Member Variables
+    ///@{
 
+    static int msNumThreads; // number of threads used in Kratos
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /** @brief Initializes the number of threads to be used.
+     * @return number of threads
+     */
     static int InitializeNumberOfThreads();
+
+    ///@}
 
 }; // Class ParallelUtilities
 

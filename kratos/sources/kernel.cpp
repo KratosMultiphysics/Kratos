@@ -13,6 +13,8 @@
 // System includes
 #include <iostream>
 
+// External includes
+
 // Project includes
 #include "includes/kernel.h"
 #include "includes/kratos_version.h"
