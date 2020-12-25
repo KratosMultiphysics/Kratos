@@ -490,10 +490,16 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
         .def(py::init<>())
-        .def_static("SetNumThreads", &ParallelUtilities::SetNumThreads)
-        .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
+        .def_static("SetNumThreads", [](const int NumThreads){
+            KRATOS_WARNING("OpenMPUtils") << "\"SetNumThreads\" is deprecated, please use ParallelUtilities.SetNumThreads instead" << std::endl;
+            ParallelUtilities::SetNumThreads(NumThreads);})
+        .def_static("GetNumThreads", [](){
+            KRATOS_WARNING("OpenMPUtils") << "\"GetNumThreads\" is deprecated, please use ParallelUtilities.GetNumThreads instead" << std::endl;
+            return ParallelUtilities::GetNumThreads();})
+        .def_static("GetNumberOfProcessors", [](){
+            KRATOS_WARNING("OpenMPUtils") << "\"GetNumberOfProcessors\" is deprecated, please use ParallelUtilities.GetNumProcs instead" << std::endl;
+            return ParallelUtilities::GetNumProcs();})
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-        .def_static("GetNumberOfProcessors", &ParallelUtilities::GetNumProcs)
         ;
 
     // ParallelUtilities
