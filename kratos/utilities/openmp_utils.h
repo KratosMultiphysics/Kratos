@@ -83,13 +83,9 @@ public:
     /**
      @return Number of processors available to the device.
      */
-    static int GetNumberOfProcessors()
+    static KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") int GetNumberOfProcessors()
     {
-#ifdef _OPENMP
-        return omp_get_num_procs();
-#else
-        return 1;
-#endif
+        return ParallelUtilities::GetNumProcs();
     }
 
     /// Wrapper for omp_get_dynamic().

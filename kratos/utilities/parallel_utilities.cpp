@@ -14,7 +14,6 @@
 
 // System includes
 #include <cstdlib>
-#include <thread>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
@@ -22,6 +21,7 @@
 #endif
 
 // Project includes
+#include "input_output/logger.h"
 #include "parallel_utilities.h"
 
 
@@ -30,7 +30,37 @@ namespace Kratos
 
 int ParallelUtilities::GetNumThreads()
 {
+    return msNumThreads;
+}
+
+void ParallelUtilities::SetNumThreads(const int NumThreads)
+{
+    const int num_procs = GetNumProcs();
+    KRATOS_WARNING_IF("ParallelUtilities", NumThreads > num_procs) << "Maximum number of threads (" << num_procs << ") is exceeded!" << std::endl;
+    msNumThreads = NumThreads;
+
 #if defined(KRATOS_SMP_OPENMP)
+    omp_set_num_threads(NumThreads);
+#endif
+}
+
+int ParallelUtilities::GetNumProcs()
+{
+#if defined(KRATOS_SMP_OPENMP)
+    return omp_get_num_procs();
+
+#elif defined(KRATOS_SMP_CXX11)
+    // NOTE: std::thread::hardware_concurrency() can return 0 in some systems!
+    return std::max(1, std::thread::hardware_concurrency());
+
+#else
+    return 1;
+#endif
+}
+
+int ParallelUtilities::InitializeNumberOfThreads()
+{
+#ifdef KRATOS_SMP_OPENMP
     return omp_get_max_threads();
 
 #elif defined(KRATOS_SMP_CXX11)
@@ -64,24 +94,6 @@ int ParallelUtilities::GetNumThreads()
 #endif
 }
 
-void ParallelUtilities::SetNumThreads(const int NumThreads)
-{
-//     #ifdef _OPENMP
-
-//       int procs    = omp_get_num_procs();
-//       if( procs < NumThreads ){
-// 	std::cout<<" WARNING: Maximimun number of threads is EXCEEDED "<<std::endl;
-// 	/* Set thread number */
-// 	omp_set_num_threads(procs);
-// 	std::cout<<" Number of Threads Set To : "<<procs<<std::endl;
-//       }
-//       else{
-// 	/* Set thread number */
-// 	omp_set_num_threads(NumThreads);
-//       }
-
-// #endif
-}
-
+int ParallelUtilities::msNumThreads = ParallelUtilities::InitializeNumberOfThreads();
 
 }  // namespace Kratos.

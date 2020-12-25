@@ -58,7 +58,14 @@ public:
 
     static void SetNumThreads(const int NumThreads);
 
+    static int GetNumProcs();
+
     ///@}
+
+private:
+    static int msNumThreads;
+
+    static int InitializeNumberOfThreads();
 
 }; // Class ParallelUtilities
 
