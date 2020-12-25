@@ -493,12 +493,14 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("SetNumThreads", &ParallelUtilities::SetNumThreads)
         .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-        .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
+        .def_static("GetNumberOfProcessors", &ParallelUtilities::GetNumProcs)
         ;
 
     // ParallelUtilities
     py::class_<ParallelUtilities >(m,"ParallelUtilities")
         .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
+        .def_static("SetNumThreads", &ParallelUtilities::SetNumThreads)
+        .def_static("GetNumProcs",   &ParallelUtilities::GetNumProcs)
         ;
 
     // EntitiesUtilities
