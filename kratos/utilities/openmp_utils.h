@@ -134,7 +134,7 @@ public:
      (scalar or parallel) timer class.
      @return Current time
      */
-    static double GetCurrentTime()
+    static KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"utilities/builtin_timer.h\" instead") double GetCurrentTime()
     {
 #ifndef _OPENMP
         return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
