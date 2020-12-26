@@ -687,12 +687,12 @@ private:
         KRATOS_TRY
 
         // add non-rotated residual derivative contributions
-        for (unsigned int c = 0; c < rResidualDerivatives.size1(); ++c) {
-            for (unsigned int i = 0; i < TDim + 1; ++i) {
-                rOutput(c, NodeStartIndex + i) +=
-                    rResidualDerivatives(c, NodeStartIndex + i);
-            }
-        }
+        // for (unsigned int c = 0; c < rResidualDerivatives.size1(); ++c) {
+        //     for (unsigned int i = 0; i < TDim + 1; ++i) {
+        //         rOutput(c, NodeStartIndex + i) +=
+        //             rResidualDerivatives(c, NodeStartIndex + i);
+        //     }
+        // }
 
         KRATOS_CATCH("");
     }
