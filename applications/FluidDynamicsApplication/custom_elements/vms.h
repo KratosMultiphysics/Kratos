@@ -276,7 +276,8 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+        const unsigned int BlockSize = TDim + 1;
+        const unsigned int LocalSize = BlockSize * TNumNodes;
 
         // Check sizes and initialize
         if (rRightHandSideVector.size() != LocalSize)
@@ -291,27 +292,20 @@ public:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
+        array_1d<double, 3> body_force;
+        this->EvaluateInPoint(body_force, BODY_FORCE, N);
 
-        // Calculate Momentum RHS contribution
-        this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
+        array_1d<double, 3> velocity;
+        this->EvaluateInPoint(velocity, VELOCITY, N);
 
-        // For OSS: Add projection of residuals to RHS
-        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
-        if (r_const_process_info[OSS_SWITCH] == 1)
-        {
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
+        const double velocity_norm = norm_2(velocity);
 
-            double ElemSize = this->ElementSize(Area);
-            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
+        for (IndexType a = 0; a < TNumNodes; ++a) {
+            for (IndexType i = 0; i < TDim; ++i) {
+                rRightHandSideVector[a * BlockSize + i] += Area * N[a] * body_force[i];
+            }
 
-            // stabilization parameters
-            double TauOne, TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
-
-            this->AddProjectionToRHS(rRightHandSideVector, AdvVel, Density, TauOne, TauTwo, N, DN_DX, Area,rCurrentProcessInfo[DELTA_TIME]);
+            rRightHandSideVector[a * BlockSize + TDim] += Area * N[a] * velocity_norm;
         }
     }
 
@@ -325,49 +319,6 @@ public:
      */
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
-
-        // Resize and set to zero
-        if (rMassMatrix.size1() != LocalSize)
-            rMassMatrix.resize(LocalSize, LocalSize, false);
-
-        rMassMatrix = ZeroMatrix(LocalSize, LocalSize);
-
-        // Get the element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        // Calculate this element's fluid properties
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
-
-        // Add 'classical' mass matrix (lumped)
-        double Coeff = Density * Area / TNumNodes; //Optimize!
-        this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
-
-        /* For ASGS: add dynamic stabilization terms.
-         These terms are not used in OSS, as they belong to the finite element
-         space and cancel out with their projections.
-         */
-        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
-        if (r_const_process_info[OSS_SWITCH] != 1)
-        {
-            double ElemSize = this->ElementSize(Area);
-            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
-
-            // Get Advective velocity
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            // stabilization parameters
-            double TauOne, TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
-
-            // Add dynamic stabilization terms ( all terms involving a delta(u) )
-            this->AddMassStabTerms(rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
-        }
     }
 
     /// Computes the local contribution associated to 'new' velocity and pressure values
@@ -399,21 +350,22 @@ public:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
+        array_1d<double, 3> velocity;
+        this->EvaluateInPoint(velocity, VELOCITY, N);
 
-        double ElemSize = this->ElementSize(Area);
-        double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
+        const double velocity_norm = norm_2(velocity);
 
-        // Get Advective velocity
-        array_1d<double, 3 > AdvVel;
-        this->GetAdvectiveVel(AdvVel, N);
 
-        // stabilization parameters
-        double TauOne, TauTwo;
-        this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
+        for (IndexType a = 0; a < TNumNodes; ++a) {
+            for (IndexType b = 0; b < TNumNodes; ++b) {
+                for (IndexType i = 0; i < TDim; ++i) {
+                    rDampingMatrix(a * (TDim + 1) + i, b * (TDim + 1) + i) +=
+                        N[a] * N[b] * velocity_norm * Area;
+                }
 
-        this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+                rDampingMatrix(a * (TDim + 1) + TDim, b * (TDim + 1) + TDim) += N[a] * N[b] * Area;
+            }
+        }
 
         // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
         VectorType U = ZeroVector(LocalSize);

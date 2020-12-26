@@ -149,10 +149,17 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& rCurrentProcessInfo) const override;
 
+    void GetValuesVector(Vector& values, int Step = 0) const override;
+
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
 
     void CalculateFirstDerivativesLHS(Matrix& rLeftHandSideMatrix,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSensitivityMatrix(
+        const Variable<array_1d<double, 3>>& rDesignVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output

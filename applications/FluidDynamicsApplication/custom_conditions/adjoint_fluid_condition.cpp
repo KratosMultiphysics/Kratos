@@ -123,6 +123,19 @@ void AdjointFluidCondition<TDim, TNumNodes>::CalculateFirstDerivativesLHS(
     rLeftHandSideMatrix.clear();
 }
 
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void AdjointFluidCondition<TDim, TNumNodes>::CalculateSensitivityMatrix(
+    const Variable<array_1d<double, 3>>& rDesignVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rOutput.size1() != 0)
+        rOutput.resize((TDim) * TNumNodes, LocalSize, false);
+
+    rOutput.clear();
+}
+
 template <unsigned int TDim, unsigned int TNumNodes>
 void AdjointFluidCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rResult,
                                                                        int Step) const
@@ -135,6 +148,12 @@ void AdjointFluidCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& r
         AdjointFluidConditionUtilities<TDim>::SetAdjointValues(
             rResult, local_index, this->GetGeometry()[i], Step);
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void AdjointFluidCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
+{
+    this->GetFirstDerivativesVector(rValues, Step);
 }
 
 // template instantiations

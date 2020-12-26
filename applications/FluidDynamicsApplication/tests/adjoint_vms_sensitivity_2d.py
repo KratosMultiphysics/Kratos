@@ -1,7 +1,7 @@
 import os
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
@@ -92,12 +92,12 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         sensitivity = []
 
         def calculate_objective_value():
-            parameters = KratosMultiphysics.Parameters("""{
-                "norm_model_part_name": "NoSlip2D_Cylinder",
-                "velocity_norm_factor": 1e-4,
-                "pressure_norm_factor": 1e-4
+            parameters = Parameters("""{
+                "norm_model_part_name": "Structure",
+                "velocity_norm_factor": 1.0,
+                "pressure_norm_factor": 1.0
             }""")
-            response_function = KratosMultiphysics.FluidDynamicsApplication.VelocityPressureNormSquareResponseFunction(
+            response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 parameters,
                 self.test._GetSolver().main_model_part)
             response_function.Initialize()
@@ -152,12 +152,12 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             test = AdjointFluidAnalysis(Model(), self._readParameters('AdjointVMSSensitivity2DTest/one_element_test_adjoint'))
             test.Run()
             Sensitivity = [[]]
-            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
-            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(2).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(2).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
             # calculate sensitivity by finite difference
-            step_size = 1e-10
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
+            step_size = 1e-7
+            FDSensitivity = self._computeFiniteDifferenceNormSquareSensitivity([2],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
             self._removeH5Files("MainModelPart")
