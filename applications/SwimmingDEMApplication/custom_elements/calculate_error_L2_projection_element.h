@@ -209,11 +209,11 @@ public:
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(
+        MatrixType& rLHSMatrix,
+        ProcessInfo& rCurrentProcessInfo);
 
-    void AddConsistentMassMatrixContribution(
+    void AddLHSMatrixContribution(
         MatrixType& rLHSMatrix,
         const array_1d<double,NumNodes>& rShapeFunc,
         const double Weight);
@@ -223,7 +223,7 @@ public:
         const array_1d<double,NumNodes>& rShapeFunc,
         const double Weight);
 
-    void CalculateRHS(
+    void CalculateRightHandSide(
         VectorType& rRHSVector,
         ProcessInfo& rCurrentProcessInfo);
     ///@}

@@ -30,17 +30,18 @@ class L2ErrorCalculatorUtility:
         self.error_model_part = self.model.CreateModelPart("ErrorModelPart")
 
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.VECTORIAL_ERROR)
+        self.error_model_part.AddNodalSolutionStepVariable(SDEM.SCALAR_ERROR)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_X)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_Y)
         self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_Z)
-        self.error_model_part.AddNodalSolutionStepVariable(SDEM.SCALAR_ERROR)
+        self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_P)
 
         model_part_cloner = KratosMultiphysics.ConnectivityPreserveModeler()
         model_part_cloner.GenerateModelPart(self.model_part, self.error_model_part, self.element_name)
 
         self.error_model_part.ProcessInfo = self.model_part.ProcessInfo
 
-        self.DOFs = (SDEM.ERROR_X, SDEM.ERROR_Y, SDEM.ERROR_Z, SDEM.SCALAR_ERROR)
+        self.DOFs = (SDEM.ERROR_X, SDEM.ERROR_Y, SDEM.ERROR_Z, SDEM.ERROR_P)
 
         self.AddDofs(self.DOFs)
 
@@ -51,7 +52,7 @@ class L2ErrorCalculatorUtility:
         self.Solve()
 
         self.velocity_error_norm = self.VectorL2ErrorNorm(self.error_model_part)
-        self.pressure_error_norm = self.ScalarL2ErroNorm(self.error_model_part)
+        self.pressure_error_norm = self.ScalarL2ErrorNorm(self.error_model_part)
 
         return self.velocity_error_norm/self.u_characteristic, self.pressure_error_norm/self.p_characteristic, self.error_model_part
 
@@ -61,7 +62,7 @@ class L2ErrorCalculatorUtility:
     def VectorL2ErrorNorm(self, error_model_part):
         return SDEM.L2ErrorNormCalculator().GetL2VectorErrorNorm(self.error_model_part)
 
-    def ScalarL2ErroNorm(self, error_model_part):
+    def ScalarL2ErrorNorm(self, error_model_part):
         return SDEM.L2ErrorNormCalculator().GetL2ScalarErrorNorm(self.error_model_part)
 
     def SetStrategy(self):

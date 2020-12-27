@@ -25,7 +25,7 @@ void CalculateErrorL2Projection<Dim, NumNodes>::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int LocalSize(Dim * NumNodes);
+    const unsigned int LocalSize((Dim+1) * NumNodes);
 
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
@@ -40,8 +40,8 @@ void CalculateErrorL2Projection<Dim, NumNodes>::CalculateLocalSystem(
         rRightHandSideVector(i) = 0.0;
     }
 
-    CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-    CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
+    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 
 }
 
@@ -51,7 +51,7 @@ void CalculateErrorL2Projection<Dim, NumNodes>::EquationIdVector(
     ProcessInfo& rCurrentProcessInfo)
 {
 
-    const unsigned int LocalSize = Dim * NumNodes;
+    const unsigned int LocalSize = (Dim+1) * NumNodes;
     unsigned int LocalIndex = 0;
     unsigned int local_position = this->GetGeometry()[0].GetDofPosition(ERROR_X);
 
@@ -62,7 +62,12 @@ void CalculateErrorL2Projection<Dim, NumNodes>::EquationIdVector(
     {
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ERROR_X, local_position).EquationId();
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ERROR_Y, local_position + 1).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ERROR_Z, local_position + 2).EquationId();
+        if(Dim == 3)
+        {
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ERROR_Z, local_position + 2).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ERROR_P, local_position + 3).EquationId();
+        }
+        else if(Dim == 2) rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ERROR_P, local_position + 2).EquationId();
     }
 }
 
@@ -71,7 +76,7 @@ void CalculateErrorL2Projection<Dim, NumNodes>::GetDofList(
     DofsVectorType& rElementalDofList,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = Dim * NumNodes;
+    const unsigned int LocalSize = (Dim+1) * NumNodes;
 
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
@@ -83,27 +88,20 @@ void CalculateErrorL2Projection<Dim, NumNodes>::GetDofList(
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(ERROR_X);
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(ERROR_Y);
         if(Dim == 3) rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(ERROR_Z);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(ERROR_P);
     }
 }
 
 template <unsigned int Dim, unsigned int NumNodes>
-void CalculateErrorL2Projection<Dim, NumNodes>::CalculateMassMatrix(
-    MatrixType& rMassMatrix,
+void CalculateErrorL2Projection<Dim, NumNodes>::CalculateLeftHandSide(
+    MatrixType& rLHSMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = Dim * NumNodes;
-
-    // Resize and set to zero
-    if (rMassMatrix.size1() != LocalSize)
-        rMassMatrix.resize(LocalSize, LocalSize, false);
-
-    rMassMatrix = ZeroMatrix(LocalSize, LocalSize);
+    const unsigned int LocalSize = (Dim+1) * NumNodes;
 
     // Get the element's geometric parameters
     array_1d<double, NumNodes> N;
-
-    // Add 'consistent' mass matrix
-
+    rLHSMatrix = ZeroMatrix(LocalSize, LocalSize);
     MatrixType NContainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
 
@@ -114,18 +112,17 @@ void CalculateErrorL2Projection<Dim, NumNodes>::CalculateMassMatrix(
     for (SizeType g = 0; g < NumGauss; g++){
             const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
             const ShapeFunctionsType Ng = row(NContainer, g);
-            this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, GaussWeight);
+            this->AddLHSMatrixContribution(rLHSMatrix, Ng, GaussWeight);
         }
-
 }
 
 template <unsigned int Dim, unsigned int NumNodes>
-void CalculateErrorL2Projection<Dim, NumNodes>::AddConsistentMassMatrixContribution(
+void CalculateErrorL2Projection<Dim, NumNodes>::AddLHSMatrixContribution(
     MatrixType& rLHSMatrix,
-    const array_1d<double,NumNodes>& rShapeFunc,
+    const array_1d<double,NumNodes>& N,
     const double Weight)
 {
-    const unsigned int BlockSize = Dim;
+    const unsigned int BlockSize = NumNodes;
 
     double Coef = Weight;
     unsigned int FirstRow(0), FirstCol(0);
@@ -135,56 +132,51 @@ void CalculateErrorL2Projection<Dim, NumNodes>::AddConsistentMassMatrixContribut
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
         // Loop over columns
+        unsigned int row = i*BlockSize;
         for (unsigned int j = 0; j < NumNodes; ++j)
         {
-            K = Coef * rShapeFunc[i] * rShapeFunc[j];
-            for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
+            unsigned int col = j*BlockSize;
+            K = Coef * N[i] * N[j];
+            for (unsigned int d = 0; d < NumNodes; ++d) // iterate over dimensions for velocity Dofs in this node combination
             {
-                rLHSMatrix(FirstRow + d, FirstCol + d) += K;
+                rLHSMatrix(row+d, col+d) += K;
             }
-            // Update column index
-            FirstCol += BlockSize;
         }
-        // Update matrix indices
-        FirstRow += BlockSize;
-        FirstCol = 0;
     }
 }
 
 template <unsigned int Dim, unsigned int NumNodes>
 void CalculateErrorL2Projection<Dim, NumNodes>::AddIntegrationPointRHSContribution(
     VectorType& rRHSVector,
-    const array_1d<double,NumNodes>& rShapeFunc,
+    const array_1d<double,NumNodes>& N,
     const double Weight)
 {
     double Coef = Weight;
-    int LocalIndex = 0;
+    Vector NodalComponent = ZeroVector(Dim);
+    double scalar_component = 0.0;
 
-    for (unsigned int iNodeB = 0; iNodeB < NumNodes; ++iNodeB){
-        for (unsigned int dj = 0; dj < Dim; ++dj){
-
-            double value = 0.0;
-
-            for (unsigned int iNodeA = 0; iNodeA < NumNodes; ++iNodeA){
-
-                Vector NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VECTORIAL_ERROR);
-                value += rShapeFunc[iNodeB] * NodalComponent[dj];
-
-            }
-            rRHSVector[LocalIndex++] += Coef * value;
+    for (unsigned int i = 0; i < NumNodes; ++i){
+        int row = i * NumNodes;
+        NodalComponent = this->GetGeometry()[i].FastGetSolutionStepValue(VECTORIAL_ERROR);
+        scalar_component = this->GetGeometry()[i].FastGetSolutionStepValue(SCALAR_ERROR);
+        for (unsigned int d = 0; d < Dim; ++d){
+            rRHSVector[row+d] += Coef * N[i] * NodalComponent[d];
         }
+        rRHSVector[row+Dim] += Coef * N[i] * scalar_component;
     }
 }
 
 template <unsigned int Dim, unsigned int NumNodes>
-void CalculateErrorL2Projection<Dim, NumNodes>::CalculateRHS(
+void CalculateErrorL2Projection<Dim, NumNodes>::CalculateRightHandSide(
     VectorType& rRHSVector,
     ProcessInfo& rCurrentProcessInfo)
 {
 
+    const unsigned int LocalSize = (Dim+1) * NumNodes;
     array_1d<double, NumNodes> N;
     MatrixType NContainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
     VectorType GaussWeights;
+    rRHSVector = ZeroVector(LocalSize);
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
 
     const SizeType NumGauss = NContainer.size1();
@@ -196,7 +188,6 @@ void CalculateErrorL2Projection<Dim, NumNodes>::CalculateRHS(
         const ShapeFunctionsType& Ng = row(NContainer, g);
         this->AddIntegrationPointRHSContribution(rRHSVector, Ng, GaussWeight);
     }
-
 }
 
 // Explicit instantiations

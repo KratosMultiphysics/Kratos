@@ -83,10 +83,10 @@ double GetL2VectorErrorNorm(ModelPart& r_model_part)
             Vector DetJ = ZeroVector(NumGauss);
             rGeom.DeterminantOfJacobian(DetJ, GeometryData::GI_GAUSS_2);
             for (unsigned int j = 0; j < NumNodes; ++j){
-                error_x += rGeom[j].FastGetSolutionStepValue(ERROR_X) * N[j];
-                error_y += rGeom[j].FastGetSolutionStepValue(ERROR_Y) * N[j];
+                error_x += rGeom[j].FastGetSolutionStepValue(VECTORIAL_ERROR_X) * N[j];
+                error_y += rGeom[j].FastGetSolutionStepValue(VECTORIAL_ERROR_Y) * N[j];
                 error_z += 0.0;
-                if (dim == 3) error_z += rGeom[j].FastGetSolutionStepValue(ERROR_Z) * N[j];
+                if (dim == 3) error_z += rGeom[j].FastGetSolutionStepValue(VECTORIAL_ERROR_Z) * N[j];
             }
             squared_modulus = std::pow(error_x,2)+std::pow(error_y,2)+std::pow(error_z,2);
             result += squared_modulus * DetJ[gss] * IntegrationPoints[gss].Weight();
