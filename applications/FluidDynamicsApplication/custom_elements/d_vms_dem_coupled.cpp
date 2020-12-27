@@ -76,111 +76,7 @@ Element::Pointer DVMSDEMCoupled<TElementData>::Create(
     return Kratos::make_intrusive<DVMSDEMCoupled>(NewId, pGeom, pProperties);
 }
 
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::Calculate(
-    const Variable<double>& rVariable,
-    double& rOutput,
-    const ProcessInfo& rCurrentProcessInfo) {}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::Calculate(
-    const Variable<array_1d<double, 3>>& rVariable,
-    array_1d<double, 3>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo) {
-    // Lumped projection terms
-    if (rVariable == ADVPROJ) {
-        this->CalculateProjections(rCurrentProcessInfo);
-    }
-}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::Calculate(
-    const Variable<Vector>& rVariable,
-    Vector& rOutput,
-    const ProcessInfo& rCurrentProcessInfo) {}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::Calculate(
-    const Variable<Matrix>& rVariable,
-    Matrix& rOutput,
-    const ProcessInfo& rCurrentProcessInfo) {}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    // Base class does things with constitutive law here.
-    DVMS<TElementData>::Initialize(rCurrentProcessInfo);
-}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    DVMS<TElementData>::FinalizeSolutionStep(rCurrentProcessInfo);
-}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    DVMS<TElementData>::InitializeNonLinearIteration(rCurrentProcessInfo);
-}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Inquiry
-
-template< class TElementData >
-int DVMSDEMCoupled<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
-{
-    int out = DVMS<TElementData>::Check(rCurrentProcessInfo);
-
-    return out;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template< class TElementData >
-void DVMSDEMCoupled<TElementData>::GetValueOnIntegrationPoints(
-    Variable<array_1d<double, 3 > > const& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    ProcessInfo const& rCurrentProcessInfo)
-{
-    DVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-}
-
-template< class TElementData >
-void DVMSDEMCoupled<TElementData>::GetValueOnIntegrationPoints(
-    Variable<double> const& rVariable,
-    std::vector<double>& rValues,
-    ProcessInfo const& rCurrentProcessInfo)
-{
-    DVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::GetValueOnIntegrationPoints(
-    Variable<array_1d<double, 6>> const& rVariable,
-    std::vector<array_1d<double, 6>>& rValues,
-    ProcessInfo const& rCurrentProcessInfo)
-{
-    DVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::GetValueOnIntegrationPoints(
-    Variable<Vector> const& rVariable,
-    std::vector<Vector>& rValues,
-    ProcessInfo const& rCurrentProcessInfo)
-{
-    DVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-}
-
-template <class TElementData>
-void DVMSDEMCoupled<TElementData>::GetValueOnIntegrationPoints(
-    Variable<Matrix> const& rVariable,
-    std::vector<Matrix>& rValues,
-    ProcessInfo const& rCurrentProcessInfo)
-{
-    DVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
 
@@ -221,8 +117,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
     double tau_one;
     double tau_two;
-    double tau_p;
-    this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two,tau_p);
+    this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two);
 
     const double dt = rData.DeltaTime;
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
@@ -306,8 +201,8 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 /* v-u block */
                 // Stabilization: Div(v) * TauTwo * Div(u)
                 for (unsigned int e = 0; e < Dim; e++){
-                    double DAlphaD = fluid_fraction * (tau_two + tau_p)*rData.DN_DX(i,d)*rData.DN_DX(j,e);
-                    double DU = fluid_fraction_gradient[e]*(tau_two + tau_p)*rData.DN_DX(i,d)*rData.N[j];
+                    double DAlphaD = fluid_fraction * tau_two *rData.DN_DX(i,d)*rData.DN_DX(j,e);
+                    double DU = fluid_fraction_gradient[e] * tau_two * rData.DN_DX(i,d)*rData.N[j];
                     LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU);
                 }
             }
@@ -329,11 +224,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
             double AF = tau_one * AGradN[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
 
             // OSS pressure subscale projection
-            double DPhi = rData.DN_DX(i,d) * (tau_two + tau_p ) * (mass_source - fluid_fraction_rate - MassProj);
-
-            // Dynamic term in pressure subscale div(vh) * h^2/(c1*dt) * (-div(uh^n) )
-            // This term comes from mass equation: div(uh^n+1 + uh^n) = 0. It can be neglected
-            rLocalRHS[row+d] -= rData.Weight * rData.DN_DX(i,d) * tau_p * OldResidual;
+            double DPhi = rData.DN_DX(i,d) * tau_two * (mass_source - fluid_fraction_rate - MassProj);
 
             rLocalRHS[row+d] += rData.Weight * (VF - VI + AF - DPhi);
 
@@ -392,8 +283,7 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
 
     double tau_one;
     double tau_two;
-    double tau_p;
-    this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two,tau_p);
+    this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two);
 
     const double dt = rData.DeltaTime;
 
@@ -434,8 +324,7 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     const TElementData& rData,
     const array_1d<double,3> &Velocity,
     double &TauOne,
-    double &TauTwo,
-    double &TauP) const
+    double &TauTwo) const
 {
     const double h = rData.ElementSize;
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
@@ -452,10 +341,6 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     TauOne = 1.0/inv_tau;
     TauTwo = viscosity + density * mTauC2 * velocity_norm * h / mTauC1;
 
-    // Auxiliary coefficient StaticTauOne*TauTwo/Dt that appears on the pressure subscale model
-    // This coefficient comes from mass equation: div(u^n+1 + u^n) = 0 setting to 0 is to consider
-    // div(u^n+1) = 0
-    TauP = 0.0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -71,6 +71,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         self.element_name = settings["element_name"].GetString()
         self.condition_name = "NavierStokesWallCondition"
 
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 

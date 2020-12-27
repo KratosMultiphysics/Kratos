@@ -133,7 +133,7 @@ public:
     DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~DVMSDEMCoupled() override;
+    ~DVMSDEMCoupled();
 
     ///@}
     ///@name Operators
@@ -153,9 +153,10 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            Properties::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        Properties::Pointer pProperties) const override;
 
     /// Create a new element of this type using given geometry
     /**
@@ -165,69 +166,14 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            Properties::Pointer pProperties) const override;
-
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void Calculate(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void Calculate(
-        const Variable<Vector >& rVariable,
-        Vector& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<Matrix >& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
-
-    /// Update the values of tracked small scale quantities.
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /// Predict the value of the small scale velocity for the current iteration.
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                     std::vector<double>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        Properties::Pointer pProperties) const override;
 
     ///@}
     ///@name Inquiry
     ///@{
-
-    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -283,8 +229,7 @@ protected:
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
         double &TauOne,
-        double &TauTwo,
-        double &TauP) const;
+        double &TauTwo) const;
 
     virtual void MassProjTerm(
         const TElementData& rData,
