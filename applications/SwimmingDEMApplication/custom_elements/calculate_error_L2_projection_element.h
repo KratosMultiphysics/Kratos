@@ -211,7 +211,7 @@ public:
 
     void CalculateLeftHandSide(
         MatrixType& rLHSMatrix,
-        ProcessInfo& rCurrentProcessInfo);
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void AddLHSMatrixContribution(
         MatrixType& rLHSMatrix,
@@ -225,7 +225,7 @@ public:
 
     void CalculateRightHandSide(
         VectorType& rRHSVector,
-        ProcessInfo& rCurrentProcessInfo);
+        ProcessInfo& rCurrentProcessInfo) override;
     ///@}
     ///@name Access
     ///@{
