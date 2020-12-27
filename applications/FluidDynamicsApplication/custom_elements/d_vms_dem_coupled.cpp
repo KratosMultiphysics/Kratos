@@ -124,16 +124,6 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     // small scale velocity contributions (subscale tracking)
     array_1d<double,Dim> OldUssTerm = (density/dt) * mOldSubscaleVelocity[rData.IntegrationPointIndex]; // rho * u_ss^{n-1}/dt
 
-    // Old mass residual for dynamic pressure subscale: -Div(u^n)
-    double OldResidual = 0.0;
-    for (unsigned int a = 0; a < NumNodes; a++)
-    {
-        const array_1d<double,3>& rOldVel = this->GetGeometry()[a].FastGetSolutionStepValue(VELOCITY,1);
-        double OldDivProj = this->GetGeometry()[a].FastGetSolutionStepValue(DIVPROJ,1);
-        for (unsigned int d = 0; d < Dim; d++)
-            OldResidual -= rData.DN_DX(a,d)*rOldVel[d] + rData.N[a]*OldDivProj;
-    }
-
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 

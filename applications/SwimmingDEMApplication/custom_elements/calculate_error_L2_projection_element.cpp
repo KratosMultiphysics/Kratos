@@ -152,13 +152,11 @@ void CalculateErrorL2Projection<Dim, NumNodes>::AddIntegrationPointRHSContributi
     const double Weight)
 {
     double Coef = Weight;
-    Vector NodalComponent = ZeroVector(Dim);
-    double scalar_component = 0.0;
 
     for (unsigned int i = 0; i < NumNodes; ++i){
         int row = i * NumNodes;
-        NodalComponent = this->GetGeometry()[i].FastGetSolutionStepValue(VECTORIAL_ERROR);
-        scalar_component = this->GetGeometry()[i].FastGetSolutionStepValue(SCALAR_ERROR);
+        Vector NodalComponent = this->GetGeometry()[i].FastGetSolutionStepValue(VECTORIAL_ERROR);
+        double scalar_component = this->GetGeometry()[i].FastGetSolutionStepValue(SCALAR_ERROR);
         for (unsigned int d = 0; d < Dim; ++d){
             rRHSVector[row+d] += Coef * N[i] * NodalComponent[d];
         }
