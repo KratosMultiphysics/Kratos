@@ -313,7 +313,7 @@ namespace Kratos
 
 			// Compute the distance to the approximation plane
 			Plane3D approximation_plane(normal, Point{base_pt});
-			for (int i = 0; i < num_nodes; i++) {
+			for (std::size_t i = 0; i < num_nodes; i++) {
 				r_elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 			}
 		} else {
@@ -321,7 +321,7 @@ namespace Kratos
 			Plane3D plane = SetIntersectionPlane(rIntersectionPointsCoordinates);
 
 			// Compute the distance to the intersection plane
-			for (int i = 0; i < num_nodes; i++) {
+			for (std::size_t i = 0; i < num_nodes; i++) {
 				r_elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
 			}
 		}
