@@ -164,7 +164,7 @@ namespace Kratos
 		}
 
 		// Compute the number of intersected edges
-		constexpr std::size_t n_edges = TDim == 2 ? 3 : 6;
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
 		array_1d<unsigned int, n_edges> cut_edges_vector;
 		array_1d<double, n_edges> cut_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
@@ -179,18 +179,8 @@ namespace Kratos
 		}
 
 		// Check if the element is split and set the TO_SPLIT flag accordingly
-		bool has_positive_distance = false;
-		bool has_negative_distance = false;
-		constexpr double epsilon = std::numeric_limits<double>::epsilon();
-		Vector& r_elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
-		for (const double& r_dist : r_elemental_distances)
-			if (r_dist > epsilon) {
-				has_positive_distance = true;
-			} else {
-				has_negative_distance = true;
-			}
-
-		rElement1.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
+		const double epsilon = std::numeric_limits<double>::epsilon();
+		SetToSplitFlag(rElement1, epsilon);
 	}
 
 	template<std::size_t TDim>
@@ -203,26 +193,15 @@ namespace Kratos
 			return;
 		}
 
-		// Get reference to ELEMENTAL_EDGE_DISTANCES and resize if necessary
-		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
-		Vector& r_edge_distances = rElement1.GetValue(ELEMENTAL_EDGE_DISTANCES);
-		if(r_edge_distances.size() != n_edges){
-			r_edge_distances.resize(n_edges, false);
-		}
-
 		// Compute the number of intersected edges
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
 		array_1d<unsigned int, n_edges> cut_edges_vector;
 		array_1d<double, n_edges> cut_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
 		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
 		
-		//TODO: OPTIMIZE THIS
-		// Save the obtained edge distances in the elemental variable
-		unsigned int i = 0;
-		for (const double& r_ratio : cut_edges_ratio_vector) {
-			r_edge_distances[i] = r_ratio;
-			++i;
-		}
+		// Save the cut edges ratios in the ELEMENTAL_EDGE_DISTANCES variable
+		SetElementalEdgeDistancesValues(rElement1, cut_edges_ratio_vector);
 
 		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
 		// If there is only 1 or 2 intersected edges, intersection is not considered
@@ -233,31 +212,21 @@ namespace Kratos
 		}
 
 		// Check if the element is split and set the TO_SPLIT flag accordingly
-		bool has_positive_distance = false;
-		bool has_negative_distance = false;
-		constexpr double epsilon = std::numeric_limits<double>::epsilon();
-		Vector& r_elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
-		for (const double& r_dist : r_elemental_distances)
-			if (r_dist > epsilon) {
-				has_positive_distance = true;
-			} else {
-				has_negative_distance = true;
-			}
-
-		rElement1.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
+		const double epsilon = std::numeric_limits<double>::epsilon();
+		SetToSplitFlag(rElement1, epsilon);
 	}
 
 	template<std::size_t TDim>
 	unsigned int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgesIntersections(
 		Element& rElement1,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
-		array_1d<unsigned int, TDim == 2 ? 3 : 6>& rCutEdgesVector,
-		array_1d<double, TDim == 2 ? 3 : 6>& rCutEdgesRatioVector,
+		array_1d<unsigned int, (TDim == 2) ? 3 : 6>& rCutEdgesVector,
+		array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
       	std::vector<array_1d <double,3> > &rIntersectionPointsArray)
 	{
 		auto &r_geometry = rElement1.GetGeometry();
 		const auto r_edges_container = r_geometry.GenerateEdges();
-		constexpr std::size_t n_edges = TDim == 2 ? 3 : 6;
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
 
 		// Initialize cut edges vectors and points arrays
 		unsigned int n_cut_edges = 0;
@@ -454,6 +423,42 @@ namespace Kratos
 				rElementalDistances[i_node] *= -1.0;
 			}
 		}
+	}
+
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::SetElementalEdgeDistancesValues(
+        Element& rElement,
+        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector)
+	{
+		// Get reference to ELEMENTAL_EDGE_DISTANCES and resize if necessary
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
+		Vector& r_edge_distances = rElement.GetValue(ELEMENTAL_EDGE_DISTANCES);
+		if(r_edge_distances.size() != n_edges){
+			r_edge_distances.resize(n_edges, false);
+		}
+
+		// Save the obtained edge distances in the elemental variable
+		for (std::size_t i = 0; i < n_edges; ++i) {
+			r_edge_distances[i] = rCutEdgesRatioVector[i];
+		}
+	}
+
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::SetToSplitFlag(
+		Element& rElement,
+		const double ZeroTolerance)
+	{
+		bool has_positive_distance = false;
+		bool has_negative_distance = false;
+		const auto& r_elemental_distances = rElement.GetValue(ELEMENTAL_DISTANCES);
+		for (const double& r_dist : r_elemental_distances)
+			if (r_dist > ZeroTolerance) {
+				has_positive_distance = true;
+			} else {
+				has_negative_distance = true;
+			}
+
+		rElement.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
 	}
 
 	template<std::size_t TDim>

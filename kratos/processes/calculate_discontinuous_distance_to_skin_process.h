@@ -239,8 +239,8 @@ private:
     unsigned int ComputeEdgesIntersections(
         Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
-        array_1d<unsigned int, TDim == 2 ? 3 : 6>& rCutEdgesVector,
-        array_1d<double, TDim == 2 ? 3 : 6>& rCutEdgesRatioVector,
+        array_1d<unsigned int, (TDim == 2) ? 3 : 6>& rCutEdgesVector,
+        array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**
@@ -411,6 +411,29 @@ private:
 			}
 		}
 	};
+
+    /**
+     * @brief Set the ELEMENTAL_EDGE_DISTANCES values
+     * This method saves the provided cut edges ratios in the ELEMENTAL_EDGE_DISTANCES variable
+     * For uncut edges, a value (-1) is set.
+     * For cut edges, the relative distance (wrt the edge length) from the 0 node of the edge to the intersection point is saved
+     * @param rElement The element to set the ELEMENTAL_EDGE_DISTANCES
+     * @param rCutEdgesRatioVector Array containing the cut edges ratio values
+     */
+    void SetElementalEdgeDistancesValues(
+        Element& rElement,
+        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector);
+
+    /**
+     * @brief Set the TO_SPLIT Kratos flag 
+     * This function sets the TO_SPLIT flag in the provided element according to the ELEMENTAL_DISTANCES values
+     * Note that the zero distance case is avoided by checking the positiveness and negativeness of the nodal values
+     * @param rElement Element to set the TO_SPLIT flag
+     * @param ZeroTolerance Tolerance to check the zero distance values
+     */
+    void SetToSplitFlag(
+        Element& rElement,
+        const double ZeroTolerance);
 
     ///@}
 
