@@ -67,7 +67,7 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const Flags& rOptions);
+        const Flags rOptions);
 
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
