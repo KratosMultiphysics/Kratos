@@ -10,6 +10,8 @@
 //  Main authors:    Pooyan Dadvand
 //                   Ruben Zorrilla
 //
+//  Collaborators:   Franziska Wahl
+//
 
 #if !defined(KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED )
 #define  KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED
@@ -43,6 +45,9 @@ class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess : publ
 {
 
 public:
+
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES);
+
     ///@name Type Definitions
     ///@{
 
@@ -57,6 +62,12 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart);
+
+    /// Constructor with options
+    CalculateDiscontinuousDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        const Flags& rOptions);
 
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
@@ -188,6 +199,8 @@ private:
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
 
+    Flags mOptions = CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse();
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -203,12 +216,23 @@ private:
         PointerVector<GeometricalObject>& rIntersectedObjects);
 
     /**
+     * @brief Computes the discontinuous edge-based distance in one element
+     * This method computes the discontinuous edge-based distance field for a given element
+     * @param rElement1 reference to the element of interest
+     * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
+     */
+    void CalculateElementalAndEdgeDistances(
+        Element& rElement1,
+        PointerVector<GeometricalObject>& rIntersectedObjects);
+
+    /**
      * @brief Computes the edges intersections in one element
      * Provided a list of elemental intersecting geometries, this
      * method computes the edge intersections for a given element
      * @param rElement1 reference to the element of interest
      * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
      * @param rCutEdgesVector array that classifies the edges depending on their cut / uncut status
+     * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * @param rIntersectionPointsArray array containing the edges intersection points
      * @return unsigned int number of cut edges
      */
@@ -216,6 +240,7 @@ private:
         Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
         std::vector<unsigned int> &rCutEdgesVector,
+        std::vector<double>& rCutEdgesRatioVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**
@@ -243,9 +268,14 @@ private:
      * @param rNormal obtained unit normal vector
      */
     void ComputeIntersectionNormal(
-        Element::GeometryType& rGeometry,
+        const Element::GeometryType& rGeometry,
         const Vector& rElementalDistances,
         array_1d<double,3> &rNormal);
+
+    void ComputeIntersectionPlaneElementalDistances(
+        Element& rElement,
+        const PointerVector<GeometricalObject>& rIntersectedObjects,
+        const std::vector<array_1d<double,3>>& rIntersectionPointsCoordinates);
 
     /**
      * @brief Computes the intersection plane approximation
@@ -275,7 +305,7 @@ private:
      * @param rElementalDistances array containing the ELEMENTAL_DISTANCES values
      */
     void CorrectDistanceOrientation(
-        Element::GeometryType& rGeometry,
+        const Element::GeometryType& rGeometry,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
         Vector& rElementalDistances);
 
@@ -379,7 +409,14 @@ private:
 }; // Class CalculateDiscontinuousDistanceToSkinProcess
 
 ///@}
+///@name Local flags creation
+///@{
 
+// Flag creation without using the KRATOS_CREATE_LOCAL_FLAG macro since this has a template parameter.
+template<std::size_t TDim>
+const Kratos::Flags CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_ELEMENTAL_EDGE_DISTANCES(Kratos::Flags::Create(0));
+
+///@}
 ///@name Input and output
 ///@{
 
