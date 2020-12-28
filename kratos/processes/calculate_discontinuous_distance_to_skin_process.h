@@ -239,8 +239,8 @@ private:
     unsigned int ComputeEdgesIntersections(
         Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
-        std::vector<unsigned int> &rCutEdgesVector,
-        std::vector<double>& rCutEdgesRatioVector,
+        array_1d<unsigned int, TDim == 2 ? 3 : 6>& rCutEdgesVector,
+        array_1d<double, TDim == 2 ? 3 : 6>& rCutEdgesRatioVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**
@@ -272,6 +272,14 @@ private:
         const Vector& rElementalDistances,
         array_1d<double,3> &rNormal);
 
+    /**
+     * @brief Computes the nodal distances to the intersection plane
+     * This methods calculates the nodal distances to the intersection plane
+     * In presence of multiple intersections, it performs a least squares approximation of the intersection plane
+     * @param rElement Element to calculate the ELEMENTAL_DISTANCES
+     * @param rIntersectedObjects Intersected objects container
+     * @param rIntersectionPointsCoordinates The edges intersection points coordinates
+     */
     void ComputeIntersectionPlaneElementalDistances(
         Element& rElement,
         const PointerVector<GeometricalObject>& rIntersectedObjects,

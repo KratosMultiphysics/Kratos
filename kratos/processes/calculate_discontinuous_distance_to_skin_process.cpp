@@ -153,7 +153,6 @@ namespace Kratos
 	{
 	}
 
-	//TODO: USE STACK ARRAYS IN HERE!!!! EDGE SIZES ARE KNOWN FROM THE TEMPLATE ARGUMENT
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateElementalDistances(
 		Element& rElement1,
@@ -165,8 +164,9 @@ namespace Kratos
 		}
 
 		// Compute the number of intersected edges
-		std::vector<unsigned int> cut_edges_vector;
-		std::vector<double> cut_edges_ratio_vector;
+		constexpr std::size_t n_edges = TDim == 2 ? 3 : 6;
+		array_1d<unsigned int, n_edges> cut_edges_vector;
+		array_1d<double, n_edges> cut_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
 		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
 
@@ -204,15 +204,15 @@ namespace Kratos
 		}
 
 		// Get reference to ELEMENTAL_EDGE_DISTANCES and resize if necessary
-		constexpr std::size_t num_edges = (TDim == 2) ? 3 : 6;
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
 		Vector& r_edge_distances = rElement1.GetValue(ELEMENTAL_EDGE_DISTANCES);
-		if(r_edge_distances.size() != num_edges){
-			r_edge_distances.resize(num_edges, false);
+		if(r_edge_distances.size() != n_edges){
+			r_edge_distances.resize(n_edges, false);
 		}
 
 		// Compute the number of intersected edges
-		std::vector<unsigned int> cut_edges_vector;
-		std::vector<double> cut_edges_ratio_vector;
+		array_1d<unsigned int, n_edges> cut_edges_vector;
+		array_1d<double, n_edges> cut_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
 		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
 		
@@ -247,24 +247,23 @@ namespace Kratos
 		rElement1.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
 	}
 
-	//TODO: WE CAN USE STACK ARRAYS IN HERE!
 	template<std::size_t TDim>
 	unsigned int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgesIntersections(
 		Element& rElement1,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
-		std::vector<unsigned int> &rCutEdgesVector,
-		std::vector<double> &rCutEdgesRatioVector,
+		array_1d<unsigned int, TDim == 2 ? 3 : 6>& rCutEdgesVector,
+		array_1d<double, TDim == 2 ? 3 : 6>& rCutEdgesRatioVector,
       	std::vector<array_1d <double,3> > &rIntersectionPointsArray)
 	{
 		auto &r_geometry = rElement1.GetGeometry();
 		const auto r_edges_container = r_geometry.GenerateEdges();
-		const std::size_t n_edges = r_geometry.EdgesNumber();
+		constexpr std::size_t n_edges = TDim == 2 ? 3 : 6;
 
 		// Initialize cut edges vectors and points arrays
 		unsigned int n_cut_edges = 0;
 		rIntersectionPointsArray.clear();
-		rCutEdgesVector = std::vector<unsigned int>(n_edges, 0);
-		rCutEdgesRatioVector = std::vector<double>(n_edges, -1.0);
+		rCutEdgesVector = array_1d<unsigned int, n_edges>(n_edges, 0);
+		rCutEdgesRatioVector = array_1d<double, n_edges>(n_edges, -1.0);
 
 		// Check wich edges are intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
