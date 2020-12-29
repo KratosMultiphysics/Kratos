@@ -27,9 +27,17 @@
 
 namespace Kratos
 {
+	// Local flag creation without using the KRATOS_CREATE_LOCAL_FLAG macro since this has a template parameter.
 	template<std::size_t TDim>
-	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
-		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mrSkinPart(rSkinPart), mrVolumePart(rVolumePart)
+	const Kratos::Flags CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_ELEMENTAL_EDGE_DISTANCES(Kratos::Flags::Create(0));
+
+	template<std::size_t TDim>
+	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
+		ModelPart& rVolumePart,
+		ModelPart& rSkinPart)
+		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
+		, mrSkinPart(rSkinPart)
+		, mrVolumePart(rVolumePart)
 	{
 	}
 

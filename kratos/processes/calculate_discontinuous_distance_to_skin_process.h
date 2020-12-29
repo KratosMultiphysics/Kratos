@@ -440,14 +440,6 @@ private:
 }; // Class CalculateDiscontinuousDistanceToSkinProcess
 
 ///@}
-///@name Local flags creation
-///@{
-
-// Flag creation without using the KRATOS_CREATE_LOCAL_FLAG macro since this has a template parameter.
-template<std::size_t TDim>
-const Kratos::Flags KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_ELEMENTAL_EDGE_DISTANCES(Kratos::Flags::Create(0));
-
-///@}
 ///@name Input and output
 ///@{
 
