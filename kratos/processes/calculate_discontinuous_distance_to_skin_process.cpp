@@ -210,7 +210,7 @@ namespace Kratos
 
 		// Check if there is an intersection
 		bool is_intersection = false;
-		// TODO: user-defined option to calculated extrapolated edge distances (for Ausas incised elements)?
+		// TODO: user-defined option to calculate extrapolated edge distances (for Ausas incised elements)?
 		if (false) {
 			// Save the cut edges ratios of the extrapolated geometry in the ELEMENTAL_EXTRA_EDGE_DISTANCES variable
 			SetElementalExtrapolatedEdgeDistancesValues(rElement1, cut_extra_edges_ratio_vector);
@@ -261,9 +261,13 @@ namespace Kratos
 		rCutEdgesRatioVector = array_1d<double, n_edges>(n_edges, -1.0);
 		rCutExtraEdgesRatioVector = array_1d<double, n_edges>(n_edges, -1.0);
 
+		// Initialize intersecting geometries normal for extrapolated edge calculation
+		array_1d<double,3> extra_geom_normal = ZeroVector(3);
+
 		// Check wich edges are intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
 			array_1d<double,3> avg_pt = ZeroVector(3);
+			array_1d<double,3> avg_extra_geom_normal = ZeroVector(3);
 			std::vector<array_1d<double,3> > aux_pts;
 			// Check against all candidates to count the number of current edge intersections
 			for (const auto &r_int_obj : rIntersectedObjects){
@@ -293,6 +297,9 @@ namespace Kratos
 						cut_edges_vector[i_edge] += 1;
 						// Save the intersection point for computing the average
 						avg_pt += int_pt;
+						// Get normal of intersecting geometry
+						//array_1d<double,3> int_extra_geom_normal = ComputeIntersectionNormal; // TODO: reuse existing method?
+						//avg_extra_geom_normal += int_extra_geom_normal;
 					}
 				}
 			}
@@ -308,6 +315,32 @@ namespace Kratos
 				rCutEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
 				// Increase the total intersected edges counter
 				n_cut_edges++;
+				// Get average normal of intersecting geometries for the edge
+				avg_extra_geom_normal/= cut_edges_vector[i_edge];
+				extra_geom_normal += avg_extra_geom_normal;
+			}
+		}
+
+		// TODO: user-defined option to calculate extrapolated edge distances (for Ausas incised elements)?
+		if (false && n_cut_edges > 0) {
+			// Get average normal of intersecting geometries for all cut edges
+			extra_geom_normal /= n_cut_edges;
+			if (TDim == 2 && n_cut_edges == 1) {
+				//extra_geom_normal
+				//TODO: calculate extrapolated cut edge (1)
+			} else if (TDim == 3) {
+				switch(n_cut_edges) {
+					case 1:
+						// TODO: calculate extrapolated cut edges (2-3)
+						break;
+					case 2:
+						// TODO: calculate extrapolated cut edges (1-2)
+						break;
+					case 3:
+						// TODO: check if incised or intersected
+						// TODO: calculate extrapolated cut edge (1)
+						break;
+				}
 			}
 		}
 
