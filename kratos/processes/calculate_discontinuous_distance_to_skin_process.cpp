@@ -35,6 +35,7 @@ namespace Kratos
 		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
 		, mrSkinPart(rSkinPart)
 		, mrVolumePart(rVolumePart)
+		, mOptions(CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse())
 	{
 	}
 

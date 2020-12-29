@@ -199,7 +199,7 @@ private:
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
 
-    Flags mOptions = CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse();
+    Flags mOptions;
 
     ///@}
     ///@name Private Operations
