@@ -72,7 +72,7 @@ namespace Kratos
 		}
 
 		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
-		if (mOptions.Is(CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
+		if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
 			// Initialize the edge distances vector
 			constexpr std::size_t num_edges = (TDim == 2) ? 3 : 6;
 			array_1d<double, num_edges> init_edge_dist_vect;
@@ -113,7 +113,7 @@ namespace Kratos
 		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
 
-		if (mOptions.Is(CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
+		if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
 			#pragma omp parallel for schedule(dynamic)
 			for (int i = 0; i < number_of_elements; ++i) {
 				CalculateElementalAndEdgeDistances(*(r_elements[i]), rIntersectedObjects[i]);
