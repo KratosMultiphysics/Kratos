@@ -132,6 +132,8 @@ public:
         array_1d<double,3 > X_mean_tmp = ZeroVector(3);
         array_1d<double,3 > grad_phi_mean_tmp = ZeroVector(3);
         array_1d< array_1d<double,3 >, TNumNodes> X_node;
+        double phi_mean_old = 0.0;
+        double phi_mean = 0.0;
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -145,7 +147,13 @@ public:
             X_node[i] = GetGeometry()[i].Coordinates();
 
             grad_phi_mean_tmp += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
-         }
+
+            phi_mean_old += GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
+            phi_mean += GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+        }
+
+        phi_mean /= static_cast<double>(TNumNodes);
+        phi_mean_old /= static_cast<double>(TNumNodes);
 
         array_1d<double,TDim> X_mean, grad_phi_mean;
         for(unsigned int k = 0; k < TDim; k++)
@@ -171,6 +179,8 @@ public:
             //obtain the velocity/coordinate at the gauss point
             array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
             array_1d<double, TDim > X_gauss=ZeroVector(TDim);
+            double phi_gauss = 0.0;
+            double phi_gauss_old = 0.0;
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
                 for(unsigned int k=0; k<TDim; k++)
@@ -178,6 +188,8 @@ public:
                     vel_gauss[k] += N[i]*v[i][k]; //0.5*N[i]*(v[i][k]+vold[i][k]);
                     X_gauss[k] += N[i]*X_node[i][k];
                 }
+                phi_gauss += N[i]*phi[i];
+                phi_gauss_old += N[i]*phi_old[i];
             }
 
             array_1d<double, TNumNodes > v_dot_grad_N = prod(DN_DX, vel_gauss);
@@ -186,7 +198,7 @@ public:
             noalias(K_matrix) += outer_prod(N, v_dot_grad_N);
 
             for (unsigned int i = 0; i < TNumNodes; i++){
-                S_vector[i] += inner_prod(grad_phi_diff,(X_gauss - X_mean))*N[i];
+                S_vector[i] += (phi_gauss_old - phi_mean_old + inner_prod(/* grad_phi_diff */- grad_phi_mean,(X_gauss - X_mean)) )*N[i];
             }
         }
 
