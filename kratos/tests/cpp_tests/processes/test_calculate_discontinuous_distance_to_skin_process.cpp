@@ -368,27 +368,20 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 1, {1,2,3}, p_properties_1);
         skin_part.CreateNewElement("Element3D3N", 2, {4,5,6}, p_properties_1);
 
-        // Compute the discontinuous distance function
-        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part);
+        // Compute the discontinuous distance function (including edge distances)
+        Flags options = CalculateDiscontinuousDistanceToSkinProcess<3>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
-        // Check values
+        // Check elemental distances
         const auto &r_elem_dist = (volume_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -0.569400, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 0.1044875, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], -0.266495, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 0.104487, 1e-6);
+        const std::vector<double> expected_values = {-0.569400,0.1044875,-0.266495,0.104487};
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist, expected_values, 1.0e-6);
 
-        // Compute edge distances aswell
-        Flags options = CalculateDiscontinuousDistanceToSkinProcess<3>::CALCULATE_ELEMENTAL_EDGE_DISTANCES.Create(0);
-        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc_edge(volume_part, skin_part, options);
-        disc_dist_proc_edge.Execute();
-
-        // Check that elemental distances are the same
-        const auto &r_elem_dist_edge = (volume_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        for (unsigned int i = 0; i < 4; ++i) {
-            KRATOS_CHECK_EQUAL(r_elem_dist_edge[i], r_elem_dist[i]);
-		}
+        // Check edge distances
+        const auto &r_elem_dist_edge = (volume_part.ElementsBegin())->GetValue(ELEMENTAL_EDGE_DISTANCES);
+        const std::vector<double> expected_values_edge = {0.75,0.25,-1,0.75,0.5,0.75};
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-12);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationVertical3D, KratosCoreFastSuite)
