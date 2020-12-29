@@ -231,16 +231,16 @@ private:
      * method computes the edge intersections for a given element
      * @param rElement1 reference to the element of interest
      * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
-     * @param rCutEdgesVector array that classifies the edges depending on their cut / uncut status
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
+     * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the average intersection points of the extrapolated geometry
      * @param rIntersectionPointsArray array containing the edges intersection points
      * @return unsigned int number of cut edges
      */
     unsigned int ComputeEdgesIntersections(
         Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
-        array_1d<unsigned int, (TDim == 2) ? 3 : 6>& rCutEdgesVector,
         array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
+        array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**
@@ -425,7 +425,20 @@ private:
         const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector);
 
     /**
-     * @brief Set the TO_SPLIT Kratos flag 
+     * @brief Set the ELEMENTAL_EXTRA_EDGE_DISTANCES values
+     * This method saves the provided extrapolated cut edges ratios in the ELEMENTAL_EXTRA_EDGE_DISTANCES variable
+     * For uncut edges and cut edges of intersected elements, a value (-1) is set.
+     * For cut edges of incised elements, the relative distance (wrt the edge length) from the 0 node of the edge to the intersection point of the extrapolated geometry is saved
+     * @param rElement The element to set the ELEMENTAL_EXTRA_EDGE_DISTANCES
+     * @param rCutEdgesRatioVector Array containing the cut edges ratio values of the extrapolated geometry
+     */
+    void SetElementalExtrapolatedEdgeDistancesValues(
+        Element& rElement,
+        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector);
+
+
+    /**
+     * @brief Set the TO_SPLIT Kratos flag
      * This function sets the TO_SPLIT flag in the provided element according to the ELEMENTAL_DISTANCES values
      * Note that the zero distance case is avoided by checking the positiveness and negativeness of the nodal values
      * @param rElement Element to set the TO_SPLIT flag
