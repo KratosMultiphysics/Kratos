@@ -66,7 +66,7 @@ namespace Kratos
 
 		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
 		if (mOptions.Is(CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
-			// Initialize the edge distaces vector
+			// Initialize the edge distances vector
 			constexpr std::size_t num_edges = (TDim == 2) ? 3 : 6;
 			array_1d<double, num_edges> init_edge_dist_vect;
 			for (double& r_val : init_edge_dist_vect) {
@@ -199,7 +199,7 @@ namespace Kratos
 		array_1d<double, n_edges> cut_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
 		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
-		
+
 		// Save the cut edges ratios in the ELEMENTAL_EDGE_DISTANCES variable
 		SetElementalEdgeDistancesValues(rElement1, cut_edges_ratio_vector);
 
@@ -276,9 +276,9 @@ namespace Kratos
 				avg_pt /= rCutEdgesVector[i_edge];
 				rIntersectionPointsArray.push_back(avg_pt);
 				// Save the ratio location of the average intersection point
-				const double edge_lengt = r_edges_container[i_edge].Length();
+				const double edge_length = r_edges_container[i_edge].Length();
 				const double dist_avg_pt = norm_2(r_edges_container[i_edge][0] - avg_pt);
-				rCutEdgesRatioVector[i_edge] = dist_avg_pt / edge_lengt;
+				rCutEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
 				// Increase the total intersected edges counter
 				n_cut_edges++;
 			}
@@ -300,7 +300,7 @@ namespace Kratos
 			r_elemental_distances.resize(num_nodes, false);
 		}
 
-		// If there are more than 3 (3D) or 2 (2D) intersected edges, compute the least squares plane approximation using the ComputePlaneApproximation utility. 
+		// If there are more than 3 (3D) or 2 (2D) intersected edges, compute the least squares plane approximation using the ComputePlaneApproximation utility.
 		// Otherwise, the distance is computed using the plane defined by the 3 (3D) or 2 (2D) intersection points.
 		const auto& r_geometry = rElement.GetGeometry();
 		const unsigned int n_cut_edges = rIntersectionPointsCoordinates.size();
