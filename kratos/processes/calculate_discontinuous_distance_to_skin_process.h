@@ -52,7 +52,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(CalculateDiscontinuousDistanceToSkinProcess);
 
     /// Local flag to switch on/off the elemental edge distances storage
-    KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(KRATOS_CORE, CALCULATE_ELEMENTAL_EDGE_DISTANCES);
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES);
 
     ///@}
     ///@name Life Cycle
@@ -438,10 +438,6 @@ private:
     ///@}
 
 }; // Class CalculateDiscontinuousDistanceToSkinProcess
-
-// Local flag creation without using the KRATOS_CREATE_LOCAL_FLAG macro since this has a template parameter.
-template<std::size_t TDim>
-const Kratos::Flags CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_ELEMENTAL_EDGE_DISTANCES(Kratos::Flags::Create(0));
 
 ///@}
 ///@name Input and output
