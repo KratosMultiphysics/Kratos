@@ -643,14 +643,11 @@ namespace Kratos
 			const double edge_distance = rCutEdgesRatioVector[i_edge];
 			// Calculate point coordinates and add to avg_point
 			if (edge_distance > -1) {
-				const double edge_length = r_edges_container[i_edge].Length();
 				const array_1d<double,3> int_point = r_edges_container[i_edge][0] + edge_distance * (r_edges_container[i_edge][1] - r_edges_container[i_edge][0]);
 				avg_base_point +=  int_point;
 			}
 		}
 		avg_base_point /= rNumCutEdges;
-
-		// TODO: Get and use intersection plane from extra_geom_normal and average intersection point?
 
 		// Calculate intersections of each edge of element, which is not cut already, with the intersection plane
 		for (std::size_t i_edge = 0; i_edge < n_edges; i_edge++) {
@@ -658,11 +655,11 @@ namespace Kratos
 				array_1d<double,3> extra_int_pt;
 				const Element::NodeType& edge_point_0 = r_edges_container[i_edge][0];
 				const Element::NodeType& edge_point_1 = r_edges_container[i_edge][1];
-				bool is_intersection = false;
-				//bool is_intersection = IntersectionUtilities::ComputePlaneLineIntersection<Element::GeometryType>(
-				//		Point(avg_base_point), rExtraGeomNormal, rEdgePoint1.Coordinates(), rEdgePoint2.Coordinates(), Point(extra_int_pt).Coordinates());
+				int is_intersection = IntersectionUtilities::ComputePlaneEdgeIntersection(
+					avg_base_point, rExtraGeomNormal, edge_point_0.Coordinates(), edge_point_1.Coordinates(), extra_int_pt);
+
 				// Calculate intersection ratio of edge and save it
-				if (is_intersection) {
+				if (is_intersection == 1) {
 					const double edge_length = r_edges_container[i_edge].Length();
 					const double dist_avg_pt = norm_2(r_edges_container[i_edge][0] - extra_int_pt);
 					rCutExtraEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
@@ -705,7 +702,6 @@ namespace Kratos
 			}
 		}
 
-		KRATOS_WATCH(is_shared); //TODO: delete
 		return is_shared;
 	}
 
