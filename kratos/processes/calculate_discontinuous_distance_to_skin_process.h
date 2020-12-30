@@ -328,18 +328,38 @@ private:
         array_1d<double,3> &rIntObjNormal);
 
     /**
-     * @brief Computes the edges intersections of one element with an averaged and extrapolated geometry
+     * @brief Checks if element qualifies and then computes the uncut edges intersections of the element
+     * with an averaged and extrapolated geometry. Therefore it calls 'ComputeExtrapolatedObjectIntersections'.
      * @param rElement1 reference to the element of interest
      * @param rNumCutEdges number of cut edges of the element
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * @param rExtraGeomNormal normal of the averaged and extrapolated geometry
-     * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the average intersection points of the extrapolated geometry
+     * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the additional
+     * average intersection points of the extrapolated geometry
      */
     void ComputeExtraEdgesIntersections(
         Element& rElement,
         unsigned int &rNumCutEdges,
 		array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
 		array_1d<double,3> &rExtraGeomNormal,
+		array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector);
+
+    /**
+     * @brief Computes the uncut edges intersections of one element with an averaged and extrapolated geometry.
+     * Therefore it calls 'IntersectionUtilities'.
+     * It saves the edge intersections as ratios of the edge's length in rCutExtraEdgesRatioVector.
+     * @param rElement1 reference to the element of interest
+     * @param rNumCutEdges number of cut edges of the element
+     * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
+     * @param rExtraGeomNormal normal of the averaged and extrapolated geometry
+     * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the additional
+     * average intersection points of the extrapolated geometry
+     */
+	void ComputeExtrapolatedGeomIntersections(
+        Element& rElement,
+        unsigned int& rNumCutEdges,
+		array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
+		array_1d<double,3>& rExtraGeomNormal,
 		array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector);
 
     /**
