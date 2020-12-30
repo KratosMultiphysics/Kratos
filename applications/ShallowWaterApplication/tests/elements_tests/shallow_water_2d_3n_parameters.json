@@ -69,7 +69,7 @@
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Initial_water_level-auto-1",
                 "variable_name"   : "HEIGHT",
-                "value"           : "0.1"
+                "value"           : "0.5"
             }
         }],
         "boundary_conditions_process_list"  : [{
