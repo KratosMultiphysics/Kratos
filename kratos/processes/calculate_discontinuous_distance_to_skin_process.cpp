@@ -301,7 +301,6 @@ namespace Kratos
 						if (true) { // TODO: user-defined option?
 							array_1d<double,3> int_extra_geom_normal;
 							ComputeIntersectionNormalFromGeometry(r_int_obj_geom, int_extra_geom_normal);
-							KRATOS_WATCH(int_extra_geom_normal); // TODO: delete
 							avg_extra_geom_normal += int_extra_geom_normal;
 						}
 					}
@@ -331,28 +330,8 @@ namespace Kratos
 		if (true && n_cut_edges > 0) { // TODO: user-defined option?
 			// Get average normal of intersecting segments for all cut edges
 			extra_geom_normal /= n_cut_edges;
-			// TODO: distinguish inside method called?
-			if (TDim == 2 && n_cut_edges == 1) {
-				// input: rCutEdgesRatioVector, extra_geom_normal, rCutExtraEdgesRatioVector
-				// calculate average point of intersection points from rCutEdgesRatioVector for intersection plane definition
-				// get intersection plane from extra_geom_normal and average intersection point
-				// calculate intersections of each edge of element with intersection plane (PlaneEdgeIntersection)
-				// save intersections in rCutExtraEdgesRatioVector
-				// TODO: calculate extrapolated cut edge (1)
-			} else if (TDim == 3) {
-				switch(n_cut_edges) {
-					case 1:
-						// TODO: calculate extrapolated cut edges (2-3)
-						break;
-					case 2:
-						// TODO: calculate extrapolated cut edges (1-2)
-						break;
-					case 3:
-						// TODO: check if incised or intersected!
-						// TODO: calculate extrapolated cut edge (1)
-						break;
-				}
-			}
+			// Compute the intersections of the element's edges with the extrapolated averaged geometry
+			ComputeExtraEdgesIntersections(rElement1, n_cut_edges, rCutEdgesRatioVector, extra_geom_normal, rCutExtraEdgesRatioVector);
 		}
 
 		return n_cut_edges;
@@ -622,6 +601,84 @@ namespace Kratos
 		array_1d<double,3> &rIntObjNormal)
 	{
 		MathUtils<double>::CrossProduct(rIntObjNormal, rGeometry[1]-rGeometry[0], rGeometry[2]-rGeometry[0]);
+	}
+
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeExtraEdgesIntersections(
+        Element& rElement,
+		unsigned int &rNumCutEdges,
+		array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
+		array_1d<double,3> &rExtraGeomNormal,
+		array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector)
+	{
+		auto &r_elem_geom = rElement.GetGeometry();
+		const auto r_edges_container = r_elem_geom.GenerateEdges();
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
+		constexpr std::size_t n_nodes = (TDim == 2) ? 3 : 4;
+		// calculate average point of intersection points from rCutEdgesRatioVector for intersection plane definition
+		// get intersection plane from extra_geom_normal and average intersection point
+		// calculate intersections of each edge of element with intersection plane (PlaneEdgeIntersection)
+		// save intersections in rCutExtraEdgesRatioVector
+		if (TDim == 2 && rNumCutEdges == 1) {
+			//KRATOS_WATCH("[INCISED] 2D and only one edge cut")
+			// TODO: calculate extrapolated cut edge (1)
+		} else if (TDim == 3) {
+			switch(rNumCutEdges) {
+				case 1:
+					//KRATOS_WATCH("[INCISED] 3D and only one edge cut")
+					// TODO: calculate extrapolated cut edges (2-3)
+					break;
+				case 2:
+					//KRATOS_WATCH("[INCISED] 3D and only two edges cut")
+					// TODO: calculate extrapolated cut edges (1-2)
+					break;
+				case 3:
+					//KRATOS_WATCH("[INCISED] 3D and three edges cut --> check if intersected ..")
+					// if all three cut edges share one node, then element is intersected --> return
+					if (CheckIfCutEdgesShareNode(rElement, rCutEdgesRatioVector)) {
+						return;
+					}
+					// TODO: calculate extrapolated cut edge (1)
+			}
+		}
+	}
+
+	template<std::size_t TDim>
+	bool CalculateDiscontinuousDistanceToSkinProcess<TDim>::CheckIfCutEdgesShareNode(
+        Element& rElement,
+        array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector)
+	{
+		const auto r_edges_container = rElement.GetGeometry().GenerateEdges();
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
+
+		// Get nodes of cut edges (Point necessary to be able to use operator '=='!)
+		std::vector<Point> nodes_0;
+		std::vector<Point> nodes_1;
+		for (std::size_t i_edge = 0; i_edge < n_edges; i_edge++) {
+			if (rCutEdgesRatioVector[i_edge] > -1) {
+				nodes_0.push_back(r_edges_container[i_edge][0]);
+				nodes_1.push_back(r_edges_container[i_edge][1]);
+			}
+		}
+
+		// Check if cut edges share a node - operator==
+		bool is_shared = true;
+		for (std::size_t i = 1; i < nodes_0.size(); i++) {
+			if (!(nodes_0[0] == nodes_0[i] || nodes_0[0] == nodes_1[i])) {
+				is_shared = false;
+			}
+		}
+		if (!is_shared) {
+			is_shared = true;
+			for (std::size_t i = 1; i < nodes_0.size(); i++) {
+				if (!(nodes_1[0] == nodes_0[i] || nodes_1[0] == nodes_1[i])) {
+					is_shared = false;
+				}
+			}
+		}
+
+		KRATOS_WATCH(is_shared); //TODD: delete
+		return is_shared;
 	}
 
 	template class KRATOS_API(KRATOS_CORE) Kratos::CalculateDiscontinuousDistanceToSkinProcess<2>;
