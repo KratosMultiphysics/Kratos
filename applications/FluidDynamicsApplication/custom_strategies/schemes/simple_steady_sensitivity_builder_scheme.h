@@ -14,6 +14,7 @@
 #define KRATOS_SIMPLE_STEADY_SENSITIVITY_BUILDER_SCHEME_H_INCLUDED
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
@@ -31,8 +32,6 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/sensitivity_builder.h"
 
-#include "includes/debug_helpers.h"
-
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"
 
@@ -41,7 +40,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<unsigned int TDim>
+template<IndexType TDim>
 class SimpleSteadySensitivityBuilderScheme : public SensitivityBuilderScheme
 {
 public:
@@ -104,8 +103,7 @@ public:
                 rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart,
                 NEIGHBOUR_CONDITION_NODES);
             neighbor_process.Execute();
-            const auto& neighbour_node_ids_map =
-                neighbor_process.GetNeighbourIds(rModelPart.Nodes());
+            mNodalNeighboursMap = neighbor_process.GetNeighbourIds(rModelPart.Nodes());
 
             // Compute condition NORMAL derivatives and store them in conditions
             NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(
@@ -114,7 +112,7 @@ public:
             // Assign condition normal derivatives to corresponding nodes
             SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>(
                 rModelPart, TDim, NORMAL_SHAPE_DERIVATIVE,
-                neighbour_node_ids_map, 1.0 / TDim, SLIP);
+                mNodalNeighboursMap, 1.0 / TDim, SLIP);
         }
 
         BaseType::InitializeSolutionStep(rModelPart, rSensitivityModelPart, rResponseFunction);
@@ -375,6 +373,19 @@ public:
             rCurrentProcessInfo);
     }
 
+    void CalculateResidualSensitivityMatrix(
+        ConditionType& rElement,
+        Vector& rAdjointValues,
+        Matrix& rOutput,
+        GlobalPointersVector<NodeType>& rGPSensitivityVector,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateResidualSensitivityMatrix<ElementType, array_1d<double, 3>>(
+            rElement, rAdjointValues, rOutput, rGPSensitivityVector, rVariable,
+            rCurrentProcessInfo);
+    }
+
     void Clear() override
     {
         BaseType::Clear();
@@ -403,6 +414,8 @@ private:
     std::vector<Matrix> mAuxMatrices;
     std::vector<Vector> mAuxVectors;
     std::vector<Matrix> mRotatedSensitivityMatrices;
+
+    std::unordered_map<int, std::vector<int>> mNodalNeighboursMap;
 
     ///@}
     ///@name Private Operations
@@ -470,7 +483,7 @@ private:
 
         // get adjoint solution vector
         rEntity.GetValuesVector(adjoint_vector);
-        const unsigned int residuals_size = adjoint_vector.size();
+        const IndexType residuals_size = adjoint_vector.size();
 
         if (residuals_size != 0) {
             this->CalculateResidualSensitivityMatrix<TEntityType, TDataType>(
@@ -500,7 +513,7 @@ private:
             // gp_index_map. This has to be done in this way because AdjointResponseFunction does not have
             // an interface to pass a gp_vector.
             // may be we can extend AdjointResponseFunction interface?
-            for (unsigned int c = 0; c < objective_partial_sensitivity.size(); ++c) {
+            for (IndexType c = 0; c < objective_partial_sensitivity.size(); ++c) {
                 rSensitivityVector[c] += objective_partial_sensitivity[c];
             }
         }
@@ -527,7 +540,7 @@ private:
 
         // get adjoint solution vector
         rEntity.GetValuesVector(rAdjointValues);
-        const unsigned int residuals_size = rAdjointValues.size();
+        const IndexType residuals_size = rAdjointValues.size();
 
         // calculate entity residual derivatives
         rEntity.CalculateSensitivityMatrix(rVariable, sensitivity_matrix, rProcessInfo);
@@ -538,17 +551,17 @@ private:
             << sensitivity_matrix.size2() << ". Variable: " << rVariable << std::endl;
 
         // a map to store node id as key and the node order as the value
-        std::unordered_map<unsigned int, unsigned int> gp_index_map;
+        std::unordered_map<IndexType, IndexType> gp_index_map;
         auto& r_geometry = rEntity.GetGeometry();
-        const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        const unsigned int local_size = residuals_size / number_of_nodes;
+        const IndexType number_of_nodes = r_geometry.PointsNumber();
+        const IndexType local_size = residuals_size / number_of_nodes;
 
         if (rGPSensitivityVector.size() != number_of_nodes) {
             rGPSensitivityVector.resize(number_of_nodes);
         }
 
         // add geometry gps
-        for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
             const auto& r_node = r_geometry[i];
             auto& r_gp = this->mGlobalPointerNodalMap[r_node.Id()];
             rGPSensitivityVector(i) = r_gp;
@@ -557,23 +570,25 @@ private:
 
         // add relevant neighbour gps
         bool found_slip = false;
-        unsigned int local_index = number_of_nodes;
-        for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        IndexType local_index = number_of_nodes;
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
             const auto& r_node = r_geometry[i];
             if (r_node.Is(SLIP)) {
                 found_slip = true;
-                for (auto neighbor_gp :
-                     r_node.GetValue(NEIGHBOUR_CONDITION_NODES).GetContainer()) {
-                    const auto p_itr = gp_index_map.find(neighbor_gp->Id());
+                const auto& neighbour_gps = r_node.GetValue(NEIGHBOUR_CONDITION_NODES);
+                const auto& neighbour_ids = mNodalNeighboursMap[r_node.Id()];
+                for (IndexType i = 0; i < neighbour_ids.size(); ++i) {
+                    const auto neighbour_id = neighbour_ids[i];
+                    const auto p_itr = gp_index_map.find(neighbour_id);
                     if (p_itr == gp_index_map.end()) {
-                        rGPSensitivityVector.push_back(neighbor_gp);
-                        gp_index_map[neighbor_gp->Id()] = local_index++;
+                        rGPSensitivityVector.push_back(neighbour_gps(i));
+                        gp_index_map[neighbour_id] = local_index++;
                     }
                 }
             }
         }
 
-        const unsigned int derivatives_size = local_index * TDim;
+        const IndexType derivatives_size = local_index * TDim;
         if (rOutput.size1() != derivatives_size || rOutput.size2() != residuals_size) {
             rOutput.resize(derivatives_size, residuals_size, false);
         }
@@ -588,7 +603,7 @@ private:
         }
 
         // add residual derivative contributions
-        for (unsigned int a = 0; a < number_of_nodes; ++a) {
+        for (IndexType a = 0; a < number_of_nodes; ++a) {
             const auto& r_node = r_geometry[a];
             if (r_node.Is(SLIP)) {
                 AddNodalRotatedResidualDerivativeToMatrix(
@@ -606,8 +621,8 @@ private:
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
         const Vector& rResiduals,
-        const unsigned int NodeStartIndex,
-        const std::unordered_map<unsigned int, unsigned int>& rDerivativesMap,
+        const IndexType NodeStartIndex,
+        const std::unordered_map<IndexType, IndexType>& rDerivativesMap,
         const NodeType& rNode)
     {
         KRATOS_TRY
@@ -623,7 +638,7 @@ private:
         coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
 
         // add rotated residual derivative contributions
-        for (unsigned int c = 0; c < rResidualDerivatives.size1(); ++c) {
+        for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
             // get the residual derivative relevant for node
             FluidCalculationUtilities::ReadSubVector<TDim>(
                 residual_derivative, row(rResidualDerivatives, c), NodeStartIndex);
@@ -643,7 +658,7 @@ private:
         // first add rotation matrix derivative contributions w.r.t. rNode
         BoundedMatrix<double, TDim, TDim> rotation_matrix_derivative;
         const int current_node_index = rDerivativesMap.find(rNode.Id())->second * TDim;
-        for (unsigned int k = 0; k < TDim; ++k) {
+        for (IndexType k = 0; k < TDim; ++k) {
             coordinate_transformation_utils::CalculateRotationOperatorPureShapeSensitivities(
                 rotation_matrix_derivative, 0, k, rNode);
 
@@ -653,11 +668,11 @@ private:
         }
 
         // add rotation matrix derivative contributions w.r.t. rNode neighbors
-        const auto& r_neighbor_gps = rNode.GetValue(NEIGHBOUR_CONDITION_NODES);
-        for (unsigned int b = 0; b < r_neighbor_gps.size(); ++b) {
+        const auto& r_neighbour_ids = mNodalNeighboursMap[rNode.Id()];
+        for (IndexType b = 0; b < r_neighbour_ids.size(); ++b) {
             const int derivative_node_index =
-                rDerivativesMap.find(r_neighbor_gps(b)->Id())->second * TDim;
-            for (unsigned int k = 0; k < TDim; ++k) {
+                rDerivativesMap.find(r_neighbour_ids[b])->second * TDim;
+            for (IndexType k = 0; k < TDim; ++k) {
                 coordinate_transformation_utils::CalculateRotationOperatorPureShapeSensitivities(
                     rotation_matrix_derivative, b + 1, k, rNode);
 
@@ -671,12 +686,12 @@ private:
         // fixed, making the velocity in the normal direction as rhs.
 
         // first clear the residual derivative
-        for (unsigned int c = 0; c < rOutput.size1(); ++c) {
+        for (IndexType c = 0; c < rOutput.size1(); ++c) {
             rOutput(c, NodeStartIndex) = 0.0;
         }
 
         array_1d<double, TDim> effective_velocity, normal;
-        for (unsigned int i = 0; i < TDim; ++i) {
+        for (IndexType i = 0; i < TDim; ++i) {
             effective_velocity[i] = rNode.FastGetSolutionStepValue(MESH_VELOCITY)[i];
             effective_velocity[i] -= rNode.FastGetSolutionStepValue(VELOCITY)[i];
             normal[i] = rNode.FastGetSolutionStepValue(NORMAL)[i];
@@ -685,7 +700,7 @@ private:
         const Matrix& normal_shape_derivatives = rNode.GetValue(NORMAL_SHAPE_DERIVATIVE);
 
         // add unit normal derivative w.r.t. current node
-        for (unsigned int k = 0; k < TDim; ++k) {
+        for (IndexType k = 0; k < TDim; ++k) {
             const auto& nodal_normal_derivative = row(normal_shape_derivatives, k);
 
             double value = 0.0;
@@ -698,10 +713,10 @@ private:
         }
 
         // add unit normal derivative w.r.t. neighbour nodes
-        for (unsigned int b = 0; b < r_neighbor_gps.size(); ++b) {
+        for (IndexType b = 0; b < r_neighbour_ids.size(); ++b) {
             const int derivative_node_index =
-                rDerivativesMap.find(r_neighbor_gps(b)->Id())->second * TDim;
-            for (unsigned int k = 0; k < TDim; ++k) {
+                rDerivativesMap.find(r_neighbour_ids[b])->second * TDim;
+            for (IndexType k = 0; k < TDim; ++k) {
                 const auto& nodal_normal_derivative =
                     row(normal_shape_derivatives, (b + 1) * TDim + k);
 
@@ -721,15 +736,13 @@ private:
     void AddNodalResidualDerivativeToMatrix(
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
-        const unsigned int NodeStartIndex)
+        const IndexType NodeStartIndex)
     {
         KRATOS_TRY
 
-        constexpr unsigned int block_size = TDim + 1;
-
         // add non-rotated residual derivative contributions
-        for (unsigned int c = 0; c < rResidualDerivatives.size1(); ++c) {
-            for (unsigned int i = 0; i < block_size; ++i) {
+        for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
+            for (IndexType i = 0; i < TBlockSize; ++i) {
                 rOutput(c, NodeStartIndex + i) +=
                     rResidualDerivatives(c, NodeStartIndex + i);
             }
