@@ -41,15 +41,8 @@ class L2ErrorCalculatorUtility:
 
         self.error_model_part.ProcessInfo = self.model_part.ProcessInfo
 
-        self.DOFs = (SDEM.ERROR_X, SDEM.ERROR_Y, SDEM.ERROR_Z, SDEM.ERROR_P)
-
-        self.AddDofs(self.DOFs)
-
-        self.SetStrategy()
-
     def CalculateL2(self):
         self.ComputeDofsErrors(self.error_model_part)
-        self.Solve()
 
         self.velocity_error_norm = self.VectorL2ErrorNorm(self.error_model_part)
         self.pressure_error_norm = self.ScalarL2ErrorNorm(self.error_model_part)
@@ -64,18 +57,3 @@ class L2ErrorCalculatorUtility:
 
     def ScalarL2ErrorNorm(self, error_model_part):
         return SDEM.L2ErrorNormCalculator().GetL2ScalarErrorNorm(self.error_model_part)
-
-    def SetStrategy(self):
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        linear_solver = KratosMultiphysics.AMGCLSolver()
-        self.l2_projector_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.error_model_part, scheme, linear_solver, False, False, False, False)
-
-    def AddDofs(self, DOF_variables):
-        for node in self.error_model_part.Nodes:
-            for var in DOF_variables:
-                node.AddDof(var)
-
-    def Solve(self):
-        print("\nCalculate L2 error norm...")
-        sys.stdout.flush()
-        self.l2_projector_strategy.Solve()

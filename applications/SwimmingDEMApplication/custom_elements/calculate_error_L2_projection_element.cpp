@@ -125,22 +125,22 @@ void CalculateErrorL2Projection<Dim, NumNodes>::AddLHSMatrixContribution(
     const unsigned int BlockSize = NumNodes;
 
     double Coef = Weight;
-    unsigned int FirstRow(0), FirstCol(0);
     double K; // Temporary results
 
     // Note: Dof order is (vx,vy,[vz,]p) for each node
-    for (unsigned int i = 0; i < NumNodes; ++i)
+    for (unsigned int i = 0; i < NumNodes; i++)
     {
         // Loop over columns
         unsigned int row = i*BlockSize;
-        for (unsigned int j = 0; j < NumNodes; ++j)
+        for (unsigned int j = 0; j < NumNodes; j++)
         {
             unsigned int col = j*BlockSize;
             K = Coef * N[i] * N[j];
-            for (unsigned int d = 0; d < NumNodes; ++d) // iterate over dimensions for velocity Dofs in this node combination
+            for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
             {
-                rLHSMatrix(row+d, col+d) += K;
+                rLHSMatrix(row+d, col+d) = K;
             }
+            rLHSMatrix(row+Dim, col+Dim) = K;
         }
     }
 }
@@ -153,14 +153,14 @@ void CalculateErrorL2Projection<Dim, NumNodes>::AddIntegrationPointRHSContributi
 {
     double Coef = Weight;
 
-    for (unsigned int i = 0; i < NumNodes; ++i){
+    for (unsigned int i = 0; i < NumNodes; i++){
         int row = i * NumNodes;
         Vector NodalComponent = this->GetGeometry()[i].FastGetSolutionStepValue(VECTORIAL_ERROR);
         double scalar_component = this->GetGeometry()[i].FastGetSolutionStepValue(SCALAR_ERROR);
         for (unsigned int d = 0; d < Dim; ++d){
-            rRHSVector[row+d] += Coef * N[i] * NodalComponent[d];
+            rRHSVector[row+d] = Coef * N[i] * NodalComponent[d];
         }
-        rRHSVector[row+Dim] += Coef * N[i] * scalar_component;
+        rRHSVector[row+Dim] = Coef * N[i] * scalar_component;
     }
 }
 
