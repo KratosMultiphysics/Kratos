@@ -43,8 +43,6 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
             node.SetSolutionStepValue(VISCOSITY,step,1.0e-5)
             node.SetSolutionStepValue(VELOCITY_X,step,random.random())
             node.SetSolutionStepValue(VELOCITY_Y,step,random.random())
-            node.SetSolutionStepValue(BODY_FORCE_X,step,random.random())
-            node.SetSolutionStepValue(BODY_FORCE_Y,step,random.random())
             node.SetSolutionStepValue(ACCELERATION_X,step,random.random())
             node.SetSolutionStepValue(ACCELERATION_Y,step,random.random())
             node.SetSolutionStepValue(PRESSURE,step,random.random())
@@ -57,8 +55,6 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
             node.SetSolutionStepValue(VISCOSITY,step,1.0e-5)
             node.SetSolutionStepValue(VELOCITY_X,step,random.random())
             node.SetSolutionStepValue(VELOCITY_Y,step,random.random())
-            node.SetSolutionStepValue(BODY_FORCE_X,step,random.random())
-            node.SetSolutionStepValue(BODY_FORCE_Y,step,random.random())
             node.SetSolutionStepValue(ACCELERATION_X,step,random.random())
             node.SetSolutionStepValue(ACCELERATION_Y,step,random.random())
             node.SetSolutionStepValue(PRESSURE,step,random.random())
@@ -83,14 +79,14 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
 
-    # def testCalculateSecondDerivativesLHS(self):
-    #     Mass1 = Matrix(9,9)
-    #     self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
-    #     self.vms_element.CalculateMassMatrix(Mass1,self.model_part.ProcessInfo)
-    #     self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
-    #     mass2_trans = Matrix(9,9)
-    #     self.adjoint_element.CalculateSecondDerivativesLHS(mass2_trans,self.model_part.ProcessInfo)
-    #     self._assertMatrixAlmostEqual(Mass1, self._transpose(mass2_trans)*(-1.0))
+    def testCalculateSecondDerivativesLHS(self):
+        Mass1 = Matrix(9,9)
+        self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
+        self.vms_element.CalculateMassMatrix(Mass1,self.model_part.ProcessInfo)
+        self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
+        mass2_trans = Matrix(9,9)
+        self.adjoint_element.CalculateSecondDerivativesLHS(mass2_trans,self.model_part.ProcessInfo)
+        self._assertMatrixAlmostEqual(Mass1, self._transpose(mass2_trans)*(-1.0))
 
     def testCalculateFirstDerivativesLHS1(self):
         # test for steady state.
@@ -103,45 +99,41 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         RHS = self._zeroVector(9)
         FirstDerivatives = Vector(9)
         self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
-        self.vms_element.CalculateLocalSystem(LHS,RHS,self.model_part.ProcessInfo)
         self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
         self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
-        res0 = RHS * -1.0
+        res0 = LHS * FirstDerivatives
         # finite difference approximation
-        h = 1e-7
+        h = 0.0000001
         FDAdjointMatrix = Matrix(9,9)
         row_index = 0
         for node in self.model_part.Nodes:
             # VELOCITY_X
             vx = node.GetSolutionStepValue(VELOCITY_X,0)
             node.SetSolutionStepValue(VELOCITY_X,0,vx+h)
-            self.vms_element.CalculateLocalSystem(LHS,RHS,self.model_part.ProcessInfo)
             self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
             self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
             node.SetSolutionStepValue(VELOCITY_X,0,vx)
-            res = RHS * -1.0
+            res = LHS * FirstDerivatives
             for j in range(9):
                 FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
             row_index = row_index + 1
             # VELOCITY_Y
             vy = node.GetSolutionStepValue(VELOCITY_Y,0)
             node.SetSolutionStepValue(VELOCITY_Y,0,vy+h)
-            self.vms_element.CalculateLocalSystem(LHS,RHS,self.model_part.ProcessInfo)
             self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
             self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
             node.SetSolutionStepValue(VELOCITY_Y,0,vy)
-            res = RHS * -1.0
+            res = LHS * FirstDerivatives
             for j in range(9):
                 FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
             row_index = row_index + 1
             # PRESSURE
             p = node.GetSolutionStepValue(PRESSURE,0)
             node.SetSolutionStepValue(PRESSURE,0,p+h)
-            self.vms_element.CalculateLocalSystem(LHS,RHS,self.model_part.ProcessInfo)
             self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
             self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
             node.SetSolutionStepValue(PRESSURE,0,p)
-            res = RHS * -1.0
+            res = LHS * FirstDerivatives
             for j in range(9):
                 FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
             row_index = row_index + 1
@@ -155,66 +147,66 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         self._AssignSolutionStepData1(0)
         self._AssignSolutionStepData2(1)
 
-    # def testCalculateFirstDerivativesLHS2(self):
-    #     # unperturbed residual
-    #     Mass = Matrix(9,9)
-    #     LHS = Matrix(9,9)
-    #     RHS = self._zeroVector(9)
-    #     FirstDerivatives = Vector(9)
-    #     SecondDerivatives = Vector(9)
-    #     self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
-    #     self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
-    #     self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
-    #     self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
-    #     self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
-    #     res0 = LHS * FirstDerivatives + Mass * SecondDerivatives
-    #     # finite difference approximation
-    #     h = 0.0000001
-    #     FDAdjointMatrix = Matrix(9,9)
-    #     row_index = 0
-    #     for node in self.model_part.Nodes:
-    #         # VELOCITY_X
-    #         vx = node.GetSolutionStepValue(VELOCITY_X,0)
-    #         node.SetSolutionStepValue(VELOCITY_X,0,vx+h)
-    #         self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
-    #         self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
-    #         self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
-    #         self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
-    #         node.SetSolutionStepValue(VELOCITY_X,0,vx)
-    #         res = LHS * FirstDerivatives + Mass * SecondDerivatives
-    #         for j in range(9):
-    #             FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
-    #         row_index = row_index + 1
-    #         # VELOCITY_Y
-    #         vy = node.GetSolutionStepValue(VELOCITY_Y,0)
-    #         node.SetSolutionStepValue(VELOCITY_Y,0,vy+h)
-    #         self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
-    #         self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
-    #         self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
-    #         self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
-    #         node.SetSolutionStepValue(VELOCITY_Y,0,vy)
-    #         res = LHS * FirstDerivatives + Mass * SecondDerivatives
-    #         for j in range(9):
-    #             FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
-    #         row_index = row_index + 1
-    #         # PRESSURE
-    #         p = node.GetSolutionStepValue(PRESSURE,0)
-    #         node.SetSolutionStepValue(PRESSURE,0,p+h)
-    #         self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
-    #         self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
-    #         self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
-    #         self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
-    #         node.SetSolutionStepValue(PRESSURE,0,p)
-    #         res = LHS * FirstDerivatives + Mass * SecondDerivatives
-    #         for j in range(9):
-    #             FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
-    #         row_index = row_index + 1
+    def testCalculateFirstDerivativesLHS2(self):
+        # unperturbed residual
+        Mass = Matrix(9,9)
+        LHS = Matrix(9,9)
+        RHS = self._zeroVector(9)
+        FirstDerivatives = Vector(9)
+        SecondDerivatives = Vector(9)
+        self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
+        self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
+        self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
+        self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
+        self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
+        res0 = LHS * FirstDerivatives + Mass * SecondDerivatives
+        # finite difference approximation
+        h = 0.0000001
+        FDAdjointMatrix = Matrix(9,9)
+        row_index = 0
+        for node in self.model_part.Nodes:
+            # VELOCITY_X
+            vx = node.GetSolutionStepValue(VELOCITY_X,0)
+            node.SetSolutionStepValue(VELOCITY_X,0,vx+h)
+            self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
+            self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
+            self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
+            self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
+            node.SetSolutionStepValue(VELOCITY_X,0,vx)
+            res = LHS * FirstDerivatives + Mass * SecondDerivatives
+            for j in range(9):
+                FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
+            row_index = row_index + 1
+            # VELOCITY_Y
+            vy = node.GetSolutionStepValue(VELOCITY_Y,0)
+            node.SetSolutionStepValue(VELOCITY_Y,0,vy+h)
+            self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
+            self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
+            self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
+            self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
+            node.SetSolutionStepValue(VELOCITY_Y,0,vy)
+            res = LHS * FirstDerivatives + Mass * SecondDerivatives
+            for j in range(9):
+                FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
+            row_index = row_index + 1
+            # PRESSURE
+            p = node.GetSolutionStepValue(PRESSURE,0)
+            node.SetSolutionStepValue(PRESSURE,0,p+h)
+            self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
+            self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
+            self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
+            self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
+            node.SetSolutionStepValue(PRESSURE,0,p)
+            res = LHS * FirstDerivatives + Mass * SecondDerivatives
+            for j in range(9):
+                FDAdjointMatrix[row_index,j] = -(res[j] - res0[j]) / h
+            row_index = row_index + 1
 
-    #     # analytical implementation
-    #     self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
-    #     AdjointMatrix = Matrix(9,9)
-    #     self.adjoint_element.CalculateFirstDerivativesLHS(AdjointMatrix,self.model_part.ProcessInfo)
-    #     self._assertMatrixAlmostEqual(FDAdjointMatrix, AdjointMatrix)
+        # analytical implementation
+        self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
+        AdjointMatrix = Matrix(9,9)
+        self.adjoint_element.CalculateFirstDerivativesLHS(AdjointMatrix,self.model_part.ProcessInfo)
+        self._assertMatrixAlmostEqual(FDAdjointMatrix, AdjointMatrix)
 
     def testCalculateSensitivityMatrix(self):
         # unperturbed residual
@@ -224,12 +216,11 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         FirstDerivatives = Vector(9)
         SecondDerivatives = Vector(9)
         self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
-        # self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
-        self.vms_element.CalculateLocalSystem(LHS,RHS,self.model_part.ProcessInfo)
+        self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
         self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
         self.vms_element.GetFirstDerivativesVector(FirstDerivatives,0)
-        # self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
-        res0 = RHS * (-1.0) # LHS * FirstDerivatives # + Mass * SecondDerivatives
+        self.vms_element.GetSecondDerivativesVector(SecondDerivatives,0)
+        res0 = LHS * FirstDerivatives + Mass * SecondDerivatives
         # finite difference approximation
         h = 0.00000001
         FDShapeDerivativeMatrix = Matrix(6,9)
@@ -238,22 +229,20 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
             # X
             x = node.X
             node.X = x+h
-            # self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
-            self.vms_element.CalculateLocalSystem(LHS,RHS,self.model_part.ProcessInfo)
+            self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
             self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
             node.X = x
-            res = RHS * (-1.0) # LHS * FirstDerivatives # + Mass * SecondDerivatives
+            res = LHS * FirstDerivatives + Mass * SecondDerivatives
             for j in range(9):
                 FDShapeDerivativeMatrix[row_index,j] = -(res[j] - res0[j]) / h
             row_index = row_index + 1
             # Y
             y = node.Y
             node.Y = y+h
-            # self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
-            self.vms_element.CalculateLocalSystem(LHS,RHS,self.model_part.ProcessInfo)
+            self.vms_element.CalculateMassMatrix(Mass,self.model_part.ProcessInfo)
             self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
             node.Y = y
-            res = RHS * (-1.0) # LHS * FirstDerivatives # + Mass * SecondDerivatives
+            res = LHS * FirstDerivatives + Mass * SecondDerivatives
             for j in range(9):
                 FDShapeDerivativeMatrix[row_index,j] = -(res[j] - res0[j]) / h
             row_index = row_index + 1
