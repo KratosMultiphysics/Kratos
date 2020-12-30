@@ -83,6 +83,7 @@ namespace Kratos
 				rElement.SetValue(EMBEDDED_VELOCITY, ZeroVector(3));
 				rElement.SetValue(ELEMENTAL_DISTANCES,init_dist_vect);
 				rElement.SetValue(ELEMENTAL_EDGE_DISTANCES, init_edge_dist_vect);
+				rElement.SetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES, init_edge_dist_vect);
 			});
 		} else {
 			block_for_each(mrVolumePart.Elements(), [&](Element& rElement){
@@ -498,7 +499,7 @@ namespace Kratos
         Element& rElement,
         const array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector)
 	{
-		// Get reference to ELEMENTAL_EDGE_DISTANCES and resize if necessary
+		// Get reference to ELEMENTAL_EXTRA_EDGE_DISTANCES and resize if necessary
 		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
 		Vector& r_edge_distances = rElement.GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
 		if(r_edge_distances.size() != n_edges){
