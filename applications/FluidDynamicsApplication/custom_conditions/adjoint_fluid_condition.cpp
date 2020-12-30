@@ -112,6 +112,23 @@ void AdjointFluidCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorTy
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void AdjointFluidCondition<TDim, TNumNodes>::CalculateLocalVelocityContribution(
+    Matrix& rDampingMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rDampingMatrix.size1() != LocalSize || rDampingMatrix.size2() != LocalSize) {
+        rDampingMatrix.resize(LocalSize, LocalSize, false);
+    }
+
+    rDampingMatrix.clear();
+
+    if (rRightHandSideVector.size() != LocalSize) {
+        rRightHandSideVector.resize(LocalSize, false);
+    }
+
+    rRightHandSideVector.clear();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void AdjointFluidCondition<TDim, TNumNodes>::CalculateFirstDerivativesLHS(
     Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -130,8 +147,9 @@ void AdjointFluidCondition<TDim, TNumNodes>::CalculateSensitivityMatrix(
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rOutput.size1() != 0)
-        rOutput.resize((TDim) * TNumNodes, LocalSize, false);
+    constexpr IndexType coord_local_size = TDim * TNumNodes;
+    if (rOutput.size1() != coord_local_size || rOutput.size2() != LocalSize)
+        rOutput.resize(coord_local_size, LocalSize, false);
 
     rOutput.clear();
 }

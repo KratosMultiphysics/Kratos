@@ -138,7 +138,15 @@ class AdjointFluidSolver(FluidSolver):
 
     def __CreateSensitivityBuilder(self):
         response_function = self.GetResponseFunction()
-        self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme()
+
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size == 2:
+            self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme2D()
+        elif domain_size == 3:
+            self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme3D()
+        else:
+            raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.settings["sensitivity_settings"],
             self.main_model_part,

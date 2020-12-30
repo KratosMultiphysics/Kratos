@@ -56,7 +56,7 @@
         "model_part_name"              : "MainModelPart",
         "maximum_iterations"           : 1000,
         "domain_size"                  : 2,
-        "echo_level"                   : 1,
+        "echo_level"                   : 0,
         "consider_periodic_conditions" : false,
         "compute_reactions"            : true,
         "reform_dofs_at_each_step"     : false,
@@ -115,7 +115,7 @@
         },{
             "python_module" : "apply_slip_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyNoSlipProcess",
+            "process_name"  : "ApplySlipProcess",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.NoSlip2D_Cylinder"
             }
@@ -141,7 +141,7 @@
         }],
         "auxiliar_process_list" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "single_mesh_primal_output_process",
+            "python_module" : "single_mesh_temporal_output_process",
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {

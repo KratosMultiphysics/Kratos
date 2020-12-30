@@ -64,7 +64,7 @@
         "skin_parts"                    : ["Inlet", "Outlet", "Structure"],
         "linear_solver_settings" : {
             "solver_type"         : "amgcl",
-            "tolerance" : 1e-7,
+            "tolerance" : 1e-9,
             "verbosity"           : 0
         },
         "model_import_settings" : {
@@ -106,7 +106,8 @@
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Structure",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-                "value"           : [0.0, 0.0, 0.0]
+                "value"           : [0.0, 0.0, 0.0],
+                "constrained"     : [true,false,false]
             }
         }],
         "gravity" : [],
@@ -121,7 +122,21 @@
                     "file_access_mode" : "read_only"
                 },
                 "nodal_solution_step_data_settings" : {
-                    "list_of_variables": ["VELOCITY", "PRESSURE"]
+                    "list_of_variables": [
+                        "VELOCITY",
+                        "PRESSURE",
+                        "BODY_FORCE",
+                        "NORMAL"]
+                },
+                "nodal_flag_value_settings": {
+                    "list_of_variables": [
+                        "SLIP"
+                    ]
+                },
+                "condition_flag_value_settings": {
+                    "list_of_variables": [
+                        "SLIP"
+                    ]
                 }
             }
         }]

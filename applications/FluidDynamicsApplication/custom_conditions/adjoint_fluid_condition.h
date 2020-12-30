@@ -161,13 +161,17 @@ public:
         Matrix& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    ///@}
-    ///@name Input and output
-    ///@{
+    void CalculateLocalVelocityContribution(Matrix& rDampingMatrix,
+                                            Vector& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Turn back information as a string.
+        ///@}
+        ///@name Input and output
+        ///@{
 
-    std::string Info() const override
+        /// Turn back information as a string.
+
+        std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "AdjointFluidCondition #" << this->Id();

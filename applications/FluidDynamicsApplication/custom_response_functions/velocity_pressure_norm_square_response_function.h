@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "response_functions/adjoint_response_function.h"
+#include "utilities/element_size_calculator.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
@@ -165,10 +166,7 @@ public:
         Vector& rSensitivityGradient,
         const ProcessInfo& rProcessInfo) override
     {
-        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
-            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
-
-        rSensitivityGradient.clear();
+        CalculateEntitySensitivityDerivatives(rAdjointElement, rSensitivityGradient, rProcessInfo);
     }
 
     void CalculatePartialSensitivity(
@@ -178,10 +176,7 @@ public:
         Vector& rSensitivityGradient,
         const ProcessInfo& rProcessInfo) override
     {
-        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
-            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
-
-        rSensitivityGradient.clear();
+        CalculateEntitySensitivityDerivatives(rAdjointCondition, rSensitivityGradient, rProcessInfo);
     }
 
     double CalculateValue(ModelPart& rModelPart) override
@@ -227,17 +222,20 @@ private:
         Matrix& rShapeFunctions) const
     {
         if (rEntity.Is(STRUCTURE)) {
-            this->CalculateGeometryData(rEntity.GetGeometry(), rShapeFunctions);
+            const auto& r_geometry = rEntity.GetGeometry();
+
+            this->CalculateGeometryData(r_geometry, rShapeFunctions);
             const Vector& N = row(rShapeFunctions, 0);
+
+            const double volume = r_geometry.DomainSize();
 
             double pressure;
             array_1d<double, 3> velocity;
             FluidCalculationUtilities::EvaluateInPoint(
-                rEntity.GetGeometry(), N, std::tie(velocity, VELOCITY),
-                std::tie(pressure, PRESSURE));
+                r_geometry, N, std::tie(velocity, VELOCITY), std::tie(pressure, PRESSURE));
 
-            return mVelocityNormFactor * std::pow(norm_2(velocity), 2) +
-                   mPressureNormFactor * std::pow(pressure, 2);
+            return mVelocityNormFactor * std::pow(volume * norm_2(velocity), 2) +
+                   mPressureNormFactor * std::pow(volume * pressure, 2);
         } else {
             return 0;
         }
@@ -271,8 +269,10 @@ private:
             FluidCalculationUtilities::EvaluateInPoint(
                 r_geometry, N, std::tie(velocity, VELOCITY), std::tie(pressure, PRESSURE));
 
-            const double coeff_1 = 2.0 * mVelocityNormFactor;
-            const double coeff_2 = 2.0 * mPressureNormFactor * pressure;
+            const double volume_2 = std::pow(r_geometry.DomainSize(), 2);
+
+            const double coeff_1 = volume_2 * 2.0 * mVelocityNormFactor;
+            const double coeff_2 = volume_2 * 2.0 * mPressureNormFactor * pressure;
 
             IndexType local_index = 0;
             for (IndexType c = 0; c < number_of_nodes; ++c) {
@@ -283,6 +283,63 @@ private:
 
                 // adding pressure derivatives
                 rResponseGradient[local_index++] = coeff_2 * N[c];
+            }
+        } else {
+            rResponseGradient.clear();
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    template<class TEntityType>
+    void CalculateEntitySensitivityDerivatives(
+        const TEntityType& rEntity,
+        Vector& rResponseGradient,
+        const ProcessInfo& rProcessInfo) const
+    {
+        KRATOS_TRY
+
+        const auto& r_geometry = rEntity.GetGeometry();
+        const IndexType number_of_nodes = r_geometry.PointsNumber();
+        const IndexType domain_size = rProcessInfo[DOMAIN_SIZE];
+        const IndexType local_size = domain_size * number_of_nodes;
+
+        if (rResponseGradient.size() != local_size) {
+            rResponseGradient.resize(local_size);
+        }
+
+        if (rEntity.Is(STRUCTURE)) {
+            Matrix shape_functions;
+            this->CalculateGeometryData(r_geometry, shape_functions);
+            const Vector& N = row(shape_functions, 0);
+
+            const double volume = r_geometry.DomainSize();
+
+            double pressure;
+            array_1d<double, 3> velocity;
+            FluidCalculationUtilities::EvaluateInPoint(
+                r_geometry, N, std::tie(velocity, VELOCITY), std::tie(pressure, PRESSURE));
+
+            const double lx = r_geometry[0].X() - r_geometry[1].X();
+            const double ly = r_geometry[0].Y() - r_geometry[1].Y();
+
+            for (IndexType c = 0; c < number_of_nodes; ++c) {
+                for (IndexType k = 0; k < domain_size; ++k) {
+                    const double lx_derivative =
+                        (c == 0 && k == 0) * (1.0) + (c == 1 && k == 0) * (-1.0);
+                    const double ly_derivative =
+                        (c == 0 && k == 1) * (1.0) + (c == 1 && k == 1) * (-1.0);
+                    const double volume_derivative =
+                        (1.0 / volume) * (lx * lx_derivative + ly * ly_derivative);
+
+                    double value = 0.0;
+                    value += mVelocityNormFactor * std::pow(norm_2(velocity), 2) *
+                             2 * volume * volume_derivative;
+                    value += mPressureNormFactor * std::pow(pressure, 2) * 2 *
+                             volume * volume_derivative;
+
+                    rResponseGradient[c * domain_size + k] = value;
+                }
             }
         } else {
             rResponseGradient.clear();

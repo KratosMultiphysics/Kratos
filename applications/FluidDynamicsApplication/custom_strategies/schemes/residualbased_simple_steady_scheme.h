@@ -25,6 +25,8 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "processes/process.h"
 
+#include "includes/debug_helpers.h"
+
 namespace Kratos {
 
 ///@name Kratos Classes

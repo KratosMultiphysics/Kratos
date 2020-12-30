@@ -34,7 +34,6 @@
 #include "utilities/adjoint_extensions.h"
 
 // Application includes
-#include "custom_elements/vms.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 
@@ -52,7 +51,7 @@ namespace Kratos {
  * @see VMS monolithic fluid element
  */
 template< unsigned int TDim >
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public VMS<TDim>
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public Element
 {
     class ThisExtensions : public AdjointExtensions
     {
@@ -152,8 +151,6 @@ public:
 
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
 
-    typedef VMS<TDim> BaseType;
-
     typedef Element::IndexType IndexType;
 
     typedef Element::SizeType SizeType;
@@ -190,14 +187,14 @@ public:
     ///@{
 
     VMSAdjointElement(IndexType NewId = 0)
-        : BaseType(NewId)
+        : Element(NewId)
     {
     }
 
     VMSAdjointElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+        : Element(NewId, pGeometry)
     {
     }
 
@@ -205,7 +202,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+        : Element(NewId, pGeometry, pProperties)
     {
     }
 
@@ -362,6 +359,257 @@ public:
         }
     }
 
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                      VectorType& rRightHandSideVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        // Check sizes and initialize matrix
+        if (rLeftHandSideMatrix.size1() != TFluidLocalSize ||
+            rLeftHandSideMatrix.size2() != TFluidLocalSize)
+            rLeftHandSideMatrix.resize(TFluidLocalSize, TFluidLocalSize, false);
+
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(TFluidLocalSize, TFluidLocalSize);
+
+        // Calculate RHS
+        this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    }
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        // Check sizes and initialize
+        if (rRightHandSideVector.size() != TFluidLocalSize)
+            rRightHandSideVector.resize(TFluidLocalSize, false);
+
+        noalias(rRightHandSideVector) = ZeroVector(TFluidLocalSize);
+
+        // Calculate this element's geometric parameters
+        double Area;
+        array_1d<double, TNumNodes> N;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        // Calculate this element's fluid properties
+        double Density;
+        array_1d<double, TDim> BodyForce;
+        FluidCalculationUtilities::EvaluateInPoint(this->GetGeometry(), N,
+                                                   std::tie(Density, DENSITY),
+                                                   std::tie(BodyForce, BODY_FORCE));
+
+        // Calculate Momentum RHS contribution
+        this->AddMomentumRHS(rRightHandSideVector, Density, BodyForce, N, Area);
+
+        // For OSS: Add projection of residuals to RHS
+        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
+        if (r_const_process_info[OSS_SWITCH] == 1)
+        {
+            KRATOS_ERROR << "OSS projections are not yet supported with VMS adjoints.\n";
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    virtual void AddMomentumRHS(VectorType& F,
+                                const double Density,
+                                const array_1d<double, TDim>& rBodyForce,
+                                const array_1d<double, TNumNodes>& rShapeFunc,
+                                const double Weight)
+    {
+        double Coef = Density * Weight;
+
+        // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
+        int LocalIndex = 0;
+
+        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+        {
+            for (unsigned int d = 0; d < TDim; ++d)
+            {
+                F[LocalIndex++] += Coef * rShapeFunc[iNode] * rBodyForce[d];
+            }
+            ++LocalIndex; // Skip pressure Dof
+        }
+    }
+
+    void CalculateLocalVelocityContribution(
+        MatrixType& rDampingMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        // Resize and set to zero the matrix
+        // Note that we don't clean the RHS because it will already contain body force (and stabilization) contributions
+        if (rDampingMatrix.size1() != TFluidLocalSize)
+            rDampingMatrix.resize(TFluidLocalSize, TFluidLocalSize, false);
+
+        noalias(rDampingMatrix) = ZeroMatrix(TFluidLocalSize, TFluidLocalSize);
+
+        // Get this element's geometric properties
+        double Area;
+        array_1d<double, TNumNodes> N;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        // Calculate this element's fluid properties
+        double Density, Viscosity;
+        array_1d<double, TDim> velocity, mesh_velocity, body_force;
+        FluidCalculationUtilities::EvaluateInPoint(
+            this->GetGeometry(), N, std::tie(Density, DENSITY),
+            std::tie(velocity, VELOCITY), std::tie(mesh_velocity, MESH_VELOCITY),
+            std::tie(Viscosity, VISCOSITY),
+            std::tie(body_force, BODY_FORCE));
+
+        Viscosity *= Density;
+
+        double ElemSize = this->CalculateElementSize(Area);
+
+        // Get Advective velocity
+        const array_1d<double, TDim> AdvVel = velocity - mesh_velocity;
+
+        // stabilization parameters
+        double TauOne, TauTwo;
+        this->CalculateTau(TauOne, TauTwo, AdvVel, ElemSize, Density, Viscosity,
+                           rCurrentProcessInfo);
+
+        this->AddIntegrationPointVelocityContribution(
+            rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel,
+            body_force, TauOne, TauTwo, N, DN_DX, Area);
+
+        // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
+        VectorType U = ZeroVector(TFluidLocalSize);
+        int LocalIndex = 0;
+
+        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+        {
+            array_1d< double, 3 > & rVel = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
+            {
+                U[LocalIndex] = rVel[d];
+                ++LocalIndex;
+            }
+            U[LocalIndex] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
+            ++LocalIndex;
+        }
+
+        noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
+    }
+
+    void CalculateTau(double& TauOne,
+                      double& TauTwo,
+                      const array_1d<double, TDim>& rAdvVel,
+                      const double ElemSize,
+                      const double Density,
+                      const double Viscosity,
+                      const ProcessInfo& rCurrentProcessInfo)
+    {
+        // Compute mean advective velocity norm
+        const double AdvVelNorm = norm_2(rAdvVel);
+
+        double InvTau =
+            Density * (-rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] +
+                       2.0 * AdvVelNorm / ElemSize) +
+            4.0 * Viscosity / (ElemSize * ElemSize);
+        TauOne = 1.0 / InvTau;
+        TauTwo = Viscosity + 0.5 * Density * ElemSize * AdvVelNorm;
+    }
+
+    void AddIntegrationPointVelocityContribution(MatrixType& rDampingMatrix,
+                                                 VectorType& rDampRHS,
+                                                 const double Density,
+                                                 const double Viscosity,
+                                                 const array_1d<double, TDim>& rAdvVel,
+                                                 const array_1d<double, TDim>& rBodyForce,
+                                                 const double TauOne,
+                                                 const double TauTwo,
+                                                 const array_1d<double, TNumNodes>& rShapeFunc,
+                                                 const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
+                                                 const double Weight)
+    {
+        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
+        const array_1d<double, TNumNodes> AGradN = prod(rShapeDeriv, rAdvVel);
+
+        // Build the local matrix and RHS
+        unsigned int FirstRow(0),
+            FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
+        double K, G, PDivV, L, qF; // Temporary results
+
+        array_1d<double, TDim> BodyForce = rBodyForce * Density;
+
+        for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+        {
+            for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
+            {
+                // Calculate the part of the contributions that is constant for each node combination
+
+                // Velocity block
+                K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
+                // K = 0.5 * Density * (rShapeFunc[i] * AGradN[j] - AGradN[i] * rShapeFunc[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
+                K += TauOne * Density * AGradN[i] * Density *
+                     AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
+                K *= Weight;
+
+                // q-p stabilization block (reset result)
+                L = 0;
+
+                for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
+                {
+                    // Velocity block
+                    // K += Weight * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
+
+                    // v * Grad(p) block
+                    G = TauOne * Density * AGradN[i] *
+                        rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
+
+                    // Write v * Grad(p) component
+                    rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
+                    // Use symmetry to write the q * Div(u) component
+                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
+
+                    // q-p stabilization block
+                    L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
+
+                    for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
+                    {
+                        // Velocity block
+                        rDampingMatrix(FirstRow + m, FirstCol + n) +=
+                            Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+                    }
+                }
+
+                // Write remaining terms to velocity block
+                for (unsigned int d = 0; d < TDim; ++d)
+                    rDampingMatrix(FirstRow + d, FirstCol + d) += K;
+
+                // Write q-p stabilization block
+                rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
+
+                // Update reference column index for next iteration
+                FirstCol += TBlockSize;
+            }
+
+            // Operate on RHS
+            qF = 0.0;
+            for (unsigned int d = 0; d < TDim; ++d) {
+                rDampRHS[FirstRow + d] +=
+                    Weight * TauOne * Density * AGradN[i] *
+                    BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                qF += rShapeDeriv(i, d) * BodyForce[d];
+            }
+            rDampRHS[FirstRow + TDim] +=
+                Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
+
+            // Update reference indices
+            FirstRow += TBlockSize;
+            FirstCol = 0;
+        }
+
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> viscous_contribution =
+            ZeroMatrix(TFluidLocalSize, TFluidLocalSize);
+        this->AddViscousTerm(viscous_contribution, rShapeDeriv, Viscosity * Weight);
+        noalias(rDampingMatrix) += viscous_contribution;
+    }
+
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -404,39 +652,10 @@ public:
         BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        ShapeFunctionDerivativesType DN_DX;
-        array_1d<double, TNumNodes> N;
-        double Volume;
-
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
-
-        array_1d<double, 3> velocity;
-        FluidCalculationUtilities::EvaluateInPoint(this->GetGeometry(), N,
-                std::tie(velocity, VELOCITY));
-
-        const double velocity_norm = norm_2(velocity);
-
-        rLeftHandSideMatrix.clear();
-
-        for (IndexType c = 0; c < TNumNodes; ++c) {
-            for (IndexType a = 0; a < TNumNodes; ++a) {
-                for (IndexType k = 0; k < TDim; ++k) {
-                    for (IndexType i = 0; i < TDim; ++i){
-                        rLeftHandSideMatrix(c * TBlockSize + k, a * TBlockSize + i) -=
-                            Volume * N[a] * velocity[k] * N[c] * velocity[i] / velocity_norm;
-                    }
-
-                    rLeftHandSideMatrix(c * TBlockSize + k, a * TBlockSize + TDim) +=
-                        Volume * N[a] * N[c] * velocity[k] / velocity_norm;
-
-                    rLeftHandSideMatrix(c * TBlockSize + k, a * TBlockSize + k) -=
-                        Volume * N[a] * N[c] * velocity_norm;
-                }
-
-                rLeftHandSideMatrix(c * TBlockSize + TDim, a * TBlockSize + TDim) -=
-                    Volume * N[a] * N[c];
-            }
-        }
+        this->CalculatePrimalGradientOfVMSSteadyTerm(rLeftHandSideMatrix, rCurrentProcessInfo);
+        this->AddPrimalGradientOfVMSMassTerm(rLeftHandSideMatrix, ACCELERATION,
+                                             -1.0, rCurrentProcessInfo);
+        rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
     }
 
     /**
@@ -466,6 +685,28 @@ public:
     {
         this->CalculateVMSMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
         rLeftHandSideMatrix = -trans(rLeftHandSideMatrix); // transpose
+    }
+
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rProcessInfo) override
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "this function is not implemented.";
+
+        KRATOS_CATCH("")
+    }
+
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rProcessInfo) override
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "this function is not implemented.";
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -556,11 +797,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double GetDeltaTime(const ProcessInfo& rProcessInfo) const override
-    {
-        return rProcessInfo[DELTA_TIME] * -1.0;
-    }
-
     void AuxiliaryCalculateSensitivityMatrix(
         const Variable<array_1d<double, 3>>& rSensitivityVariable,
         BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rOutput,
@@ -570,7 +806,7 @@ protected:
 
         if (rSensitivityVariable == SHAPE_SENSITIVITY) {
             this->CalculateShapeGradientOfVMSSteadyTerm(rOutput, rCurrentProcessInfo);
-            // this->AddShapeGradientOfVMSMassTerm(rOutput, ACCELERATION, -1.0, rCurrentProcessInfo);
+            this->AddShapeGradientOfVMSMassTerm(rOutput, ACCELERATION, -1.0, rCurrentProcessInfo);
         } else {
             KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
                          << " not supported." << std::endl;
@@ -607,21 +843,10 @@ protected:
         Viscosity *= Density;
 
         // u * Grad(N)
-        array_1d<double, TNumNodes> DensityVelGradN;
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            DensityVelGradN[i] = 0.0;
-            for (IndexType d = 0; d < TDim; ++d) {
-                DensityVelGradN[i] += Density * DN_DX(i, d) * Velocity[d];
-            }
-        }
+        const array_1d<double, TNumNodes> DensityVelGradN = prod(DN_DX, Velocity) * Density;
 
         // Stabilization parameters
-        double VelNorm = 0.0;
-        for (IndexType d = 0; d < TDim; ++d) {
-            VelNorm += Velocity[d] * Velocity[d];
-        }
-
-        VelNorm = std::sqrt(VelNorm);
+        const double VelNorm = norm_2(Velocity);
         const double ElemSize = this->CalculateElementSize(Volume);
         double TauOne, TauTwo;
         this->CalculateStabilizationParameters(TauOne, TauTwo, VelNorm, ElemSize, Density,
@@ -1163,7 +1388,7 @@ protected:
      */
     void CalculateShapeGradientOfVMSSteadyTerm(
         BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rShapeDerivativesMatrix,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -1176,23 +1401,47 @@ protected:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
         // Density
+        double Density, Viscosity;
+        array_1d<double, TDim> Velocity, BodyForce;
+
+        FluidCalculationUtilities::EvaluateInPoint(this->GetGeometry(), N,
+                std::tie(Density, DENSITY),
+                std::tie(Viscosity, VISCOSITY),
+                std::tie(Velocity, VELOCITY),
+                std::tie(BodyForce, BODY_FORCE));
+
+        BodyForce *= Density;
+        Viscosity *= Density;
+
+        // u * Grad(N)
+        array_1d<double, TNumNodes> DensityVelGradN;
+        noalias(DensityVelGradN) = Density * prod(DN_DX, Velocity);
+
+        // Det(J)
         const double InvDetJ = 1.0 / this->GetGeometry().DeterminantOfJacobian(0);
         array_1d<double, TCoordLocalSize> DetJDerivatives;
         this->CalculateDeterminantOfJacobianDerivatives(DetJDerivatives);
 
-        // Calculate this element's fluid properties
-        array_1d<double, 3> body_force;
-        this->EvaluateInPoint(body_force, BODY_FORCE, N);
+        // Stabilization parameters TauOne, TauTwo
+        double VelNorm = norm_2(Velocity);
+        double ElemSize = this->CalculateElementSize(Volume);
+        double TauOne, TauTwo;
+        this->CalculateStabilizationParameters(TauOne, TauTwo, VelNorm, ElemSize, Density,
+                                               Viscosity, rCurrentProcessInfo);
 
-        array_1d<double, 3> velocity;
-        this->EvaluateInPoint(velocity, VELOCITY, N);
 
-        double pressure;
-        this->EvaluateInPoint(pressure, PRESSURE, N);
+        array_1d<double, TFluidLocalSize> FluidValues;
 
-        const double velocity_norm = norm_2(velocity);
-
-        rShapeDerivativesMatrix.clear();
+        IndexType DofIndex = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto& r_velocity =
+                this->GetGeometry()[i_node].FastGetSolutionStepValue(VELOCITY);
+            for (IndexType d = 0; d < TDim; ++d) {
+                FluidValues[DofIndex++] = r_velocity[d];
+            }
+            FluidValues[DofIndex++] =
+                this->GetGeometry()[i_node].FastGetSolutionStepValue(PRESSURE);
+        }
 
         // We compute the derivative of the residual w.r.t each coordinate of
         // each node and assign it to the corresponding row of the shape
@@ -1201,18 +1450,157 @@ protected:
             // Det(J)'
             const double DetJDeriv = DetJDerivatives[iCoord];
 
+            // DN_DX'
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX_Deriv;
+            for (IndexType i = 0; i < TNumNodes; ++i) {
+                for (IndexType d = 0; d < TDim; ++d) {
+                    DN_DX_Deriv(i, d) = -DN_DX(iCoord / TDim, d) * DN_DX(i, iCoord % TDim);
+                }
+            }
+
             // Volume'
             const double VolumeDeriv = Volume * InvDetJ * DetJDeriv;
 
-            for (IndexType a = 0; a < TNumNodes; ++a) {
-                for (IndexType i = 0; i < TDim; ++i) {
-                    rShapeDerivativesMatrix(iCoord, a * TBlockSize + i) += VolumeDeriv * N[a] * body_force[i];
-                    rShapeDerivativesMatrix(iCoord, a * TBlockSize + i) -= VolumeDeriv * N[a] * velocity_norm * velocity[i];
+            // u * Grad(N)'
+            array_1d<double, TNumNodes> DensityVelGradNDeriv;
+            noalias(DensityVelGradNDeriv) = Density * prod(DN_DX_Deriv, Velocity);
+
+            // TauOne', TauTwo'
+            double TauOneDeriv, TauTwoDeriv;
+            this->CalculateStabilizationParametersDerivative(
+                TauOneDeriv, TauTwoDeriv, TauOne, TauTwo, VelNorm, ElemSize,
+                Density, Viscosity, DetJDeriv);
+
+            BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
+            array_1d<double, TFluidLocalSize> RHS;
+            for (IndexType i = 0; i < TFluidLocalSize; ++i) {
+                RHS[i] = 0.0;
+                for (IndexType j = 0; j < TFluidLocalSize; ++j) {
+                    LHS(i, j) = 0.0;
+                }
+            }
+
+            for (IndexType i = 0; i < TNumNodes; ++i) {
+                for (IndexType j = 0; j < TNumNodes; ++j) {
+                    // Left-hand side matrix
+                    double diag = 0.0;
+                    double ddiag = 0.0;
+
+                    // Convective term, v * (u * Grad(u))
+                    diag += N[i] * DensityVelGradN[j];
+                    ddiag += N[i] * DensityVelGradNDeriv[j];
+
+                    // Stabilization, lsq convection
+                    // (u * Grad(v)) * TauOne * (u * Grad(u))
+                    diag += DensityVelGradN[i] * TauOne * DensityVelGradN[j];
+                    ddiag += DensityVelGradNDeriv[i] * TauOne * DensityVelGradN[j] +
+                             DensityVelGradN[i] * TauOneDeriv * DensityVelGradN[j] +
+                             DensityVelGradN[i] * TauOne * DensityVelGradNDeriv[j];
+
+                    for (IndexType m = 0; m < TDim; ++m) {
+                        for (IndexType n = 0; n < TDim; ++n) {
+                            // Stabilization, lsq divergence
+                            // Div(v) * TauTwo * Div(u)
+                            double valmn = DN_DX(i, m) * TauTwo * DN_DX(j, n);
+                            double dvalmn = DN_DX_Deriv(i, m) * TauTwo * DN_DX(j, n) +
+                                            DN_DX(i, m) * TauTwoDeriv * DN_DX(j, n) +
+                                            DN_DX(i, m) * TauTwo * DN_DX_Deriv(j, n);
+
+                            LHS(i * TBlockSize + m, j * TBlockSize + n) +=
+                                VolumeDeriv * valmn + Volume * dvalmn;
+                        }
+                        LHS(i * TBlockSize + m, j * TBlockSize + m) +=
+                            VolumeDeriv * diag + Volume * ddiag;
+
+                        double valmp = 0.0;
+                        double dvalmp = 0.0;
+                        // Pressure term
+                        // Div(v) * p
+                        valmp -= DN_DX(i, m) * N[j];
+                        dvalmp -= DN_DX_Deriv(i, m) * N[j];
+
+                        // Stabilization, convection-pressure
+                        // (u * Grad(v)) * TauOne * Grad(p)
+                        valmp += TauOne * DensityVelGradN[i] * DN_DX(j, m);
+                        dvalmp += TauOneDeriv * DensityVelGradN[i] * DN_DX(j, m) +
+                                  TauOne * DensityVelGradNDeriv[i] * DN_DX(j, m) +
+                                  TauOne * DensityVelGradN[i] * DN_DX_Deriv(j, m);
+
+                        double valpn = 0.0;
+                        double dvalpn = 0.0;
+                        // Divergence term
+                        // q * Div(u)
+                        valpn += N[i] * DN_DX(j, m);
+                        dvalpn += N[i] * DN_DX_Deriv(j, m);
+
+                        // Stabilization, pressure-convection
+                        // Grad(q) * TauOne * (u * Grad(u))
+                        valpn += TauOne * DensityVelGradN[j] * DN_DX(i, m);
+                        dvalpn += TauOneDeriv * DensityVelGradN[j] * DN_DX(i, m) +
+                                  TauOne * DensityVelGradNDeriv[j] * DN_DX(i, m) +
+                                  TauOne * DensityVelGradN[j] * DN_DX_Deriv(i, m);
+
+                        LHS(i * TBlockSize + m, j * TBlockSize + TDim) +=
+                            VolumeDeriv * valmp + Volume * dvalmp;
+                        LHS(i * TBlockSize + TDim, j * TBlockSize + m) +=
+                            VolumeDeriv * valpn + Volume * dvalpn;
+                    }
+
+                    double valpp = 0.0;
+                    double dvalpp = 0.0;
+                    // Stabilization, lsq pressure
+                    // TauOne * Grad(q) * Grad(p)
+                    for (IndexType d = 0; d < TDim; ++d) {
+                        valpp += DN_DX(i, d) * DN_DX(j, d) * TauOne;
+                        dvalpp += DN_DX_Deriv(i, d) * DN_DX(j, d) * TauOne +
+                                  DN_DX(i, d) * DN_DX_Deriv(j, d) * TauOne +
+                                  DN_DX(i, d) * DN_DX(j, d) * TauOneDeriv;
+                    }
+
+                    LHS(i * TBlockSize + TDim, j * TBlockSize + TDim) +=
+                        VolumeDeriv * valpp + Volume * dvalpp;
+                } // Node block columns
+
+                // Right-hand side vector
+                double DN_DX_BodyForce = 0.0;
+                double DN_DX_BodyForceDeriv = 0.0;
+                for (IndexType d = 0; d < TDim; ++d) {
+                    DN_DX_BodyForce += DN_DX(i, d) * BodyForce[d];
+                    DN_DX_BodyForceDeriv += DN_DX_Deriv(i, d) * BodyForce[d];
                 }
 
-                rShapeDerivativesMatrix(iCoord, a * TBlockSize + TDim) += VolumeDeriv * N[a] * velocity_norm;
-                rShapeDerivativesMatrix(iCoord, a * TBlockSize + TDim) -= VolumeDeriv * N[a] * pressure;
+                for (IndexType m = 0; m < TDim; ++m) {
+                    double valm = 0.0;
+                    double dvalm = 0.0;
+
+                    // External body force
+                    valm += N[i] * BodyForce[m];
+
+                    // Stabilization, convection-BodyForce
+                    // (u * Grad(v)) * TauOne * f
+                    valm += TauOne * DensityVelGradN[i] * BodyForce[m];
+                    dvalm += TauOneDeriv * DensityVelGradN[i] * BodyForce[m] +
+                             TauOne * DensityVelGradNDeriv[i] * BodyForce[m];
+
+                    RHS[i * TBlockSize + m] += VolumeDeriv * valm + Volume * dvalm;
+                }
+
+                double valp = TauOne * DN_DX_BodyForce;
+                double dvalp = TauOneDeriv * DN_DX_BodyForce + TauOne * DN_DX_BodyForceDeriv;
+
+                RHS[i * TBlockSize + TDim] += VolumeDeriv * valp + Volume * dvalp;
             } // Node block rows
+
+            this->AddViscousTermDerivative(LHS, DN_DX, DN_DX_Deriv, Viscosity * Volume,
+                                           Viscosity * VolumeDeriv);
+
+            // Assign the derivative of the residual w.r.t this coordinate to
+            // the shape derivatives matrix.
+            array_1d<double, TFluidLocalSize> ResidualDerivative;
+            noalias(ResidualDerivative) = RHS - prod(LHS, FluidValues);
+            for (IndexType k = 0; k < TFluidLocalSize; ++k) {
+                rShapeDerivativesMatrix(iCoord, k) = ResidualDerivative[k];
+            }
         }
 
         KRATOS_CATCH("")

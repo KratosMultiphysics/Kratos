@@ -192,7 +192,7 @@ public:
      * @param ColumnIndex           Column index
      */
     template<unsigned int TSize>
-    static void WriteSubVector(
+    static void AddSubVector(
         Matrix& rOutput,
         const BoundedVector<double, TSize>& rInput,
         const unsigned int RowIndex,
@@ -212,7 +212,7 @@ public:
             << ", TSize = " << TSize << " ].\n";
 
         for (unsigned int i = 0; i < TSize; ++i) {
-            rOutput(RowIndex, ColumnIndex + i) = rInput[i];
+            rOutput(RowIndex, ColumnIndex + i) += rInput[i];
         }
 
         KRATOS_CATCH("");

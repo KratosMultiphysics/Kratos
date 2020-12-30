@@ -126,14 +126,27 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
 
-    py::class_<SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>,
-               typename SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>::Pointer, BaseSchemeType>
-        (m, "SimpleSteadyAdjointScheme")
+    using  SimpleSteadyAdjointScheme2DType = SimpleSteadyAdjointScheme<2, SparseSpaceType, LocalSpaceType>;
+    py::class_<SimpleSteadyAdjointScheme2DType, typename SimpleSteadyAdjointScheme2DType::Pointer, BaseSchemeType>
+        (m, "SimpleSteadyAdjointScheme2D")
         .def(py::init<AdjointResponseFunction::Pointer>())
         ;
 
-    py::class_<SimpleSteadySensitivityBuilderScheme, typename SimpleSteadySensitivityBuilderScheme::Pointer, SensitivityBuilderScheme>
-        (m, "SimpleSteadySensitivityBuilderScheme")
+    using  SimpleSteadyAdjointScheme3DType = SimpleSteadyAdjointScheme<3, SparseSpaceType, LocalSpaceType>;
+    py::class_<SimpleSteadyAdjointScheme3DType, typename SimpleSteadyAdjointScheme3DType::Pointer, BaseSchemeType>
+        (m, "SimpleSteadyAdjointScheme3D")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+        ;
+
+    using SimpleSteadySensitivityBuilderScheme2DType = SimpleSteadySensitivityBuilderScheme<2>;
+    py::class_<SimpleSteadySensitivityBuilderScheme2DType, typename SimpleSteadySensitivityBuilderScheme2DType::Pointer, SensitivityBuilderScheme>
+        (m, "SimpleSteadySensitivityBuilderScheme2D")
+        .def(py::init())
+        ;
+
+    using SimpleSteadySensitivityBuilderScheme3DType = SimpleSteadySensitivityBuilderScheme<3>;
+    py::class_<SimpleSteadySensitivityBuilderScheme3DType, typename SimpleSteadySensitivityBuilderScheme3DType::Pointer, SensitivityBuilderScheme>
+        (m, "SimpleSteadySensitivityBuilderScheme3D")
         .def(py::init())
         ;
 }

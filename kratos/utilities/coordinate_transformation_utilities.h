@@ -79,10 +79,12 @@ public:
 	 */
 	CoordinateTransformationUtils(const unsigned int DomainSize,
 			const unsigned int NumRowsPerNode,
-			const Kratos::Flags& rSelectionFlag = SLIP):
+			const Kratos::Flags& rSelectionFlag = SLIP,
+			const Variable<array_1d<double, 3>>& rVectorVariable = VELOCITY):
 	mDomainSize(DomainSize),
 	mBlockSize(NumRowsPerNode),
-	mrFlag(rSelectionFlag)
+	mrFlag(rSelectionFlag),
+	mrVectorVariable(rVectorVariable)
 	{}
 
 	/// Destructor.
@@ -578,7 +580,7 @@ public:
 
 					// If the mesh is moving, we must impose v_normal = vmesh_normal
 					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(mrVectorVariable);
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
 					Normalize(rN);
 
@@ -615,7 +617,7 @@ public:
 
 					// If the mesh is moving, we must impose v_normal = vmesh_normal
 					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(mrVectorVariable);
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
 					Normalize(rN);
 
@@ -644,7 +646,7 @@ public:
 					BoundedMatrix<double,3,3> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrVectorVariable);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(rRot,Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
@@ -654,7 +656,7 @@ public:
 					BoundedMatrix<double,2,2> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrVectorVariable);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(rRot,Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
@@ -681,7 +683,7 @@ public:
 					BoundedMatrix<double,3,3> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrVectorVariable);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
@@ -691,7 +693,7 @@ public:
 					BoundedMatrix<double,2,2> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrVectorVariable);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
@@ -1041,6 +1043,8 @@ private:
 	const unsigned int mBlockSize;
 
 	const Kratos::Flags& mrFlag;
+
+	const Variable<array_1d<double, 3>>& mrVectorVariable;
 
 	///@}
 	///@name Private Operators

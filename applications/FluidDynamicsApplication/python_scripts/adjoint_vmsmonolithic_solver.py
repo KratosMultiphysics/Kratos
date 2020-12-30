@@ -109,7 +109,13 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 self.settings["scheme_settings"],
                 response_function)
         elif scheme_type == "steady":
-            scheme = KratosCFD.SimpleSteadyAdjointScheme(response_function)
+            domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            if domain_size == 2:
+                scheme = KratosCFD.SimpleSteadyAdjointScheme2D(response_function)
+            elif domain_size == 3:
+                scheme = KratosCFD.SimpleSteadyAdjointScheme3D(response_function)
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme

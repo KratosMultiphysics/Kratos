@@ -14,7 +14,6 @@
 #define KRATOS_SIMPLE_STEADY_ADJOINT_SCHEME_H_INCLUDED
 
 // System includes
-#include <vector>
 #include <string>
 
 // External includes
@@ -27,6 +26,7 @@
 
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -44,7 +44,7 @@ namespace Kratos
  * \f$\partial_{\mathbf{w}}\mathbf{r}^T\f$ is returned by Element::CalculateFirstDerivativesLHS.
  * \f$\partial_{\mathbf{w}}J^{T}\f$ is returned by ResponseFunction::CalculateFirstDerivativesGradient.
  */
-template <class TSparseSpace, class TDenseSpace>
+template <IndexType TDim, class TSparseSpace, class TDenseSpace>
 class SimpleSteadyAdjointScheme : public ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>
 {
 public:
@@ -63,11 +63,11 @@ public:
 
     using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
     using IndexType = std::size_t;
 
     using NodeType = ModelPart::NodeType;
+
+    static constexpr IndexType TBlockSize = TDim + 1;
 
     ///@}
     ///@name Life Cycle
@@ -75,12 +75,12 @@ public:
 
     /// Constructor.
     explicit SimpleSteadyAdjointScheme(
-        AdjointResponseFunction::Pointer pResponseFunction,
-        const unsigned int DomainSize = 2)
+        AdjointResponseFunction::Pointer pResponseFunction)
         : BaseType(pResponseFunction)
     {
-        int num_threads = OpenMPUtils::GetNumThreads();
-        mAuxMatrices.resize(num_threads);
+        // Allocate auxiliary memory.
+        const int number_of_threads = OpenMPUtils::GetNumThreads();
+        mAuxMatrices.resize(number_of_threads);
     }
 
     /// Destructor.
@@ -89,59 +89,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void Initialize(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY;
-
-        const IndexType domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-        // assign domain size specific methods
-        if (domain_size == 2) {
-            this->mAddNodalRotatedResidualDerivativeToMatrix =
-                &SimpleSteadyAdjointScheme::AddNodalRotatedResidualDerivativeToMatrix<2>;
-            this->mAddNodalResidualDerivativeToMatrix =
-                &SimpleSteadyAdjointScheme::AddNodalResidualDerivativeToMatrix<2>;
-        } else if (domain_size == 3) {
-            this->mAddNodalRotatedResidualDerivativeToMatrix =
-                &SimpleSteadyAdjointScheme::AddNodalRotatedResidualDerivativeToMatrix<3>;
-            this->mAddNodalResidualDerivativeToMatrix =
-                &SimpleSteadyAdjointScheme::AddNodalResidualDerivativeToMatrix<3>;
-        } else {
-            KRATOS_ERROR << "Unsupported domain size [ domain_size = " << domain_size
-                         << " ].\n";
-        }
-
-        BaseType::Initialize(rModelPart);
-
-        KRATOS_CATCH("");
-    }
-
-    void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
-    {
-        if (!mIsSlipDofsFixed) {
-
-            // fixing first dof of velocity on slip nodes because when system of
-            // equations are rotated according to nodal normal, first dof becomes
-            // velocity in the nodal normal direction which is fixed by matrix
-            // construction in the primal scheme
-
-            block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
-                if (rNode.Is(SLIP)) {
-                    rNode.Fix(ADJOINT_FLUID_VECTOR_1_X);
-                    rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_X) = 0.0;
-                }
-            });
-
-            mIsSlipDofsFixed = true;
-        }
-
-        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
-    }
 
     void CalculateSystemContributions(
         Element& rCurrentElement,
@@ -160,15 +107,8 @@ public:
         Element::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY;
-
-        const auto thread_id = OpenMPUtils::ThisThread();
-
         CalculateEntityLHSContribution(rCurrentElement, rLHS_Contribution,
-                                       mAuxMatrices[thread_id], rEquationId,
-                                       rCurrentProcessInfo);
-
-        KRATOS_CATCH("");
+                                       rEquationId, rCurrentProcessInfo);
     }
 
     void CalculateSystemContributions(
@@ -188,33 +128,9 @@ public:
         Condition::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY;
-
-        const auto thread_id = OpenMPUtils::ThisThread();
-
         CalculateEntityLHSContribution(rCurrentCondition, rLHS_Contribution,
-                                       mAuxMatrices[thread_id], rEquationId,
-                                       rCurrentProcessInfo);
-
-        KRATOS_CATCH("");
+                                       rEquationId, rCurrentProcessInfo);
     }
-
-//     void Update(ModelPart& rModelPart,
-//                 DofsArrayType& rDofSet,
-//                 TSystemMatrixType& rA,
-//                 TSystemVectorType& rDx,
-//                 TSystemVectorType& rb) override
-//     {
-//         KRATOS_TRY;
-
-//         mRotationTool.RotateVelocities(rModelPart);
-
-//         mpDofUpdater->UpdateDofs(rDofSet, rDx);
-
-//         mRotationTool.RecoverVelocities(rModelPart);
-
-//         KRATOS_CATCH("");
-//   }
 
     ///@}
 
@@ -223,19 +139,6 @@ private:
     ///@{
 
     std::vector<Matrix> mAuxMatrices;
-    bool mIsSlipDofsFixed = false;
-
-    void (SimpleSteadyAdjointScheme::*mAddNodalRotatedResidualDerivativeToMatrix)(
-        Matrix&,
-        const Matrix&,
-        const IndexType,
-        const NodeType&);
-
-    void (SimpleSteadyAdjointScheme::*mAddNodalResidualDerivativeToMatrix)(
-        Matrix&, const Matrix&, const IndexType);
-
-    // CoordinateTransformationUtils<LocalSystemMatrixType, LocalSystemVectorType, double> mRotationTool;
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
     ///@}
     ///@name Private Operations
@@ -253,11 +156,10 @@ private:
 
         const auto thread_id = OpenMPUtils::ThisThread();
 
-        auto& aux_matrix = mAuxMatrices[thread_id];
-
         const auto& r_const_entity_ref = rEntity;
 
-        CalculateEntityLHSContribution<TEntityType>(rEntity, rLHS_Contribution, aux_matrix, rEquationId, rCurrentProcessInfo);
+        CalculateEntityLHSContribution<TEntityType>(
+            rEntity, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
@@ -268,16 +170,11 @@ private:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        if (this->mAdjointValues[thread_id].size() != 0) {
-            r_const_entity_ref.GetFirstDerivativesVector(this->mAdjointValues[thread_id]);
-            noalias(rRHS_Contribution) -=
-                prod(rLHS_Contribution, this->mAdjointValues[thread_id]);
+        if (rLHS_Contribution.size1() != 0) {
+            auto& adjoint_values = this->mAdjointValues[thread_id];
+            r_const_entity_ref.GetValuesVector(adjoint_values);
+            noalias(rRHS_Contribution) -= prod(rLHS_Contribution, adjoint_values);
         }
-
-        // // apply slip condition
-        // mRotationTool.Rotate(rLHS_Contribution, rRHS_Contribution, rEntity.GetGeometry());
-        // mRotationTool.ApplySlipCondition(rLHS_Contribution, rRHS_Contribution,
-        //                                  rEntity.GetGeometry());
 
         KRATOS_CATCH("");
     }
@@ -285,101 +182,106 @@ private:
     template<class TEntityType>
     void CalculateEntityLHSContribution(
         TEntityType& rEntity,
-        LocalSystemMatrixType& rRotatedLHS,
         LocalSystemMatrixType& rLHS,
         Condition::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        const auto& r_const_entity_ref = rEntity;
-        rEntity.CalculateFirstDerivativesLHS(rLHS, rCurrentProcessInfo);
+        const auto thread_id = OpenMPUtils::ThisThread();
+        auto& aux_matrix = mAuxMatrices[thread_id];
 
-        if (rRotatedLHS.size1() != rLHS.size1() || rRotatedLHS.size2() != rLHS.size2()) {
-            rRotatedLHS.resize(rLHS.size1(), rLHS.size2(), false);
+        const auto& r_const_entity_ref = rEntity;
+        rEntity.CalculateFirstDerivativesLHS(aux_matrix, rCurrentProcessInfo);
+        r_const_entity_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
+
+        const auto& r_geometry = rEntity.GetGeometry();
+        const IndexType number_of_nodes = r_geometry.PointsNumber();
+
+        if (rLHS.size1() != aux_matrix.size1() || rLHS.size2() != aux_matrix.size2()) {
+            rLHS.resize(aux_matrix.size1(), aux_matrix.size2(), false);
         }
 
-        rRotatedLHS.clear();
-
-        auto& r_geometry = rEntity.GetGeometry();
-        const IndexType number_of_nodes = r_geometry.PointsNumber();
-        const IndexType local_size = rLHS.size1() / number_of_nodes;
+        rLHS.clear();
 
         // add residual derivative contributions
         for (IndexType a = 0; a < number_of_nodes; ++a) {
             const auto& r_node = r_geometry[a];
-            // if (r_node.Is(SLIP)) {
-                (this->*(this->mAddNodalRotatedResidualDerivativeToMatrix))(
-                    rRotatedLHS, rLHS, a * local_size, r_node);
-            // } else {
-            //     (this->*(this->mAddNodalResidualDerivativeToMatrix))(
-            //         rRotatedLHS, rLHS, a * local_size);
-            // }
+            if (r_node.Is(SLIP)) {
+                AddNodalRotatedResidualDerivativeToMatrix(
+                    rLHS, aux_matrix, a * TBlockSize, r_node);
+            } else {
+                AddNodalResidualDerivativeToMatrix(rLHS, aux_matrix, a * TBlockSize);
+            }
         }
-
-        r_const_entity_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    template <unsigned int TDim>
     void AddNodalRotatedResidualDerivativeToMatrix(
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
         const IndexType NodeStartIndex,
-        const NodeType& rNode)
+        const NodeType& rNode) const
     {
         KRATOS_TRY
 
         using coordinate_transformation_utils = CoordinateTransformationUtils<Matrix, Vector, double>;
 
         BoundedVector<double, TDim> residual_derivative, aux_vector;
-
-        // get the rotation matrix relevant for rNode
         BoundedMatrix<double, TDim, TDim> rotation_matrix;
-        if (rNode.Is(SLIP)) {
-            coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
-        } else {
-            noalias(rotation_matrix) = IdentityMatrix(TDim);
-        }
+        coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
 
         // add rotated residual derivative contributions
         for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
             // get the residual derivative relevant for node
             FluidCalculationUtilities::ReadSubVector<TDim>(
-                residual_derivative,
-                row(rResidualDerivatives, c), NodeStartIndex);
+                residual_derivative, row(rResidualDerivatives, c), NodeStartIndex);
 
             // rotate residual derivative
             noalias(aux_vector) = prod(rotation_matrix, residual_derivative);
 
             // add rotated residual derivative to local matrix
-            FluidCalculationUtilities::WriteSubVector<TDim>(
+            FluidCalculationUtilities::AddSubVector<TDim>(
                 rOutput, aux_vector, c, NodeStartIndex);
 
             // add continuity equation derivatives
-            rOutput(c, NodeStartIndex + TDim) =
+            rOutput(c, NodeStartIndex + TDim) +=
                 rResidualDerivatives(c, NodeStartIndex + TDim);
+        }
+
+        // Apply slip condition in primal scheme makes first momentum dof
+        // fixed, making the velocity in the normal direction as rhs.
+
+        // first clear the residual derivative
+        for (IndexType c = 0; c < rOutput.size1(); ++c) {
+            rOutput(c, NodeStartIndex) = 0.0;
+        }
+
+        auto normal = rNode.FastGetSolutionStepValue(NORMAL);
+        normal /= norm_2(normal);
+
+        for (IndexType i = 0; i < TDim; ++i) {
+            rOutput(NodeStartIndex + i, NodeStartIndex) -= normal[i];
         }
 
         KRATOS_CATCH("");
     }
 
-    template <unsigned int TDim>
     void AddNodalResidualDerivativeToMatrix(
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
-        const IndexType NodeStartIndex)
+        const IndexType NodeStartIndex) const
     {
         KRATOS_TRY
 
         // add non-rotated residual derivative contributions
-        // for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
-        //     for (IndexType i = 0; i < TDim + 1; ++i) {
-        //         rOutput(c, NodeStartIndex + i) +=
-        //             rResidualDerivatives(c, NodeStartIndex + i);
-        //     }
-        // }
+        for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
+            for (IndexType i = 0; i < TBlockSize; ++i) {
+                rOutput(c, NodeStartIndex + i) +=
+                    rResidualDerivatives(c, NodeStartIndex + i);
+            }
+        }
 
         KRATOS_CATCH("");
     }
@@ -387,11 +289,6 @@ private:
     ///@}
 
 }; /* Class SimpleSteadyAdjointScheme */
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 

@@ -88,14 +88,14 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             self._writeNodalCoordinates(node_id,coord,model_part_file_name)
         return sensitivity
 
-    def _computeFiniteDifferenceNormSquareSensitivity(self,node_ids,step_size,model_part_file_name,drag_direction,drag_file_name):
+    def _computeFiniteDifferenceNormSquareSensitivity(self,node_ids,step_size,model_part_file_name, parameters_file_name, drag_direction,drag_file_name):
         sensitivity = []
 
         def calculate_objective_value():
             parameters = Parameters("""{
-                "norm_model_part_name": "Structure",
-                "velocity_norm_factor": 1.0,
-                "pressure_norm_factor": 1.0
+                "norm_model_part_name": "NoSlip2D_Cylinder",
+                "velocity_norm_factor": 1e-4,
+                "pressure_norm_factor": 1e-4
             }""")
             response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 parameters,
@@ -104,7 +104,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             return response_function.CalculateValue(self.test._GetSolver().main_model_part)
 
         # unperturbed drag
-        self.solve(model_part_file_name)
+        self.solve(parameters_file_name)
         drag0 = calculate_objective_value()
         for node_id in node_ids:
             node_sensitivity = []
@@ -112,13 +112,13 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             # X + h
             perturbed_coord = [coord[0] + step_size, coord[1], coord[2]]
             self._writeNodalCoordinates(node_id,perturbed_coord,model_part_file_name)
-            self.solve(model_part_file_name)
+            self.solve(parameters_file_name)
             drag = calculate_objective_value()
             node_sensitivity.append((drag - drag0) / step_size)
             # Y + h
             perturbed_coord = [coord[0], coord[1] + step_size, coord[2]]
             self._writeNodalCoordinates(node_id,perturbed_coord,model_part_file_name)
-            self.solve(model_part_file_name)
+            self.solve(parameters_file_name)
             drag = calculate_objective_value()
             node_sensitivity.append((drag - drag0) / step_size)
             sensitivity.append(node_sensitivity)
@@ -144,27 +144,46 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         self.test = self._createFluidTest(parameter_file_name)
         self.test.Run()
 
-    def testOneElement(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # solve fluid
-            self.solve('AdjointVMSSensitivity2DTest/one_element_test')
-            # solve adjoint
-            test = AdjointFluidAnalysis(Model(), self._readParameters('AdjointVMSSensitivity2DTest/one_element_test_adjoint'))
-            test.Run()
-            Sensitivity = [[]]
-            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(2).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
-            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(2).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+    # def testOneElement(self):
+    #     with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+    #         # solve fluid
+    #         print("Solve reference")
+    #         self.solve('AdjointVMSSensitivity2DTest/one_element_test')
+    #         # solve adjoint
+    #         test = AdjointFluidAnalysis(Model(), self._readParameters('AdjointVMSSensitivity2DTest/one_element_test_adjoint'))
+    #         test.Run()
 
-            # calculate sensitivity by finite difference
-            step_size = 1e-7
-            FDSensitivity = self._computeFiniteDifferenceNormSquareSensitivity([2],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
-            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
-            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
-            self._removeH5Files("MainModelPart")
-            kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/one_element_test.time")
-            kratos_utils.DeleteFileIfExisting("./Structure_drag.dat")
-            kratos_utils.DeleteFileIfExisting("./one_element.post.bin")
-            kratos_utils.DeleteFileIfExisting("./tests.post.lst")
+    #         Sensitivity = [[], []]
+    #         Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(3).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+    #         Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(3).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+    #         Sensitivity[1].append(test._GetSolver().main_model_part.GetNode(4).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+    #         Sensitivity[1].append(test._GetSolver().main_model_part.GetNode(4).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+
+    #         # calculate sensitivity by finite difference
+    #         step_size = 1e-8
+    #         FDSensitivity = self._computeFiniteDifferenceNormSquareSensitivity([3, 4],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
+    #         print(Sensitivity)
+    #         print(FDSensitivity)
+
+    #         # import numpy as np
+    #         # print(np.array(Sensitivity) - np.array(FDSensitivity))
+
+    #         for node in test._GetSolver().main_model_part.Nodes:
+    #             print(node.Id)
+    #             print("u = ", node.GetSolutionStepValue(VELOCITY))
+    #             print("p = ", node.GetSolutionStepValue(PRESSURE))
+    #             print("lambda_u = ", node.GetSolutionStepValue(KratosCFD.ADJOINT_FLUID_VECTOR_1))
+    #             print("lambda_p = ", node.GetSolutionStepValue(KratosCFD.ADJOINT_FLUID_SCALAR_1))
+    #             print("NORMAL: ", node.GetSolutionStepValue(NORMAL))
+
+
+    # self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
+    # self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
+    # self._removeH5Files("MainModelPart")
+    # kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/one_element_test.time")
+    # kratos_utils.DeleteFileIfExisting("./Structure_drag.dat")
+    # kratos_utils.DeleteFileIfExisting("./one_element.post.bin")
+    # kratos_utils.DeleteFileIfExisting("./tests.post.lst")
 
     # def testCylinder(self):
     #     with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -232,27 +251,33 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
     #         kratos_utils.DeleteFileIfExisting("./steady_cylinder_test.post.bin")
     #         kratos_utils.DeleteFileIfExisting("./tests.post.lst")
 
-    # def testSlipSteadyNormCylinder(self):
-    #     with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-    #         # solve fluid
-    #         self.solve('AdjointVMSSensitivity2DTest/steady_cylinder_slip_test')
-    #         # solve adjoint
-    #         test = self._createAdjointTest('AdjointVMSSensitivity2DTest/steady_cylinder_slip_test_norm_adjoint')
-    #         test.Run()
-    #         Sensitivity = [[]]
-    #         Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
-    #         Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+    def testSlipSteadyNormCylinder(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # solve fluid
+            self.solve('AdjointVMSSensitivity2DTest/steady_cylinder_slip_test')
+            # solve adjoint
+            test = self._createAdjointTest('AdjointVMSSensitivity2DTest/steady_cylinder_slip_test_norm_adjoint')
+            test.Run()
+            Sensitivity = [[]]
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
-    #         # calculate sensitivity by finite difference
-    #         step_size = 1e-9
-    #         FDSensitivity = self._computeFiniteDifferenceNormSquareSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/steady_cylinder_test',[1.0,0.0,0.0],'MainModelPart.NoSlip2D_Cylinder_drag.dat')
-    #         self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
-    #         self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
-    #         self._removeH5Files("MainModelPart")
-    #         kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/steady_cylinder_test.time")
-    #         kratos_utils.DeleteFileIfExisting("./NoSlip2D_Cylinder_drag.dat")
-    #         kratos_utils.DeleteFileIfExisting("./steady_cylinder_test.post.bin")
-    #         kratos_utils.DeleteFileIfExisting("./tests.post.lst")
+            # calculate sensitivity by finite difference
+            step_size = 1e-9
+            FDSensitivity = self._computeFiniteDifferenceNormSquareSensitivity(
+                [1968], step_size,
+                './AdjointVMSSensitivity2DTest/steady_cylinder_test',
+                './AdjointVMSSensitivity2DTest/steady_cylinder_slip_test',
+                [1.0, 0.0, 0.0], 'MainModelPart.NoSlip2D_Cylinder_drag.dat')
+            print(Sensitivity)
+            print(FDSensitivity)
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
+            self._removeH5Files("MainModelPart")
+            kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/steady_cylinder_test.time")
+            kratos_utils.DeleteFileIfExisting("./NoSlip2D_Cylinder_drag.dat")
+            kratos_utils.DeleteFileIfExisting("./steady_cylinder_test.post.bin")
+            kratos_utils.DeleteFileIfExisting("./tests.post.lst")
 
     def tearDown(self):
         pass
