@@ -317,7 +317,7 @@ double ShallowWaterUtilities::InverseHeight(const double Height, const double Ep
 {
     const double h4 = std::pow(Height, 4);
     const double epsilon4 = std::pow(Epsilon, 4);
-    return std::sqrt(2) * Height / std::sqrt(h4 + std::max(h4, epsilon4));
+    return std::sqrt(2) * std::max(Height, .0) / std::sqrt(h4 + std::max(h4, epsilon4));
 }
 
 void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry)
