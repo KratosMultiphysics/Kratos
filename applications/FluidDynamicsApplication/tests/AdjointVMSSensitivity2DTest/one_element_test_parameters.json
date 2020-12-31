@@ -2,8 +2,8 @@
     "problem_data" : {
         "problem_name"    : "one_element",
         "start_time"      : 0.0,
-        "end_time"        : 1.0,
-        "nsteps"          : 1,
+        "end_time"        : 3.0,
+        "nsteps"          : 3,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
@@ -41,23 +41,23 @@
     },
     "solver_settings" : {
         "solver_type"                   : "Monolithic",
-        "maximum_iterations"            : 100,
+        "maximum_iterations"            : 10,
         "domain_size"                   : 2,
         "echo_level"                    : 0,
         "consider_periodic_conditions"  : false,
         "compute_reactions"             : false,
         "reform_dofs_at_each_step"      : false,
-        "relative_velocity_tolerance"   : 1e-7,
-        "absolute_velocity_tolerance"   : 1e-9,
-        "relative_pressure_tolerance"   : 1e-7,
-        "absolute_pressure_tolerance"   : 1e-9,
+        "relative_velocity_tolerance"   : 0.001,
+        "absolute_velocity_tolerance"   : 1e-5,
+        "relative_pressure_tolerance"   : 0.001,
+        "absolute_pressure_tolerance"   : 1e-5,
         "model_part_name"               : "MainModelPart",
         "volume_model_part_name"        : "Parts_Fluid",
-        "skin_parts"                    : ["Inlet", "Outlet", "Structure"],
+        "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
         "no_skin_parts"                 : [],
         "linear_solver_settings" : {
-            "solver_type"         : "skyline_lu_factorization",
-            "verbosity"           : 4
+            "solver_type"         : "amgcl",
+            "verbosity"           : 0
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",
@@ -70,9 +70,6 @@
             "automatic_time_step" : false,
             "time_step"           : 1.0
         },
-        "time_scheme"                 : "steady",
-        "velocity_relaxation"         : 0.9,
-        "pressure_relaxation"         : 0.9,
         "formulation" : {
             "element_type"             : "vms",
             "use_orthogonal_subscales" : false,
@@ -88,8 +85,8 @@
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Inlet",
                 "variable_name"   : "VELOCITY",
-                "modulus"         : 1.0,
-                "direction"       : [0.0, 1.0, 0.0]
+                "modulus"         : 1.4142135623730951,
+                "direction"       : [0.70710678118654746,-0.70710678118654746,0.0]
             }
         },{
             "python_module" : "assign_scalar_variable_process",
@@ -101,28 +98,27 @@
                 "value"           : 0
             }
         },{
-            "python_module" : "apply_slip_process",
+            "python_module" : "apply_noslip_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplySlipProcess",
+            "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Structure"
+                "model_part_name" : "MainModelPart.Boundary"
             }
-        }],
-        "gravity"                          : [{
-            "python_module" : "assign_vector_by_direction_process",
+        },{
+            "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignVectorByDirectionProcess",
+            "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Parts_Fluid",
-                "variable_name"   : "BODY_FORCE",
-                "modulus"         : 0.0,
-                "constrained"     : false,
-                "direction"       : [0.0,-1.0,0.0]
+                "model_part_name" : "MainModelPart.Outlet",
+                "variable_name"   : "VELOCITY",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0, 0.0, 0.0]
             }
         }],
+        "gravity" : [],
         "auxiliar_process_list" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "single_mesh_temporal_output_process",
+            "python_module" : "single_mesh_primal_output_process",
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {
@@ -131,21 +127,7 @@
                     "file_access_mode" : "truncate"
                 },
                 "nodal_solution_step_data_settings" : {
-                    "list_of_variables": [
-                        "VELOCITY",
-                        "PRESSURE",
-                        "BODY_FORCE",
-                        "NORMAL"]
-                },
-                "nodal_flag_value_settings": {
-                    "list_of_variables": [
-                        "SLIP"
-                    ]
-                },
-                "condition_flag_value_settings": {
-                    "list_of_variables": [
-                        "SLIP"
-                    ]
+                    "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
                 }
             }
         },{

@@ -46,9 +46,7 @@
         "response_function_settings" : {
             "response_type"            : "norm_square",
             "custom_settings" : {
-                "norm_model_part_name" : "NoSlip2D_Cylinder",
-                "velocity_norm_factor": 1e-4,
-                "pressure_norm_factor": 1e-4
+                "norm_model_part_name" : "NoSlip2D_Cylinder"
             }
         },
         "sensitivity_settings" : {
