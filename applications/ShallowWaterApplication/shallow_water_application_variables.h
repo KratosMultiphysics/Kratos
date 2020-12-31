@@ -47,6 +47,7 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, SHOCK_STABILIZATION_FACTOR)
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, EQUIVALENT_MANNING)        // Redefinition of manning for the wetting drying model
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, DRY_HEIGHT)                // Definition of the dry domain
+    KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, RELATIVE_DRY_HEIGHT)       // Definition of the dry domain
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, DRY_DISCHARGE_PENALTY)     // Dry domain penalty for the specific discharge
 
     // Post-process variables
