@@ -122,6 +122,9 @@ namespace MPMParticleGeneratorUtility
                         const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
                         IntegrationMethod int_method = GeometryData::GI_GAUSS_1;
 
+                        // TODO:
+                        bool is_equal_int_volumes = true;
+
                         if (geo_type == GeometryData::Kratos_Point2D  || geo_type == GeometryData::Kratos_Point3D)
                         {
                             switch (particles_per_condition)
@@ -169,21 +172,62 @@ namespace MPMParticleGeneratorUtility
                                 case 3:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     int_method = GeometryData::GI_GAUSS_1;
+                                    if (is_equal_int_volumes){
+                                        shape_functions_values(1,0) = 0.5;
+                                        shape_functions_values(1,1) = 0.5;
+                                    }
                                     break;
                                 case 4:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                     int_method = GeometryData::GI_GAUSS_2;
+                                    if (is_equal_int_volumes){
+                                        shape_functions_values(0,0) = 0.75;
+                                        shape_functions_values(0,1) = 0.25;
+                                        shape_functions_values(1,0) = 0.25;
+                                        shape_functions_values(1,1) = 0.75;
+                                    }
                                     break;
                                 case 5:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
                                     int_method = GeometryData::GI_GAUSS_3;
+                                    if (is_equal_int_volumes){
+                                        shape_functions_values(0,0) = 0.8;
+                                        shape_functions_values(0,1) = 0.2;
+                                        shape_functions_values(1,0) = 0.5;
+                                        shape_functions_values(1,1) = 0.5;
+                                        shape_functions_values(2,0) = 0.4;
+                                        shape_functions_values(2,1) = 0.6;
+                                    }
                                     break;
                                 case 6:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    int_method = GeometryData::GI_GAUSS_4;
+                                    if (is_equal_int_volumes){
+                                        shape_functions_values(0,0) = 0.8;
+                                        shape_functions_values(0,1) = 0.2;
+                                        shape_functions_values(1,0) = 0.6;
+                                        shape_functions_values(1,1) = 0.4;
+                                        shape_functions_values(2,0) = 0.4;
+                                        shape_functions_values(2,1) = 0.6;
+                                        shape_functions_values(3,0) = 0.2;
+                                        shape_functions_values(3,1) = 0.8;
+                                    }
                                     break;
                                 case 7:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
                                     int_method = GeometryData::GI_GAUSS_5;
+                                    if (is_equal_int_volumes){
+                                        shape_functions_values(0,0) = 0.9;
+                                        shape_functions_values(0,1) = 0.1;
+                                        shape_functions_values(1,0) = 0.7;
+                                        shape_functions_values(1,1) = 0.3;
+                                        shape_functions_values(2,0) = 0.5;
+                                        shape_functions_values(2,1) = 0.5;
+                                        shape_functions_values(3,0) = 0.3;
+                                        shape_functions_values(3,1) = 0.7;
+                                        shape_functions_values(4,0) = 0.1;
+                                        shape_functions_values(4,1) = 0.9;
+                                    }
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
@@ -283,7 +327,7 @@ namespace MPMParticleGeneratorUtility
                         Vector int_volumes (integration_point_per_conditions);
                         
                         
-                        bool is_equal_int_volumes = false;
+                        
 
                         if (is_equal_int_volumes) {
                             for (size_t j = 0; j < integration_point_per_conditions; ++j)  int_volumes[j] = r_geometry.Area() / integration_point_per_conditions;
