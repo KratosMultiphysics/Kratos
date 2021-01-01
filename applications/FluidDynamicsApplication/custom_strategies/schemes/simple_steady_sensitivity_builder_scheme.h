@@ -408,6 +408,45 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    virtual void CalculateLHSAndRHS(
+        ElementType& rElement,
+        Matrix& rLHS,
+        Vector& rRHS,
+        const ProcessInfo& rProcessInfo)
+    {
+        // following calls uses the same method calls as in the primal scheme to be consistent
+        rElement.CalculateLocalSystem(rLHS, rRHS, rProcessInfo);
+        rElement.CalculateLocalVelocityContribution(rLHS, rRHS, rProcessInfo);
+    }
+
+    virtual void CalculateLHSAndRHS(
+        ConditionType& rCondition,
+        Matrix& rLHS,
+        Vector& rRHS,
+        const ProcessInfo& rProcessInfo)
+    {
+        // following calls uses the same method calls as in the primal scheme to be consistent
+        rCondition.CalculateLocalSystem(rLHS, rRHS, rProcessInfo);
+        rCondition.CalculateLocalVelocityContribution(rLHS, rRHS, rProcessInfo);
+    }
+
+    ///@}
+
+private:
+    ///@name Member Variables
+    ///@{
+
+    bool mIsNodalNormalShapeDerivativesComputed = false;
+    std::vector<Matrix> mAuxMatrices;
+    std::vector<Vector> mAuxVectors;
+    std::vector<Matrix> mRotatedSensitivityMatrices;
+
+    std::unordered_map<int, std::vector<int>> mNodalNeighboursMap;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
     void AddNodalRotationDerivatives(
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
@@ -634,9 +673,7 @@ protected:
                 // calculate entity residual.
                 // following methods will throw an error in old adjoint elements/conditions since
                 // they does not support SLIP condition based primal solutions
-                // following calls uses the same method calls as in the primal scheme to be consistent
-                rEntity.CalculateLocalSystem(aux_matrix, aux_vector, rProcessInfo);
-                rEntity.CalculateLocalVelocityContribution(aux_matrix, aux_vector, rProcessInfo);
+                this->CalculateLHSAndRHS(rEntity, aux_matrix, aux_vector, rProcessInfo);
             }
 
             // add residual derivative contributions
@@ -662,23 +699,6 @@ protected:
 
         KRATOS_CATCH("");
     }
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-
-    bool mIsNodalNormalShapeDerivativesComputed = false;
-    std::vector<Matrix> mAuxMatrices;
-    std::vector<Vector> mAuxVectors;
-    std::vector<Matrix> mRotatedSensitivityMatrices;
-
-    std::unordered_map<int, std::vector<int>> mNodalNeighboursMap;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     template <typename TEntityType, typename TDerivativeEntityType, typename TDataType>
     void CalculateLocalSensitivityAndGlobalPointersVector(
