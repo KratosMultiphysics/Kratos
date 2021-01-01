@@ -567,13 +567,57 @@ public:
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& rProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        // Resize and set to zero
+        if (rMassMatrix.size1() != TFluidLocalSize)
+            rMassMatrix.resize(TFluidLocalSize, TFluidLocalSize, false);
 
-        KRATOS_ERROR << "this function is not implemented.";
+        rMassMatrix = ZeroMatrix(TFluidLocalSize, TFluidLocalSize);
 
-        KRATOS_CATCH("")
+        const auto& r_geometry = this->GetGeometry();
+
+        // Get the element's geometric parameters
+        double Area;
+        array_1d<double, TNumNodes> N;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+        GeometryUtils::CalculateGeometryData(r_geometry, DN_DX, N, Area);
+
+        double density, viscosity;
+        array_1d<double, TDim> velocity, mesh_velocity;
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, N,
+            std::tie(density, DENSITY),
+            std::tie(velocity, VELOCITY),
+            std::tie(mesh_velocity, MESH_VELOCITY),
+            std::tie(viscosity, VISCOSITY));
+
+        viscosity *= density;
+
+        // Add 'classical' mass matrix (lumped)
+        double Coeff = density * Area / TNumNodes; //Optimize!
+        unsigned int DofIndex = 0;
+        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+        {
+            for (unsigned int d = 0; d < TDim; ++d)
+            {
+                rMassMatrix(DofIndex, DofIndex) += Coeff;
+                ++DofIndex;
+            }
+            ++DofIndex; // Skip pressure Dof
+        }
+
+        // Get Advective velocity
+        const array_1d<double, TDim> effective_velocity = velocity - mesh_velocity;
+
+        // stabilization parameters
+        const double ElemSize = this->CalculateElementSize(Area);
+        double TauOne, TauTwo;
+        this->CalculateStabilizationParameters(TauOne, TauTwo, norm_2(effective_velocity), ElemSize, density,
+                                               viscosity, rCurrentProcessInfo);
+
+        // Add dynamic stabilization terms ( all terms involving a delta(u) )
+        this->AddMassStabTerms(rMassMatrix, density, effective_velocity, TauOne, N, DN_DX, Area);
     }
 
     void CalculateDampingMatrix(
@@ -674,6 +718,48 @@ protected:
 
     ///@name Protected Operations
     ///@{
+
+    void AddMassStabTerms(
+        MatrixType& rLHSMatrix,
+        const double Density,
+        const array_1d<double, TDim> & rAdvVel,
+        const double TauOne,
+        const array_1d<double, TNumNodes>& rShapeFunc,
+        const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
+        const double Weight)
+    {
+        const unsigned int BlockSize = TDim + 1;
+
+        double Coef = Weight * TauOne;
+        unsigned int FirstRow(0), FirstCol(0);
+        double K; // Temporary results
+
+        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
+        const array_1d<double, TNumNodes> AGradN = prod(rShapeDeriv, rAdvVel);
+
+        // Note: Dof order is (vx,vy,[vz,]p) for each node
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+            // Loop over columns
+            for (unsigned int j = 0; j < TNumNodes; ++j)
+            {
+                // Delta(u) * TauOne * [ AdvVel * Grad(v) ] in velocity block
+                K = Coef * Density * AGradN[i] * Density * rShapeFunc[j];
+
+                for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
+                {
+                    rLHSMatrix(FirstRow + d, FirstCol + d) += K;
+                    // Delta(u) * TauOne * Grad(q) in q * Div(u) block
+                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
+                }
+                // Update column index
+                FirstCol += BlockSize;
+            }
+            // Update matrix indices
+            FirstRow += BlockSize;
+            FirstCol = 0;
+        }
+    }
 
     void AddIntegrationPointVelocityContribution(
         MatrixType& rDampingMatrix,
