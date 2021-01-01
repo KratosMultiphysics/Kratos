@@ -236,6 +236,7 @@ private:
     ///@{
 
     array_1d<double, 3> m_contact_force;
+    bool m_particle_based_contact_force;
 
     ///@}
     ///@name Private Operators

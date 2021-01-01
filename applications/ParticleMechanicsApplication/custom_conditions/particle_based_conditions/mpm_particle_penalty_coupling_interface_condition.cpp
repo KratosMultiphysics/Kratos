@@ -156,25 +156,43 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( c
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int block_size = this->GetBlockSize();
-
-        // Calculate nodal forces
         Vector nodal_force = ZeroVector(3);
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        array_1d<double, 3 > mpc_force = ZeroVector(3);
+
+        // TODO:
+        m_particle_based_contact_force = false;
+
+        if ( m_particle_based_contact_force )
         {
-            for (unsigned int j = 0; j < dimension; j++)
+            for (unsigned int i = 0; i < number_of_nodes; i++)
             {
-                nodal_force[j] = rRightHandSideVector[block_size * i + j];
+                for (unsigned int j = 0; j < dimension; j++)
+                {
+                    mpc_force[j] += rRightHandSideVector[block_size * i + j];
+                }
             }
-
-            // Check whether there nodes are active and associated to material point elements
-            const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-            if (nodal_mass > std::numeric_limits<double>::epsilon())
+            // Set Contact Force
+            m_contact_force = mpc_force;
+        }
+        else
+        {
+            for (unsigned int i = 0; i < number_of_nodes; i++)
             {
-                r_geometry[i].SetLock();
-                r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
-                r_geometry[i].UnSetLock();
-            }
+                for (unsigned int j = 0; j < dimension; j++)
+                {
+                    nodal_force[j] = rRightHandSideVector[block_size * i + j];
+                }
 
+                // Check whether there nodes are active and associated to material point elements
+                const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+                if (nodal_mass > std::numeric_limits<double>::epsilon())
+                {
+                    r_geometry[i].SetLock();
+                    r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+                    r_geometry[i].UnSetLock();
+                }
+
+            }
         }
     }
 }
@@ -194,18 +212,25 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
 
     // Interpolate the force to mpc_force assuming linear shape function
     array_1d<double, 3 > mpc_force = ZeroVector(3);
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    if (m_particle_based_contact_force)
     {
-        // Check whether there is material point inside the node
-        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-        const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
-        const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
-
-        if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
-        {
-            mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
-        }
+        mpc_force = m_contact_force;
     }
+    else
+    {
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            // Check whether there is material point inside the node
+            const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+            const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
+
+            if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+            {
+                mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
+            }
+        }
+    } 
 
     // Apply in the normal contact direction and allow releasing motion
     if (Is(CONTACT))
