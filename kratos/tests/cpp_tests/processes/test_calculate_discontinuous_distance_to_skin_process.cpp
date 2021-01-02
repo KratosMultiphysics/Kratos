@@ -929,8 +929,6 @@ namespace Testing {
         // Generate the skin line
         ModelPart& skin_part = current_model.CreateModelPart("Skin");
         skin_part.CreateNewNode(1,  0.3, -0.3, 1.0);
-        //skin_part.CreateNewNode(2,  0.3, 0.2, 0.5);
-        //skin_part.CreateNewNode(3,  0.3, 0.6, 0.5);
         skin_part.CreateNewNode(2,  0.3,  0.8, 1.0);
         skin_part.CreateNewNode(3, -0.3, -0.3, 0.0);
         skin_part.CreateNewNode(4, -0.3,  0.8, 0.0);
@@ -986,7 +984,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(n_incised, 2);
         KRATOS_CHECK_EQUAL(n_intersected, 1);
 
-        // Check edge distances - elem_1 is not cut, elem_2 is intersected, elem_3 and elem_6 are (differently) incised
+        // Check edge distances - elem_1,4,5 are not cut, elem_2 is intersected, elem_3 and elem_6 are (differently) incised
         const auto &r_edge_dist_elem_1 = volume_part.GetElement(1).GetValue(ELEMENTAL_EDGE_DISTANCES);
         const auto &r_edge_dist_elem_2 = volume_part.GetElement(2).GetValue(ELEMENTAL_EDGE_DISTANCES);
         const auto &r_edge_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES);
@@ -1153,6 +1151,7 @@ namespace Testing {
             }
         }
         // for embedded geometry on fluid element edges no cuts are detected
+        // --> (TODO) solution: detect as standard wall in ComputeEdgeIntersection in CalculateDiscontinuousDistanceToSkinProcess?!
         KRATOS_CHECK_EQUAL(n_incised, 0);
         KRATOS_CHECK_EQUAL(n_intersected, 0);
     }
@@ -1217,6 +1216,11 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(n_intersected, 0);
         KRATOS_CHECK_EQUAL(n_incised, 4);
 
+        // Check elemental distances -> #4 is detected as incised, but actually intersected
+        const auto &r_edge_dist_elemental_elem_4 = volume_part.GetElement(4).GetValue(ELEMENTAL_DISTANCES);
+        const std::vector<double> expected_values_elemental_elem_4 = {1.41421,1.41421,1.41421};
+        KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elemental_elem_4, expected_values_elemental_elem_4, 1.0e-5);
+
         // Check edge distances -> #4 and #5 are detected as only incised, #3 and #6 are incised
         const auto &r_edge_dist_elem_2 = volume_part.GetElement(2).GetValue(ELEMENTAL_EDGE_DISTANCES);
         const auto &r_edge_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES);
@@ -1228,7 +1232,9 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3, expected_values_elem_3, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
 
-        //Check extra edge distances - elem_3 is incised, elem_4 is detected as incised --> TODO: use epsilon??
+        //Check extra edge distances - elem_3 is incised, elem_4 is detected as incised
+        // --> (TODO) solution: detect as intersected in ComputeEdgeIntersection in CalculateDiscontinuousDistanceToSkinProcess?!
+        //      (e.g. distance modification to southeast)
         const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
         const auto &r_edge_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
         const std::vector<double> expected_values_elem_3_extra = {-1.0,0.25,-1.0};
