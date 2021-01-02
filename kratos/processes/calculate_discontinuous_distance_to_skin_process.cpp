@@ -265,7 +265,7 @@ namespace Kratos
 		// Initialize intersecting segments normal for extrapolated edge calculation
 		array_1d<double,3> extra_geom_normal = ZeroVector(3);
 
-		// Check wich edges are intersected
+		// Check which edges are intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
 			array_1d<double,3> avg_pt = ZeroVector(3);
 			array_1d<double,3> avg_extra_geom_normal = ZeroVector(3);
@@ -314,9 +314,7 @@ namespace Kratos
 				avg_pt /= cut_edges_vector[i_edge];
 				rIntersectionPointsArray.push_back(avg_pt);
 				// Save the ratio location of the average intersection point
-				const double edge_length = r_edges_container[i_edge].Length();
-				const double dist_avg_pt = norm_2(r_edges_container[i_edge][0] - avg_pt);
-				rCutEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
+				rCutEdgesRatioVector[i_edge] = GetEdgeRatioFromIntersectionPoint(r_edges_container[i_edge], avg_pt);
 				// Increase the total intersected edges counter
 				n_cut_edges++;
 				// Get average normal of intersecting segments for the edge (for extrapolated cut edges calculation)
@@ -641,11 +639,10 @@ namespace Kratos
 		// Calculate average point of intersection points from rCutEdgesRatioVector for intersection plane definition
 		array_1d<double,3> avg_base_point = ZeroVector(3);
 		for (std::size_t i_edge = 0; i_edge < n_edges; i_edge++) {
-			const double edge_distance = rCutEdgesRatioVector[i_edge];
+			const double edge_ratio = rCutEdgesRatioVector[i_edge];
 			// Calculate point coordinates and add to avg_point
-			if (edge_distance > -1) {
-				const array_1d<double,3> int_point = r_edges_container[i_edge][0] + edge_distance * (r_edges_container[i_edge][1] - r_edges_container[i_edge][0]);
-				avg_base_point +=  int_point;
+			if (edge_ratio > -1) {
+				avg_base_point += GetIntersectionPointFromEdgeRatio(r_edges_container[i_edge], edge_ratio);
 			}
 		}
 		avg_base_point /= rNumCutEdges;
@@ -661,12 +658,28 @@ namespace Kratos
 
 				// Calculate intersection ratio of edge and save it
 				if (is_intersection == 1) {
-					const double edge_length = r_edges_container[i_edge].Length();
-					const double dist_avg_pt = norm_2(r_edges_container[i_edge][0] - extra_int_pt);
-					rCutExtraEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
+					rCutExtraEdgesRatioVector[i_edge] = GetEdgeRatioFromIntersectionPoint(r_edges_container[i_edge], extra_int_pt);
 				}
 			}
 		}
+	}
+
+	template<std::size_t TDim>
+	double CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetEdgeRatioFromIntersectionPoint(
+        const Kratos::Geometry<Kratos::Node<3> >& rEdge,
+        const array_1d<double,3>& rIntersectionPoint)
+	{
+		const double edge_length = rEdge.Length();
+		const double dist_avg_pt = norm_2(rEdge[0] - rIntersectionPoint);
+		return dist_avg_pt / edge_length;
+	}
+
+	template<std::size_t TDim>
+	array_1d<double,3> CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetIntersectionPointFromEdgeRatio(
+        const Kratos::Geometry<Kratos::Node<3> >& rEdge,
+        const double& rEdgeRatio)
+	{
+		return rEdge[0] + rEdgeRatio * (rEdge[1] - rEdge[0]);
 	}
 
 	template<std::size_t TDim>

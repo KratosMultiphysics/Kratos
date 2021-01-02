@@ -364,6 +364,26 @@ private:
 
     /**
      * @brief Checks whether the edges of an element, which are cut, all share one node
+     * @param rEdge reference to the edge of interest
+     * @param rIntersectionPoint average intersection point at the edge
+     * @return calculated relative positions of the intersection point along the edge from node zero
+     */
+    double GetEdgeRatioFromIntersectionPoint(
+        const Kratos::Geometry<Kratos::Node<3> >& rEdge,
+        const array_1d<double,3>& rIntersectionPoint);
+
+    /**
+     * @brief Checks whether the edges of an element, which are cut, all share one node
+     * @param rEdge reference to the edge of interest
+     * @param rEdgeRatio relative positions of the intersection point along the edge from node zero
+     * @return rIntersectionPoint calculated average intersection point at the edge
+     */
+    array_1d<double,3> GetIntersectionPointFromEdgeRatio(
+        const Kratos::Geometry<Kratos::Node<3> >& rEdge,
+        const double& rEdgeRatio);
+
+    /**
+     * @brief Checks whether the edges of an element, which are cut, all share one node
      * @param rElement reference to the element of interest
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * @return boolean true if cut edges share one node
