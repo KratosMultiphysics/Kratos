@@ -21,7 +21,7 @@
 
 
 // Project includes
-#include "includes/model_part.h"
+#include "includes/node.h"
 
 
 namespace Kratos
@@ -48,9 +48,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+class ModelPart; // forward declaration
+
+/**
+ * @ingroup ShallowWaterApplication
+ * @class ShallowWaterUtilities
+ * @brief This class is a wrapper of useful utilities for shallow water computations
+ */
 class KRATOS_API(SHALLOW_WATER_APPLICATION) ShallowWaterUtilities
 {
 public:
@@ -59,6 +63,10 @@ public:
 
     /// Pointer definition of ShallowWaterUtilities
     KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterUtilities);
+
+    typedef Node<3> NodeType;
+
+    typedef Geometry<NodeType> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -81,7 +89,9 @@ public:
 
     void ComputeHeightFromFreeSurface(ModelPart& rModelPart);
 
-    void ComputeVelocity(ModelPart& rModelPart);
+    void ComputeVelocity(ModelPart& rModelPart, bool PerformProjection = false);
+
+    void ComputeSmoothVelocity(ModelPart& rModelPart);
 
     void ComputeMomentum(ModelPart& rModelPart);
 
@@ -98,13 +108,13 @@ public:
     void ResetDryDomain(ModelPart& rModelPart, double Thickness = 0.0);
 
     template<class TContainerType>
-    void DeactivateDryEntities(TContainerType& rContainer, Flags WetFlag)
+    void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
         {
             auto it = rContainer.begin() + i;
-            it->Set(ACTIVE, it->Is(WetFlag));
+            it->Set(DestinationFlag, it->Is(OriginFlag));
         }
     }
 
@@ -152,6 +162,15 @@ public:
     ///@name Friends
     ///@{
 
+
+    ///@}
+private:
+    ///@name Operations
+    ///@{
+
+    double InverseHeight(const double Height, const double Epsilon);
+
+    void CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry);
 
     ///@}
 
