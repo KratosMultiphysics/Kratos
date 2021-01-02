@@ -5,77 +5,73 @@
 namespace Kratos
 {
 
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::InterpolateFromDEMMesh(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::InterpolateFromDEMMesh(
     ModelPart& r_dem_model_part,
     ModelPart& r_homogenization_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization)
 {
     KRATOS_TRY
 
-    mGravity = r_homogenization_model_part.GetProcessInfo()[GRAVITY];
-    double current_fluid_time = r_homogenization_model_part.GetProcessInfo()[TIME];
+    mGravity = r_dem_model_part.GetProcessInfo()[GRAVITY];
+    double current_time = r_dem_model_part.GetProcessInfo()[TIME];
 
-    if (current_fluid_time > mFluidLastCouplingFromDEMTime){
-        mFluidLastCouplingFromDEMTime = current_fluid_time;
-        mNumberOfDEMSamplesSoFarInTheCurrentFluidStep = 0;
+    if (current_time > mLastCouplingFromDEMTime){
+        mLastCouplingFromDEMTime = current_time;
+        mNumberOfDEMSamplesSoFarInTheCurrentStep = 0;
     }
 
     // setting interpolated variables to their default values
     ResetHomogenizationVariables(r_homogenization_model_part);
-    // calculating the fluid fraction (and possibly the fluid mass fraction)
+    // calculating the porosity
     InterpolateHomogenizationPart(r_dem_model_part, r_homogenization_model_part, bin_of_objects_homogenization);
-    // calculating the rest of fluid variables (particle-fluid force etc.). The solid fraction must be known at this point as it may be used in this step
+    // calculating the rest of the homogenization variables. The solid fraction must be known at this point as it may be used in this step
     InterpolateOtherHomogenizationVariables(r_dem_model_part, r_homogenization_model_part, bin_of_objects_homogenization);
 
-    ++mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
+    ++mNumberOfDEMSamplesSoFarInTheCurrentStep;
 
     KRATOS_CATCH("")
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-inline void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::ClearVariable(const NodeIteratorType& node_it, const VariableData& var)
+template <std::size_t TDim, typename ParticleType>
+inline void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::ClearVariable(const NodeIteratorType& node_it, const VariableData& var)
 {
     var.AssignZero(node_it->SolutionStepData().Data(var));
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::ResetHomogenizationVariables(ModelPart& r_homogenization_model_part)
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::ResetHomogenizationVariables(ModelPart& r_homogenization_model_part)
 {
     const array_1d<double, 3>& gravity = r_homogenization_model_part.GetProcessInfo()[GRAVITY];
 
     for (NodeIteratorType node_it = r_homogenization_model_part.NodesBegin(); node_it != r_homogenization_model_part.NodesEnd(); ++node_it){
-        if (!mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){
-            ClearVariable(node_it, FLUID_FRACTION);
+        if (!mVariables.Is(POROSITY_PROJECTED, "HomogenizationTimeFiltered")){
+            ClearVariable(node_it, POROSITY_PROJECTED);
         }
 
         if (mTimeAveragingType == 0 || mTimeAveragingType == 2){
-            if (mVariables.Is(PHASE_FRACTION, "Fluid")){
+            if (mVariables.Is(PHASE_FRACTION, "Homogenization")){
                 ClearVariable(node_it, PHASE_FRACTION);
             }
-            if (mVariables.Is(TIME_AVERAGED_ARRAY_3, "Fluid")){
-                array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
+            if (mVariables.Is(TIME_AVERAGED_VELOCITY_PROJECTED, "Homogenization")){
+                array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY_PROJECTED);
                 particle_velocity = ZeroVector(3);
             }
         }
 
         array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
-        array_1d<double, 3>& hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-        hydrodynamic_reaction = ZeroVector(3);
         body_force = gravity;
 
-        if (mTimeAveragingType == 1 && mNumberOfDEMSamplesSoFarInTheCurrentFluidStep == 0){ // There are 0 DEM accumulated samples when we move into a new fluid time step
-            array_1d<double, 3>& mean_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(MEAN_HYDRODYNAMIC_REACTION);
-            mean_hydrodynamic_reaction = ZeroVector(3);
-
-            if (mVariables.Is(TIME_AVERAGED_ARRAY_3, "Fluid")){
-                array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
+        if (mTimeAveragingType == 1 && mNumberOfDEMSamplesSoFarInTheCurrentStep == 0){ // There are 0 DEM accumulated samples when we move into a new time step
+            
+            if (mVariables.Is(TIME_AVERAGED_VELOCITY_PROJECTED, "Homogenization")){
+                array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY_PROJECTED);
                 particle_velocity = ZeroVector(3);
             }
 
-            if (mVariables.Is(PHASE_FRACTION, "Fluid")){
+            if (mVariables.Is(PHASE_FRACTION, "Homogenization")){
                 ClearVariable(node_it, PHASE_FRACTION);
             }
         }
@@ -83,15 +79,15 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::ResetHomogenizationV
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::InterpolateHomogenizationPart(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::InterpolateHomogenizationPart(
     ModelPart& r_dem_model_part,
     ModelPart& r_homogenization_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization)
 {
-    if (mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){ // hold the current value in an auxiliary variable
-        CopyValues(r_homogenization_model_part, FLUID_FRACTION);
-        SetToZero(r_homogenization_model_part, FLUID_FRACTION);
+    if (mVariables.Is(POROSITY_PROJECTED, "HomogenizationTimeFiltered")){ // hold the current value in an auxiliary variable
+        CopyValues(r_homogenization_model_part, POROSITY_PROJECTED);
+        SetToZero(r_homogenization_model_part, POROSITY_PROJECTED);
     }
 
     Vector shape_function_values_at_point;
@@ -106,7 +102,7 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::InterpolateHomogeniz
         ParticleType& particle = dynamic_cast<ParticleType&> (*i_particle);
         Element::Pointer p_element;
 
-        // looking for the fluid element in which the DEM node falls
+        // looking for the homogenization element in which the DEM node falls
         const bool element_located = bin_of_objects_homogenization.FindPointOnMesh(particle.GetGeometry()[0].Coordinates(),
                                                                           shape_function_values_at_point,
                                                                           p_element,
@@ -116,24 +112,20 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::InterpolateHomogeniz
         // interpolating variables
 
         if (element_located) {
-            DistributeDimensionalContributionToFluidFraction(p_element, shape_function_values_at_point, particle);
+            DistributeDimensionalContributionToHomogenizationPart(p_element, shape_function_values_at_point, particle);
         }
     }
 
-    CalculateFluidFraction(r_homogenization_model_part);
+    CalculatePorosityProjected(r_homogenization_model_part);
 
-    if (mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){ // average current avalue with previous (already averaged) value
-        ApplyExponentialTimeFiltering(r_homogenization_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
-    }
-
-    if (mVariables.Is(PHASE_FRACTION, "Fluid")){
-        CalculateFluidMassFraction(r_homogenization_model_part);
+    if (mVariables.Is(POROSITY_PROJECTED, "HomogenizationTimeFiltered")){ // average current avalue with previous (already averaged) value
+        ApplyExponentialTimeFiltering(r_homogenization_model_part, POROSITY_PROJECTED, TIME_AVERAGED_DOUBLE);
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::InterpolateOtherHomogenizationVariables(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::InterpolateOtherHomogenizationVariables(
     ModelPart& r_dem_model_part,
     ModelPart& r_homogenization_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization)
@@ -143,12 +135,12 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::InterpolateOtherHomo
     Vector shape_function_values_at_point;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-	VariablesList& fluid_variables = mVariables.GetVariablesList("Fluid");
+	VariablesList& homogenization_variables = mVariables.GetVariablesList("Homogenization");
 
-    for (int j = 0; j < (int)fluid_variables.size(); ++j){
-        const auto& variable = *fluid_variables[j];
+    for (int j = 0; j < (int)homogenization_variables.size(); ++j){
+        const auto& variable = *homogenization_variables[j];
 
-        if (mVariables.Is(variable, "FluidTimeFiltered") && variable != FLUID_FRACTION){ // hold the current value in an auxiliary variable
+        if (mVariables.Is(variable, "HomogenizationTimeFiltered") && variable != POROSITY_PROJECTED){ // hold the current value in an auxiliary variable
             CopyValues(r_homogenization_model_part, variable);
             SetToZero(r_homogenization_model_part, variable);
         }
@@ -158,7 +150,7 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::InterpolateOtherHomo
             Node<3>::Pointer p_particle = *(i_particle.base());
             Element::Pointer p_element;
 
-            // looking for the fluid element in which the DEM node falls
+            // looking for the homogenization element in which the DEM node falls
             const bool element_located = bin_of_objects_homogenization.FindPointOnMesh(p_particle->Coordinates(),
                                                                             shape_function_values_at_point,
                                                                             p_element,
@@ -169,35 +161,35 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::InterpolateOtherHomo
 
             if (element_located) {
                 //#pragma omp parallel for firstprivate(N)
-                Distribute(p_element, shape_function_values_at_point, p_particle, fluid_variables[j]);
+                Distribute(p_element, shape_function_values_at_point, p_particle, homogenization_variables[j]);
             }
         }
 
-        if (mVariables.Is(variable, "FluidTimeFiltered") && variable != FLUID_FRACTION){ // hold the current value in an auxiliary variable
+        if (mVariables.Is(variable, "HomogenizationTimeFiltered") && variable != POROSITY_PROJECTED){ // hold the current value in an auxiliary variable
             ApplyExponentialTimeFiltering(r_homogenization_model_part, variable);
         }
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::DistributeDimensionalContributionToFluidFraction(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::DistributeDimensionalContributionToHomogenizationPart(
     Element::Pointer p_elem,
     const Vector& N,
     ParticleType& particle)
 {
-    if (mCouplingType == 0 || mCouplingType == 1){
-        CalculateNodalFluidFractionWithConstantWeighing(p_elem, N, particle);
+    if (mHomogenizationType == 0 || mHomogenizationType == 1){
+        CalculateNodalHomogenizationPartWithConstantWeighing(p_elem, N, particle);
     }
 
-    else if (mCouplingType == 2){
-        CalculateNodalFluidFractionWithLinearWeighing(p_elem, N, particle);
+    else if (mHomogenizationType == 2){
+        CalculateNodalHomogenizationPartWithLinearWeighing(p_elem, N, particle);
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::CalculateFluidFraction(ModelPart& r_homogenization_model_part)
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CalculatePorosityProjected(ModelPart& r_homogenization_model_part)
 {
     OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_homogenization_model_part.Nodes().size(), mNodesPartition);
 
@@ -205,32 +197,28 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::CalculateFluidFracti
     for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
 
         for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_homogenization_model_part, k); i_node != this->GetNodePartitionEnd(r_homogenization_model_part, k); ++i_node){
-            double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
+            double& porosity_projected = i_node->FastGetSolutionStepValue(POROSITY_PROJECTED);
 
-            if (mCouplingType != 4){
-                double nodalFluidVolume = i_node->FastGetSolutionStepValue(NODAL_AREA);
-                if (nodalFluidVolume < 1.0e-15){
-                    fluid_fraction = 1.0;
+            if (mHomogenizationType != 4){
+                double nodalHomogenizationVolume = i_node->FastGetSolutionStepValue(NODAL_AREA);
+                if (nodalHomogenizationVolume < 1.0e-15){
+                    porosity_projected = 1.0;
                 }
 
                 else {
-                    fluid_fraction = 1.0 - fluid_fraction / nodalFluidVolume;
+                    porosity_projected = 1.0 - porosity_projected / nodalHomogenizationVolume;
                 }
             }
             else {
-                fluid_fraction = 1.0 - fluid_fraction;
-            }
-
-            if (fluid_fraction < mMinFluidFraction){
-                fluid_fraction = mMinFluidFraction;
+                porosity_projected = 1.0 - porosity_projected;
             }
         }
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::ApplyExponentialTimeFiltering(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::ApplyExponentialTimeFiltering(
         ModelPart& r_model_part,
         const VariableData& r_current_variable)
 {
@@ -240,7 +228,7 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::ApplyExponentialTime
     }
 
     else if (mVariables.Is(r_current_variable, "Vector")){
-        ApplyExponentialTimeFiltering(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_current_variable), TIME_AVERAGED_ARRAY_3);
+        ApplyExponentialTimeFiltering(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_current_variable), TIME_AVERAGED_VELOCITY_PROJECTED);
     }
 
     else {
@@ -249,93 +237,95 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::ApplyExponentialTime
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::CalculateFluidMassFraction(ModelPart& r_homogenization_model_part)
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::ApplyExponentialTimeFiltering(
+        ModelPart& r_model_part,
+        const Variable<double>& r_current_variable,
+        const Variable<double>& r_previous_averaged_variable)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_homogenization_model_part.Nodes().size(), mNodesPartition);
-
-    #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
-
-        for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_homogenization_model_part, k); i_node != this->GetNodePartitionEnd(r_homogenization_model_part, k); ++i_node){
-            const double fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
-
-            if (fluid_fraction > 1.0 - 1e-12){
-                double& fluid_mass_fraction = i_node->FastGetSolutionStepValue(PHASE_FRACTION);
-                fluid_mass_fraction = 1.0;
-                continue;
-            }
-
-            const double nodal_area = i_node->FastGetSolutionStepValue(NODAL_AREA);
-            const double fluid_density = i_node->FastGetSolutionStepValue(DENSITY);
-            double& fluid_mass_fraction = i_node->FastGetSolutionStepValue(PHASE_FRACTION);
-            const double total_nodal_mass = nodal_area * fluid_density * fluid_fraction + fluid_mass_fraction;
-            if (total_nodal_mass < 1.0e-15){
-                fluid_mass_fraction = 1.0;
-            }
-            else {
-                fluid_mass_fraction = 1.0 - fluid_mass_fraction / total_nodal_mass;
-            }
-        }
+    const double alpha = GetAlpha(r_current_variable);
+    #pragma omp parallel for firstprivate(alpha)
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        const double& previous_value = i_node->FastGetSolutionStepValue(r_previous_averaged_variable);
+        double& current_value = i_node->FastGetSolutionStepValue(r_current_variable);
+        current_value = (1.0 - alpha) * previous_value + alpha * current_value;
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::Distribute(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::ApplyExponentialTimeFiltering(
+        ModelPart& r_model_part,
+        const Variable<array_1d<double, 3> >& r_current_variable,
+        const Variable<array_1d<double, 3> >& r_previous_averaged_variable)
+{
+    const double alpha = GetAlpha(r_current_variable);
+    #pragma omp parallel for firstprivate(alpha)
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        const array_1d<double, 3>& previous_value = i_node->FastGetSolutionStepValue(r_previous_averaged_variable);
+        array_1d<double, 3>& current_value = i_node->FastGetSolutionStepValue(r_current_variable);
+        noalias(current_value) = (1.0 - alpha) * previous_value + alpha * current_value;
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::Distribute(
     Element::Pointer p_elem,
     const Vector& N,
     Node<3>::Pointer p_node,
     const VariableData *r_destination_variable)
 {
-    if (mCouplingType == 0){
+    if (mHomogenizationType == 0){
 
         if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
             TransferWithConstantWeighing(p_elem, N, p_node, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
         }
 
         else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
-            TransferWithConstantWeighing(p_elem, N, p_node, TIME_AVERAGED_ARRAY_3, VELOCITY);
+            TransferWithConstantWeighing(p_elem, N, p_node, TIME_AVERAGED_VELOCITY_PROJECTED, VELOCITY);
         }
     }
 
-    else if (mCouplingType == 1){
+    else if (mHomogenizationType == 1){
 
         if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
             TransferWithLinearWeighing(p_elem, N, p_node, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
         }
 
         else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
-            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_ARRAY_3, VELOCITY);
+            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_VELOCITY_PROJECTED, VELOCITY);
         }
     }
 
-    else if (mCouplingType == 2){
+    else if (mHomogenizationType == 2){
 
         if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
             TransferWithLinearWeighing(p_elem, N, p_node, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
         }
 
         else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
-            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_ARRAY_3, VELOCITY);
+            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_VELOCITY_PROJECTED, VELOCITY);
         }
     }
 
-    else if (mCouplingType == - 1){
+    else if (mHomogenizationType == - 1){
 
         if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
             TransferWithLinearWeighing(p_elem, N, p_node, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
         }
 
         else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
-            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_ARRAY_3, VELOCITY);
+            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_VELOCITY_PROJECTED, VELOCITY);
         }
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::CalculateNodalFluidFractionWithConstantWeighing(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CalculateNodalHomogenizationPartWithConstantWeighing(
     Element::Pointer p_elem,
     const Vector& N,
     ParticleType& particle)
@@ -344,17 +334,17 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::CalculateNodalFluidF
 
     // Geometry of the element of the destination model part
     const double particle_volume = particle.CalculateVolume();
-    p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
+    p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(POROSITY_PROJECTED) += particle_volume;
 
-    if (mVariables.Is(PHASE_FRACTION, "Fluid")){
+    if (mVariables.Is(PHASE_FRACTION, "Homogenization")){
         const double particle_mass = particle.GetMass();
         p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(PHASE_FRACTION) += particle_mass; // here we add the mass contribution. Later we devide by the total mass of the element
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::CalculateNodalFluidFractionWithLinearWeighing(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CalculateNodalHomogenizationPartWithLinearWeighing(
     Element::Pointer p_elem,
     const Vector& N,
     ParticleType& particle)
@@ -362,10 +352,10 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::CalculateNodalFluidF
     const double particle_volume = particle.CalculateVolume();
 
     for (unsigned int i = 0; i < TDim + 1; ++i){
-        p_elem->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
+        p_elem->GetGeometry()[i].FastGetSolutionStepValue(POROSITY_PROJECTED) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
     }
 
-    if (mVariables.Is(PHASE_FRACTION, "Fluid")){
+    if (mVariables.Is(PHASE_FRACTION, "Homogenization")){
         const double particle_mass = particle.GetMass();
 
         for (unsigned int i = 0; i < TDim + 1; ++i){
@@ -375,8 +365,8 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::CalculateNodalFluidF
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::TransferWithConstantWeighing(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::TransferWithConstantWeighing(
     Element::Pointer p_elem,
     const Vector& N,
     Node<3>::Pointer p_node,
@@ -389,24 +379,12 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::TransferWithConstant
     const array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
     array_1d<double, 3>& destination_data  = geom[i_nearest_node].FastGetSolutionStepValue(r_destination_variable);
 
-    if (r_origin_variable == HYDRODYNAMIC_FORCE){
-        const double fluid_fraction = geom[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION);
-        const double nodal_volume   = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA);
-        const double density        = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY);
-        double nodal_mass_inv = mParticlesPerDepthDistance;
-        const double denominator = fluid_fraction * density * nodal_volume;
-        if (denominator > 1.0e-15){
-            nodal_mass_inv /= denominator;
-        }
-        destination_data = - nodal_mass_inv * origin_data;
-    }
-
-    else if (r_origin_variable == VELOCITY){
-        const double nodal_fluid_volume      = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA);
-        const double fluid_fraction          = geom[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION);
+    if (r_origin_variable == VELOCITY){
+        const double nodal_homogenization_volume      = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA);
+        const double porosity_projected          = geom[i_nearest_node].FastGetSolutionStepValue(POROSITY_PROJECTED);
         const double fluid_density           = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY);
         const double particles_mass_fraction = 1.0 - geom[i_nearest_node].FastGetSolutionStepValue(PHASE_FRACTION);
-        const double total_particles_mass    = particles_mass_fraction / (1.0 - particles_mass_fraction) * fluid_fraction * fluid_density * nodal_fluid_volume;
+        const double total_particles_mass    = particles_mass_fraction / (1.0 - particles_mass_fraction) * porosity_projected * fluid_density * nodal_homogenization_volume;
         const double particle_mass           = p_node->FastGetSolutionStepValue(NODAL_MASS);
         double weight = particle_mass;
         if (total_particles_mass > 1.0e-15){
@@ -421,8 +399,8 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::TransferWithConstant
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::TransferWithLinearWeighing(
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::TransferWithLinearWeighing(
     Element::Pointer p_elem,
     const array_1d<double,TDim + 1>& N,
     Node<3>::Pointer p_node,
@@ -433,45 +411,14 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::TransferWithLinearWe
     Geometry<Node<3> >& geom = p_elem->GetGeometry();
     const array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
 
-    if (r_origin_variable == HYDRODYNAMIC_FORCE){
-
-        for (unsigned int i = 0; i < TDim + 1; ++i){
-            array_1d<double, 3>& hydrodynamic_reaction      = geom[i].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-            array_1d<double, 3>& body_force                 = geom[i].FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
-            const double& fluid_fraction                    = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
-            const double& nodal_volume                      = geom[i].FastGetSolutionStepValue(NODAL_AREA);
-            const double& density                           = geom[i].FastGetSolutionStepValue(DENSITY);
-            const double denominator = fluid_fraction * density * nodal_volume;
-            if (denominator < 1.0e-15){
-                noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / 1.0 * origin_data;
-            }
-            else {
-                noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / denominator * origin_data;
-            }
-
-            if (mTimeAveragingType == 0){
-                noalias(body_force)                         = hydrodynamic_reaction + mGravity;
-            }
-
-            else {
-                array_1d<double, 3>& mean_hydrodynamic_reaction = geom[i].FastGetSolutionStepValue(MEAN_HYDRODYNAMIC_REACTION);
-                mean_hydrodynamic_reaction                      = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentFluidStep) * mean_hydrodynamic_reaction;
-                noalias(mean_hydrodynamic_reaction)            += hydrodynamic_reaction;
-                mean_hydrodynamic_reaction                      = 1.0 / (mNumberOfDEMSamplesSoFarInTheCurrentFluidStep + 1) * mean_hydrodynamic_reaction;
-
-                noalias(body_force)                             = mean_hydrodynamic_reaction + mGravity;
-            }
-        }
-    }
-
-    else if (r_origin_variable == VELOCITY){
+    if (r_origin_variable == VELOCITY){
         for (unsigned int i = 0; i < TDim + 1; ++i){
             array_1d<double, 3>& particles_velocity = geom[i].FastGetSolutionStepValue(r_destination_variable);
-            const double nodal_fluid_volume         = geom[i].FastGetSolutionStepValue(NODAL_AREA);
-            const double fluid_fraction             = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
+            const double nodal_homogenization_volume         = geom[i].FastGetSolutionStepValue(NODAL_AREA);
+            const double porosity_projected             = geom[i].FastGetSolutionStepValue(POROSITY_PROJECTED);
             const double fluid_density              = geom[i].FastGetSolutionStepValue(DENSITY);
             const double particles_mass_fraction    = 1.0 - geom[i].FastGetSolutionStepValue(PHASE_FRACTION);
-            const double total_particles_mass       = particles_mass_fraction / (1.0 - particles_mass_fraction) * fluid_fraction * fluid_density * nodal_fluid_volume;
+            const double total_particles_mass       = particles_mass_fraction / (1.0 - particles_mass_fraction) * porosity_projected * fluid_density * nodal_homogenization_volume;
             const double particle_mass              = p_node->FastGetSolutionStepValue(NODAL_MASS);
 
             double weight;
@@ -488,7 +435,7 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::TransferWithLinearWe
             }
 
             else if (mTimeAveragingType == 1){
-                const int n = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentFluidStep);
+                const int n = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentStep);
                 particles_velocity += (particles_velocity + weight * origin_data - particles_velocity) / (n + 1);
             }
         }
@@ -500,8 +447,8 @@ void BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::TransferWithLinearWe
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TypeOfParticle>
-inline unsigned int BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::GetNearestNode(const Vector& N)
+template <std::size_t TDim, typename ParticleType>
+inline unsigned int BinBasedDEMHomogenizationMapper<TDim, ParticleType>::GetNearestNode(const Vector& N)
 {
     double max = N[0];
     unsigned int i_nearest_node = 0;
@@ -515,5 +462,19 @@ inline unsigned int BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>::GetNe
     }
 
     return i_nearest_node;
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename ParticleType>
+double  BinBasedDEMHomogenizationMapper<TDim, ParticleType>::GetAlpha(const VariableData& r_variable)
+{
+    if (mIsFirstTimeFiltering[r_variable]){ // only the present value should be used
+        mIsFirstTimeFiltering[r_variable] = false;
+        return 1.0;
+    }
+
+    else {
+        return mAlphas[r_variable];
+    }
 }
 }//namespace Kratos

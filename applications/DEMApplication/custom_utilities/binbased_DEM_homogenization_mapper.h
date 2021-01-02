@@ -1,8 +1,5 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: Guillermo Casas, gcasas@cimne.upc.edu$
-//   Date:                $Date: 2014-03-08 08:56:42 $
-//
 //
 
 #if !defined(KRATOS_BINBASED_DEM_HOMOGENIZATION_MAPPER)
@@ -22,10 +19,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
-#include "mollification/density_function_polynomial.h"
-#include "custom_functions.h"
-#include "fields/velocity_field.h"
-#include "fields/fluid_field_utility.h"
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
@@ -33,7 +26,6 @@
 
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-#include "derivative_recovery.h"
 
 // /* External includes */
 #ifdef _OPENMP
@@ -77,7 +69,7 @@ namespace Kratos
 //***************************************************************************************************************
 
 
-template <std::size_t TDim, typename TypeOfParticle>
+template <std::size_t TDim, typename ParticleType>
 class KRATOS_API(DEM_APPLICATION) BinBasedDEMHomogenizationMapper
 {
 public:
@@ -99,7 +91,7 @@ typedef SpatialSearch::DistanceType                           DistanceType;
 typedef SpatialSearch::VectorDistanceType                     VectorDistanceType;
 
 /// Pointer definition of BinBasedDEMHomogenizationMapper
-typedef BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle> BinBasedDEMHomogenizationMapper_TDim_TypeOfParticle;
+typedef BinBasedDEMHomogenizationMapper<TDim, ParticleType> BinBasedDEMHomogenizationMapper_TDim_TypeOfParticle;
 KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMHomogenizationMapper_TDim_TypeOfParticle);
 
 ///@}
@@ -107,46 +99,32 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMHomogenizationMapper_TDim_TypeOfParti
 ///@{
 
 /// Default constructor.
-//----------------------------------------------------------------
-//                       Key for coupling_type
-//----------------------------------------------------------------
-//        Averaged variables       |  Fluid Fraction
-//   Fluid-to-DEM | DEM-to-fluid   |
-//----------------------------------------------------------------
-// 0:   Linear         Constant            Constant
-// 1:   Linear         Linear              Constant
-// 2:   Linear         Linear              Linear
-// 3:   Linear         Filtered            Filtered
-//----------------------------------------------------------------
+//--------------------------------------
+//  Key for homogenization_type
+//--------------------------------------
+//        Averaged variables
+//--------------------------------------
+//  Fluid Fraction    DEM-to-fluid   
+//--------------------------------------
+// 0:   Linear         Constant
+// 1:   Linear         Linear
+// 2:   Linear         Filtered
+//--------------------------------------
 
 BinBasedDEMHomogenizationMapper(Parameters& rParameters)
                              : mMustCalculateMaxNodalArea(true),
-                               mFluidDeltaTime(0.0),
-                               mFluidLastCouplingFromDEMTime(0.0),
+                               mLastCouplingFromDEMTime(0.0),
                                mMaxNodalAreaInv(0.0),
-                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
+                               mNumberOfDEMSamplesSoFarInTheCurrentStep(0)
 {
     Parameters default_parameters( R"(
         {
-            "backward_coupling": {},
-            "forward_coupling" : {},
-            "coupling_type": 1,
-            "viscosity_modification_type" : 0,
-            "n_particles_per_depth_distance" : 1,
-            "body_force_per_unit_mass_variable_name" : "BODY_FORCE"
+            "homogenization_type": 1,
         }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
-    mMinFluidFraction = rParameters["backward_coupling"]["min_fluid_fraction"].GetDouble();
-    mCouplingType = rParameters["coupling_type"].GetInt();
+    mHomogenizationType = rParameters["homogenization_type"].GetInt();
     mTimeAveragingType = rParameters["forward_coupling"]["time_averaging_type"].GetInt();
-    mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
-    mParticlesPerDepthDistance = rParameters["n_particles_per_depth_distance"].GetInt();
-    mpBodyForcePerUnitMassVariable = &( KratosComponents< Variable<array_1d<double,3>> >::Get(rParameters["body_force_per_unit_mass_variable_name"].GetString()) );
-
-    if (TDim == 3){
-        mParticlesPerDepthDistance = 1;
-    }
 
     mGravity = ZeroVector(3);
     mVariables = VariablesContainer();
@@ -164,32 +142,18 @@ virtual ~BinBasedDEMHomogenizationMapper() {}
 ///@{
 
 template<class TDataType>
-void AddDEMCouplingVariable(Variable<TDataType> const& r_variable){
-    std::string variable_list_identifier = "DEM";
-    std::string coupling_variable_description = "fluid-interpolated DEM phase variable";
-    AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
-}
-
-template<class TDataType>
-void AddFluidCouplingVariable(Variable<TDataType> const& r_variable){
+void AddHomogenizationCouplingVariable(Variable<TDataType> const& r_variable){
     std::string variable_list_identifier = "Fluid";
     std::string coupling_variable_description = "DEM-interpolated fluid phase variable";
     AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
 template<class TDataType>
-void AddDEMVariablesToImpose(Variable<TDataType> const& r_variable){
-    std::string variable_list_identifier = "DEMToImpose";
-    std::string coupling_variable_description = "DEM-phase variables with imposed fluid-interpolated values";
-    AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
-}
-
-template<class TDataType>
-void AddFluidVariableToBeTimeFiltered(Variable<TDataType> const& r_variable, const double time_constant){
+void AddHomogenizationVariableToBeTimeFiltered(Variable<TDataType> const& r_variable, const double time_constant){
 	mAlphas[r_variable] = time_constant;
     mIsFirstTimeFiltering[r_variable] = true;
-    std::string variable_list_identifier = "FluidTimeFiltered";
-    std::string coupling_variable_description = "Fluid variables to be time-filtered";
+    std::string variable_list_identifier = "HomogenizationTimeFiltered";
+    std::string coupling_variable_description = "Homogenization variables to be time-filtered";
     AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
@@ -211,9 +175,6 @@ void AddCouplingVariable(Variable<TDataType> const& r_variable, std::string vari
     }
 }
 
-void InterpolateFromFluidMesh(ModelPart& r_homogenization_model_part, ModelPart& r_dem_model_part, Parameters& parameters, BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization, const double alpha);
-void ImposeFlowOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
-void ImposeVelocityOnDEMFromFieldToAuxVelocity(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
 void InterpolateVelocityOnAuxVelocity(ModelPart& r_homogenization_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization, const double alpha);
 void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
@@ -326,15 +287,11 @@ class VariablesContainer
 };
 
 bool mMustCalculateMaxNodalArea;
-double mFluidDeltaTime;
-double mFluidLastCouplingFromDEMTime;
-double mMinFluidFraction;
+double mLastCouplingFromDEMTime;
 double mMaxNodalAreaInv;
-int mCouplingType;
+int mHomogenizationType;
 int mTimeAveragingType;
-int mViscosityModificationType;
-int mParticlesPerDepthDistance;
-int mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
+int mNumberOfDEMSamplesSoFarInTheCurrentStep;
 array_1d<double, 3> mGravity;
 
 VariablesContainer mVariables;
@@ -342,13 +299,8 @@ std::map<VariableData, double> mAlphas;
 std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
 
-FluidFieldUtility mFlowField;
-
-const Variable<array_1d<double,3>>* mpBodyForcePerUnitMassVariable;
-
-// neighbour lists (for mCouplingType = 3)
+// neighbour lists (for mHomogenizationType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
-std::vector<SwimmingParticle<TypeOfParticle>* > mSwimmingSphereElementPointers;
 VectorResultNodesContainerType mVectorsOfNeighNodes; // list of arrays of pointers to the particle's nodal neighbours
 VectorDistanceType mVectorsOfDistances; // list of arrays of distances to the particle's neighbours
 VectorDistanceType mVectorsOfRadii;
@@ -371,25 +323,20 @@ array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const 
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);
 void Project(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const VariableData *r_destination_variable, double alpha);
-void DistributeDimensionalContributionToFluidFraction(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
+void CalculateNodalHomogenizationPartWithLinearWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void Distribute(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node,const VariableData *r_destination_variable);
+void DistributeDimensionalContributionToHomogenizationPart(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void ComputeHomogenizedNodalVariable(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
-void CalculateFluidFraction(ModelPart& r_homogenization_model_part);
-void CalculateFluidMassFraction(ModelPart& r_homogenization_model_part);
+void CalculatePorosityProjected(ModelPart& r_homogenization_model_part);
 void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
 void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable, double alpha);
 void CalculateVelocityProjectedRate(Node<3>::Pointer p_node);
 void InterpolateAcceleration(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable);
-void InterpolateShearRate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_destination_variable);
-void InterpolateShearRate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_destination_variable, double alpha);
-void InterpolateVorticity(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable);
-void InterpolateVorticity(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
 void TransferWithConstantWeighing(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
 void TransferWithLinearWeighing(Element::Pointer p_elem, const array_1d<double,TDim + 1>& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
-void CalculateNodalFluidFractionWithConstantWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
+void CalculateNodalHomogenizationPartWithConstantWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void CalculateNodalFluidFractionWithLinearWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void CalculateNodalFluidFractionByLumpedL2Projection(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node);
-//void CalculateFluidFractionGradient(ModelPart& r_model_part);
 void TransferByAveraging(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
 void CalculateNodalFluidFractionByAveraging(ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights);
 void CalculateNodalSolidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const double averaging_volume_inv);
@@ -402,8 +349,6 @@ void SetToZero(ModelPart& r_model_part, const VariableData& r_variable);
 void CalculateHomogenizationNodesMaxNodalArea(ModelPart& r_homogenization_model_part);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var);
 inline unsigned int GetNearestNode(const Vector& N);
-void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part);
-double inline CalculateDistance(Node<3>::Pointer a, SwimmingParticle<TypeOfParticle>* b);
 double inline GetAlpha(const VariableData& r_variable);
 const Variable<array_1d<double,3>>& GetBodyForcePerUnitMassVariable() const;
 bool CheckVariablesTypesCoincide(const VariableData& var_1, const VariableData& var_2) const;
@@ -439,9 +384,9 @@ BinBasedDEMHomogenizationMapper& operator=(BinBasedDEMHomogenizationMapper const
 }; // Class BinBasedDEMHomogenizationMapper
 
 /// output stream function
-template<std::size_t TDim, typename TypeOfParticle>
+template<std::size_t TDim, typename ParticleType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const BinBasedDEMHomogenizationMapper<TDim, TypeOfParticle>& rThis)
+                                  const BinBasedDEMHomogenizationMapper<TDim, ParticleType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
