@@ -17,6 +17,8 @@
 
 
 // Project includes
+#include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "shallow_water_utilities.h"
 
@@ -44,16 +46,58 @@ void ShallowWaterUtilities::ComputeHeightFromFreeSurface(ModelPart& rModelPart)
     }
 }
 
-void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart)
+void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart, bool PerformProjection)
 {
-    const double epsilon = rModelPart.GetProcessInfo()[DRY_HEIGHT];
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        const double height = it_node->FastGetSolutionStepValue(HEIGHT);
-        it_node->FastGetSolutionStepValue(VELOCITY) = it_node->FastGetSolutionStepValue(MOMENTUM) / (std::abs(height) + epsilon);
+    if (PerformProjection) {
+        ComputeSmoothVelocity(rModelPart);
+    } else {
+        const double rel_dry_h = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+        block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+            const double h = r_node.FastGetSolutionStepValue(HEIGHT);
+            const double inv_h = InverseHeight(h, rel_dry_h * r_node.GetValue(NODAL_H));
+            r_node.FastGetSolutionStepValue(VELOCITY) = inv_h * r_node.FastGetSolutionStepValue(MOMENTUM);
+        });
     }
+}
+
+void ShallowWaterUtilities::ComputeSmoothVelocity(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+        r_node.FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
+        r_node.SetValue(INTEGRATION_WEIGHT, 0.0);
+    });
+    Matrix mass_matrix;
+    const double rel_dry_h = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+    block_for_each(rModelPart.Elements(), mass_matrix, [&](Element& r_element, Matrix& r_local_mass_matrix){
+        auto& r_geom = r_element.GetGeometry();
+        const size_t num_nodes = r_geom.size();
+        double height = 0.0;
+        Vector nodal_discharge_x(num_nodes);
+        Vector nodal_discharge_y(num_nodes);
+        for (size_t i = 0; i < num_nodes; ++i) {
+            height += r_geom[i].FastGetSolutionStepValue(HEIGHT);
+            nodal_discharge_x[i] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_X);
+            nodal_discharge_y[i] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_Y);
+        }
+        height /= num_nodes;
+        CalculateMassMatrix(r_local_mass_matrix, r_geom);
+        r_local_mass_matrix *= InverseHeight(height, rel_dry_h * r_geom.Length());
+        Vector nodal_velocity_x(num_nodes);
+        Vector nodal_velocity_y(num_nodes);
+        nodal_velocity_x = num_nodes * prod(r_local_mass_matrix, nodal_discharge_x);
+        nodal_velocity_y = num_nodes * prod(r_local_mass_matrix, nodal_discharge_y);
+        for (unsigned int i = 0; i < num_nodes; ++i)
+        {
+            r_geom[i].SetLock();
+            r_geom[i].FastGetSolutionStepValue(VELOCITY_X) += nodal_velocity_x[i];
+            r_geom[i].FastGetSolutionStepValue(VELOCITY_Y) += nodal_velocity_y[i];
+            r_geom[i].GetValue(INTEGRATION_WEIGHT) += 1.0;
+            r_geom[i].UnSetLock();
+        }
+    });
+    block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+        r_node.FastGetSolutionStepValue(VELOCITY) /= r_node.GetValue(INTEGRATION_WEIGHT);
+    });
 }
 
 void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
@@ -266,6 +310,66 @@ void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Vari
     {
         auto it_node = rModelPart.NodesBegin() + i;
         it_node->Z() = it_node->FastGetSolutionStepValue(rVariable);
+    }
+}
+
+double ShallowWaterUtilities::InverseHeight(const double Height, const double Epsilon)
+{
+    const double h4 = std::pow(Height, 4);
+    const double epsilon4 = std::pow(Epsilon, 4);
+    return std::sqrt(2) * std::max(Height, .0) / std::sqrt(h4 + std::max(h4, epsilon4));
+}
+
+void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry)
+{
+    const size_t num_nodes = rGeometry.size();
+    if (rMassMatrix.size1() != num_nodes) {
+        rMassMatrix.resize(num_nodes, num_nodes, false);
+    }
+    if (num_nodes == 2)
+    {
+        double one_sixth = 1.0 / 6.0;
+        rMassMatrix(0,0) = 2.0 * one_sixth;
+        rMassMatrix(0,1) = 1.0 * one_sixth;
+        rMassMatrix(1,0) = 1.0 * one_sixth;
+        rMassMatrix(1,1) = 2.0 * one_sixth;
+    }
+    else if (num_nodes == 3)
+    {
+        double one_twelve = 1.0 / 12.0;
+        rMassMatrix(0,0) = 2.0 * one_twelve;
+        rMassMatrix(0,1) = 1.0 * one_twelve;
+        rMassMatrix(0,2) = 1.0 * one_twelve;
+        rMassMatrix(1,0) = 1.0 * one_twelve;
+        rMassMatrix(1,1) = 2.0 * one_twelve;
+        rMassMatrix(1,2) = 1.0 * one_twelve;
+        rMassMatrix(2,0) = 1.0 * one_twelve;
+        rMassMatrix(2,1) = 1.0 * one_twelve;
+        rMassMatrix(2,2) = 2.0 * one_twelve;
+    }
+    else if (num_nodes == 4)
+    {
+        double one_thirty_sixth = 1.0 / 36.0;
+        rMassMatrix(0,0) = 4 * one_thirty_sixth;
+        rMassMatrix(0,1) = 2 * one_thirty_sixth;
+        rMassMatrix(0,2) = 1 * one_thirty_sixth;
+        rMassMatrix(0,3) = 2 * one_thirty_sixth;
+        rMassMatrix(1,0) = 2 * one_thirty_sixth;
+        rMassMatrix(1,1) = 4 * one_thirty_sixth;
+        rMassMatrix(1,2) = 2 * one_thirty_sixth;
+        rMassMatrix(1,3) = 1 * one_thirty_sixth;
+        rMassMatrix(2,0) = 1 * one_thirty_sixth;
+        rMassMatrix(2,1) = 2 * one_thirty_sixth;
+        rMassMatrix(2,2) = 4 * one_thirty_sixth;
+        rMassMatrix(2,3) = 2 * one_thirty_sixth;
+        rMassMatrix(3,0) = 2 * one_thirty_sixth;
+        rMassMatrix(3,1) = 1 * one_thirty_sixth;
+        rMassMatrix(3,2) = 2 * one_thirty_sixth;
+        rMassMatrix(3,3) = 4 * one_thirty_sixth;
+    }
+    else
+    {
+        KRATOS_ERROR << "ShallowWaterUtilities::MassMatrix. Method implemented for lines, triangles and quadrilaterals" << std::endl;
     }
 }
 
