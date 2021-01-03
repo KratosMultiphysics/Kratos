@@ -16,6 +16,29 @@
 
 namespace Kratos {
 
+namespace EmbeddedFluidElementDiscontinuousInternals
+{
+    inline const EdgesLocalIdsType GetEdgesLocalIds(const GeometryData::KratosGeometryType& rGeometryType)
+    {
+        EdgesLocalIdsType edges_local_ids;
+
+        switch (rGeometryType)
+        {
+        case GeometryData::Kratos_Triangle2D3:
+            edges_local_ids = {{{1,2},{2,0},{0,1}}};
+            break;
+        case GeometryData::Kratos_Tetrahedra3D4:
+            edges_local_ids = {{{0,1},{1,2},{2,0},{0,3},{1,3},{2,3}}};
+            break;
+        default:
+            KRATOS_ERROR << "Not supported geometry type." << std::endl;
+            break;
+        }
+
+        return edges_local_ids;
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
@@ -157,6 +180,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
         AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
         AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+    } else if ( data.IsIncised() ) {
+        // Add the MultiFreedom Constraint in the incised edges to avoid the conformity problems
+        AddIncisedEdgeGradientPenalization(rLeftHandSideMatrix, rRightHandSideVector, data);
     }
 }
 
@@ -272,6 +298,14 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         } else {
             rData.NumNegativeNodes++;
             rData.NegativeIndices.push_back(i);
+        }
+    }
+
+    // Number of intersected edges
+    for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+        if (rData.ElementalEdgeDistances[i] > 0.0) {
+            rData.NumIntersectedEdges++;
+            rData.IntersectedEdges.push_back(i);
         }
     }
 
@@ -819,6 +853,58 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialSymmetricCoun
 }
 
 template <class TBaseElement>
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedEdgeGradientPenalization(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const EmbeddedDiscontinuousElementData& rData) const
+{
+    // Obtain the previous iteration velocity solution
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData, values);
+
+    // Get the edges local ids
+    const auto& r_geom = this->GetGeometry();
+    const auto edges_local_ids = EmbeddedFluidElementDiscontinuousInternals::GetEdgesLocalIds(r_geom.GetGeometryType());
+
+    // Calculate penalty constant
+    double max_lhs = 0.0;
+    for (std::size_t i = 0; i < LocalSize; ++i) {
+        for (std::size_t j = 0; j < LocalSize; ++j) {
+            const double aux = std::abs(rLHS(i,j));
+            if (aux > max_lhs) {
+                max_lhs = aux;
+            }
+        }
+    }
+    const double max_lhs_order = floor(log10(max_lhs));
+    const double constraint_penalty = std::pow(10, max_lhs_order + 8);
+
+    // Set the constraint matrix
+    Matrix A = ZeroMatrix(BlockSize * rData.NumIntersectedEdges, LocalSize);
+    for (unsigned int i_edge = 0; i_edge < rData.NumIntersectedEdges; ++i_edge) {
+        // Get edge data
+        const std::size_t edge_id = rData.IntersectedEdges[i_edge];
+        const auto& r_edge_local_ids = edges_local_ids[edge_id];
+        const std::size_t node_0_loc_id = r_edge_local_ids[0];
+        const std::size_t node_1_loc_id = r_edge_local_ids[1];
+        // Add the current edge contraint matrix contribution
+        for (std::size_t k = 0; k < BlockSize; ++k) {
+            std::size_t row = i_edge * BlockSize + k;
+            std::size_t col_0 = node_0_loc_id * BlockSize + k;
+            std::size_t col_1 = node_1_loc_id * BlockSize + k;
+            A(row, col_0) = constraint_penalty;
+            A(row, col_1) = -constraint_penalty;
+        }
+    }
+
+    // Add the edge gradient constraint contribution
+    BoundedMatrix<double,LocalSize,LocalSize> aux_LHS = prod(trans(A),A);
+    rLHS += aux_LHS;
+    rRHS -= prod(aux_LHS, values);
+}
+
+
+template <class TBaseElement>
 double EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeNormalPenaltyCoefficient(
     const EmbeddedDiscontinuousElementData& rData,
     const Vector& rN) const
@@ -1184,6 +1270,9 @@ template class EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData
 
 template class EmbeddedFluidElementDiscontinuous< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > >;
 template class EmbeddedFluidElementDiscontinuous< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > >;
+
+// template const EmbeddedFluidElementDiscontinuousInternals::EdgesLocalIdsType EmbeddedFluidElementDiscontinuousInternals::GetEdgesLocalIds<Triangle2D3<Node<3>>>(const Triangle2D3<Node<3>>& rGeometry);
+// template const EmbeddedFluidElementDiscontinuousInternals::EdgesLocalIdsType EmbeddedFluidElementDiscontinuousInternals::GetEdgesLocalIds<Tetrahedra3D4<Node<3>>>(const Tetrahedra3D4<Node<3>>& rGeometry);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

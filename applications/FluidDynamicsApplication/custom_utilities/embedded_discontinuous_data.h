@@ -38,6 +38,9 @@ using NodalVectorData = typename TFluidData::NodalVectorData;
 typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 typedef std::vector< Vector > InterfaceNormalsType;
 
+/// Number of edges of the element (simplex elements are assumed)
+constexpr static unsigned int NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
+
 ///@}
 ///@name Public Members
 ///@{
@@ -45,6 +48,7 @@ typedef std::vector< Vector > InterfaceNormalsType;
 double SlipLength;
 double PenaltyCoefficient;
 
+Vector ElementalEdgeDistances;
 NodalScalarData ElementalDistances;
 
 Matrix PositiveSideN;
@@ -65,9 +69,11 @@ InterfaceNormalsType NegativeInterfaceUnitNormals;
 
 std::vector< size_t > PositiveIndices;
 std::vector< size_t > NegativeIndices;
+std::vector< size_t > IntersectedEdges;
 
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
+size_t NumIntersectedEdges;
 
 ///@}
 ///@name Public Operations
@@ -87,6 +93,7 @@ void Initialize(
 {
     TFluidData::Initialize(rElement, rProcessInfo);
     this->FillFromElementData(ElementalDistances, ELEMENTAL_DISTANCES, rElement);
+    this->FillFromElementData(ElementalEdgeDistances, ELEMENTAL_EDGE_DISTANCES, rElement);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
@@ -129,6 +136,17 @@ static int Check(
 bool IsCut()
 {
     return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
+}
+
+/**
+ * @brief Checks if the current element is partially intersected (incised)
+ * Checks if the current element is partially intersected by checking the number of intersected edges
+ * @return true if the element is incised
+ * @return false if the element is not incised
+ */
+bool IsIncised()
+{
+    return (NumIntersectedEdges > 0) && (NumIntersectedEdges < TFluidData::Dim);
 }
 
 ///@}

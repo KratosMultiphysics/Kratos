@@ -46,6 +46,13 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+namespace EmbeddedFluidElementDiscontinuousInternals
+{
+    typedef std::vector<std::array<std::size_t,2>> EdgesLocalIdsType;
+
+    inline const EdgesLocalIdsType GetEdgesLocalIds(const GeometryData::KratosGeometryType& rGeometryType);
+}
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -363,6 +370,20 @@ protected:
     * @param rData reference to element data structure
     */
     void AddTangentialSymmetricCounterpartContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Add the incised edges gradient penalization
+     * This method adds the gradient penalization in the partially intersected (incised) elements
+     * For the incised elements, this methods penalizes the velocity and pressure gradients along
+     * each intersected edge.
+     * @param rLHS reference to the LHS matrix
+     * @param rRHS reference to the RHS vector
+     * @param rData reference to the element data structure
+     */
+    void AddIncisedEdgeGradientPenalization(
         MatrixType& rLHS,
         VectorType& rRHS,
         const EmbeddedDiscontinuousElementData& rData) const;
