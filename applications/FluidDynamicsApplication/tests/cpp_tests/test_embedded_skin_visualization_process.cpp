@@ -79,6 +79,7 @@ namespace Kratos {
 
             // Copy the nodal distance to ELEMENTAL_DISTANCES variable
             // (needed in case the Ausas functions are tested)
+            const array_1d<double,3> elem_edge_dist(3,-1.0);
             for (unsigned int i_elem = 0; i_elem < rNewModelPart.NumberOfElements(); ++i_elem){
                 auto it_elem = rNewModelPart.ElementsBegin() + i_elem;
                 auto &r_geom = it_elem->GetGeometry();
@@ -89,6 +90,7 @@ namespace Kratos {
                     elem_dist[i_node] = r_geom[i_node].GetSolutionStepValue(DISTANCE);
                 }
                 it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+                it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
             }
         }
 
@@ -144,6 +146,7 @@ namespace Kratos {
 
             // Copy the nodal distance to ELEMENTAL_DISTANCES variable
             // (needed in case the Ausas functions are tested)
+            const array_1d<double,6> elem_edge_dist(6,-1.0);
             for (unsigned int i_elem = 0; i_elem < rNewModelPart.NumberOfElements(); ++i_elem){
                 auto it_elem = rNewModelPart.ElementsBegin() + i_elem;
                 auto &r_geom = it_elem->GetGeometry();
@@ -153,6 +156,7 @@ namespace Kratos {
                     elem_dist[i_node] = r_geom[i_node].GetSolutionStepValue(DISTANCE);
                 }
                 it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+                it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
             }
         }
 

@@ -129,8 +129,10 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     elem_dist[0] = 1.0;
     elem_dist[1] = 1.0;
     elem_dist[2] = 1.0;
+    array_1d<double,3> elem_edge_dist(3,-1.0);
     for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
         it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+        it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
     }
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
@@ -157,6 +159,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     elem_dist[2] =  0.5;
     for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
         it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+        it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
     }
 
     model_part.GetProcessInfo().SetValue(SLIP_LENGTH, 0.0);
