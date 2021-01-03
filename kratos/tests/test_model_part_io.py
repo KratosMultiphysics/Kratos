@@ -51,6 +51,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Z], 4.3)
         self.assertEqual(model_part[KratosMultiphysics.VELOCITY_X], 3.8)
         self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Y], 4.9)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Z], 0.0)
 
         self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
         self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
