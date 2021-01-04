@@ -57,6 +57,9 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
+    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType EMBEDDED_CURVE_INDEX = -2;
+
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
 
@@ -153,6 +156,29 @@ public:
         KRATOS_ERROR << "NurbsCurveOnSurfaceGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
             << "'Create' is not allowed as it would not contain the required pointers to the surface and the curve."
             << std::endl;
+    }
+
+    ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Surface of the geometry is accessable with SURFACE_INDEX.
+    * @param Index: trim_index or SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpNurbsSurface;
+
+        if (Index == EMBEDDED_CURVE_INDEX)
+            return mpNurbsCurve;
+
+        KRATOS_ERROR << "Index " << Index << " not existing in NurbsCurveOnSurface: "
+            << this->Id() << std::endl;
     }
 
     ///@}
