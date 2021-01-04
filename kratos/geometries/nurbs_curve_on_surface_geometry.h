@@ -165,8 +165,9 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessable with SURFACE_INDEX.
-    * @param Index: trim_index or SURFACE_INDEX.
+    *        Possible indices are:
+    *        SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @param Index: SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
