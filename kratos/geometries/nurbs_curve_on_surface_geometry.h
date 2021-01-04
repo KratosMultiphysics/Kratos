@@ -170,6 +170,21 @@ public:
     * @param Index: SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Possible indices are:
+    *        SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @param Index: SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)

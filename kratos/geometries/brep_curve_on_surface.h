@@ -228,6 +228,21 @@ public:
     * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the index.
+    *        Possible indices are:
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
