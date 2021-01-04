@@ -1,36 +1,15 @@
 import KratosMultiphysics
 
-class PythonProcess(object):
+class PythonProcess(KratosMultiphysics.Process):
+    """This process is a dummy python process which derives directly from the C++ Process class, so it has all the methods relative to the the Process clas
+    """
+    
     def __init__(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
+        """ The default constructor of the class
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        KratosMultiphysics.Process.__init__(self)
         
-    def Check(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-    
-    def ExecuteInitialize(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-    
-    def ExecuteBeforeSolutionLoop(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-    
-    def ExecuteInitializeSolutionStep(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-    
-    def ExecuteFinalizeSolutionStep(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-    
-    def ExecuteBeforeOutputStep(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-    
-    def ExecuteAfterOutputStep(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-    
-    def ExecuteFinalize(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-    
-    def Clear(self):
-        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
-
-
 def Factory(settings, Model):
     return PythonProcess()
