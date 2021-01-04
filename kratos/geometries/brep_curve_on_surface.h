@@ -258,6 +258,20 @@ public:
             << this->Id() << std::endl;
     }
 
+    /**
+    * @brief This function is used to check if the index is either
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index of the geometry part.
+    * @return true if SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    */
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX || Index == EMBEDDED_CURVE_INDEX)
+            return true;
+
+        return false;
+    }
+
     ///@}
     ///@name Mathematical Informations
     ///@{
