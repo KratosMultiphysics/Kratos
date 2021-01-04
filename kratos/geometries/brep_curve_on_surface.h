@@ -72,6 +72,10 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
+    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType EMBEDDED_CURVE_INDEX = -2;
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = -3;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -210,6 +214,32 @@ public:
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new BrepCurveOnSurface( ThisPoints ) );
+    }
+
+    ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Surface of the geometry is accessable with SURFACE_INDEX.
+    * @param Index: trim_index or SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpCurveOnSurface->pGetGeometryPart(SURFACE_INDEX);
+
+        if (Index == EMBEDDED_CURVE_INDEX)
+            return mpCurveOnSurface->pGetGeometryPart(EMBEDDED_CURVE_INDEX);
+
+        if (Index == CURVE_ON_SURFACE_INDEX)
+            return mpCurveOnSurface;
+
+        KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
+            << this->Id() << std::endl;
     }
 
     ///@}
