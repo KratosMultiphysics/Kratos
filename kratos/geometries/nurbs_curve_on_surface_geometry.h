@@ -38,6 +38,7 @@ public:
 
     typedef typename TSurfaceContainerPointType::value_type NodeType;
     typedef typename TCurveContainerPointType::value_type CurveNodeType;
+    typedef typename GeometryType::Pointer GeometryPointer;
 
     typedef Geometry<NodeType> BaseType;
 
