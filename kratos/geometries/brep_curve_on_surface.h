@@ -213,6 +213,20 @@ public:
     }
 
     ///@}
+    ///@name Set / Calculate access
+    ///@{
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput
+        ) const override
+    {
+        if (rVariable == PARAMETER_2D_COORDINATES) {
+            mpCurveOnSurface->Calculate(rVariable, rOutput);
+        }
+    }
+
+    ///@}
     ///@name Set/ Get functions
     ///@{
 
