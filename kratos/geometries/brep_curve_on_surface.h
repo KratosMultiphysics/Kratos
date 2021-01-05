@@ -224,6 +224,7 @@ public:
         if (rVariable == PARAMETER_2D_COORDINATES) {
             mpCurveOnSurface->Calculate(rVariable, rOutput);
         }
+    }
 
     ///@}
     ///@name Mathematical Informations
