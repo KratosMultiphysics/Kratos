@@ -218,6 +218,22 @@ public:
         KRATOS_CATCH("");
     }
 
+    static double CalculateLogarithmicYPlusLimit(
+        const double Kappa,
+        const double Beta,
+        const int MaxIterations = 20,
+        const double Tolerance = 1e-6);
+
+    static double CalculateLogarithmicYPlus(
+        const double WallVelocityMagnitude,
+        const double WallHeight,
+        const double KinematicViscosity,
+        const double Kappa,
+        const double Beta,
+        const double YPlusLimit,
+        const int MaxIterations = 20,
+        const double Tolerance = 1e-6);
+
     ///@}
 
 private:

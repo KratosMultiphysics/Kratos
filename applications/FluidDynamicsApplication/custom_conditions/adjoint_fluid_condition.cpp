@@ -129,6 +129,19 @@ void AdjointFluidCondition<TDim, TNumNodes>::CalculateLocalVelocityContribution(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void AdjointFluidCondition<TDim, TNumNodes>::CalculateLeftHandSide(
+        Matrix& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != LocalSize ||
+        rLeftHandSideMatrix.size2() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+    }
+
+    rLeftHandSideMatrix.clear();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void AdjointFluidCondition<TDim, TNumNodes>::CalculateFirstDerivativesLHS(
     Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -140,6 +153,17 @@ void AdjointFluidCondition<TDim, TNumNodes>::CalculateFirstDerivativesLHS(
     rLeftHandSideMatrix.clear();
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void AdjointFluidCondition<TDim, TNumNodes>::CalculateSecondDerivativesLHS(
+    Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != LocalSize ||
+        rLeftHandSideMatrix.size2() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+    }
+
+    rLeftHandSideMatrix.clear();
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void AdjointFluidCondition<TDim, TNumNodes>::CalculateSensitivityMatrix(

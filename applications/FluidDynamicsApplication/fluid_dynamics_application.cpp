@@ -133,8 +133,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // Adjoint fluid conditions
     mAdjointFluidCondition2D2N(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAdjointFluidCondition3D3N(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mAdjointFluidCondition3D4N(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-
+    mAdjointMonolithicWallCondition2D2N(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mAdjointMonolithicWallCondition3D3N(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
 {}
 
 void KratosFluidDynamicsApplication::Register() {
@@ -347,7 +347,9 @@ void KratosFluidDynamicsApplication::Register() {
     // Register adjoint conditions
     KRATOS_REGISTER_CONDITION("AdjointFluidCondition2D2N", mAdjointFluidCondition2D2N);
     KRATOS_REGISTER_CONDITION("AdjointFluidCondition3D3N", mAdjointFluidCondition3D3N);
-    KRATOS_REGISTER_CONDITION("AdjointFluidCondition3D4N", mAdjointFluidCondition3D4N);
+
+    KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition2D2N", mAdjointMonolithicWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition3D3N", mAdjointMonolithicWallCondition3D3N);
 
     // Register constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);

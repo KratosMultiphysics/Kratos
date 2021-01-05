@@ -21,6 +21,8 @@
 #include "conditions/mesh_condition.h"
 #include "includes/process_info.h"
 #include "includes/properties.h"
+#include "utilities/indirect_scalar.h"
+#include "utilities/adjoint_extensions.h"
 
 namespace Kratos
 {
@@ -33,6 +35,88 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 class AdjointFluidCondition : public MeshCondition
 {
+    class ThisExtensions : public AdjointExtensions
+    {
+        Condition* mpCondition;
+
+    public:
+        explicit ThisExtensions(Condition* pCondition)
+            : mpCondition{pCondition}
+        {
+        }
+
+        void GetFirstDerivativesVector(
+            std::size_t NodeId,
+            std::vector<IndirectScalar<double>>& rVector,
+            std::size_t Step) override
+        {
+            auto& r_node = mpCondition->GetGeometry()[NodeId];
+            rVector.resize(mpCondition->GetGeometry().WorkingSpaceDimension() + 1);
+            std::size_t index = 0;
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_X, Step);
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Y, Step);
+            if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) {
+                rVector[index++] =
+                    MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Z, Step);
+            }
+            rVector[index] = IndirectScalar<double>{}; // pressure
+        }
+
+        void GetSecondDerivativesVector(
+            std::size_t NodeId,
+            std::vector<IndirectScalar<double>>& rVector,
+            std::size_t Step) override
+        {
+            auto& r_node = mpCondition->GetGeometry()[NodeId];
+            rVector.resize(mpCondition->GetGeometry().WorkingSpaceDimension() + 1);
+            std::size_t index = 0;
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_X, Step);
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Y, Step);
+            if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) {
+                rVector[index++] =
+                    MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Z, Step);
+            }
+            rVector[index] = IndirectScalar<double>{}; // pressure
+        }
+
+        void GetAuxiliaryVector(
+            std::size_t NodeId,
+            std::vector<IndirectScalar<double>>& rVector,
+            std::size_t Step) override
+        {
+            auto& r_node = mpCondition->GetGeometry()[NodeId];
+            rVector.resize(mpCondition->GetGeometry().WorkingSpaceDimension() + 1);
+            std::size_t index = 0;
+            rVector[index++] =
+                MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_X, Step);
+            rVector[index++] =
+                MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Y, Step);
+            if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) {
+                rVector[index++] =
+                    MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Z, Step);
+            }
+            rVector[index] = IndirectScalar<double>{}; // pressure
+        }
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
+        {
+            rVariables.resize(1);
+            rVariables[0] = &ADJOINT_FLUID_VECTOR_2;
+        }
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
+        {
+            rVariables.resize(1);
+            rVariables[0] = &ADJOINT_FLUID_VECTOR_3;
+        }
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override
+        {
+            rVariables.resize(1);
+            rVariables[0] = &AUX_ADJOINT_FLUID_VECTOR_1;
+        }
+    };
+
 public:
     ///@name Type Definitions
     ///@{
@@ -120,22 +204,32 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties) const override
+    void Initialize(
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+    }
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<AdjointFluidCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
-    Condition::Pointer Create(IndexType NewId,
-                              GeometryType::Pointer pGeom,
-                              PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<AdjointFluidCondition>(NewId, pGeom, pProperties);
     }
 
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
+    Condition::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& rThisNodes) const override
     {
         Condition::Pointer pNewCondition =
             Create(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
@@ -146,24 +240,39 @@ public:
         return pNewCondition;
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetValuesVector(Vector& values, int Step = 0) const override;
+    void GetValuesVector(
+        Vector& values,
+        int Step = 0) const override;
 
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
+    void GetFirstDerivativesVector(
+        Vector& values,
+        int Step = 0) const override;
 
-    void CalculateFirstDerivativesLHS(Matrix& rLeftHandSideMatrix,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(
+        Matrix& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateFirstDerivativesLHS(
+        Matrix& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesLHS(
+        Matrix& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateSensitivityMatrix(
         const Variable<array_1d<double, 3>>& rDesignVariable,
         Matrix& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalVelocityContribution(Matrix& rDampingMatrix,
-                                            Vector& rRightHandSideVector,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalVelocityContribution(
+        Matrix& rDampingMatrix,
+        Vector& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
         ///@}
         ///@name Input and output
