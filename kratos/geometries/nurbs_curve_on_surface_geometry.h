@@ -61,7 +61,6 @@ public:
     using BaseType::GetPoint;
 
     static constexpr IndexType SURFACE_INDEX = -1;
-    static constexpr IndexType EMBEDDED_CURVE_INDEX = -2;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -192,9 +191,6 @@ public:
     {
         if (Index == SURFACE_INDEX)
             return mpNurbsSurface;
-
-        if (Index == EMBEDDED_CURVE_INDEX)
-            return mpNurbsCurve;
 
         KRATOS_ERROR << "Index " << Index << " not existing in NurbsCurveOnSurface: "
             << this->Id() << std::endl;
