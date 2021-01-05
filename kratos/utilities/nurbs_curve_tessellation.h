@@ -209,7 +209,7 @@ public:
     static void ComputeGlobalCoordinates(
         CoordinatesArrayType& rGlobalCoordinates,
         const CoordinatesArrayType& crLocaCoordinates,
-        GeometryType& rGeometry,
+        const GeometryType& rGeometry,
         bool to_surface_parameter = false
     )
     {
