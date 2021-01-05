@@ -210,7 +210,7 @@ public:
         CoordinatesArrayType& rGlobalCoordinates,
         const CoordinatesArrayType& crLocaCoordinates,
         GeometryType& rGeometry,
-        bool to_surface_parameter = false;
+        bool to_surface_parameter = false
     )
     {
         if (!to_surface_parameter) {
