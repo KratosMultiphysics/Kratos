@@ -131,7 +131,7 @@ public:
             t0[0] = span.GetT0();
 
             ComputeGlobalCoordinates(
-                point, t_at_normalized, rGeometry, ToSurfaceParameter);
+                point, t0, rGeometry, ToSurfaceParameter);
 
             sample_points.emplace_back(t, point);
         }
