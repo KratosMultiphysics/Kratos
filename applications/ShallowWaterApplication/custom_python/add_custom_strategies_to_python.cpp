@@ -23,6 +23,7 @@
 // Schemes
 #include "custom_strategies/schemes/residualbased_incrementalupdate_wetting_scheme.h"
 #include "custom_strategies/shallow_water_residual_based_bdf_scheme.h"
+#include "custom_strategies/flux_corrected_shallow_water_scheme.h"
 
 namespace Kratos
 {
@@ -54,6 +55,14 @@ namespace Python
     py::class_<ShallowWaterResidualBasedBDFSchemeType, ShallowWaterResidualBasedBDFSchemeType::Pointer, BaseSchemeType>
     (m, "ShallowWaterResidualBasedBDFScheme")
     .def(py::init<std::size_t>())
+    .def(py::init<std::size_t, bool>())
+    ;
+
+    typedef FluxCorrectedShallowWaterScheme<SparseSpaceType, LocalSpaceType> FluxCorrectedShallowWaterSchemeType;
+    py::class_<FluxCorrectedShallowWaterSchemeType, FluxCorrectedShallowWaterSchemeType::Pointer, BaseSchemeType>
+    (m, "FluxCorrectedShallowWaterScheme")
+    .def(py::init<std::size_t>())
+    .def(py::init<std::size_t, bool>())
     ;
 
   }

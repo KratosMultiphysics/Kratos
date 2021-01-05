@@ -1,6 +1,9 @@
 Begin ModelPartData
 //  VARIABLE_NAME value
 AMBIENT_TEMPERATURE 250.00
+DISPLACEMENT [3] (2.1, 3.2, 4.3)
+VELOCITY_X 3.8
+VELOCITY_Y 4.9
 End ModelPartData
 
 

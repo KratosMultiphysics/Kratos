@@ -38,6 +38,10 @@ RUN apt-get update -y && apt-get upgrade -y && \
         libtrilinos-ifpack-dev \
         libtrilinos-ml-dev \
         libtrilinos-teuchos-dev \
+        libtrilinos-tpetra-dev \
+        libtrilinos-kokkos-dev \
+        libtrilinos-kokkos-kernels-dev \
+        libtrilinos-shylu-dev \
         openmpi-bin \
         python3-dev \
         python3-h5py \
