@@ -197,14 +197,14 @@ public:
     }
 
     /**
-    * @brief This function is used to check if the index is either
-    *        SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @brief This function is used to check if the index is
+    *        SURFACE_INDEX.
     * @param Index of the geometry part.
-    * @return true if SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @return true if SURFACE_INDEX.
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX || Index == EMBEDDED_CURVE_INDEX)
+        if (Index == SURFACE_INDEX)
             return true;
 
         return false;
