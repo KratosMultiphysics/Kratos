@@ -198,9 +198,7 @@ void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         ShellCrossSection::Pointer p_ref_section;
 
-        if (r_props.Has(SHELL_CROSS_SECTION)) {
-            p_ref_section = r_props[SHELL_CROSS_SECTION];
-        } else if (ShellUtilities::IsOrthotropic(r_props)) {
+        if (ShellUtilities::IsOrthotropic(r_props)) {
             // make new instance of shell cross section
             p_ref_section = Kratos::make_shared<ShellCrossSection>();
 
@@ -248,7 +246,7 @@ void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
 }
 
-void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -257,7 +255,7 @@ void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentPro
     }
 }
 
-void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -266,7 +264,7 @@ void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProce
     }
 }
 
-void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -277,7 +275,7 @@ void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessIn
     }
 }
 
-void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -290,7 +288,7 @@ void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo
 
 void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -302,7 +300,7 @@ void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 
 void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -314,7 +312,7 @@ void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 }
 
 void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true; // TODO check is this can be false => see solids
@@ -325,14 +323,14 @@ void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // TODO unify implementation and move it to BaseClass
 }
 
 void BaseShellElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
 )
 {
     const std::size_t matrix_size = GetNumberOfDofs();
@@ -350,7 +348,6 @@ int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     Element::Check(rCurrentProcessInfo);
 
-    CheckVariables();
     CheckDofs();
     CheckProperties(rCurrentProcessInfo);
 
@@ -426,22 +423,6 @@ void BaseShellElement::SetupOrientationAngles()
     KRATOS_ERROR << "You have called to the SetupOrientationAngles from the base class for shell elements" << std::endl;
 }
 
-void BaseShellElement::CheckVariables() const
-{
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_ORTHOTROPIC_LAYERS);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
-}
-
 void BaseShellElement::CheckDofs() const
 {
     // verify that the dofs exist
@@ -473,14 +454,7 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) c
 
     const auto& r_geom = GetGeometry(); // TODO check if this can be const
 
-    if (r_props.Has(SHELL_CROSS_SECTION)) { // if the user specified a cross section ...
-        const ShellCrossSection::Pointer& section = r_props[SHELL_CROSS_SECTION];
-        if (section == nullptr) {
-            KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << Id() << std::endl;
-        }
-
-        section->Check(r_props, r_geom, rCurrentProcessInfo);
-    } else if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
+    if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
         CheckSpecificProperties();
 
         const auto& r_props = GetProperties();

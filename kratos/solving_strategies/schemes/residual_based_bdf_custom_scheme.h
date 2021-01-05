@@ -90,8 +90,6 @@ public:
 
     typedef typename BaseType::Pointer                                 BaseTypePointer;
 
-    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -346,15 +344,6 @@ public:
 
         const int err = BDFBaseType::Check(rModelPart);
         if(err!=0) return err;
-
-        // Check for variables keys
-        // Verify that the variables are correctly initialized
-        for ( auto p_var : mDoubleVariable)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
-        for ( auto p_var : mFirstDoubleDerivatives)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
-        for ( auto p_var : mSecondDoubleDerivatives)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
 
         // Check that variables are correctly allocated
         for(auto& r_node : rModelPart.Nodes()) {

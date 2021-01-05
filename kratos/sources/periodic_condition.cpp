@@ -114,9 +114,6 @@ void PeriodicCondition::GetDofList(DofsVectorType& ElementalDofList, const Proce
     {
         for(PeriodicVariablesContainer::DoubleVariablesConstIterator itDVar = rPeriodicVariables.DoubleVariablesBegin(); itDVar != rPeriodicVariables.DoubleVariablesEnd(); ++itDVar)
             ElementalDofList[LocalIndex++] = rGeom[n].pGetDof(*itDVar);
-
-        for(PeriodicVariablesContainer::VariableComponentsConstIterator itCVar = rPeriodicVariables.VariableComponentsBegin(); itCVar != rPeriodicVariables.VariableComponentsEnd(); ++itCVar)
-            ElementalDofList[LocalIndex++] = rGeom[n].pGetDof(*itCVar);
     }
 
 }

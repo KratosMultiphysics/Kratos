@@ -1,5 +1,6 @@
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import os
 
 try:
     import numpy
@@ -7,6 +8,7 @@ try:
 except:
     numpy_available = False
 
+from co_simulation_test_factory import TestTinyFetiCoSimulationCases
 from co_simulation_test_factory import TestSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
 from test_function_callback_utility import TestGenericCallFunction
@@ -70,6 +72,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtiliites]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTinyFetiCoSimulationCases]))
 
 
     ################################################################################
@@ -77,7 +80,9 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
     nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
     nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
+    if os.name != "nt":
+        # currently those tests don#t work in win
+        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
 
     nightSuite.addTests(smallSuite)
@@ -86,9 +91,9 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
-    validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
-    if numpy_available:
-        validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
+    # validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
+    # if numpy_available:
+    #     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
 
     ################################################################################
     # Create a test suit that contains all the tests:

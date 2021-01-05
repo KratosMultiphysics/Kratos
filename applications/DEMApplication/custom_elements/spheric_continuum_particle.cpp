@@ -39,7 +39,7 @@ namespace Kratos {
     SphericContinuumParticle::~SphericContinuumParticle() {
     }
 
-    void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
+    void SphericContinuumParticle::SetInitialSphereContacts(const ProcessInfo& r_process_info) {
 
         std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
         std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
@@ -203,25 +203,11 @@ namespace Kratos {
         return effectiveVolumeRadius;
     }
 
-
-    /*void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
-
-    KRATOS_TRY
-
-    SphericParticle::InitializeSolutionStep(r_process_info);
-
-    for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-        DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
-    }
-
-    KRATOS_CATCH("")
-    }*/
-
     void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
-                                                                 ProcessInfo& r_process_info,
-                                                                 array_1d<double, 3>& rElasticForce,
-                                                                 array_1d<double, 3>& rContactForce,
-                                                                 double& RollingResistance)
+                                                                const ProcessInfo& r_process_info,
+                                                                array_1d<double, 3>& rElasticForce,
+                                                                array_1d<double, 3>& rContactForce,
+                                                                double& RollingResistance)
     {
         KRATOS_TRY
 
@@ -229,8 +215,6 @@ namespace Kratos {
         DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
 
         const int time_steps = r_process_info[TIME_STEPS];
-        const int& search_control = r_process_info[SEARCH_CONTROL];
-        DenseVector<int>& search_control_vector = r_process_info[SEARCH_CONTROL_VECTOR];
 
         const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -336,32 +320,30 @@ namespace Kratos {
                 mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator);
 
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
-                                                                   OldLocalElasticContactForce,
-                                                                   LocalElasticContactForce,
-                                                                   LocalElasticExtraContactForce,
-                                                                   data_buffer.mLocalCoordSystem,
-                                                                   LocalDeltDisp,
-                                                                   kn_el,
-                                                                   kt_el,
-                                                                   contact_sigma,
-                                                                   contact_tau,
-                                                                   failure_criterion_state,
-                                                                   equiv_young,
-                                                                   equiv_shear,
-                                                                   indentation,
-                                                                   calculation_area,
-                                                                   acumulated_damage,
-                                                                   this,
-                                                                   neighbour_iterator,
-                                                                   i,
-                                                                   r_process_info[TIME_STEPS],
-                                                                   sliding,
-                                                                   search_control,
-                                                                   search_control_vector,
-                                                                   equiv_visco_damp_coeff_normal,
-                                                                   equiv_visco_damp_coeff_tangential,
-                                                                   LocalRelVel,
-                                                                   ViscoDampingLocalContactForce);
+                                                                OldLocalElasticContactForce,
+                                                                LocalElasticContactForce,
+                                                                LocalElasticExtraContactForce,
+                                                                data_buffer.mLocalCoordSystem,
+                                                                LocalDeltDisp,
+                                                                kn_el,
+                                                                kt_el,
+                                                                contact_sigma,
+                                                                contact_tau,
+                                                                failure_criterion_state,
+                                                                equiv_young,
+                                                                equiv_shear,
+                                                                indentation,
+                                                                calculation_area,
+                                                                acumulated_damage,
+                                                                this,
+                                                                neighbour_iterator,
+                                                                i,
+                                                                r_process_info[TIME_STEPS],
+                                                                sliding,
+                                                                equiv_visco_damp_coeff_normal,
+                                                                equiv_visco_damp_coeff_tangential,
+                                                                LocalRelVel,
+                                                                ViscoDampingLocalContactForce);
 
             } else if (indentation > 0.0) {
                 const double previous_indentation = indentation + LocalDeltDisp[2];
@@ -505,7 +487,7 @@ namespace Kratos {
     }
     */
 
-    void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
+    void SphericContinuumParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
         KRATOS_TRY
 
         SphericParticle::FinalizeSolutionStep(r_process_info);
@@ -642,7 +624,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void SphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {}
+    void SphericContinuumParticle::UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info) {}
 
     double SphericContinuumParticle::CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) {
 
@@ -736,7 +718,7 @@ namespace Kratos {
                 std::string message = "An element (Id " + std::to_string(this->Id()) + ") found a neighbor (had contact area) but the neighbor (Id " \
                                                         + std::to_string(r_continuum_ini_neighbour->Id()) + ") did not have area for that element  ";
 
-                KRATOS_THROW_ERROR(std::runtime_error, message, 0);
+                KRATOS_ERROR << message << std::endl;
             }
 
             bool neigh_is_skin = r_continuum_ini_neighbour->IsSkin();
@@ -763,8 +745,7 @@ namespace Kratos {
         if (rVariable == DELTA_TIME) {
             double coeff = r_process_info[NODAL_MASS_COEFF];
             double mass = GetMass();
-
-            if (coeff > 1.0) { KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", coeff) }
+            KRATOS_ERROR_IF(coeff > 1.0) << "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= "<< coeff << std::endl;
             else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) { Output = 9.0E09; }
             else {
                 if (r_process_info[VIRTUAL_MASS_OPTION]) { mass /= 1 - coeff; }
@@ -803,7 +784,6 @@ namespace Kratos {
     void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
 
         KRATOS_TRY
-
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
         ParticleContactElement* bond = mBondElements[i];
         if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)

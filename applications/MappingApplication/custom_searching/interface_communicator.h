@@ -163,7 +163,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ConductLocalSearch();
+    void ConductLocalSearch(const Communicator& rComm);
 
     void CreateInterfaceObjectsOrigin(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
@@ -173,7 +173,8 @@ private:
 
     // this function performs the search and the exchange of the data on the interface
     void ConductSearchIteration(const Kratos::Flags& rOptions,
-                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
+                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                const Communicator& rComm);
 
     bool AllNeighborsFound(const Communicator& rComm) const;
 

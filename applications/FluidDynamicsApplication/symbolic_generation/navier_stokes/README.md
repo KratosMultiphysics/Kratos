@@ -1,7 +1,7 @@
 # Navier-Stokes and Stokes elements automatic differentiation
 
 ## ELEMENT DESCRIPTION:
-Current directory contains the required files for the Automatic Differenctiation (AD) of both the _"symbolic_stokes"_ and _"symbolic_navier_stokes"_ elements of the FluidDynamicsApplication. These elements implement a **Stokes** and a **quasi-incompressible Navier-Stokes** formulation for both **2D** and **3D** cases.
+Current directory contains the required files for the Automatic Differenctiation (AD) of both the _"symbolic_stokes"_ and _"symbolic_navier_stokes"_ elements of the FluidDynamicsApplication. These elements implement a **Stokes** and a **weakly-compressible Navier-Stokes** formulation for both **2D** and **3D** cases.
 
 ## SYMBOLIC GENERATOR SETTINGS:
 *  Dimension to compute: This symbolic generator is valid for both **2D** and **3D** cases. The element has been implemented using a template argument for the problem dimension, so it is advised to set the _dim_to_compute_ flag as "_Both_". In this case the generated .cpp file will contain both **2D** and **3D** implementations.
@@ -15,4 +15,4 @@ Run:
 ~~~py
 python generate_navier_stokes_element.py
 ~~~
-Then, depending on the selected formulation, a file "_symbolic_stokes.cpp_" or "_symbolic_navier_stokes.cpp_" is automatically generated. Such file muest be copied within the "_custom_elements_" folder of the **FluidDynamicsApplication**. The corresponding header file ("symbolic_stokes.h" or "symbolic_navier_stokes.h") is already stored in such folder.
+Then, depending on the selected formulation, a file "_symbolic_stokes.cpp_" or "_weakly_compressible_navier_stokes.cpp_" is automatically generated. Such file muest be copied within the "_custom_elements_" folder of the **FluidDynamicsApplication**. The corresponding header file ("symbolic_stokes.h" or "weakly_compressible_navier_stokes.h") is already stored in such folder.

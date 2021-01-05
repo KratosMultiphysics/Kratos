@@ -458,7 +458,6 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
 
 void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterDeprecatedVariables();
-    KratosApplication::RegisterC2CVariables();      //TODO: move to application
     KratosApplication::RegisterCFDVariables();      //TODO: move to application
     KratosApplication::RegisterALEVariables();      //TODO: move to application
     KratosApplication::RegisterMappingVariables();  //TODO: move to application

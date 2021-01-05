@@ -38,10 +38,11 @@
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
+#include "custom_elements/qs_vms_dem_coupled.h"
 #include "custom_elements/d_vms.h"
 #include "custom_elements/fic.h"
 #include "custom_elements/symbolic_stokes.h"
-#include "custom_elements/symbolic_navier_stokes.h"
+#include "custom_elements/weakly_compressible_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/embedded_fluid_element_discontinuous.h"
 //#include "custom_elements/dynamic_vms.h"
@@ -77,11 +78,12 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
-#include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
@@ -257,11 +259,15 @@ private:
     const VMS<2> mVMS2D;
     /// 3D instance of the VMS element
     const VMS<3> mVMS3D;
-    /// Expermiental fluid element
+    /// Experimental fluid element
     const QSVMS< QSVMSData<2,3> > mQSVMS2D3N;
     const QSVMS< QSVMSData<3,4> > mQSVMS3D4N;
     const QSVMS< QSVMSData<2,4> > mQSVMS2D4N;
     const QSVMS< QSVMSData<3,8> > mQSVMS3D8N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mQSVMSDEMCoupled2D3N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mQSVMSDEMCoupled3D4N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
@@ -277,12 +283,12 @@ private:
     const SymbolicStokes< SymbolicStokesData<3,4> > mSymbolicStokes3D4N;
     const SymbolicStokes< SymbolicStokesData<3,6> > mSymbolicStokes3D6N;
     const SymbolicStokes< SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
-    const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
-    const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
-    const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
-    const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokes3D4N;
-    const EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokesDiscontinuous2D3N;
-    const EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokesDiscontinuous3D4N;
+    const WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > mWeaklyCompressibleNavierStokes2D3N;
+    const WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > mWeaklyCompressibleNavierStokes3D4N;
+    const EmbeddedFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > > mEmbeddedWeaklyCompressibleNavierStokes2D3N;
+    const EmbeddedFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > > mEmbeddedWeaklyCompressibleNavierStokes3D4N;
+    const EmbeddedFluidElementDiscontinuous< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > > mEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N;
+    const EmbeddedFluidElementDiscontinuous< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > > mEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D4N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMS2D3N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
     const EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMSDiscontinuous2D3N;
@@ -386,8 +392,8 @@ private:
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
     const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
-    const CompressibleNavierStokesExplicit<2> mCompressibleNavierStokesExplicit2D;
-    const CompressibleNavierStokesExplicit<3> mCompressibleNavierStokesExplicit3D;
+    const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D;
+    const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D;
 
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;

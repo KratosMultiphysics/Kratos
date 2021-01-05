@@ -246,8 +246,7 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
-    {
+    for( unsigned int i=0; i<integration_points.size(); i++ ) {
         if(py::isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
             values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
         else
@@ -276,6 +275,13 @@ void ElementCalculateDampingMatrix(Element& dummy,
                                    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+}
+
+void ElementCalculateLumpedMassVector(Element& dummy,
+                                      Vector& rMassVector,
+                                      const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateLumpedMassVector(rMassVector, rCurrentProcessInfo);
 }
 
 void ElementCalculateFirstDerivativesLHS(Element& dummy,
@@ -315,26 +321,26 @@ void ElementCalculateSensitivityMatrix(Element& dummy,
     dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
 }
 
-void ElementGetFirstDerivativesVector1(Element& dummy,
+void ElementGetFirstDerivativesVector1(const Element& dummy,
         Vector& rOutput)
 {
     dummy.GetFirstDerivativesVector(rOutput,0);
 }
 
-void ElementGetFirstDerivativesVector2(Element& dummy,
+void ElementGetFirstDerivativesVector2(const Element& dummy,
         Vector& rOutput,
         int step)
 {
     dummy.GetFirstDerivativesVector(rOutput,step);
 }
 
-void ElementGetSecondDerivativesVector1(Element& dummy,
+void ElementGetSecondDerivativesVector1(const Element& dummy,
         Vector& rOutput)
 {
     dummy.GetSecondDerivativesVector(rOutput,0);
 }
 
-void ElementGetSecondDerivativesVector2(Element& dummy,
+void ElementGetSecondDerivativesVector2(const Element& dummy,
         Vector& rOutput,
         int step)
 {
@@ -469,6 +475,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Calculate", &ElementCalculateInterface<Matrix >)
     .def("CalculateMassMatrix", &ElementCalculateMassMatrix)
     .def("CalculateDampingMatrix", &ElementCalculateDampingMatrix)
+    .def("CalculateLumpedMassVector", &ElementCalculateLumpedMassVector)
     .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
     .def("CalculateFirstDerivativesLHS", &ElementCalculateFirstDerivativesLHS)
     .def("CalculateSecondDerivativesLHS", &ElementCalculateSecondDerivativesLHS)

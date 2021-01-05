@@ -37,6 +37,10 @@ namespace Kratos
         mLagrangianSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
         mLagrangianSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
+        mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+
+        mMonotonicElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+
         mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) )
     {}
 
@@ -51,6 +55,7 @@ namespace Kratos
         // Primary variables
         KRATOS_REGISTER_VARIABLE(HEIGHT)
         KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ELEVATION)
+        KRATOS_REGISTER_VARIABLE(VERTICAL_VELOCITY)
         KRATOS_REGISTER_VARIABLE(FLOW_RATE)
 
         // Physical variables
@@ -62,16 +67,13 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(ATMOSPHERIC_PRESSURE)
 
         // Auxiliary variables
-        KRATOS_REGISTER_VARIABLE(LUMPED_MASS_FACTOR)
         KRATOS_REGISTER_VARIABLE(SHOCK_STABILIZATION_FACTOR)
-        KRATOS_REGISTER_VARIABLE(GROUND_IRREGULARITY)
         KRATOS_REGISTER_VARIABLE(EQUIVALENT_MANNING)
         KRATOS_REGISTER_VARIABLE(DRY_HEIGHT)
+        KRATOS_REGISTER_VARIABLE(RELATIVE_DRY_HEIGHT)
         KRATOS_REGISTER_VARIABLE(DRY_DISCHARGE_PENALTY)
 
         // Post-process variables
-        KRATOS_REGISTER_VARIABLE(WATER_HEIGHT)
-        KRATOS_REGISTER_VARIABLE(WATER_SURFACE)
         KRATOS_REGISTER_VARIABLE(TOPOGRAPHY_GRADIENT)
 
         // Specific variables for PFEM2
@@ -89,11 +91,21 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(DELTA_VECTOR1)
         KRATOS_REGISTER_VARIABLE(CURRENT_ELEMENT)
 
+        // Variables for Flux Corrected Transport algorithm
+        KRATOS_REGISTER_VARIABLE(POSITIVE_FLUX)
+        KRATOS_REGISTER_VARIABLE(NEGATIVE_FLUX)
+        KRATOS_REGISTER_VARIABLE(POSITIVE_RATIO)
+        KRATOS_REGISTER_VARIABLE(NEGATIVE_RATIO)
+
         // Benchmark variables
         KRATOS_REGISTER_VARIABLE(EXACT_HEIGHT)
         KRATOS_REGISTER_VARIABLE(HEIGHT_ERROR)
-        KRATOS_REGISTER_VARIABLE(EXACT_VELOCITY)
-        KRATOS_REGISTER_VARIABLE(VELOCITY_ERROR)
+        KRATOS_REGISTER_VARIABLE(EXACT_FREE_SURFACE)
+        KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ERROR)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXACT_VELOCITY)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_ERROR)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXACT_MOMENTUM)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENTUM_ERROR)
 
         // Units conversion
         KRATOS_REGISTER_VARIABLE(TIME_UNIT_CONVERTER)
@@ -105,6 +117,9 @@ namespace Kratos
 
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N)
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N)
+
+        KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
+        KRATOS_REGISTER_ELEMENT("MonotonicElement2D3N", mMonotonicElement2D3N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
     }

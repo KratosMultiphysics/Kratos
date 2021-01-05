@@ -40,7 +40,6 @@ public:
     using GeomtryType = BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();
-    static const Variable<double>& GetScalarRateVariable();
 
     static void Check(
         const GeometryType& rGeometry,

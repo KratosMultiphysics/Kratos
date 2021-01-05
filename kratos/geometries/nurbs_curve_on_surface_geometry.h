@@ -168,11 +168,26 @@ public:
             array_1d<double, 3>& local_parameter = rOutput;
             mpNurbsCurve->GlobalCoordinates(rOutput, local_parameter);
         }
+
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the curve
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(0) + mpNurbsSurface->PolynomialDegree(1);
     }
 
     ///@}
     ///@name Curve Properties
     ///@{
+
+    /// Returns number of points of NurbsCurve.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsCurve->PointsNumberInDirection(LocalDirectionIndex);
+    }
 
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
@@ -201,6 +216,37 @@ public:
             *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
             1e-6);
+    }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
+
+    /// Computes the length of a nurbs curve
+    double Length() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
+        }
+        return length;
+    }
+
+    ///@}
+    ///@name Jacobian
+    ///@{
+
+    double DeterminantOfJacobian(
+        const CoordinatesArrayType& rPoint) const override
+    {
+        std::vector<CoordinatesArrayType> global_space_derivatives(2);
+        this->GlobalSpaceDerivatives(
+            global_space_derivatives, rPoint, 1);
+        return norm_2(global_space_derivatives[1]);
     }
 
     ///@}
