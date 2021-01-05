@@ -257,13 +257,13 @@ public:
 
     /**
     * @brief This function is used to check if the index is either
-    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    *        SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
     * @param Index of the geometry part.
-    * @return true if SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return true if SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX || Index == EMBEDDED_CURVE_INDEX)
+        if (Index == SURFACE_INDEX || Index == CURVE_ON_SURFACE_INDEX)
             return true;
 
         return false;
