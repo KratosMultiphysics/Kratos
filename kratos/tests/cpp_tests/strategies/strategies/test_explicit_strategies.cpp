@@ -71,6 +71,21 @@ namespace Testing
             rMassMatrix(0,0) = 1.0;
         }
 
+        void CalculateLumpedMassVector(
+            VectorType& rLumpedMassVector,
+            const ProcessInfo& rCurrentProcessInfo) const
+        {
+            unsigned int system_size = 1;
+            // Initialize the lumped mass vector
+            if (rLumpedMassVector.size() != system_size) {
+                rLumpedMassVector.resize(system_size, false);
+            }
+
+            // Fill the lumped mass vector
+            const double nodal_mass = 1.0;
+            std::fill(rLumpedMassVector.begin(),rLumpedMassVector.end(),nodal_mass);
+        }
+
         void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override
         {
             auto& r_node = GetGeometry()[0];
