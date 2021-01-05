@@ -74,7 +74,6 @@ public:
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     static constexpr IndexType SURFACE_INDEX = -1;
-    static constexpr IndexType EMBEDDED_CURVE_INDEX = -2;
     static constexpr IndexType CURVE_ON_SURFACE_INDEX = -3;
 
     ///@}
@@ -248,9 +247,6 @@ public:
     {
         if (Index == SURFACE_INDEX)
             return mpCurveOnSurface->pGetGeometryPart(SURFACE_INDEX);
-
-        if (Index == EMBEDDED_CURVE_INDEX)
-            return mpCurveOnSurface->pGetGeometryPart(EMBEDDED_CURVE_INDEX);
 
         if (Index == CURVE_ON_SURFACE_INDEX)
             return mpCurveOnSurface;
