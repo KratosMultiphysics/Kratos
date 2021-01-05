@@ -73,7 +73,7 @@ namespace Testing
 
         void CalculateLumpedMassVector(
             VectorType& rLumpedMassVector,
-            const ProcessInfo& rCurrentProcessInfo) const
+            const ProcessInfo& rCurrentProcessInfo) const override
         {
             unsigned int system_size = 1;
             // Initialize the lumped mass vector
