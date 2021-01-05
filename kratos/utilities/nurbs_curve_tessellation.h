@@ -214,8 +214,9 @@ public:
     )
     {
         if (!to_surface_parameter) {
-            return rGeometry.GlobalCoordinates(
+            rGeometry.GlobalCoordinates(
                 rGlobalCoordinates, crLocaCoordinates);
+            return;
         }
         rGlobalCoordinates = crLocaCoordinates;
         rGeometry.Calculate(PARAMETER_2D_COORDINATES, rGlobalCoordinates);
