@@ -168,6 +168,7 @@ public:
             array_1d<double, 3>& local_parameter = rOutput;
             mpNurbsCurve->GlobalCoordinates(rOutput, local_parameter);
         }
+    }
 
     ///@}
     ///@name Mathematical Informations
