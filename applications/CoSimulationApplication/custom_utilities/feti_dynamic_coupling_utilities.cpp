@@ -1029,9 +1029,16 @@ namespace Kratos
             rotateGrid = false;
         }
 
+        double theta_old = std::atan(mInterfaceSlopeOld);
+        if (theta_old < 0.0) theta_old = 3.14159265358979323846 + theta_old;
+        if (theta_old > 3.14159265358979323846) theta_old -= 3.14159265358979323846;
+
+        double theta_new = std::atan(interface_slope_new);
+        if (theta_new < 0.0) theta_new = 3.14159265358979323846 + theta_new;
+        if (theta_new > 3.14159265358979323846) theta_new -= 3.14159265358979323846;
+
         const double tan_theta = std::abs((mInterfaceSlopeOld - interface_slope_new) / (1.0 + mInterfaceSlopeOld * interface_slope_new));
-        double theta = std::atan(tan_theta); // assumes CCW rotation, that interface_slope_new > mInterfaceSlopeOld
-        if (mInterfaceSlopeOld > interface_slope_new) theta *= -1.0;
+        double theta = theta_new - theta_old;
         if (std::abs(theta/2.0/3.14*360.0) > 10.0) // 0.174
         {
             KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed 10 degrees!\n";
@@ -1053,7 +1060,7 @@ namespace Kratos
                             if (distance < radNoDef)
                             {
                                 array_1d<double, 3> r_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-                                if (norm_2(r_disp) / interface_disp_norm < 0.75) r_disp = interface_average_displacement;
+                                if (norm_2(r_disp) < interface_disp_norm) r_disp = interface_average_displacement;
                                 double rotation_angle = theta;
 
                                 if (distance > radTotalDef)
