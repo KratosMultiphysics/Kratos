@@ -16,7 +16,10 @@
         "destination_newmark_gamma" : 0.5,
         "equilibrium_variable" : "VELOCITY",
         "is_disable_coupling" : false,
-        "is_linear" : true,
+        "configuration_settings" : {
+            "origin_use_initial_configuration" : true,
+            "destination_use_initial_configuration" : true
+        },
         "echo_level" : 0,
         "linear_solver_settings": {},
         "coupling_operations" : {},
