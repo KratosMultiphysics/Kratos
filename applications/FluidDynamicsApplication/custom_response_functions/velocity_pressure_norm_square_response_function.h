@@ -41,15 +41,18 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A response function for drag.
+/// A response function for norm square calculation.
 /**
  * The response function is defined as:
  *
  * \f[
- * \bar{D} = \Sigma_{n=1}^N D^n \Delta t
+ * \bar{D} = \Sigma_{n=1}^N F_u\left(A_n|\underline{u}_n|\right)^2 + F_p\left(A_nP\right)^2 \Delta t
  * \f]
  *
  * if "integrate_in_time" is true.
+ *
+ * F_u is the velocity norm factor
+ * F_p is the pressure norm factor
  */
 class VelocityPressureNormSquareResponseFunction : public AdjointResponseFunction
 {
