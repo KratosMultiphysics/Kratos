@@ -61,12 +61,9 @@ public:
     SetInitialStateProcess(ModelPart& rModelPart,
                            const Vector& rInitialStrain,
                            const Vector& rInitialStress,
-                           const Matrix& rInitialF,
-                           int InitialImposingType, 
-                           ) :
+                           const Matrix& rInitialF) :
         mrModelPart(model_part), mInitialStrain(rInitialStrain), 
-        mInitialStress(rInitialStress), mInitialF(rInitialF), 
-        mInitialImposingType(InitialImposingType)
+        mInitialStress(rInitialStress), mInitialF(rInitialF)
     {
     }
 
@@ -98,10 +95,26 @@ public:
         
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-
             auto it_elem = it_elem_begin + i;
-            InitialState initial_state = InitialState(mInitialStrain, mInitialStress, mInitialF);
 
+            Vector aux_initial_strain = mInitialStrain;
+            Vector aux_initial_stress = mInitialStrain;
+            Vector aux_initial_F      = mInitialF;
+
+            // If the values are set element-wise have priority
+            if (it_elem->GetGeometry()->Has(INITIAL_STRAIN_VECTOR)) {
+                noalias(aux_initial_strain) = it_elem->GetGeometry()->GetValue(INITIAL_STRAIN_VECTOR)
+            }
+            if (it_elem->GetGeometry()->Has(INITIAL_STRESS_VECTOR)) {
+                noalias(aux_initial_stress) = it_elem->GetGeometry()->GetValue(INITIAL_STRESS_VECTOR)
+            }
+            if (it_elem->GetGeometry()->Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
+                noalias(aux_initial_F) = it_elem->GetGeometry()->GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX)
+            }
+            
+            InitialState initial_state = InitialState(aux_initial_strain, aux_initial_strain, aux_initial_F);
+
+            // Assign the values to the GP
             for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
                 it_elem->mConstitutiveLawVector[point_number]->SetInitialState(initial_state);
             }
@@ -137,8 +150,6 @@ private:
     bool mInitialStrain;
     bool mInitialStress;
     bool mInitialF;
-
-    int mInitialImposingType = 0;
 
     ///@}
     ///@name Un accessible methods
