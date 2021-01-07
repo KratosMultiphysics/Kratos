@@ -802,7 +802,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		if(stretcher <= -1.0){
 			std::stringstream ss;
 			ss << "FRACTURE_ENERGY_COMPRESSION is too low" << std::endl;
-			ss << "Characteristic Length = " << characteristic_length <<std::endl;
+			ss << "Characteristic Length = " << data.CharacteristicLength <<std::endl;
 			ss << "Input Gc/lch = " << specific_fracture_energy << std::endl;
 			ss << "To avoid constitutive snap-back, FRACTURE_ENERGY_COMPRESSION should be at least = " << bezier_energy_1 << std::endl;
 			std::cout << ss.str();
