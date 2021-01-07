@@ -153,25 +153,25 @@ public:
     }
 
     /**
-     * @brief Returns the initial stress vector if it is defined in the geometry
+     * @brief Adds the initial stress vector if it is defined in the InitialState
      */
     const void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
     {
-        const auto &r_geometry = rParameterValues.GetElementGeometry();
-        if (r_geometry.Has(INITIAL_STRESS_VECTOR)) {
-            noalias(rStressVector) += r_geometry.GetValue(INITIAL_STRESS_VECTOR);
+        auto p_initial_state = rParameterValues.GetpInitialState();
+        if (p_initial_state != nullptr) {
+            noalias(rStressVector) += p_initial_state.GetInitialStressVector();
         }
     }
 
     /**
-     * @brief Returns the initial strain vector if it is defined in the geometry
+     * @brief Adds the initial strain vector if it is defined in the InitialState
      */
     const void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
     {
-        const auto &r_geometry = rParameterValues.GetElementGeometry();
-        if (r_geometry.Has(INITIAL_STRAIN_VECTOR)) {
-            noalias(rStrainVector) += r_geometry.GetValue(INITIAL_STRAIN_VECTOR);
-        } 
+        auto p_initial_state = rParameterValues.GetpInitialState();
+        if (p_initial_state != nullptr) {
+            noalias(rStrainVector) += p_initial_state.GetInitialStrainVector();
+        }
     }
 
     /**
