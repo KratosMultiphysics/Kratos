@@ -36,6 +36,7 @@ def AssembleTestSuites():
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
     nightlyMPISuite.addTest(AdjointMPIVMSSensitivity('testCylinder'))
+    nightlyMPISuite.addTest(AdjointMPIVMSSensitivity('testSlipCylinder'))
     nightlyMPISuite.addTests(smallMPISuite)
 
     ### Full MPI set ###########################################################
