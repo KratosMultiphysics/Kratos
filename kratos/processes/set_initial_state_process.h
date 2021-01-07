@@ -14,14 +14,9 @@
 #if !defined(KRATOS_SET_INITIAL_STATE_H_INCLUDED )
 #define  KRATOS_SET_INITIAL_STATE_H_INCLUDED
 
-
-
 // System includes
 
-
-
 // External includes
-
 
 // Project includes
 
@@ -29,9 +24,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/initial_state.h"
-
-
-
+#include "includes/mat_variables.h"
 
 namespace Kratos
 {
@@ -62,12 +55,14 @@ public:
         mrModelPart(model_part)
     {
         const SizeType voigt_size = (TDim == 3) ? 6 : 3;
+
         mInitialStrain.resize(voigt_size, false);
         mInitialStress.resize(voigt_size, false);
         mInitialF.resize(TDim, TDim, false);
+
         noalias(mInitialStrain) = ZeroVector(voigt_size);
         noalias(mInitialStress) = ZeroVector(voigt_size);
-        noalias(mInitialF) = ZeroMatrix(TDim, TDim);
+        noalias(mInitialF)      = ZeroMatrix(TDim, TDim);
     }
 
     /// Full constructor.
@@ -106,30 +101,32 @@ public:
         const auto it_elem_begin = mrModelPart.ElementsBegin();
         const auto& integration_points = it_elem_begin->GetGeometry().IntegrationPoints(it_elem_begin->GetIntegrationMethod());
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
             auto it_elem = it_elem_begin + i;
 
             Vector aux_initial_strain = mInitialStrain;
             Vector aux_initial_stress = mInitialStrain;
-            Vector aux_initial_F      = mInitialF;
+            Matrix aux_initial_F      = mInitialF;
 
             // If the values are set element-wise have priority
-            if (it_elem->GetGeometry()->Has(INITIAL_STRAIN_VECTOR)) {
-                noalias(aux_initial_strain) = it_elem->GetGeometry()->GetValue(INITIAL_STRAIN_VECTOR)
+            if (it_elem->GetGeometry().Has(INITIAL_STRAIN_VECTOR)) {
+                noalias(aux_initial_strain) = (it_elem->GetGeometry()).GetValue(INITIAL_STRAIN_VECTOR);
             }
-            if (it_elem->GetGeometry()->Has(INITIAL_STRESS_VECTOR)) {
-                noalias(aux_initial_stress) = it_elem->GetGeometry()->GetValue(INITIAL_STRESS_VECTOR)
+            if (it_elem->GetGeometry().Has(INITIAL_STRESS_VECTOR)) {
+                noalias(aux_initial_stress) = (it_elem->GetGeometry()).GetValue(INITIAL_STRESS_VECTOR);
             }
-            if (it_elem->GetGeometry()->Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
-                noalias(aux_initial_F) = it_elem->GetGeometry()->GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX)
+            if (it_elem->GetGeometry().Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
+                noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
             }
             
             InitialState initial_state = InitialState(aux_initial_strain, aux_initial_strain, aux_initial_F);
 
-            // Assign the values to the GP
+            // Assign the values to the GP of the element
+            
+            auto constitutive_law_vector = it_elem->mConstitutiveLawVector;
             for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-                it_elem->mConstitutiveLawVector[point_number]->SetInitialState(initial_state);
+                constitutive_law_vector[point_number]->SetInitialState(initial_state);
             }
         }
     }
