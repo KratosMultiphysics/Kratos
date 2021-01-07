@@ -34,6 +34,7 @@
 #include "includes/kratos_parameters.h"
 #include "containers/data_value_container.h"
 #include "containers/flags.h"
+#include "includes/initial_state.h"
 
 
 namespace Kratos
@@ -232,6 +233,8 @@ public:
       const Properties*    mpMaterialProperties;
       const GeometryType*  mpElementGeometry;
 
+      InitialState* mpInitialState = nullptr;
+
 
     public:
 
@@ -400,6 +403,7 @@ public:
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties)   {mpMaterialProperties =&rMaterialProperties;};
       void SetElementGeometry              (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
+      void SetInitialState                 (const Initialstate& rInitialstate)     {mpInitialstate =&rInitialstate;};
 
       /**
        * Returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
@@ -458,6 +462,10 @@ public:
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetElementGeometry()) << "ElementGeometry is not set!" << std::endl;
           return *mpElementGeometry;
+      }
+      const InitialState* GetpInitialState()
+      {
+          return mpInitialState;
       }
 
       /**
