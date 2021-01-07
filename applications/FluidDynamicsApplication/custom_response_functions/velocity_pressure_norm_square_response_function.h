@@ -79,7 +79,7 @@ public:
 
         Parameters default_settings(R"(
         {
-            "norm_model_part_name": "PLEASE_SPECIFY_STRUCTURE_MODEL_PART",
+            "norm_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "velocity_norm_factor": 1.0,
             "pressure_norm_factor": 1.0,
             "entities"            : ["elements"]
