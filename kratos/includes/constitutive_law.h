@@ -553,7 +553,7 @@ public:
     /**
      * @return The initial state of strains/stresses/F
      */
-    const InitialState* GetpInitialState()
+    InitialState* GetpInitialState()
     {
         return mpInitialState;
     }
