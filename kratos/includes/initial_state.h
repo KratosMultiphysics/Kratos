@@ -21,7 +21,8 @@
 
 // Project includes
 
-namespace Kratos {
+namespace Kratos 
+{
 ///@addtogroup KratosCore
 ///@{
 
@@ -36,7 +37,7 @@ namespace Kratos {
  * @author Alejandro Cornejo
  */
 
-class InitialState
+class KRATOS_API(KRATOS_CORE) InitialState
 {
     public:
         ///@name Type Definitions
@@ -50,6 +51,9 @@ class InitialState
         ///@{
 
         /// Default constructor.
+        InitialState() {}
+
+
         InitialState(const Vector& rInitialStrain,  const Vector& rInitialStress, const Matrix& rInitialDeformationGradient) {
             // todo...
         }
