@@ -155,7 +155,7 @@ protected:
     ///@}
 
 private:
-    ///@name Private Operations
+    ///@name Private Members
     ///@{
 
     double mAlphaBossak;
@@ -168,6 +168,10 @@ private:
     std::vector<Matrix> mMassMatrices;
     std::vector<Matrix> mDampingMatrices;
     std::vector<Vector> mSecondDerivativesVectors;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     void CalculateLHSAndRHS(
         ElementType& rElement,

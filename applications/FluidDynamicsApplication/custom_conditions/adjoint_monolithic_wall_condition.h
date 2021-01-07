@@ -236,7 +236,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This method is required to calcualte residual
+     * @brief This method is required to calculate residual
      *
      * This method is used in adjoint schemes to calculate residual
      * which is required to properly calculate adjoint contributions
@@ -251,18 +251,43 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief This method gives the gradient matrix
+     *
+     * @param rLeftHandSideMatrix
+     * @param rCurrentProcessInfo
+     */
     void CalculateLeftHandSide(
         Matrix& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief This method gives the residual derivatives w.r.t. first derivatives
+     *
+     * @param rLeftHandSideMatrix
+     * @param rCurrentProcessInfo
+     */
     void CalculateFirstDerivativesLHS(
         Matrix& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief This method gives the residual derivatives w.r.t. second derivatives
+     *
+     * @param rLeftHandSideMatrix
+     * @param rCurrentProcessInfo
+     */
     void CalculateSecondDerivativesLHS(
         Matrix& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief This method gives the residual derivatives w.r.t. sensitivity variable
+     *
+     * @param rDesignVariable
+     * @param rOutput
+     * @param rCurrentProcessInfo
+     */
     void CalculateSensitivityMatrix(
         const Variable<array_1d<double, 3>>& rDesignVariable,
         Matrix& rOutput,

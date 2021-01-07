@@ -218,12 +218,65 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Calculates logarithmic and linear wall law region limit
+     *
+     * This method calculates logarithmic and linear wall law region limit according to following
+     * formulare
+     *
+     * \[
+     *      y^+ = \frac{1}{\kappa}ln\left(y^+\right) + \beta
+     * \]
+     *
+     * @param Kappa             $\kappa$ value
+     * @param Beta              $\beta$ value
+     * @param MaxIterations     Number of max iterations to consider
+     * @param Tolerance         Tolerance for the iterative solve
+     * @return double           The limiting $y^+$ value
+     */
     static double CalculateLogarithmicYPlusLimit(
         const double Kappa,
         const double Beta,
         const int MaxIterations = 20,
         const double Tolerance = 1e-6);
 
+    /**
+     * @brief Calculates linear or logarithmic y_plus value
+     *
+     * This method calculates $y^+$ values based on the following formulare.
+     *
+     * if $y^+ \geq y^+_{limit}$ using logarithmic wall law
+     *
+     * \[
+     *      u^+ = \frac{1}{\kappa}ln\left(y^+\right) + \beta
+     * \]
+     *
+     * else using linear wall law
+     *
+     * \[
+     *      u^+ = y^+
+     * \]
+     *
+     * Where
+     * \[
+     *      u^+ = \frac{|\underline{u}|}{u_\tau}
+     * \]
+     * \[
+     *      y^+ = \frac{u_\tau y}{\nu}
+     * \]
+     *
+     * $u_\tau$ is the friction velocity, $y$ is the wall distance, and $\nu$ is the fluid kinematic viscosity.
+     *
+     * @param WallVelocityMagnitude         $|\underline{u}|$
+     * @param WallHeight                    $y$
+     * @param KinematicViscosity            $\nu$
+     * @param Kappa                         $\kappa$
+     * @param Beta                          $\beta$
+     * @param YPlusLimit                    $y^+_{limit}$
+     * @param MaxIterations                 Number of max iterations to solve for $y^+$
+     * @param Tolerance                     Tolerance to be used for solving $y^+$
+     * @return double                       The $y^+$
+     */
     static double CalculateLogarithmicYPlus(
         const double WallVelocityMagnitude,
         const double WallHeight,

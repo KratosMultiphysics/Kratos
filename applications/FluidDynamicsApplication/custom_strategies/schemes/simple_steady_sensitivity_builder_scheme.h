@@ -104,6 +104,8 @@ public:
             mNodalNeighboursMap = neighbor_process.GetNeighbourIds(rModelPart.Nodes());
 
             // Assign condition normal derivatives to corresponding nodes
+            // NORMAL_SHAPE_DERIVATIVE on conditions should already be available before
+            // executing the following command. (This is done in adjoint_vmsmonolithic_solver.py)
             SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>(
                 rModelPart, TDim, NORMAL_SHAPE_DERIVATIVE,
                 mNodalNeighboursMap, 1.0 / TDim, SLIP);

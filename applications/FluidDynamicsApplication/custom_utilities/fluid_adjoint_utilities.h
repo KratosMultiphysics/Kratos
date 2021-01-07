@@ -52,11 +52,19 @@ public:
     ///@{
 
     /**
-     * @brief
+     * @brief Calculates rotated slip applied state derivatives
      *
-     * @param rOutput
-     * @param rResidualDerivatives
-     * @param rGeometry
+     * This method calculates rotated slip applied state derivatives
+     * when non-rotated residual derivatives are given. Nodal rotations
+     * are determined by SLIP flag. If SLIP flag is true, then it is assumed
+     * to be rotated as well as slip condition applied.
+     *
+     * This method assumes first dofs to be VELOCITY, and derivatives starting with
+     * w.r.t. VELOCITY
+     *
+     * @param rOutput                   Rotated and slip applied state derivatives
+     * @param rResidualDerivatives      Non-rotated and non-slip applied state derivatives
+     * @param rGeometry                 Geometry of which rResidualDerivatives are computed on
      */
     static void CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
         Matrix& rOutput,
@@ -87,11 +95,19 @@ public:
     }
 
     /**
-     * @brief
+     * @brief Calculates rotated slip applied state derivatives
      *
-     * @param rOutput
-     * @param rResidualDerivatives
-     * @param rGeometry
+     * This method calculates rotated slip applied state derivatives
+     * when non-rotated residual derivatives are given. Nodal rotations
+     * are determined by SLIP flag. If SLIP flag is true, then it is assumed
+     * to be rotated as well as slip condition applied.
+     *
+     * This method assumes first dofs to be VELOCITY, and derivatives not starting with
+     * w.r.t. VELOCITY because SLIP is based on the VELOCITY variable.
+     *
+     * @param rOutput                   Rotated and slip applied state derivatives
+     * @param rResidualDerivatives      Non-rotated and non-slip applied state derivatives
+     * @param rGeometry                 Geometry of which rResidualDerivatives are computed on
      */
     static void CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
         Matrix& rOutput,
@@ -124,12 +140,15 @@ public:
     }
 
     /**
-     * @brief
+     * @brief Rotates residual derivatives
      *
-     * @param rOutput
-     * @param rResidualDerivatives
-     * @param NodeStartIndex
-     * @param rNode
+     * This method is used to rotate part of the non-rotated residual derivatives
+     * which corresponds to a given node.
+     *
+     * @param rOutput                   Nodal rotated state derivatives
+     * @param rResidualDerivatives      Non-rotated state derivatives
+     * @param NodeStartIndex            Block starting column for that specific node
+     * @param rNode                     Node which has rotated residual derivative contributions
      */
     static void AddNodalRotationDerivatives(
         Matrix& rOutput,
@@ -169,11 +188,14 @@ public:
     }
 
     /**
-     * @brief
+     * @brief Slip condition residual derivatives
      *
-     * @param rOutput
-     * @param NodeStartIndex
-     * @param rNode
+     * This method is used to apply slip condition state derivatives to part of the non-rotated residual derivatives
+     * which corresponds to a given node.
+     *
+     * @param rOutput                   Nodal slip condition applied state derivatives
+     * @param NodeStartIndex            Block starting column for that specific node
+     * @param rNode                     Node which has rotated residual derivative contributions
      */
     static void AddNodalApplySlipConditionDerivatives(
         Matrix& rOutput,
@@ -199,11 +221,14 @@ public:
     }
 
     /**
-     * @brief
+     * @brief Adds the nodal state derivatives as it is
      *
-     * @param rOutput
-     * @param rResidualDerivatives
-     * @param NodeStartIndex
+     * This method is used to apply slip condition state derivatives to part of the non-rotated residual derivatives
+     * which corresponds to a given node.
+     *
+     * @param rOutput                   Output state derivatives
+     * @param rResidualDerivatives      Non-rotated state derivatives
+     * @param NodeStartIndex            Block starting column for that specific node
      */
     static void AddNodalResidualDerivatives(
         Matrix& rOutput,
@@ -223,6 +248,12 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Clears a residual derivative
+     *
+     * @param rOutput               Output matrix
+     * @param ResidualIndex         Residual index which needs to be set to zero.
+     */
     static void ClearNodalResidualDerivatives(
         Matrix& rOutput,
         const IndexType ResidualIndex)

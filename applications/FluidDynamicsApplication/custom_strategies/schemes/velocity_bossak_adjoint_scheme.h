@@ -50,17 +50,13 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(VelocityBossakAdjointScheme);
 
-    typedef ResidualBasedAdjointBossakScheme<TSparseSpace, TDenseSpace> BaseType;
+    using BaseType = ResidualBasedAdjointBossakScheme<TSparseSpace, TDenseSpace>;
 
-    typedef typename BaseType::TSystemMatrixType SystemMatrixType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
-    typedef typename BaseType::TSystemVectorType SystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     using AdjointUtilities = FluidAdjointUtilities<TDim, TBlockSize>;
 
@@ -108,10 +104,6 @@ public:
     {
         return "VelocityBossakAdjointScheme";
     }
-
-    ///@}
-    ///@name Friends
-    ///@{
 
     ///@}
 
@@ -416,11 +408,6 @@ private:
     ///@}
 
 }; /* Class VelocityBossakAdjointScheme */
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 

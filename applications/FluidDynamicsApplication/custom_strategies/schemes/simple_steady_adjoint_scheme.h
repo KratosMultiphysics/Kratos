@@ -36,12 +36,13 @@ namespace Kratos
 /**
  * Solves the adjoint equations:
  * \f[
- *  \partial_{\mathbf{w}}\mathbf{r}^T \lambda = -\partial_{\mathbf{w}}J^{T}
+ *  \partial_{\mathbf{w}}\mathbf{r}^T \mathbf{c}\lambda = -\partial_{\mathbf{w}}J^{T}
  * \f]
  *
  * \f$\lambda\f$ is returned by Element::GetFirstDerivativesVector.
  * \f$\partial_{\mathbf{w}}\mathbf{r}^T\f$ is returned by Element::CalculateFirstDerivativesLHS.
  * \f$\partial_{\mathbf{w}}J^{T}\f$ is returned by ResponseFunction::CalculateFirstDerivativesGradient.
+ * \f$\mathbf{c}$ is the rotation and slip condition matrix
  */
 template <unsigned int TDim, class TSparseSpace, class TDenseSpace, unsigned int TBlockSize = TDim + 1>
 class SimpleSteadyAdjointScheme : public ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>
@@ -57,14 +58,6 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
-
-    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
-
-    using TSystemVectorType = typename BaseType::TSystemVectorType;
-
-    using IndexType = std::size_t;
-
-    using NodeType = ModelPart::NodeType;
 
     ///@}
     ///@name Life Cycle
