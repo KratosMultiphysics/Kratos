@@ -54,6 +54,9 @@ public:
     /// Local flag to switch on/off the elemental edge distances storage
     KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(KRATOS_CORE, CALCULATE_ELEMENTAL_EDGE_DISTANCES);
 
+    /// Local flag to switch on/off the calculation and storage of the extrapolated edge distances
+    KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(KRATOS_CORE, CALCULATE_EXTRA_EDGE_DISTANCES);
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -67,7 +70,14 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const Flags rOptions);
+        const Flags rOptionEdge);
+
+    /// Constructor with options
+    CalculateDiscontinuousDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        const Flags rOptionEdge,
+        const Flags rOptionExtraEdge);
 
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
@@ -199,7 +209,8 @@ private:
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
 
-    Flags mOptions = CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse();
+    Flags mOptionEdge = CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse();
+    Flags mOptionExtraEdge = CALCULATE_EXTRA_EDGE_DISTANCES.AsFalse();
 
     ///@}
     ///@name Private Operations
@@ -520,6 +531,8 @@ private:
 // Local flag creation without using the KRATOS_CREATE_LOCAL_FLAG macro since this has a template parameter.
 template<std::size_t TDim>
 const Kratos::Flags CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_ELEMENTAL_EDGE_DISTANCES(Kratos::Flags::Create(0));
+template<std::size_t TDim>
+const Kratos::Flags CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_EXTRA_EDGE_DISTANCES(Kratos::Flags::Create(0));
 
 ///@}
 ///@name Input and output

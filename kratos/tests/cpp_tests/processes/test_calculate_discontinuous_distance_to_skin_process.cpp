@@ -154,8 +154,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcess<3>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
+        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcess<3>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcess<3>::CALCULATE_EXTRA_EDGE_DISTANCES;
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
         // Check elemental distances
@@ -851,8 +852,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
+        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_EXTRA_EDGE_DISTANCES;
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
         // Count intersected and incised elements
@@ -937,8 +939,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 2, {{3,2,4}}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcess<3>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
+        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcess<3>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcess<3>::CALCULATE_EXTRA_EDGE_DISTANCES;
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
         // Count intersected and incised elements
@@ -1043,8 +1046,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
+        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_EXTRA_EDGE_DISTANCES;
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
         // Count intersected and incised elements
@@ -1186,8 +1190,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
+        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcess<2>::CALCULATE_EXTRA_EDGE_DISTANCES;
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
         // Count intersected and incised elements
