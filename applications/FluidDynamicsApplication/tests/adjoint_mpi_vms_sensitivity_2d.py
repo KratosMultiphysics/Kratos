@@ -41,38 +41,38 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
             if name.find(model_part_name) == 0:
                 self._remove_file(name)
 
-    # def testCylinder(self):
-    #     with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-    #         # solve fluid
-    #         model = Kratos.Model()
-    #         with open('AdjointVMSSensitivity2DTest/mpi_cylinder_test_parameters.json', 'r') as parameter_file:
-    #             project_parameters = Kratos.Parameters(parameter_file.read())
-    #             parameter_file.close()
-    #         primal_simulation = FluidDynamicsAnalysis(model,project_parameters)
-    #         primal_simulation.Run()
-    #         Kratos.DataCommunicator.GetDefault().Barrier()
+    def testCylinder(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # solve fluid
+            model = Kratos.Model()
+            with open('AdjointVMSSensitivity2DTest/mpi_cylinder_test_parameters.json', 'r') as parameter_file:
+                project_parameters = Kratos.Parameters(parameter_file.read())
+                parameter_file.close()
+            primal_simulation = FluidDynamicsAnalysis(model,project_parameters)
+            primal_simulation.Run()
+            Kratos.DataCommunicator.GetDefault().Barrier()
 
-    #         # solve adjoint
-    #         with open('AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_parameters.json', 'r') as parameter_file:
-    #             project_parameters = Kratos.Parameters(parameter_file.read())
-    #             parameter_file.close()
+            # solve adjoint
+            with open('AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_parameters.json', 'r') as parameter_file:
+                project_parameters = Kratos.Parameters(parameter_file.read())
+                parameter_file.close()
 
-    #         adjoint_model = Kratos.Model()
-    #         adjoint_simulation = AdjointFluidAnalysis(adjoint_model,project_parameters)
-    #         adjoint_simulation.Run()
-    #         Kratos.DataCommunicator.GetDefault().Barrier()
-    #         rank = adjoint_simulation._solver.main_model_part.GetCommunicator().MyPID()
-    #         # remove files
-    #         if rank == 0:
-    #             self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe1.dat")
-    #             self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe2.dat")
-    #             self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_probe1.dat")
-    #             self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_probe2.dat")
-    #             self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_probe3.dat")
-    #             self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test.time")
-    #             self._remove_h5_files("primal")
-    #         self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".time")
-    #         self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".mdpa")
+            adjoint_model = Kratos.Model()
+            adjoint_simulation = AdjointFluidAnalysis(adjoint_model,project_parameters)
+            adjoint_simulation.Run()
+            Kratos.DataCommunicator.GetDefault().Barrier()
+            rank = adjoint_simulation._solver.main_model_part.GetCommunicator().MyPID()
+            # remove files
+            if rank == 0:
+                self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe1.dat")
+                self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe2.dat")
+                self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_probe1.dat")
+                self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_probe2.dat")
+                self._remove_file("./AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_probe3.dat")
+                self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test.time")
+                self._remove_h5_files("primal")
+            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".time")
+            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_partitioned/cylinder_test_" + str(rank) + ".mdpa")
 
     def testSlipCylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -99,7 +99,7 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
             if rank == 0:
                 self._remove_h5_files("MainModelPart")
             self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".time")
-            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".mdpa")
+            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_partitioned/cylinder_test_" + str(rank) + ".mdpa")
 
     def tearDown(self):
         pass
