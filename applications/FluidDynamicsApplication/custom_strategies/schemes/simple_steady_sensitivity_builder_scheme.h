@@ -372,7 +372,7 @@ public:
     }
 
     void CalculateResidualSensitivityMatrix(
-        ConditionType& rElement,
+        ConditionType& rCondition,
         Vector& rAdjointValues,
         Matrix& rOutput,
         GlobalPointersVector<NodeType>& rGPSensitivityVector,
@@ -380,7 +380,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo)
     {
         CalculateResidualSensitivityMatrix<ConditionType, array_1d<double, 3>>(
-            rElement, rAdjointValues, rOutput, rGPSensitivityVector, rVariable,
+            rCondition, rAdjointValues, rOutput, rGPSensitivityVector, rVariable,
             rCurrentProcessInfo);
     }
 
