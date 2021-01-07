@@ -26,6 +26,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.Process):
         "output_precision"                   : 7,
         "folder_name"                        : "vtk_output",
         "output_sub_model_parts"             : false,
+        "echo_level"                         : 0,
         "save_output_files_in_folder"        : true,
         "gauss_point_results" : []
     }""")
@@ -229,7 +230,8 @@ class ParticleVTKOutputProcess(KratosMultiphysics.Process):
 
     def _stop_time_measure(self, time_ip):
         time_fp = time()
-        KratosMultiphysics.Logger.PrintInfo("::[Particle VTK Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
+        if self.param["echo_level"].GetInt() > 0:
+            KratosMultiphysics.Logger.PrintInfo("::[Particle VTK Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
 
     def _is_scalar(self,variable):
         is_scalar = False
