@@ -6,43 +6,7 @@
         "start_time": 0.0,
         "end_time": 1.0
     },
-    "_output_processes": {
-        "gid_output": [
-            {
-                "python_module": "gid_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "GiDOutputProcess",
-                "help": "This process writes postprocessing files for GiD",
-                "Parameters": {
-                    "model_part_name": "MainModelPart",
-                    "output_name": "interface_test",
-                    "postprocess_parameters": {
-                        "result_file_configuration": {
-                            "gidpost_flags": {
-                                "GiDPostMode": "GiD_PostBinary",
-                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                "WriteConditionsFlag": "WriteElementsOnly",
-                                "MultiFileFlag": "SingleFile"
-                            },
-                            "file_label": "time",
-                            "output_control_type": "step",
-                            "output_interval": 1.0,
-                            "body_output": true,
-                            "node_output": false,
-                            "skin_output": false,
-                            "plane_output": [],
-                            "nodal_results": [
-                                "VELOCITY",
-                                "PRESSURE"
-                            ],
-                            "gauss_point_results": []
-                        },
-                        "point_data_configuration": []
-                    }
-                }
-            }
-        ]
-    },
+    "_output_processes": {},
     "restart_options": {
         "SaveRestart": "False",
         "RestartFrequency": 0,
@@ -193,7 +157,8 @@
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE",
-                            "NORMAL"
+                            "NORMAL",
+                            "BODY_FORCE"
                         ]
                     },
                     "nodal_data_value_settings": {

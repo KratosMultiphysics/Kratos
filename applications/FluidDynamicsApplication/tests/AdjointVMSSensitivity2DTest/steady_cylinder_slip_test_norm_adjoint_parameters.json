@@ -6,43 +6,7 @@
         "echo_level": 0,
         "parallel_type": "OpenMP"
     },
-    "_output_processes": {
-        "gid_output": [
-            {
-                "python_module": "gid_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "GiDOutputProcess",
-                "help": "This process writes postprocessing files for GiD",
-                "Parameters": {
-                    "model_part_name": "MainModelPart",
-                    "output_name": "interface_test",
-                    "postprocess_parameters": {
-                        "result_file_configuration": {
-                            "gidpost_flags": {
-                                "GiDPostMode": "GiD_PostBinary",
-                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                "WriteConditionsFlag": "WriteElementsOnly",
-                                "MultiFileFlag": "SingleFile"
-                            },
-                            "file_label": "time",
-                            "output_control_type": "step",
-                            "output_interval": 1.0,
-                            "body_output": true,
-                            "node_output": false,
-                            "skin_output": false,
-                            "plane_output": [],
-                            "nodal_results": [
-                                "VELOCITY",
-                                "PRESSURE"
-                            ],
-                            "gauss_point_results": []
-                        },
-                        "point_data_configuration": []
-                    }
-                }
-            }
-        ]
-    },
+    "_output_processes": {},
     "solver_settings": {
         "solver_type": "Monolithic",
         "scheme_settings": {
@@ -134,24 +98,7 @@
                 }
             }
         ],
-        "gravity": [
-            {
-                "python_module": "assign_vector_by_direction_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignVectorByDirectionProcess",
-                "Parameters": {
-                    "model_part_name": "MainModelPart.Parts_Fluid",
-                    "variable_name": "BODY_FORCE",
-                    "modulus": 0.0,
-                    "constrained": false,
-                    "direction": [
-                        0.0,
-                        -1.0,
-                        0.0
-                    ]
-                }
-            }
-        ],
+        "gravity": [],
         "auxiliar_process_list": [
             {
                 "kratos_module": "KratosMultiphysics.HDF5Application",
@@ -164,7 +111,8 @@
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE",
-                            "NORMAL"
+                            "NORMAL",
+                            "BODY_FORCE"
                         ]
                     },
                     "nodal_data_value_settings": {
