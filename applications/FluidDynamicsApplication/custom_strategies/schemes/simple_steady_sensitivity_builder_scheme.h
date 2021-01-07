@@ -103,10 +103,6 @@ public:
             neighbor_process.Execute();
             mNodalNeighboursMap = neighbor_process.GetNeighbourIds(rModelPart.Nodes());
 
-            // Compute condition NORMAL derivatives and store them in conditions
-            NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(
-                rModelPart.Conditions(), TDim);
-
             // Assign condition normal derivatives to corresponding nodes
             SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>(
                 rModelPart, TDim, NORMAL_SHAPE_DERIVATIVE,
