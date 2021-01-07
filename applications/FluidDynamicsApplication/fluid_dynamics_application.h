@@ -97,7 +97,6 @@
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 // Adjoint fluid conditions
-#include "custom_conditions/adjoint_fluid_condition.h"
 #include "custom_conditions/adjoint_monolithic_wall_condition.h"
 
 
@@ -421,9 +420,6 @@ private:
     const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
 
     /// Adjoint fluid conditions
-    const AdjointFluidCondition<2, 2> mAdjointFluidCondition2D2N;
-    const AdjointFluidCondition<3, 3> mAdjointFluidCondition3D3N;
-
     const AdjointMonolithicWallCondition<2, 2> mAdjointMonolithicWallCondition2D2N;
     const AdjointMonolithicWallCondition<3, 3> mAdjointMonolithicWallCondition3D3N;
 
