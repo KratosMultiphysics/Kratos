@@ -233,7 +233,7 @@ public:
       const Properties*    mpMaterialProperties;
       const GeometryType*  mpElementGeometry;
 
-      InitialState* mpInitialState = nullptr;
+
 
 
     public:
@@ -403,7 +403,6 @@ public:
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties)   {mpMaterialProperties =&rMaterialProperties;};
       void SetElementGeometry              (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
-      void SetInitialState                 (InitialState& rInitialState)              {mpInitialState =&rInitialState;};
 
       /**
        * Returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
@@ -462,10 +461,6 @@ public:
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetElementGeometry()) << "ElementGeometry is not set!" << std::endl;
           return *mpElementGeometry;
-      }
-      const InitialState* GetpInitialState()
-      {
-          return mpInitialState;
       }
 
       /**
@@ -546,6 +541,22 @@ public:
      * @note This function HAS TO BE IMPLEMENTED by any derived class
      */
     virtual SizeType GetStrainSize();
+
+    /**
+     * @return The initial state of strains/stresses/F
+     */
+    void SetInitialState(InitialState& rInitialState)
+    {
+        mpInitialState = &rInitialState;
+    }
+
+    /**
+     * @return The initial state of strains/stresses/F
+     */
+    const InitialState* GetpInitialState()
+    {
+        return mpInitialState;
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
@@ -1336,7 +1347,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    InitialState* mpInitialState = nullptr;
 
     ///@}
     ///@name Private Operators

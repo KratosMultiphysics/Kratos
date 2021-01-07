@@ -157,7 +157,7 @@ public:
      */
     const void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
     {
-        auto p_initial_state = rParameterValues.GetpInitialState();
+        auto p_initial_state = this->GetpInitialState();
         if (p_initial_state != nullptr) {
             noalias(rStressVector) += p_initial_state.GetInitialStressVector();
         }
@@ -168,7 +168,7 @@ public:
      */
     const void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
     {
-        auto p_initial_state = rParameterValues.GetpInitialState();
+        auto p_initial_state = this->GetpInitialState();
         if (p_initial_state != nullptr) {
             noalias(rStrainVector) += p_initial_state.GetInitialStrainVector();
         }
