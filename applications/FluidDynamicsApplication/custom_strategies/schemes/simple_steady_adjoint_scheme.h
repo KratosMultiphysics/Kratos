@@ -21,11 +21,10 @@
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
-#include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "custom_utilities/fluid_calculation_utilities.h"
+#include "custom_utilities/fluid_adjoint_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -132,92 +131,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected operations
-    ///@{
-
-    void AddNodalRotationDerivatives(
-        Matrix& rOutput,
-        const Matrix& rResidualDerivatives,
-        const IndexType NodeStartIndex,
-        const NodeType& rNode) const
-    {
-        KRATOS_TRY
-
-        using coordinate_transformation_utils = CoordinateTransformationUtils<Matrix, Vector, double>;
-
-        BoundedVector<double, TDim> residual_derivative, aux_vector;
-        BoundedMatrix<double, TDim, TDim> rotation_matrix;
-        coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
-
-        // add rotated residual derivative contributions
-        for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
-            // get the residual derivative relevant for node
-            FluidCalculationUtilities::ReadSubVector<TDim>(
-                residual_derivative, row(rResidualDerivatives, c), NodeStartIndex);
-
-            // rotate residual derivative
-            noalias(aux_vector) = prod(rotation_matrix, residual_derivative);
-
-            // add rotated residual derivative to local matrix
-            FluidCalculationUtilities::AddSubVector<TDim>(
-                rOutput, aux_vector, c, NodeStartIndex);
-
-            // add rest of the equation derivatives
-            for (IndexType a = TDim; a < TBlockSize; ++a) {
-                rOutput(c, NodeStartIndex + a) +=
-                    rResidualDerivatives(c, NodeStartIndex + a);
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    void AddNodalApplySlipConditionDerivatives(
-        Matrix& rOutput,
-        const IndexType NodeStartIndex,
-        const NodeType& rNode) const
-    {
-        KRATOS_TRY
-
-        // Apply slip condition in primal scheme makes first momentum dof
-        // fixed, making the velocity in the normal direction as rhs.
-
-        // first clear the residual derivative
-        for (IndexType c = 0; c < rOutput.size1(); ++c) {
-            rOutput(c, NodeStartIndex) = 0.0;
-        }
-
-        auto normal = rNode.FastGetSolutionStepValue(NORMAL);
-        normal /= norm_2(normal);
-
-        for (IndexType i = 0; i < TDim; ++i) {
-            rOutput(NodeStartIndex + i, NodeStartIndex) -= normal[i];
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    void AddNodalResidualDerivatives(
-        Matrix& rOutput,
-        const Matrix& rResidualDerivatives,
-        const IndexType NodeStartIndex) const
-    {
-        KRATOS_TRY
-
-        // add non-rotated residual derivative contributions
-        for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
-            for (IndexType i = 0; i < TBlockSize; ++i) {
-                rOutput(c, NodeStartIndex + i) +=
-                    rResidualDerivatives(c, NodeStartIndex + i);
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -279,26 +192,8 @@ private:
         rEntity.CalculateFirstDerivativesLHS(aux_matrix, rCurrentProcessInfo);
         r_const_entity_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        const auto& r_geometry = rEntity.GetGeometry();
-        const IndexType number_of_nodes = r_geometry.PointsNumber();
-
-        if (rLHS.size1() != aux_matrix.size1() || rLHS.size2() != aux_matrix.size2()) {
-            rLHS.resize(aux_matrix.size1(), aux_matrix.size2(), false);
-        }
-
-        rLHS.clear();
-
-        // add residual derivative contributions
-        for (IndexType a = 0; a < number_of_nodes; ++a) {
-            const auto& r_node = r_geometry[a];
-            const IndexType block_index = a * TBlockSize;
-            if (r_node.Is(SLIP)) {
-                AddNodalRotationDerivatives(rLHS, aux_matrix, block_index, r_node);
-                AddNodalApplySlipConditionDerivatives(rLHS, block_index, r_node);
-            } else {
-                AddNodalResidualDerivatives(rLHS, aux_matrix, block_index);
-            }
-        }
+        FluidAdjointUtilities<TDim>::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+            rLHS, aux_matrix, rEntity.GetGeometry());
 
         KRATOS_CATCH("");
     }

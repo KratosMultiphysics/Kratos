@@ -379,7 +379,7 @@ public:
         const Variable<array_1d<double, 3>>& rVariable,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateResidualSensitivityMatrix<ElementType, array_1d<double, 3>>(
+        CalculateResidualSensitivityMatrix<ConditionType, array_1d<double, 3>>(
             rElement, rAdjointValues, rOutput, rGPSensitivityVector, rVariable,
             rCurrentProcessInfo);
     }
