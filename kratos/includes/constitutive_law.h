@@ -403,7 +403,7 @@ public:
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties)   {mpMaterialProperties =&rMaterialProperties;};
       void SetElementGeometry              (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
-      void SetInitialState                 (const Initialstate& rInitialstate)     {mpInitialstate =&rInitialstate;};
+      void SetInitialState                 (InitialState& rInitialState)              {mpInitialState =&rInitialState;};
 
       /**
        * Returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
