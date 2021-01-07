@@ -58,6 +58,10 @@ public:
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;
 
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -205,7 +209,7 @@ public:
                 Matrix inv;
                 r_geometry.InverseOfJacobian(inv, local_coordinates);
                 KRATOS_DEBUG_ERROR_IF_NOT(inv.size2() == space_derivatives.size()) << "Jacobian and space derivative sizes are mismatched!\n";
-                Vector local_tangent = prod(inv, space_derivatives); // error
+                Vector local_tangent = prod(inv, space_derivatives);
                 Matrix jacci_the_wacci;
                 r_geometry.Jacobian(jacci_the_wacci, local_coordinates);
                 double J2 = norm_2(column(jacci_the_wacci, 0) * local_tangent[0] + column(jacci_the_wacci, 1) * local_tangent[1]);
@@ -229,6 +233,22 @@ public:
                     space_derivatives_check[2] * local_tangent[1];
                 tangent_check.resize(space_derivatives.size(), true);
 
+                if ((norm_2(tangent_check - space_derivatives) > tolerance))
+                {
+
+                    KRATOS_WATCH(rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(0));
+                    KRATOS_WATCH(rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(0));
+                    KRATOS_WATCH(rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(0));
+                    KRATOS_WATCH(J2);
+                    KRATOS_WATCH(tangent_check);
+                    KRATOS_WATCH(space_derivatives);
+
+                    Vector det_jacobian;
+                    rOuputQuadraturePointGeometries[i]->Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+                    KRATOS_WATCH(det_jacobian);
+                    int terwadf = 1;
+
+                }
                 KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > tolerance)
                     << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
                     << "\nFEM boundary line tangent = " << space_derivatives
@@ -480,7 +500,10 @@ private:
     }
 
     void CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart,
-        std::vector<GeometryPointerType>& rGeometries);
+        std::vector<GeometryPointerType>& rGeometries,
+        ModelPart& rBackgroundGrid,
+        std::vector<GeometryPointerType>& rFEMQuadPoints,
+        const bool IsCreateSegmentedFEMQuads = false);
 
     void CheckParameters();
 
