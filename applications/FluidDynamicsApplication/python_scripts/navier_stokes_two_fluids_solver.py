@@ -422,7 +422,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             max_cfl = 1.0
             cross_wind = 0.0
-            max_substeps = 0
+            max_substeps = 1
 
             if domain_size == 2:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess2D(

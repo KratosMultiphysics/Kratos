@@ -112,7 +112,7 @@ public:
 
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
         const double dt_inv = 1.0 / delta_t;
-        //const double theta = rCurrentProcessInfo.Has(TIME_INTEGRATION_THETA) ? rCurrentProcessInfo[TIME_INTEGRATION_THETA] : 0.5;
+        const double theta = rCurrentProcessInfo.Has(TIME_INTEGRATION_THETA) ? rCurrentProcessInfo[TIME_INTEGRATION_THETA] : 0.5;
 
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
@@ -126,7 +126,7 @@ public:
         //double h = ComputeH(DN_DX, Volume);
 
         //here we get all the variables we will need
-        array_1d<double,TNumNodes> phi, phi_old;
+        array_1d<double,TNumNodes> phi, phi_old/* , phi_updated */;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
 
         array_1d<double,3 > X_mean_tmp = ZeroVector(3);
@@ -134,11 +134,13 @@ public:
         array_1d< array_1d<double,3 >, TNumNodes> X_node;
         double phi_mean_old = 0.0;
         double phi_mean = 0.0;
+        /* double phi_mean_updated = 0.0; */
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
             phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
+            /* phi_updated[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,2); */
 
             v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
@@ -150,10 +152,12 @@ public:
 
             phi_mean_old += GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
             phi_mean += GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+            /* phi_mean_updated += GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,2); */
         }
 
         phi_mean /= static_cast<double>(TNumNodes);
         phi_mean_old /= static_cast<double>(TNumNodes);
+        /* phi_mean_updated /= static_cast<double>(TNumNodes); */
 
         array_1d<double,TDim> X_mean, grad_phi_mean;
         for(unsigned int k = 0; k < TDim; k++)
@@ -181,6 +185,7 @@ public:
             array_1d<double, TDim > X_gauss=ZeroVector(TDim);
             double phi_gauss = 0.0;
             double phi_gauss_old = 0.0;
+            /* double phi_gauss_updated = 0.0; */
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
                 for(unsigned int k=0; k<TDim; k++)
@@ -190,6 +195,7 @@ public:
                 }
                 phi_gauss += N[i]*phi[i];
                 phi_gauss_old += N[i]*phi_old[i];
+                /* phi_gauss_updated += N[i]*phi_updated[i]; */
             }
 
             array_1d<double, TNumNodes > v_dot_grad_N = prod(DN_DX, vel_gauss);
@@ -198,7 +204,7 @@ public:
             noalias(K_matrix) += outer_prod(N, v_dot_grad_N);
 
             for (unsigned int i = 0; i < TNumNodes; i++){
-                S_vector[i] += (phi_gauss_old - phi_mean_old + inner_prod(/* grad_phi_diff */- grad_phi_mean,(X_gauss - X_mean)) )*N[i];
+                S_vector[i] += (/* (1.0 - theta)* */(phi_gauss_old - phi_mean_old) /* + theta*(phi_gauss - phi_mean) */ + inner_prod(/* grad_phi_diff */ - grad_phi_mean,(X_gauss - X_mean)) )*N[i];
             }
         }
 
@@ -207,7 +213,7 @@ public:
             Ml_matrix(i,i) = 1.0;
         }
 
-        noalias(S_matrix) = (1.0/(static_cast<double>(TDim)+1.0))*(Ml_matrix-Mc_matrix);
+        noalias(S_matrix) = (1.0/static_cast<double>(TNumNodes))*(Ml_matrix-Mc_matrix);
 
         double nu_e = 0.0;
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -222,8 +228,8 @@ public:
         }
 
         const double limiter = GetValue(LIMITER_COEFFICIENT);
-        noalias(rLeftHandSideMatrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) + K_matrix + /* (1.0-limiter)* */nu_e*S_matrix;
-        noalias(rRightHandSideVector) = dt_inv*prod((1.0-limiter)*Ml_matrix + limiter*Mc_matrix, phi_old) - limiter*nu_e*S_vector;
+        noalias(rLeftHandSideMatrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) + theta*(K_matrix + (1.0-limiter)*nu_e*S_matrix);
+        noalias(rRightHandSideVector) = prod( dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) - (1.0 - theta)*(K_matrix + (1.0-limiter)*nu_e*S_matrix) , phi_old) - limiter*nu_e*S_vector;
 
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
