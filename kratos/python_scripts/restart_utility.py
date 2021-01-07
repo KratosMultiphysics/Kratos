@@ -18,7 +18,7 @@ class RestartUtility(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "input_filename"                 : "",
-            "io_foldername"                  : "",
+            "input_output_path"                    : "",
             "echo_level"                     : 0,
             "serializer_trace"               : "no_trace",
             "restart_load_file_label"        : "",
@@ -36,6 +36,11 @@ class RestartUtility(object):
             "trace_all":          KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL     # ascii
         }
 
+        if settings.Has("io_foldername"):
+            settings.AddValue("input_output_path",settings["io_foldername"])
+            settings.RemoveValue("io_foldername")
+            KratosMultiphysics.Logger.PrintWarning('RestartUtility', '"io_foldername" key is deprecated. Use "input_output_path" instead.')
+
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model_part
@@ -45,16 +50,16 @@ class RestartUtility(object):
         self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
         self.raw_path = os.path.join(os.getcwd(), self.raw_path)
 
-        if settings["io_foldername"].GetString() == '':
-            self.io_foldername = self.raw_file_name + "__restart_files"
-            info_msg  = 'No entry found for "io_foldername"\n'
-            info_msg += 'Using the default "' + self.io_foldername + '"'
+        if settings["input_output_path"].GetString() == '':
+            self.input_output_path = self.raw_file_name + "__restart_files"
+            info_msg  = 'No entry found for "input_output_path"\n'
+            info_msg += 'Using the default "' + self.input_output_path + '"'
             KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
 
         else:
-            self.io_foldername = settings["io_foldername"].GetString()
-            info_msg  = 'Found entry found for "io_foldername"\n'
-            info_msg += 'Using the user-defined value "' + self.io_foldername + '"'
+            self.input_output_path = settings["input_output_path"].GetString()
+            info_msg  = 'Found entry found for "input_output_path"\n'
+            info_msg += 'Using the user-defined value "' + self.input_output_path + '"'
             KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
 
         serializer_trace = settings["serializer_trace"].GetString()
@@ -187,13 +192,13 @@ class RestartUtility(object):
 
     def __GetFolderPathLoad(self):
         if self.load_restart_files_from_folder:
-            return os.path.join(self.raw_path, self.io_foldername)
+            return os.path.join(self.raw_path, self.input_output_path)
         else:
             return self.raw_path
 
     def __GetFolderPathSave(self):
         if self.save_restart_files_in_folder:
-            return os.path.join(self.raw_path, self.io_foldername)
+            return os.path.join(self.raw_path, self.input_output_path)
         else:
             return self.raw_path
 

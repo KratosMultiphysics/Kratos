@@ -303,18 +303,20 @@ void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList,
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
-     if (rElementalDofList.size() != LocalSize)
+    if (rElementalDofList.size() != LocalSize)
          rElementalDofList.resize(LocalSize);
 
-     unsigned int LocalIndex = 0;
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
-     for (unsigned int i = 0; i < NumNodes; ++i)
-     {
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X);
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y);
-         if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z);
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE);
-     }
+    unsigned int LocalIndex = 0;
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X,xpos);
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y,xpos+1);
+        if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z,xpos+2);
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE,ppos);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
