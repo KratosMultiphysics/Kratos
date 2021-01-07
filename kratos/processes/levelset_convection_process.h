@@ -434,7 +434,7 @@ public:
                 }
 
                 mProjectedGradientProcess.Execute();
-                rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 1.0);
+                rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 0.5);
                 mpSolvingStrategy->Solve(); // backward convetion to obtain phi_n*
 
                 // Calculating the raw error without a limiter, etc.
@@ -585,7 +585,7 @@ public:
                 } */
 
                 mProjectedGradientProcess.Execute();
-                rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 1.0);
+                rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 0.5);
                 mpSolvingStrategy->Solve(); // forward convection to obtain the corrected phi_n+1
             }
         }
