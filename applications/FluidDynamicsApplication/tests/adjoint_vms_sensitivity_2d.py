@@ -106,21 +106,22 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
     def _computeFiniteDifferenceNormSquareSensitivity(
         self, node_ids, step_size, model_part_file_name,
-        project_parameters_file_name, objective_model_part_name):
+        project_parameters_file_name, response_value_output_file_name):
 
-        def objective_function(fluid_analysis):
-            parameters = Parameters("""{
-                "norm_model_part_name": ""
-            }""")
-            parameters["norm_model_part_name"].SetString(
-                objective_model_part_name)
+        def objective_function(_):
+            with open(response_value_output_file_name, "r") as file_input:
+                lines = file_input.readlines()
 
-            model_part = fluid_analysis._GetSolver().main_model_part
+            value = 0.0
+            total_time = 0.0
+            delta_time = 0.0
+            for line in lines[2:]:
+                data = line.strip().split(",")
+                delta_time = float(data[0]) - total_time
+                total_time = float(data[0])
+                value += float(data[1])
 
-            response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
-                parameters, model_part)
-            response_function.Initialize()
-            return response_function.CalculateValue(model_part)
+            return value * delta_time
 
         return self._computeFiniteDifferenceSensitivity(
             node_ids, step_size, model_part_file_name,
@@ -189,8 +190,6 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
-            print("testCylinder Sensitivity:", Sensitivity)
-            print("testCylinder Sensitivity:", FDSensitivity)
             self._removeH5Files("MainModelPart")
             kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/cylinder_test.time")
             kratos_utils.DeleteFileIfExisting("./NoSlip2D_Cylinder_drag.dat")
@@ -214,15 +213,37 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
-            print("testSteadyCylinder Sensitivity:", Sensitivity)
-            print("testSteadyCylinder Sensitivity:", FDSensitivity)
-
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
             self._removeH5Files("MainModelPart")
             kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/steady_cylinder_test.time")
             kratos_utils.DeleteFileIfExisting("./NoSlip2D_Cylinder_drag.dat")
             kratos_utils.DeleteFileIfExisting("./steady_cylinder_test.post.bin")
+            kratos_utils.DeleteFileIfExisting("./tests.post.lst")
+
+    def testSlipNormCylinder(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # calculate sensitivity by finite difference
+            step_size = 0.00000001
+            FDSensitivity = self._computeFiniteDifferenceNormSquareSensitivity(
+                [1968], step_size,
+                './AdjointVMSSensitivity2DTest/cylinder_test',
+                './AdjointVMSSensitivity2DTest/cylinder_slip_test',
+                'velocity_pressure_norm_square_response_output.dat')
+
+            # solve adjoint
+            test = self._createAdjointTest('AdjointVMSSensitivity2DTest/cylinder_slip_test_adjoint')
+            test.Run()
+            Sensitivity = [[]]
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 9)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 9)
+            self._removeH5Files("MainModelPart")
+            kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/cylinder_test.time")
+            kratos_utils.DeleteFileIfExisting("./velocity_pressure_norm_square_response_output.dat")
+            kratos_utils.DeleteFileIfExisting("./cylinder_test.post.bin")
             kratos_utils.DeleteFileIfExisting("./tests.post.lst")
 
     def testSlipSteadyNormCylinder(self):
@@ -233,7 +254,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
                 [1968], step_size,
                 './AdjointVMSSensitivity2DTest/steady_cylinder_test',
                 './AdjointVMSSensitivity2DTest/steady_cylinder_slip_test',
-                'NoSlip2D_Cylinder')
+                'velocity_pressure_norm_square_response_output.dat')
 
             # solve adjoint
             test = self._createAdjointTest('AdjointVMSSensitivity2DTest/steady_cylinder_slip_test_norm_adjoint')
@@ -242,13 +263,11 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
-            print("testSlipSteadyNormCylinder Sensitivity:", Sensitivity)
-            print("testSlipSteadyNormCylinder Sensitivity:", FDSensitivity)
-            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
-            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 7)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 6)
             self._removeH5Files("MainModelPart")
             kratos_utils.DeleteFileIfExisting("./AdjointVMSSensitivity2DTest/steady_cylinder_test.time")
-            kratos_utils.DeleteFileIfExisting("./NoSlip2D_Cylinder_drag.dat")
+            kratos_utils.DeleteFileIfExisting("./velocity_pressure_norm_square_response_output.dat")
             kratos_utils.DeleteFileIfExisting("./steady_cylinder_test.post.bin")
             kratos_utils.DeleteFileIfExisting("./tests.post.lst")
 
