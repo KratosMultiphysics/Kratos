@@ -15,7 +15,6 @@
 
 // System includes
 #include <string>
-#include <tuple>
 
 // External includes
 
@@ -82,7 +81,8 @@ public:
         {
             "norm_model_part_name": "PLEASE_SPECIFY_STRUCTURE_MODEL_PART",
             "velocity_norm_factor": 1.0,
-            "pressure_norm_factor": 1.0
+            "pressure_norm_factor": 1.0,
+            "entities"            : ["elements"]
         })");
 
         Settings.ValidateAndAssignDefaults(default_settings);
@@ -90,6 +90,22 @@ public:
         mNormModelPartName = Settings["norm_model_part_name"].GetString();
         mVelocityNormFactor = Settings["velocity_norm_factor"].GetDouble();
         mPressureNormFactor = Settings["pressure_norm_factor"].GetDouble();
+
+        mIsElements = false;
+        mIsConditions = false;
+        const auto& entities = Settings["entities"].GetStringArray();
+        for (const auto& entity : entities) {
+            if (entity == "elements") {
+                mIsElements = true;
+            } else if (entity == "conditions") {
+                mIsConditions = true;
+            } else {
+                KRATOS_ERROR << "Unsupported entity type provided under "
+                                "\"entities\". Supported entity types are:\n"
+                             << "\t elements\n"
+                             << "\t conditions\n.";
+            }
+        }
 
         KRATOS_CATCH("");
     }
@@ -113,10 +129,37 @@ public:
 
         auto& r_norm_model_part = mrModelPart.GetSubModelPart(mNormModelPartName);
 
+        if (mIsElements && !mIsConditions) {
+            const IndexType number_of_entities =
+                r_norm_model_part.GetCommunicator().GlobalNumberOfElements();
+
+            if (number_of_entities == 0) {
+                KRATOS_WARNING("VelocityPressureNormSquareResponseFunction")
+                    << "Only \"elements\" are chosen as entities "
+                       "and no elements are found in "
+                    << r_norm_model_part.Name() << " model part. Therefore trying to compute response function on conditions.\n";
+                mIsConditions = true;
+                mIsElements = false;
+            }
+        }
+
         VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Elements());
         VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Conditions());
-        VariableUtils().SetFlag(STRUCTURE, true, r_norm_model_part.Elements());
-        VariableUtils().SetFlag(STRUCTURE, true, r_norm_model_part.Conditions());
+
+        IndexType total_entities = 0;
+        if (mIsElements) {
+            total_entities += r_norm_model_part.GetCommunicator().GlobalNumberOfElements();
+            VariableUtils().SetFlag(STRUCTURE, true, r_norm_model_part.Elements());
+        }
+
+        if (mIsConditions) {
+            total_entities += r_norm_model_part.GetCommunicator().GlobalNumberOfConditions();
+            VariableUtils().SetFlag(STRUCTURE, true, r_norm_model_part.Conditions());
+        }
+
+        KRATOS_ERROR_IF(total_entities == 0)
+            << "No entities were found in "
+            << r_norm_model_part.Name() << " to calculate response function value. Please check model part.\n";
 
         KRATOS_CATCH("");
     }
@@ -146,7 +189,7 @@ public:
         const ProcessInfo& rProcessInfo) override
     {
         CalculateEntityFirstDerivatives<Element>(
-            rAdjointElement, rResponseGradient, rProcessInfo);
+            rAdjointElement, rResidualGradient, rResponseGradient, rProcessInfo);
     }
 
     void CalculateFirstDerivativesGradient(
@@ -156,7 +199,7 @@ public:
         const ProcessInfo& rProcessInfo) override
     {
         CalculateEntityFirstDerivatives<Condition>(
-            rAdjointCondition, rResponseGradient, rProcessInfo);
+            rAdjointCondition, rResidualGradient, rResponseGradient, rProcessInfo);
     }
 
     void CalculateSecondDerivativesGradient(
@@ -201,19 +244,23 @@ public:
     {
         KRATOS_TRY
 
-        const double element_norm_square = block_for_each<SumReduction<double>>(
-            rModelPart.Elements(), Matrix(),
-            [&](ModelPart::ElementType& rElement, Matrix& rMatrix) -> double {
-                return CalculateEntityValue<Element>(rElement, rMatrix);
-            });
+        double norm_square = 0.0;
+        if (mIsElements) {
+            norm_square += block_for_each<SumReduction<double>>(
+                rModelPart.Elements(), Matrix(),
+                [&](ModelPart::ElementType& rElement, Matrix& rMatrix) -> double {
+                    return CalculateEntityValue<Element>(rElement, rMatrix);
+                });
+        }
 
-        const double condition_norm_square = block_for_each<SumReduction<double>>(
-            rModelPart.Conditions(), Matrix(),
-            [&](ModelPart::ConditionType& rCondition, Matrix& rMatrix) -> double {
-                return CalculateEntityValue<Condition>(rCondition, rMatrix);
-            });
+        if (mIsConditions) {
+            norm_square += block_for_each<SumReduction<double>>(
+                rModelPart.Conditions(), Matrix(),
+                [&](ModelPart::ConditionType& rCondition, Matrix& rMatrix) -> double {
+                    return CalculateEntityValue<Condition>(rCondition, rMatrix);
+                });
+        }
 
-        const double norm_square = element_norm_square + condition_norm_square;
         return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(norm_square);
 
         KRATOS_CATCH("");
@@ -229,6 +276,8 @@ private:
     std::string mNormModelPartName;
     double mVelocityNormFactor;
     double mPressureNormFactor;
+    bool mIsElements;
+    bool mIsConditions;
 
     ///@}
     ///@name Private Operations
@@ -262,6 +311,7 @@ private:
     template<class TEntityType>
     void CalculateEntityFirstDerivatives(
         const TEntityType& rEntity,
+        const Matrix& rResidualGradient,
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) const
     {
@@ -270,11 +320,11 @@ private:
         const auto& r_geometry = rEntity.GetGeometry();
         const IndexType number_of_nodes = r_geometry.PointsNumber();
         const IndexType domain_size = rProcessInfo[DOMAIN_SIZE];
-        const IndexType block_size = domain_size + 1;
-        const IndexType local_size = block_size * number_of_nodes;
+        const IndexType block_size = rResidualGradient.size2() / number_of_nodes;
+        const IndexType skip_size = block_size - domain_size - 1;
 
-        if (rResponseGradient.size() != local_size) {
-            rResponseGradient.resize(local_size);
+        if (rResponseGradient.size() != rResidualGradient.size2()) {
+            rResponseGradient.resize(rResidualGradient.size2());
         }
 
         if (rEntity.Is(STRUCTURE)) {
@@ -300,7 +350,10 @@ private:
                 }
 
                 // adding pressure derivatives
-                rResponseGradient[local_index++] = coeff_2 * N[c];
+                rResponseGradient[local_index] = coeff_2 * N[c];
+
+                // skipping rest of the derivatives if they are used
+                local_index += skip_size + 1;
             }
         } else {
             rResponseGradient.clear();
