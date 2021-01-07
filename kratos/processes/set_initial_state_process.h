@@ -43,7 +43,7 @@ namespace Kratos
 /** This Operation is a derived class from the process.h
  *  
 */
-
+template<SizeType TDim>
 class SetInitialStateProcess : public Process
 {
 public:
@@ -58,6 +58,19 @@ public:
     ///@{
 
     /// Default constructor.
+    SetInitialStateProcess(ModelPart& rModelPart) :
+        mrModelPart(model_part)
+    {
+        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
+        mInitialStrain.resize(voigt_size, false);
+        mInitialStress.resize(voigt_size, false);
+        mInitialF.resize(TDim, TDim, false);
+        noalias(mInitialStrain) = ZeroVector(voigt_size);
+        noalias(mInitialStress) = ZeroVector(voigt_size);
+        noalias(mInitialF) = ZeroMatrix(TDim, TDim);
+    }
+
+    /// Full constructor.
     SetInitialStateProcess(ModelPart& rModelPart,
                            const Vector& rInitialStrain,
                            const Vector& rInitialStress,
@@ -92,8 +105,8 @@ public:
     {
         const auto it_elem_begin = mrModelPart.ElementsBegin();
         const auto& integration_points = it_elem_begin->GetGeometry().IntegrationPoints(it_elem_begin->GetIntegrationMethod());
-        
-        #pragma omp parallel for
+
+#pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
             auto it_elem = it_elem_begin + i;
 
@@ -147,9 +160,9 @@ private:
 
     ModelPart& mrModelPart;
 
-    bool mInitialStrain;
-    bool mInitialStress;
-    bool mInitialF;
+    Vector mInitialStrain;
+    Vector mInitialStress;
+    Matrix mInitialF;
 
     ///@}
     ///@name Un accessible methods
