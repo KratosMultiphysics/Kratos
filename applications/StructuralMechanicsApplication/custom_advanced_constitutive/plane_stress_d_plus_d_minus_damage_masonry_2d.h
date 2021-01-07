@@ -7,7 +7,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Philip Kalkbrenner
-//					 Massimo Petracca
+//                   Massimo Petracca
 //                   Alejandro Cornejo 
 //  
 //
@@ -418,7 +418,7 @@ public:
 		const Vector& rShapeFunctionsValues,
 		bool CalculateStresses = true,
 		int CalculateTangent = true,
-		bool SaveInternalVariables = true) override;
+		bool SaveInternalVariables = true);
 
 protected:
 
