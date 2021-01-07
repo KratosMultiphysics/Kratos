@@ -42,6 +42,9 @@ class KRATOS_API(KRATOS_CORE) InitialState
     public:
         ///@name Type Definitions
         ///@{
+        typedef std::size_t SizeType;
+        
+        enum class InitialImposingType {StrainOnly = 0, StressOnly = 1, DeformationGradientOnly = 2, StrainAndStress = 3, DeformationGradientAndStress = 4};
 
         /// Pointer definition of NodeSearchUtility
         KRATOS_CLASS_POINTER_DEFINITION(InitialState);
@@ -53,9 +56,66 @@ class KRATOS_API(KRATOS_CORE) InitialState
         /// Default constructor.
         InitialState() {}
 
+        // Full constructor
+        InitialState(const Vector& rInitialStrainVector,  
+                     const Vector& rInitialStressVector, 
+                     const Matrix& rInitialDeformationGradientMatrix
+            )
+        {
+            const SizeType voigt_size = rInitialStrainVector.size();
+            const SizeType dimension = rInitialDeformationGradientMatrix.size1();
 
-        InitialState(const Vector& rInitialStrain,  const Vector& rInitialStress, const Matrix& rInitialDeformationGradient) {
-            // todo...
+            KRATOS_ERROR_IF(voigt_size <= 0 || dimension <= 0) << "The imposed vector or matrix is null..." << std::endl;
+
+            mInitialStressVector.resize(voigt_size, false);
+            mInitialStrainVector.resize(voigt_size, false);
+            mInitialDeformationGradientMatrix.resize(dimension, dimension, false);
+
+            noalias(mInitialStressVector) = rInitialStrainVector;
+            noalias(mInitialStrainVector) = rInitialStrainVector;
+            noalias(mInitialDeformationGradientMatrix) = rInitialDeformationGradientMatrix;
+        }
+
+        // Selective constructor for vectors
+        InitialState(const Vector& rImposingEntity,
+                     const int InitialImposingType = 0
+            )
+        {
+            const SizeType voigt_size = rImposingEntity.size();
+            if (InitialImposingType == static_cast<int>(InitialImposingType::StrainOnly)) {
+                mInitialStrainVector.resize(voigt_size, false);
+                noalias(mInitialStrainVector) = rImposingEntity;
+            } else if (InitialImposingType == static_cast<int>(InitialImposingType::StressOnly)) {
+                mInitialStressVector.resize(voigt_size, false);
+                noalias(mInitialStressVector) = rImposingEntity;       
+            }
+        }
+
+        // Selective constructor for vectors (E, S)
+        InitialState(const Vector& rInitialStrainVector,
+                     const Vector& rInitialStressVector
+            )
+        {
+            const SizeType voigt_size_1 = rInitialStrainVector.size();
+            const SizeType voigt_size_2 = rInitialStressVector.size();
+            KRATOS_ERROR_IF(voigt_size_1 <= 0 || voigt_size_2 <= 0) << "The imposed vector is null..." << std::endl;
+
+            mInitialStressVector.resize(voigt_size, false);
+            mInitialStrainVector.resize(voigt_size, false);
+
+            noalias(mInitialStressVector) = rInitialStressVector;
+            noalias(mInitialStrainVector) = rInitialStrainVector;
+        }
+
+        // Selective constructor for Deformation Gradient only
+        InitialState(const Matrix& rInitialDeformationGradientMatrix
+            )
+        {
+            const SizeType dimension = rInitialDeformationGradientMatrix.size1();
+            KRATOS_ERROR_IF(dimension <= 0) << "The imposed Matrix is null..." << std::endl;
+
+            mInitialDeformationGradientMatrix.resize(dimension, dimension, false);
+            noalias(mInitialDeformationGradientMatrix) = rInitialDeformationGradientMatrix;
         }
 
         /// Destructor.
@@ -65,6 +125,17 @@ class KRATOS_API(KRATOS_CORE) InitialState
         ///@}
         ///@name Operations
         ///@{
+
+        /**
+         * @brief This method sets the initial strain vector
+         * @param rInitialStrainVector The vector to be set
+         */
+        void SetInitialStrainVector(const Vector& rInitialStrainVector) {
+            const SizeType voigt_size = rInitialStrainVector.size();
+            
+            mInitialStrainVector.resize(voigt_size, voigt_size, false);
+            noalias(mInitialStrainVector) = rInitialStrainVector;
+        }
 
 
         ///@}
