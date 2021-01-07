@@ -2,8 +2,6 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.IgaApplication import *
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 def drange(start, stop, step):
