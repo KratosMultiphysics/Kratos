@@ -387,6 +387,8 @@ void EvaluateResidualShapeSensitivities(
     Vector adjoint_values;
     GlobalPointersVector<ModelPart::NodeType> gp_vector;
     NormalCalculationUtils().CalculateOnSimplex(rModelPart, 2);
+    NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(
+        rModelPart.Conditions(), 2);
     rSensitivityBuilderScheme.Initialize(rModelPart, rModelPart, rResponse);
     rSensitivityBuilderScheme.InitializeSolutionStep(rModelPart, rModelPart, rResponse);
 
