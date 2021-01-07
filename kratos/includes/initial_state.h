@@ -132,9 +132,34 @@ class KRATOS_API(KRATOS_CORE) InitialState
          */
         void SetInitialStrainVector(const Vector& rInitialStrainVector) {
             const SizeType voigt_size = rInitialStrainVector.size();
+            KRATOS_ERROR_IF(voigt_size <= 0) << "The imposed vector is null..." << std::endl;
             
             mInitialStrainVector.resize(voigt_size, voigt_size, false);
             noalias(mInitialStrainVector) = rInitialStrainVector;
+        }
+
+        /**
+         * @brief This method sets the initial stress vector
+         * @param rInitialStressVector The vector to be set
+         */
+        void SetInitialStressVector(const Vector& rInitialStressVector) {
+            const SizeType voigt_size = rInitialStressVector.size();
+            KRATOS_ERROR_IF(voigt_size <= 0) << "The imposed vector is null..." << std::endl;
+            
+            mInitialStressVector.resize(voigt_size, voigt_size, false);
+            noalias(mInitialStressVector) = rInitialStressVector;
+        }
+
+        /**
+         * @brief This method sets the initial deformation gradient matrix
+         * @param rInitialDeformationGradientMatrix The vector to be set
+         */
+        void SetInitialDeformationGradientMatrix(const Matrix& rInitialDeformationGradientMatrix) {
+            const SizeType dimension = rInitialDeformationGradientMatrix.size1();
+            KRATOS_ERROR_IF(dimension <= 0) << "The imposed Matrix is null..." << std::endl;
+            
+            mInitialDeformationGradientMatrix.resize(voigt_size, voigt_size, false);
+            noalias(mInitialDeformationGradientMatrix) = rInitialDeformationGradientMatrix;
         }
 
 
