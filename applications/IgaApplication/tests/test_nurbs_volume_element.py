@@ -6,9 +6,6 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-def GetFilePath(fileName):
-    return os.path.dirname(__file__) + "/" + fileName
-
 def drange(start, stop, step):
     r = start
     while r < stop:
@@ -16,7 +13,13 @@ def drange(start, stop, step):
         r += step
 
 class TestNurbsVolumeElement(KratosUnittest.TestCase):
-    def create_geometry(model_part, order_u, order_v_w, length):
+    '''
+    Test description:
+    Provides necessary methods to run test for Iga volume elements.
+    A simple cantilever beam is computed and checked against the analytical solution.
+    '''
+    @classmethod
+    def create_geometry(cls, model_part, order_u, order_v_w, length):
         nodes = KM.NodesVector()
         # Create control points
         node_id = 1
@@ -56,13 +59,14 @@ class TestNurbsVolumeElement(KratosUnittest.TestCase):
 
         return volume
 
-    def solve_cantilever(order_u, order_v_w, length):
+    @classmethod
+    def solve_cantilever(cls, order_u, order_v_w, length):
         model = KM.Model()
         model_part = model.CreateModelPart('Model')
 
         model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KM.REACTION)
-        model_part.AddNodalSolutionStepVariable(POINT_LOAD)
+        model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
         model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE,3)
 
         # Create property for volume elements
@@ -82,10 +86,8 @@ class TestNurbsVolumeElement(KratosUnittest.TestCase):
 
         volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
-        id = 1
-        for i in range(0, len(quadrature_point_geometries)):
-            model_part.CreateNewElement('UpdatedLagrangianElement3D4N', id, quadrature_point_geometries[i], volume_properties)
-            id += 1
+        for i in range(0,len(quadrature_point_geometries)):
+            model_part.CreateNewElement('UpdatedLagrangianElement3D4N', i+1, quadrature_point_geometries[i], volume_properties)
 
         # Add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
@@ -107,11 +109,9 @@ class TestNurbsVolumeElement(KratosUnittest.TestCase):
                 node_id_force.append(node.Id)
         nodal_force = force/len(node_id_force)
 
-        id_counter = 1
         for i in node_id_force:
-            model_part.CreateNewCondition('PointLoadCondition3D1N', id_counter, [i], prop)
-            volume[i-1].SetSolutionStepValue(POINT_LOAD_Y, nodal_force)
-            id_counter = id_counter + 1
+            model_part.CreateNewCondition('PointLoadCondition3D1N', i+1, [i], prop)
+            volume[i-1].SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD_Y, nodal_force)
 
         # Setup solver
         model_part.SetBufferSize(2)
@@ -200,5 +200,5 @@ class TestNurbsVolumeElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(global_coord[1],0.4976467387158514)
         self.assertAlmostEqual(global_coord[2],0.5,5)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     KratosUnittest.main()
