@@ -178,7 +178,7 @@ void SetPrimalModelPartValues(
     for (auto& r_node : rModelPart.Nodes()) {
         r_node.FastGetSolutionStepValue(DENSITY) = 1.2;
         r_node.FastGetSolutionStepValue(VISCOSITY) = 2.5;
-        // r_node.SetValue(Y_WALL, 2.0);
+        r_node.SetValue(Y_WALL, 2.0);
     }
 
     SetModelPartOldValues(rModelPart);
@@ -240,6 +240,7 @@ void SetAdjointModelPartValues(
     for (auto& r_node : rAdjointPrimalModelPart.Nodes()) {
         r_node.FastGetSolutionStepValue(DENSITY) = 1.2;
         r_node.FastGetSolutionStepValue(VISCOSITY) = 2.5;
+        r_node.SetValue(Y_WALL, 2.0);
     }
 
     SetModelPartNextalues(rAdjointPrimalModelPart);
