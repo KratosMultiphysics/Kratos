@@ -411,7 +411,7 @@ public:
             //for (int i=0; i<1; i++){
             //     Nodal gradient SavedAsHistoricalVariable
             //    mProjectedGradientProcess.Execute();
-                rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 0.5);
+                rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 0.0);
             //    for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             //        auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             //        it_node->FastGetSolutionStepValue(mrLevelSetVar, 2) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
@@ -434,7 +434,7 @@ public:
                 }
 
                 mProjectedGradientProcess.Execute();
-                rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 0.5);
+                rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 0.0);
                 mpSolvingStrategy->Solve(); // backward convetion to obtain phi_n*
 
                 // Calculating the raw error without a limiter, etc.
