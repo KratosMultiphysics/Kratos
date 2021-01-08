@@ -75,15 +75,8 @@ namespace Testing
             VectorType& rLumpedMassVector,
             const ProcessInfo& rCurrentProcessInfo) const override
         {
-            unsigned int system_size = 1;
-            // Initialize the lumped mass vector
-            if (rLumpedMassVector.size() != system_size) {
-                rLumpedMassVector.resize(system_size, false);
-            }
-
-            // Fill the lumped mass vector
-            const double nodal_mass = 1.0;
-            std::fill(rLumpedMassVector.begin(),rLumpedMassVector.end(),nodal_mass);
+            rLumpedMassVector = VectorType(1);
+            rLumpedMassVector(0) = 1.0;
         }
 
         void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override
