@@ -152,5 +152,61 @@ namespace Kratos {
                 "Mismatch found in component (0,1):"
             );
         }
+
+        KRATOS_TEST_CASE_IN_SUITE(NaNValuesCheck, KratosCoreFastSuite)
+		{
+            double a = std::numeric_limits<double>::quiet_NaN();
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_NEAR(1.0, a, 1e-7),
+                "Check failed because 1.0 = 1 is not near to a = nan within the tolerance 1e-07"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_LESS_EQUAL(a,1.0),
+                "Check failed because a is greater than 1.0"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_LESS_EQUAL(1.0,a),
+                "Check failed because 1.0 is greater than a"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_GREATER_EQUAL(a,1.0),
+                "Check failed because a is less than 1.0"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_GREATER_EQUAL(1.0,a),
+                "Check failed because 1.0 is less than a"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_RELATIVE_NEAR(1.0,a,10-3),
+                "Check failed because 1.0 = 1 is not near to a = nan within the tolerance 7"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_RELATIVE_NEAR(a,1.0,10-3),
+                "Check failed because a = nan is not near to 1.0 = 1 within the tolerance 7"
+            );
+
+            std::vector<double> v1{1.0, 2.0};
+            std::vector<double> v2{1.0, a};
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_NEAR(v1,v2,10-3),
+                "Check failed due to NaN-Value"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_RELATIVE_NEAR(v1,v2,10-3),
+                "Check failed due to NaN-Value"
+            );
+
+            Matrix m1 = IdentityMatrix(2);
+            Matrix m2 = IdentityMatrix(2);
+            m2(0,1) = a;
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_NEAR(m1,m2,10-3),
+                "Check failed due to NaN-Value"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_RELATIVE_NEAR(m1,m2,10-3),
+                "Check failed due to NaN-Value"
+            );
+		}
     }
 }  // namespace Kratos.
