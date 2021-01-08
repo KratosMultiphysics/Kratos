@@ -97,6 +97,7 @@ void Initialize(
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
+    NumIntersectedEdges = 0;
 }
 
 /**

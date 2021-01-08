@@ -389,6 +389,33 @@ protected:
         const EmbeddedDiscontinuousElementData& rData) const;
 
     /**
+     * @brief Add the incised elements gradient penalization
+     * This method adds the gradient penalization in the partially intersected (incised) elements
+     * For the incised elements, this methods penalizes the velocity and pressure gradients.
+     * @param rLHS reference to the LHS matrix
+     * @param rRHS reference to the RHS vector
+     * @param rData reference to the element data structure
+     */
+    void AddIncisedElementGradientPenalization(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Add the incised elements projected gradient penalization
+     * This method adds the gradient penalization in the partially intersected (incised) elements
+     * For the incised elements, this methods penalizes the velocity and pressure gradients in the
+     * direction of the incised edges.
+     * @param rLHS reference to the LHS matrix
+     * @param rRHS reference to the RHS vector
+     * @param rData reference to the element data structure
+     */
+    void AddIncisedElementProjectedGradientPenalization(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
      * This method computes the penalty coefficient for the Nitsche normal imposition
      * @param rData reference to element data structure
      * @param rN the current Gauss pt. shape functions vector

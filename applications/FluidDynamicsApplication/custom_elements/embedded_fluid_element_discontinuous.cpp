@@ -183,6 +183,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     } else if ( data.IsIncised() ) {
         // Add the MultiFreedom Constraint in the incised edges to avoid the conformity problems
         AddIncisedEdgeGradientPenalization(rLeftHandSideMatrix, rRightHandSideVector, data);
+        // AddIncisedElementGradientPenalization(rLeftHandSideMatrix, rRightHandSideVector, data);
+        // AddIncisedElementProjectedGradientPenalization(rLeftHandSideMatrix, rRightHandSideVector, data);
     }
 }
 
@@ -289,6 +291,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
 {
     rData.PositiveIndices.clear();
     rData.NegativeIndices.clear();
+    rData.IntersectedEdges.clear();
 
     // Number of positive and negative distance function values
     for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumNodes; ++i){
@@ -877,7 +880,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedEdgeGradientPena
         }
     }
     const double max_lhs_order = floor(log10(max_lhs));
-    const double constraint_penalty = std::pow(10, max_lhs_order + 8);
+    const double constraint_penalty = 1.0e4;
+    // const double constraint_penalty = std::pow(10, max_lhs_order);
+    // const double constraint_penalty = std::pow(10, max_lhs_order + 4);
 
     // Set the constraint matrix
     Matrix A = ZeroMatrix(BlockSize * rData.NumIntersectedEdges, LocalSize);
@@ -903,6 +908,187 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedEdgeGradientPena
     rRHS -= prod(aux_LHS, values);
 }
 
+template <class TBaseElement>
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedElementGradientPenalization(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    EmbeddedDiscontinuousElementData& rData) const
+{
+    // Obtain the previous iteration velocity solution
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData, values);
+
+    // Get auxiliary data
+    const double k = 1.0e4;
+    const double dt = rData.DeltaTime;
+    const double h = rData.ElementSize;
+    const double eff_mu = rData.EffectiveViscosity;
+
+    // Iterate over the positive side volume integration points
+    const std::size_t n_pos_gauss_pts = rData.PositiveSideWeights.size();
+    for (std::size_t g = 0; g < n_pos_gauss_pts; ++g){
+        // Update Gauss point data
+        this->UpdateIntegrationPointData(rData, g, rData.PositiveSideWeights[g], row(rData.PositiveSideN, g), rData.PositiveSideDNDX[g]);
+        const auto& rN = rData.N;
+        const auto& rDN = rData.DN_DX;
+        const double weight = rData.Weight;
+        // Calculate penalty constants
+        double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
+        for (std::size_t i_node = 1;  i_node < NumNodes; ++i_node) {
+            gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
+        }
+        const double v_pen = k * (gauss_pt_rho * h + eff_mu * dt / h);
+        const double p_pen = eff_mu > 1.0e-12 ? k * (dt * h / eff_mu + std::pow(dt * h,2) / gauss_pt_rho) : k * (std::pow(dt * h,2) / gauss_pt_rho);
+        // Add Gauss point contribution
+        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+            for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                double aux_val = 0.0;
+                for (std::size_t d = 0; d < Dim; ++d) {
+                    aux_val += rDN(i_node,d) * rDN(j_node,d);
+                }
+                aux_val *= weight;
+                for (std::size_t d = 0; d < Dim; ++d) {
+                    rLHS(i_node * BlockSize + d, j_node * BlockSize + d) += v_pen * aux_val;
+                    rRHS(i_node * BlockSize + d) -= v_pen * aux_val * values(j_node * BlockSize + d);
+                }
+                rLHS(i_node * BlockSize + Dim, j_node * BlockSize + Dim) += p_pen * aux_val;
+                rRHS(i_node * BlockSize + Dim) -= p_pen * aux_val * values(j_node * BlockSize + Dim);
+            }
+        }
+    }
+
+    // Iterate over the negative side volume integration points
+    const std::size_t n_neg_gauss_pts = rData.NegativeSideWeights.size();
+    for (std::size_t g = 0; g < n_neg_gauss_pts; ++g){
+        // Update Gauss point data
+        this->UpdateIntegrationPointData(rData, g, rData.NegativeSideWeights[g], row(rData.NegativeSideN, g), rData.NegativeSideDNDX[g]);
+        const auto& rN = rData.N;
+        const auto& rDN = rData.DN_DX;
+        const double weight = rData.Weight;
+        // Calculate penalty constants
+        double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
+        for (std::size_t i_node = 1;  i_node < NumNodes; ++i_node) {
+            gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
+        }
+        const double v_pen = k * (gauss_pt_rho * h + eff_mu * dt / h);
+        const double p_pen = eff_mu > 1.0e-12 ? k * (dt * h / eff_mu + std::pow(dt * h,2) / gauss_pt_rho) : k * (std::pow(dt * h,2) / gauss_pt_rho);
+        // Add Gauss point contribution
+        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+            for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                double aux_val = 0.0;
+                for (std::size_t d = 0; d < Dim; ++d) {
+                    aux_val += rDN(i_node,d) * rDN(j_node,d);
+                }
+                aux_val *= weight;
+                for (std::size_t d = 0; d < Dim; ++d) {
+                    rLHS(i_node * BlockSize + d, j_node * BlockSize + d) += v_pen * aux_val;
+                    rRHS(i_node * BlockSize + d) -= v_pen * aux_val * values(j_node * BlockSize + d);
+                }
+                rLHS(i_node * BlockSize + Dim, j_node * BlockSize + Dim) += p_pen * aux_val;
+                rRHS(i_node * BlockSize + Dim) -= p_pen * aux_val * values(j_node * BlockSize + Dim);
+            }
+        }
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedElementProjectedGradientPenalization(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    EmbeddedDiscontinuousElementData& rData) const
+{
+    // Obtain the previous iteration velocity solution
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData, values);
+
+    // Get the edges local ids
+    const auto& r_geom = this->GetGeometry();
+    const auto edges_local_ids = EmbeddedFluidElementDiscontinuousInternals::GetEdgesLocalIds(r_geom.GetGeometryType());
+
+    // Get auxiliary data
+    const double k = 1.0e4;
+    const double dt = rData.DeltaTime;
+    const double h = rData.ElementSize;
+    const double eff_mu = rData.EffectiveViscosity;
+
+    for (unsigned int i_edge = 0; i_edge < rData.NumIntersectedEdges; ++i_edge) {
+        // Get edge data
+        const std::size_t edge_id = rData.IntersectedEdges[i_edge];
+        const auto& r_edge_local_ids = edges_local_ids[edge_id];
+        array_1d<double,3> edge_vect = r_geom[r_edge_local_ids[1]] - r_geom[r_edge_local_ids[0]];
+        edge_vect /= norm_2(edge_vect);
+
+        // Set edge direction matrix
+        BoundedMatrix<double,Dim,Dim> edge_dir;
+        for (std::size_t d1 = 0; d1 < Dim; ++d1) {
+            for (std::size_t d2 = 0; d2 < Dim; ++d2) {
+                edge_dir(d1,d2) = edge_vect(d1) * edge_vect(d2);
+            }
+        }
+
+        // Iterate over the positive side volume integration points
+        const std::size_t n_pos_gauss_pts = rData.PositiveSideWeights.size();
+        for (std::size_t g = 0; g < n_pos_gauss_pts; ++g){
+            // Update Gauss point data
+            this->UpdateIntegrationPointData(rData, g, rData.PositiveSideWeights[g], row(rData.PositiveSideN, g), rData.PositiveSideDNDX[g]);
+            const auto& rN = rData.N;
+            const auto& rDN = rData.DN_DX;
+            const double weight = rData.Weight;
+            // Calculate penalty constants
+            double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
+            for (std::size_t i_node = 1;  i_node < NumNodes; ++i_node) {
+                gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
+            }
+            const double v_pen = k * (gauss_pt_rho * h + eff_mu * dt / h);
+            const double p_pen = eff_mu > 1.0e-12 ? k * (dt * h / eff_mu + std::pow(dt * h,2) / gauss_pt_rho) : k * (std::pow(dt * h,2) / gauss_pt_rho);
+            // Add Gauss point contribution
+            const BoundedMatrix<double,NumNodes,Dim> DN_edge_dir = prod(rDN, edge_dir);
+            const BoundedMatrix<double,NumNodes,NumNodes> aux_LHS = weight * prod(DN_edge_dir, trans(rDN));
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+                for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                    const double aux_val = aux_LHS(i_node,j_node);
+                    for (std::size_t d = 0; d < Dim; ++d) {
+                        rLHS(i_node * BlockSize + d, j_node * BlockSize + d) += v_pen * aux_val;
+                        rRHS(i_node * BlockSize + d) -= v_pen * aux_val * values(j_node * BlockSize + d);
+                    }
+                    rLHS(i_node * BlockSize + Dim, j_node * BlockSize + Dim) += p_pen * aux_val;
+                    rRHS(i_node * BlockSize + Dim) -= p_pen * aux_val * values(j_node * BlockSize + Dim);
+                }
+            }
+        }
+
+        // Iterate over the negative side volume integration points
+        const std::size_t n_neg_gauss_pts = rData.NegativeSideWeights.size();
+        for (std::size_t g = 0; g < n_neg_gauss_pts; ++g){
+            // Update Gauss point data
+            this->UpdateIntegrationPointData(rData, g, rData.NegativeSideWeights[g], row(rData.NegativeSideN, g), rData.NegativeSideDNDX[g]);
+            const auto& rN = rData.N;
+            const auto& rDN = rData.DN_DX;
+            const double weight = rData.Weight;
+            // Calculate penalty constants
+            double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
+            for (std::size_t i_node = 1;  i_node < NumNodes; ++i_node) {
+                gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
+            }
+            const double v_pen = k * (gauss_pt_rho * h + eff_mu * dt / h);
+            const double p_pen = eff_mu > 1.0e-12 ? k * (dt * h / eff_mu + std::pow(dt * h,2) / gauss_pt_rho) : k * (std::pow(dt * h,2) / gauss_pt_rho);
+            // Add Gauss point contribution
+            const BoundedMatrix<double,NumNodes,Dim> DN_edge_dir = prod(rDN, edge_dir);
+            const BoundedMatrix<double,NumNodes,NumNodes> aux_LHS = weight * prod(DN_edge_dir, trans(rDN));
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+                for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                    const double aux_val = aux_LHS(i_node,j_node);
+                    for (std::size_t d = 0; d < Dim; ++d) {
+                        rLHS(i_node * BlockSize + d, j_node * BlockSize + d) += v_pen * aux_val;
+                        rRHS(i_node * BlockSize + d) -= v_pen * aux_val * values(j_node * BlockSize + d);
+                    }
+                    rLHS(i_node * BlockSize + Dim, j_node * BlockSize + Dim) += p_pen * aux_val;
+                    rRHS(i_node * BlockSize + Dim) -= p_pen * aux_val * values(j_node * BlockSize + Dim);
+                }
+            }
+        }
+    }
+}
 
 template <class TBaseElement>
 double EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeNormalPenaltyCoefficient(
