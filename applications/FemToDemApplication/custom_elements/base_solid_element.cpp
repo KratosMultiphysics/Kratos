@@ -1758,7 +1758,7 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 
 void BaseSolidElement::CalculateLumpedMassVector(
     VectorType &rLumpedMassVector,
-    const ProcessInfo &rCurrentProcessInfo) const override
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -1769,8 +1769,8 @@ void BaseSolidElement::CalculateLumpedMassVector(
     const SizeType mat_size = dimension * number_of_nodes;
 
     // Clear matrix
-    if (rMassVector.size() != mat_size)
-        rMassVector.resize( mat_size, false );
+    if (rLumpedMassVector.size() != mat_size)
+        rLumpedMassVector.resize( mat_size, false );
 
     const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
@@ -1785,7 +1785,7 @@ void BaseSolidElement::CalculateLumpedMassVector(
         const double temp = lumping_factors[i] * total_mass;
         for ( IndexType j = 0; j < dimension; ++j ) {
             IndexType index = i * dimension + j;
-            rMassVector[index] = temp;
+            rLumpedMassVector[index] = temp;
         }
     }
 
