@@ -52,7 +52,7 @@ public:
 
     /// Default constructor.
     SetInitialStateProcess(ModelPart& rModelPart) :
-        mrModelPart(model_part)
+        mrModelPart(rModelPart)
     {
         const SizeType voigt_size = (TDim == 3) ? 6 : 3;
 
@@ -70,7 +70,7 @@ public:
                            const Vector& rInitialStrain,
                            const Vector& rInitialStress,
                            const Matrix& rInitialF) :
-        mrModelPart(model_part), mInitialStrain(rInitialStrain), 
+        mrModelPart(rModelPart), mInitialStrain(rInitialStrain), 
         mInitialStress(rInitialStress), mInitialF(rInitialF)
     {
     }
@@ -123,8 +123,9 @@ public:
             InitialState initial_state = InitialState(aux_initial_strain, aux_initial_strain, aux_initial_F);
 
             // Assign the values to the GP of the element
-            
-            auto constitutive_law_vector = it_elem->mConstitutiveLawVector;
+
+            std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
+            it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
             for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
                 constitutive_law_vector[point_number]->SetInitialState(initial_state);
             }
