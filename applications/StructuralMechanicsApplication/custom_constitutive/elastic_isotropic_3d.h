@@ -156,8 +156,8 @@ public:
      */
     const void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
     {
-        const auto p_initial_state = this->GetpInitialState();
-        if (p_initial_state != nullptr) {
+        const auto p_initial_state = this->pGetpInitialState();
+        if (p_initial_state) {
             noalias(rStressVector) += p_initial_state->GetInitialStressVector();
         }
     }
@@ -167,8 +167,8 @@ public:
      */
     const void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
     {
-        const auto p_initial_state = this->GetpInitialState();
-        if (p_initial_state != nullptr) {
+        const auto p_initial_state = this->pGetpInitialState();
+        if (p_initial_state) {
             noalias(rStrainVector) += p_initial_state->GetInitialStrainVector();
         }
     }
@@ -334,7 +334,6 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
-    // static const Vector v6( ZeroVector(6) );
 
     ///@}
     ///@name Protected member Variables
