@@ -24,7 +24,6 @@
 #include "utilities/coordinate_transformation_utilities.h"
 
 // Application includes
-#include "custom_utilities/fluid_calculation_utilities.h"
 
 namespace Kratos
 {
@@ -46,6 +45,8 @@ public:
     using IndexType = std::size_t;
 
     using GeometryType = Geometry<NodeType>;
+
+    using CoordinateTransformationUtilities = CoordinateTransformationUtils<Matrix, Vector, double>;
 
     ///@}
     ///@name Static Operations
@@ -69,30 +70,7 @@ public:
     static void CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
-        const GeometryType& rGeometry)
-    {
-        if (rOutput.size1() != rResidualDerivatives.size1() ||
-            rOutput.size2() != rResidualDerivatives.size2()) {
-            rOutput.resize(rResidualDerivatives.size1(),
-                           rResidualDerivatives.size2(), false);
-        }
-
-        rOutput.clear();
-
-        const IndexType number_of_nodes = rGeometry.PointsNumber();
-
-        // add residual derivative contributions
-        for (IndexType a = 0; a < number_of_nodes; ++a) {
-            const auto& r_node = rGeometry[a];
-            const IndexType block_index = a * TBlockSize;
-            if (r_node.Is(SLIP)) {
-                AddNodalRotationDerivatives(rOutput, rResidualDerivatives, block_index, r_node);
-                AddNodalApplySlipConditionDerivatives(rOutput, block_index, r_node);
-            } else {
-                AddNodalResidualDerivatives(rOutput, rResidualDerivatives, block_index);
-            }
-        }
-    }
+        const GeometryType& rGeometry);
 
     /**
      * @brief Calculates rotated slip applied state derivatives
@@ -112,32 +90,7 @@ public:
     static void CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
-        const GeometryType& rGeometry)
-    {
-        if (rOutput.size1() != rResidualDerivatives.size1() ||
-            rOutput.size2() != rResidualDerivatives.size2()) {
-            rOutput.resize(rResidualDerivatives.size1(),
-                           rResidualDerivatives.size2(), false);
-        }
-
-        rOutput.clear();
-
-        const IndexType number_of_nodes = rGeometry.PointsNumber();
-
-        // add residual derivative contributions
-        for (IndexType a = 0; a < number_of_nodes; ++a) {
-            const auto& r_node = rGeometry[a];
-            const IndexType block_index = a * TBlockSize;
-            if (r_node.Is(SLIP)) {
-                AddNodalRotationDerivatives(rOutput, rResidualDerivatives, block_index, r_node);
-                // since slip condition is only based on first derivative
-                // variable, make the column zero for all derivatives
-                ClearNodalResidualDerivatives(rOutput, block_index);
-            } else {
-                AddNodalResidualDerivatives(rOutput, rResidualDerivatives, block_index);
-            }
-        }
-    }
+        const GeometryType& rGeometry);
 
     /**
      * @brief Rotates residual derivatives
@@ -154,38 +107,7 @@ public:
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
         const IndexType NodeStartIndex,
-        const NodeType& rNode)
-    {
-        KRATOS_TRY
-
-        using coordinate_transformation_utils =
-            CoordinateTransformationUtils<Matrix, Vector, double>;
-
-        BoundedVector<double, TDim> residual_derivative, aux_vector;
-        BoundedMatrix<double, TDim, TDim> rotation_matrix;
-        coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
-
-        // add rotated residual derivative contributions
-        for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
-            // get the residual derivative relevant for node
-            FluidCalculationUtilities::ReadSubVector<TDim>(
-                residual_derivative, row(rResidualDerivatives, c), NodeStartIndex);
-
-            // rotate residual derivative
-            noalias(aux_vector) = prod(rotation_matrix, residual_derivative);
-
-            // add rotated residual derivative to local matrix
-            FluidCalculationUtilities::AddSubVector<TDim>(rOutput, aux_vector, c, NodeStartIndex);
-
-            // add rest of the equation derivatives
-            for (IndexType a = TDim; a < TBlockSize; ++a) {
-                rOutput(c, NodeStartIndex + a) +=
-                    rResidualDerivatives(c, NodeStartIndex + a);
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
+        const NodeType& rNode);
 
     /**
      * @brief Slip condition residual derivatives
@@ -200,25 +122,7 @@ public:
     static void AddNodalApplySlipConditionDerivatives(
         Matrix& rOutput,
         const IndexType NodeStartIndex,
-        const NodeType& rNode)
-    {
-        KRATOS_TRY
-
-        // Apply slip condition in primal scheme makes first momentum dof
-        // fixed, making the velocity in the normal direction as rhs.
-
-        // first clear the residual derivative
-        ClearNodalResidualDerivatives(rOutput, NodeStartIndex);
-
-        auto normal = rNode.FastGetSolutionStepValue(NORMAL);
-        normal /= norm_2(normal);
-
-        for (IndexType i = 0; i < TDim; ++i) {
-            rOutput(NodeStartIndex + i, NodeStartIndex) -= normal[i];
-        }
-
-        KRATOS_CATCH("");
-    }
+        const NodeType& rNode);
 
     /**
      * @brief Adds the nodal state derivatives as it is
@@ -233,20 +137,7 @@ public:
     static void AddNodalResidualDerivatives(
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
-        const IndexType NodeStartIndex)
-    {
-        KRATOS_TRY
-
-        // add non-rotated residual derivative contributions
-        for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
-            for (IndexType i = 0; i < TBlockSize; ++i) {
-                rOutput(c, NodeStartIndex + i) +=
-                    rResidualDerivatives(c, NodeStartIndex + i);
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
+        const IndexType NodeStartIndex);
 
     /**
      * @brief Clears a residual derivative
@@ -256,12 +147,15 @@ public:
      */
     static void ClearNodalResidualDerivatives(
         Matrix& rOutput,
-        const IndexType ResidualIndex)
-    {
-        for (IndexType c = 0; c < rOutput.size1(); ++c) {
-            rOutput(c, ResidualIndex) = 0.0;
-        }
-    }
+        const IndexType ResidualIndex);
+
+    ///@}
+
+private:
+    ///@name Private Static Members
+    ///@{
+
+    static const CoordinateTransformationUtilities mRotationTool;
 
     ///@}
 };

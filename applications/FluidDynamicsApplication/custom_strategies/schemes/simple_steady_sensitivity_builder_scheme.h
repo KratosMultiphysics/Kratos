@@ -65,7 +65,8 @@ public:
 
     /// Constructor.
     SimpleSteadySensitivityBuilderScheme()
-        : SensitivityBuilderScheme()
+        : SensitivityBuilderScheme(),
+          mRotationalTool(TDim, TBlockSize)
     {
         // Allocate auxiliary memory.
         // This needs to be done in the constructor because, this scheme
@@ -441,6 +442,8 @@ private:
 
     std::unordered_map<int, std::vector<int>> mNodalNeighboursMap;
 
+    const CoordinateTransformationUtils<Matrix, Vector, double> mRotationalTool;
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -455,15 +458,13 @@ private:
     {
         KRATOS_TRY
 
-        using coordinate_transformation_utils = CoordinateTransformationUtils<Matrix, Vector, double>;
-
         // // get the residual relevant for rNode
         BoundedVector<double, TDim> residual, residual_derivative, aux_vector;
         FluidCalculationUtilities::ReadSubVector<TDim>(residual, rResiduals, NodeStartIndex);
 
         // get the rotation matrix relevant for rNode
         BoundedMatrix<double, TDim, TDim> rotation_matrix;
-        coordinate_transformation_utils::LocalRotationOperatorPure(rotation_matrix, rNode);
+        mRotationalTool.LocalRotationOperatorPure(rotation_matrix, rNode);
 
         // add rotated residual derivative contributions
         for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
@@ -489,7 +490,7 @@ private:
         BoundedMatrix<double, TDim, TDim> rotation_matrix_derivative;
         const int current_node_index = rDerivativesMap.find(rNode.Id())->second * TDim;
         for (IndexType k = 0; k < TDim; ++k) {
-            coordinate_transformation_utils::CalculateRotationOperatorPureShapeSensitivities(
+            mRotationalTool.CalculateRotationOperatorPureShapeSensitivities(
                 rotation_matrix_derivative, 0, k, rNode);
 
             noalias(aux_vector) = prod(rotation_matrix_derivative, residual);
@@ -503,7 +504,7 @@ private:
             const int derivative_node_index =
                 rDerivativesMap.find(r_neighbour_ids[b])->second * TDim;
             for (IndexType k = 0; k < TDim; ++k) {
-                coordinate_transformation_utils::CalculateRotationOperatorPureShapeSensitivities(
+                mRotationalTool.CalculateRotationOperatorPureShapeSensitivities(
                     rotation_matrix_derivative, b + 1, k, rNode);
 
                 noalias(aux_vector) = prod(rotation_matrix_derivative, residual);

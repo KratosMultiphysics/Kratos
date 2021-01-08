@@ -23,6 +23,7 @@
 // kratos includes
 #include "includes/define.h"
 #include "includes/node.h"
+#include "includes/model_part.h"
 #include "containers/variable.h"
 #include "geometries/geometry.h"
 
@@ -79,12 +80,10 @@ public:
 	 */
 	CoordinateTransformationUtils(const unsigned int DomainSize,
 			const unsigned int NumRowsPerNode,
-			const Kratos::Flags& rSelectionFlag = SLIP,
-			const Variable<array_1d<double, 3>>& rVectorVariable = VELOCITY):
+			const Kratos::Flags& rSelectionFlag = SLIP):
 	mDomainSize(DomainSize),
 	mBlockSize(NumRowsPerNode),
-	mrFlag(rSelectionFlag),
-	mrVectorVariable(rVectorVariable)
+	mrFlag(rSelectionFlag)
 	{}
 
 	/// Destructor.
@@ -135,9 +134,9 @@ public:
         KRATOS_CATCH("");
     }
 
-    static void LocalRotationOperatorPure(
+    void LocalRotationOperatorPure(
 		BoundedMatrix<double, 3, 3>& rRot,
-		const GeometryType::PointType& rThisPoint)
+		const GeometryType::PointType& rThisPoint) const
     {
         // Get the normal evaluated at the node
         const array_1d<double, 3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
@@ -182,9 +181,9 @@ public:
         rRot(2, 2) = rRot(0, 0) * rT1[1] - rRot(0, 1) * rT1[0];
     }
 
-    static void LocalRotationOperatorPure(
+    void LocalRotationOperatorPure(
 		BoundedMatrix<double, 2, 2>& rRot,
-		const GeometryType::PointType& rThisPoint)
+		const GeometryType::PointType& rThisPoint) const
     {
         // Get the normal evaluated at the node
         const array_1d<double, 3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
@@ -223,7 +222,7 @@ public:
 
         if (mDomainSize == 2) {
             BoundedMatrix<double, 2, 2> local_matrix;
-            CalculateRotationOperatorPureShapeSensitivities(
+            this->CalculateRotationOperatorPureShapeSensitivities(
                 local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
             if (rRotationMatrixShapeDerivative.size1() != 2 ||
                 rRotationMatrixShapeDerivative.size2() != 2) {
@@ -232,7 +231,7 @@ public:
             noalias(rRotationMatrixShapeDerivative) = local_matrix;
         } else if (mDomainSize == 3) {
             BoundedMatrix<double, 3, 3> local_matrix;
-            CalculateRotationOperatorPureShapeSensitivities(
+            this->CalculateRotationOperatorPureShapeSensitivities(
                 local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
             if (rRotationMatrixShapeDerivative.size1() != 3 ||
                 rRotationMatrixShapeDerivative.size2() != 3) {
@@ -264,11 +263,11 @@ public:
      * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
      * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
      */
-    static void CalculateRotationOperatorPureShapeSensitivities(
+    virtual void CalculateRotationOperatorPureShapeSensitivities(
         BoundedMatrix<double, 2, 2>& rOutput,
         const std::size_t DerivativeNodeIndex,
         const std::size_t DerivativeDirectionIndex,
-        const GeometryType::PointType& rThisPoint)
+        const GeometryType::PointType& rThisPoint) const
     {
         KRATOS_TRY
 
@@ -342,11 +341,11 @@ public:
      * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
      * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
      */
-    static void CalculateRotationOperatorPureShapeSensitivities(
+    virtual void CalculateRotationOperatorPureShapeSensitivities(
         BoundedMatrix<double, 3, 3>& rOutput,
         const std::size_t DerivativeNodeIndex,
         const std::size_t DerivativeDirectionIndex,
-        const GeometryType::PointType& rThisPoint)
+        const GeometryType::PointType& rThisPoint) const
     {
         KRATOS_TRY
 
@@ -580,9 +579,9 @@ public:
 
 					// If the mesh is moving, we must impose v_normal = vmesh_normal
 					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(mrVectorVariable);
+					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-					Normalize(rN);
+					this->Normalize(rN);
 
 					for( unsigned int i = 0; i < j; ++i)// Skip term (i,i)
 					{
@@ -617,9 +616,9 @@ public:
 
 					// If the mesh is moving, we must impose v_normal = vmesh_normal
 					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(mrVectorVariable);
+					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-					Normalize(rN);
+					this->Normalize(rN);
 
 					rLocalVector[j] = inner_prod(rN,VMesh);
 				}
@@ -646,7 +645,7 @@ public:
 					BoundedMatrix<double,3,3> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrVectorVariable);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(rRot,Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
@@ -656,7 +655,7 @@ public:
 					BoundedMatrix<double,2,2> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrVectorVariable);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(rRot,Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
@@ -683,7 +682,7 @@ public:
 					BoundedMatrix<double,3,3> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrVectorVariable);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
@@ -693,7 +692,7 @@ public:
 					BoundedMatrix<double,2,2> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrVectorVariable);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
@@ -969,7 +968,7 @@ protected:
 		rT1[0] -= dot*rRot(TSkip,TSkip);
 		rT1[1] -= dot*rRot(TSkip,TSkip+1);
 		rT1[2] -= dot*rRot(TSkip,TSkip+2);
-		Normalize(rT1);
+		this->Normalize(rT1);
 		rRot(TSkip+1,TSkip  ) = rT1[0];
 		rRot(TSkip+1,TSkip+1) = rT1[1];
 		rRot(TSkip+1,TSkip+2) = rT1[2];
@@ -991,7 +990,7 @@ protected:
 	 * @return Original norm of the input vector
 	 */
 	template< class TVectorType >
-	static double Normalize(TVectorType& rThis)
+	double Normalize(TVectorType& rThis) const
 	{
 		double Norm = 0;
 		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
@@ -1044,8 +1043,6 @@ private:
 
 	const Kratos::Flags& mrFlag;
 
-	const Variable<array_1d<double, 3>>& mrVectorVariable;
-
 	///@}
 	///@name Private Operators
 	///@{
@@ -1076,7 +1073,7 @@ private:
 //             ThisRowType rN(rRot,0);
 //             for( unsigned int i = 0; i < 3; ++i)
 //                 rN[i] = rNormal[i];
-//             Normalize(rN);
+//             this->Normalize(rN);
 //
 //             // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
 //             ThisRowType rT1(rRot,1);
@@ -1099,7 +1096,7 @@ private:
 //
 //             // calculate projection and normalize
 //             rT1 -= dot * rN;
-//             Normalize(rT1);
+//             this->Normalize(rT1);
 //
 //             // The third base component is choosen as N x T1, which is normalized by construction
 //             ThisRowType rT2(rRot,2);
@@ -1118,7 +1115,7 @@ private:
 //
 //             rN[0] = rNormal[0];
 //             rN[1] = rNormal[1];
-//             Normalize(rN);
+//             this->Normalize(rN);
 //             rT[0] = -rN[1];
 //             rT[1] = rN[0];
 //         }
@@ -1137,19 +1134,19 @@ private:
 		return dot;
 	}
 
-    static inline double VectorNormDerivative(
+    inline double VectorNormDerivative(
         const double ValueNorm,
         const array_1d<double, 3>& rValue,
-        const array_1d<double, 3>& rValueDerivative)
+        const array_1d<double, 3>& rValueDerivative) const
     {
         return inner_prod(rValue, rValueDerivative) / ValueNorm;
     }
 
-    static inline array_1d<double, 3> UnitVectorDerivative(
+    inline array_1d<double, 3> UnitVectorDerivative(
         const double VectorNorm,
         const double VectorNormDerivative,
         const array_1d<double, 3>& rVector,
-        const array_1d<double, 3>& rVectorDerivative)
+        const array_1d<double, 3>& rVectorDerivative) const
     {
         return (rVectorDerivative * VectorNorm - rVector * VectorNormDerivative) /
                 std::pow(VectorNorm, 2);
