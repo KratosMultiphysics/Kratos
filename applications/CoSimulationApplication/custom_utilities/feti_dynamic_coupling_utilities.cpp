@@ -199,6 +199,7 @@ namespace Kratos
         GetExpandedMappingMatrix(expanded_mapper, dim);
 
         // Get destination kinematics
+        if (mDestinationPhysics == SolverPhysics::MPM) CheckMappingMPMGridNodesAreActive(mrDestinationInterfaceModelPart);
         Vector destination_kinematics(mrDestinationInterfaceModelPart.NumberOfNodes() * dim);
         GetInterfaceQuantity(mrDestinationInterfaceModelPart, equilibrium_variable, destination_kinematics, dim);
         if (mLagrangeDefinedOn == SolverIndex::Origin)
@@ -211,8 +212,10 @@ namespace Kratos
 
         // Get final predicted origin kinematics
         if (mSubTimestepIndex == 1 || IsEquilibriumCheck)
+        {
+            if (mOriginPhysics == SolverPhysics::MPM && !IsEquilibriumCheck) CheckMappingMPMGridNodesAreActive(mrOriginInterfaceModelPart);
             GetInterfaceQuantity(mrOriginInterfaceModelPart, equilibrium_variable, mFinalOriginInterfaceKinematics, dim);
-
+        }
         // Interpolate origin kinematics to the current sub-timestep
         const double time_ratio = double(mSubTimestepIndex) / double(mTimestepRatio);
         DenseVectorType interpolated_origin_kinematics = (IsEquilibriumCheck) ? mFinalOriginInterfaceKinematics

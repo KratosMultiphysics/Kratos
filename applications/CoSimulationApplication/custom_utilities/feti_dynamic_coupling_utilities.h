@@ -256,6 +256,32 @@ namespace Kratos
             }
         }
 
+        void CheckMappingMPMGridNodesAreActive(ModelPart& rInterfaceMP)
+        {
+            block_for_each(rInterfaceMP.Nodes(), [&](Node<3>& rNode)
+                {
+                    if (rNode.IsNot(ACTIVE))
+                    {
+                        #pragma omp critical
+                        {
+                            std::cout << "\n\n======= The following nodes are INACTIVE =========\n\n";
+                            array_1d<double, 3> coords;
+                            for (auto& r_node: rInterfaceMP.Nodes())
+                            {
+                                if (r_node.IsNot(ACTIVE))
+                                {
+                                    std::cout << "Node ID " << r_node.Id() << ", coords = " << r_node.Coordinates() << "\n";
+                                }
+                            }
+                            KRATOS_ERROR << "MPM mapping interface grid node is not active.\n"
+                                << "This probably means you need more material points created immediately near the interface to ensure non-zero interface nodal values.\n"
+                                << "Please check the above printout of INACTIVE nodes\n";
+                        }
+                    }
+                }
+            );
+        }
+
         Variable< array_1d<double, 3> >& GetEquilibriumVariable();
 
     };  // namespace FetiDynamicCouplingUtilities.
