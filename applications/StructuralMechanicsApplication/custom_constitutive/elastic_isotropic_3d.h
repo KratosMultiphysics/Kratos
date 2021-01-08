@@ -169,7 +169,7 @@ public:
     {
         const auto p_initial_state = pGetpInitialState();
         if (p_initial_state) {
-            noalias(rStrainVector) += p_initial_state->GetInitialStrainVector();
+            noalias(rStrainVector) -= p_initial_state->GetInitialStrainVector();
         }
     }
 
