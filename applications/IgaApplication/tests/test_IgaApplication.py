@@ -31,9 +31,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
         ScordelisRoofShell3pTest,
-        TTestModelers
+        TTestModelers,
+        TTestNurbsVolumeElements
         ]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestNurbsVolumeElements]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)

@@ -1,16 +1,16 @@
 import KratosMultiphysics as KM
-from KratosMultiphysics.IgaApplication import *
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-def drange(start, stop, step):
+def decimal_range(start, stop, step):
     r = start
     while r < stop:
         yield r
         r += step
 
 class TestNurbsVolumeElement(KratosUnittest.TestCase):
+
     '''
     Test description:
     Provides necessary methods to run test for Iga volume elements.
@@ -25,9 +25,9 @@ class TestNurbsVolumeElement(KratosUnittest.TestCase):
         delta_u = length / order_u
         delta_v = width / order_v_w
         delta_w = width / order_v_w
-        z_list = [x for x in drange(0.0, width + 0.5*delta_w, delta_w)]
-        y_list = [x for x in drange(0.0, width + 0.5*delta_v, delta_v)]
-        x_list = [x for x in drange(0.0, length + 0.5*delta_u, delta_u)]
+        z_list = [x for x in decimal_range(0.0, width + 0.5*delta_w, delta_w)]
+        y_list = [x for x in decimal_range(0.0, width + 0.5*delta_v, delta_v)]
+        x_list = [x for x in decimal_range(0.0, length + 0.5*delta_u, delta_u)]
         for k in z_list: #z-direction
             for j in y_list: #y-direction
                 for i in x_list: #x-direction
@@ -84,7 +84,7 @@ class TestNurbsVolumeElement(KratosUnittest.TestCase):
 
         volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
-        for i in range(0,len(quadrature_point_geometries)):
+        for i in range(len(quadrature_point_geometries)):
             model_part.CreateNewElement('UpdatedLagrangianElement3D4N', i+1, quadrature_point_geometries[i], volume_properties)
 
         # Add dofs
