@@ -575,7 +575,7 @@ void DamageDPlusDMinusMasonry2DLaw::ConstructProjectionTensors(
 
 	const array_1d<double,3>& effective_stress_vector = data.EffectiveStressVector;
 
-	Matrix& effective_stress_tensor = MathUtils<double>::StressVectorToTensor(effective_stress_vector);
+	Matrix effective_stress_tensor = MathUtils<double>::StressVectorToTensor(effective_stress_vector);
     BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
     BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
