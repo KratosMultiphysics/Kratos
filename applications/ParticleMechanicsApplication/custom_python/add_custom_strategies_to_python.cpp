@@ -24,7 +24,7 @@
 #include "boost/numeric/ublas/matrix.hpp"
 
 //---strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/mpm_residual_based_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/mpm_explicit_strategy.hpp"
 
@@ -55,7 +55,7 @@ namespace Python{
 
         //base types
         typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-        typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+        typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
         typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
         typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
         typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;

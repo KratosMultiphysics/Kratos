@@ -220,7 +220,7 @@ class MechanicalSolver(PythonSolver):
         if not self.is_restarted():
             mechanical_solution_strategy.Initialize()
         else:
-            # SetInitializePerformedFlag is not a member of SolvingStrategy but
+            # SetInitializePerformedFlag is not a member of ImplicitSolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
             try:
                 mechanical_solution_strategy.SetInitializePerformedFlag(True)

@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
@@ -74,7 +74,7 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( LineSearchContactStrategy );
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              StrategyBaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              StrategyBaseType;
     
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> NRBaseType;
     

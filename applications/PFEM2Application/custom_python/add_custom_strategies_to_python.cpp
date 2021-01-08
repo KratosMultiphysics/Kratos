@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_strategies_to_python.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/explicit_strategy.h"
 #include "custom_strategies/fracstep_GLS_strategy.h"
 
@@ -89,7 +89,7 @@ namespace Kratos
 			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+			typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 			//********************************************************************

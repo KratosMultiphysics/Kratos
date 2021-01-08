@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
 // Application includes
@@ -51,7 +51,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class HarmonicAnalysisStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -59,7 +59,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(HarmonicAnalysisStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
 
@@ -92,7 +92,7 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         bool UseMaterialDampingFlag = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
         KRATOS_TRY
 

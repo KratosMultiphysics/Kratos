@@ -244,7 +244,7 @@ class FemDemMechanicalSolver(object):
         if (self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
             mechanical_solver.Initialize()
         else:
-            # SetInitializePerformedFlag is not a member of SolvingStrategy but
+            # SetInitializePerformedFlag is not a member of ImplicitSolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
             if hasattr(mechanical_solver, SetInitializePerformedFlag):
                 mechanical_solver.SetInitializePerformedFlag(True)
