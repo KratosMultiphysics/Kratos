@@ -213,13 +213,21 @@ void AssembleContainerContributions(
                     rEntity, rResponseFunction, sensitivities, gp_vector,
                     rDesignVariable, rProcessInfo);
 
+                KRATOS_DEBUG_ERROR_IF(sensitivities.size() != gp_vector.size() &&
+                                      sensitivities.size() == 0)
+                    << "gp_vector and sensitivities size mismatch [ "
+                       "gp_vector.size() = "
+                    << gp_vector.size()
+                    << ", sensitivities.size() = " << sensitivities.size() << " ].\n";
+
                 // assign sensitivities to correct entities
+                if (gp_vector.size() != 0) {
+                    const IndexType data_size = sensitivities.size() / gp_vector.size();
 
-                const IndexType data_size = sensitivities.size() / gp_vector.size();
-
-                for (IndexType i = 0; i < gp_vector.size(); ++i) {
-                    GetDataFromVector(sensitivities, i * data_size, data_size, data);
-                    rProxy.Assign(gp_vector(i), data);
+                    for (IndexType i = 0; i < gp_vector.size(); ++i) {
+                        GetDataFromVector(sensitivities, i * data_size, data_size, data);
+                        rProxy.Assign(gp_vector(i), data);
+                    }
                 }
             }
         });
@@ -523,6 +531,127 @@ SensitivityBuilder::SensitivityBuilder(
     KRATOS_CATCH("");
 }
 
+void SensitivityBuilder::Initialize()
+{
+    KRATOS_TRY;
+
+    Clear();
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
+                                             mpSensitivityModelPart->Nodes());
+    VariableUtils().SetNonHistoricalVariable(
+        UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Elements());
+    VariableUtils().SetNonHistoricalVariable(
+        UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Conditions());
+
+    mpSensitivityBuilderScheme->Initialize(
+        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
+
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::InitializeSolutionStep()
+{
+    mpSensitivityBuilderScheme->InitializeSolutionStep(
+        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
+}
+
+void SensitivityBuilder::UpdateSensitivities()
+{
+    KRATOS_TRY;
+    double scaling_factor{};
+    if (mBuildMode == "integrate") {
+        // integrate in time
+        scaling_factor = -mpModelPart->GetProcessInfo()[DELTA_TIME];
+    } else if (mBuildMode == "sum") {
+        scaling_factor = 1.0;
+    } else if (mBuildMode == "static") {
+        scaling_factor = 1.0;
+        ClearSensitivities();
+    } else {
+        KRATOS_ERROR << "Unsupported \"build_mode\": " << mBuildMode << std::endl;
+    }
+    if (mNodalSolutionStepSensitivityCalculationIsThreadSafe) {
+        CalculateNodalSolutionStepSensitivities(
+            mNodalSolutionStepSensitivityVariablesList, *mpModelPart,
+            *mpResponseFunction, *mpSensitivityBuilderScheme, scaling_factor);
+    } else {
+#ifdef _OPENMP
+        const int max_threads = omp_get_max_threads();
+        omp_set_num_threads(1);
+#endif
+        CalculateNodalSolutionStepSensitivities(
+            mNodalSolutionStepSensitivityVariablesList, *mpModelPart,
+            *mpResponseFunction, *mpSensitivityBuilderScheme, scaling_factor);
+#ifdef _OPENMP
+        omp_set_num_threads(max_threads);
+#endif
+    }
+    CalculateNonHistoricalSensitivities(
+        mElementDataValueSensitivityVariablesList, mpModelPart->Elements(),
+        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
+    CalculateNonHistoricalSensitivities(
+        mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions(),
+        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
+
+    mpSensitivityBuilderScheme->Update(
+        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
+
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::FinalizeSolutionStep()
+{
+    mpSensitivityBuilderScheme->FinalizeSolutionStep(
+        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
+}
+
+void SensitivityBuilder::Finalize()
+{
+    mpSensitivityBuilderScheme->Finalize(
+        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
+}
+
+void SensitivityBuilder::Clear()
+{
+    KRATOS_TRY;
+
+    ClearFlags();
+    ClearSensitivities();
+    mpSensitivityBuilderScheme->Clear();
+
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::ClearFlags()
+{
+    KRATOS_TRY;
+
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Nodes());
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Elements());
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Conditions());
+
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::ClearSensitivities()
+{
+    KRATOS_TRY;
+
+    using namespace sensitivity_builder_cpp;
+
+    ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
+        mElementDataValueSensitivityVariablesList, mpModelPart->Elements());
+    ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
+        mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions());
+    ExecuteFunctorInContainer<SetHistoricalValueToZeroFunctor>(
+        mNodalSolutionStepSensitivityVariablesList, mpModelPart->Nodes());
+
+    KRATOS_CATCH("");
+}
+
 void SensitivityBuilder::CalculateNodalSolutionStepSensitivities(
     const std::vector<std::string>& rVariables,
     ModelPart& rModelPart,
@@ -621,109 +750,6 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
     ExecuteFunctor<CalculateNonHistoricalSensitivitiesFunctor>(
         rVariables, rConditions, rResponseFunction, rSensitivityBuilderScheme,
         ParallelEnvironment::GetDefaultDataCommunicator(), rProcessInfo, ScalingFactor);
-}
-
-void SensitivityBuilder::Initialize()
-{
-    KRATOS_TRY;
-
-    Clear();
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
-                                             mpSensitivityModelPart->Nodes());
-    VariableUtils().SetNonHistoricalVariable(
-        UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Elements());
-    VariableUtils().SetNonHistoricalVariable(
-        UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Conditions());
-
-    mpSensitivityBuilderScheme->Initialize(
-        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
-
-    KRATOS_CATCH("");
-}
-
-void SensitivityBuilder::UpdateSensitivities()
-{
-    KRATOS_TRY;
-    double scaling_factor{};
-    if (mBuildMode == "integrate") {
-        // integrate in time
-        scaling_factor = -mpModelPart->GetProcessInfo()[DELTA_TIME];
-    } else if (mBuildMode == "sum") {
-        scaling_factor = 1.0;
-    } else if (mBuildMode == "static") {
-        scaling_factor = 1.0;
-        ClearSensitivities();
-    } else {
-        KRATOS_ERROR << "Unsupported \"build_mode\": " << mBuildMode << std::endl;
-    }
-    if (mNodalSolutionStepSensitivityCalculationIsThreadSafe) {
-        CalculateNodalSolutionStepSensitivities(
-            mNodalSolutionStepSensitivityVariablesList, *mpModelPart,
-            *mpResponseFunction, *mpSensitivityBuilderScheme, scaling_factor);
-    } else {
-#ifdef _OPENMP
-        const int max_threads = omp_get_max_threads();
-        omp_set_num_threads(1);
-#endif
-        CalculateNodalSolutionStepSensitivities(
-            mNodalSolutionStepSensitivityVariablesList, *mpModelPart,
-            *mpResponseFunction, *mpSensitivityBuilderScheme, scaling_factor);
-#ifdef _OPENMP
-        omp_set_num_threads(max_threads);
-#endif
-    }
-    CalculateNonHistoricalSensitivities(
-        mElementDataValueSensitivityVariablesList, mpModelPart->Elements(),
-        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
-    CalculateNonHistoricalSensitivities(
-        mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions(),
-        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
-
-    mpSensitivityBuilderScheme->Update(
-        *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
-
-    KRATOS_CATCH("");
-}
-
-void SensitivityBuilder::Clear()
-{
-    KRATOS_TRY;
-
-    ClearFlags();
-    ClearSensitivities();
-    mpSensitivityBuilderScheme->Clear();
-
-    KRATOS_CATCH("");
-}
-
-void SensitivityBuilder::ClearFlags()
-{
-    KRATOS_TRY;
-
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Nodes());
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Elements());
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Conditions());
-
-    KRATOS_CATCH("");
-}
-
-void SensitivityBuilder::ClearSensitivities()
-{
-    KRATOS_TRY;
-
-    using namespace sensitivity_builder_cpp;
-
-    ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
-        mElementDataValueSensitivityVariablesList, mpModelPart->Elements());
-    ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
-        mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions());
-    ExecuteFunctorInContainer<SetHistoricalValueToZeroFunctor>(
-        mNodalSolutionStepSensitivityVariablesList, mpModelPart->Nodes());
-
-    KRATOS_CATCH("");
 }
 
 template <class TContainerType>

@@ -55,7 +55,7 @@ namespace Python {
 
 /**
  * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
- */   
+ */
 pybind11::list GetSortedListOfFileNameDataHelper(
     std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList,
     const std::vector<std::string> & rSortingFlagsOrder
@@ -482,7 +482,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer, SensitivityBuilderScheme::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
+        .def("InitializeSolutionStep", &SensitivityBuilder::InitializeSolutionStep)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
+        .def("FinalizeSolutionStep", &SensitivityBuilder::FinalizeSolutionStep)
+        .def("Finalize", &SensitivityBuilder::Finalize)
         .def("AssignConditionDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
         .def("AssignElementDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
         ;
